@@ -376,13 +376,25 @@ exports.handler = async function (event) {
       matches = snap.docs.map(docToItem).filter(item => !item.reserved);
     }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
 
-    // Agar topilmasa (yoki indeks yo'q bo'lsa) — barcha raqamlarni tekshirib chiqamiz
-    // (bu "qidiruv belgisi"siz eski raqamlarni ham topadi)
+    // Agar topilmasa (yoki indeks yo'q bo'lsa) — shu operatordagi BARCHA raqamlarni
+    // (sahifalab, cheklovsiz) tekshirib chiqamiz — bu "qidiruv belgisi"siz eski
+    // raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
     if(matches.length === 0){
-      const allSnap = await withRetry(() => db.collection('numbers')
-        .where('operator', '==', session.operator)
-        .limit(300).get());
-      matches = allSnap.docs.map(docToItem)
+      const allDocs = [];
+      let lastDoc = null;
+      while(true){
+        let q = db.collection('numbers')
+          .where('operator', '==', session.operator)
+          .orderBy(admin.firestore.FieldPath.documentId())
+          .limit(300);
+        if(lastDoc) q = q.startAfter(lastDoc);
+        const pageSnap = await withRetry(() => q.get());
+        if(pageSnap.empty) break;
+        allDocs.push(...pageSnap.docs);
+        lastDoc = pageSnap.docs[pageSnap.docs.length - 1];
+        if(pageSnap.docs.length < 300) break;
+      }
+      matches = allDocs.map(docToItem)
         .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
     }
 
