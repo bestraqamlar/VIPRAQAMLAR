@@ -13,6 +13,7 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+db.settings({ preferRest: true }); // Netlify Functions'da gRPC ulanish muammosini oldini oladi
 
 const CODE_TO_OPERATOR = {
   '91':'Beeline', '90':'Beeline', '92':'Beeline',

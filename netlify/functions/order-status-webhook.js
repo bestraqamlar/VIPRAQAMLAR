@@ -13,6 +13,7 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+db.settings({ preferRest: true }); // Netlify Functions'da gRPC ulanish muammosini oldini oladi
 
 const STATUS_MAP = { 'B': "Bog'lanildi", 'Y': 'Yakunlandi', 'C': 'Bekor qilindi' };
 
