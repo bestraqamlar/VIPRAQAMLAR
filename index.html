@@ -53,6 +53,59 @@
     box-shadow:0 0 8px var(--green);
     animation:pulse-dot 2s ease-in-out infinite;
   }
+
+  .menu-btn{
+    background:none;border:1px solid var(--line);border-radius:8px;
+    width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+    color:var(--text);cursor:pointer;
+  }
+  .menu-btn svg{width:20px;height:20px;}
+  .menu-btn:hover{border-color:var(--red);color:var(--red);}
+
+  .drawer-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.55);
+    opacity:0;pointer-events:none;transition:opacity 0.25s ease;z-index:90;
+  }
+  .drawer-overlay.open{opacity:1;pointer-events:auto;}
+
+  .side-drawer{
+    position:fixed;top:0;right:0;height:100%;width:320px;max-width:86vw;
+    background:var(--panel);border-left:1px solid var(--line);
+    transform:translateX(100%);transition:transform 0.3s ease;z-index:95;
+    display:flex;flex-direction:column;overflow-y:auto;
+  }
+  .side-drawer.open{transform:translateX(0);}
+
+  .drawer-top{padding:14px 16px;display:flex;justify-content:flex-start;}
+  .drawer-close{
+    background:none;border:1px solid var(--line);border-radius:8px;
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    color:var(--text);cursor:pointer;
+  }
+  .drawer-close svg{width:16px;height:16px;}
+  .drawer-close:hover{border-color:var(--red);color:var(--red);}
+
+  .drawer-links{display:flex;flex-direction:column;gap:8px;padding:4px 16px 16px;}
+  .drawer-links a{
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;color:var(--text);text-decoration:none;font-size:13.5px;font-weight:600;
+    transition:border-color 0.2s;
+  }
+  .drawer-links a svg{width:18px;height:18px;flex-shrink:0;color:var(--red);}
+  .drawer-links a:hover{border-color:var(--red);}
+
+  .drawer-map-wrap{padding:0 16px;}
+  .drawer-map{
+    width:100%;height:180px;border:1px solid var(--line);border-radius:10px;
+  }
+
+  .drawer-info{padding:14px 16px 24px;display:flex;flex-direction:column;gap:10px;}
+  .drawer-info-row{
+    display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  }
+
   @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);}}
   .logo .logo-accent{color:var(--brand-red);}
   nav a{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px;}
@@ -266,6 +319,31 @@
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
   }
   .featured-scroll::-webkit-scrollbar{display:none;}
+  .daily-deal-scroll{
+    display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .daily-deal-scroll::-webkit-scrollbar{display:none;}
+  .daily-deal-card{
+    flex:0 0 150px;border-radius:12px;padding:10px;
+    border:1px solid var(--card-accent, var(--line));
+    background: radial-gradient(ellipse at top left, var(--card-glow, transparent), var(--panel) 70%);
+  }
+  .daily-deal-card .dd-badge{
+    display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:800;
+    padding:2px 6px;border-radius:6px;margin-bottom:6px;
+  }
+  .daily-deal-card .dd-op{font-size:9.5px;color:var(--muted);margin-bottom:2px;}
+  .daily-deal-card .dd-num{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;
+  }
+  .daily-deal-card .dd-price{font-size:11px;color:var(--green);font-weight:800;}
+  .daily-deal-card .dd-oldprice{font-size:10px;color:var(--muted);text-decoration:line-through;margin-left:4px;}
+  .daily-deal-card button{
+    width:100%;margin-top:8px;background:var(--red);color:#fff;border:none;border-radius:8px;
+    padding:7px;font-size:11px;font-weight:700;cursor:pointer;
+  }
   .featured-hint{text-align:center;color:#3A4A6B;font-size:10px;margin-top:6px;}
   .featured-card{
     flex:0 0 230px;border-radius:14px;padding:14px;
@@ -399,8 +477,47 @@
 
 <header>
   <div class="logo"><span class="dot"></span>RAQAM<span class="logo-accent">.UZ</span></div>
-  <nav><a href="#catalog"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="15" width="7" height="7" rx="1"/><rect x="14" y="15" width="7" height="7" rx="1"/></svg>Katalog</a></nav>
+  <button class="menu-btn" id="menuBtn" aria-label="Menyu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </header>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="side-drawer" id="sideDrawer">
+  <div class="drawer-top">
+    <button class="drawer-close" id="drawerClose" aria-label="Yopish">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-links">
+    <a id="drawerTelegram" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
+      Telegram kanal
+    </a>
+    <a id="drawerInstagram" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+      Instagram kanal
+    </a>
+    <a id="drawerContact" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Murojaat uchun
+    </a>
+    <a id="drawerAdmin" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      Admin bilan aloqa
+    </a>
+  </div>
+
+  <div class="drawer-map-wrap">
+    <iframe id="drawerMap" class="drawer-map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
+
+  <div class="drawer-info">
+    <div class="drawer-info-row"><span>🕐</span><span id="drawerHours">Ish vaqti: 09:00 - 18:00</span></div>
+    <div class="drawer-info-row"><span>🚚</span><span id="drawerDelivery">O'zbekiston bo'ylab dostavka xizmati</span></div>
+  </div>
+</aside>
 
 <section class="hero">
   <h1><span class="brand-white">RAQAM</span><span class="brand-red">.UZ</span></h1>
@@ -464,6 +581,14 @@
     <a href="#catalog" class="featured-link">Barchasini ko'rish</a>
   </div>
   <div class="featured-scroll" id="saleScroll"></div>
+  <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
+</section>
+
+<section class="daily-deal-section" id="dailyDealSection" style="display:none;">
+  <div class="featured-header">
+    <span class="featured-title">🔥 Bugungi aksiyaga tushgan raqamlar</span>
+  </div>
+  <div class="daily-deal-scroll" id="dailyDealScroll"></div>
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
@@ -594,6 +719,7 @@ async function loadNumbers(retryDelay){
       renderCatalog();
       renderFeatured();
       renderSale();
+      renderDailyDeal();
     }
   }catch(e){ /* kesh yo'q yoki buzilgan — muammo emas, pastda yangisi yuklanadi */ }
 
@@ -606,6 +732,7 @@ async function loadNumbers(retryDelay){
     renderCatalog();
     renderFeatured();
     renderSale();
+    renderDailyDeal();
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
     if(NUMBERS.length === 0){
@@ -827,6 +954,40 @@ function renderSale(){
   });
 }
 
+const dailyDealSection = document.getElementById('dailyDealSection');
+const dailyDealScroll  = document.getElementById('dailyDealScroll');
+
+function renderDailyDeal(){
+  const picks = NUMBERS.filter(item => item.dailyDeal === true);
+  if(picks.length === 0){
+    dailyDealSection.style.display = 'none';
+    return;
+  }
+  dailyDealSection.style.display = 'block';
+  dailyDealScroll.innerHTML = picks.map(item => {
+    const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+    const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+    return `
+      <div class="daily-deal-card">
+        ${hasDiscount ? `<div class="dd-badge">-${discountPct}%</div>` : ''}
+        <div class="dd-op">${item.operator} · ${item.tag === 'vip' ? 'VIP' : 'Oddiy'}</div>
+        <div class="dd-num">${displayNumber(item.number)}</div>
+        <div>
+          <span class="dd-price">${formatPrice(item.price)}</span>
+          ${hasDiscount ? `<span class="dd-oldprice">${formatPrice(item.oldPrice)}</span>` : ''}
+        </div>
+        ${item.reserved
+          ? `<button disabled style="opacity:0.6;">Band qilingan</button>`
+          : `<button data-number="${item.number}" data-id="${item.id}">Buyurtma berish</button>`}
+      </div>
+    `;
+  }).join('');
+
+  dailyDealScroll.querySelectorAll('button:not(:disabled)').forEach(btn=>{
+    btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
+  });
+}
+
 operatorSelect.addEventListener('change', ()=>{ currentPage = 0; updateSearchUI(); renderCatalog(); });
 digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
@@ -962,6 +1123,7 @@ confirmBtn.addEventListener('click', async ()=>{
   renderCatalog();
   renderFeatured();
   renderSale();
+  renderDailyDeal();
 });
 
 /* Hero'dagi "sotilgan raqam" sonini 0 dan boshlab jonli sanaydi */
@@ -980,12 +1142,47 @@ function animateCount(el, target, duration = 1200){
 document.addEventListener('copy', (e) => e.preventDefault());
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
+/* ---- Yon menyu (drawer) ---- */
+const menuBtn      = document.getElementById('menuBtn');
+const sideDrawer   = document.getElementById('sideDrawer');
+const drawerOverlay= document.getElementById('drawerOverlay');
+const drawerClose  = document.getElementById('drawerClose');
+
+function openDrawer(){
+  sideDrawer.classList.add('open');
+  drawerOverlay.classList.add('open');
+}
+function closeDrawer(){
+  sideDrawer.classList.remove('open');
+  drawerOverlay.classList.remove('open');
+}
+menuBtn.addEventListener('click', openDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+drawerOverlay.addEventListener('click', closeDrawer);
+
+async function loadSiteSettings(){
+  try{
+    const doc = await db.collection('site_settings').doc('general').get();
+    if(!doc.exists) return;
+    const s = doc.data();
+    if(s.telegramLink) document.getElementById('drawerTelegram').href = s.telegramLink;
+    if(s.instagramLink) document.getElementById('drawerInstagram').href = s.instagramLink;
+    if(s.contactLink) document.getElementById('drawerContact').href = s.contactLink;
+    if(s.adminContactLink) document.getElementById('drawerAdmin').href = s.adminContactLink;
+    if(s.mapEmbedUrl) document.getElementById('drawerMap').src = s.mapEmbedUrl;
+    if(s.workingHours) document.getElementById('drawerHours').textContent = s.workingHours;
+    if(s.deliveryText) document.getElementById('drawerDelivery').textContent = s.deliveryText;
+  }catch(e){ console.error('Sozlamalarni yuklashda xato:', e); }
+}
+loadSiteSettings();
+
 showSkeletons();
 (async function init(){
   await loadNumbers();
   renderCatalog();
   renderFeatured();
   renderSale();
+  renderDailyDeal();
   animateCount(document.getElementById('soldCount'), 1240);
 })();
 </script>

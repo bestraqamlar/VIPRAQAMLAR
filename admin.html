@@ -317,6 +317,10 @@
         <input type="checkbox" id="newFeatured">
         Mashhur raqamlarga qo'shish
       </label>
+      <label class="checkbox-field">
+        <input type="checkbox" id="newDailyDeal">
+        🔥 Bugungi aksiyaga qo'shish
+      </label>
       <button id="addNumberBtn">+ Raqam qo'shish</button>
       <div class="code-hint" id="codeHint"></div>
     </div>
@@ -358,6 +362,26 @@
       <input type="password" id="newPasswordInput" placeholder="Yangi parol (kamida 6 belgi)">
       <button id="saveCredentialsBtn">Saqlash</button>
       <div class="settings-msg" id="settingsMsg"></div>
+    </div>
+
+    <div class="settings-form" style="margin-top:16px;">
+      <h3>Sayt sozlamalari (yon menyu)</h3>
+      <label for="siteTelegramLink">Telegram kanal havolasi</label>
+      <input type="text" id="siteTelegramLink" placeholder="https://t.me/kanalingiz">
+      <label for="siteInstagramLink">Instagram havolasi</label>
+      <input type="text" id="siteInstagramLink" placeholder="https://instagram.com/sahifangiz">
+      <label for="siteContactLink">Murojaat uchun havola</label>
+      <input type="text" id="siteContactLink" placeholder="https://t.me/sizning_username yoki tel:+998...">
+      <label for="siteAdminContactLink">Admin bilan aloqa havolasi</label>
+      <input type="text" id="siteAdminContactLink" placeholder="https://t.me/admin_username">
+      <label for="siteMapEmbedUrl">Xarita (Google Maps "Embed a map" havolasi)</label>
+      <input type="text" id="siteMapEmbedUrl" placeholder="https://www.google.com/maps/embed?pb=...">
+      <label for="siteWorkingHours">Ish vaqti</label>
+      <input type="text" id="siteWorkingHours" placeholder="Ish vaqti: Dushanba-Shanba 09:00 - 18:00">
+      <label for="siteDeliveryText">Dostavka matni</label>
+      <input type="text" id="siteDeliveryText" placeholder="O'zbekiston bo'ylab dostavka xizmati">
+      <button id="saveSiteSettingsBtn">Saqlash</button>
+      <div class="settings-msg" id="siteSettingsMsg"></div>
     </div>
   </div>
 </div>
@@ -580,6 +604,44 @@ document.getElementById('saveCredentialsBtn').addEventListener('click', async ()
   }
 });
 
+/* ---- Sayt sozlamalari (yon menyu, xarita, ish vaqti va h.k.) ---- */
+async function loadSiteSettingsForm(){
+  try{
+    const doc = await db.collection('site_settings').doc('general').get();
+    if(!doc.exists) return;
+    const s = doc.data();
+    document.getElementById('siteTelegramLink').value = s.telegramLink || '';
+    document.getElementById('siteInstagramLink').value = s.instagramLink || '';
+    document.getElementById('siteContactLink').value = s.contactLink || '';
+    document.getElementById('siteAdminContactLink').value = s.adminContactLink || '';
+    document.getElementById('siteMapEmbedUrl').value = s.mapEmbedUrl || '';
+    document.getElementById('siteWorkingHours').value = s.workingHours || '';
+    document.getElementById('siteDeliveryText').value = s.deliveryText || '';
+  }catch(e){ console.error('Sayt sozlamalarini yuklashda xato:', e); }
+}
+loadSiteSettingsForm();
+
+document.getElementById('saveSiteSettingsBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('siteSettingsMsg');
+  try{
+    await db.collection('site_settings').doc('general').set({
+      telegramLink: document.getElementById('siteTelegramLink').value.trim(),
+      instagramLink: document.getElementById('siteInstagramLink').value.trim(),
+      contactLink: document.getElementById('siteContactLink').value.trim(),
+      adminContactLink: document.getElementById('siteAdminContactLink').value.trim(),
+      mapEmbedUrl: document.getElementById('siteMapEmbedUrl').value.trim(),
+      workingHours: document.getElementById('siteWorkingHours').value.trim(),
+      deliveryText: document.getElementById('siteDeliveryText').value.trim()
+    });
+    msg.textContent = '✓ Sayt sozlamalari saqlandi.';
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
+
 
 /* ---- Seanslar ro'yxati ---- */
 const sessionsList = document.getElementById('sessionsList');
@@ -680,6 +742,10 @@ function renderAdminNumbers(numbers){
           <input type="checkbox" class="an-featured" ${item.featured ? 'checked' : ''}>
           Mashhur raqamlarda
         </label>
+        <label class="an-installment-label">
+          <input type="checkbox" class="an-dailydeal" ${item.dailyDeal ? 'checked' : ''}>
+          🔥 Bugungi aksiyada
+        </label>
       </div>
     </div>
   `).join('') + (hiddenCount > 0
@@ -703,6 +769,7 @@ function renderAdminNumbers(numbers){
           onSale: oldPriceVal > priceVal,
           installment: row.querySelector('.an-installment').checked,
           featured: row.querySelector('.an-featured').checked,
+          dailyDeal: row.querySelector('.an-dailydeal').checked,
           tag: row.querySelector('.an-tag').value
         });
         btn.textContent = '✓ Saqlandi';
@@ -767,6 +834,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       onSale: oldPriceVal > priceVal,
       installment: document.getElementById('newInstallment').checked,
       featured: document.getElementById('newFeatured').checked,
+      dailyDeal: document.getElementById('newDailyDeal').checked,
       tag: document.getElementById('newTag').value,
       last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
       addedAt: Date.now(),
@@ -778,6 +846,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     document.getElementById('newOldPrice').value = '';
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
+    document.getElementById('newDailyDeal').checked = false;
     codeHint.textContent = '';
     codeHint.className = 'code-hint';
     refreshNumbers();
