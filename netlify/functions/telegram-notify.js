@@ -14,7 +14,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const { text } = JSON.parse(event.body || '{}');
+    const { text, orderId } = JSON.parse(event.body || '{}');
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -25,10 +25,23 @@ exports.handler = async function (event) {
       return { statusCode: 400, body: JSON.stringify({ error: 'text maydoni kerak' }) };
     }
 
+    // Buyurtma ID mavjud bo'lsa, xabar ostiga status tugmalari qo'shiladi —
+    // admin panelidagidek, Telegram'dan bevosita bosib status o'zgartirish uchun.
+    const body = { chat_id: chatId, text };
+    if (orderId) {
+      body.reply_markup = {
+        inline_keyboard: [[
+          { text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` },
+          { text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` },
+          { text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }
+        ]]
+      };
+    }
+
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text })
+      body: JSON.stringify(body)
     });
     const data = await res.json();
 

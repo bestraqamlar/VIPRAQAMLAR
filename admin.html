@@ -1010,6 +1010,15 @@ function renderAdminOrders(orders){
           }
           // "Yangi" va "Bog'lanildi" holatlarida raqam hamon band bo'lib qoladi
         }
+
+        // Agar bu buyurtma Telegram bot orqali kelgan bo'lsa, mijozga ham xabar boradi
+        if(cached && cached.customerChatId){
+          fetch('/.netlify/functions/notify-customer-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId: cached.customerChatId, number: cached.number, status: newStatus })
+          }).catch(()=>{ /* mijoz bildirishnomasi ishlamasa ham, status baribir yangilangan */ });
+        }
       }catch(err){ alert('Holatni yangilashda xato: ' + err.message); }
     });
   });

@@ -863,7 +863,7 @@ function validate(){
 
 /* Har bir buyurtma yuborilganda shu Telegram botga darhol xabar boradi */
 /* Har bir buyurtma yuborilganda Netlify Function orqali (token ochiq ko'rinmaydi) Telegram'ga xabar ketadi */
-async function sendOrderToTelegram(payload, time){
+async function sendOrderToTelegram(payload, time, orderId){
   const text =
 `🔔 Yangi buyurtma
 
@@ -877,7 +877,7 @@ async function sendOrderToTelegram(payload, time){
     await fetch('/.netlify/functions/telegram-notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, orderId })
     });
   }catch(err){ console.error('Telegramga yuborishda xato:', err); }
 }
@@ -898,7 +898,7 @@ confirmBtn.addEventListener('click', async ()=>{
   const orderTime = new Date().toLocaleString('uz-UZ');
 
   try{
-    await db.collection('orders').add({
+    const orderRef = await db.collection('orders').add({
       ...payload,
       numberId: selectedNumberId,
       status: 'Yangi',
@@ -912,7 +912,7 @@ confirmBtn.addEventListener('click', async ()=>{
       if(localItem) localItem.reserved = true;
     }
 
-    sendOrderToTelegram(payload, orderTime);
+    sendOrderToTelegram(payload, orderTime, orderRef.id);
   }catch(err){
     console.error('Buyurtmani bazaga yozishda xato:', err);
   }
