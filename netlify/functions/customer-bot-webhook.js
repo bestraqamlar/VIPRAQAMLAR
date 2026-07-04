@@ -151,12 +151,15 @@ async function getSession(token, chatId){
   return { step: 'menu' };
 }
 async function saveSession(token, chatId, session){
-  const url = `${baseUrl()}/bot_sessions/${chatId}?updateMask.fieldPaths=data`;
-  await fetch(url, {
+  const url = `${baseUrl()}/bot_sessions/${chatId}`;
+  const res = await fetch(url, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { data: { stringValue: JSON.stringify(session) } } })
   });
+  if(!res.ok){
+    console.error('Seans saqlanmadi:', await res.text());
+  }
 }
 
 /* ---------------- Telegram yordamchi funksiyalari ---------------- */
