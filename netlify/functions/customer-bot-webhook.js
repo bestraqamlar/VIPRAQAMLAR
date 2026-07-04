@@ -366,6 +366,10 @@ exports.handler = async function (event) {
     }
     const suffixField = 'last' + digits.length; // last1, last2, last3 yoki last4
 
+    // Qidiruv boshlanganini darhol bildiramiz — mijoz jim kutib qolmasin
+    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+    await send(chatId, "🔍 Qidirilmoqda...");
+
     // Avval tezkor (indekslangan) qidiruv — yangi qo'shilgan raqamlar uchun
     let matches = [];
     try{
@@ -383,6 +387,7 @@ exports.handler = async function (event) {
       const allDocs = [];
       let lastDoc = null;
       while(true){
+        await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
         let q = db.collection('numbers')
           .where('operator', '==', session.operator)
           .orderBy(admin.firestore.FieldPath.documentId())
