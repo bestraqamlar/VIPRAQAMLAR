@@ -365,11 +365,27 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
     const suffixField = 'last' + digits.length; // last1, last2, last3 yoki last4
-    const snap = await withRetry(() => db.collection('numbers')
-      .where('operator', '==', session.operator)
-      .where(suffixField, '==', digits)
-      .limit(50).get());
-    const matches = snap.docs.map(docToItem).filter(item => !item.reserved);
+
+    // Avval tezkor (indekslangan) qidiruv — yangi qo'shilgan raqamlar uchun
+    let matches = [];
+    try{
+      const snap = await withRetry(() => db.collection('numbers')
+        .where('operator', '==', session.operator)
+        .where(suffixField, '==', digits)
+        .limit(50).get());
+      matches = snap.docs.map(docToItem).filter(item => !item.reserved);
+    }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
+
+    // Agar topilmasa (yoki indeks yo'q bo'lsa) — barcha raqamlarni tekshirib chiqamiz
+    // (bu "qidiruv belgisi"siz eski raqamlarni ham topadi)
+    if(matches.length === 0){
+      const allSnap = await withRetry(() => db.collection('numbers')
+        .where('operator', '==', session.operator)
+        .limit(300).get());
+      matches = allSnap.docs.map(docToItem)
+        .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
+    }
+
     await showNumberList(chatId, session, matches,
       `"${digits}" bilan tugaydigan raqam topilmadi. Boshqa raqam kiriting.`);
     return { statusCode: 200, body: 'ok' };

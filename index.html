@@ -225,6 +225,19 @@
     padding:60px 20px;font-family:'Space Mono',monospace;font-size:14px;
   }
 
+  .loading-state{
+    grid-column:1/-1;text-align:center;color:var(--muted);
+    padding:70px 20px;font-family:'Space Mono',monospace;font-size:14px;
+    display:flex;flex-direction:column;align-items:center;gap:16px;
+  }
+  .spinner{
+    width:38px;height:38px;border-radius:50%;
+    border:3px solid rgba(255,255,255,0.12);
+    border-top-color:var(--red);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
   .pagination{
     max-width:1100px;margin:0 auto;padding:4px 16px 8px;
     display:flex;align-items:center;justify-content:center;gap:16px;
@@ -570,7 +583,9 @@ function formatUzNumber(rawDigits){
 }
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
 
-async function loadNumbers(){
+let numbersLoaded = false;
+
+async function loadNumbers(retryDelay){
   // Avval keshni ko'rsatamiz — sayt darhol raqamlar bilan ochiladi
   try{
     const cached = localStorage.getItem('raqamuz_cache');
@@ -586,12 +601,22 @@ async function loadNumbers(){
   try{
     const snap = await db.collection('numbers').get();
     NUMBERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    numbersLoaded = true;
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
+    renderCatalog();
+    renderFeatured();
+    renderSale();
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
-    if(NUMBERS.length === 0) NUMBERS = [];
+    if(NUMBERS.length === 0){
+      // Hali hech qanday ma'lumot yo'q — yuklanish animatsiyasini ko'rsatamiz va qayta urinamiz
+      renderCatalog();
+      const nextDelay = Math.min((retryDelay || 2000) * 1.5, 15000);
+      setTimeout(() => loadNumbers(nextDelay), nextDelay);
+    }
   }
 }
+
 
 const catalogEl      = document.getElementById('catalog');
 const operatorSelect = document.getElementById('operatorSelect');
@@ -634,7 +659,15 @@ function renderCatalog(){
 
   catalogEl.innerHTML = '';
   if(filtered.length === 0){
-    catalogEl.innerHTML = `<div class="empty-state">Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.</div>`;
+    if(!numbersLoaded){
+      catalogEl.innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Raqamlar yuklanmoqda...</p>
+        </div>`;
+    }else{
+      catalogEl.innerHTML = `<div class="empty-state">Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.</div>`;
+    }
     renderPagination(0, 1);
     return;
   }
