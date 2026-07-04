@@ -1,0 +1,8 @@
+{
+  "name": "vip-raqamlar-functions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
