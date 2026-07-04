@@ -329,6 +329,9 @@
       <div class="bulk-preview" id="bulkPreview"></div>
     </div>
 
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+      <button id="deleteAllNumbersBtn" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">🗑 Barcha raqamlarni o'chirish</button>
+    </div>
     <div class="admin-list" id="adminNumbersList"></div>
   </div>
 
@@ -605,6 +608,33 @@ async function refreshSessions(){
 /* ---- Raqamlar CRUD ---- */
 const adminNumbersList = document.getElementById('adminNumbersList');
 
+document.getElementById('deleteAllNumbersBtn').addEventListener('click', async ()=>{
+  if(!confirm("DIQQAT! Bazadagi BARCHA raqamlar butunlay o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi. Davom etasizmi?")) return;
+  if(!confirm("Ishonchingiz komilmi? Barcha raqamlar (jami " + currentNumbersCache.length + " ta) o'chiriladi.")) return;
+
+  const btn = document.getElementById('deleteAllNumbersBtn');
+  btn.disabled = true;
+  try{
+    let deletedTotal = 0;
+    while(true){
+      const snap = await db.collection('numbers').limit(400).get();
+      if(snap.empty) break;
+      const batch = db.batch();
+      snap.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      deletedTotal += snap.docs.length;
+      btn.textContent = `O'chirilmoqda... (${deletedTotal})`;
+    }
+    btn.textContent = "🗑 Barcha raqamlarni o'chirish";
+    alert(`✓ ${deletedTotal} ta raqam o'chirildi.`);
+    refreshNumbers();
+  }catch(err){
+    alert("Xato: " + err.message);
+    btn.textContent = "🗑 Barcha raqamlarni o'chirish";
+  }
+  btn.disabled = false;
+});
+
 async function refreshNumbers(){
   adminNumbersList.innerHTML = `<div class="empty-admin">Yuklanmoqda...</div>`;
   try{
@@ -728,6 +758,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   try{
     const priceVal = Number(document.getElementById('newPrice').value) || 0;
     const oldPriceVal = Number(document.getElementById('newOldPrice').value) || 0;
+    const rawDigits = num.replace(/\D/g, '').slice(-9); // 9 xonali mahalliy qism
     await db.collection('numbers').add({
       number: num,
       operator: document.getElementById('newOperator').value,
@@ -737,6 +768,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       installment: document.getElementById('newInstallment').checked,
       featured: document.getElementById('newFeatured').checked,
       tag: document.getElementById('newTag').value,
+      last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
       addedAt: Date.now(),
       randomKey: Math.random()
     });
@@ -779,7 +811,7 @@ function parseBulkLine(line){
   const price = Number(parts[1].replace(/\D/g,'')) || 0;
   const tag = (parts[2] || 'oddiy').toLowerCase() === 'vip' ? 'vip' : 'oddiy';
 
-  return { number, operator, price, tag };
+  return { number, operator, price, tag, raw };
 }
 
 document.getElementById('bulkPreviewBtn').addEventListener('click', ()=>{
@@ -840,6 +872,7 @@ async function saveBulkRows(){
           featured: false,
           installment: false,
           tag: row.tag,
+          last1: row.raw.slice(-1), last2: row.raw.slice(-2), last3: row.raw.slice(-3), last4: row.raw.slice(-4),
           addedAt: Date.now(),
           randomKey: Math.random()
         });
@@ -1019,6 +1052,15 @@ function renderAdminOrders(orders){
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatId: cached.customerChatId, number: cached.number, status: newStatus })
           }).catch(()=>{ /* mijoz bildirishnomasi ishlamasa ham, status baribir yangilangan */ });
+        }
+
+        // Admin Telegram xabaridagi tugmalarni ham "tasdiqlangan" holatga o'tkazamiz
+        if(cached && cached.adminMessageId){
+          fetch('/.netlify/functions/update-admin-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messageId: cached.adminMessageId, statusLabel: newStatus })
+          }).catch(()=>{ /* muhim emas */ });
         }
       }catch(err){ alert('Holatni yangilashda xato: ' + err.message); }
     });

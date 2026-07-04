@@ -1,12 +1,22 @@
 // Bu fayl serverda ishlaydi (Netlify Functions) — bot tokeni mijoz brauzeriga
 // hech qachon yuborilmaydi, shuning uchun sayt manba kodida ko'rinmaydi.
 //
-// Ishlashi uchun Netlify saytida ikkita "Environment variable" qo'shishingiz kerak:
-//   TELEGRAM_BOT_TOKEN = sizning bot tokeningiz
-//   TELEGRAM_CHAT_ID   = sizning chat_id raqamingiz
-//
-// Qanday qo'shiladi: Netlify → sayt paneli → Site configuration →
-// Environment variables → "Add a variable" → ikkalasini alohida-alohida kiriting.
+// Kerakli Environment variables: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+// FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
+
+const admin = require('firebase-admin');
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+    })
+  });
+}
+const db = admin.firestore();
+db.settings({ preferRest: true });
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
@@ -25,8 +35,6 @@ exports.handler = async function (event) {
       return { statusCode: 400, body: JSON.stringify({ error: 'text maydoni kerak' }) };
     }
 
-    // Buyurtma ID mavjud bo'lsa, xabar ostiga status tugmalari qo'shiladi —
-    // admin panelidagidek, Telegram'dan bevosita bosib status o'zgartirish uchun.
     const body = { chat_id: chatId, text };
     if (orderId) {
       body.reply_markup = {
@@ -44,6 +52,14 @@ exports.handler = async function (event) {
       body: JSON.stringify(body)
     });
     const data = await res.json();
+
+    // Xabar ID sini buyurtmaga saqlaymiz — shunda admin panelidan status
+    // o'zgartirilganda, aynan shu Telegram xabarini topib yangilay olamiz.
+    if (data.ok && orderId && data.result && data.result.message_id) {
+      try{
+        await db.collection('orders').doc(orderId).update({ adminMessageId: data.result.message_id });
+      }catch(e){ /* muhim emas, asosiy xabar baribir yuborildi */ }
+    }
 
     return { statusCode: 200, body: JSON.stringify({ ok: data.ok === true }) };
   } catch (err) {

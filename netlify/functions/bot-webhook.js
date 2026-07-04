@@ -1,5 +1,16 @@
 // TELEGRAM BOT ORQALI BAZAGA RAQAM QO'SHISH (firebase-admin bilan)
-// Xabar formati: 998901234567, 1500000[, vip]
+//
+// Xabar formati (vergul bilan ajratib yozing, tartib muhim emas — faqat
+// birinchi ikkitasi RAQAM va NARX bo'lishi kerak):
+//   998901234567, 1500000
+//   998901234567, 1500000, vip
+//   998901234567, 1500000, vip, 2000000, mashhur     <- 2000000 = eski narx (aksiya)
+//   998901234567, 1500000, mashhur
+//
+// So'zlar (istalgan tartibda, ixtiyoriy):
+//   vip                -> tegi VIP bo'ladi (yozilmasa "oddiy")
+//   mashhur / premium   -> "Mashhur raqamlar"ga qo'shiladi
+//   (raqam, narxdan katta bo'lsa) -> eski narx sifatida olinadi, aksiya bo'ladi
 
 const admin = require('firebase-admin');
 
@@ -48,9 +59,25 @@ function parseLine(line){
   const operator = CODE_TO_OPERATOR[code] || 'Beeline';
   const number = `+998 ${raw.slice(0,2)} ${raw.slice(2,5)}-${raw.slice(5,7)}-${raw.slice(7,9)}`;
   const price = parseInt(parts[1].replace(/\D/g, ''), 10) || 0;
-  const tag = (parts[2] || 'oddiy').toLowerCase() === 'vip' ? 'vip' : 'oddiy';
 
-  return { number, operator, price, tag };
+  let tag = 'oddiy';
+  let featured = false;
+  let oldPrice = 0;
+
+  for(const extra of parts.slice(2)){
+    const low = extra.toLowerCase();
+    if(low === 'vip'){ tag = 'vip'; continue; }
+    if(low === 'mashhur' || low === 'premium'){ featured = true; continue; }
+    if(low === 'aksiya' || low === 'oddiy') continue; // kalit so'z, alohida ta'sir qilmaydi
+    const num = parseInt(extra.replace(/\D/g, ''), 10);
+    if(num && num > price){ oldPrice = num; }
+  }
+
+  return {
+    number, operator, price, tag, featured,
+    oldPrice, onSale: oldPrice > 0,
+    last1: raw.slice(-1), last2: raw.slice(-2), last3: raw.slice(-3), last4: raw.slice(-4)
+  };
 }
 
 async function replyToUser(chatId, text){
@@ -82,7 +109,7 @@ exports.handler = async function (event) {
 
     if(parsed.length === 0){
       await replyToUser(message.chat.id,
-        "Format tushunilmadi. Masalan shunday yozing:\n998901234567, 1500000\n998901234567, 1500000, vip");
+        "Format tushunilmadi. Masalan shunday yozing:\n998901234567, 1500000\n998901234567, 1500000, vip\n998901234567, 1500000, vip, 2000000, mashhur");
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -93,18 +120,25 @@ exports.handler = async function (event) {
         number: item.number,
         operator: item.operator,
         price: item.price,
-        oldPrice: 0,
-        onSale: false,
-        featured: false,
+        oldPrice: item.oldPrice,
+        onSale: item.onSale,
+        featured: item.featured,
         installment: false,
         reserved: false,
         tag: item.tag,
+        last1: item.last1, last2: item.last2, last3: item.last3, last4: item.last4,
         addedAt: Date.now()
       });
     });
     await withRetry(() => batch.commit());
 
-    const summary = parsed.map(p => `• ${p.number} — ${p.operator} — ${p.price.toLocaleString('ru-RU')} so'm`).join('\n');
+    const summary = parsed.map(p => {
+      let line = `• ${p.number} — ${p.operator} — ${p.price.toLocaleString('ru-RU')} so'm`;
+      if(p.tag === 'vip') line += ' — VIP';
+      if(p.featured) line += ' — Mashhur';
+      if(p.onSale) line += ` — Aksiya (eski narx: ${p.oldPrice.toLocaleString('ru-RU')})`;
+      return line;
+    }).join('\n');
     await replyToUser(message.chat.id, `✅ ${parsed.length} ta raqam bazaga qo'shildi:\n\n${summary}`);
   }catch(err){
     console.error('BOT-WEBHOOK XATOSI:', err);

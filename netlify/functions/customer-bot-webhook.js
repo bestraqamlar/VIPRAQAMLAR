@@ -163,7 +163,7 @@ async function notifyAdmin(orderId, payload){
 🕐 Vaqti: ${payload.time}
 🌐 Qayerdan: Telegram bot`;
 
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -178,6 +178,12 @@ async function notifyAdmin(orderId, payload){
       }
     })
   });
+  try{
+    const data = await res.json();
+    if(data.ok && data.result && data.result.message_id){
+      await db.collection('orders').doc(orderId).update({ adminMessageId: data.result.message_id });
+    }
+  }catch(e){ /* muhim emas */ }
 }
 
 function docToItem(doc){
@@ -358,9 +364,12 @@ exports.handler = async function (event) {
       await send(chatId, "Iltimos, 1 dan 4 tagacha raqam kiriting. Misol: 0707", backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const snap = await withRetry(() => db.collection('numbers').where('operator', '==', session.operator).limit(150).get());
-    const all = snap.docs.map(docToItem);
-    const matches = all.filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
+    const suffixField = 'last' + digits.length; // last1, last2, last3 yoki last4
+    const snap = await withRetry(() => db.collection('numbers')
+      .where('operator', '==', session.operator)
+      .where(suffixField, '==', digits)
+      .limit(50).get());
+    const matches = snap.docs.map(docToItem).filter(item => !item.reserved);
     await showNumberList(chatId, session, matches,
       `"${digits}" bilan tugaydigan raqam topilmadi. Boshqa raqam kiriting.`);
     return { statusCode: 200, body: 'ok' };

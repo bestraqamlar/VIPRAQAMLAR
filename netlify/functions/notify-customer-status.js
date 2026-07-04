@@ -15,13 +15,12 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true }) };
     }
 
-    const STATUS_EMOJI = {
-      "Bog'lanildi": '📞',
-      'Yakunlandi': '✅',
-      'Bekor qilindi': '❌'
+    const STATUS_MESSAGES = {
+      "Bog'lanildi": "📞 Operatorlarimiz siz bilan bog'landi.",
+      'Yakunlandi': "✅ Haridingiz uchun rahmat! Tez orada raqamingiz yetib boradi.",
+      'Bekor qilindi': "❌ Sizning buyurtmangiz bekor qilindi."
     };
-    const emoji = STATUS_EMOJI[status] || 'ℹ️';
-    const text = `${emoji} Buyurtmangiz holati yangilandi:\n\n📱 ${number}\n📌 Yangi holat: ${status}`;
+    const text = `${STATUS_MESSAGES[status] || `📌 Buyurtmangiz holati: ${status}`}\n\n📱 ${number}`;
 
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',

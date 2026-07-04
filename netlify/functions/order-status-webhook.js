@@ -91,13 +91,17 @@ exports.handler = async function (event) {
     if(customerChatId){
       const customerBotToken = process.env.CUSTOMER_BOT_TOKEN;
       if(customerBotToken){
-        const STATUS_EMOJI = { "Bog'lanildi": '📞', 'Yakunlandi': '✅', 'Bekor qilindi': '❌' };
+        const STATUS_MESSAGES = {
+          "Bog'lanildi": "📞 Operatorlarimiz siz bilan bog'landi.",
+          'Yakunlandi': "✅ Haridingiz uchun rahmat! Tez orada raqamingiz yetib boradi.",
+          'Bekor qilindi': "❌ Sizning buyurtmangiz bekor qilindi."
+        };
         await fetch(`https://api.telegram.org/bot${customerBotToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: customerChatId,
-            text: `${STATUS_EMOJI[statusLabel] || 'ℹ️'} Buyurtmangiz holati yangilandi:\n\n📱 ${orderNumber}\n📌 Yangi holat: ${statusLabel}`
+            text: `${STATUS_MESSAGES[statusLabel] || `📌 Buyurtmangiz holati: ${statusLabel}`}\n\n📱 ${orderNumber}`
           })
         });
       }
