@@ -871,7 +871,8 @@ async function sendOrderToTelegram(payload, time, orderId){
 👤 Mijoz ismi: ${payload.name}
 ☎️ Ishlab turgan raqami: ${payload.phone}
 📍 Manzil: ${payload.region}
-🕐 Vaqti: ${time}`;
+🕐 Vaqti: ${time}
+🌐 Qayerdan: ${payload.source || 'Sayt'}`;
 
   try{
     await fetch('/.netlify/functions/telegram-notify', {
@@ -893,7 +894,8 @@ confirmBtn.addEventListener('click', async ()=>{
     price: selectedPrice,
     name: custName.value.trim(),
     region: custRegion.value,
-    phone: custPhone.value.trim()
+    phone: custPhone.value.trim(),
+    source: 'Sayt'
   };
   const orderTime = new Date().toLocaleString('uz-UZ');
 

@@ -977,6 +977,7 @@ function renderAdminOrders(orders){
       <div class="oc-row"><b>Viloyat:</b> ${o.region}</div>
       <div class="oc-row"><b>Telefon:</b> ${o.phone}</div>
       <div class="oc-row"><b>Narxi:</b> ${o.price ? formatPrice(o.price) : "Noma'lum"}</div>
+      <div class="oc-row"><b>Qayerdan:</b> ${o.source || 'Sayt'}</div>
       <select class="order-status">
         ${ORDER_STATUSES.map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
       </select>

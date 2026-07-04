@@ -160,7 +160,8 @@ async function notifyAdmin(orderId, payload){
 👤 Mijoz ismi: ${payload.name}
 ☎️ Ishlab turgan raqami: ${payload.phone}
 📍 Manzil: ${payload.region}
-🕐 Vaqti: ${payload.time}`;
+🕐 Vaqti: ${payload.time}
+🌐 Qayerdan: Telegram bot`;
 
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
@@ -246,6 +247,7 @@ exports.handler = async function (event) {
         numberId: session.numberId,
         customerChatId: String(chatId),
         status: 'Yangi',
+        source: 'Telegram bot',
         createdAt: time,
         createdAtSort: Date.now()
       }));
