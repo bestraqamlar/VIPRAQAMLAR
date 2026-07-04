@@ -328,16 +328,18 @@
     flex:0 0 150px;border-radius:12px;padding:10px;
     border:1px solid var(--card-accent, var(--line));
     background: radial-gradient(ellipse at top left, var(--card-glow, transparent), var(--panel) 70%);
+    display:flex;flex-direction:column;min-height:150px;
   }
   .daily-deal-card .dd-badge{
     display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:800;
-    padding:2px 6px;border-radius:6px;margin-bottom:6px;
+    padding:2px 6px;border-radius:6px;margin-bottom:6px;align-self:flex-start;
   }
   .daily-deal-card .dd-op{font-size:9.5px;color:var(--muted);margin-bottom:2px;}
   .daily-deal-card .dd-num{
     font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:#fff;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;
   }
+  .daily-deal-card .dd-price-row{margin-top:auto;}
   .daily-deal-card .dd-price{font-size:11px;color:var(--green);font-weight:800;}
   .daily-deal-card .dd-oldprice{font-size:10px;color:var(--muted);text-decoration:line-through;margin-left:4px;}
   .daily-deal-card button{
@@ -519,23 +521,17 @@
   </div>
 </aside>
 
+<section class="daily-deal-section" id="dailyDealSection" style="display:none;">
+  <div class="featured-header">
+    <span class="featured-title">🔥 Bugungi aksiyaga tushgan raqamlar</span>
+  </div>
+  <div class="daily-deal-scroll" id="dailyDealScroll"></div>
+  <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
+</section>
+
 <section class="hero">
   <h1><span class="brand-white">RAQAM</span><span class="brand-red">.UZ</span></h1>
   <p class="tagline">O'zbekiston bo'ylab dostavka xizmati</p>
-  <div class="stats-row">
-    <div class="stat">
-      <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="10" y1="19" x2="14" y2="19"/></svg>
-      <b id="soldCount">1 240+</b><span>sotilgan raqam</span>
-    </div>
-    <div class="stat">
-      <svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 15,9 22,9.5 17,14.5 18.5,22 12,18 5.5,22 7,14.5 2,9.5 9,9"/></svg>
-      <b>4.9</b><span>mijozlar bahosi</span>
-    </div>
-    <div class="stat">
-      <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>
-      <b>24/7</b><span>onlayn buyurtma</span>
-    </div>
-  </div>
 </section>
 
 <div class="search-wrap">
@@ -581,14 +577,6 @@
     <a href="#catalog" class="featured-link">Barchasini ko'rish</a>
   </div>
   <div class="featured-scroll" id="saleScroll"></div>
-  <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
-</section>
-
-<section class="daily-deal-section" id="dailyDealSection" style="display:none;">
-  <div class="featured-header">
-    <span class="featured-title">🔥 Bugungi aksiyaga tushgan raqamlar</span>
-  </div>
-  <div class="daily-deal-scroll" id="dailyDealScroll"></div>
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
@@ -972,7 +960,7 @@ function renderDailyDeal(){
         ${hasDiscount ? `<div class="dd-badge">-${discountPct}%</div>` : ''}
         <div class="dd-op">${item.operator} · ${item.tag === 'vip' ? 'VIP' : 'Oddiy'}</div>
         <div class="dd-num">${displayNumber(item.number)}</div>
-        <div>
+        <div class="dd-price-row">
           <span class="dd-price">${formatPrice(item.price)}</span>
           ${hasDiscount ? `<span class="dd-oldprice">${formatPrice(item.oldPrice)}</span>` : ''}
         </div>
@@ -1183,7 +1171,6 @@ showSkeletons();
   renderFeatured();
   renderSale();
   renderDailyDeal();
-  animateCount(document.getElementById('soldCount'), 1240);
 })();
 </script>
 </body>
