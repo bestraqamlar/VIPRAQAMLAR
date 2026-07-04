@@ -434,6 +434,14 @@ exports.handler = async function (event) {
       await send(chatId, "Iltimos, raqamingizni kiriting yoki kontaktni ulashing.", contactKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
+    const VALID_UZ_CODES = ['20','33','50','70','77','80','87','88','90','91','92','93','94','95','97','98','99'];
+    let rawDigits = phone.replace(/\D/g, '');
+    if(rawDigits.startsWith('998')) rawDigits = rawDigits.slice(3);
+    rawDigits = rawDigits.slice(0, 9);
+    if(rawDigits.length < 9 || !VALID_UZ_CODES.includes(rawDigits.slice(0, 2))){
+      await send(chatId, "Bunday raqam mavjud emas. Iltimos, to'g'ri raqam kiriting yoki kontaktni ulashing.", contactKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
     session.draftPhone = phone;
     session.step = 'awaiting_region';
     await saveSession(chatId, session);

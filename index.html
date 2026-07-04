@@ -436,6 +436,7 @@
     border-radius:8px;cursor:pointer;
   }
   .promo-row button:hover{border-color:var(--green);color:var(--green);}
+  .promo-row button.btn-pressed{background:var(--green);color:#0a1a12;border-color:var(--green);transform:scale(0.94);}
   .promo-msg{font-size:11px;margin:2px 0 6px;display:none;}
   .promo-msg.ok{color:var(--green);display:block;}
   .promo-msg.bad{color:var(--red);display:block;}
@@ -1075,7 +1076,12 @@ function showToast(text){
   setTimeout(()=> toast.classList.remove('show'), 3000);
 }
 
-document.getElementById('promoApplyBtn').addEventListener('click', async ()=>{
+document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
+  const btn = e.currentTarget;
+  btn.classList.add('btn-pressed');
+  setTimeout(()=> btn.classList.remove('btn-pressed'), 150);
+  if(navigator.vibrate) navigator.vibrate(40);
+
   const code = document.getElementById('promoCode').value.trim().toUpperCase();
   const msgEl = document.getElementById('promoMsg');
   if(!code){
@@ -1086,7 +1092,7 @@ document.getElementById('promoApplyBtn').addEventListener('click', async ()=>{
   try{
     const snap = await db.collection('promo_codes').where('code', '==', code).limit(1).get();
     if(snap.empty){
-      msgEl.textContent = "Promokod noto'g'ri yoki muddati o'tgan";
+      msgEl.textContent = "Promokod topilmadi";
       msgEl.className = 'promo-msg bad';
       appliedDiscount = 0;
       return;
@@ -1103,15 +1109,26 @@ document.getElementById('promoApplyBtn').addEventListener('click', async ()=>{
 });
 
 
+const VALID_UZ_CODES = ['20','33','50','70','77','80','87','88','90','91','92','93','94','95','97','98','99'];
+
 function validate(){
   let ok = true;
   if(!custName.value.trim()){ document.getElementById('errName').style.display='block'; ok=false; }
   else document.getElementById('errName').style.display='none';
   if(!custRegion.value){ document.getElementById('errRegion').style.display='block'; ok=false; }
   else document.getElementById('errRegion').style.display='none';
+
   const phoneDigits = extractRawDigits(custPhone.value);
-  if(phoneDigits.length < 9){ document.getElementById('errPhone').style.display='block'; ok=false; }
-  else document.getElementById('errPhone').style.display='none';
+  const errPhoneEl = document.getElementById('errPhone');
+  if(phoneDigits.length < 9){
+    errPhoneEl.textContent = "To'g'ri raqam kiriting";
+    errPhoneEl.style.display='block'; ok=false;
+  }else if(!VALID_UZ_CODES.includes(phoneDigits.slice(0,2))){
+    errPhoneEl.textContent = "Bunday raqam mavjud emas";
+    errPhoneEl.style.display='block'; ok=false;
+  }else{
+    errPhoneEl.style.display='none';
+  }
   return ok;
 }
 
@@ -1228,7 +1245,27 @@ const SITE_THEMES = {
   modern_saas:    { bg:'#0D1B33', panel:'#132A4D', panel2:'#183A63', line:'#1C3050', amber:'#4A90D9', amberSoft:'rgba(74,144,217,0.15)', green:'#7FE7C4', red:'#4A90D9', brandRed:'#4A90D9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4A90D9', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   bold_editorial: { bg:'#0A1220', panel:'#0A1220', panel2:'#111A2C', line:'#FFFFFF', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.12)', green:'#7FE7C4', red:'#FFFFFF', brandRed:'#FFFFFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#FFFFFF', btnText:'#0A1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'0px', cardRadius:'0px' },
   soft_glass:     { bg:'#0B1220', panel:'rgba(255,255,255,0.06)', panel2:'rgba(255,255,255,0.09)', line:'rgba(255,255,255,0.15)', amber:'#7FA8E0', amberSoft:'rgba(127,168,224,0.15)', green:'#7FE7C4', red:'#7FA8E0', brandRed:'#7FA8E0', text:'#FFFFFF', muted:'#B8CBE8', btnBg:'#FFFFFF', btnText:'#0B1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  warm_gold:      { bg:'#0F2547', panel:'#132C50', panel2:'#183761', line:'#C9A44E', amber:'#C9A44E', amberSoft:'rgba(201,164,78,0.15)', green:'#7FD99A', red:'#C9A44E', brandRed:'#C9A44E', text:'#FFFFFF', muted:'#9FB3CC', btnBg:'#C9A44E', btnText:'#0F2547', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'6px', cardRadius:'8px' }
+  warm_gold:      { bg:'#0F2547', panel:'#132C50', panel2:'#183761', line:'#C9A44E', amber:'#C9A44E', amberSoft:'rgba(201,164,78,0.15)', green:'#7FD99A', red:'#C9A44E', brandRed:'#C9A44E', text:'#FFFFFF', muted:'#9FB3CC', btnBg:'#C9A44E', btnText:'#0F2547', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'6px', cardRadius:'8px' },
+  midnight_blue: { bg:'#081625', panel:'#132A4A', panel2:'#132A4A', line:'#214A82', amber:'#214A82', amberSoft:'rgba(33,74,130,0.2)', green:'#4AF2A1', red:'#FF5C5C', brandRed:'#214A82', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4D9FFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  royal_blue:    { bg:'#091A2E', panel:'#173D73', panel2:'#173D73', line:'#2C5FA8', amber:'#2C5FA8', amberSoft:'rgba(44,95,168,0.2)', green:'#56F2AE', red:'#FF5C5C', brandRed:'#2C5FA8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5BA7FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  navy_cyan:     { bg:'#07141F', panel:'#12334A', panel2:'#12334A', line:'#2E89B8', amber:'#2E89B8', amberSoft:'rgba(46,137,184,0.2)', green:'#63F5C8', red:'#FF5C5C', brandRed:'#2E89B8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#30B6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  indigo:        { bg:'#0A1028', panel:'#243C7D', panel2:'#243C7D', line:'#4966D8', amber:'#4966D8', amberSoft:'rgba(73,102,216,0.2)', green:'#5AF0B8', red:'#FF5C5C', brandRed:'#4966D8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#6EA6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  dark_purple:   { bg:'#100B24', panel:'#3D2568', panel2:'#3D2568', line:'#7A56D8', amber:'#7A56D8', amberSoft:'rgba(122,86,216,0.2)', green:'#59F5B2', red:'#FF5C5C', brandRed:'#7A56D8', text:'#FFFFFF', muted:'#B0A0D0', btnBg:'#679EFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  premium_black: { bg:'#090909', panel:'#1A1A1A', panel2:'#1A1A1A', line:'#3A3A3A', amber:'#8A8A8A', amberSoft:'rgba(138,138,138,0.2)', green:'#49E89D', red:'#FF5C5C', brandRed:'#3A8DFF', text:'#FFFFFF', muted:'#9A9A9A', btnBg:'#3A8DFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  graphite:      { bg:'#121417', panel:'#20262E', panel2:'#20262E', line:'#3C4C5A', amber:'#7A93A6', amberSoft:'rgba(122,147,166,0.2)', green:'#58F3AA', red:'#FF5C5C', brandRed:'#5AA2FF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5AA2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  ocean:         { bg:'#051B2F', panel:'#0E4167', panel2:'#0E4167', line:'#2F78A9', amber:'#2F78A9', amberSoft:'rgba(47,120,169,0.2)', green:'#4DF4B8', red:'#FF5C5C', brandRed:'#2F78A9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#3FAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  emerald_blue:  { bg:'#081A21', panel:'#103F52', panel2:'#103F52', line:'#1D708C', amber:'#1D708C', amberSoft:'rgba(29,112,140,0.2)', green:'#49F0A5', red:'#FF5C5C', brandRed:'#1D708C', text:'#FFFFFF', muted:'#8FB0BC', btnBg:'#55AFFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  steel_blue:    { bg:'#0B1621', panel:'#20384F', panel2:'#20384F', line:'#48657D', amber:'#48657D', amberSoft:'rgba(72,101,125,0.2)', green:'#60F0B2', red:'#FF5C5C', brandRed:'#48657D', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#69AEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  sapphire:      { bg:'#061321', panel:'#1D3560', panel2:'#1D3560', line:'#386AC8', amber:'#386AC8', amberSoft:'rgba(56,106,200,0.2)', green:'#5AF5B5', red:'#FF5C5C', brandRed:'#386AC8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#6AAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  arctic:        { bg:'#081B29', panel:'#23455F', panel2:'#23455F', line:'#4A88A6', amber:'#4A88A6', amberSoft:'rgba(74,136,166,0.2)', green:'#62F7BE', red:'#FF5C5C', brandRed:'#4A88A6', text:'#FFFFFF', muted:'#8FB4BC', btnBg:'#71C2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  neon_blue:     { bg:'#08111F', panel:'#162E58', panel2:'#162E58', line:'#3D7EFF', amber:'#3D7EFF', amberSoft:'rgba(61,126,255,0.2)', green:'#52F5C0', red:'#FF5C5C', brandRed:'#3D7EFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#56A8FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  dark_cyan:     { bg:'#071B1D', panel:'#18454A', panel2:'#18454A', line:'#31838E', amber:'#31838E', amberSoft:'rgba(49,131,142,0.2)', green:'#58F5AE', red:'#FF5C5C', brandRed:'#31838E', text:'#FFFFFF', muted:'#8FBCBC', btnBg:'#47B4FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  slate:         { bg:'#10151C', panel:'#283546', panel2:'#283546', line:'#4C6178', amber:'#4C6178', amberSoft:'rgba(76,97,120,0.2)', green:'#67F0A8', red:'#FF5C5C', brandRed:'#4C6178', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#6EB2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  blue_violet:   { bg:'#0E132A', panel:'#34418A', panel2:'#34418A', line:'#6A74D8', amber:'#6A74D8', amberSoft:'rgba(106,116,216,0.2)', green:'#58F5AF', red:'#FF5C5C', brandRed:'#6A74D8', text:'#FFFFFF', muted:'#A0A8D0', btnBg:'#79AEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  petrol:        { bg:'#07151B', panel:'#184153', panel2:'#184153', line:'#3A748B', amber:'#3A748B', amberSoft:'rgba(58,116,139,0.2)', green:'#4DF5AF', red:'#FF5C5C', brandRed:'#3A748B', text:'#FFFFFF', muted:'#8FB0BC', btnBg:'#56AFFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  dark_aqua:     { bg:'#061B20', panel:'#1C4E59', panel2:'#1C4E59', line:'#3A93A7', amber:'#3A93A7', amberSoft:'rgba(58,147,167,0.2)', green:'#58F5C5', red:'#FF5C5C', brandRed:'#3A93A7', text:'#FFFFFF', muted:'#8FBCC4', btnBg:'#69C2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  night_sky:     { bg:'#060C18', panel:'#132B45', panel2:'#132B45', line:'#2F5C9C', amber:'#2F5C9C', amberSoft:'rgba(47,92,156,0.2)', green:'#5AF5A9', red:'#FF5C5C', brandRed:'#2F5C9C', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5DA6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  ultra_luxury:  { bg:'#071320', panel:'#17375F', panel2:'#17375F', line:'#2F6FC2', amber:'#FFD56A', amberSoft:'rgba(255,213,106,0.2)', green:'#55F2B0', red:'#FF5C5C', brandRed:'#5DAEFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5AAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' }
 };
 
 function applyTheme(themeKey){
