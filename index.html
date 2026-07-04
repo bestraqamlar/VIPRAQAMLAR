@@ -1148,11 +1148,43 @@ menuBtn.addEventListener('click', openDrawer);
 drawerClose.addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
 
+/* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
+const SITE_THEMES = {
+  klassik:  { bg:'#0B1220', panel:'#121B2E', panel2:'#17223A', line:'#263450', amber:'#FFB000', amberSoft:'rgba(255,176,0,0.15)', green:'#33E28C', red:'#FF5C5C', brandRed:'#E63946', text:'#EDEFF3', muted:'#8494B0' },
+  navy:     { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#24405F', amber:'#5B9BD5', amberSoft:'rgba(91,155,213,0.15)', green:'#33E28C', red:'#2563EB', brandRed:'#1D4ED8', text:'#EDF2F8', muted:'#7E93B0' },
+  emerald:  { bg:'#0D1F1A', panel:'#132923', panel2:'#193530', line:'#204439', amber:'#4FAE8C', amberSoft:'rgba(79,174,140,0.15)', green:'#33E28C', red:'#2FBF8F', brandRed:'#1FA97F', text:'#EAF5F0', muted:'#7FB9A3' },
+  gold:     { bg:'#1A1508', panel:'#26200F', panel2:'#332A15', line:'#4A3D1F', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#8FCB6E', red:'#D4AF37', brandRed:'#C9992E', text:'#F5F0DE', muted:'#A8977A' },
+  purple:   { bg:'#140F26', panel:'#1E1638', panel2:'#281E48', line:'#3A2D5C', amber:'#7C5CFF', amberSoft:'rgba(124,92,255,0.15)', green:'#33E28C', red:'#8B6CFF', brandRed:'#7C5CFF', text:'#F0EDFA', muted:'#9789BE' },
+  pink:     { bg:'#1A0F16', panel:'#251523', panel2:'#331C2F', line:'#4A2A3F', amber:'#FF4F81', amberSoft:'rgba(255,79,129,0.15)', green:'#33E28C', red:'#FF4F81', brandRed:'#E23C6D', text:'#FBEDF2', muted:'#B9829A' },
+  mono:     { bg:'#141414', panel:'#1E1E1E', panel2:'#282828', line:'#3A3A3A', amber:'#E24B4A', amberSoft:'rgba(226,75,74,0.15)', green:'#7FD99A', red:'#E24B4A', brandRed:'#C93E3D', text:'#EDEDED', muted:'#9A9A9A' },
+  turquoise:{ bg:'#0A1F1F', panel:'#123030', panel2:'#183E3E', line:'#215454', amber:'#2DD4BF', amberSoft:'rgba(45,212,191,0.15)', green:'#5EEAD4', red:'#2DD4BF', brandRed:'#22B8A3', text:'#EAF7F5', muted:'#7FB8B0' },
+  coffee:   { bg:'#1C1410', panel:'#281D16', panel2:'#33251C', line:'#4A3527', amber:'#C9873F', amberSoft:'rgba(201,135,63,0.15)', green:'#9BC46E', red:'#C9873F', brandRed:'#B8752F', text:'#F2EAE0', muted:'#A88F73' },
+  crimson:  { bg:'#160808', panel:'#221010', panel2:'#2E1616', line:'#4A2020', amber:'#FF6B6B', amberSoft:'rgba(255,107,107,0.15)', green:'#33E28C', red:'#FF6B6B', brandRed:'#E63946', text:'#FBEAEA', muted:'#B08080' }
+};
+
+function applyTheme(themeKey){
+  const t = SITE_THEMES[themeKey];
+  if(!t) return;
+  const root = document.documentElement.style;
+  root.setProperty('--bg', t.bg);
+  root.setProperty('--panel', t.panel);
+  root.setProperty('--panel-2', t.panel2);
+  root.setProperty('--line', t.line);
+  root.setProperty('--amber', t.amber);
+  root.setProperty('--amber-soft', t.amberSoft);
+  root.setProperty('--green', t.green);
+  root.setProperty('--red', t.red);
+  root.setProperty('--brand-red', t.brandRed);
+  root.setProperty('--text', t.text);
+  root.setProperty('--muted', t.muted);
+}
+
 async function loadSiteSettings(){
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists) return;
     const s = doc.data();
+    if(s.theme) applyTheme(s.theme);
     if(s.telegramLink) document.getElementById('drawerTelegram').href = s.telegramLink;
     if(s.instagramLink) document.getElementById('drawerInstagram').href = s.instagramLink;
     if(s.contactLink) document.getElementById('drawerContact').href = s.contactLink;
@@ -1163,6 +1195,30 @@ async function loadSiteSettings(){
   }catch(e){ console.error('Sozlamalarni yuklashda xato:', e); }
 }
 loadSiteSettings();
+
+/* ---- Tashrif buyuruvchilar hisobi (admin panel uchun) ---- */
+const raqamuzSessionId = 'sess_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+
+async function raqamuzHeartbeat(){
+  try{
+    await db.collection('active_sessions').doc(raqamuzSessionId).set({ lastSeen: Date.now() });
+  }catch(e){ /* muhim emas — sayt ishlashiga ta'sir qilmaydi */ }
+}
+raqamuzHeartbeat();
+setInterval(raqamuzHeartbeat, 20000);
+
+(async function countUniqueVisitor(){
+  try{
+    if(!localStorage.getItem('raqamuz_counted')){
+      await db.collection('site_stats').doc('counter').set(
+        { totalVisitors: firebase.firestore.FieldValue.increment(1) },
+        { merge: true }
+      );
+      localStorage.setItem('raqamuz_counted', '1');
+    }
+  }catch(e){ /* muhim emas */ }
+})();
+
 
 showSkeletons();
 (async function init(){
