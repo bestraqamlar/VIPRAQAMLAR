@@ -205,7 +205,7 @@
     display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;
   }
   .card{
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
     opacity:0;transform:translateY(16px);
     animation:cardIn .5s ease forwards;
@@ -244,12 +244,14 @@
     border-radius:20px;margin-bottom:14px;width:fit-content;
   }
   .card button.order-btn{
-    background:#1D2A44;color:#fff;border:1px solid rgba(255,255,255,0.18);border-radius:9px;
+    background:var(--btn-bg, #1D2A44);color:var(--btn-text, #fff);
+    border:var(--btn-border-width, 1px) solid var(--btn-border-color, rgba(255,255,255,0.18));
+    border-radius:var(--btn-radius, 9px);
     padding:11px;font-weight:600;font-size:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:8px;
     transition:transform .12s ease, opacity .12s ease, background .15s ease;
   }
-  .card button.order-btn:hover{background:#243356;}
+  .card button.order-btn:hover{filter:brightness(1.15);}
   .card button.order-btn:active{transform:scale(0.96);}
   .reserved-btn{
     background:rgba(255,92,92,0.18) !important;
@@ -423,6 +425,29 @@
   .modal input:focus, .modal select:focus{border-color:var(--amber);}
   .field-error{color:var(--red);font-size:11.5px;margin-top:4px;display:none;}
 
+  .promo-row{display:flex;gap:6px;margin:8px 0 2px;}
+  .promo-row input{
+    flex:1;padding:8px 10px;font-size:12px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+  }
+  .promo-row button{
+    flex-shrink:0;padding:8px 12px;font-size:11.5px;font-weight:600;
+    border:1px solid var(--line);background:none;color:var(--muted);
+    border-radius:8px;cursor:pointer;
+  }
+  .promo-row button:hover{border-color:var(--green);color:var(--green);}
+  .promo-msg{font-size:11px;margin:2px 0 6px;display:none;}
+  .promo-msg.ok{color:var(--green);display:block;}
+  .promo-msg.bad{color:var(--red);display:block;}
+
+  .toast{
+    position:fixed;top:-80px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#0a1a12;font-weight:700;font-size:13px;
+    padding:12px 20px;border-radius:10px;z-index:200;
+    transition:top 0.35s ease;white-space:nowrap;
+  }
+  .toast.show{top:16px;}
+
   .modal-actions{display:flex;gap:10px;margin-top:22px;}
   .modal-actions button{
     flex:1;border:none;border-radius:9px;padding:13px;font-weight:700;cursor:pointer;font-size:14.5px;
@@ -580,6 +605,8 @@
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
+<div class="toast" id="toast"></div>
+
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -589,6 +616,11 @@
       <label for="custName">Ismingiz</label>
       <input type="text" id="custName" placeholder="Ism Familiya">
       <div class="field-error" id="errName">Ismingizni kiriting</div>
+      <div class="promo-row">
+        <input type="text" id="promoCode" placeholder="Promokod">
+        <button type="button" id="promoApplyBtn">Tasdiqlash</button>
+      </div>
+      <div class="promo-msg" id="promoMsg"></div>
       <label for="custRegion">Viloyatingiz</label>
       <select id="custRegion">
         <option value="">Tanlang</option>
@@ -1012,13 +1044,18 @@ const confirmSpinner = document.getElementById('confirmSpinner');
 
 let selectedNumberId = null;
 let selectedPrice = 0;
+let appliedDiscount = 0;
 
 function openModal(number, id){
   selectedNumberId = id || null;
   const item = NUMBERS.find(n => n.id === id);
   selectedPrice = item ? item.price : 0;
+  appliedDiscount = 0;
   modalNumber.textContent = displayNumber(number);
   custName.value = ''; custRegion.value = ''; custPhone.value = '+998';
+  document.getElementById('promoCode').value = '';
+  const promoMsgEl = document.getElementById('promoMsg');
+  promoMsgEl.style.display = 'none'; promoMsgEl.className = 'promo-msg';
   ['errName','errRegion','errPhone'].forEach(id=>document.getElementById(id).style.display='none');
   formView.style.display = 'block';
   successView.style.display = 'none';
@@ -1030,6 +1067,41 @@ function closeModal(){ overlay.classList.remove('open'); document.body.style.ove
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
 document.getElementById('closeSuccessBtn').addEventListener('click', closeModal);
 overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+
+function showToast(text){
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 3000);
+}
+
+document.getElementById('promoApplyBtn').addEventListener('click', async ()=>{
+  const code = document.getElementById('promoCode').value.trim().toUpperCase();
+  const msgEl = document.getElementById('promoMsg');
+  if(!code){
+    msgEl.textContent = 'Promokodni kiriting';
+    msgEl.className = 'promo-msg bad';
+    return;
+  }
+  try{
+    const snap = await db.collection('promo_codes').where('code', '==', code).limit(1).get();
+    if(snap.empty){
+      msgEl.textContent = "Promokod noto'g'ri yoki muddati o'tgan";
+      msgEl.className = 'promo-msg bad';
+      appliedDiscount = 0;
+      return;
+    }
+    const discount = snap.docs[0].data().discount || 0;
+    appliedDiscount = discount;
+    msgEl.textContent = `✓ Promokod qabul qilindi (-${formatPrice(discount)})`;
+    msgEl.className = 'promo-msg ok';
+    showToast(`🎉 Sizga ${formatPrice(discount)} chegirma berildi`);
+  }catch(err){
+    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.className = 'promo-msg bad';
+  }
+});
+
 
 function validate(){
   let ok = true;
@@ -1071,9 +1143,10 @@ confirmBtn.addEventListener('click', async ()=>{
   confirmLabel.style.display = 'none';
   confirmSpinner.style.display = 'inline-block';
 
+  const finalPrice = Math.max(0, selectedPrice - appliedDiscount);
   const payload = {
     number: modalNumber.textContent,
-    price: selectedPrice,
+    price: finalPrice,
     name: custName.value.trim(),
     region: custRegion.value,
     phone: custPhone.value.trim(),
@@ -1150,16 +1223,12 @@ drawerOverlay.addEventListener('click', closeDrawer);
 
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {
-  klassik:  { bg:'#0B1220', panel:'#121B2E', panel2:'#17223A', line:'#263450', amber:'#FFB000', amberSoft:'rgba(255,176,0,0.15)', green:'#33E28C', red:'#FF5C5C', brandRed:'#E63946', text:'#EDEFF3', muted:'#8494B0' },
-  navy:     { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#24405F', amber:'#5B9BD5', amberSoft:'rgba(91,155,213,0.15)', green:'#33E28C', red:'#2563EB', brandRed:'#1D4ED8', text:'#EDF2F8', muted:'#7E93B0' },
-  emerald:  { bg:'#0D1F1A', panel:'#132923', panel2:'#193530', line:'#204439', amber:'#4FAE8C', amberSoft:'rgba(79,174,140,0.15)', green:'#33E28C', red:'#2FBF8F', brandRed:'#1FA97F', text:'#EAF5F0', muted:'#7FB9A3' },
-  gold:     { bg:'#1A1508', panel:'#26200F', panel2:'#332A15', line:'#4A3D1F', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#8FCB6E', red:'#D4AF37', brandRed:'#C9992E', text:'#F5F0DE', muted:'#A8977A' },
-  purple:   { bg:'#140F26', panel:'#1E1638', panel2:'#281E48', line:'#3A2D5C', amber:'#7C5CFF', amberSoft:'rgba(124,92,255,0.15)', green:'#33E28C', red:'#8B6CFF', brandRed:'#7C5CFF', text:'#F0EDFA', muted:'#9789BE' },
-  pink:     { bg:'#1A0F16', panel:'#251523', panel2:'#331C2F', line:'#4A2A3F', amber:'#FF4F81', amberSoft:'rgba(255,79,129,0.15)', green:'#33E28C', red:'#FF4F81', brandRed:'#E23C6D', text:'#FBEDF2', muted:'#B9829A' },
-  mono:     { bg:'#141414', panel:'#1E1E1E', panel2:'#282828', line:'#3A3A3A', amber:'#E24B4A', amberSoft:'rgba(226,75,74,0.15)', green:'#7FD99A', red:'#E24B4A', brandRed:'#C93E3D', text:'#EDEDED', muted:'#9A9A9A' },
-  turquoise:{ bg:'#0A1F1F', panel:'#123030', panel2:'#183E3E', line:'#215454', amber:'#2DD4BF', amberSoft:'rgba(45,212,191,0.15)', green:'#5EEAD4', red:'#2DD4BF', brandRed:'#22B8A3', text:'#EAF7F5', muted:'#7FB8B0' },
-  coffee:   { bg:'#1C1410', panel:'#281D16', panel2:'#33251C', line:'#4A3527', amber:'#C9873F', amberSoft:'rgba(201,135,63,0.15)', green:'#9BC46E', red:'#C9873F', brandRed:'#B8752F', text:'#F2EAE0', muted:'#A88F73' },
-  crimson:  { bg:'#160808', panel:'#221010', panel2:'#2E1616', line:'#4A2020', amber:'#FF6B6B', amberSoft:'rgba(255,107,107,0.15)', green:'#33E28C', red:'#FF6B6B', brandRed:'#E63946', text:'#FBEAEA', muted:'#B08080' }
+  premium_navy:   { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#1C2E4A', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#33E28C', red:'#D4AF37', brandRed:'#D4AF37', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'8px', cardRadius:'12px' },
+  clean_white:    { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  modern_saas:    { bg:'#0D1B33', panel:'#132A4D', panel2:'#183A63', line:'#1C3050', amber:'#4A90D9', amberSoft:'rgba(74,144,217,0.15)', green:'#7FE7C4', red:'#4A90D9', brandRed:'#4A90D9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4A90D9', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  bold_editorial: { bg:'#0A1220', panel:'#0A1220', panel2:'#111A2C', line:'#FFFFFF', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.12)', green:'#7FE7C4', red:'#FFFFFF', brandRed:'#FFFFFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#FFFFFF', btnText:'#0A1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'0px', cardRadius:'0px' },
+  soft_glass:     { bg:'#0B1220', panel:'rgba(255,255,255,0.06)', panel2:'rgba(255,255,255,0.09)', line:'rgba(255,255,255,0.15)', amber:'#7FA8E0', amberSoft:'rgba(127,168,224,0.15)', green:'#7FE7C4', red:'#7FA8E0', brandRed:'#7FA8E0', text:'#FFFFFF', muted:'#B8CBE8', btnBg:'#FFFFFF', btnText:'#0B1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
+  warm_gold:      { bg:'#0F2547', panel:'#132C50', panel2:'#183761', line:'#C9A44E', amber:'#C9A44E', amberSoft:'rgba(201,164,78,0.15)', green:'#7FD99A', red:'#C9A44E', brandRed:'#C9A44E', text:'#FFFFFF', muted:'#9FB3CC', btnBg:'#C9A44E', btnText:'#0F2547', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'6px', cardRadius:'8px' }
 };
 
 function applyTheme(themeKey){
@@ -1177,6 +1246,12 @@ function applyTheme(themeKey){
   root.setProperty('--brand-red', t.brandRed);
   root.setProperty('--text', t.text);
   root.setProperty('--muted', t.muted);
+  root.setProperty('--btn-bg', t.btnBg);
+  root.setProperty('--btn-text', t.btnText);
+  root.setProperty('--btn-border-width', t.btnBorderWidth);
+  root.setProperty('--btn-border-color', t.btnBorderColor);
+  root.setProperty('--btn-radius', t.btnRadius);
+  root.setProperty('--card-radius', t.cardRadius);
 }
 
 async function loadSiteSettings(){

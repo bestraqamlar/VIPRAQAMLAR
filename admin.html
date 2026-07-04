@@ -389,6 +389,18 @@
     </div>
 
     <div class="settings-form" style="margin-top:16px;">
+      <h3>Promokodlar</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Mijozlar buyurtma berayotganda kiritishi mumkin bo'lgan chegirma kodlari.</p>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input type="text" id="newPromoCode" placeholder="Kod (masalan YANGI2026)" style="flex:1;">
+        <input type="number" id="newPromoDiscount" placeholder="Chegirma (so'm)" style="width:130px;">
+      </div>
+      <button id="addPromoBtn">+ Promokod qo'shish</button>
+      <div class="settings-msg" id="promoAddMsg"></div>
+      <div id="promoList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <div class="settings-form" style="margin-top:16px;">
       <h3>Saytning rang mavzusi</h3>
       <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Birini tanlang — mijoz sayti darhol shu rangga o'tadi. Boshqa hech narsa qilish shart emas.</p>
       <div id="themePicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
@@ -640,18 +652,64 @@ document.getElementById('saveCredentialsBtn').addEventListener('click', async ()
 /* ---- Sayt sozlamalari (yon menyu, xarita, ish vaqti va h.k.) ---- */
 /* ---- Rang mavzusi tanlash (10 ta tayyor variant) ---- */
 const SITE_THEMES = {
-  klassik:  { name:"Klassik qizil", bg:'#0B1220', panel:'#121B2E', accent:'#E63946' },
-  navy:     { name:"Tun ko'ki",     bg:'#0A1628', panel:'#101F38', accent:'#1D4ED8' },
-  emerald:  { name:'Zumrad',        bg:'#0D1F1A', panel:'#132923', accent:'#1FA97F' },
-  gold:     { name:'Iliq tilla',    bg:'#1A1508', panel:'#26200F', accent:'#D4AF37' },
-  purple:   { name:'Binafsha',      bg:'#140F26', panel:'#1E1638', accent:'#7C5CFF' },
-  pink:     { name:'Pushti',        bg:'#1A0F16', panel:'#251523', accent:'#E23C6D' },
-  mono:     { name:'Monoxrom',      bg:'#141414', panel:'#1E1E1E', accent:'#E24B4A' },
-  turquoise:{ name:'Feruza',        bg:'#0A1F1F', panel:'#123030', accent:'#22B8A3' },
-  coffee:   { name:'Qahva-jigarrang', bg:'#1C1410', panel:'#281D16', accent:'#C9873F' },
-  crimson:  { name:"Chuqur qizil",  bg:'#160808', panel:'#221010', accent:'#E63946' }
+  premium_navy:   { name:'Premium Navy Executive', bg:'#0A1628', panel:'#101F38', accent:'#D4AF37' },
+  clean_white:    { name:'Clean Corporate White',  bg:'#F4F7FB', panel:'#FFFFFF', accent:'#1D4ED8' },
+  modern_saas:    { name:'Modern SaaS Blue',       bg:'#0D1B33', panel:'#132A4D', accent:'#4A90D9' },
+  bold_editorial: { name:'Bold Editorial Navy',    bg:'#0A1220', panel:'#111A2C', accent:'#FFFFFF' },
+  soft_glass:     { name:'Soft Glass Navy',        bg:'#0B1220', panel:'#16233E', accent:'#7FA8E0' },
+  warm_gold:      { name:'Warm Trust Navy-Gold',   bg:'#0F2547', panel:'#132C50', accent:'#C9A44E' }
 };
-let currentTheme = 'klassik';
+let currentTheme = 'premium_navy';
+
+/* ---- Promokodlar ---- */
+async function loadPromoCodes(){
+  const list = document.getElementById('promoList');
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const snap = await db.collection('promo_codes').get();
+    if(snap.empty){ list.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali promokod yo\'q.</div>'; return; }
+    list.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;">
+          <div style="font-size:12.5px;"><b>${d.code}</b> — ${formatPrice(d.discount || 0)} chegirma</div>
+          <button class="promo-delete" data-id="${doc.id}" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">O'chirish</button>
+        </div>`;
+    }).join('');
+    list.querySelectorAll('.promo-delete').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu promokodni o'chirasizmi?")) return;
+        await db.collection('promo_codes').doc(btn.dataset.id).delete();
+        loadPromoCodes();
+      });
+    });
+  }catch(e){ list.innerHTML = 'Xato: ' + e.message; }
+}
+loadPromoCodes();
+
+document.getElementById('addPromoBtn').addEventListener('click', async ()=>{
+  const codeInput = document.getElementById('newPromoCode');
+  const discountInput = document.getElementById('newPromoDiscount');
+  const msg = document.getElementById('promoAddMsg');
+  const code = codeInput.value.trim().toUpperCase();
+  const discount = Number(discountInput.value) || 0;
+  if(!code || discount <= 0){
+    msg.textContent = "Kod va chegirma summasini to'g'ri kiriting";
+    msg.className = 'settings-msg bad';
+    return;
+  }
+  try{
+    await db.collection('promo_codes').add({ code, discount, createdAt: Date.now() });
+    codeInput.value = ''; discountInput.value = '';
+    msg.textContent = '✓ Promokod qo\'shildi';
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+    loadPromoCodes();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
 
 function renderThemePicker(){
   const picker = document.getElementById('themePicker');
