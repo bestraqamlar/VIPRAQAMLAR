@@ -15,6 +15,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true }); // Netlify Functions'da gRPC ulanish muammosini oldini oladi
 
+async function withRetry(fn, retries = 3, delayMs = 1500){
+  for(let i = 0; i <= retries; i++){
+    try{ return await fn(); }
+    catch(err){
+      const msg = String(err && err.message || err);
+      if(i === retries || !msg.includes('Quota exceeded')) throw err;
+      await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+}
+
 const STATUS_MAP = { 'B': "Bog'lanildi", 'Y': 'Yakunlandi', 'C': 'Bekor qilindi' };
 
 async function answerCallback(callbackQueryId, text){
@@ -61,19 +72,19 @@ exports.handler = async function (event) {
   if(!statusLabel) return { statusCode: 200, body: 'ok' };
 
   try{
-    const orderDoc = await db.collection('orders').doc(orderId).get();
+    const orderDoc = await withRetry(() => db.collection('orders').doc(orderId).get());
     const orderData = orderDoc.exists ? orderDoc.data() : {};
     const numberId = orderData.numberId || null;
     const customerChatId = orderData.customerChatId || null;
     const orderNumber = orderData.number || '';
 
-    await db.collection('orders').doc(orderId).update({ status: statusLabel });
+    await withRetry(() => db.collection('orders').doc(orderId).update({ status: statusLabel }));
 
     if(numberId){
       if(statusCode === 'C'){
-        await db.collection('numbers').doc(numberId).update({ reserved: false });
+        await withRetry(() => db.collection('numbers').doc(numberId).update({ reserved: false }));
       }else if(statusCode === 'Y'){
-        await db.collection('numbers').doc(numberId).delete();
+        await withRetry(() => db.collection('numbers').doc(numberId).delete());
       }
     }
 

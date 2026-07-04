@@ -18,6 +18,18 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true }); // Netlify Functions'da gRPC ulanish muammosini oldini oladi
 
+/* Vaqtinchalik "quota" xatoliklarida qayta urinib ko'radi (Google shuni tavsiya qiladi) */
+async function withRetry(fn, retries = 3, delayMs = 1500){
+  for(let i = 0; i <= retries; i++){
+    try{ return await fn(); }
+    catch(err){
+      const msg = String(err && err.message || err);
+      if(i === retries || !msg.includes('Quota exceeded')) throw err;
+      await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+}
+
 const OPERATORS = ['Beeline', 'Ucell', 'Mobiuz', 'Humans', 'Uzmobile', 'Perfektum'];
 const OPERATOR_EMOJI = { Beeline:'🟡', Ucell:'🟣', Mobiuz:'🔴', Humans:'🟠', Uzmobile:'🔵', Perfektum:'🟢' };
 const REGIONS = [
@@ -41,14 +53,14 @@ const BTN = {
 
 /* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
 async function getSession(chatId){
-  const doc = await db.collection('bot_sessions').doc(String(chatId)).get();
+  const doc = await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).get());
   if(doc.exists && doc.data().data){
     try{ return JSON.parse(doc.data().data); }catch(e){}
   }
   return { step: 'menu' };
 }
 async function saveSession(chatId, session){
-  await db.collection('bot_sessions').doc(String(chatId)).set({ data: JSON.stringify(session) });
+  await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({ data: JSON.stringify(session) }));
 }
 
 /* ---------------- Telegram yordamchi funksiyalari ---------------- */
@@ -103,6 +115,7 @@ async function showNumberList(chatId, session, items, emptyText){
     await send(chatId, emptyText, backKeyboard());
     return;
   }
+  session.step = 'list_shown';
   session.candidates = {};
   items.slice(0, 8).forEach(item => { session.candidates[displayNumber(item.number)] = item.id; });
   await saveSession(chatId, session);
@@ -218,13 +231,13 @@ exports.handler = async function (event) {
 
     if(data === 'confirmorder'){
       await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Yuborilmoqda...' });
-      const numberDoc = await db.collection('numbers').doc(session.numberId).get();
+      const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
       const nd = numberDoc.exists ? numberDoc.data() : {};
       const numberStr = displayNumber(nd.number || '');
       const price = nd.price || 0;
       const time = new Date().toLocaleString('uz-UZ');
 
-      const orderRef = await db.collection('orders').add({
+      const orderRef = await withRetry(() => db.collection('orders').add({
         number: numberStr,
         price,
         name: session.draftName || '',
@@ -235,10 +248,10 @@ exports.handler = async function (event) {
         status: 'Yangi',
         createdAt: time,
         createdAtSort: Date.now()
-      });
+      }));
 
       if(session.numberId){
-        await db.collection('numbers').doc(session.numberId).update({ reserved: true });
+        await withRetry(() => db.collection('numbers').doc(session.numberId).update({ reserved: true }));
       }
 
       await notifyAdmin(orderRef.id, {
@@ -304,12 +317,12 @@ exports.handler = async function (event) {
     }
 
     if(text === BTN.PREMIUM){
-      const snap = await db.collection('numbers').where('featured', '==', true).limit(8).get();
+      const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(8).get());
       await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha premium raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
-      const snap = await db.collection('numbers').where('onSale', '==', true).limit(8).get();
+      const snap = await withRetry(() => db.collection('numbers').where('onSale', '==', true).limit(8).get());
       await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha aksiyadagi raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
@@ -318,7 +331,7 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.MYORDERS){
-      const snap = await db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get();
+      const snap = await withRetry(() => db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get());
       const orders = snap.docs.map(d => d.data());
       if(orders.length === 0){
         await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
@@ -343,7 +356,7 @@ exports.handler = async function (event) {
       await send(chatId, "Iltimos, 1 dan 4 tagacha raqam kiriting. Misol: 0707", backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const snap = await db.collection('numbers').where('operator', '==', session.operator).limit(500).get();
+    const snap = await withRetry(() => db.collection('numbers').where('operator', '==', session.operator).limit(150).get());
     const all = snap.docs.map(docToItem);
     const matches = all.filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
     await showNumberList(chatId, session, matches,
@@ -354,7 +367,7 @@ exports.handler = async function (event) {
   /* ---- Ro'yxatdan bittasini tanlash (tugma matni = raqam) ---- */
   if(session.candidates && session.candidates[text]){
     const numberId = session.candidates[text];
-    const numberDoc = await db.collection('numbers').doc(numberId).get();
+    const numberDoc = await withRetry(() => db.collection('numbers').doc(numberId).get());
     if(numberDoc.exists){
       await showNumberDetail(chatId, docToItem(numberDoc));
     }
@@ -395,7 +408,7 @@ exports.handler = async function (event) {
     session.step = 'confirm';
     await saveSession(chatId, session);
 
-    const numberDoc = await db.collection('numbers').doc(session.numberId).get();
+    const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
     const numberStr = numberDoc.exists ? displayNumber(numberDoc.data().number || '') : '';
     const summary =
 `Buyurtmangizni tasdiqlang:

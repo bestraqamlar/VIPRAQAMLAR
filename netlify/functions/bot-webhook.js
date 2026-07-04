@@ -15,6 +15,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true }); // Netlify Functions'da gRPC ulanish muammosini oldini oladi
 
+async function withRetry(fn, retries = 3, delayMs = 1500){
+  for(let i = 0; i <= retries; i++){
+    try{ return await fn(); }
+    catch(err){
+      const msg = String(err && err.message || err);
+      if(i === retries || !msg.includes('Quota exceeded')) throw err;
+      await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+}
+
 const CODE_TO_OPERATOR = {
   '91':'Beeline', '90':'Beeline', '92':'Beeline',
   '33':'Humans',
@@ -91,7 +102,7 @@ exports.handler = async function (event) {
         addedAt: Date.now()
       });
     });
-    await batch.commit();
+    await withRetry(() => batch.commit());
 
     const summary = parsed.map(p => `• ${p.number} — ${p.operator} — ${p.price.toLocaleString('ru-RU')} so'm`).join('\n');
     await replyToUser(message.chat.id, `✅ ${parsed.length} ta raqam bazaga qo'shildi:\n\n${summary}`);
