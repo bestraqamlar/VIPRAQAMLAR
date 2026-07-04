@@ -1,15 +1,21 @@
 // MIJOZ UCHUN TELEGRAM BOT — sayt bilan bir xil ma'lumotlardan foydalanadi
 // ---------------------------------------------------------------------------
 // Kerakli Environment variables (Netlify):
-//   CUSTOMER_BOT_TOKEN   — shu bot uchun YANGI token (@BotFather orqali)
-//   TELEGRAM_BOT_TOKEN   — admin bildirishnoma boti (avvaldan bor)
-//   TELEGRAM_CHAT_ID     — sizning chat_id (avvaldan bor)
-//   FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY — (avvaldan bor)
-//
-// O'RNATISH: brauzerda oching (bir marta):
-//   https://api.telegram.org/bot<CUSTOMER_BOT_TOKEN>/setWebhook?url=https://SAYTINGIZ.netlify.app/.netlify/functions/customer-bot-webhook
+//   CUSTOMER_BOT_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+//   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
-const crypto = require('crypto');
+const admin = require('firebase-admin');
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+    })
+  });
+}
+const db = admin.firestore();
 
 const OPERATORS = ['Beeline', 'Ucell', 'Mobiuz', 'Humans', 'Uzmobile', 'Perfektum'];
 const OPERATOR_EMOJI = { Beeline:'🟡', Ucell:'🟣', Mobiuz:'🔴', Humans:'🟠', Uzmobile:'🔵', Perfektum:'🟢' };
@@ -32,145 +38,27 @@ const BTN = {
   SHARE_CONTACT: '📱 Kontaktni yuborish'
 };
 
-/* ---------------- Firestore (REST API, xizmat hisobi orqali) ---------------- */
-
-async function getGoogleAccessToken(){
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const claimSet = {
-    iss: process.env.FIREBASE_CLIENT_EMAIL,
-    scope: 'https://www.googleapis.com/auth/datastore',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
-  };
-  const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url');
-  const unsigned = `${b64url(header)}.${b64url(claimSet)}`;
-  const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-  const signature = crypto.sign('RSA-SHA256', Buffer.from(unsigned), privateKey).toString('base64url');
-  const jwt = `${unsigned}.${signature}`;
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
-  });
-  const data = await res.json();
-  if(!data.access_token) throw new Error('Google token olinmadi: ' + JSON.stringify(data));
-  return data.access_token;
-}
-
-function baseUrl(){
-  return `https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
-}
-
-function fv(fields, name, fallback){
-  if(!fields || !fields[name]) return fallback;
-  const f = fields[name];
-  if('stringValue' in f) return f.stringValue;
-  if('integerValue' in f) return Number(f.integerValue);
-  if('doubleValue' in f) return f.doubleValue;
-  if('booleanValue' in f) return f.booleanValue;
-  return fallback;
-}
-
-async function getDoc(token, path){
-  const res = await fetch(`${baseUrl()}/${path}`, { headers: { Authorization: `Bearer ${token}` } });
-  if(!res.ok) return null;
-  return res.json();
-}
-
-async function runQuery(token, collectionId, whereField, whereValue, limit){
-  const body = {
-    structuredQuery: {
-      from: [{ collectionId }],
-      where: {
-        fieldFilter: {
-          field: { fieldPath: whereField },
-          op: 'EQUAL',
-          value: typeof whereValue === 'boolean' ? { booleanValue: whereValue } : { stringValue: whereValue }
-        }
-      },
-      limit: limit || 300
-    }
-  };
-  const res = await fetch(`${baseUrl()}:runQuery`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  const rows = await res.json();
-  return (rows || [])
-    .filter(r => r.document)
-    .map(r => {
-      const id = r.document.name.split('/').pop();
-      const f = r.document.fields || {};
-      return {
-        id,
-        number: fv(f, 'number', ''),
-        operator: fv(f, 'operator', ''),
-        price: fv(f, 'price', 0),
-        oldPrice: fv(f, 'oldPrice', 0),
-        tag: fv(f, 'tag', 'oddiy'),
-        installment: fv(f, 'installment', false),
-        featured: fv(f, 'featured', false),
-        onSale: fv(f, 'onSale', false),
-        reserved: fv(f, 'reserved', false)
-      };
-    });
-}
-
-async function createDoc(token, collectionId, fields){
-  const res = await fetch(`${baseUrl()}/${collectionId}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields })
-  });
-  const data = await res.json();
-  return data.name ? data.name.split('/').pop() : null;
-}
-
-async function patchField(token, path, fieldName, value){
-  const url = `${baseUrl()}/${path}?updateMask.fieldPaths=${fieldName}`;
-  const fieldValue = typeof value === 'boolean' ? { booleanValue: value }
-    : typeof value === 'number' ? { integerValue: String(value) }
-    : { stringValue: String(value) };
-  await fetch(url, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { [fieldName]: fieldValue } })
-  });
-}
-
-/* ---------------- Seans (har bir mijoz uchun holat) ---------------- */
-
-async function getSession(token, chatId){
-  const doc = await getDoc(token, `bot_sessions/${chatId}`);
-  if(doc && doc.fields && doc.fields.data){
-    try{ return JSON.parse(doc.fields.data.stringValue); }catch(e){}
+/* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
+async function getSession(chatId){
+  const doc = await db.collection('bot_sessions').doc(String(chatId)).get();
+  if(doc.exists && doc.data().data){
+    try{ return JSON.parse(doc.data().data); }catch(e){}
   }
   return { step: 'menu' };
 }
-async function saveSession(token, chatId, session){
-  const url = `${baseUrl()}/bot_sessions/${chatId}`;
-  const res = await fetch(url, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { data: { stringValue: JSON.stringify(session) } } })
-  });
-  if(!res.ok){
-    console.error('Seans saqlanmadi:', await res.text());
-  }
+async function saveSession(chatId, session){
+  await db.collection('bot_sessions').doc(String(chatId)).set({ data: JSON.stringify(session) });
 }
 
 /* ---------------- Telegram yordamchi funksiyalari ---------------- */
-
 async function tg(method, payload){
   const token = process.env.CUSTOMER_BOT_TOKEN;
-  await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
+  return res.json();
 }
 function send(chatId, text, keyboard){
   const payload = { chat_id: chatId, text };
@@ -203,28 +91,27 @@ function contactKeyboard(){
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
 function displayNumber(numberStr){ return (numberStr || '').replace(/-/g, ' '); }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
-
 function operatorFromButton(text){
   for(const op of OPERATORS){ if(text === `${OPERATOR_EMOJI[op]} ${op}`) return op; }
   return null;
 }
 
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
-async function showNumberList(chatId, session, token, items, emptyText){
+async function showNumberList(chatId, session, items, emptyText){
   if(items.length === 0){
     await send(chatId, emptyText, backKeyboard());
     return;
   }
   session.candidates = {};
   items.slice(0, 8).forEach(item => { session.candidates[displayNumber(item.number)] = item.id; });
-  await saveSession(token, chatId, session);
+  await saveSession(chatId, session);
 
   const rows = items.slice(0, 8).map(item => [displayNumber(item.number)]);
   rows.push([BTN.BACK]);
   await send(chatId, "Mos raqamlar topildi. Batafsil ko'rish uchun birini tanlang 👇", replyKb(rows));
 }
 
-async function showNumberDetail(chatId, token, item){
+async function showNumberDetail(chatId, item){
   const hasDiscount = item.oldPrice && item.oldPrice > item.price;
   let text = `${OPERATOR_EMOJI[item.operator] || ''} ${item.operator}\n`;
   text += `📱 ${displayNumber(item.number)}\n\n`;
@@ -240,10 +127,10 @@ async function showNumberDetail(chatId, token, item){
 
   const buttons = item.reserved
     ? [[{ text: '⬅️ Orqaga', callback_data: 'backmenu' }]]
-    : [[
-        { text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` },
-        { text: '❌ Bekor qilish', callback_data: 'cancelview' }
-      ]];
+    : [
+        [{ text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` }],
+        [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
+      ];
   await tg('sendMessage', { chat_id: chatId, text, reply_markup: inlineKb(buttons) });
 }
 
@@ -268,14 +155,30 @@ async function notifyAdmin(orderId, payload){
       chat_id: chatId,
       text,
       reply_markup: {
-        inline_keyboard: [[
-          { text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` },
-          { text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` },
-          { text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }
-        ]]
+        inline_keyboard: [
+          [{ text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` }],
+          [{ text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` }],
+          [{ text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }]
+        ]
       }
     })
   });
+}
+
+function docToItem(doc){
+  const d = doc.data();
+  return {
+    id: doc.id,
+    number: d.number || '',
+    operator: d.operator || '',
+    price: d.price || 0,
+    oldPrice: d.oldPrice || 0,
+    tag: d.tag || 'oddiy',
+    installment: !!d.installment,
+    featured: !!d.featured,
+    onSale: !!d.onSale,
+    reserved: !!d.reserved
+  };
 }
 
 /* ---------------- Asosiy handler ---------------- */
@@ -286,18 +189,18 @@ exports.handler = async function (event) {
   let update;
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
 
-  const token = await getGoogleAccessToken();
+  try{
 
   /* ---- Inline tugma bosilganda (raqam tafsiloti, buyurtma tasdiqlash) ---- */
   if(update.callback_query){
     const cq = update.callback_query;
     const chatId = cq.message.chat.id;
     const data = cq.data;
-    let session = await getSession(token, chatId);
+    let session = await getSession(chatId);
 
     if(data === 'backmenu' || data === 'cancelview'){
       session = { step: 'menu' };
-      await saveSession(token, chatId, session);
+      await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
       await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
       return { statusCode: 200, body: 'ok' };
@@ -306,7 +209,7 @@ exports.handler = async function (event) {
     if(data.startsWith('buy|')){
       const numberId = data.split('|')[1];
       session = { step: 'awaiting_name', numberId };
-      await saveSession(token, chatId, session);
+      await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
       await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
       return { statusCode: 200, body: 'ok' };
@@ -314,41 +217,43 @@ exports.handler = async function (event) {
 
     if(data === 'confirmorder'){
       await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Yuborilmoqda...' });
-      const numberDoc = await getDoc(token, `numbers/${session.numberId}`);
-      const numberFields = numberDoc ? numberDoc.fields : {};
-      const numberStr = displayNumber(fv(numberFields, 'number', ''));
-      const price = fv(numberFields, 'price', 0);
+      const numberDoc = await db.collection('numbers').doc(session.numberId).get();
+      const nd = numberDoc.exists ? numberDoc.data() : {};
+      const numberStr = displayNumber(nd.number || '');
+      const price = nd.price || 0;
       const time = new Date().toLocaleString('uz-UZ');
 
-      const orderId = await createDoc(token, 'orders', {
-        number: { stringValue: numberStr },
-        price: { integerValue: String(price) },
-        name: { stringValue: session.draftName || '' },
-        region: { stringValue: session.draftRegion || '' },
-        phone: { stringValue: session.draftPhone || '' },
-        numberId: { stringValue: session.numberId },
-        customerChatId: { stringValue: String(chatId) },
-        status: { stringValue: 'Yangi' },
-        createdAt: { stringValue: time },
-        createdAtSort: { integerValue: String(Date.now()) }
+      const orderRef = await db.collection('orders').add({
+        number: numberStr,
+        price,
+        name: session.draftName || '',
+        region: session.draftRegion || '',
+        phone: session.draftPhone || '',
+        numberId: session.numberId,
+        customerChatId: String(chatId),
+        status: 'Yangi',
+        createdAt: time,
+        createdAtSort: Date.now()
       });
 
-      if(session.numberId){ await patchField(token, `numbers/${session.numberId}`, 'reserved', true); }
+      if(session.numberId){
+        await db.collection('numbers').doc(session.numberId).update({ reserved: true });
+      }
 
-      await notifyAdmin(orderId, {
+      await notifyAdmin(orderRef.id, {
         number: numberStr, name: session.draftName, phone: session.draftPhone,
         region: session.draftRegion, time
       });
 
       session = { step: 'menu' };
-      await saveSession(token, chatId, session);
+      await saveSession(chatId, session);
       await send(chatId, "✅ Buyurtmangiz qabul qilindi! Tez orada siz bilan bog'lanamiz.", mainMenuKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
     if(data === 'cancelorder'){
       session = { step: 'menu' };
-      await saveSession(token, chatId, session);
+      await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
       await send(chatId, 'Buyurtma bekor qilindi.', mainMenuKeyboard());
       return { statusCode: 200, body: 'ok' };
@@ -363,11 +268,11 @@ exports.handler = async function (event) {
   if(!message) return { statusCode: 200, body: 'ok' };
   const chatId = message.chat.id;
   const text = (message.text || '').trim();
-  let session = await getSession(token, chatId);
+  let session = await getSession(chatId);
 
   if(text === '/start'){
     session = { step: 'menu' };
-    await saveSession(token, chatId, session);
+    await saveSession(chatId, session);
     await send(chatId,
       "Assalomu alaykum! VIP RAQAMLAR botiga xush kelibsiz 👋\n\nKerakli operatorni tanlang yoki quyidagi bo'limlardan foydalaning:",
       mainMenuKeyboard());
@@ -376,13 +281,13 @@ exports.handler = async function (event) {
 
   if(text === BTN.BACK){
     session = { step: 'menu' };
-    await saveSession(token, chatId, session);
+    await saveSession(chatId, session);
     await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
   if(text === BTN.CANCEL){
     session = { step: 'menu' };
-    await saveSession(token, chatId, session);
+    await saveSession(chatId, session);
     await send(chatId, 'Bekor qilindi.', mainMenuKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
@@ -392,19 +297,19 @@ exports.handler = async function (event) {
     const operator = operatorFromButton(text);
     if(operator){
       session = { step: 'awaiting_digits', operator };
-      await saveSession(token, chatId, session);
+      await saveSession(chatId, session);
       await send(chatId, 'Sevimli raqamingizni kiriting.\nMisol: 0707', backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
     if(text === BTN.PREMIUM){
-      const items = await runQuery(token, 'numbers', 'featured', true, 8);
-      await showNumberList(chatId, session, token, items, "Hozircha premium raqamlar yo'q.");
+      const snap = await db.collection('numbers').where('featured', '==', true).limit(8).get();
+      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha premium raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
-      const items = await runQuery(token, 'numbers', 'onSale', true, 8);
-      await showNumberList(chatId, session, token, items, "Hozircha aksiyadagi raqamlar yo'q.");
+      const snap = await db.collection('numbers').where('onSale', '==', true).limit(8).get();
+      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha aksiyadagi raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.CONTACT){
@@ -412,7 +317,8 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.MYORDERS){
-      const orders = await runQuery(token, 'orders', 'customerChatId', String(chatId), 20);
+      const snap = await db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get();
+      const orders = snap.docs.map(d => d.data());
       if(orders.length === 0){
         await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
       }else{
@@ -436,9 +342,10 @@ exports.handler = async function (event) {
       await send(chatId, "Iltimos, 1 dan 4 tagacha raqam kiriting. Misol: 0707", backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const all = await runQuery(token, 'numbers', 'operator', session.operator, 500);
+    const snap = await db.collection('numbers').where('operator', '==', session.operator).limit(500).get();
+    const all = snap.docs.map(docToItem);
     const matches = all.filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
-    await showNumberList(chatId, session, token, matches,
+    await showNumberList(chatId, session, matches,
       `"${digits}" bilan tugaydigan raqam topilmadi. Boshqa raqam kiriting.`);
     return { statusCode: 200, body: 'ok' };
   }
@@ -446,15 +353,9 @@ exports.handler = async function (event) {
   /* ---- Ro'yxatdan bittasini tanlash (tugma matni = raqam) ---- */
   if(session.candidates && session.candidates[text]){
     const numberId = session.candidates[text];
-    const numberDoc = await getDoc(token, `numbers/${numberId}`);
-    if(numberDoc){
-      const f = numberDoc.fields || {};
-      const item = {
-        id: numberId, number: fv(f,'number',''), operator: fv(f,'operator',''),
-        price: fv(f,'price',0), oldPrice: fv(f,'oldPrice',0), tag: fv(f,'tag','oddiy'),
-        installment: fv(f,'installment',false), reserved: fv(f,'reserved',false)
-      };
-      await showNumberDetail(chatId, token, item);
+    const numberDoc = await db.collection('numbers').doc(numberId).get();
+    if(numberDoc.exists){
+      await showNumberDetail(chatId, docToItem(numberDoc));
     }
     return { statusCode: 200, body: 'ok' };
   }
@@ -463,7 +364,7 @@ exports.handler = async function (event) {
   if(session.step === 'awaiting_name'){
     session.draftName = text;
     session.step = 'awaiting_phone';
-    await saveSession(token, chatId, session);
+    await saveSession(chatId, session);
     await send(chatId, "Hozir ishlatib turgan raqamingizni yuboring (yozing yoki kontaktni ulashing):", contactKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
@@ -477,7 +378,7 @@ exports.handler = async function (event) {
     }
     session.draftPhone = phone;
     session.step = 'awaiting_region';
-    await saveSession(token, chatId, session);
+    await saveSession(chatId, session);
     await send(chatId, "Viloyatingizni tanlang:", regionKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
@@ -491,10 +392,10 @@ exports.handler = async function (event) {
     }
     session.draftRegion = text;
     session.step = 'confirm';
-    await saveSession(token, chatId, session);
+    await saveSession(chatId, session);
 
-    const numberDoc = await getDoc(token, `numbers/${session.numberId}`);
-    const numberStr = numberDoc ? displayNumber(fv(numberDoc.fields, 'number', '')) : '';
+    const numberDoc = await db.collection('numbers').doc(session.numberId).get();
+    const numberStr = numberDoc.exists ? displayNumber(numberDoc.data().number || '') : '';
     const summary =
 `Buyurtmangizni tasdiqlang:
 
@@ -505,14 +406,19 @@ exports.handler = async function (event) {
 
     await tg('sendMessage', {
       chat_id: chatId, text: summary,
-      reply_markup: inlineKb([[
-        { text: '✅ Tasdiqlash', callback_data: 'confirmorder' },
-        { text: '❌ Bekor qilish', callback_data: 'cancelorder' }
-      ]])
+      reply_markup: inlineKb([
+        [{ text: '✅ Tasdiqlash', callback_data: 'confirmorder' }],
+        [{ text: '❌ Bekor qilish', callback_data: 'cancelorder' }]
+      ])
     });
     return { statusCode: 200, body: 'ok' };
   }
 
   await send(chatId, "Asosiy menyudan foydalaning:", mainMenuKeyboard());
   return { statusCode: 200, body: 'ok' };
+
+  }catch(err){
+    console.error('BOT XATOSI:', err);
+    return { statusCode: 200, body: 'ok' };
+  }
 };

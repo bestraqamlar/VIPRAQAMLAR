@@ -30,11 +30,11 @@ exports.handler = async function (event) {
     const body = { chat_id: chatId, text };
     if (orderId) {
       body.reply_markup = {
-        inline_keyboard: [[
-          { text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` },
-          { text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` },
-          { text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }
-        ]]
+        inline_keyboard: [
+          [{ text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` }],
+          [{ text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` }],
+          [{ text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }]
+        ]
       };
     }
 
