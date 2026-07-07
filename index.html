@@ -449,6 +449,40 @@
   }
   .toast.show{top:16px;}
 
+  .contract-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity 0.25s ease;z-index:210;padding:16px;
+  }
+  .contract-overlay.open{opacity:1;pointer-events:auto;}
+  .contract-modal{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:18px;width:100%;max-width:380px;max-height:85vh;overflow-y:auto;
+  }
+  .contract-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .contract-title{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);}
+  .contract-modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px;}
+  .contract-modal input{
+    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:13.5px;
+  }
+
+  .cr-summary{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    padding:14px;margin-bottom:12px;
+  }
+  .cr-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--line);}
+  .cr-row:last-child{border-bottom:none;}
+  .cr-row b{color:var(--text);font-weight:700;}
+  .cr-progress-wrap{background:var(--line);border-radius:20px;height:8px;overflow:hidden;margin:12px 0;}
+  .cr-progress-bar{height:100%;background:var(--green);border-radius:20px;}
+  .cr-months-title{font-size:12px;color:var(--muted);margin:10px 0 8px;}
+  .cr-months-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+  .cr-month-chip{
+    aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;
+  }
+
   .modal-actions{display:flex;gap:10px;margin-top:22px;}
   .modal-actions button{
     flex:1;border:none;border-radius:9px;padding:13px;font-weight:700;cursor:pointer;font-size:14.5px;
@@ -545,6 +579,13 @@
     <div class="drawer-info-row"><span>🕐</span><span id="drawerHours">Ish vaqti: 09:00 - 18:00</span></div>
     <div class="drawer-info-row"><span>🚚</span><span id="drawerDelivery">O'zbekiston bo'ylab dostavka xizmati</span></div>
   </div>
+
+  <div class="drawer-links" style="padding-top:0;">
+    <a href="#" id="openContractCheck">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      Shartnomani tekshirish
+    </a>
+  </div>
 </aside>
 
 <section class="daily-deal-section" id="dailyDealSection" style="display:none;">
@@ -607,6 +648,31 @@
 </section>
 
 <div class="toast" id="toast"></div>
+
+<div class="contract-overlay" id="contractOverlay">
+  <div class="contract-modal">
+    <div class="contract-top">
+      <span class="contract-title">Shartnomani tekshirish</span>
+      <button class="drawer-close" id="contractClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+      </button>
+    </div>
+
+    <div id="contractSearchView">
+      <label for="contractIdInput">ID raqam</label>
+      <input type="text" id="contractIdInput" placeholder="Masalan: KR001">
+      <label for="contractNumberInput">Xarid qilingan raqam</label>
+      <input type="text" id="contractNumberInput" placeholder="+998 90 777-77-77">
+      <div class="field-error" id="contractError">Ma'lumot topilmadi. ID va raqamni tekshiring.</div>
+      <button class="btn-confirm" id="contractSearchBtn" style="width:100%;margin-top:10px;">
+        <span id="contractSearchLabel">Qidirish</span>
+        <span class="spinner" id="contractSearchSpinner" style="display:none;"></span>
+      </button>
+    </div>
+
+    <div id="contractResultView" style="display:none;"></div>
+  </div>
+</div>
 
 <div class="overlay" id="overlay">
   <div class="modal">
@@ -1237,6 +1303,101 @@ function closeDrawer(){
 menuBtn.addEventListener('click', openDrawer);
 drawerClose.addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
+
+/* ---- Shartnomani tekshirish ---- */
+const contractOverlay = document.getElementById('contractOverlay');
+const contractSearchView = document.getElementById('contractSearchView');
+const contractResultView = document.getElementById('contractResultView');
+
+document.getElementById('openContractCheck').addEventListener('click', (e)=>{
+  e.preventDefault();
+  closeDrawer();
+  document.getElementById('contractIdInput').value = '';
+  document.getElementById('contractNumberInput').value = '';
+  document.getElementById('contractError').style.display = 'none';
+  contractSearchView.style.display = 'block';
+  contractResultView.style.display = 'none';
+  contractOverlay.classList.add('open');
+});
+document.getElementById('contractClose').addEventListener('click', ()=> contractOverlay.classList.remove('open'));
+contractOverlay.addEventListener('click', (e)=>{ if(e.target === contractOverlay) contractOverlay.classList.remove('open'); });
+
+document.getElementById('contractSearchBtn').addEventListener('click', async ()=>{
+  const idVal = document.getElementById('contractIdInput').value.trim().toUpperCase();
+  const numVal = document.getElementById('contractNumberInput').value.replace(/\D/g,'');
+  const errEl = document.getElementById('contractError');
+  errEl.style.display = 'none';
+
+  if(!idVal || !numVal){
+    errEl.textContent = "ID va raqamni to'liq kiriting";
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const label = document.getElementById('contractSearchLabel');
+  const spinner = document.getElementById('contractSearchSpinner');
+  label.style.display = 'none'; spinner.style.display = 'inline-block';
+
+  try{
+    const snap = await db.collection('credit_contracts').where('contractId', '==', idVal).limit(1).get();
+    if(snap.empty){
+      errEl.textContent = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
+      errEl.style.display = 'block';
+    }else{
+      const data = snap.docs[0].data();
+      const docNumDigits = (data.number || '').replace(/\D/g,'');
+      if(!docNumDigits.endsWith(numVal.slice(-9))){
+        errEl.textContent = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
+        errEl.style.display = 'block';
+      }else{
+        renderContractResult(data);
+        contractSearchView.style.display = 'none';
+        contractResultView.style.display = 'block';
+      }
+    }
+  }catch(err){
+    errEl.textContent = 'Xato: ' + err.message;
+    errEl.style.display = 'block';
+  }
+
+  label.style.display = 'inline'; spinner.style.display = 'none';
+});
+
+function renderContractResult(data){
+  const now = Date.now();
+  const paidCount = data.payments.filter(p => p.status === 'paid').length;
+  const pct = Math.round((paidCount / data.totalMonths) * 100);
+
+  const monthsHtml = data.payments.map(p => {
+    const isOverdue = p.status === 'pending' && p.dueDate < now;
+    let bg, label;
+    if(p.status === 'paid'){ bg = 'background:var(--green);color:#0a1a12;'; label = '✓'; }
+    else if(isOverdue){ bg = 'background:var(--red);color:#fff;'; label = '!'; }
+    else{ bg = 'background:var(--panel-2);color:var(--muted);border:1px solid var(--line);'; label = p.month; }
+    const d = new Date(p.dueDate);
+    const dateStr = d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit' });
+    return `<div class="cr-month-chip" style="${bg}"><span>${label}</span><span style="font-size:7.5px;opacity:0.8;">${dateStr}</span></div>`;
+  }).join('');
+
+  contractResultView.innerHTML = `
+    <div class="cr-summary">
+      <div class="cr-row"><span>Mijoz</span><b>${data.customerName}</b></div>
+      <div class="cr-row"><span>Raqam</span><b>${data.number}</b></div>
+      <div class="cr-row"><span>Muddat</span><b>${data.totalMonths} oy</b></div>
+      <div class="cr-row"><span>Oylik to'lov</span><b>${formatPrice(data.monthlyPayment)}</b></div>
+      <div class="cr-row"><span>To'landi</span><b>${paidCount} / ${data.totalMonths} oy</b></div>
+      <div class="cr-row"><span>Qoldi</span><b>${data.totalMonths - paidCount} oy</b></div>
+    </div>
+    <div class="cr-progress-wrap"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
+    <div class="cr-months-title">Har oy holati:</div>
+    <div class="cr-months-grid">${monthsHtml}</div>
+    <button class="btn-confirm" id="contractBackBtn" style="width:100%;margin-top:14px;">Orqaga</button>
+  `;
+  document.getElementById('contractBackBtn').addEventListener('click', ()=>{
+    contractResultView.style.display = 'none';
+    contractSearchView.style.display = 'block';
+  });
+}
 
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {

@@ -191,6 +191,21 @@
   .empty-admin{color:var(--muted);text-align:center;padding:40px 10px;font-size:13.5px;}
 
   .status-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;font-size:11.5px;color:var(--muted);}
+
+  .credit-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:10px;
+  }
+  .credit-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px;}
+  .credit-sub{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+  .credit-months{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .credit-month-chip{
+    width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:700;cursor:pointer;user-select:none;
+  }
+  .cm-pending{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  .cm-paid{background:var(--green);color:#0a1a12;}
+  .cm-overdue{background:var(--red);color:#fff;}
   .status-legend span{display:inline-flex;align-items:center;gap:5px;}
   .status-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
   .status-legend b{
@@ -312,6 +327,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="numbers">Raqamlar</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
+    <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
     <button class="tab" data-tab="settings">Sozlamalar</button>
   </div>
@@ -371,6 +387,39 @@
       <span><i class="lg-bekor"></i> Bekor qilindi <b id="cntBekor">0</b></span>
     </div>
     <div class="orders-list" id="adminOrdersList"></div>
+  </div>
+
+  <div class="pane" id="paneCredit">
+    <div class="settings-form" style="margin-bottom:16px;">
+      <h3>Yangi kredit shartnomasi</h3>
+      <label for="crName">Mijoz ismi</label>
+      <input type="text" id="crName" placeholder="Ism Familiya">
+      <label for="crPhone">Ishlab turgan raqami</label>
+      <input type="text" id="crPhone" placeholder="+998 90 123-45-67">
+      <label for="crRegion">Manzil (viloyat)</label>
+      <select id="crRegion">
+        <option value="">Tanlang</option>
+        <option>Toshkent shahri</option><option>Toshkent viloyati</option>
+        <option>Andijon</option><option>Farg'ona</option><option>Namangan</option>
+        <option>Samarqand</option><option>Buxoro</option><option>Xorazm</option>
+        <option>Navoiy</option><option>Qashqadaryo</option><option>Surxondaryo</option>
+        <option>Jizzax</option><option>Sirdaryo</option><option>Qoraqalpog'iston</option>
+      </select>
+      <label for="crNumber">Kreditga olingan raqam</label>
+      <input type="text" id="crNumber" placeholder="+998 90 777-77-77">
+      <label for="crMonths">Necha oyga (muddat)</label>
+      <input type="number" id="crMonths" placeholder="12">
+      <label for="crMonthly">Oyiga to'lov summasi (so'm)</label>
+      <input type="number" id="crMonthly" placeholder="150000">
+      <label for="crPayDay">Har oyning nechinchi sanasida (1-31)</label>
+      <input type="number" id="crPayDay" min="1" max="31" placeholder="10">
+      <label for="crInfo">Qo'shimcha ma'lumot (ixtiyoriy)</label>
+      <input type="text" id="crInfo" placeholder="Izoh...">
+      <button id="addCreditBtn">+ Shartnoma qo'shish</button>
+      <div class="settings-msg" id="creditAddMsg"></div>
+    </div>
+
+    <div id="creditList"></div>
   </div>
 
   <div class="pane" id="paneSessions">
@@ -608,7 +657,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', orders:'Orders', sessions:'Sessions', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', orders:'Orders', credit:'Credit', sessions:'Sessions', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -618,6 +667,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 
     if(tab.dataset.tab === 'orders'){ markOrdersSeen(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
+    if(tab.dataset.tab === 'credit'){ loadCreditContracts(); }
   });
 });
 
@@ -680,6 +730,132 @@ const SITE_THEMES = {
   ultra_luxury:   { name:'Ultra Luxury',   bg:'#071320', panel:'#17375F', accent:'#FFD56A' }
 };
 let currentTheme = 'premium_navy';
+
+/* ---- Kreditga berilgan raqamlar ---- */
+function calcDueDate(startTs, payDay, monthIndex){
+  const d = new Date(startTs);
+  d.setDate(1);
+  d.setMonth(d.getMonth() + monthIndex);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(payDay, lastDay));
+  return d.getTime();
+}
+function formatDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('creditAddMsg');
+  const name = document.getElementById('crName').value.trim();
+  const phone = document.getElementById('crPhone').value.trim();
+  const region = document.getElementById('crRegion').value;
+  const number = document.getElementById('crNumber').value.trim();
+  const months = Number(document.getElementById('crMonths').value) || 0;
+  const monthly = Number(document.getElementById('crMonthly').value) || 0;
+  const payDay = Number(document.getElementById('crPayDay').value) || 1;
+  const info = document.getElementById('crInfo').value.trim();
+
+  if(!name || !phone || !region || !number || months <= 0 || monthly <= 0){
+    msg.textContent = "Barcha maydonlarni to'g'ri to'ldiring";
+    msg.className = 'settings-msg bad';
+    return;
+  }
+
+  try{
+    // Ketma-ket ID raqam olish (KR001, KR002, ...)
+    const counterRef = db.collection('admin_meta').doc('creditCounter');
+    const counterDoc = await counterRef.get();
+    const nextNum = counterDoc.exists ? (counterDoc.data().value || 0) + 1 : 1;
+    await counterRef.set({ value: nextNum });
+    const contractId = 'KR' + String(nextNum).padStart(3, '0');
+
+    const startTs = Date.now();
+    const payments = [];
+    for(let i = 0; i < months; i++){
+      payments.push({ month: i + 1, dueDate: calcDueDate(startTs, payDay, i), status: 'pending', paidAt: null });
+    }
+
+    await db.collection('credit_contracts').add({
+      contractId, customerName: name, customerPhone: phone, region, number,
+      totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
+      additionalInfo: info, createdAt: startTs, payments
+    });
+
+    msg.textContent = `✓ Shartnoma qo'shildi. ID: ${contractId}`;
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+    ['crName','crPhone','crRegion','crNumber','crMonths','crMonthly','crPayDay','crInfo'].forEach(id=>{
+      document.getElementById(id).value = '';
+    });
+    loadCreditContracts();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
+
+async function loadCreditContracts(){
+  const list = document.getElementById('creditList');
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const snap = await db.collection('credit_contracts').orderBy('createdAt', 'desc').get();
+    if(snap.empty){ list.innerHTML = '<div class="empty-admin">Hali kredit shartnomasi yo\'q.</div>'; return; }
+
+    list.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const paidCount = d.payments.filter(p => p.status === 'paid').length;
+      const now = Date.now();
+      return `
+      <div class="credit-card" data-id="${doc.id}">
+        <div class="credit-head">
+          <div><b>${d.contractId}</b> — ${d.customerName}</div>
+          <button class="credit-delete" data-id="${doc.id}" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">O'chirish</button>
+        </div>
+        <div class="credit-sub">📱 ${d.number} &nbsp;|&nbsp; ☎️ ${d.customerPhone} &nbsp;|&nbsp; 📍 ${d.region}</div>
+        <div class="credit-sub">💰 Oyiga ${formatPrice(d.monthlyPayment)} &nbsp;|&nbsp; 🗓 Har oyning ${d.paymentDay}-sanasida &nbsp;|&nbsp; ✅ ${paidCount}/${d.totalMonths} oy to'landi</div>
+        ${d.additionalInfo ? `<div class="credit-sub">📝 ${d.additionalInfo}</div>` : ''}
+        <div class="credit-months">
+          ${d.payments.map(p => {
+            const isOverdue = p.status === 'pending' && p.dueDate < now;
+            const cls = p.status === 'paid' ? 'cm-paid' : (isOverdue ? 'cm-overdue' : 'cm-pending');
+            const label = p.status === 'paid' ? '✓' : (isOverdue ? '!' : p.month);
+            return `<div class="credit-month-chip ${cls}" data-id="${doc.id}" data-month="${p.month}" title="${p.month}-oy — ${formatDate(p.dueDate)}">${label}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('.credit-month-chip').forEach(chip => {
+      chip.addEventListener('click', async () => {
+        const contractId = chip.dataset.id;
+        const month = Number(chip.dataset.month);
+        const doc = await db.collection('credit_contracts').doc(contractId).get();
+        const data = doc.data();
+        const payments = data.payments.map(p => {
+          if(p.month === month){
+            const newStatus = p.status === 'paid' ? 'pending' : 'paid';
+            return { ...p, status: newStatus, paidAt: newStatus === 'paid' ? Date.now() : null };
+          }
+          return p;
+        });
+        await db.collection('credit_contracts').doc(contractId).update({ payments });
+        vibrate(60);
+        loadCreditContracts();
+      });
+    });
+
+    list.querySelectorAll('.credit-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(!confirm("Bu shartnomani butunlay o'chirasizmi?")) return;
+        await db.collection('credit_contracts').doc(btn.dataset.id).delete();
+        loadCreditContracts();
+      });
+    });
+  }catch(err){
+    list.innerHTML = 'Xato: ' + err.message;
+  }
+}
 
 /* ---- Promokodlar ---- */
 async function loadPromoCodes(){
