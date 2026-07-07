@@ -493,6 +493,19 @@
   .btn-confirm[disabled]{opacity:.6;cursor:not-allowed;}
   .btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--line) !important;}
 
+  .contract-search-btn{
+    background:linear-gradient(90deg, var(--green), var(--amber), var(--green));
+    background-size:200% 100%;
+    color:#08160f;font-weight:800;font-size:14.5px;padding:13px;
+    animation:searchShimmer 3s linear infinite;
+    box-shadow:0 0 0 rgba(51,226,140,0.4);
+  }
+  .contract-search-btn:hover{transform:translateY(-1px);}
+  @keyframes searchShimmer{
+    0%{ background-position:0% 50%; }
+    100%{ background-position:200% 50%; }
+  }
+
   .spinner{
     width:15px;height:15px;border:2px solid rgba(11,18,32,0.3);border-top-color:var(--bg);
     border-radius:50%;animation:spin .6s linear infinite;display:none;
@@ -659,13 +672,13 @@
     </div>
 
     <div id="contractSearchView">
-      <label for="contractIdInput">ID raqam</label>
-      <input type="text" id="contractIdInput" placeholder="Masalan: KR001">
-      <label for="contractNumberInput">Xarid qilingan raqam</label>
-      <input type="text" id="contractNumberInput" placeholder="+998 90 777-77-77">
+      <label for="contractIdInput">Shartnoma raqamini kiriting</label>
+      <input type="text" id="contractIdInput" placeholder="">
+      <label for="contractNumberInput">Raqamingizni kiriting</label>
+      <input type="text" id="contractNumberInput" placeholder="">
       <div class="field-error" id="contractError">Ma'lumot topilmadi. ID va raqamni tekshiring.</div>
-      <button class="btn-confirm" id="contractSearchBtn" style="width:100%;margin-top:10px;">
-        <span id="contractSearchLabel">Qidirish</span>
+      <button class="btn-confirm contract-search-btn" id="contractSearchBtn" style="width:100%;margin-top:10px;">
+        <span id="contractSearchLabel">🔍 Qidirish</span>
         <span class="spinner" id="contractSearchSpinner" style="display:none;"></span>
       </button>
     </div>
@@ -1321,6 +1334,14 @@ document.getElementById('openContractCheck').addEventListener('click', (e)=>{
 });
 document.getElementById('contractClose').addEventListener('click', ()=> contractOverlay.classList.remove('open'));
 contractOverlay.addEventListener('click', (e)=>{ if(e.target === contractOverlay) contractOverlay.classList.remove('open'); });
+
+const contractNumberInput = document.getElementById('contractNumberInput');
+contractNumberInput.addEventListener('focus', ()=>{
+  if(!contractNumberInput.value) contractNumberInput.value = '+998 ';
+});
+contractNumberInput.addEventListener('input', ()=>{
+  contractNumberInput.value = formatUzNumber(extractRawDigits(contractNumberInput.value));
+});
 
 document.getElementById('contractSearchBtn').addEventListener('click', async ()=>{
   const idVal = document.getElementById('contractIdInput').value.trim().toUpperCase();

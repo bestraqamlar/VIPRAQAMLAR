@@ -146,6 +146,22 @@
   .bulk-preview .confirm-row span{color:var(--muted);font-size:12px;}
 
   .admin-list{display:flex;flex-direction:column;gap:8px;}
+
+  .admin-row-collapsed{
+    background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    margin-bottom:6px;overflow:hidden;
+  }
+  .an-summary{
+    display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;
+  }
+  .an-summary:hover{background:var(--panel-2);}
+  .an-summary-num{font-family:'Sora',sans-serif;font-weight:700;font-size:13px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .an-summary-op{font-size:11.5px;color:var(--amber);flex-shrink:0;}
+  .an-summary-price{font-size:11.5px;color:var(--green);font-weight:700;flex-shrink:0;}
+  .an-summary-arrow{color:var(--muted);flex-shrink:0;font-size:12px;}
+  .admin-row-collapsed.an-open .an-summary{border-bottom:1px solid var(--line);}
+  .an-body .admin-row{border:none;border-radius:0;margin-bottom:0;background:var(--panel-2);}
+
   .admin-row{
     display:grid;grid-template-columns:1.4fr 1fr 0.9fr 0.9fr auto auto;
     gap:6px;align-items:center;
@@ -198,14 +214,22 @@
   }
   .credit-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px;}
   .credit-sub{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
-  .credit-months{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .credit-months{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
   .credit-month-chip{
-    width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;
-    font-size:10.5px;font-weight:700;cursor:pointer;user-select:none;
+    width:52px;height:44px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;user-select:none;line-height:1.3;gap:2px;
   }
+  .credit-month-chip .cm-label{font-size:11.5px;font-weight:800;}
+  .credit-month-chip .cm-date{font-size:9px;opacity:0.85;font-weight:600;}
   .cm-pending{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
   .cm-paid{background:var(--green);color:#0a1a12;}
   .cm-overdue{background:var(--red);color:#fff;}
+  .credit-legend{
+    display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:11px;color:var(--text);
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:12px;
+  }
+  .cr-progress-wrap{background:var(--line);border-radius:20px;height:7px;overflow:hidden;}
+  .cr-progress-bar{height:100%;background:var(--green);border-radius:20px;transition:width 0.3s ease;}
   .status-legend span{display:inline-flex;align-items:center;gap:5px;}
   .status-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
   .status-legend b{
@@ -376,6 +400,7 @@
     <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
       <button id="deleteAllNumbersBtn" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">🗑 Barcha raqamlarni o'chirish</button>
     </div>
+    <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
     <div class="admin-list" id="adminNumbersList"></div>
   </div>
 
@@ -745,6 +770,18 @@ function formatDate(ts){
   return d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric' });
 }
 
+/* Kredit formasidagi telefon maydonlarini avtomatik formatlash */
+['crPhone','crNumber'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=>{
+    const raw = extractRawDigits(el.value);
+    el.value = formatUzNumber(raw);
+  });
+  el.addEventListener('focus', ()=>{
+    if(!el.value) el.value = '+998 ';
+  });
+});
+
 document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
   const msg = document.getElementById('creditAddMsg');
   const name = document.getElementById('crName').value.trim();
@@ -802,9 +839,18 @@ async function loadCreditContracts(){
     const snap = await db.collection('credit_contracts').orderBy('createdAt', 'desc').get();
     if(snap.empty){ list.innerHTML = '<div class="empty-admin">Hali kredit shartnomasi yo\'q.</div>'; return; }
 
-    list.innerHTML = snap.docs.map(doc => {
+    const legend = `
+      <div class="credit-legend">
+        <span><i class="cm-pending" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Hali kelmagan</span>
+        <span><i class="cm-paid" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> To'langan</span>
+        <span><i class="cm-overdue" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Kechikmoqda</span>
+        <span style="color:var(--muted);">— katakchani bosib, to'landi/to'lanmadi deb belgilang</span>
+      </div>`;
+
+    list.innerHTML = legend + snap.docs.map(doc => {
       const d = doc.data();
       const paidCount = d.payments.filter(p => p.status === 'paid').length;
+      const pct = Math.round((paidCount / d.totalMonths) * 100);
       const now = Date.now();
       return `
       <div class="credit-card" data-id="${doc.id}">
@@ -815,12 +861,16 @@ async function loadCreditContracts(){
         <div class="credit-sub">📱 ${d.number} &nbsp;|&nbsp; ☎️ ${d.customerPhone} &nbsp;|&nbsp; 📍 ${d.region}</div>
         <div class="credit-sub">💰 Oyiga ${formatPrice(d.monthlyPayment)} &nbsp;|&nbsp; 🗓 Har oyning ${d.paymentDay}-sanasida &nbsp;|&nbsp; ✅ ${paidCount}/${d.totalMonths} oy to'landi</div>
         ${d.additionalInfo ? `<div class="credit-sub">📝 ${d.additionalInfo}</div>` : ''}
+        <div class="cr-progress-wrap" style="margin:8px 0;"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
         <div class="credit-months">
           ${d.payments.map(p => {
             const isOverdue = p.status === 'pending' && p.dueDate < now;
             const cls = p.status === 'paid' ? 'cm-paid' : (isOverdue ? 'cm-overdue' : 'cm-pending');
-            const label = p.status === 'paid' ? '✓' : (isOverdue ? '!' : p.month);
-            return `<div class="credit-month-chip ${cls}" data-id="${doc.id}" data-month="${p.month}" title="${p.month}-oy — ${formatDate(p.dueDate)}">${label}</div>`;
+            const icon = p.status === 'paid' ? '✓' : (isOverdue ? '⚠' : p.month + '-oy');
+            const dateStr = formatDate(p.dueDate).slice(0,5); // kun.oy
+            return `<div class="credit-month-chip ${cls}" data-id="${doc.id}" data-month="${p.month}" title="${p.month}-oy to'lovi — ${formatDate(p.dueDate)}">
+              <span class="cm-label">${icon}</span><span class="cm-date">${dateStr}</span>
+            </div>`;
           }).join('')}
         </div>
       </div>`;
@@ -1081,35 +1131,57 @@ function renderAdminNumbers(numbers){
   const hiddenCount = numbers.length - shown.length;
 
   adminNumbersList.innerHTML = shown.map(item => `
-    <div class="admin-row" data-id="${item.id}">
-      <input class="an-number" value="${item.number}">
-      <select class="an-operator">${operatorOptionsHtml(item.operator)}</select>
-      <input class="an-price" type="number" value="${item.price}">
-      <select class="an-tag">
-        <option value="oddiy" ${item.tag==='oddiy'?'selected':''}>Oddiy</option>
-        <option value="vip" ${item.tag==='vip'?'selected':''}>VIP</option>
-      </select>
-      <button class="an-save">Saqlash</button>
-      <button class="an-delete">O'chirish</button>
-      <div class="an-extra">
-        <input class="an-oldprice" type="number" placeholder="Eski narx (aksiya)" value="${item.oldPrice || ''}">
-        <label class="an-installment-label">
-          <input type="checkbox" class="an-installment" ${item.installment ? 'checked' : ''}>
-          Bo'lib to'lash
-        </label>
-        <label class="an-installment-label">
-          <input type="checkbox" class="an-featured" ${item.featured ? 'checked' : ''}>
-          Mashhur raqamlarda
-        </label>
-        <label class="an-installment-label">
-          <input type="checkbox" class="an-dailydeal" ${item.dailyDeal ? 'checked' : ''}>
-          🔥 Bugungi aksiyada
-        </label>
+    <div class="admin-row-collapsed" data-id="${item.id}">
+      <div class="an-summary" data-id="${item.id}">
+        <span class="an-summary-num">${item.number}</span>
+        <span class="an-summary-op">${item.operator}${item.tag==='vip' ? ' · VIP' : ''}</span>
+        <span class="an-summary-price">${formatPrice(item.price)}</span>
+        <span class="an-summary-arrow">▾</span>
+      </div>
+      <div class="an-body" style="display:none;">
+        <div class="admin-row" data-id="${item.id}">
+          <input class="an-number" value="${item.number}">
+          <select class="an-operator">${operatorOptionsHtml(item.operator)}</select>
+          <input class="an-price" type="number" value="${item.price}">
+          <select class="an-tag">
+            <option value="oddiy" ${item.tag==='oddiy'?'selected':''}>Oddiy</option>
+            <option value="vip" ${item.tag==='vip'?'selected':''}>VIP</option>
+          </select>
+          <button class="an-save">Saqlash</button>
+          <button class="an-delete">O'chirish</button>
+          <div class="an-extra">
+            <input class="an-oldprice" type="number" placeholder="Eski narx (aksiya)" value="${item.oldPrice || ''}">
+            <label class="an-installment-label">
+              <input type="checkbox" class="an-installment" ${item.installment ? 'checked' : ''}>
+              Bo'lib to'lash
+            </label>
+            <label class="an-installment-label">
+              <input type="checkbox" class="an-featured" ${item.featured ? 'checked' : ''}>
+              Mashhur raqamlarda
+            </label>
+            <label class="an-installment-label">
+              <input type="checkbox" class="an-dailydeal" ${item.dailyDeal ? 'checked' : ''}>
+              🔥 Bugungi aksiyada
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   `).join('') + (hiddenCount > 0
-    ? `<div class="empty-admin">... va yana ${hiddenCount} ta raqam. Ro'yxat juda katta bo'lgani uchun faqat birinchi ${RENDER_LIMIT} tasi ko'rsatilmoqda — kerakli raqamni topish uchun mijoz saytidagi qidiruvdan foydalaning yoki bevosita Firebase konsolidan boshqaring.</div>`
+    ? `<div class="empty-admin">... va yana ${hiddenCount} ta raqam. Ro'yxat juda katta bo'lgani uchun faqat birinchi ${RENDER_LIMIT} tasi ko'rsatilmoqda — kerakli raqamni topish uchun yuqoridagi qidiruvdan foydalaning.</div>`
     : '');
+
+  adminNumbersList.querySelectorAll('.an-summary').forEach(summary=>{
+    summary.addEventListener('click', ()=>{
+      const wrap = summary.closest('.admin-row-collapsed');
+      const body = wrap.querySelector('.an-body');
+      const arrow = summary.querySelector('.an-summary-arrow');
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      arrow.textContent = isOpen ? '▾' : '▴';
+      wrap.classList.toggle('an-open', !isOpen);
+    });
+  });
 
   adminNumbersList.querySelectorAll('.an-save').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -1149,6 +1221,13 @@ function renderAdminNumbers(numbers){
   });
 }
 
+document.getElementById('numberSearchInput').addEventListener('input', (e)=>{
+  const q = e.target.value.replace(/\D/g, '');
+  if(!q){ renderAdminNumbers(currentNumbersCache); return; }
+  const filtered = currentNumbersCache.filter(item => (item.number || '').replace(/\D/g,'').includes(q));
+  renderAdminNumbers(filtered);
+});
+
 /* ---- Raqam kiritilganda avtomatik formatlash + operatorni aniqlash ---- */
 const newNumberInput = document.getElementById('newNumber');
 const newOperatorSelect = document.getElementById('newOperator');
@@ -1173,6 +1252,17 @@ newNumberInput.addEventListener('input', ()=>{
     codeHint.textContent = '';
     codeHint.className = 'code-hint';
   }
+});
+
+/* Kredit formasidagi ikkala telefon maydoni ham avtomatik +998 formatida yoziladi */
+['crPhone', 'crNumber'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=>{
+    el.value = formatUzNumber(extractRawDigits(el.value));
+  });
+  el.addEventListener('focus', ()=>{
+    if(!el.value) el.value = '+998 ';
+  });
 });
 
 document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
