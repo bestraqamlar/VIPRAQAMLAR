@@ -478,6 +478,11 @@
   .cr-progress-bar{height:100%;background:var(--green);border-radius:20px;}
   .cr-months-title{font-size:12px;color:var(--muted);margin:10px 0 8px;}
   .cr-months-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+  .cr-status-banner{
+    margin-top:14px;padding:11px 14px;border-radius:10px;
+    border:1.5px solid;background:var(--panel-2);
+    font-size:12.5px;font-weight:700;text-align:center;
+  }
   .cr-month-chip{
     aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-size:10px;font-weight:700;
@@ -1169,6 +1174,17 @@ document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
     return;
   }
   try{
+    // Bitta raqamga faqat bir marta promokod ishlatish mumkin
+    if(selectedNumberId){
+      const usageDoc = await db.collection('promo_usage').doc(selectedNumberId).get();
+      if(usageDoc.exists){
+        msgEl.textContent = "Bu raqamga promokod allaqachon ishlatilgan";
+        msgEl.className = 'promo-msg bad';
+        appliedDiscount = 0;
+        return;
+      }
+    }
+
     const snap = await db.collection('promo_codes').where('code', '==', code).limit(1).get();
     if(snap.empty){
       msgEl.textContent = "Promokod topilmadi";
@@ -1263,6 +1279,13 @@ confirmBtn.addEventListener('click', async ()=>{
       await db.collection('numbers').doc(selectedNumberId).update({ reserved: true });
       const localItem = NUMBERS.find(n => n.id === selectedNumberId);
       if(localItem) localItem.reserved = true;
+    }
+
+    // Promokod ishlatilgan bo'lsa, shu raqamga qayta ishlatib bo'lmasligi uchun belgilab qo'yamiz
+    if(appliedDiscount > 0 && selectedNumberId){
+      try{
+        await db.collection('promo_usage').doc(selectedNumberId).set({ usedAt: Date.now() });
+      }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
     }
 
     sendOrderToTelegram(payload, orderTime, orderRef.id);
@@ -1400,6 +1423,15 @@ function renderContractResult(data){
     return `<div class="cr-month-chip" style="${bg}"><span>${label}</span><span style="font-size:7.5px;opacity:0.8;">${dateStr}</span></div>`;
   }).join('');
 
+  const CONTRACT_STATUS_LABELS = {
+    active:    { label: "To'lov muvaffaqiyatli bajarilmoqda", color: 'var(--green)' },
+    trouble:   { label: "To'lov uzilishlari ko'p",            color: 'var(--amber)' },
+    cancelling:{ label: "Shartnoma bekor qilish jarayonida",  color: 'var(--red)' },
+    cancelled: { label: "Shartnoma bekor bo'ldi",             color: 'var(--red)' },
+    completed: { label: "Shartnoma muvaffaqiyatli yakunlandi", color: 'var(--green)' }
+  };
+  const st = CONTRACT_STATUS_LABELS[data.contractStatus] || CONTRACT_STATUS_LABELS.active;
+
   contractResultView.innerHTML = `
     <div class="cr-summary">
       <div class="cr-row"><span>Mijoz</span><b>${data.customerName}</b></div>
@@ -1412,7 +1444,8 @@ function renderContractResult(data){
     <div class="cr-progress-wrap"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
     <div class="cr-months-title">Har oy holati:</div>
     <div class="cr-months-grid">${monthsHtml}</div>
-    <button class="btn-confirm" id="contractBackBtn" style="width:100%;margin-top:14px;">Orqaga</button>
+    <div class="cr-status-banner" style="border-color:${st.color};color:${st.color};">● ${st.label}</div>
+    <button class="btn-confirm contract-search-btn" id="contractBackBtn" style="width:100%;margin-top:14px;">⬅ Orqaga</button>
   `;
   document.getElementById('contractBackBtn').addEventListener('click', ()=>{
     contractResultView.style.display = 'none';

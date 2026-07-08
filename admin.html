@@ -224,6 +224,25 @@
   .cm-pending{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
   .cm-paid{background:var(--green);color:#0a1a12;}
   .cm-overdue{background:var(--red);color:#fff;}
+
+  .cr-edit-label{display:block;font-size:11px;color:var(--muted);margin:8px 0 4px;}
+  .cr-edit-name, .cr-edit-phone, .cr-edit-region, .cr-edit-number, .cr-edit-monthly, .cr-edit-info{
+    width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:12.5px;
+  }
+  .cr-save-btn{
+    margin-top:10px;background:var(--green);color:#0a1a12;border:none;border-radius:7px;
+    padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  }
+  .contract-status-row{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);}
+  .contract-status-current{font-size:12.5px;font-weight:700;margin-bottom:8px;}
+  .contract-status-buttons{display:flex;flex-direction:column;gap:6px;}
+  .cs-btn{
+    text-align:left;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    border-radius:7px;padding:8px 12px;font-size:11.5px;cursor:pointer;
+  }
+  .cs-btn:hover{border-color:var(--green);}
+  .cs-btn.cs-active{background:var(--green);color:#0a1a12;border-color:var(--green);font-weight:700;}
   .credit-legend{
     display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:11px;color:var(--text);
     background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:12px;
@@ -444,6 +463,7 @@
       <div class="settings-msg" id="creditAddMsg"></div>
     </div>
 
+    <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
     <div id="creditList"></div>
   </div>
 
@@ -816,7 +836,7 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     await db.collection('credit_contracts').add({
       contractId, customerName: name, customerPhone: phone, region, number,
       totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
-      additionalInfo: info, createdAt: startTs, payments
+      additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active'
     });
 
     msg.textContent = `✓ Shartnoma qo'shildi. ID: ${contractId}`;
@@ -832,80 +852,176 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
   }
 });
 
+const CONTRACT_STATUSES = [
+  { key: 'active',    label: "To'lov muvaffaqiyatli bajarilmoqda", color: 'var(--green)' },
+  { key: 'trouble',   label: "To'lov uzilishlari ko'p",            color: 'var(--amber)' },
+  { key: 'cancelling',label: "Shartnoma bekor qilish jarayonida",  color: 'var(--red)' },
+  { key: 'cancelled', label: 'Shartnoma bekor bo\'ldi',             color: 'var(--red)' },
+  { key: 'completed', label: "Shartnoma muvaffaqiyatli yakunlandi", color: 'var(--green)' }
+];
+function contractStatusLabel(key){
+  const s = CONTRACT_STATUSES.find(s => s.key === key);
+  return s ? s.label : CONTRACT_STATUSES[0].label;
+}
+function contractStatusColor(key){
+  const s = CONTRACT_STATUSES.find(s => s.key === key);
+  return s ? s.color : CONTRACT_STATUSES[0].color;
+}
+
+let currentCreditContracts = [];
+
 async function loadCreditContracts(){
   const list = document.getElementById('creditList');
   list.innerHTML = 'Yuklanmoqda...';
   try{
     const snap = await db.collection('credit_contracts').orderBy('createdAt', 'desc').get();
-    if(snap.empty){ list.innerHTML = '<div class="empty-admin">Hali kredit shartnomasi yo\'q.</div>'; return; }
-
-    const legend = `
-      <div class="credit-legend">
-        <span><i class="cm-pending" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Hali kelmagan</span>
-        <span><i class="cm-paid" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> To'langan</span>
-        <span><i class="cm-overdue" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Kechikmoqda</span>
-        <span style="color:var(--muted);">— katakchani bosib, to'landi/to'lanmadi deb belgilang</span>
-      </div>`;
-
-    list.innerHTML = legend + snap.docs.map(doc => {
-      const d = doc.data();
-      const paidCount = d.payments.filter(p => p.status === 'paid').length;
-      const pct = Math.round((paidCount / d.totalMonths) * 100);
-      const now = Date.now();
-      return `
-      <div class="credit-card" data-id="${doc.id}">
-        <div class="credit-head">
-          <div><b>${d.contractId}</b> — ${d.customerName}</div>
-          <button class="credit-delete" data-id="${doc.id}" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">O'chirish</button>
-        </div>
-        <div class="credit-sub">📱 ${d.number} &nbsp;|&nbsp; ☎️ ${d.customerPhone} &nbsp;|&nbsp; 📍 ${d.region}</div>
-        <div class="credit-sub">💰 Oyiga ${formatPrice(d.monthlyPayment)} &nbsp;|&nbsp; 🗓 Har oyning ${d.paymentDay}-sanasida &nbsp;|&nbsp; ✅ ${paidCount}/${d.totalMonths} oy to'landi</div>
-        ${d.additionalInfo ? `<div class="credit-sub">📝 ${d.additionalInfo}</div>` : ''}
-        <div class="cr-progress-wrap" style="margin:8px 0;"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
-        <div class="credit-months">
-          ${d.payments.map(p => {
-            const isOverdue = p.status === 'pending' && p.dueDate < now;
-            const cls = p.status === 'paid' ? 'cm-paid' : (isOverdue ? 'cm-overdue' : 'cm-pending');
-            const icon = p.status === 'paid' ? '✓' : (isOverdue ? '⚠' : p.month + '-oy');
-            const dateStr = formatDate(p.dueDate).slice(0,5); // kun.oy
-            return `<div class="credit-month-chip ${cls}" data-id="${doc.id}" data-month="${p.month}" title="${p.month}-oy to'lovi — ${formatDate(p.dueDate)}">
-              <span class="cm-label">${icon}</span><span class="cm-date">${dateStr}</span>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>`;
-    }).join('');
-
-    list.querySelectorAll('.credit-month-chip').forEach(chip => {
-      chip.addEventListener('click', async () => {
-        const contractId = chip.dataset.id;
-        const month = Number(chip.dataset.month);
-        const doc = await db.collection('credit_contracts').doc(contractId).get();
-        const data = doc.data();
-        const payments = data.payments.map(p => {
-          if(p.month === month){
-            const newStatus = p.status === 'paid' ? 'pending' : 'paid';
-            return { ...p, status: newStatus, paidAt: newStatus === 'paid' ? Date.now() : null };
-          }
-          return p;
-        });
-        await db.collection('credit_contracts').doc(contractId).update({ payments });
-        vibrate(60);
-        loadCreditContracts();
-      });
-    });
-
-    list.querySelectorAll('.credit-delete').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if(!confirm("Bu shartnomani butunlay o'chirasizmi?")) return;
-        await db.collection('credit_contracts').doc(btn.dataset.id).delete();
-        loadCreditContracts();
-      });
-    });
+    currentCreditContracts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderCreditList(currentCreditContracts);
   }catch(err){
     list.innerHTML = 'Xato: ' + err.message;
   }
 }
+
+function renderCreditList(contracts){
+  const list = document.getElementById('creditList');
+  if(contracts.length === 0){ list.innerHTML = '<div class="empty-admin">Hali kredit shartnomasi yo\'q.</div>'; return; }
+
+  const legend = `
+    <div class="credit-legend">
+      <span><i class="cm-pending" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Hali kelmagan</span>
+      <span><i class="cm-paid" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> To'langan</span>
+      <span><i class="cm-overdue" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Kechikmoqda</span>
+      <span style="color:var(--muted);">— katakchani bosib, to'landi/to'lanmadi deb belgilang</span>
+    </div>`;
+
+  list.innerHTML = legend + contracts.map(d => {
+    const paidCount = d.payments.filter(p => p.status === 'paid').length;
+    const pct = Math.round((paidCount / d.totalMonths) * 100);
+    const now = Date.now();
+    const status = d.contractStatus || 'active';
+
+    return `
+    <div class="admin-row-collapsed" data-id="${d.id}">
+      <div class="an-summary" data-id="${d.id}">
+        <span class="an-summary-num">${d.customerName}</span>
+        <span class="an-summary-op">${d.contractId}</span>
+        <span class="an-summary-price">${paidCount}/${d.totalMonths} oy</span>
+        <span class="an-summary-arrow">▾</span>
+      </div>
+      <div class="an-body" style="display:none;">
+        <div class="credit-card" data-id="${d.id}" style="border:none;border-radius:0;margin:0;">
+          <label class="cr-edit-label">Ism</label>
+          <input type="text" class="cr-edit-name" value="${d.customerName}">
+          <label class="cr-edit-label">Ishlab turgan raqami</label>
+          <input type="text" class="cr-edit-phone" value="${d.customerPhone}">
+          <label class="cr-edit-label">Manzil</label>
+          <input type="text" class="cr-edit-region" value="${d.region}">
+          <label class="cr-edit-label">Kreditga olingan raqam</label>
+          <input type="text" class="cr-edit-number" value="${d.number}">
+          <label class="cr-edit-label">Oylik to'lov (so'm)</label>
+          <input type="number" class="cr-edit-monthly" value="${d.monthlyPayment}">
+          <label class="cr-edit-label">Qo'shimcha ma'lumot</label>
+          <input type="text" class="cr-edit-info" value="${d.additionalInfo || ''}">
+          <button class="cr-save-btn" data-id="${d.id}">Saqlash</button>
+
+          <div class="credit-sub" style="margin-top:10px;">✅ ${paidCount}/${d.totalMonths} oy to'landi &nbsp;|&nbsp; 🗓 Har oyning ${d.paymentDay}-sanasida</div>
+          <div class="cr-progress-wrap" style="margin:8px 0;"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
+          <div class="credit-months">
+            ${d.payments.map(p => {
+              const isOverdue = p.status === 'pending' && p.dueDate < now;
+              const cls = p.status === 'paid' ? 'cm-paid' : (isOverdue ? 'cm-overdue' : 'cm-pending');
+              const icon = p.status === 'paid' ? '✓' : (isOverdue ? '⚠' : p.month + '-oy');
+              const dateStr = formatDate(p.dueDate).slice(0,5);
+              return `<div class="credit-month-chip ${cls}" data-id="${d.id}" data-month="${p.month}" title="${p.month}-oy to'lovi — ${formatDate(p.dueDate)}">
+                <span class="cm-label">${icon}</span><span class="cm-date">${dateStr}</span>
+              </div>`;
+            }).join('')}
+          </div>
+
+          <div class="contract-status-row">
+            <div class="contract-status-current" style="color:${contractStatusColor(status)};">● ${contractStatusLabel(status)}</div>
+            <div class="contract-status-buttons">
+              ${CONTRACT_STATUSES.map(s => `<button class="cs-btn ${s.key===status?'cs-active':''}" data-id="${d.id}" data-status="${s.key}">${s.label}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.an-summary').forEach(summary=>{
+    summary.addEventListener('click', ()=>{
+      const wrap = summary.closest('.admin-row-collapsed');
+      const body = wrap.querySelector('.an-body');
+      const arrow = summary.querySelector('.an-summary-arrow');
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      arrow.textContent = isOpen ? '▾' : '▴';
+      wrap.classList.toggle('an-open', !isOpen);
+    });
+  });
+
+  list.querySelectorAll('.credit-month-chip').forEach(chip => {
+    chip.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const contractId = chip.dataset.id;
+      const month = Number(chip.dataset.month);
+      const doc = await db.collection('credit_contracts').doc(contractId).get();
+      const data = doc.data();
+      const payments = data.payments.map(p => {
+        if(p.month === month){
+          const newStatus = p.status === 'paid' ? 'pending' : 'paid';
+          return { ...p, status: newStatus, paidAt: newStatus === 'paid' ? Date.now() : null };
+        }
+        return p;
+      });
+      await db.collection('credit_contracts').doc(contractId).update({ payments });
+      vibrate(60);
+      loadCreditContracts();
+    });
+  });
+
+  list.querySelectorAll('.cr-save-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const card = btn.closest('.credit-card');
+      const id = btn.dataset.id;
+      try{
+        await db.collection('credit_contracts').doc(id).update({
+          customerName: card.querySelector('.cr-edit-name').value.trim(),
+          customerPhone: card.querySelector('.cr-edit-phone').value.trim(),
+          region: card.querySelector('.cr-edit-region').value.trim(),
+          number: card.querySelector('.cr-edit-number').value.trim(),
+          monthlyPayment: Number(card.querySelector('.cr-edit-monthly').value) || 0,
+          additionalInfo: card.querySelector('.cr-edit-info').value.trim()
+        });
+        btn.textContent = '✓ Saqlandi';
+        vibrate(80);
+        setTimeout(()=> loadCreditContracts(), 900);
+      }catch(err){ alert('Xato: ' + err.message); }
+    });
+  });
+
+  list.querySelectorAll('.cs-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const statusKey = btn.dataset.status;
+      try{
+        await db.collection('credit_contracts').doc(id).update({ contractStatus: statusKey });
+        vibrate(80);
+        loadCreditContracts();
+      }catch(err){ alert('Xato: ' + err.message); }
+    });
+  });
+}
+
+document.getElementById('creditSearchInput').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ renderCreditList(currentCreditContracts); return; }
+  const filtered = currentCreditContracts.filter(d => (d.customerName || '').toLowerCase().includes(q));
+  renderCreditList(filtered);
+});
 
 /* ---- Promokodlar ---- */
 async function loadPromoCodes(){

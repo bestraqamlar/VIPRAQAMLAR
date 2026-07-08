@@ -3,3 +3,6 @@
 
 [functions]
   directory = "netlify/functions"
+
+[functions."check-credit-payments"]
+  schedule = "0 */6 * * *"
