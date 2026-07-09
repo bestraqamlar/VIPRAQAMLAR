@@ -6,3 +6,6 @@
 
 [functions."check-credit-payments"]
   schedule = "0 */6 * * *"
+
+[functions."credit-excel-report"]
+  schedule = "0 4 * * *"
