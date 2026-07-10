@@ -688,6 +688,66 @@
     }
     .card-header .num-label{font-size:20px;}
   }
+
+  /* ============================================================
+     PLANSHET (640px - 1023px) — telefon dizayni asos, lekin
+     joylar biroz kengroq va katakchalar ko'proq moslashadi.
+     ============================================================ */
+  @media (min-width:640px) and (max-width:1023px){
+    .hero{max-width:640px;padding-top:34px;}
+    .hero h1{font-size:clamp(32px,6vw,42px);}
+    .number-builder{max-width:560px;}
+    .catalog{
+      max-width:900px;
+      grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+      gap:20px;padding:18px 24px 90px;
+    }
+    .featured-section, .pagination{max-width:900px;}
+    .featured-card{flex:0 0 240px;}
+  }
+
+  /* ============================================================
+     KOMPYUTER (1024px+) — sahifa kengroq ekranga chiroyli
+     moslashadi: kattaroq joylar, kattaroq shrift, sichqoncha
+     bilan hover effektlari qo'shiladi.
+     ============================================================ */
+  @media (min-width:1024px){
+    header{padding:16px 40px;}
+    .logo{font-size:17px;}
+    .hero{max-width:960px;padding:44px 20px 30px;}
+    .hero h1{font-size:clamp(40px,4.5vw,58px);}
+    .hero .tagline{font-size:17px;margin:12px 0 26px;}
+    .stats-row{gap:16px;}
+    .stat{max-width:130px;padding:16px 10px;}
+    .stat b{font-size:17px;}
+    .number-builder{max-width:600px;gap:8px;}
+    .digit-box{width:38px;height:50px;font-size:19px;}
+
+    .catalog{
+      max-width:1360px;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:24px;padding:24px 40px 100px;
+    }
+    .card{transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
+    .card:hover{
+      transform:translateY(-5px);
+      box-shadow:0 14px 28px rgba(0,0,0,0.22);
+    }
+    .card-header .num-label{font-size:23px;}
+    .card-header{padding:20px 20px;}
+    .card-body{padding:20px;}
+    .price-row .new-price{font-size:16px;}
+    .card button.order-btn{padding:13px;font-size:14.5px;}
+
+    .featured-section, .pagination{max-width:1360px;padding-left:40px;padding-right:40px;}
+    .featured-card{flex:0 0 250px;padding:16px;}
+    .featured-num{font-size:19px;}
+    .featured-btn{padding:12px;}
+    .daily-deal-card{flex:0 0 165px;}
+
+    .side-drawer{width:360px;}
+    footer{padding:30px 20px 40px;}
+  }
 </style>
 </head>
 <body>
