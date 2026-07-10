@@ -37,10 +37,10 @@
   }
 
   header{
-    padding:14px 20px;
+    padding:12px 20px;
     display:flex;align-items:center;justify-content:space-between;
     border-bottom:1px solid var(--line);
-    position:sticky;top:0;background:rgba(11,18,32,0.85);backdrop-filter:blur(10px);
+    position:sticky;top:0;background:var(--bg);backdrop-filter:blur(10px);
     z-index:30;
   }
   .logo{
@@ -113,12 +113,12 @@
   .nav-icon{width:15px;height:15px;flex-shrink:0;}
 
   .hero{
-    max-width:720px;margin:0 auto;padding:52px 20px 28px;text-align:center;
+    max-width:720px;margin:0 auto;padding:26px 20px 16px;text-align:center;
     background:radial-gradient(ellipse at top, rgba(230,57,70,0.12), transparent 70%);
   }
   .hero h1{
     font-family:'Sora',sans-serif;
-    font-size:clamp(30px,8vw,46px);
+    font-size:clamp(26px,7vw,40px);
     font-weight:800;
     margin:0;line-height:1.1;letter-spacing:0.3px;
     opacity:0;animation:fadeUp .6s ease forwards;
@@ -129,7 +129,7 @@
     text-shadow:0 0 26px rgba(230,57,70,0.5);
   }
   .hero .tagline{
-    color:var(--muted);font-size:15px;margin:10px 0 26px;
+    color:var(--muted);font-size:15px;margin:8px 0 18px;
     opacity:0;animation:fadeUp .6s ease .1s forwards;
   }
   @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
@@ -223,7 +223,7 @@
   }
   .card-header .divider{width:1px;height:20px;background:var(--line);flex-shrink:0;}
   .card-header .num-label{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:21px;color:#FFFFFF;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:21px;color:var(--text);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .discount-badge{
@@ -338,7 +338,7 @@
   }
   .daily-deal-card .dd-op{font-size:9.5px;color:var(--muted);margin-bottom:2px;}
   .daily-deal-card .dd-num{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--text);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;
   }
   .daily-deal-card .dd-price-row{margin-top:auto;}
@@ -368,7 +368,7 @@
   }
   .featured-op svg{width:13px;height:13px;}
   .featured-num{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);
     margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .featured-tag{
