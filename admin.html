@@ -463,6 +463,13 @@
       <div class="settings-msg" id="creditAddMsg"></div>
     </div>
 
+    <div class="settings-form" style="margin-bottom:16px;">
+      <h3>📊 Excel hisobot</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 10px;">Barcha kredit shartnomalari va bazadagi raqamlar (narxi bilan) Excel faylda Telegram botingizga yuboriladi. Har kuni ertalab ~09:00 da avtomatik ham keladi.</p>
+      <button id="sendExcelNowBtn">📊 Hozir Excel yuborish</button>
+      <div class="settings-msg" id="excelNowMsg"></div>
+    </div>
+
     <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
     <div id="creditList"></div>
   </div>
@@ -1021,6 +1028,33 @@ document.getElementById('creditSearchInput').addEventListener('input', (e)=>{
   if(!q){ renderCreditList(currentCreditContracts); return; }
   const filtered = currentCreditContracts.filter(d => (d.customerName || '').toLowerCase().includes(q));
   renderCreditList(filtered);
+});
+
+/* ---- Excel hisobotni hoziroq yuborish ---- */
+document.getElementById('sendExcelNowBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('sendExcelNowBtn');
+  const msg = document.getElementById('excelNowMsg');
+  btn.disabled = true;
+  const oldText = btn.textContent;
+  btn.textContent = '⏳ Yuborilmoqda...';
+  msg.textContent = '';
+  msg.className = 'settings-msg';
+  try{
+    const res = await fetch('/.netlify/functions/send-excel-now', { method: 'POST' });
+    const data = await res.json().catch(()=>({}));
+    if(res.ok && data.ok){
+      msg.textContent = `✓ Excel Telegram botingizga yuborildi (${data.contracts} ta shartnoma, ${data.numbers} ta raqam).`;
+      msg.className = 'settings-msg ok';
+      vibrate(80);
+    }else{
+      throw new Error(data.error || 'Server xatosi — Netlify logini tekshiring');
+    }
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+  btn.disabled = false;
+  btn.textContent = oldText;
 });
 
 /* ---- Promokodlar ---- */
