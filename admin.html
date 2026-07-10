@@ -475,6 +475,13 @@
       <div class="settings-msg" id="excelNowMsg"></div>
     </div>
 
+    <div class="settings-form" style="margin-bottom:16px;">
+      <h3>🔒 Xavfsizlik: eski shartnomalarni tekshirish</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 10px;">Xavfsizlik yangilanishidan so'ng, mijoz saytidagi qidiruv endi shartnoma ID'siga qarab ishlaydi. Eski (yangilanishdan oldin qo'shilgan) shartnomalar avtomatik moslashtirilishi kerak — buni bir marta bosing (zarari yo'q, bir necha soniya davom etadi).</p>
+      <button id="migrateContractsBtn">🔒 Eski shartnomalarni moslashtirish</button>
+      <div class="settings-msg" id="migrateContractsMsg"></div>
+    </div>
+
     <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
     <div id="creditList"></div>
   </div>
@@ -958,7 +965,7 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
       payments.push({ month: i + 1, dueDate: calcDueDate(startTs, payDay, i), status: 'pending', paidAt: null });
     }
 
-    await db.collection('credit_contracts').add({
+    await db.collection('credit_contracts').doc(contractId).set({
       contractId, customerName: name, customerPhone: phone, region, number,
       totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
       additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active'
@@ -1179,6 +1186,38 @@ document.getElementById('creditSearchInput').addEventListener('input', (e)=>{
   if(!q){ renderCreditList(currentCreditContracts); return; }
   const filtered = currentCreditContracts.filter(d => (d.customerName || '').toLowerCase().includes(q));
   renderCreditList(filtered);
+});
+
+/* ---- Xavfsizlik: eski (auto-ID) shartnomalarni contractId-ID'ga ko'chirish ---- */
+document.getElementById('migrateContractsBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('migrateContractsBtn');
+  const msg = document.getElementById('migrateContractsMsg');
+  btn.disabled = true;
+  msg.textContent = 'Tekshirilmoqda...';
+  msg.className = 'settings-msg';
+  try{
+    const snap = await db.collection('credit_contracts').get();
+    let migrated = 0, skipped = 0;
+    for(const docSnap of snap.docs){
+      const data = docSnap.data();
+      const properId = data.contractId;
+      if(!properId){ skipped++; continue; }
+      if(docSnap.id === properId){ skipped++; continue; } // allaqachon to'g'ri ID'da
+      await db.collection('credit_contracts').doc(properId).set(data);
+      await db.collection('credit_contracts').doc(docSnap.id).delete();
+      migrated++;
+    }
+    msg.textContent = migrated > 0
+      ? `✓ ${migrated} ta shartnoma moslashtirildi (${skipped} ta allaqachon to'g'ri edi). Endi bosishingiz shart emas.`
+      : `✓ Hammasi allaqachon to'g'ri — moslashtirish shart emas edi.`;
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+    loadCreditContracts();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+  btn.disabled = false;
 });
 
 /* ---- Excel hisobotni hoziroq yuborish ---- */

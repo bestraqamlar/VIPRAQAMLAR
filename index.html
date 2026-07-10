@@ -1625,12 +1625,12 @@ document.getElementById('contractSearchBtn').addEventListener('click', async ()=
   label.style.display = 'none'; spinner.style.display = 'inline-block';
 
   try{
-    const snap = await db.collection('credit_contracts').where('contractId', '==', idVal).limit(1).get();
-    if(snap.empty){
+    const doc = await db.collection('credit_contracts').doc(idVal).get();
+    if(!doc.exists){
       errEl.textContent = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
       errEl.style.display = 'block';
     }else{
-      const data = snap.docs[0].data();
+      const data = doc.data();
       const docNumDigits = (data.number || '').replace(/\D/g,'');
       if(!docNumDigits.endsWith(numVal.slice(-9))){
         errEl.textContent = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
