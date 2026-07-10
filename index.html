@@ -221,7 +221,7 @@
   .card.clickable-card:hover{box-shadow:0 0 0 1px var(--amber);}
   .reserved-note{
     color:var(--muted);font-size:12px;text-align:center;padding:11px;
-    background:rgba(255,92,92,0.1);border:1px solid rgba(255,92,92,0.3);border-radius:9px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
   }
 
   /* ============ Uslublar — Raqamlar ro'yxati uslub variantlari ============ */
@@ -234,19 +234,19 @@
   .cs-list_minimal{padding:15px 6px;}
   .lm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .lm-num{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;color:var(--text);}
-  .lm-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--brand-red);}
+  .lm-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--amber);}
   .cs-list_minimal.clickable-card:hover{background:var(--panel-2);}
 
   /* --- dark_banner --- */
   .cs-dark_banner{padding:16px;}
-  .db-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+  .db-top{display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;gap:8px;}
   .db-badges{display:flex;gap:6px;align-items:center;}
   .db-op{border:1px solid;border-radius:20px;padding:3px 10px;font-size:10.5px;font-weight:700;background:var(--panel-2);}
   .db-code{border:1px solid var(--line);border-radius:20px;padding:3px 10px;font-size:10.5px;color:var(--muted);}
   .db-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);white-space:nowrap;}
   .db-num{font-family:'Sora',sans-serif;font-weight:800;font-size:21px;color:var(--text);margin-bottom:4px;}
   .db-sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
-  .db-btn:not(.reserved-btn){background:var(--green) !important;color:#0a1a12 !important;border:none !important;border-radius:24px !important;font-weight:800 !important;}
+  .db-btn:not(.reserved-btn){background:var(--btn-bg, var(--amber)) !important;color:var(--btn-text, #0a1a12) !important;border:none !important;border-radius:24px !important;font-weight:800 !important;}
 
   /* --- list_icon --- */
   .cs-list_icon{padding:14px 6px;}
@@ -259,10 +259,10 @@
 
   /* --- grid_compact --- */
   .cs-grid_compact{padding:12px;}
-  .gc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;}
+  .gc-head{display:flex;justify-content:flex-end;align-items:center;margin-bottom:8px;gap:6px;}
   .gc-op{font-size:10px;font-weight:800;letter-spacing:0.4px;}
   .gc-num{font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .gc-price{font-size:13px;font-weight:800;color:var(--green);margin-bottom:10px;}
+  .gc-price{font-size:13px;font-weight:800;color:var(--amber);margin-bottom:10px;}
   .gc-old{color:var(--muted);font-weight:400;margin-left:4px;font-size:11px;}
   .gc-btn:not(.reserved-btn){padding:8px !important;font-size:12px !important;}
 
@@ -281,10 +281,10 @@
 
   /* --- ribbon --- */
   .cs-ribbon{padding:16px;position:relative;overflow:visible;}
-  .rb-ribbon{position:absolute;top:12px;right:-6px;background:var(--brand-red);color:#fff;font-size:11px;font-weight:800;padding:4px 14px 4px 10px;border-radius:6px 0 0 6px;}
+  .rb-ribbon{position:absolute;top:12px;right:-6px;background:var(--amber);color:var(--bg);font-size:11px;font-weight:800;padding:4px 14px 4px 10px;border-radius:6px 0 0 6px;}
   .rb-num{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin-bottom:8px;}
   .rb-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:12px;}
-  .rb-price{font-size:15px;font-weight:800;color:var(--green);}
+  .rb-price{font-size:15px;font-weight:800;color:var(--amber);}
   .rb-old{color:var(--muted);font-size:12px;text-decoration:line-through;}
 
   /* --- ticket --- */
@@ -302,7 +302,7 @@
   .bp-op{font-size:10.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
   .bp-price{font-family:'Sora',sans-serif;font-weight:800;font-size:26px;color:var(--amber);margin:6px 0;}
   .bp-num{font-size:14px;color:var(--text);}
-  .bp-reserved{margin-top:10px;font-size:11px;color:var(--red);}
+  .bp-reserved{margin-top:10px;font-size:11px;color:var(--muted);}
   .cs-bold_price.clickable-card:hover{border-color:var(--amber);}
 
   /* --- horizontal --- */
@@ -310,7 +310,7 @@
   .hz-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex-shrink:0;}
   .hz-mid{flex:1;min-width:0;}
   .hz-num{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .hz-price{font-size:12.5px;color:var(--green);font-weight:700;}
+  .hz-price{font-size:12.5px;color:var(--amber);font-weight:700;}
   .hz-icon-btn{width:34px;height:34px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;flex-shrink:0;padding:0;}
   .hz-icon-btn svg{width:15px;height:15px;}
 
@@ -319,13 +319,13 @@
   .gr-op{font-size:10.5px;color:var(--amber);font-weight:700;letter-spacing:0.5px;}
   .gr-num{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);margin:6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .gr-price{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;}
-  .gr-btn:not(.reserved-btn){background:linear-gradient(90deg, var(--amber), var(--brand-red)) !important;color:#fff !important;border:none !important;}
+  .gr-btn:not(.reserved-btn){background:var(--btn-bg, var(--amber)) !important;color:var(--btn-text, #0a1a12) !important;border:none !important;}
 
   /* --- numbered_badge --- */
   .cs-numbered_badge{padding:18px;position:relative;overflow:visible;margin-top:10px;}
   .nb-badge{position:absolute;top:-10px;left:14px;background:var(--amber);color:var(--bg);font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;}
   .nb-num{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin:10px 0 4px;}
-  .nb-price{font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px;}
+  .nb-price{font-size:14px;font-weight:800;color:var(--amber);margin-bottom:12px;}
 
   .card-header{
     display:flex;align-items:center;gap:9px;padding:16px 16px;
@@ -342,12 +342,12 @@
   }
   .discount-badge{
     position:absolute;top:10px;right:14px;
-    background:var(--red);color:#fff;font-size:10px;font-weight:700;
+    background:var(--amber);color:var(--bg);font-size:10px;font-weight:700;
     padding:3px 8px;border-radius:6px;
   }
   .card-body{padding:18px 16px;display:flex;flex-direction:column;}
   .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
-  .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--green);}
+  .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--amber);}
   .price-row .old-price{
     font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;
   }
@@ -368,14 +368,14 @@
   .card button.order-btn:hover{filter:brightness(1.15);}
   .card button.order-btn:active{transform:scale(0.96);}
   .reserved-btn{
-    background:rgba(255,92,92,0.18) !important;
-    border:1px solid rgba(255,92,92,0.4) !important;
-    color:var(--red) !important;
+    background:var(--panel-2) !important;
+    border:1px solid var(--line) !important;
+    color:var(--muted) !important;
     cursor:not-allowed !important;
-    opacity:0.75;
+    opacity:0.85;
     font-size:12.5px !important;
   }
-  .reserved-btn:hover, .reserved-btn:active{transform:none !important;background:rgba(255,92,92,0.18) !important;}
+  .reserved-btn:hover, .reserved-btn:active{transform:none !important;background:var(--panel-2) !important;}
   .cart-icon{width:16px;height:16px;flex-shrink:0;}
 
   .skeleton{
@@ -442,71 +442,64 @@
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     flex:0 0 150px;border-radius:12px;padding:10px;
-    border:1px solid var(--card-accent, var(--line));
-    background: radial-gradient(ellipse at top left, var(--card-glow, transparent), var(--panel) 70%);
-    display:flex;flex-direction:column;min-height:150px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    display:flex;flex-direction:column;min-height:130px;
   }
   .daily-deal-card .dd-badge{
-    display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:800;
+    display:inline-block;background:var(--amber);color:var(--bg);font-size:9px;font-weight:800;
     padding:2px 6px;border-radius:6px;margin-bottom:6px;align-self:flex-start;
   }
-  .daily-deal-card .dd-op{font-size:9.5px;color:var(--muted);margin-bottom:2px;}
   .daily-deal-card .dd-num{
     font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--text);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;
   }
   .daily-deal-card .dd-price-row{margin-top:auto;}
-  .daily-deal-card .dd-price{font-size:11px;color:var(--green);font-weight:800;}
+  .daily-deal-card .dd-price{font-size:11px;color:var(--amber);font-weight:800;}
   .daily-deal-card .dd-oldprice{font-size:10px;color:var(--muted);text-decoration:line-through;margin-left:4px;}
   .daily-deal-card button{
-    width:100%;margin-top:8px;background:var(--red);color:#fff;border:none;border-radius:8px;
+    width:100%;margin-top:8px;background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);border:none;border-radius:8px;
     padding:7px;font-size:11px;font-weight:700;cursor:pointer;
   }
-  .featured-hint{text-align:center;color:#3A4A6B;font-size:10px;margin-top:6px;}
+  .featured-hint{text-align:center;color:var(--muted);font-size:10px;margin-top:6px;}
   .featured-card{
-    flex:0 0 230px;border-radius:14px;padding:14px;
-    border:1px solid var(--card-accent, var(--line));
-    background: radial-gradient(ellipse at top left, var(--card-glow, transparent), var(--panel) 70%);
+    flex:0 0 220px;border-radius:14px;padding:14px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    display:flex;flex-direction:column;min-height:220px;
   }
   .featured-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
   .featured-badge{
     display:inline-flex;align-items:center;gap:4px;
-    background:rgba(0,0,0,0.35);color:var(--amber);font-size:10px;font-weight:700;
+    background:var(--panel-2);color:var(--amber);font-size:10px;font-weight:700;
     padding:5px 10px;border-radius:20px;
   }
   .featured-badge svg{width:12px;height:12px;}
-  .featured-heart{width:16px;height:16px;color:#5A5A6A;flex-shrink:0;}
-  .featured-op{
-    display:flex;align-items:center;gap:5px;
-    font-size:10.5px;font-weight:800;letter-spacing:0.5px;margin-bottom:8px;
-  }
-  .featured-op svg{width:13px;height:13px;}
+  .featured-heart{width:16px;height:16px;color:var(--muted);flex-shrink:0;}
   .featured-num{
     font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);
     margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .featured-tag{
-    background:rgba(0,0,0,0.35);color:#9A9A9A;font-size:10px;font-weight:600;
-    padding:5px 10px;border-radius:6px;display:inline-block;margin-bottom:14px;
-  }
+  .featured-num-accent{color:var(--amber);}
   .featured-price{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--green);
-    margin-bottom:12px;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--amber);
+    margin:0 0 12px;
   }
   .featured-btn{
-    background:var(--brand-red);color:#fff;border:none;border-radius:9px;width:100%;
+    background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);border:none;border-radius:9px;width:100%;
     padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:7px;
-    transition:transform .12s ease, background .15s ease;
+    transition:transform .12s ease, filter .15s ease;
+    margin-top:auto;
   }
-  .featured-btn:hover{background:#D62839;}
+  .featured-btn:hover{filter:brightness(1.1);}
   .featured-btn:active{transform:scale(0.96);}
   .sale-badge{
-    background:var(--brand-red);color:#fff;font-size:11px;font-weight:800;
+    background:var(--amber);color:var(--bg);font-size:11px;font-weight:800;
     padding:5px 10px;border-radius:20px;
   }
-  .sale-price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:12px;flex-wrap:wrap;}
-  .sale-price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--green);}
+  .sale-price-row{display:flex;align-items:baseline;gap:7px;margin:0 0 12px;flex-wrap:wrap;}
+  .sale-price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--amber);}
   .sale-price-row .old-price{font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;}
 
   .overlay{
@@ -894,16 +887,6 @@ const db = firebase.firestore();
 
 let NUMBERS = [];
 
-/* Har bir operatorning o'z brend rangi */
-const OPERATOR_COLORS = {
-  'Beeline':  '#E0A400',
-  'Ucell':    '#B07CC6',
-  'Uzmobile': '#2E63C7',
-  'Mobiuz':   '#C0392B',
-  'Perfektum':'#C97A3D',
-  'Humans':   '#FFD37A'
-};
-
 function getLocalDigits(numberStr){ return numberStr.replace(/\D/g,'').slice(5); }
 
 /* Mijozga ko'rsatilganda chiziqchalarni bo'shliqqa almashtiradi (faqat ko'rinish uchun) */
@@ -1009,7 +992,6 @@ function iconOrderBtnHtml(item, cls){
 }
 
 function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
-  const opColor = OPERATOR_COLORS[item.operator] || 'var(--amber)';
   const numDisp = displayNumber(item.number);
   const priceDisp = formatPrice(item.price);
   const oldPriceDisp = hasDiscount ? formatPrice(item.oldPrice) : '';
@@ -1023,10 +1005,6 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
     case 'dark_banner':
       return `
         <div class="db-top">
-          <div class="db-badges">
-            <span class="db-op" style="color:${opColor};border-color:${opColor};">${item.operator}</span>
-            <span class="db-code">${item.number.slice(0,2)}</span>
-          </div>
           <span class="db-price">${priceDisp}</span>
         </div>
         <div class="db-num">${numDisp}</div>
@@ -1042,7 +1020,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     case 'grid_compact':
       return `
-        <div class="gc-head"><span class="gc-op" style="color:${opColor};">${item.operator.toUpperCase()}</span>${discountHtml}</div>
+        ${discountHtml ? `<div class="gc-head">${discountHtml}</div>` : ''}
         <div class="gc-num">${numDisp}</div>
         <div class="gc-price">${priceDisp}${hasDiscount ? ` <s class="gc-old">${oldPriceDisp}</s>` : ''}</div>
         ${orderButtonHtml(item, 'Buyurtma', 'gc-btn')}`;
@@ -1056,7 +1034,6 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     case 'glass':
       return `
-        <span class="gl-op" style="color:${opColor};">${item.operator.toUpperCase()}</span>
         <div class="gl-num">${numDisp}</div>
         <div class="gl-price">${priceDisp}</div>
         ${orderButtonHtml(item, 'Sotib olish', 'gl-btn')}`;
@@ -1071,7 +1048,6 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
     case 'ticket':
       return `
         <div class="tk-main">
-          <span class="tk-op" style="color:${opColor};">${item.operator.toUpperCase()}</span>
           <div class="tk-num">${numDisp}</div>
         </div>
         <div class="tk-stub">
@@ -1081,20 +1057,17 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     case 'bold_price':
       return `
-        <span class="bp-op">${item.operator.toUpperCase()}</span>
         <div class="bp-price">${priceDisp}</div>
         <div class="bp-num">${numDisp}</div>
         ${item.reserved ? `<div class="bp-reserved">Band qilingan</div>` : ''}`;
 
     case 'horizontal':
       return `
-        <div class="hz-avatar" style="background:${opColor};">${item.operator.slice(0,1).toUpperCase()}</div>
         <div class="hz-mid"><div class="hz-num">${numDisp}</div><div class="hz-price">${priceDisp}</div></div>
         ${iconOrderBtnHtml(item, 'hz-icon-btn')}`;
 
     case 'gradient':
       return `
-        <span class="gr-op">${item.operator.toUpperCase()}</span>
         <div class="gr-num">${numDisp}</div>
         <div class="gr-price">${priceDisp}</div>
         ${orderButtonHtml(item, 'Buyurtma berish', 'gr-btn')}`;
@@ -1109,8 +1082,6 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
     default: // classic
       return `
         <div class="card-header">
-          <span class="op-label" style="color:${opColor};">${item.operator.toUpperCase()}</span>
-          <span class="divider"></span>
           <span class="num-label">${numDisp}</span>
         </div>
         ${discountHtml}
@@ -1229,10 +1200,9 @@ function renderFeatured(){
   }
   featuredSection.style.display = 'block';
   featuredScroll.innerHTML = picks.map(item => {
-    const opColor = OPERATOR_COLORS[item.operator] || 'var(--amber)';
     const { head, tail } = splitNumberDisplay(item.number);
     return `
-      <div class="featured-card" style="--card-accent:${opColor}80;--card-glow:${opColor}26;">
+      <div class="featured-card">
         <div class="featured-top-row">
           <span class="featured-badge">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 18h20l-1.5-9-5 3.5L12 5l-3.5 7.5L3.5 9 2 18z"/></svg>
@@ -1240,12 +1210,7 @@ function renderFeatured(){
           </span>
           <svg class="featured-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 8 2 4 6 4c2.2 0 3.5 1.3 4 2 .5-.7 1.8-2 4-2 4 0 5 4 3.5 8-2.5 4.5-9.5 9-9.5 9z"/></svg>
         </div>
-        <div class="featured-op" style="color:${opColor};">
-          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-          ${item.operator.toUpperCase()}
-        </div>
-        <div class="featured-num">${head} <span style="color:${opColor};">${tail}</span></div>
-        <span class="featured-tag">${item.tag === 'vip' ? 'VIP' : "Oddiy"}</span>
+        <div class="featured-num">${head} <span class="featured-num-accent">${tail}</span></div>
         <div class="featured-price">${formatPrice(item.price)}</div>
         ${item.reserved
           ? `<button class="featured-btn reserved-btn" disabled>Bron qilish jarayonida</button>`
@@ -1271,20 +1236,15 @@ function renderSale(){
   }
   saleSection.style.display = 'block';
   saleScroll.innerHTML = picks.map(item => {
-    const opColor = OPERATOR_COLORS[item.operator] || 'var(--amber)';
     const { head, tail } = splitNumberDisplay(item.number);
     const discountPct = Math.round((1 - item.price / item.oldPrice) * 100);
     return `
-      <div class="featured-card" style="--card-accent:${opColor}80;--card-glow:${opColor}26;">
+      <div class="featured-card">
         <div class="featured-top-row">
           <span class="sale-badge">-${discountPct}%</span>
           <svg class="featured-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 8 2 4 6 4c2.2 0 3.5 1.3 4 2 .5-.7 1.8-2 4-2 4 0 5 4 3.5 8-2.5 4.5-9.5 9-9.5 9z"/></svg>
         </div>
-        <div class="featured-op" style="color:${opColor};">
-          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-          ${item.operator.toUpperCase()}
-        </div>
-        <div class="featured-num">${head} <span style="color:${opColor};">${tail}</span></div>
+        <div class="featured-num">${head} <span class="featured-num-accent">${tail}</span></div>
         <div class="sale-price-row">
           <span class="new-price">${formatPrice(item.price)}</span>
           <span class="old-price">${formatPrice(item.oldPrice)}</span>
@@ -1317,7 +1277,6 @@ function renderDailyDeal(){
     return `
       <div class="daily-deal-card">
         ${hasDiscount ? `<div class="dd-badge">-${discountPct}%</div>` : ''}
-        <div class="dd-op">${item.operator} · ${item.tag === 'vip' ? 'VIP' : 'Oddiy'}</div>
         <div class="dd-num">${displayNumber(item.number)}</div>
         <div class="dd-price-row">
           <span class="dd-price">${formatPrice(item.price)}</span>
