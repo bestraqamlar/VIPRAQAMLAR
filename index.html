@@ -223,6 +223,110 @@
     color:var(--muted);font-size:12px;text-align:center;padding:11px;
     background:rgba(255,92,92,0.1);border:1px solid rgba(255,92,92,0.3);border-radius:9px;
   }
+
+  /* ============ Uslublar — Raqamlar ro'yxati uslub variantlari ============ */
+  .catalog-list{grid-template-columns:1fr !important;gap:0 !important;}
+  .catalog-list .card{border-radius:0 !important;border-left:none;border-right:none;border-top:none;background:transparent;animation:none;opacity:1;transform:none;}
+  .catalog-list .card:hover{border-color:var(--line);}
+  .disabled-icon-btn{opacity:0.45;cursor:not-allowed;}
+
+  /* --- list_minimal --- */
+  .cs-list_minimal{padding:15px 6px;}
+  .lm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .lm-num{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;color:var(--text);}
+  .lm-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--brand-red);}
+  .cs-list_minimal.clickable-card:hover{background:var(--panel-2);}
+
+  /* --- dark_banner --- */
+  .cs-dark_banner{padding:16px;}
+  .db-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+  .db-badges{display:flex;gap:6px;align-items:center;}
+  .db-op{border:1px solid;border-radius:20px;padding:3px 10px;font-size:10.5px;font-weight:700;background:var(--panel-2);}
+  .db-code{border:1px solid var(--line);border-radius:20px;padding:3px 10px;font-size:10.5px;color:var(--muted);}
+  .db-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);white-space:nowrap;}
+  .db-num{font-family:'Sora',sans-serif;font-weight:800;font-size:21px;color:var(--text);margin-bottom:4px;}
+  .db-sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .db-btn:not(.reserved-btn){background:var(--green) !important;color:#0a1a12 !important;border:none !important;border-radius:24px !important;font-weight:800 !important;}
+
+  /* --- list_icon --- */
+  .cs-list_icon{padding:14px 6px;}
+  .li-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .li-info{display:flex;flex-direction:column;gap:4px;}
+  .li-num{font-size:15px;color:var(--muted);}
+  .li-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);}
+  .li-icon-btn{width:36px;height:36px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;flex-shrink:0;padding:0;}
+  .li-icon-btn svg{width:16px;height:16px;}
+
+  /* --- grid_compact --- */
+  .cs-grid_compact{padding:12px;}
+  .gc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;}
+  .gc-op{font-size:10px;font-weight:800;letter-spacing:0.4px;}
+  .gc-num{font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gc-price{font-size:13px;font-weight:800;color:var(--green);margin-bottom:10px;}
+  .gc-old{color:var(--muted);font-weight:400;margin-left:4px;font-size:11px;}
+  .gc-btn:not(.reserved-btn){padding:8px !important;font-size:12px !important;}
+
+  /* --- outline --- */
+  .cs-outline{padding:18px;background:transparent !important;border:1.5px solid var(--amber) !important;}
+  .ol-num{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);text-align:center;margin-bottom:6px;}
+  .ol-price{font-size:14px;font-weight:800;color:var(--amber);text-align:center;margin-bottom:12px;}
+  .ol-btn:not(.reserved-btn){background:transparent !important;border:1.5px solid var(--amber) !important;color:var(--amber) !important;}
+
+  /* --- glass --- */
+  .cs-glass{padding:18px;background:rgba(255,255,255,0.06) !important;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15) !important;}
+  .gl-op{font-size:10.5px;font-weight:700;letter-spacing:0.5px;}
+  .gl-num{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:var(--text);margin:6px 0;}
+  .gl-price{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;}
+  .gl-btn:not(.reserved-btn){background:rgba(255,255,255,0.18) !important;color:var(--text) !important;border:none !important;border-radius:24px !important;}
+
+  /* --- ribbon --- */
+  .cs-ribbon{padding:16px;position:relative;overflow:visible;}
+  .rb-ribbon{position:absolute;top:12px;right:-6px;background:var(--brand-red);color:#fff;font-size:11px;font-weight:800;padding:4px 14px 4px 10px;border-radius:6px 0 0 6px;}
+  .rb-num{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin-bottom:8px;}
+  .rb-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:12px;}
+  .rb-price{font-size:15px;font-weight:800;color:var(--green);}
+  .rb-old{color:var(--muted);font-size:12px;text-decoration:line-through;}
+
+  /* --- ticket --- */
+  .cs-ticket{padding:0;display:flex !important;flex-direction:row !important;}
+  .tk-main{flex:1;padding:16px;border-right:2px dashed var(--line);min-width:0;}
+  .tk-op{font-size:10.5px;font-weight:700;}
+  .tk-num{font-family:'Sora',sans-serif;font-weight:800;font-size:15.5px;color:var(--text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tk-stub{width:74px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px;}
+  .tk-price{font-size:10.5px;font-weight:800;color:var(--text);text-align:center;}
+  .tk-btn{width:34px !important;height:34px !important;padding:0 !important;border-radius:50% !important;display:flex;align-items:center;justify-content:center;}
+  .tk-btn svg{width:14px;height:14px;}
+
+  /* --- bold_price --- */
+  .cs-bold_price{padding:20px;text-align:center;}
+  .bp-op{font-size:10.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  .bp-price{font-family:'Sora',sans-serif;font-weight:800;font-size:26px;color:var(--amber);margin:6px 0;}
+  .bp-num{font-size:14px;color:var(--text);}
+  .bp-reserved{margin-top:10px;font-size:11px;color:var(--red);}
+  .cs-bold_price.clickable-card:hover{border-color:var(--amber);}
+
+  /* --- horizontal --- */
+  .cs-horizontal{flex-direction:row !important;align-items:center;padding:12px 14px;gap:12px;}
+  .hz-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex-shrink:0;}
+  .hz-mid{flex:1;min-width:0;}
+  .hz-num{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hz-price{font-size:12.5px;color:var(--green);font-weight:700;}
+  .hz-icon-btn{width:34px;height:34px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;flex-shrink:0;padding:0;}
+  .hz-icon-btn svg{width:15px;height:15px;}
+
+  /* --- gradient --- */
+  .cs-gradient{padding:18px;background:linear-gradient(135deg, var(--panel), var(--panel-2)) !important;border:1px solid var(--line) !important;}
+  .gr-op{font-size:10.5px;color:var(--amber);font-weight:700;letter-spacing:0.5px;}
+  .gr-num{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);margin:6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gr-price{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;}
+  .gr-btn:not(.reserved-btn){background:linear-gradient(90deg, var(--amber), var(--brand-red)) !important;color:#fff !important;border:none !important;}
+
+  /* --- numbered_badge --- */
+  .cs-numbered_badge{padding:18px;position:relative;overflow:visible;margin-top:10px;}
+  .nb-badge{position:absolute;top:-10px;left:14px;background:var(--amber);color:var(--bg);font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;}
+  .nb-num{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin:10px 0 4px;}
+  .nb-price{font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px;}
+
   .card-header{
     display:flex;align-items:center;gap:9px;padding:16px 16px;
     border-bottom:1px solid var(--line);
@@ -890,6 +994,139 @@ function getFilteredNumbers(){
   });
 }
 
+const LIST_ROW_STYLES = ['list_minimal', 'list_icon', 'horizontal'];
+const NO_BUTTON_STYLES = ['list_minimal', 'bold_price'];
+const CART_ICON_SVG = '<svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>';
+
+function orderButtonHtml(item, label, extraClass){
+  if(item.reserved) return `<button class="order-btn reserved-btn ${extraClass}" disabled>Band qilingan</button>`;
+  return `<button class="order-btn ${extraClass}" data-number="${item.number}" data-id="${item.id}">${label}</button>`;
+}
+
+function iconOrderBtnHtml(item, cls){
+  if(item.reserved) return `<span class="${cls} disabled-icon-btn">🔒</span>`;
+  return `<button class="order-btn ${cls}" data-number="${item.number}" data-id="${item.id}">${CART_ICON_SVG}</button>`;
+}
+
+function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
+  const opColor = OPERATOR_COLORS[item.operator] || 'var(--amber)';
+  const numDisp = displayNumber(item.number);
+  const priceDisp = formatPrice(item.price);
+  const oldPriceDisp = hasDiscount ? formatPrice(item.oldPrice) : '';
+  const installmentHtml = item.installment ? `<div class="installment-tag">📅 Bo'lib to'lash mumkin</div>` : '';
+  const discountHtml = hasDiscount ? `<span class="discount-badge">-${discountPct}%</span>` : '';
+
+  switch(style){
+    case 'list_minimal':
+      return `<div class="lm-row"><span class="lm-num">${numDisp}</span><span class="lm-price">${priceDisp}</span></div>`;
+
+    case 'dark_banner':
+      return `
+        <div class="db-top">
+          <div class="db-badges">
+            <span class="db-op" style="color:${opColor};border-color:${opColor};">${item.operator}</span>
+            <span class="db-code">${item.number.slice(0,2)}</span>
+          </div>
+          <span class="db-price">${priceDisp}</span>
+        </div>
+        <div class="db-num">${numDisp}</div>
+        <div class="db-sub">${item.reserved ? 'Band qilingan' : 'Buyurtma berish uchun bosing'}</div>
+        ${orderButtonHtml(item, `Buyurtma ${CART_ICON_SVG}`, 'db-btn')}`;
+
+    case 'list_icon':
+      return `
+        <div class="li-row">
+          <div class="li-info"><span class="li-num">${numDisp}</span><span class="li-price">${priceDisp}</span></div>
+          ${iconOrderBtnHtml(item, 'li-icon-btn')}
+        </div>`;
+
+    case 'grid_compact':
+      return `
+        <div class="gc-head"><span class="gc-op" style="color:${opColor};">${item.operator.toUpperCase()}</span>${discountHtml}</div>
+        <div class="gc-num">${numDisp}</div>
+        <div class="gc-price">${priceDisp}${hasDiscount ? ` <s class="gc-old">${oldPriceDisp}</s>` : ''}</div>
+        ${orderButtonHtml(item, 'Buyurtma', 'gc-btn')}`;
+
+    case 'outline':
+      return `
+        <div class="ol-num">${numDisp}</div>
+        <div class="ol-price">${priceDisp}</div>
+        ${installmentHtml}
+        ${orderButtonHtml(item, 'Buyurtma berish', 'ol-btn')}`;
+
+    case 'glass':
+      return `
+        <span class="gl-op" style="color:${opColor};">${item.operator.toUpperCase()}</span>
+        <div class="gl-num">${numDisp}</div>
+        <div class="gl-price">${priceDisp}</div>
+        ${orderButtonHtml(item, 'Sotib olish', 'gl-btn')}`;
+
+    case 'ribbon':
+      return `
+        ${hasDiscount ? `<div class="rb-ribbon">-${discountPct}%</div>` : ''}
+        <div class="rb-num">${numDisp}</div>
+        <div class="rb-price-row"><span class="rb-price">${priceDisp}</span>${hasDiscount ? `<s class="rb-old">${oldPriceDisp}</s>` : ''}</div>
+        ${orderButtonHtml(item, 'Buyurtma berish', 'rb-btn')}`;
+
+    case 'ticket':
+      return `
+        <div class="tk-main">
+          <span class="tk-op" style="color:${opColor};">${item.operator.toUpperCase()}</span>
+          <div class="tk-num">${numDisp}</div>
+        </div>
+        <div class="tk-stub">
+          <span class="tk-price">${priceDisp}</span>
+          ${iconOrderBtnHtml(item, 'tk-btn')}
+        </div>`;
+
+    case 'bold_price':
+      return `
+        <span class="bp-op">${item.operator.toUpperCase()}</span>
+        <div class="bp-price">${priceDisp}</div>
+        <div class="bp-num">${numDisp}</div>
+        ${item.reserved ? `<div class="bp-reserved">Band qilingan</div>` : ''}`;
+
+    case 'horizontal':
+      return `
+        <div class="hz-avatar" style="background:${opColor};">${item.operator.slice(0,1).toUpperCase()}</div>
+        <div class="hz-mid"><div class="hz-num">${numDisp}</div><div class="hz-price">${priceDisp}</div></div>
+        ${iconOrderBtnHtml(item, 'hz-icon-btn')}`;
+
+    case 'gradient':
+      return `
+        <span class="gr-op">${item.operator.toUpperCase()}</span>
+        <div class="gr-num">${numDisp}</div>
+        <div class="gr-price">${priceDisp}</div>
+        ${orderButtonHtml(item, 'Buyurtma berish', 'gr-btn')}`;
+
+    case 'numbered_badge':
+      return `
+        <div class="nb-badge">#${String(rank).padStart(3,'0')}</div>
+        <div class="nb-num">${numDisp}</div>
+        <div class="nb-price">${priceDisp}</div>
+        ${orderButtonHtml(item, 'Buyurtma berish', 'nb-btn')}`;
+
+    default: // classic
+      return `
+        <div class="card-header">
+          <span class="op-label" style="color:${opColor};">${item.operator.toUpperCase()}</span>
+          <span class="divider"></span>
+          <span class="num-label">${numDisp}</span>
+        </div>
+        ${discountHtml}
+        <div class="card-body">
+          <div class="price-row">
+            <span class="new-price">${priceDisp}</span>
+            ${hasDiscount ? `<span class="old-price">${oldPriceDisp}</span>` : ''}
+          </div>
+          ${installmentHtml}
+          ${item.reserved
+            ? `<button class="order-btn reserved-btn" disabled>Bu raqamni boshqa inson bron qilish jarayonida</button>`
+            : (hideOrderButtonSetting ? '' : orderButtonHtml(item, `${CART_ICON_SVG}Buyurtma berish`, ''))}
+        </div>`;
+  }
+}
+
 function renderCatalog(){
   const filtered = getFilteredNumbers();
   const realTotalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -899,6 +1136,8 @@ function renderCatalog(){
 
   const pageItems = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
+  const style = currentCatalogStyle || 'classic';
+  catalogEl.className = 'catalog' + (LIST_ROW_STYLES.includes(style) ? ' catalog-list' : '');
   catalogEl.innerHTML = '';
   if(filtered.length === 0){
     if(!numbersLoaded){
@@ -917,46 +1156,25 @@ function renderCatalog(){
   pageItems.forEach((item, idx)=>{
     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
     const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+    const rank = currentPage * PAGE_SIZE + idx + 1;
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = `card cs-${style}`;
     card.style.animationDelay = Math.min(idx * 0.04, 0.24) + 's';
+    card.innerHTML = buildCardInnerHtml(style, item, hasDiscount, discountPct, rank);
 
-    let orderAreaHtml;
-    if(item.reserved){
-      orderAreaHtml = hideOrderButtonSetting
-        ? `<div class="reserved-note">Bu raqamni boshqa inson bron qilish jarayonida</div>`
-        : `<button class="order-btn reserved-btn" disabled>Bu raqamni boshqa inson bron qilish jarayonida</button>`;
-    }else if(hideOrderButtonSetting){
-      orderAreaHtml = '';
+    const isRowClickStyle = NO_BUTTON_STYLES.includes(style) || (style === 'classic' && hideOrderButtonSetting);
+    if(isRowClickStyle && !item.reserved){
       card.classList.add('clickable-card');
-    }else{
-      orderAreaHtml = `<button class="order-btn" data-number="${item.number}" data-id="${item.id}"><svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Buyurtma berish</button>`;
-    }
-
-    card.innerHTML = `
-      <div class="card-header">
-        <span class="op-label" style="color:${OPERATOR_COLORS[item.operator] || 'var(--amber)'};">${item.operator.toUpperCase()}</span>
-        <span class="divider"></span>
-        <span class="num-label">${displayNumber(item.number)}</span>
-      </div>
-      ${hasDiscount ? `<span class="discount-badge">-${discountPct}%</span>` : ''}
-      <div class="card-body">
-        <div class="price-row">
-          <span class="new-price">${formatPrice(item.price)}</span>
-          ${hasDiscount ? `<span class="old-price">${formatPrice(item.oldPrice)}</span>` : ''}
-        </div>
-        ${item.installment ? `<div class="installment-tag">📅 Bo'lib to'lash mumkin</div>` : ''}
-        ${orderAreaHtml}
-      </div>
-    `;
-    if(hideOrderButtonSetting && !item.reserved){
       card.addEventListener('click', ()=> openModal(item.number, item.id));
     }
     catalogEl.appendChild(card);
   });
 
   document.querySelectorAll('.order-btn:not(.reserved-btn)').forEach(btn=>{
-    btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openModal(btn.dataset.number, btn.dataset.id);
+    });
   });
 
   renderPagination(currentPage, totalPages);
@@ -1558,6 +1776,7 @@ function applyFont(fontName){
 }
 
 let hideOrderButtonSetting = false;
+let currentCatalogStyle = 'classic';
 
 async function loadSiteSettings(){
   try{
@@ -1567,6 +1786,7 @@ async function loadSiteSettings(){
     if(s.theme) applyTheme(s.theme);
     if(s.font !== undefined) applyFont(s.font);
     hideOrderButtonSetting = !!s.hideOrderButton;
+    if(s.catalogStyle) currentCatalogStyle = s.catalogStyle;
     if(numbersLoaded) renderCatalog();
     if(s.telegramLink) document.getElementById('drawerTelegram').href = s.telegramLink;
     if(s.instagramLink) document.getElementById('drawerInstagram').href = s.instagramLink;

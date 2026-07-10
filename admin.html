@@ -374,6 +374,7 @@
     <button class="tab" data-tab="orders">Buyurtmalar</button>
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
+    <button class="tab" data-tab="styles">Uslublar</button>
     <button class="tab" data-tab="settings">Sozlamalar</button>
   </div>
 
@@ -480,6 +481,15 @@
 
   <div class="pane" id="paneSessions">
     <div class="sessions-list" id="sessionsList"></div>
+  </div>
+
+  <div class="pane" id="paneStyles">
+    <div class="settings-form" style="max-width:none;">
+      <h3>Raqamlar ro'yxati uslubi</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 14px;">Birini tanlang — mijoz saytida "Raqam qidirish" qismidan pastdagi raqamlar shu uslubda ko'rinadi. O'zgarish darhol qo'llanadi.</p>
+      <div id="stylePicker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"></div>
+      <div class="settings-msg" id="styleMsg"></div>
+    </div>
   </div>
 
   <div class="pane" id="paneSettings">
@@ -753,7 +763,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', orders:'Orders', credit:'Credit', sessions:'Sessions', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -837,6 +847,57 @@ const SITE_THEMES = {
   white_maroon:   { name:'Oq + To\'q qizil', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#7F1D1D' }
 };
 let currentTheme = 'premium_navy';
+
+/* ---- Raqamlar ro'yxati uslubi (Uslublar bo'limi) ---- */
+const CATALOG_STYLES = [
+  { key:'classic',        label:'Klassik (standart)',        emoji:'🗂️' },
+  { key:'list_minimal',   label:"Ro'yxat — Minimal",         emoji:'📋' },
+  { key:'dark_banner',    label:'Katta banner',              emoji:'🎫' },
+  { key:'list_icon',      label:"Ro'yxat — Savat belgisi",   emoji:'🛒' },
+  { key:'grid_compact',   label:'Ixcham katak',              emoji:'🔲' },
+  { key:'outline',        label:'Kontur (Outline)',          emoji:'⬜' },
+  { key:'glass',          label:'Shisha effekti',            emoji:'🧊' },
+  { key:'ribbon',         label:'Lenta (Ribbon)',            emoji:'🎗️' },
+  { key:'ticket',         label:'Chipta (Ticket)',           emoji:'🎟️' },
+  { key:'bold_price',     label:'Katta narx',                emoji:'💰' },
+  { key:'horizontal',     label:'Gorizontal qator',          emoji:'➡️' },
+  { key:'gradient',       label:'Gradient fon',              emoji:'🌈' },
+  { key:'numbered_badge', label:'Raqamlangan (Badge)',       emoji:'🏷️' }
+];
+let currentCatalogStyle = 'classic';
+
+function renderStylePicker(){
+  const picker = document.getElementById('stylePicker');
+  if(!picker) return;
+  picker.innerHTML = CATALOG_STYLES.map(s => `
+    <div class="style-swatch" data-key="${s.key}" style="
+      background:var(--panel-2);border:2px solid ${s.key === currentCatalogStyle ? 'var(--amber)' : 'var(--line)'};
+      border-radius:10px;padding:14px 8px;cursor:pointer;text-align:center;">
+      <div style="font-size:22px;margin-bottom:6px;">${s.emoji}</div>
+      <div style="font-size:11.5px;color:var(--text);font-weight:600;">${s.label}</div>
+      ${s.key === currentCatalogStyle ? `<div style="margin-top:4px;color:var(--amber);font-size:12px;">✓ tanlangan</div>` : ''}
+    </div>
+  `).join('');
+
+  picker.querySelectorAll('.style-swatch').forEach(el => {
+    el.addEventListener('click', async () => {
+      const key = el.dataset.key;
+      currentCatalogStyle = key;
+      renderStylePicker();
+      const msg = document.getElementById('styleMsg');
+      try{
+        await db.collection('site_settings').doc('general').set({ catalogStyle: key }, { merge: true });
+        const label = CATALOG_STYLES.find(s => s.key === key).label;
+        msg.textContent = `✓ "${label}" uslubi saqlandi — mijoz saytida darhol qo'llanadi.`;
+        msg.className = 'settings-msg ok';
+        vibrate(80);
+      }catch(err){
+        msg.textContent = 'Xato: ' + err.message;
+        msg.className = 'settings-msg bad';
+      }
+    });
+  });
+}
 
 /* ---- Kreditga berilgan raqamlar ---- */
 function calcDueDate(startTs, payDay, monthIndex){
@@ -1245,11 +1306,13 @@ document.getElementById('vipWhiteThemeBtn').addEventListener('click', async () =
 
 async function loadSiteSettingsForm(){
   renderThemePicker();
+  renderStylePicker();
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists) return;
     const s = doc.data();
     if(s.theme && SITE_THEMES[s.theme]){ currentTheme = s.theme; renderThemePicker(); }
+    if(s.catalogStyle && CATALOG_STYLES.some(cs => cs.key === s.catalogStyle)){ currentCatalogStyle = s.catalogStyle; renderStylePicker(); }
     document.getElementById('hideOrderBtnCheckbox').checked = !!s.hideOrderButton;
     document.getElementById('siteFontSelect').value = s.font || '';
     document.getElementById('siteTelegramLink').value = s.telegramLink || '';
