@@ -455,6 +455,8 @@
       <input type="number" id="crMonths" placeholder="12">
       <label for="crMonthly">Oyiga to'lov summasi (so'm)</label>
       <input type="number" id="crMonthly" placeholder="150000">
+      <label for="crStartDate">Shartnoma sanasi (kredit qachon berilgan)</label>
+      <input type="date" id="crStartDate">
       <label for="crPayDay">Har oyning nechinchi sanasida (1-31)</label>
       <input type="number" id="crPayDay" min="1" max="31" placeholder="10">
       <label for="crInfo">Qo'shimcha ma'lumot (ixtiyoriy)</label>
@@ -504,6 +506,7 @@
     <div class="settings-form" style="margin-top:16px;">
       <h3>Saytning rang mavzusi</h3>
       <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Birini tanlang — mijoz sayti darhol shu rangga o'tadi. Boshqa hech narsa qilish shart emas.</p>
+      <button id="vipWhiteThemeBtn" style="background:#FFFFFF;color:#0B1F3A;border:2px solid #1D4ED8;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;width:100%;">⚪ VIP Raqamlar — Oq mavzu</button>
       <div id="themePicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
       <div class="settings-msg" id="themeMsg"></div>
     </div>
@@ -719,7 +722,11 @@ document.querySelectorAll('.tab').forEach(tab=>{
 
     if(tab.dataset.tab === 'orders'){ markOrdersSeen(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
-    if(tab.dataset.tab === 'credit'){ loadCreditContracts(); }
+    if(tab.dataset.tab === 'credit'){
+      loadCreditContracts();
+      const dateEl = document.getElementById('crStartDate');
+      if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
+    }
   });
 });
 
@@ -779,7 +786,14 @@ const SITE_THEMES = {
   petrol:         { name:'Petrol',         bg:'#07151B', panel:'#184153', accent:'#56AFFF' },
   dark_aqua:      { name:'Dark Aqua',      bg:'#061B20', panel:'#1C4E59', accent:'#69C2FF' },
   night_sky:      { name:'Night Sky',      bg:'#060C18', panel:'#132B45', accent:'#5DA6FF' },
-  ultra_luxury:   { name:'Ultra Luxury',   bg:'#071320', panel:'#17375F', accent:'#FFD56A' }
+  ultra_luxury:   { name:'Ultra Luxury',   bg:'#071320', panel:'#17375F', accent:'#FFD56A' },
+  white_lightblue:{ name:'Oq + Och ko\'k', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#38BDF8' },
+  white_green:    { name:'Oq + Yashil',    bg:'#F4F7FB', panel:'#FFFFFF', accent:'#16A34A' },
+  white_red:      { name:'Oq + Qizil',     bg:'#F4F7FB', panel:'#FFFFFF', accent:'#DC2626' },
+  white_navy:     { name:'Oq + To\'q ko\'k', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#1E3A8A' },
+  black_red:      { name:'Qora + Qizil',   bg:'#0A0A0A', panel:'#1A1A1A', accent:'#FF3B3B' },
+  white_gold:     { name:'Oq + To\'q sariq', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#CA8A04' },
+  white_maroon:   { name:'Oq + To\'q qizil', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#7F1D1D' }
 };
 let currentTheme = 'premium_navy';
 
@@ -817,6 +831,7 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
   const number = document.getElementById('crNumber').value.trim();
   const months = Number(document.getElementById('crMonths').value) || 0;
   const monthly = Number(document.getElementById('crMonthly').value) || 0;
+  const startDateVal = document.getElementById('crStartDate').value;
   const payDay = Number(document.getElementById('crPayDay').value) || 1;
   const info = document.getElementById('crInfo').value.trim();
 
@@ -834,7 +849,8 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     await counterRef.set({ value: nextNum });
     const contractId = 'KR' + String(nextNum).padStart(3, '0');
 
-    const startTs = Date.now();
+    // Admin tanlagan sana bo'yicha shartnoma boshlanish vaqti (kiritilmasa — bugungi kun)
+    const startTs = startDateVal ? new Date(startDateVal + 'T00:00:00').getTime() : Date.now();
     const payments = [];
     for(let i = 0; i < months; i++){
       payments.push({ month: i + 1, dueDate: calcDueDate(startTs, payDay, i), status: 'pending', paidAt: null });
@@ -852,6 +868,7 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     ['crName','crPhone','crRegion','crNumber','crMonths','crMonthly','crPayDay','crInfo'].forEach(id=>{
       document.getElementById(id).value = '';
     });
+    document.getElementById('crStartDate').value = new Date().toISOString().slice(0,10);
     loadCreditContracts();
   }catch(err){
     msg.textContent = 'Xato: ' + err.message;
@@ -927,9 +944,16 @@ function renderCreditList(contracts){
           <input type="text" class="cr-edit-number" value="${d.number}">
           <label class="cr-edit-label">Oylik to'lov (so'm)</label>
           <input type="number" class="cr-edit-monthly" value="${d.monthlyPayment}">
+          <label class="cr-edit-label">Shartnoma sanasi</label>
+          <input type="date" class="cr-edit-date" value="${new Date(d.createdAt).toISOString().slice(0,10)}">
+          <label class="cr-edit-label">Har oyning nechinchi sanasida (1-31)</label>
+          <input type="number" class="cr-edit-payday" min="1" max="31" value="${d.paymentDay}">
+          <label class="cr-edit-label">Necha oyga (jami muddat)</label>
+          <input type="number" class="cr-edit-months" min="1" value="${d.totalMonths}">
           <label class="cr-edit-label">Qo'shimcha ma'lumot</label>
           <input type="text" class="cr-edit-info" value="${d.additionalInfo || ''}">
           <button class="cr-save-btn" data-id="${d.id}">Saqlash</button>
+          <p style="color:var(--muted);font-size:11px;margin:6px 0 0;">Sana, oy soni yoki to'lov kunini o'zgartirsangiz, oylik to'lov jadvali shu bo'yicha avtomatik qayta hisoblanadi.</p>
 
           <div class="credit-sub" style="margin-top:10px;">✅ ${paidCount}/${d.totalMonths} oy to'landi &nbsp;|&nbsp; 🗓 Har oyning ${d.paymentDay}-sanasida</div>
           <div class="cr-progress-wrap" style="margin:8px 0;"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
@@ -994,13 +1018,38 @@ function renderCreditList(contracts){
       const card = btn.closest('.credit-card');
       const id = btn.dataset.id;
       try{
+        const dateVal = card.querySelector('.cr-edit-date').value;
+        const payDay = Number(card.querySelector('.cr-edit-payday').value) || 1;
+        const newTotalMonths = Number(card.querySelector('.cr-edit-months').value) || 1;
+        const newStartTs = dateVal ? new Date(dateVal + 'T00:00:00').getTime() : Date.now();
+
+        // Shartnoma sanasi, to'lov kuni yoki oy soni o'zgargan bo'lsa, oylik jadvalni
+        // shunga qarab qayta hisoblaymiz, lekin allaqachon "to'landi" deb belgilangan
+        // oylarning statusini saqlab qolamiz.
+        const existing = currentCreditContracts.find(c => c.id === id);
+        const oldPayments = existing ? existing.payments : [];
+        const payments = [];
+        for(let i = 0; i < newTotalMonths; i++){
+          const old = oldPayments.find(p => p.month === i + 1);
+          payments.push({
+            month: i + 1,
+            dueDate: calcDueDate(newStartTs, payDay, i),
+            status: old ? old.status : 'pending',
+            paidAt: old ? old.paidAt : null
+          });
+        }
+
         await db.collection('credit_contracts').doc(id).update({
           customerName: card.querySelector('.cr-edit-name').value.trim(),
           customerPhone: card.querySelector('.cr-edit-phone').value.trim(),
           region: card.querySelector('.cr-edit-region').value.trim(),
           number: card.querySelector('.cr-edit-number').value.trim(),
           monthlyPayment: Number(card.querySelector('.cr-edit-monthly').value) || 0,
-          additionalInfo: card.querySelector('.cr-edit-info').value.trim()
+          additionalInfo: card.querySelector('.cr-edit-info').value.trim(),
+          createdAt: newStartTs,
+          paymentDay: payDay,
+          totalMonths: newTotalMonths,
+          payments
         });
         btn.textContent = '✓ Saqlandi';
         vibrate(80);
@@ -1137,6 +1186,21 @@ function renderThemePicker(){
     });
   });
 }
+
+document.getElementById('vipWhiteThemeBtn').addEventListener('click', async () => {
+  currentTheme = 'clean_white';
+  renderThemePicker();
+  const msg = document.getElementById('themeMsg');
+  try{
+    await db.collection('site_settings').doc('general').set({ theme: 'clean_white' }, { merge: true });
+    msg.textContent = `✓ "VIP Raqamlar — Oq mavzu" saqlandi — mijoz saytida darhol qo'llanadi.`;
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
 
 async function loadSiteSettingsForm(){
   renderThemePicker();
