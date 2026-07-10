@@ -278,11 +278,13 @@
   }
   .settings-form h3{font-family:'Space Mono',monospace;color:var(--amber);font-size:15px;margin:0 0 14px;}
   .settings-form label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px;}
-  .settings-form input{
+  .settings-form input, .settings-form select{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
     padding:10px;color:var(--text);font-size:13.5px;outline:none;
   }
-  .settings-form input:focus{border-color:var(--amber);}
+  .settings-form input:focus, .settings-form select:focus{border-color:var(--amber);}
+  .settings-form .checkbox-field{margin-top:4px;}
+  .settings-form .checkbox-field input{width:auto;}
   .settings-form button{
     width:100%;margin-top:16px;background:var(--amber);color:var(--bg);border:none;border-radius:8px;
     padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;
@@ -509,6 +511,45 @@
       <button id="vipWhiteThemeBtn" style="background:#FFFFFF;color:#0B1F3A;border:2px solid #1D4ED8;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;width:100%;">⚪ VIP Raqamlar — Oq mavzu</button>
       <div id="themePicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
       <div class="settings-msg" id="themeMsg"></div>
+    </div>
+
+    <div class="settings-form" style="margin-top:16px;">
+      <h3>Buyurtma tugmasi</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Yoqilsa, raqam qidiruv natijalaridagi kartochkalarda "Buyurtma berish" tugmasi olib tashlanadi — mijoz kartaning istalgan joyiga bossa, buyurtma shu zahoti qabul qilinadi.</p>
+      <label class="checkbox-field">
+        <input type="checkbox" id="hideOrderBtnCheckbox">
+        Buyurtma tugmasini olib tashlash (kartaga bosilsa — buyurtma bo'ladi)
+      </label>
+      <div class="settings-msg" id="hideOrderBtnMsg"></div>
+    </div>
+
+    <div class="settings-form" style="margin-top:16px;">
+      <h3>Yozuvlar shirfti (font)</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Birini tanlang — mijoz saytidagi barcha yozuvlar shirfti darhol shunga o'tadi.</p>
+      <select id="siteFontSelect">
+        <option value="">Standart (asl shirft)</option>
+        <option value="Inter">Inter</option>
+        <option value="Roboto">Roboto</option>
+        <option value="Poppins">Poppins</option>
+        <option value="Montserrat">Montserrat</option>
+        <option value="Nunito">Nunito</option>
+        <option value="Rubik">Rubik</option>
+        <option value="Manrope">Manrope</option>
+        <option value="Mulish">Mulish</option>
+        <option value="Raleway">Raleway</option>
+        <option value="Work Sans">Work Sans</option>
+        <option value="Open Sans">Open Sans</option>
+        <option value="Lato">Lato</option>
+        <option value="Ubuntu">Ubuntu</option>
+        <option value="Karla">Karla</option>
+        <option value="DM Sans">DM Sans</option>
+        <option value="Sora">Sora</option>
+        <option value="Outfit">Outfit</option>
+        <option value="Urbanist">Urbanist</option>
+        <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+        <option value="Josefin Sans">Josefin Sans</option>
+      </select>
+      <div class="settings-msg" id="siteFontMsg"></div>
     </div>
 
     <div class="settings-form" style="margin-top:16px;">
@@ -1209,6 +1250,8 @@ async function loadSiteSettingsForm(){
     if(!doc.exists) return;
     const s = doc.data();
     if(s.theme && SITE_THEMES[s.theme]){ currentTheme = s.theme; renderThemePicker(); }
+    document.getElementById('hideOrderBtnCheckbox').checked = !!s.hideOrderButton;
+    document.getElementById('siteFontSelect').value = s.font || '';
     document.getElementById('siteTelegramLink').value = s.telegramLink || '';
     document.getElementById('siteInstagramLink').value = s.instagramLink || '';
     document.getElementById('siteContactLink').value = s.contactLink || '';
@@ -1233,6 +1276,34 @@ document.getElementById('saveSiteSettingsBtn').addEventListener('click', async (
       deliveryText: document.getElementById('siteDeliveryText').value.trim()
     }, { merge: true });
     msg.textContent = '✓ Sayt sozlamalari saqlandi.';
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
+
+document.getElementById('hideOrderBtnCheckbox').addEventListener('change', async (e)=>{
+  const msg = document.getElementById('hideOrderBtnMsg');
+  try{
+    await db.collection('site_settings').doc('general').set({ hideOrderButton: e.target.checked }, { merge: true });
+    msg.textContent = e.target.checked
+      ? "✓ Saqlandi — endi mijoz kartaning istalgan joyiga bossa, buyurtma bo'ladi."
+      : '✓ Saqlandi — "Buyurtma berish" tugmasi qaytarildi.';
+    msg.className = 'settings-msg ok';
+    vibrate(80);
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
+
+document.getElementById('siteFontSelect').addEventListener('change', async (e)=>{
+  const msg = document.getElementById('siteFontMsg');
+  try{
+    await db.collection('site_settings').doc('general').set({ font: e.target.value }, { merge: true });
+    msg.textContent = e.target.value ? `✓ "${e.target.value}" shirfti saqlandi — mijoz saytida darhol qo'llanadi.` : '✓ Standart shirftga qaytarildi.';
     msg.className = 'settings-msg ok';
     vibrate(80);
   }catch(err){

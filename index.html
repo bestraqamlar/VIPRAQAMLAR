@@ -19,6 +19,10 @@
     --brand-red: #E63946;
     --text: #EDEFF3;
     --muted: #8494B0;
+    --font-main: 'Inter', sans-serif;
+  }
+  body[data-custom-font] *{
+    font-family: var(--font-main) !important;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
@@ -213,6 +217,12 @@
   @keyframes cardIn{to{opacity:1;transform:translateY(0);}}
   .card:hover{border-color:var(--amber);}
   .card:active{transform:scale(0.98);}
+  .card.clickable-card{cursor:pointer;}
+  .card.clickable-card:hover{box-shadow:0 0 0 1px var(--amber);}
+  .reserved-note{
+    color:var(--muted);font-size:12px;text-align:center;padding:11px;
+    background:rgba(255,92,92,0.1);border:1px solid rgba(255,92,92,0.3);border-radius:9px;
+  }
   .card-header{
     display:flex;align-items:center;gap:9px;padding:16px 16px;
     border-bottom:1px solid var(--line);
@@ -910,6 +920,19 @@ function renderCatalog(){
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = Math.min(idx * 0.04, 0.24) + 's';
+
+    let orderAreaHtml;
+    if(item.reserved){
+      orderAreaHtml = hideOrderButtonSetting
+        ? `<div class="reserved-note">Bu raqamni boshqa inson bron qilish jarayonida</div>`
+        : `<button class="order-btn reserved-btn" disabled>Bu raqamni boshqa inson bron qilish jarayonida</button>`;
+    }else if(hideOrderButtonSetting){
+      orderAreaHtml = '';
+      card.classList.add('clickable-card');
+    }else{
+      orderAreaHtml = `<button class="order-btn" data-number="${item.number}" data-id="${item.id}"><svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Buyurtma berish</button>`;
+    }
+
     card.innerHTML = `
       <div class="card-header">
         <span class="op-label" style="color:${OPERATOR_COLORS[item.operator] || 'var(--amber)'};">${item.operator.toUpperCase()}</span>
@@ -923,11 +946,12 @@ function renderCatalog(){
           ${hasDiscount ? `<span class="old-price">${formatPrice(item.oldPrice)}</span>` : ''}
         </div>
         ${item.installment ? `<div class="installment-tag">📅 Bo'lib to'lash mumkin</div>` : ''}
-        ${item.reserved
-          ? `<button class="order-btn reserved-btn" disabled>Bu raqamni boshqa inson bron qilish jarayonida</button>`
-          : `<button class="order-btn" data-number="${item.number}" data-id="${item.id}"><svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Buyurtma berish</button>`}
+        ${orderAreaHtml}
       </div>
     `;
+    if(hideOrderButtonSetting && !item.reserved){
+      card.addEventListener('click', ()=> openModal(item.number, item.id));
+    }
     catalogEl.appendChild(card);
   });
 
@@ -1513,12 +1537,37 @@ function applyTheme(themeKey){
   root.setProperty('--card-radius', t.cardRadius);
 }
 
+/* ---- Sayt bo'ylab yozuvlar shirftini (font) o'zgartirish ---- */
+function applyFont(fontName){
+  if(!fontName){
+    document.body.removeAttribute('data-custom-font');
+    return;
+  }
+  const linkId = 'custom-font-link';
+  if(!document.getElementById(linkId)){
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName).replace(/%20/g,'+') + ':wght@400;500;600;700;800&display=swap';
+    document.head.appendChild(link);
+  }else{
+    document.getElementById(linkId).href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName).replace(/%20/g,'+') + ':wght@400;500;600;700;800&display=swap';
+  }
+  document.documentElement.style.setProperty('--font-main', `'${fontName}', 'Inter', sans-serif`);
+  document.body.setAttribute('data-custom-font', '1');
+}
+
+let hideOrderButtonSetting = false;
+
 async function loadSiteSettings(){
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists) return;
     const s = doc.data();
     if(s.theme) applyTheme(s.theme);
+    if(s.font !== undefined) applyFont(s.font);
+    hideOrderButtonSetting = !!s.hideOrderButton;
+    if(numbersLoaded) renderCatalog();
     if(s.telegramLink) document.getElementById('drawerTelegram').href = s.telegramLink;
     if(s.instagramLink) document.getElementById('drawerInstagram').href = s.instagramLink;
     if(s.contactLink) document.getElementById('drawerContact').href = s.contactLink;
