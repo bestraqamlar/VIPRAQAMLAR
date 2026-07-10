@@ -327,6 +327,36 @@
   .nb-num{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin:10px 0 4px;}
   .nb-price{font-size:14px;font-weight:800;color:var(--amber);margin-bottom:12px;}
 
+  /* ============================================================
+     "Standart (saqlangan)" uslubi — ATAYLAB qattiq rang kodlari
+     bilan yozilgan (var(--...) ISHLATILMAYDI). Shuning uchun bu
+     uslub tanlangan rang mavzusiga ham, keyingi CSS/design
+     yangilanishlariga ham hech qachon bog'liq bo'lmaydi va
+     ko'rinishi doim bir xil qoladi.
+     ============================================================ */
+  .cs-classic_locked{background:#0A1628;border:1px solid #1C2E4A;position:relative;}
+  .cs-classic_locked .lk-header{padding:16px 16px 0;}
+  .cs-classic_locked .lk-num{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:#FFFFFF;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .cs-classic_locked .lk-badge{
+    position:absolute;top:10px;left:14px;background:#D4AF37;color:#0A1628;
+    font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;
+  }
+  .cs-classic_locked .lk-body{padding:14px 16px 16px;}
+  .cs-classic_locked .lk-price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:12px;flex-wrap:wrap;}
+  .cs-classic_locked .lk-new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#D4AF37;}
+  .cs-classic_locked .lk-old-price{font-family:'Sora',sans-serif;font-size:11px;color:#8FA0BC;text-decoration:line-through;}
+  .cs-classic_locked .lk-btn{
+    width:100%;background:#D4AF37;color:#0A1628;border:none;border-radius:9px;
+    padding:11px;font-weight:700;font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .cs-classic_locked .lk-btn:hover{filter:brightness(1.08);}
+  .cs-classic_locked .lk-btn.lk-reserved{background:#243040;color:#8FA0BC;cursor:not-allowed;}
+
+
   .card-header{
     display:flex;align-items:center;gap:9px;padding:16px 16px;
     border-bottom:1px solid var(--line);
@@ -1079,6 +1109,25 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
         <div class="nb-price">${priceDisp}</div>
         ${orderButtonHtml(item, 'Buyurtma berish', 'nb-btn')}`;
 
+    case 'classic_locked':
+      // MUHIM: bu uslub ATAYLAB o'zgarmas mavzu o'rniga QATTIQ YOZILGAN
+      // rang kodlaridan foydalanadi, shuning uchun tanlangan rang mavzusiga
+      // ham, keyingi dizayn yangilanishlariga ham bog'liq emas — har doim
+      // aynan shu ko'rinishda qoladi.
+      return `
+        <div class="lk-header"><div class="lk-num">${numDisp}</div></div>
+        ${hasDiscount ? `<span class="lk-badge">-${discountPct}%</span>` : ''}
+        <div class="lk-body">
+          <div class="lk-price-row">
+            <span class="lk-new-price">${priceDisp}</span>
+            ${hasDiscount ? `<span class="lk-old-price">${oldPriceDisp}</span>` : ''}
+          </div>
+          ${installmentHtml}
+          ${item.reserved
+            ? `<button class="lk-btn lk-reserved" disabled>Band qilingan</button>`
+            : `<button class="order-btn lk-btn" data-number="${item.number}" data-id="${item.id}">Buyurtma berish</button>`}
+        </div>`;
+
     default: // classic
       return `
         <div class="card-header">
@@ -1657,7 +1706,7 @@ function renderContractResult(data){
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {
   premium_navy:   { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#1C2E4A', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#33E28C', red:'#D4AF37', brandRed:'#D4AF37', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'8px', cardRadius:'12px' },
-  clean_white:    { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  clean_white:    { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
   modern_saas:    { bg:'#0D1B33', panel:'#132A4D', panel2:'#183A63', line:'#1C3050', amber:'#4A90D9', amberSoft:'rgba(74,144,217,0.15)', green:'#7FE7C4', red:'#4A90D9', brandRed:'#4A90D9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4A90D9', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   bold_editorial: { bg:'#0A1220', panel:'#0A1220', panel2:'#111A2C', line:'#FFFFFF', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.12)', green:'#7FE7C4', red:'#FFFFFF', brandRed:'#FFFFFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#FFFFFF', btnText:'#0A1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'0px', cardRadius:'0px' },
   soft_glass:     { bg:'#0B1220', panel:'rgba(255,255,255,0.06)', panel2:'rgba(255,255,255,0.09)', line:'rgba(255,255,255,0.15)', amber:'#7FA8E0', amberSoft:'rgba(127,168,224,0.15)', green:'#7FE7C4', red:'#7FA8E0', brandRed:'#7FA8E0', text:'#FFFFFF', muted:'#B8CBE8', btnBg:'#FFFFFF', btnText:'#0B1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
@@ -1682,13 +1731,13 @@ const SITE_THEMES = {
   dark_aqua:     { bg:'#061B20', panel:'#1C4E59', panel2:'#1C4E59', line:'#3A93A7', amber:'#3A93A7', amberSoft:'rgba(58,147,167,0.2)', green:'#58F5C5', red:'#FF5C5C', brandRed:'#3A93A7', text:'#FFFFFF', muted:'#8FBCC4', btnBg:'#69C2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   night_sky:     { bg:'#060C18', panel:'#132B45', panel2:'#132B45', line:'#2F5C9C', amber:'#2F5C9C', amberSoft:'rgba(47,92,156,0.2)', green:'#5AF5A9', red:'#FF5C5C', brandRed:'#2F5C9C', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5DA6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   ultra_luxury:  { bg:'#071320', panel:'#17375F', panel2:'#17375F', line:'#2F6FC2', amber:'#FFD56A', amberSoft:'rgba(255,213,106,0.2)', green:'#55F2B0', red:'#FF5C5C', brandRed:'#5DAEFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5AAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  white_lightblue:{ bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#38BDF8', amberSoft:'rgba(56,189,248,0.12)', green:'#1FA97F', red:'#38BDF8', brandRed:'#38BDF8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#38BDF8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_green:    { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0EFE6', amber:'#16A34A', amberSoft:'rgba(22,163,74,0.12)', green:'#16A34A', red:'#16A34A', brandRed:'#16A34A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#16A34A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_red:      { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F3DCDC', amber:'#DC2626', amberSoft:'rgba(220,38,38,0.10)', green:'#1FA97F', red:'#DC2626', brandRed:'#DC2626', text:'#0B1F3A', muted:'#6B7688', btnBg:'#DC2626', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_navy:     { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1E3A8A', amberSoft:'rgba(30,58,138,0.10)', green:'#1FA97F', red:'#1E3A8A', brandRed:'#1E3A8A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1E3A8A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  white_lightblue:{ bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#38BDF8', amberSoft:'rgba(56,189,248,0.12)', green:'#1FA97F', red:'#38BDF8', brandRed:'#38BDF8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#38BDF8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  white_green:    { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0EFE6', amber:'#16A34A', amberSoft:'rgba(22,163,74,0.12)', green:'#16A34A', red:'#16A34A', brandRed:'#16A34A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#16A34A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  white_red:      { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F3DCDC', amber:'#DC2626', amberSoft:'rgba(220,38,38,0.10)', green:'#1FA97F', red:'#DC2626', brandRed:'#DC2626', text:'#0B1F3A', muted:'#6B7688', btnBg:'#DC2626', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  white_navy:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1E3A8A', amberSoft:'rgba(30,58,138,0.10)', green:'#1FA97F', red:'#1E3A8A', brandRed:'#1E3A8A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1E3A8A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
   black_red:      { bg:'#0A0A0A', panel:'#1A1A1A', panel2:'#1A1A1A', line:'#3A1414', amber:'#FF3B3B', amberSoft:'rgba(255,59,59,0.2)', green:'#33E28C', red:'#FF3B3B', brandRed:'#FF3B3B', text:'#FFFFFF', muted:'#B08A8A', btnBg:'#FF3B3B', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  white_gold:     { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#EDE4CC', amber:'#CA8A04', amberSoft:'rgba(202,138,4,0.12)', green:'#1FA97F', red:'#CA8A04', brandRed:'#CA8A04', text:'#0B1F3A', muted:'#6B7688', btnBg:'#CA8A04', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_maroon:   { bg:'#F4F7FB', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F0DCDC', amber:'#7F1D1D', amberSoft:'rgba(127,29,29,0.10)', green:'#1FA97F', red:'#7F1D1D', brandRed:'#7F1D1D', text:'#0B1F3A', muted:'#6B7688', btnBg:'#7F1D1D', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' }
+  white_gold:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#EDE4CC', amber:'#CA8A04', amberSoft:'rgba(202,138,4,0.12)', green:'#1FA97F', red:'#CA8A04', brandRed:'#CA8A04', text:'#0B1F3A', muted:'#6B7688', btnBg:'#CA8A04', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  white_maroon:   { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F0DCDC', amber:'#7F1D1D', amberSoft:'rgba(127,29,29,0.10)', green:'#1FA97F', red:'#7F1D1D', brandRed:'#7F1D1D', text:'#0B1F3A', muted:'#6B7688', btnBg:'#7F1D1D', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' }
 };
 
 function applyTheme(themeKey){

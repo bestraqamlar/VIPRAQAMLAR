@@ -493,7 +493,7 @@
   <div class="pane" id="paneStyles">
     <div class="settings-form" style="max-width:none;">
       <h3>Raqamlar ro'yxati uslubi</h3>
-      <p style="color:var(--muted);font-size:12px;margin:0 0 14px;">Birini tanlang — mijoz saytida "Raqam qidirish" qismidan pastdagi raqamlar shu uslubda ko'rinadi. O'zgarish darhol qo'llanadi.</p>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 14px;">Birini tanlang — mijoz saytida "Raqam qidirish" qismidan pastdagi raqamlar shu uslubda ko'rinadi. O'zgarish darhol qo'llanadi. "🔒 Standart (saqlangan)" — bu variant doimiy ravishda saqlanadi, keyingi yangilanishlarda hech qachon o'zgarmaydi.</p>
       <div id="stylePicker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"></div>
       <div class="settings-msg" id="styleMsg"></div>
     </div>
@@ -820,7 +820,7 @@ document.getElementById('saveCredentialsBtn').addEventListener('click', async ()
 /* ---- Rang mavzusi tanlash (10 ta tayyor variant) ---- */
 const SITE_THEMES = {
   premium_navy:   { name:'Premium Navy Executive', bg:'#0A1628', panel:'#101F38', accent:'#D4AF37' },
-  clean_white:    { name:'Clean Corporate White',  bg:'#F4F7FB', panel:'#FFFFFF', accent:'#1D4ED8' },
+  clean_white:    { name:'Clean Corporate White',  bg:'#E7EBF3', panel:'#FFFFFF', accent:'#1D4ED8' },
   modern_saas:    { name:'Modern SaaS Blue',       bg:'#0D1B33', panel:'#132A4D', accent:'#4A90D9' },
   bold_editorial: { name:'Bold Editorial Navy',    bg:'#0A1220', panel:'#111A2C', accent:'#FFFFFF' },
   soft_glass:     { name:'Soft Glass Navy',        bg:'#0B1220', panel:'#16233E', accent:'#7FA8E0' },
@@ -845,13 +845,13 @@ const SITE_THEMES = {
   dark_aqua:      { name:'Dark Aqua',      bg:'#061B20', panel:'#1C4E59', accent:'#69C2FF' },
   night_sky:      { name:'Night Sky',      bg:'#060C18', panel:'#132B45', accent:'#5DA6FF' },
   ultra_luxury:   { name:'Ultra Luxury',   bg:'#071320', panel:'#17375F', accent:'#FFD56A' },
-  white_lightblue:{ name:'Oq + Och ko\'k', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#38BDF8' },
-  white_green:    { name:'Oq + Yashil',    bg:'#F4F7FB', panel:'#FFFFFF', accent:'#16A34A' },
-  white_red:      { name:'Oq + Qizil',     bg:'#F4F7FB', panel:'#FFFFFF', accent:'#DC2626' },
-  white_navy:     { name:'Oq + To\'q ko\'k', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#1E3A8A' },
+  white_lightblue:{ name:'Oq + Och ko\'k', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#38BDF8' },
+  white_green:    { name:'Oq + Yashil',    bg:'#E7EBF3', panel:'#FFFFFF', accent:'#16A34A' },
+  white_red:      { name:'Oq + Qizil',     bg:'#E7EBF3', panel:'#FFFFFF', accent:'#DC2626' },
+  white_navy:     { name:'Oq + To\'q ko\'k', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#1E3A8A' },
   black_red:      { name:'Qora + Qizil',   bg:'#0A0A0A', panel:'#1A1A1A', accent:'#FF3B3B' },
-  white_gold:     { name:'Oq + To\'q sariq', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#CA8A04' },
-  white_maroon:   { name:'Oq + To\'q qizil', bg:'#F4F7FB', panel:'#FFFFFF', accent:'#7F1D1D' }
+  white_gold:     { name:'Oq + To\'q sariq', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#CA8A04' },
+  white_maroon:   { name:'Oq + To\'q qizil', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#7F1D1D' }
 };
 let currentTheme = 'premium_navy';
 
@@ -869,7 +869,8 @@ const CATALOG_STYLES = [
   { key:'bold_price',     label:'Katta narx',                emoji:'💰' },
   { key:'horizontal',     label:'Gorizontal qator',          emoji:'➡️' },
   { key:'gradient',       label:'Gradient fon',              emoji:'🌈' },
-  { key:'numbered_badge', label:'Raqamlangan (Badge)',       emoji:'🏷️' }
+  { key:'numbered_badge', label:'Raqamlangan (Badge)',       emoji:'🏷️' },
+  { key:'classic_locked', label:'Standart (saqlangan)',      emoji:'🔒' }
 ];
 let currentCatalogStyle = 'classic';
 
