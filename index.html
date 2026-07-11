@@ -4,6 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <title>RAQAM.UZ &mdash; O'zbekiston bo'ylab dostavka xizmati</title>
+<script>
+/* Sahifa hali chizilmasdan turib, oxirgi saqlangan rang mavzusini darhol
+   qo'llaymiz — shunda mijoz "standart rang -> tanlangan rang" o'tishini
+   (flash) umuman ko'rmaydi. Firebase javobi kelgach, bu keshdan yangilanadi. */
+(function(){
+  try{
+    var raw = localStorage.getItem('raqamuz_theme_v1');
+    if(!raw) return;
+    var t = JSON.parse(raw);
+    var root = document.documentElement.style;
+    var map = {
+      bg:'--bg', panel:'--panel', panel2:'--panel-2', line:'--line',
+      amber:'--amber', amberSoft:'--amber-soft', green:'--green', red:'--red',
+      brandRed:'--brand-red', text:'--text', muted:'--muted',
+      btnBg:'--btn-bg', btnText:'--btn-text', btnBorderWidth:'--btn-border-width',
+      btnBorderColor:'--btn-border-color', btnRadius:'--btn-radius', cardRadius:'--card-radius'
+    };
+    Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
+    if(t.font){
+      root.setProperty('--font-main', "'" + t.font + "', 'Inter', sans-serif");
+      document.documentElement.setAttribute('data-custom-font', '1');
+    }
+    if(t.catalogStyle) window.__cachedCatalogStyle = t.catalogStyle;
+    if(t.hideOrderButton) window.__cachedHideOrderBtn = true;
+  }catch(e){}
+})();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -21,7 +48,7 @@
     --muted: #8494B0;
     --font-main: 'Inter', sans-serif;
   }
-  body[data-custom-font] *{
+  html[data-custom-font] *{
     font-family: var(--font-main) !important;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -101,8 +128,16 @@
 
   .drawer-map-wrap{padding:0 16px;}
   .drawer-map{
-    width:100%;height:180px;border:1px solid var(--line);border-radius:10px;
+    width:100%;height:180px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel-2);
   }
+  .drawer-directions-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    margin-top:10px;width:100%;padding:11px;border-radius:10px;
+    background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
+    font-size:13px;font-weight:700;text-decoration:none;
+  }
+  .drawer-directions-btn svg{width:15px;height:15px;flex-shrink:0;}
+  .drawer-directions-btn:hover{filter:brightness(1.08);}
 
   .drawer-info{padding:14px 16px 24px;display:flex;flex-direction:column;gap:10px;}
   .drawer-info-row{
@@ -787,7 +822,11 @@
   </div>
 
   <div class="drawer-map-wrap">
-    <iframe id="drawerMap" class="drawer-map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div id="drawerYandexMap" class="drawer-map"></div>
+    <a id="drawerDirectionsBtn" class="drawer-directions-btn" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Yo'l ko'rsatish
+    </a>
   </div>
 
   <div class="drawer-info">
@@ -1641,6 +1680,7 @@ const drawerClose  = document.getElementById('drawerClose');
 function openDrawer(){
   sideDrawer.classList.add('open');
   drawerOverlay.classList.add('open');
+  initYandexOfficeMap();
 }
 function closeDrawer(){
   sideDrawer.classList.remove('open');
@@ -1649,6 +1689,46 @@ function closeDrawer(){
 menuBtn.addEventListener('click', openDrawer);
 drawerClose.addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
+
+/* ---- Ofis manzili — Yandex xaritasi ---- */
+let yandexMapLoaded = false;
+let officeCoords = [41.289757, 69.201657]; // standart — admin sozlamalardan o'zgartirilishi mumkin
+let yandexApiKey = '788242a0-f999-487f-801f-01d3a640f448';
+
+function setDirectionsLink(){
+  const [lat, lng] = officeCoords;
+  document.getElementById('drawerDirectionsBtn').href =
+    `https://yandex.uz/maps/?rtext=~${lat},${lng}&rtt=auto`;
+}
+setDirectionsLink();
+
+function initYandexOfficeMap(){
+  if(yandexMapLoaded) return;
+  yandexMapLoaded = true;
+  const script = document.createElement('script');
+  script.src = `https://api-maps.yandex.ru/2.1/?apikey=${yandexApiKey}&lang=ru_RU`;
+  script.onload = () => {
+    ymaps.ready(() => {
+      const map = new ymaps.Map('drawerYandexMap', {
+        center: officeCoords,
+        zoom: 16,
+        controls: ['zoomControl']
+      });
+      const placemark = new ymaps.Placemark(officeCoords, {
+        hintContent: "Bizning ofisimiz"
+      }, {
+        preset: 'islands#redDotIcon'
+      });
+      map.geoObjects.add(placemark);
+      map.behaviors.disable('scrollZoom');
+    });
+  };
+  script.onerror = () => {
+    document.getElementById('drawerYandexMap').innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:10px;">Xarita yuklanmadi. Internetni tekshiring.</div>`;
+  };
+  document.head.appendChild(script);
+}
 
 /* ---- Shartnomani tekshirish ---- */
 const contractOverlay = document.getElementById('contractOverlay');
@@ -1826,7 +1906,7 @@ function applyTheme(themeKey){
 /* ---- Sayt bo'ylab yozuvlar shirftini (font) o'zgartirish ---- */
 function applyFont(fontName){
   if(!fontName){
-    document.body.removeAttribute('data-custom-font');
+    document.documentElement.removeAttribute('data-custom-font');
     return;
   }
   const linkId = 'custom-font-link';
@@ -1840,11 +1920,11 @@ function applyFont(fontName){
     document.getElementById(linkId).href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName).replace(/%20/g,'+') + ':wght@400;500;600;700;800&display=swap';
   }
   document.documentElement.style.setProperty('--font-main', `'${fontName}', 'Inter', sans-serif`);
-  document.body.setAttribute('data-custom-font', '1');
+  document.documentElement.setAttribute('data-custom-font', '1');
 }
 
-let hideOrderButtonSetting = false;
-let currentCatalogStyle = 'classic';
+let hideOrderButtonSetting = !!window.__cachedHideOrderBtn;
+let currentCatalogStyle = window.__cachedCatalogStyle || 'classic';
 
 async function loadSiteSettings(){
   try{
@@ -1860,9 +1940,23 @@ async function loadSiteSettings(){
     if(s.instagramLink) document.getElementById('drawerInstagram').href = s.instagramLink;
     if(s.contactLink) document.getElementById('drawerContact').href = s.contactLink;
     if(s.adminContactLink) document.getElementById('drawerAdmin').href = s.adminContactLink;
-    if(s.mapEmbedUrl) document.getElementById('drawerMap').src = s.mapEmbedUrl;
+    if(s.officeLat && s.officeLng){ officeCoords = [Number(s.officeLat), Number(s.officeLng)]; setDirectionsLink(); }
+    if(s.yandexApiKey) yandexApiKey = s.yandexApiKey;
     if(s.workingHours) document.getElementById('drawerHours').textContent = s.workingHours;
     if(s.deliveryText) document.getElementById('drawerDelivery').textContent = s.deliveryText;
+
+    /* Keyingi tashrifda darhol to'g'ri ko'rinish chiqishi uchun,
+       yangi kelgan sozlamalarni brauzer xotirasiga saqlab qo'yamiz. */
+    try{
+      if(s.theme && SITE_THEMES[s.theme]){
+        const cache = Object.assign({}, SITE_THEMES[s.theme], {
+          font: s.font || '',
+          catalogStyle: s.catalogStyle || 'classic',
+          hideOrderButton: !!s.hideOrderButton
+        });
+        localStorage.setItem('raqamuz_theme_v1', JSON.stringify(cache));
+      }
+    }catch(e){}
   }catch(e){ console.error('Sozlamalarni yuklashda xato:', e); }
 }
 loadSiteSettings();
