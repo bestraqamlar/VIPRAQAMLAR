@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-<title>RAQAM.UZ &mdash; O'zbekiston bo'ylab dostavka xizmati</title>
+<title>RAQAM.UZ &mdash; O'zbekiston bo'ylab yetkazib berish xizmati mavjud</title>
 <script>
 /* Sahifa hali chizilmasdan turib, oxirgi saqlangan rang mavzusini darhol
    qo'llaymiz — shunda mijoz "standart rang -> tanlangan rang" o'tishini
@@ -511,17 +511,6 @@
     font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);
   }
   .featured-link{color:var(--brand-red);font-size:12px;font-weight:600;}
-  .daily-title{
-    position:relative;padding-left:16px;
-    background:linear-gradient(90deg, var(--text) 30%, var(--amber));
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-  }
-  .daily-title::before{
-    content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
-    width:7px;height:7px;border-radius:50%;background:var(--amber);
-    box-shadow:0 0 9px var(--amber);
-    animation:pulse-dot 2s ease-in-out infinite;
-  }
   .featured-scroll{
     display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
@@ -531,6 +520,7 @@
     display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
   }
+  .daily-deal-section{max-width:1100px;margin:0 auto;padding:14px 16px 6px;}
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     flex:0 0 150px;border-radius:12px;padding:10px;
@@ -859,7 +849,7 @@
 
   <div class="drawer-info">
     <div class="drawer-info-row"><span>🕐</span><span id="drawerHours">Ish vaqti: 09:00 - 18:00</span></div>
-    <div class="drawer-info-row"><span>🚚</span><span id="drawerDelivery">O'zbekiston bo'ylab dostavka xizmati</span></div>
+    <div class="drawer-info-row"><span>🚚</span><span id="drawerDelivery">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</span></div>
   </div>
 
   <div class="drawer-links" style="padding-top:0;">
@@ -871,16 +861,13 @@
 </aside>
 
 <section class="daily-deal-section" id="dailyDealSection" style="display:none;">
-  <div class="featured-header">
-    <span class="featured-title daily-title">Bugungi aksiyaga tushgan raqamlar</span>
-  </div>
   <div class="daily-deal-scroll" id="dailyDealScroll"></div>
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
 <section class="hero">
   <h1><span class="brand-white">RAQAM</span><span class="brand-red">.UZ</span></h1>
-  <p class="tagline">O'zbekiston bo'ylab dostavka xizmati</p>
+  <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
 </section>
 
 <div class="search-wrap">
