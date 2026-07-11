@@ -13,14 +13,27 @@
    rang, keyin to'g'ri rangga almashish" holati BIRINCHI tashrifda ham
    umuman ko'rinmaydi. */
 (function(){
-  function reveal(){ document.documentElement.style.visibility = 'visible'; }
+  function showNow(){ document.documentElement.style.visibility = 'visible'; }
+  function reveal(){
+    // Rang tayyor bo'ldi — endi shirft (Sora, yoki tanlangan boshqa shirft)
+    // to'liq yuklanishini ham kutamiz, shundan keyingina sahifani ko'rsatamiz.
+    // Shunda "kichik/standart shirft birinchi, keyin almashadi" holati ham
+    // umuman ko'rinmaydi.
+    if(document.fonts && document.fonts.ready){
+      try{ document.fonts.load("800 16px Sora"); }catch(e){}
+      document.fonts.ready.then(showNow).catch(showNow);
+      setTimeout(showNow, 700); // xavfsizlik: shirft juda sekin bo'lsa ham cheksiz kutmaymiz
+    }else{
+      showNow();
+    }
+  }
   window.__revealSite = reveal;
   try{
     var raw = localStorage.getItem('raqamuz_theme_v1');
     if(!raw){
-      // Kesh yo'q — xavfsizlik uchun 1.2s dan keyin baribir ko'rsatamiz
+      // Kesh yo'q — xavfsizlik uchun 1.5s dan keyin baribir ko'rsatamiz
       // (Firebase juda sekin bo'lib qolsa ham, sahifa abadiy bo'sh qolmasin)
-      setTimeout(reveal, 1200);
+      setTimeout(reveal, 1500);
       return;
     }
     var t = JSON.parse(raw);
@@ -577,7 +590,7 @@
   }
   .featured-num-accent{color:var(--amber);}
   .featured-price{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--amber);
+    font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--amber);opacity:0.88;
     margin:0 0 12px;
   }
   .featured-btn{
@@ -594,7 +607,7 @@
     padding:5px 10px;border-radius:20px;
   }
   .sale-price-row{display:flex;align-items:baseline;gap:7px;margin:0 0 12px;flex-wrap:wrap;}
-  .sale-price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--amber);}
+  .sale-price-row .new-price{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--amber);opacity:0.88;}
   .sale-price-row .old-price{font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;}
 
   .overlay{
@@ -704,6 +717,7 @@
     background:linear-gradient(90deg, var(--green), var(--amber), var(--green));
     background-size:200% 100%;
     color:#08160f;font-weight:800;font-size:14.5px;padding:13px;
+    border-radius:14px;
     animation:searchShimmer 3s linear infinite;
     box-shadow:0 0 0 rgba(51,226,140,0.4);
   }
