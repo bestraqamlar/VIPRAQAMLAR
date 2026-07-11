@@ -544,7 +544,7 @@
       <h3>Yozuvlar shirfti (font)</h3>
       <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Birini tanlang — mijoz saytidagi barcha yozuvlar shirfti darhol shunga o'tadi.</p>
       <select id="siteFontSelect">
-        <option value="">Standart (asl shirft)</option>
+        <option value="Sora">Sora (standart)</option>
         <option value="Inter">Inter</option>
         <option value="Roboto">Roboto</option>
         <option value="Poppins">Poppins</option>
@@ -560,7 +560,6 @@
         <option value="Ubuntu">Ubuntu</option>
         <option value="Karla">Karla</option>
         <option value="DM Sans">DM Sans</option>
-        <option value="Sora">Sora</option>
         <option value="Outfit">Outfit</option>
         <option value="Urbanist">Urbanist</option>
         <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
@@ -1359,7 +1358,7 @@ async function loadSiteSettingsForm(){
     if(s.theme && SITE_THEMES[s.theme]){ currentTheme = s.theme; renderThemePicker(); }
     if(s.catalogStyle && CATALOG_STYLES.some(cs => cs.key === s.catalogStyle)){ currentCatalogStyle = s.catalogStyle; renderStylePicker(); }
     document.getElementById('hideOrderBtnCheckbox').checked = !!s.hideOrderButton;
-    document.getElementById('siteFontSelect').value = s.font || '';
+    document.getElementById('siteFontSelect').value = s.font || 'Sora';
     document.getElementById('siteTelegramLink').value = s.telegramLink || '';
     document.getElementById('siteInstagramLink').value = s.instagramLink || '';
     document.getElementById('siteContactLink').value = s.contactLink || '';

@@ -34,7 +34,7 @@
     };
     Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
     if(t.font){
-      root.setProperty('--font-main', "'" + t.font + "', 'Inter', sans-serif");
+      root.setProperty('--font-main', "'" + t.font + "', 'Sora', sans-serif");
       document.documentElement.setAttribute('data-custom-font', '1');
     }
     if(t.catalogStyle) window.__cachedCatalogStyle = t.catalogStyle;
@@ -45,7 +45,7 @@
 </script>
 <style>
   html{visibility:hidden;}
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&display=swap');
 
   :root{
     --bg: #0B1220;
@@ -59,7 +59,7 @@
     --brand-red: #E63946;
     --text: #EDEFF3;
     --muted: #8494B0;
-    --font-main: 'Inter', sans-serif;
+    --font-main: 'Sora', sans-serif;
   }
   html[data-custom-font] *{
     font-family: var(--font-main) !important;
@@ -67,7 +67,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
   body{
-    margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;
+    margin:0;background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;
     -webkit-user-select:none;-moz-user-select:none;user-select:none;
     -webkit-touch-callout:none;
     touch-action:pan-y;
@@ -263,7 +263,7 @@
   }
   .clear-search{
     display:block;margin:8px auto 0;background:none;border:none;color:var(--amber);
-    font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Inter';
+    font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Sora',sans-serif;
   }
 
   .catalog{
@@ -284,6 +284,7 @@
   .reserved-note{
     color:var(--muted);font-size:12px;text-align:center;padding:11px;
     background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    margin-top:auto;
   }
 
   /* ============ Uslublar — Raqamlar ro'yxati uslub variantlari ============ */
@@ -437,7 +438,7 @@
     background:var(--amber);color:var(--bg);font-size:10px;font-weight:700;
     padding:3px 8px;border-radius:6px;
   }
-  .card-body{padding:18px 16px;display:flex;flex-direction:column;}
+  .card-body{padding:18px 16px;display:flex;flex-direction:column;flex:1;}
   .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
   .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--amber);}
   .price-row .old-price{
@@ -456,6 +457,7 @@
     padding:11px;font-weight:600;font-size:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:8px;
     transition:transform .12s ease, opacity .12s ease, background .15s ease;
+    margin-top:auto;
   }
   .card button.order-btn:hover{filter:brightness(1.15);}
   .card button.order-btn:active{transform:scale(0.96);}
@@ -559,7 +561,7 @@
     flex:0 0 220px;border-radius:14px;padding:14px;
     border:1px solid var(--line);
     background:var(--panel);
-    display:flex;flex-direction:column;min-height:220px;
+    display:flex;flex-direction:column;min-height:178px;
   }
   .featured-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
   .featured-badge{
@@ -1945,7 +1947,7 @@ function applyFont(fontName){
   }else{
     document.getElementById(linkId).href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName).replace(/%20/g,'+') + ':wght@400;500;600;700;800&display=swap';
   }
-  document.documentElement.style.setProperty('--font-main', `'${fontName}', 'Inter', sans-serif`);
+  document.documentElement.style.setProperty('--font-main', `'${fontName}', 'Sora', sans-serif`);
   document.documentElement.setAttribute('data-custom-font', '1');
 }
 
