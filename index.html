@@ -7,11 +7,22 @@
 <script>
 /* Sahifa hali chizilmasdan turib, oxirgi saqlangan rang mavzusini darhol
    qo'llaymiz — shunda mijoz "standart rang -> tanlangan rang" o'tishini
-   (flash) umuman ko'rmaydi. Firebase javobi kelgach, bu keshdan yangilanadi. */
+   (flash) umuman ko'rmaydi. Firebase javobi kelgach, bu keshdan yangilanadi.
+   Agar kesh hali yo'q bo'lsa (mijozning ilk tashrifi), sahifa haqiqiy rang
+   Firebase'dan kelguncha yashirin turadi — shu bilan "avval eski/standart
+   rang, keyin to'g'ri rangga almashish" holati BIRINCHI tashrifda ham
+   umuman ko'rinmaydi. */
 (function(){
+  function reveal(){ document.documentElement.style.visibility = 'visible'; }
+  window.__revealSite = reveal;
   try{
     var raw = localStorage.getItem('raqamuz_theme_v1');
-    if(!raw) return;
+    if(!raw){
+      // Kesh yo'q — xavfsizlik uchun 1.2s dan keyin baribir ko'rsatamiz
+      // (Firebase juda sekin bo'lib qolsa ham, sahifa abadiy bo'sh qolmasin)
+      setTimeout(reveal, 1200);
+      return;
+    }
     var t = JSON.parse(raw);
     var root = document.documentElement.style;
     var map = {
@@ -28,10 +39,12 @@
     }
     if(t.catalogStyle) window.__cachedCatalogStyle = t.catalogStyle;
     if(t.hideOrderButton) window.__cachedHideOrderBtn = true;
-  }catch(e){}
+    reveal();
+  }catch(e){ reveal(); }
 })();
 </script>
 <style>
+  html{visibility:hidden;}
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 
   :root{
@@ -169,7 +182,6 @@
 
   .hero{
     max-width:720px;margin:0 auto;padding:26px 20px 16px;text-align:center;
-    background:radial-gradient(ellipse at top, rgba(230,57,70,0.12), transparent 70%);
   }
   .hero h1{
     font-family:'Sora',sans-serif;
@@ -181,7 +193,6 @@
   .brand-white{color:var(--text);}
   .brand-red{
     color:var(--brand-red);
-    text-shadow:0 0 26px rgba(230,57,70,0.5);
   }
   .hero .tagline{
     color:var(--muted);font-size:15px;margin:8px 0 18px;
@@ -1944,7 +1955,7 @@ let currentCatalogStyle = window.__cachedCatalogStyle || 'classic';
 async function loadSiteSettings(){
   try{
     const doc = await db.collection('site_settings').doc('general').get();
-    if(!doc.exists) return;
+    if(!doc.exists){ if(window.__revealSite) window.__revealSite(); return; }
     const s = doc.data();
     if(s.theme) applyTheme(s.theme);
     if(s.font !== undefined) applyFont(s.font);
@@ -1972,7 +1983,12 @@ async function loadSiteSettings(){
         localStorage.setItem('raqamuz_theme_v1', JSON.stringify(cache));
       }
     }catch(e){}
-  }catch(e){ console.error('Sozlamalarni yuklashda xato:', e); }
+
+    if(window.__revealSite) window.__revealSite();
+  }catch(e){
+    console.error('Sozlamalarni yuklashda xato:', e);
+    if(window.__revealSite) window.__revealSite();
+  }
 }
 loadSiteSettings();
 
