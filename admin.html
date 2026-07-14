@@ -557,6 +557,11 @@
     </div>
 
     <div class="ig-field">
+      <label>Telegram kanal havolasi <span class="ig-field-hint">(shaxsiy akkaunt botiga birinchi marta yozgan mijozga taklif qilinadi)</span></label>
+      <input type="text" id="tgTelegramLink" placeholder="https://t.me/vip_raqamlar_uz">
+    </div>
+
+    <div class="ig-field">
       <label>Dostavka haqida javob <span class="ig-field-hint">("dostavka bormi" deb so'rashsa shu javob beriladi)</span></label>
       <textarea id="tgDeliveryInfo" rows="2" placeholder="Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud."></textarea>
     </div>
@@ -1897,6 +1902,7 @@ async function loadTelegramAiSettings(){
   try{
     const doc = await db.collection('site_settings').doc('telegram_bot').get();
     const data = doc.exists ? doc.data() : {};
+    document.getElementById('tgTelegramLink').value = data.telegramChannelLink || '';
     document.getElementById('tgDeliveryInfo').value = data.deliveryInfo || '';
     document.getElementById('tgGeneralInstructions').value = data.generalInstructions || '';
     tgRulesData = Array.isArray(data.faqRules) ? data.faqRules : [];
@@ -1916,6 +1922,7 @@ document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
       .filter(r => r.trigger && r.response);
 
     await db.collection('site_settings').doc('telegram_bot').set({
+      telegramChannelLink: document.getElementById('tgTelegramLink').value.trim(),
       deliveryInfo: document.getElementById('tgDeliveryInfo').value.trim(),
       generalInstructions: document.getElementById('tgGeneralInstructions').value.trim(),
       faqRules: cleanRules,
