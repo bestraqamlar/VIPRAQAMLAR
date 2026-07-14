@@ -206,6 +206,80 @@
   }
   .empty-admin{color:var(--muted);text-align:center;padding:40px 10px;font-size:13.5px;}
 
+  /* ---- AI Yordamchi ---- */
+  .ai-hint{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:12px;
+  }
+  .ai-hint i{color:var(--text);font-style:normal;}
+  .ai-chat-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px;min-height:280px;max-height:56vh;overflow-y:auto;
+    display:flex;flex-direction:column;gap:10px;margin-bottom:10px;
+  }
+  .ai-msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;}
+  .ai-msg-user{align-self:flex-end;background:var(--amber);color:var(--bg);font-weight:600;border-bottom-right-radius:3px;}
+  .ai-msg-bot{align-self:flex-start;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-bottom-left-radius:3px;}
+  .ai-msg-system{align-self:center;color:var(--muted);font-size:12px;background:none;padding:2px 8px;}
+  .ai-msg-error{align-self:flex-start;background:rgba(255,92,92,0.12);border:1px solid var(--red);color:var(--red);border-bottom-left-radius:3px;}
+  .ai-results{align-self:stretch;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;max-height:220px;overflow-y:auto;}
+  .ai-results-row{display:flex;justify-content:space-between;gap:8px;padding:5px 2px;border-bottom:1px solid var(--line);}
+  .ai-results-row:last-child{border-bottom:none;}
+  .ai-results-num{font-family:'Space Mono',monospace;color:var(--text);}
+  .ai-results-price{color:var(--amber);font-weight:700;white-space:nowrap;}
+  .ai-confirm-box{align-self:stretch;background:rgba(255,92,92,0.10);border:1px solid var(--red);border-radius:10px;padding:10px 12px;}
+  .ai-confirm-title{color:var(--red);font-weight:700;font-size:13px;margin-bottom:8px;}
+  .ai-confirm-actions{display:flex;gap:8px;margin-top:10px;}
+  .ai-confirm-actions button{flex:1;border:none;border-radius:8px;padding:9px 10px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .ai-confirm-yes{background:var(--red);color:#fff;}
+  .ai-confirm-no{background:var(--panel-2);color:var(--text);border:1px solid var(--line) !important;}
+  .ai-typing{align-self:flex-start;color:var(--muted);font-size:12.5px;padding:4px 6px;}
+  .ai-input-row{display:flex;gap:8px;}
+  .ai-input-row input{
+    flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    padding:11px 14px;color:var(--text);font-size:13.5px;
+  }
+  .ai-input-row input:focus{border-color:var(--amber);}
+  .ai-input-row button{
+    background:var(--amber);color:var(--bg);border:none;border-radius:9px;
+    padding:11px 18px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;
+  }
+  .ai-input-row button:disabled{opacity:0.5;cursor:default;}
+
+  /* ---- Instagram AI sozlamalari ---- */
+  .ig-field{margin-bottom:16px;}
+  .ig-field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .ig-field-hint{font-weight:400;color:var(--muted);font-size:11.5px;}
+  .ig-field input[type="text"], .ig-field textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;
+  }
+  .ig-field input[type="text"]:focus, .ig-field textarea:focus{border-color:var(--amber);}
+  .ig-rules-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+  .ig-rule-row{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .ig-rule-row input, .ig-rule-row textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;
+    padding:8px 10px;color:var(--text);font-size:12.5px;font-family:inherit;resize:vertical;
+  }
+  .ig-rule-row .ig-rule-label{font-size:11px;color:var(--muted);margin-bottom:2px;}
+  .ig-rule-remove{
+    align-self:flex-end;background:none;border:1px solid var(--red);color:var(--red);
+    border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;
+  }
+  .ig-add-rule-btn{
+    background:var(--panel-2);border:1px dashed var(--line);color:var(--muted);
+    border-radius:9px;padding:9px 12px;font-size:12.5px;cursor:pointer;width:100%;
+  }
+  .ig-add-rule-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .ig-save-btn{
+    background:var(--green);color:#0a1a12;border:none;border-radius:9px;
+    padding:12px 18px;font-weight:700;font-size:13.5px;cursor:pointer;width:100%;margin-top:6px;
+  }
+  .ig-save-msg{text-align:center;font-size:12.5px;color:var(--green);margin-top:8px;min-height:16px;}
+
   .status-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;font-size:11.5px;color:var(--muted);}
 
   .credit-card{
@@ -371,6 +445,8 @@
 
   <div class="tabs">
     <button class="tab active" data-tab="numbers">Raqamlar</button>
+    <button class="tab" data-tab="ai">🤖 AI Yordamchi</button>
+    <button class="tab" data-tab="instagram">📸 Instagram AI</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
@@ -424,6 +500,53 @@
     </div>
     <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
     <div class="admin-list" id="adminNumbersList"></div>
+  </div>
+
+  <div class="pane" id="paneAi">
+    <div class="ai-hint">
+      🤖 Masalan: <i>"oxiri 0009 bilan tugagan raqamlarni ko'rsat"</i>, <i>"shularning hammasini o'chir"</i>,
+      <i>"VIP raqamlarni 10% arzonlashtir"</i>, <i>"bugun nechta buyurtma tushdi"</i>,
+      <i>"saytda jami qancha summalik raqam bor"</i>, <i>"eng qimmat 10 ta raqamni chiqar"</i>.
+      O'chirish va narx o'zgartirish amallari har doim sizdan alohida tasdiq so'raydi.
+    </div>
+    <div class="ai-chat-box" id="aiChatBox">
+      <div class="ai-msg ai-msg-bot">Salom! Men raqamlar bazasi bo'yicha yordamchiman. Nima qilishni xohlaysiz?</div>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" id="aiChatInput" placeholder="Masalan: oxiri 0009 bo'lgan raqamlarni ko'rsat...">
+      <button id="aiChatSendBtn">Yuborish</button>
+    </div>
+  </div>
+
+  <div class="pane" id="paneInstagram">
+    <div class="ai-hint">
+      📸 Bu yerda Instagram Direct va kommentariyalarga avtomatik javob beruvchi "RAQAM AI" botining
+      xatti-harakatini boshqarasiz. O'zgartirishni saqlaganingizdan so'ng, bot darhol yangi qoidalar bilan javob beradi.
+    </div>
+
+    <div class="ig-field">
+      <label>Telegram kanal havolasi <span class="ig-field-hint">(bot mijozlarni shu yerga yo'naltiradi)</span></label>
+      <input type="text" id="igTelegramLink" placeholder="https://t.me/raqamuz">
+    </div>
+
+    <div class="ig-field">
+      <label>Dostavka haqida javob <span class="ig-field-hint">("dostavka bormi" deb so'rashsa shu javob beriladi)</span></label>
+      <textarea id="igDeliveryInfo" rows="2" placeholder="Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud."></textarea>
+    </div>
+
+    <div class="ig-field">
+      <label>Umumiy qo'shimcha ko'rsatmalar <span class="ig-field-hint">(botning umumiy uslubi/xatti-harakati uchun, erkin matn)</span></label>
+      <textarea id="igGeneralInstructions" rows="4" placeholder="Masalan: Agar mijoz VIP raqam so'rasa, avval eng qimmat variantlarni taklif qil. Kirill va lotin yozuvida ham javob ber."></textarea>
+    </div>
+
+    <div class="ig-field">
+      <label>Tayyor savol-javob qoidalari <span class="ig-field-hint">("mijoz shunday yozsa — bot shunday javob beradi")</span></label>
+      <div class="ig-rules-list" id="igRulesList"></div>
+      <button type="button" class="ig-add-rule-btn" id="igAddRuleBtn">+ Qoida qo'shish</button>
+    </div>
+
+    <button id="igSaveBtn" class="ig-save-btn">💾 Saqlash</button>
+    <div class="ig-save-msg" id="igSaveMsg"></div>
   </div>
 
   <div class="pane" id="paneOrders">
@@ -774,7 +897,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -784,6 +907,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 
     if(tab.dataset.tab === 'orders'){ markOrdersSeen(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
+    if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'credit'){
       loadCreditContracts();
       const dateEl = document.getElementById('crStartDate');
@@ -1474,6 +1598,230 @@ document.getElementById('deleteAllNumbersBtn').addEventListener('click', async (
   }catch(err){
     alert("Xato: " + err.message);
     btn.textContent = "🗑 Barcha raqamlarni o'chirish";
+  }
+  btn.disabled = false;
+});
+
+/* ---- AI Yordamchi (raqamlarni chat orqali qidirish/o'chirish/qo'shish) ---- */
+const aiChatBox = document.getElementById('aiChatBox');
+const aiChatInput = document.getElementById('aiChatInput');
+const aiChatSendBtn = document.getElementById('aiChatSendBtn');
+
+// Anthropic formatidagi to'liq suhbat tarixi — har bir so'rovda serverga
+// to'liq yuborilib turadi (server o'zi hech narsani xotirada saqlamaydi).
+let aiConversation = [];
+
+function aiAddBubble(text, cls){
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + cls;
+  div.textContent = text;
+  aiChatBox.appendChild(div);
+  aiChatBox.scrollTop = aiChatBox.scrollHeight;
+  return div;
+}
+
+function aiAddResultsList(title, items, total){
+  const box = document.createElement('div');
+  box.className = 'ai-results';
+  const header = document.createElement('div');
+  header.className = 'ai-msg-system';
+  header.style.textAlign = 'left';
+  header.style.marginBottom = '4px';
+  header.textContent = `${title} — jami: ${total} ta` + (items.length < total ? ` (birinchi ${items.length} tasi ko'rsatilmoqda)` : '');
+  box.appendChild(header);
+  items.forEach(it=>{
+    const row = document.createElement('div');
+    row.className = 'ai-results-row';
+    row.innerHTML = `<span class="ai-results-num">${it.number || ''} ${it.label ? '· ' + it.label : ''}</span><span class="ai-results-price">${formatPrice(it.price||0)}</span>`;
+    box.appendChild(row);
+  });
+  aiChatBox.appendChild(box);
+  aiChatBox.scrollTop = aiChatBox.scrollHeight;
+}
+
+function aiAddConfirmBox(summary, details, isPriceUpdate, onDecision){
+  const box = document.createElement('div');
+  box.className = 'ai-confirm-box';
+  const list = details.slice(0, 20).map(d => {
+    if(isPriceUpdate) return `${d.number}: ${formatPrice(d.oldPrice||0)} → ${formatPrice(d.price||0)}`;
+    return `${d.number}${d.price ? ' — ' + formatPrice(d.price) : ''}`;
+  }).join('\n');
+  const extra = details.length > 20 ? `\n... va yana ${details.length - 20} ta` : '';
+  box.innerHTML = `
+    <div class="ai-confirm-title">⚠️ ${summary}</div>
+    <div style="white-space:pre-wrap;font-size:12px;color:var(--muted);max-height:140px;overflow-y:auto;">${list}${extra}</div>
+    <div class="ai-confirm-actions">
+      <button class="ai-confirm-yes">${isPriceUpdate ? '✓ Ha, o\'zgartirish' : '🗑 Ha, o\'chirish'}</button>
+      <button class="ai-confirm-no">Bekor qilish</button>
+    </div>
+  `;
+  aiChatBox.appendChild(box);
+  aiChatBox.scrollTop = aiChatBox.scrollHeight;
+
+  box.querySelector('.ai-confirm-yes').addEventListener('click', ()=>{
+    box.querySelectorAll('button').forEach(b=>b.disabled = true);
+    onDecision('confirm');
+  });
+  box.querySelector('.ai-confirm-no').addEventListener('click', ()=>{
+    box.querySelectorAll('button').forEach(b=>b.disabled = true);
+    onDecision('cancel');
+  });
+}
+
+async function aiCallServer(payload){
+  const user = firebase.auth().currentUser;
+  if(!user) throw new Error('Tizimga kirilmagan.');
+  const idToken = await user.getIdToken();
+  const res = await fetch('/.netlify/functions/admin-ai-assistant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Server xatosi');
+  return data;
+}
+
+function aiHandleResponse(data){
+  aiConversation = data.messages || aiConversation;
+
+  if(data.status === 'confirm_required'){
+    if(data.details && data.details.length){
+      const isPriceUpdate = data.action === 'update_numbers_price';
+      aiAddConfirmBox(data.summary, data.details, isPriceUpdate, async (decision)=>{
+        const typing = aiAddBubble('...', 'ai-typing');
+        try{
+          const res2 = await aiCallServer({
+            messages: aiConversation,
+            decision,
+            pendingToolUseId: data.toolUseId,
+            pendingToolName: data.action,
+            pendingToolInput: data.toolInput
+          });
+          typing.remove();
+          aiHandleResponse(res2);
+        }catch(err){
+          typing.remove();
+          aiAddBubble('Xato: ' + err.message, 'ai-msg-error');
+        }
+      });
+    }else{
+      aiAddBubble("Bu amal uchun mos raqam topilmadi.", 'ai-msg-bot');
+    }
+    return;
+  }
+
+  if(data.status === 'done'){
+    if(data.resultsList && Array.isArray(data.resultsList.items) && data.resultsList.items.length){
+      aiAddResultsList(data.resultsList.title, data.resultsList.items, data.resultsList.total);
+    }
+    if(data.reply) aiAddBubble(data.reply, 'ai-msg-bot');
+    return;
+  }
+}
+
+async function aiSendMessage(){
+  const text = aiChatInput.value.trim();
+  if(!text) return;
+  aiAddBubble(text, 'ai-msg-user');
+  aiChatInput.value = '';
+  aiChatInput.disabled = true;
+  aiChatSendBtn.disabled = true;
+  const typing = aiAddBubble('Yozmoqda...', 'ai-typing');
+
+  try{
+    const data = await aiCallServer({ messages: aiConversation, userMessage: text });
+    typing.remove();
+    aiHandleResponse(data);
+  }catch(err){
+    typing.remove();
+    aiAddBubble('Xato: ' + err.message, 'ai-msg-error');
+  }finally{
+    aiChatInput.disabled = false;
+    aiChatSendBtn.disabled = false;
+    aiChatInput.focus();
+  }
+}
+
+aiChatSendBtn.addEventListener('click', aiSendMessage);
+aiChatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') aiSendMessage(); });
+
+/* ---- Instagram AI sozlamalari ---- */
+const igRulesList = document.getElementById('igRulesList');
+let igRulesData = []; // { trigger, response }
+
+function igRenderRules(){
+  igRulesList.innerHTML = '';
+  if(igRulesData.length === 0){
+    igRulesList.innerHTML = `<div class="empty-admin" style="padding:16px;">Hali qoida qo'shilmagan.</div>`;
+    return;
+  }
+  igRulesData.forEach((rule, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'ig-rule-row';
+    row.innerHTML = `
+      <div>
+        <div class="ig-rule-label">Mijoz shunga o'xshash yozsa:</div>
+        <input type="text" class="ig-rule-trigger" placeholder="masalan: dostavka qancha turadi" value="${(rule.trigger||'').replace(/"/g,'&quot;')}">
+      </div>
+      <div>
+        <div class="ig-rule-label">Bot shunday javob beradi:</div>
+        <textarea class="ig-rule-response" rows="2" placeholder="masalan: Yetkazib berish bepul, 1-2 kun ichida yetkazamiz 🚗">${rule.response||''}</textarea>
+      </div>
+      <button type="button" class="ig-rule-remove">O'chirish</button>
+    `;
+    row.querySelector('.ig-rule-trigger').addEventListener('input', e=>{ igRulesData[idx].trigger = e.target.value; });
+    row.querySelector('.ig-rule-response').addEventListener('input', e=>{ igRulesData[idx].response = e.target.value; });
+    row.querySelector('.ig-rule-remove').addEventListener('click', ()=>{
+      igRulesData.splice(idx, 1);
+      igRenderRules();
+    });
+    igRulesList.appendChild(row);
+  });
+}
+
+document.getElementById('igAddRuleBtn').addEventListener('click', ()=>{
+  igRulesData.push({ trigger: '', response: '' });
+  igRenderRules();
+});
+
+async function loadInstagramSettings(){
+  try{
+    const doc = await db.collection('site_settings').doc('instagram_bot').get();
+    const data = doc.exists ? doc.data() : {};
+    document.getElementById('igTelegramLink').value = data.telegramChannelLink || '';
+    document.getElementById('igDeliveryInfo').value = data.deliveryInfo || '';
+    document.getElementById('igGeneralInstructions').value = data.generalInstructions || '';
+    igRulesData = Array.isArray(data.faqRules) ? data.faqRules : [];
+    igRenderRules();
+  }catch(err){
+    console.error('Instagram sozlamalarini yuklashda xato:', err);
+  }
+}
+
+document.getElementById('igSaveBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('igSaveBtn');
+  const msg = document.getElementById('igSaveMsg');
+  btn.disabled = true;
+  try{
+    const cleanRules = igRulesData
+      .map(r => ({ trigger: (r.trigger||'').trim(), response: (r.response||'').trim() }))
+      .filter(r => r.trigger && r.response);
+
+    await db.collection('site_settings').doc('instagram_bot').set({
+      telegramChannelLink: document.getElementById('igTelegramLink').value.trim(),
+      deliveryInfo: document.getElementById('igDeliveryInfo').value.trim(),
+      generalInstructions: document.getElementById('igGeneralInstructions').value.trim(),
+      faqRules: cleanRules,
+      updatedAt: Date.now()
+    }, { merge: true });
+
+    msg.textContent = '✓ Saqlandi — bot yangi qoidalar bilan ishlaydi';
+    vibrate(80);
+    setTimeout(()=>{ msg.textContent = ''; }, 3000);
+  }catch(err){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Xato: ' + err.message;
   }
   btn.disabled = false;
 });
