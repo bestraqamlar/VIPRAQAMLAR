@@ -81,10 +81,15 @@ async function tgBiz(method, payload){
 
 /* ---------------- Business connection ma'lumotini keshlash ---------------- */
 async function saveConnection(conn){
+  // Telegram'ning haqiqiy BusinessConnection obyektida akkaunt egasi
+  // conn.user (User obyekti, .id maydoni bilan) ko'rinishida keladi —
+  // conn.user_id emas. Faollik esa conn.is_enabled orqali beriladi
+  // (true = faol), conn.is_disabled degan maydon umuman yo'q.
+  const ownerUser = conn.user || {};
   await withRetry(() => db.collection('tg_business_connections').doc(conn.id).set({
-    ownerUserId: conn.user_id,
+    ownerUserId: ownerUser.id || null,
     canReply: !!(conn.rights && conn.rights.can_reply),
-    disabled: !!conn.is_disabled,
+    disabled: conn.is_enabled === false,
     updatedAt: Date.now()
   }));
 }
