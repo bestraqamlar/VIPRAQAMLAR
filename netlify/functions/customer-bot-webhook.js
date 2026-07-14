@@ -1,10 +1,19 @@
 // MIJOZ UCHUN TELEGRAM BOT — sayt bilan bir xil ma'lumotlardan foydalanadi
 // ---------------------------------------------------------------------------
+// Tugmali menyu (asosiy) + erkin savolga AI javob berish (aralash rejim).
+// AI faqat mijoz tugma bosmasdan erkin matn yozganda ishga tushadi —
+// buyurtma to'ldirish bosqichlariga (ism/telefon/viloyat) aralashmaydi.
+// Botning AI javoblarini (ohang, tayyor javoblar) admin panelidagi
+// "💬 Telegram AI" bo'limidan boshqarasiz (Firestore: site_settings/telegram_bot).
+//
 // Kerakli Environment variables (Netlify):
-//   CUSTOMER_BOT_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+//   CUSTOMER_BOT_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ANTHROPIC_API_KEY,
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 const admin = require('firebase-admin');
+const { getBotControl } = require('./lib/botControl');
+const { checkAndMarkKnown } = require('./lib/knownCustomers');
+const { updateAdminList } = require('./lib/adminList');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -202,6 +211,219 @@ function docToItem(doc){
   };
 }
 
+/* ================================================================
+   AI JAVOB BERISH (erkin matnli xabarlarga) — "Aralash" rejim:
+   Tugmali menyu o'zgarishsiz qoladi, lekin mijoz tugma bosmasdan
+   erkin savol yozsa (masalan "0101 raqami bormi", "narxi qancha"),
+   shu bo'lim javob beradi. Buyurtma to'ldirish bosqichlarida
+   (ism/telefon/viloyat so'ralayotganda) bu ishlamaydi — o'sha yerlar
+   hali ham qat'iy qoidalar bilan ishlaydi, aralashmaymiz.
+   ================================================================ */
+const CLAUDE_MODEL = 'claude-sonnet-5';
+const MAX_TOOL_ROUNDS = 4;
+const MAX_REPLY_WORDS = 15;
+
+/* Javob matnini HECH QACHON 15 so'zdan oshirmaslik uchun xavfsizlik to'sig'i
+   (AI ko'rsatmaga rioya qilmagan taqdirda ham kafolatlaydi). */
+function capWords(text, maxWords = MAX_REPLY_WORDS){
+  if(!text) return text;
+  const words = text.trim().split(/\s+/);
+  if(words.length <= maxWords) return text.trim();
+  return words.slice(0, maxWords).join(' ') + '…';
+}
+
+/* ---------------- Ovozli xabar yuborgan mijozlar ro'yxati (adminga) ----------------
+   Bot ovozli/audio xabarni O'QIMAYDI va mijozga javob YOZMAYDI — faqat
+   ismini adminning ICHKI Telegram botiga bitta doimiy xabarni tahrirlab
+   (edit) yangilanadigan raqamlangan ro'yxat qilib yuboradi. Bu ro'yxat
+   Telegram Business boti bilan umumiy (bitta joydan kuzatiladi). */
+async function logVoiceCustomer(userId, name){
+  await updateAdminList(db, 'voice_message_customers', "🎤 Ovozli xabar yuborgan mijozlar (o'zingiz javob berishingiz kerak):", userId, name);
+}
+
+const AI_TOOLS = [
+  {
+    name: 'search_numbers',
+    description: "Bazadagi telefon raqamlarini filtrlar bo'yicha qidiradi (faqat o'qish).",
+    input_schema: {
+      type: 'object',
+      properties: {
+        suffix: { type: 'string', description: "Raqam shu bilan tugashi kerak" },
+        contains: { type: 'string', description: "Raqam ichida shu ketma-ketlik bo'lishi kerak" },
+        operator: { type: 'string', enum: OPERATORS },
+        tag: { type: 'string', enum: ['oddiy', 'vip'] },
+        maxPrice: { type: 'number' },
+        limit: { type: 'number', description: 'Standart 5, maksimal 10' }
+      }
+    }
+  },
+  {
+    name: 'forward_lead_to_admin',
+    description: "Mijozning sotib olish niyati yoki muhim savolini adminning ICHKI Telegram botiga yuboradi.",
+    input_schema: {
+      type: 'object',
+      properties: { summary: { type: 'string', description: "Qisqa xulosa: kim, nima haqida" } },
+      required: ['summary']
+    }
+  }
+];
+
+async function loadTelegramBotSettings(){
+  try{
+    const doc = await withRetry(() => db.collection('site_settings').doc('telegram_bot').get());
+    const data = doc.exists ? doc.data() : {};
+    return {
+      generalInstructions: data.generalInstructions || '',
+      deliveryInfo: data.deliveryInfo || "Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud.",
+      faqRules: Array.isArray(data.faqRules) ? data.faqRules : []
+    };
+  }catch(e){
+    return { generalInstructions: '', deliveryInfo: "Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud.", faqRules: [] };
+  }
+}
+
+function buildTelegramSystemPrompt(settings){
+  const parts = [];
+  parts.push(`Sen RAQAM.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) Telegram botida ishlaydigan yordamchisan. Mijoz botga tugma bosmasdan, erkin matn yozganda sen javob berasan.`);
+  parts.push(`QOIDALAR (BULARGA QAT'IY RIOYA QIL):
+- Javoblaring HECH QACHON ${MAX_REPLY_WORDS} ta so'zdan oshmasin. Juda qisqa va lo'nda yoz, do'stona ohangda. Kamida bitta mos emoji ishlat, lekin bachkana bo'lmasin.
+- Narxlarni faqat search_numbers natijasidan ol — hech qachon o'ylab topma.
+- Mijoz aniq raqamning oxirini aytsa (masalan "0101 bormi"), search_numbers bilan tekshir va natijani qisqa ayt.
+- Agar mijoz so'ragan raqam qidiruvda TOPILMASA, buni hech qachon qat'iy "yo'q"/"mavjud emas" deb aytma — katalogimizda hali bazaga kiritilmagan ko'p raqam bor. Bunday holatda: "Operatorimiz tekshirib, tez orada javob beradi" kabi qisqa javob ber va albatta forward_lead_to_admin vositasini chaqirib, so'ralgan raqamni yetkaz.
+- Agar mijoz aniq buyurtma bermoqchi bo'lsa, unga botdagi tugmalardan (operatorni tanlab, so'ng raqam kiritib) yoki ro'yxatdan raqamni tanlab "🛒 Buyurtma berish" tugmasini bosishni tavsiya qil — bu orqali rasmiy buyurtma tizimidan o'tadi.
+- Yetkazib berish haqida so'ralsa: "${settings.deliveryInfo}"
+- Salbiy/norozi fikrga bahslashmasdan, xotirjam va qisqa javob ber.
+- Mijoz aniq sotib olish niyatini yoki maxsus so'rovini bildirsa, forward_lead_to_admin vositasini chaqir.
+- Agar savol tushunarsiz yoki mavzuga aloqasiz bo'lsa, qisqa umumiy javob ber va menyudan foydalanishni taklif qil.`);
+
+  if(settings.faqRules && settings.faqRules.length){
+    const rulesText = settings.faqRules
+      .filter(r => r && r.trigger && r.response)
+      .map(r => `- Agar mijozning yozgani mana bunga o'xshasa: "${r.trigger}" → shunday javob ber: "${r.response}"`)
+      .join('\n');
+    if(rulesText) parts.push(`ADMIN BELGILAGAN TAYYOR JAVOBLAR (bularga ustunlik ber):\n${rulesText}`);
+  }
+  if(settings.generalInstructions && settings.generalInstructions.trim()){
+    parts.push(`ADMINNING QO'SHIMCHA KO'RSATMALARI:\n${settings.generalInstructions.trim()}`);
+  }
+  return parts.join('\n\n');
+}
+
+async function aiExecSearch(input){
+  const snap = await withRetry(() => db.collection('numbers').get());
+  let items = snap.docs.map(docToItem);
+
+  if(input.suffix){
+    const s = String(input.suffix).replace(/\D/g, '');
+    if(s) items = items.filter(it => (it.number||'').replace(/\D/g,'').endsWith(s));
+  }
+  if(input.contains){
+    const c = String(input.contains).replace(/\D/g, '');
+    if(c) items = items.filter(it => (it.number||'').replace(/\D/g,'').includes(c));
+  }
+  if(input.operator) items = items.filter(it => it.operator === input.operator);
+  if(input.tag) items = items.filter(it => it.tag === input.tag);
+  if(typeof input.maxPrice === 'number') items = items.filter(it => (it.price||0) <= input.maxPrice);
+  items = items.filter(it => !it.reserved);
+
+  const total = items.length;
+  const limit = Math.min(input.limit || 5, 10);
+  const shown = items.slice(0, limit).map(it => ({ number: displayNumber(it.number), operator: it.operator, price: it.price, tag: it.tag }));
+  return { total, items: shown };
+}
+
+async function notifyAdminLead(text){
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if(!token || !chatId) return;
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text })
+  });
+}
+
+async function aiForwardLead(input, chatId){
+  const text = `💬 Telegram botdan yangi qiziqish!\n\n👤 Chat ID: ${chatId}\n📝 ${input.summary || ''}`;
+  await notifyAdminLead(text);
+  return { forwarded: true };
+}
+
+async function callClaudeAI(systemPrompt, messages){
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 400, system: systemPrompt, tools: AI_TOOLS, messages })
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error((data && data.error && data.error.message) || 'Claude API xatosi');
+  return data;
+}
+
+async function generateTelegramAIReply(userText, chatId){
+  if(!process.env.ANTHROPIC_API_KEY){
+    return "Iltimos, menyudagi tugmalardan foydalaning 👇";
+  }
+  try{
+    const settings = await loadTelegramBotSettings();
+    const systemPrompt = buildTelegramSystemPrompt(settings);
+    let messages = [{ role: 'user', content: userText }];
+
+    for(let round = 0; round < MAX_TOOL_ROUNDS; round++){
+      const data = await callClaudeAI(systemPrompt, messages);
+      const content = data.content || [];
+      messages = [...messages, { role: 'assistant', content }];
+
+      const toolUse = content.find(b => b.type === 'tool_use');
+      if(!toolUse){
+        const reply = content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+        return capWords(reply || "Menyudan kerakli bo'limni tanlang 👇");
+      }
+
+      let toolResult;
+      try{
+        if(toolUse.name === 'search_numbers') toolResult = await aiExecSearch(toolUse.input || {});
+        else if(toolUse.name === 'forward_lead_to_admin') toolResult = await aiForwardLead(toolUse.input || {}, chatId);
+        else toolResult = { error: "Noma'lum vosita" };
+      }catch(err){ toolResult = { error: err.message }; }
+
+      messages = [...messages, { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: JSON.stringify(toolResult) }] }];
+    }
+    return "Aniqroq savol bersangiz yordam beraman, yoki menyudan foydalaning 👇";
+  }catch(err){
+    console.error('TELEGRAM AI XATOSI:', err);
+    return "Hozircha javob bera olmadim, iltimos menyudan foydalaning 👇";
+  }
+}
+
+/* Erkin matn kelganda AI javobiga o'tishdan oldingi umumiy tekshiruvlar:
+   1) Avtobot butunlay o'chirilgan bo'lsa — AI chaqirmasdan, oddiy javob.
+   2) Bu mijoz BIZGA BIRINCHI MARTA yozayotgan bo'lsa va admin "yangi
+      mijozlarga avto javob"ni o'chirib qo'ygan bo'lsa — bot hech narsa
+      yozmaydi, faqat ismini adminga ro'yxat qilib yuboradi (admin o'zi
+      shaxsan javob yozadi). Qaytgan mijozlarga bu tekshiruv qo'llanmaydi. */
+async function handleFreeTextReply(chatId, text, from, control){
+  if(!control.autoReplyEnabled){
+    await send(chatId, "Iltimos, menyudagi tugmalardan foydalaning 👇", mainMenuKeyboard());
+    return;
+  }
+
+  const isFirstTime = await checkAndMarkKnown(db, 'known_customers_tgmenu', chatId);
+  if(isFirstTime && !control.newUserAutoReplyEnabled){
+    const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || (from.username ? '@' + from.username : `ID:${chatId}`);
+    await updateAdminList(db, 'new_customers', "🆕 Yangi mijozlar (birinchi marta yozgan, o'zingiz javob berishingiz kerak):", chatId, name);
+    return; // mijozga hech narsa yozmaymiz — admin o'zi shaxsan javob beradi
+  }
+
+  await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+  const aiReply = await generateTelegramAIReply(text, chatId);
+  await send(chatId, aiReply, mainMenuKeyboard());
+}
+
 /* ---------------- Asosiy handler ---------------- */
 
 exports.handler = async function (event) {
@@ -211,6 +433,10 @@ exports.handler = async function (event) {
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
 
   try{
+
+  /* ---- Bot butunlay to'xtatilgan bo'lsa (admin panelidan) — hech narsaga javob bermaymiz ---- */
+  const control = await getBotControl(db);
+  if(!control.botEnabled) return { statusCode: 200, body: 'ok' };
 
   /* ---- Inline tugma bosilganda (raqam tafsiloti, buyurtma tasdiqlash) ---- */
   if(update.callback_query){
@@ -289,6 +515,16 @@ exports.handler = async function (event) {
   const message = update.message;
   if(!message) return { statusCode: 200, body: 'ok' };
   const chatId = message.chat.id;
+
+  // --- Ovozli/audio xabar: bot o'qimaydi, mijozga javob yozmaydi — faqat
+  //     adminga (siz) ismini raqamlangan ro'yxat qilib yuboradi ---
+  if(message.voice || message.audio){
+    const from = message.from || {};
+    const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || (from.username ? '@' + from.username : `ID:${chatId}`);
+    await logVoiceCustomer(chatId, name);
+    return { statusCode: 200, body: 'ok' };
+  }
+
   const text = (message.text || '').trim();
   let session = await getSession(chatId);
 
@@ -353,7 +589,7 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
-    await send(chatId, "Iltimos, menyudagi tugmalardan birini tanlang.", mainMenuKeyboard());
+    await handleFreeTextReply(chatId, text, message.from || {}, control);
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -480,7 +716,7 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
 
-  await send(chatId, "Asosiy menyudan foydalaning:", mainMenuKeyboard());
+  await handleFreeTextReply(chatId, text, message.from || {}, control);
   return { statusCode: 200, body: 'ok' };
 
   }catch(err){

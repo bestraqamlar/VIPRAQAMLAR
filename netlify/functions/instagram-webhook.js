@@ -31,6 +31,9 @@
 
 const crypto = require('crypto');
 const admin = require('firebase-admin');
+const { getBotControl } = require('./lib/botControl');
+const { checkAndMarkKnown } = require('./lib/knownCustomers');
+const { updateAdminList } = require('./lib/adminList');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -309,6 +312,12 @@ exports.handler = async function (event) {
   }
 
   try {
+    const control = await getBotControl(db);
+    if(!control.botEnabled || !control.autoReplyEnabled){
+      // Bot to'xtatilgan yoki avtobot o'chirilgan — hech kimga javob bermaymiz
+      return { statusCode: 200, body: JSON.stringify({ ok: true, skipped: true }) };
+    }
+
     const payload = JSON.parse(event.body || '{}');
     const settings = await loadBotSettings();
     const cheapestPrice = await getCheapestPrice();
@@ -339,6 +348,15 @@ exports.handler = async function (event) {
         if (!senderId || !text) continue;
         const eventId = 'dm_' + (m.message.mid || (senderId + '_' + m.timestamp));
         if (await alreadyProcessed(eventId)) continue;
+
+        // Bu foydalanuvchi bizga BIRINCHI MARTA yozayaptimi va admin "yangi
+        // mijozlarga avto javob"ni o'chirib qo'yganmi — shunda bot javob
+        // yozmaydi, faqat ID'sini adminga ro'yxat qilib yuboradi.
+        const isFirstTime = await checkAndMarkKnown(db, 'known_customers_instagram', senderId);
+        if (isFirstTime && !control.newUserAutoReplyEnabled) {
+          await updateAdminList(db, 'new_customers', "🆕 Yangi mijozlar (birinchi marta yozgan, o'zingiz javob berishingiz kerak):", senderId, `Instagram ID:${senderId}`);
+          continue;
+        }
 
         const reply = await generateReply(
           text,

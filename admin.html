@@ -447,6 +447,7 @@
     <button class="tab active" data-tab="numbers">Raqamlar</button>
     <button class="tab" data-tab="ai">🤖 AI Yordamchi</button>
     <button class="tab" data-tab="instagram">📸 Instagram AI</button>
+    <button class="tab" data-tab="telegramai">💬 Telegram AI</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
@@ -547,6 +548,32 @@
 
     <button id="igSaveBtn" class="ig-save-btn">💾 Saqlash</button>
     <div class="ig-save-msg" id="igSaveMsg"></div>
+  </div>
+
+  <div class="pane" id="paneTelegramai">
+    <div class="ai-hint">
+      💬 Bu yerda mijozlar uchun Telegram botining (tugma bosmasdan erkin savol yozganda javob beruvchi AI qismi)
+      xatti-harakatini boshqarasiz. Asosiy tugmali menyu o'zgarishsiz ishlayveradi.
+    </div>
+
+    <div class="ig-field">
+      <label>Dostavka haqida javob <span class="ig-field-hint">("dostavka bormi" deb so'rashsa shu javob beriladi)</span></label>
+      <textarea id="tgDeliveryInfo" rows="2" placeholder="Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud."></textarea>
+    </div>
+
+    <div class="ig-field">
+      <label>Umumiy qo'shimcha ko'rsatmalar <span class="ig-field-hint">(botning umumiy uslubi/xatti-harakati uchun, erkin matn)</span></label>
+      <textarea id="tgGeneralInstructions" rows="4" placeholder="Masalan: Agar mijoz raqam so'rasa, unga tugmalar orqali qidirishni ham tavsiya qil."></textarea>
+    </div>
+
+    <div class="ig-field">
+      <label>Tayyor savol-javob qoidalari <span class="ig-field-hint">("mijoz shunday yozsa — bot shunday javob beradi")</span></label>
+      <div class="ig-rules-list" id="tgRulesList"></div>
+      <button type="button" class="ig-add-rule-btn" id="tgAddRuleBtn">+ Qoida qo'shish</button>
+    </div>
+
+    <button id="tgSaveBtn" class="ig-save-btn">💾 Saqlash</button>
+    <div class="ig-save-msg" id="tgSaveMsg"></div>
   </div>
 
   <div class="pane" id="paneOrders">
@@ -897,7 +924,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -908,6 +935,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'orders'){ markOrdersSeen(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
+    if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'credit'){
       loadCreditContracts();
       const dateEl = document.getElementById('crStartDate');
@@ -1812,6 +1840,84 @@ document.getElementById('igSaveBtn').addEventListener('click', async ()=>{
       telegramChannelLink: document.getElementById('igTelegramLink').value.trim(),
       deliveryInfo: document.getElementById('igDeliveryInfo').value.trim(),
       generalInstructions: document.getElementById('igGeneralInstructions').value.trim(),
+      faqRules: cleanRules,
+      updatedAt: Date.now()
+    }, { merge: true });
+
+    msg.textContent = '✓ Saqlandi — bot yangi qoidalar bilan ishlaydi';
+    vibrate(80);
+    setTimeout(()=>{ msg.textContent = ''; }, 3000);
+  }catch(err){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Xato: ' + err.message;
+  }
+  btn.disabled = false;
+});
+
+/* ---- Telegram AI sozlamalari (mijoz boti uchun) ---- */
+const tgRulesList = document.getElementById('tgRulesList');
+let tgRulesData = [];
+
+function tgRenderRules(){
+  tgRulesList.innerHTML = '';
+  if(tgRulesData.length === 0){
+    tgRulesList.innerHTML = `<div class="empty-admin" style="padding:16px;">Hali qoida qo'shilmagan.</div>`;
+    return;
+  }
+  tgRulesData.forEach((rule, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'ig-rule-row';
+    row.innerHTML = `
+      <div>
+        <div class="ig-rule-label">Mijoz shunga o'xshash yozsa:</div>
+        <input type="text" class="tg-rule-trigger" placeholder="masalan: dostavka qancha turadi" value="${(rule.trigger||'').replace(/"/g,'&quot;')}">
+      </div>
+      <div>
+        <div class="ig-rule-label">Bot shunday javob beradi:</div>
+        <textarea class="tg-rule-response" rows="2" placeholder="masalan: Yetkazib berish bepul, 1-2 kun ichida yetkazamiz 🚗">${rule.response||''}</textarea>
+      </div>
+      <button type="button" class="ig-rule-remove">O'chirish</button>
+    `;
+    row.querySelector('.tg-rule-trigger').addEventListener('input', e=>{ tgRulesData[idx].trigger = e.target.value; });
+    row.querySelector('.tg-rule-response').addEventListener('input', e=>{ tgRulesData[idx].response = e.target.value; });
+    row.querySelector('.ig-rule-remove').addEventListener('click', ()=>{
+      tgRulesData.splice(idx, 1);
+      tgRenderRules();
+    });
+    tgRulesList.appendChild(row);
+  });
+}
+
+document.getElementById('tgAddRuleBtn').addEventListener('click', ()=>{
+  tgRulesData.push({ trigger: '', response: '' });
+  tgRenderRules();
+});
+
+async function loadTelegramAiSettings(){
+  try{
+    const doc = await db.collection('site_settings').doc('telegram_bot').get();
+    const data = doc.exists ? doc.data() : {};
+    document.getElementById('tgDeliveryInfo').value = data.deliveryInfo || '';
+    document.getElementById('tgGeneralInstructions').value = data.generalInstructions || '';
+    tgRulesData = Array.isArray(data.faqRules) ? data.faqRules : [];
+    tgRenderRules();
+  }catch(err){
+    console.error('Telegram AI sozlamalarini yuklashda xato:', err);
+  }
+}
+
+document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('tgSaveBtn');
+  const msg = document.getElementById('tgSaveMsg');
+  btn.disabled = true;
+  try{
+    const cleanRules = tgRulesData
+      .map(r => ({ trigger: (r.trigger||'').trim(), response: (r.response||'').trim() }))
+      .filter(r => r.trigger && r.response);
+
+    await db.collection('site_settings').doc('telegram_bot').set({
+      deliveryInfo: document.getElementById('tgDeliveryInfo').value.trim(),
+      generalInstructions: document.getElementById('tgGeneralInstructions').value.trim(),
       faqRules: cleanRules,
       updatedAt: Date.now()
     }, { merge: true });
