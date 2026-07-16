@@ -73,6 +73,7 @@ const SYSTEM_PROMPT = `Sen RAQAM.UZ saytining admin paneli uchun ichki yordamchi
 - update_numbers_price — topilgan raqamlarning narxini o'zgartirish (yangi narx yoki foizli chegirma/qimmatlashtirish)
 - get_numbers_stats — bazadagi raqamlar bo'yicha umumiy hisobot: jami nechta raqam, umumiy summasi, o'rtacha narxi, operator/tag bo'yicha taqsimot, eng qimmat yoki eng arzon N ta raqam
 - get_order_stats — buyurtmalar statistikasi: status bo'yicha son (Yangi/Bog'lanildi/Yakunlandi/Bekor qilindi), berilgan davr (bugun/hafta/oy/hammasi) uchun, xohlasa so'nggi buyurtmalar ro'yxati bilan
+- get_credit_info — kredit (bo'lib to'lash) shartnomalari haqida: kimning qarzi (kechikkan to'lovi) borligi, umumiy statistika (jami shartnoma, qarzdorlik summasi, oylik tushum), yoki mijoz ismi/shartnoma ID bo'yicha qidirish
 
 Qoidalar:
 1. Qidirish so'ralsa — search_numbers. Natijadagi ID'lar keyingi "o'chir" yoki "narxini o'zgartir" buyrug'ida ishlatiladi. Agar hali hech narsa qidirilmagan bo'lsa, avval search_numbers bilan qidir, keyin natijadagi ID'lar bilan kerakli vositani chaqir.
@@ -81,9 +82,10 @@ Qoidalar:
 4. Yangi raqam qo'shish — add_numbers. Narxi aytilmagan bo'lsa, vosita chaqirmasdan avval narxini so'ra.
 5. "Jami qancha summalik raqam bor", "eng qimmat/arzon N ta raqam", "operator bo'yicha nechtadan raqam bor" kabi savollar — get_numbers_stats.
 6. "Nechta buyurtma bor/tushdi", "bugungi/shu haftadagi/shu oydagi buyurtmalar", "yangi buyurtmalar qanaqa" kabi savollar — get_order_stats.
-7. Har bir javobing qisqa, aniq va o'zbek tilida bo'lsin, summalarni "so'm" bilan o'qilishi qulay tarzda yoz (masalan 1 250 000 so'm).
-8. delete_numbers yoki update_numbers_price chaqirilgandan keyin, tizim buni avtomatik ravishda adminga tasdiqlash uchun ko'rsatadi — sen bu haqda alohida ogohlantirish yozishing shart emas, shunchaki vositani chaqir.
-9. Agar so'rov noaniq bo'lsa (masalan qaysi raqamlar yoki qanday narx nazarda tutilgani aniq bo'lmasa), vosita chaqirmasdan aniqlashtiruvchi savol ber.`;
+7. "Kimning qarzi bor", "qarzdorlar kim", "kredit bo'yicha kim to'lamayapti" kabi savollar — get_credit_info, onlyDebtors:true bilan chaqir. "Kredit bo'limida nima bor", "jami qancha kredit shartnomasi bor", "oylik tushum qancha" kabi umumiy savollar — get_credit_info, filtrsiz yoki mos filtr bilan chaqir. Aniq mijoz haqida so'ralsa — customerName yoki contractId bilan qidir.
+8. Har bir javobing qisqa, aniq va o'zbek tilida bo'lsin, summalarni "so'm" bilan o'qilishi qulay tarzda yoz (masalan 1 250 000 so'm).
+9. delete_numbers yoki update_numbers_price chaqirilgandan keyin, tizim buni avtomatik ravishda adminga tasdiqlash uchun ko'rsatadi — sen bu haqda alohida ogohlantirish yozishing shart emas, shunchaki vositani chaqir.
+10. Agar so'rov noaniq bo'lsa (masalan qaysi raqamlar yoki qanday narx nazarda tutilgani aniq bo'lmasa), vosita chaqirmasdan aniqlashtiruvchi savol ber.`;
 
 const TOOLS = [
   {
@@ -183,6 +185,20 @@ const TOOLS = [
         status: { type: 'string', enum: ORDER_STATUSES, description: "Faqat shu statusdagi buyurtmalarni hisoblash" },
         period: { type: 'string', enum: ['today', 'week', 'month', 'all'], description: "Davr filtri, standart 'all'" },
         listLimit: { type: 'number', description: "So'nggi buyurtmalar ro'yxatidan nechtasini qaytarish (0 bo'lsa, faqat sonlar qaytadi)" }
+      }
+    }
+  },
+  {
+    name: 'get_credit_info',
+    description:
+      "Kredit (bo'lib to'lash) shartnomalari haqida ma'lumot beradi: kimning qarzi (kechikkan/muddati o'tgan to'lovi) borligini, umumiy statistikani (jami shartnomalar, umumiy qarzdorlik summasi, oylik tushum), yoki mijoz ismi/shartnoma ID bo'yicha aniq shartnomani qidiradi. \"Kimning qarzi bor\", \"qarzdorlar kim\" kabi savollar uchun onlyDebtors:true bilan chaqir.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        onlyDebtors: { type: 'boolean', description: "true bo'lsa, faqat kechikkan to'lovi bor (qarzdor) mijozlarni qaytaradi" },
+        customerName: { type: 'string', description: "Mijoz ismi bo'yicha qidirish" },
+        contractId: { type: 'string', description: "Shartnoma ID (masalan KR001) bo'yicha qidirish" },
+        contractStatus: { type: 'string', enum: ['active', 'trouble', 'cancelling', 'cancelled', 'completed'] }
       }
     }
   }
@@ -378,6 +394,66 @@ async function execOrderStats(input) {
   return result;
 }
 
+async function execCreditInfo(input) {
+  const snap = await db.collection('credit_contracts').get();
+  let items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  if (input.customerName) {
+    const q = String(input.customerName).toLowerCase();
+    items = items.filter(d => (d.customerName || '').toLowerCase().includes(q));
+  }
+  if (input.contractId) {
+    const q = String(input.contractId).toLowerCase();
+    items = items.filter(d => (d.contractId || '').toLowerCase().includes(q));
+  }
+  if (input.contractStatus) {
+    items = items.filter(d => (d.contractStatus || 'active') === input.contractStatus);
+  }
+
+  const now = Date.now();
+  const enriched = items.map(d => {
+    const payments = Array.isArray(d.payments) ? d.payments : [];
+    const paidCount = payments.filter(p => p.status === 'paid').length;
+    const overdueCount = payments.filter(p => p.status !== 'paid' && (p.dueDate || 0) < now).length;
+    return {
+      contractId: d.contractId,
+      customerName: d.customerName,
+      customerPhone: d.customerPhone,
+      number: d.number,
+      totalMonths: d.totalMonths,
+      monthlyPayment: d.monthlyPayment,
+      paidCount,
+      overdueCount,
+      overdueAmount: overdueCount * (Number(d.monthlyPayment) || 0),
+      contractStatus: d.contractStatus || 'active'
+    };
+  });
+
+  const totalOverdueAmount = enriched.reduce((sum, d) => sum + d.overdueAmount, 0);
+  const totalMonthlyIncome = enriched
+    .filter(d => d.contractStatus === 'active')
+    .reduce((sum, d) => sum + (Number(d.monthlyPayment) || 0), 0);
+
+  const result = input.onlyDebtors ? enriched.filter(d => d.overdueCount > 0) : enriched;
+
+  return {
+    totalContracts: enriched.length,
+    matchingCount: result.length,
+    totalOverdueAmount,
+    totalMonthlyIncome,
+    contracts: result.slice(0, 50).map(d => ({
+      contractId: d.contractId,
+      customerName: d.customerName,
+      customerPhone: d.customerPhone,
+      number: d.number,
+      progress: `${d.paidCount}/${d.totalMonths}`,
+      overdueCount: d.overdueCount,
+      overdueAmount: d.overdueAmount,
+      status: d.contractStatus
+    }))
+  };
+}
+
 async function callClaude(messages) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -522,6 +598,19 @@ exports.handler = async function (event) {
               title: "So'nggi buyurtmalar",
               total: toolResult.recent.length,
               items: toolResult.recent.map(o => ({ number: o.number, price: o.price, label: o.status }))
+            };
+          }
+        } else if (toolUse.name === 'get_credit_info') {
+          toolResult = await execCreditInfo(toolUse.input || {});
+          if (toolResult.contracts && toolResult.contracts.length) {
+            resultsList = {
+              title: toolUse.input && toolUse.input.onlyDebtors ? 'Qarzdor mijozlar' : 'Kredit shartnomalari',
+              total: toolResult.contracts.length,
+              items: toolResult.contracts.map(c => ({
+                number: `${c.customerName} (${c.contractId})`,
+                price: c.overdueAmount || 0,
+                label: c.overdueCount > 0 ? `${c.overdueCount} oy qarzdor` : c.progress
+              }))
             };
           }
         } else {

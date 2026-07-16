@@ -17,6 +17,31 @@
     -webkit-user-select:none;-moz-user-select:none;user-select:none;
     -webkit-touch-callout:none;
   }
+
+  /* ---- Jonli animatsiyalar ---- */
+  @keyframes fadeSlideUp{ from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes popIn{ 0%{opacity:0;transform:scale(0.92);} 100%{opacity:1;transform:scale(1);} }
+  @keyframes softPulse{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  @keyframes shimmer{ 0%{background-position:-200px 0;} 100%{background-position:200px 0;} }
+
+  button, .tab, .an-summary, input, select, textarea{
+    transition:background-color .18s ease, border-color .18s ease, color .18s ease, transform .12s ease, box-shadow .18s ease;
+  }
+  button:active{ transform:scale(0.96); }
+  .tab{ transform:translateZ(0); }
+  .tab:active{ transform:scale(0.95); }
+  .pane.active{ animation:fadeSlideUp .28s ease both; }
+  .admin-row-collapsed{ animation:fadeSlideUp .25s ease both; }
+  .admin-row-collapsed:nth-child(1){animation-delay:.02s;} .admin-row-collapsed:nth-child(2){animation-delay:.04s;}
+  .admin-row-collapsed:nth-child(3){animation-delay:.06s;} .admin-row-collapsed:nth-child(4){animation-delay:.08s;}
+  .admin-row-collapsed:nth-child(5){animation-delay:.10s;} .admin-row-collapsed:nth-child(n+6){animation-delay:.12s;}
+  .an-body[style*="block"]{ animation:fadeIn .2s ease both; }
+  .ai-msg{ animation:popIn .22s cubic-bezier(.34,1.56,.64,1) both; }
+  .ai-confirm-box{ animation:popIn .22s cubic-bezier(.34,1.56,.64,1) both; }
+  .bell-badge{ animation:softPulse 1.4s ease-in-out infinite; }
+  .ig-save-btn:active, #aiChatSendBtn:active{ transform:scale(0.95); }
+  .an-save.saved-flash{ animation:softPulse .3s ease 2; }
   input, select, textarea{-webkit-user-select:text;user-select:text;}
   .wrap{max-width:900px;margin:0 auto;padding:24px 16px 60px;}
 
@@ -1323,6 +1348,7 @@ function renderCreditList(contracts){
           payments
         });
         btn.textContent = '✓ Saqlandi';
+        btn.classList.add('saved-flash');
         vibrate(80);
         setTimeout(()=> loadCreditContracts(), 900);
       }catch(err){ alert('Xato: ' + err.message); }
@@ -1343,12 +1369,12 @@ function renderCreditList(contracts){
   });
 }
 
-document.getElementById('creditSearchInput').addEventListener('input', (e)=>{
+document.getElementById('creditSearchInput').addEventListener('input', debounce((e)=>{
   const q = e.target.value.trim().toLowerCase();
   if(!q){ renderCreditList(currentCreditContracts); return; }
   const filtered = currentCreditContracts.filter(d => (d.customerName || '').toLowerCase().includes(q));
   renderCreditList(filtered);
-});
+}, 180));
 
 /* ---- Xavfsizlik: eski (auto-ID) shartnomalarni contractId-ID'ga ko'chirish ---- */
 document.getElementById('migrateContractsBtn').addEventListener('click', async ()=>{
@@ -1705,13 +1731,45 @@ async function aiCallServer(payload){
   const user = firebase.auth().currentUser;
   if(!user) throw new Error('Tizimga kirilmagan.');
   const idToken = await user.getIdToken();
-  const res = await fetch('/.netlify/functions/admin-ai-assistant', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  if(!res.ok) throw new Error(data.error || 'Server xatosi');
+
+  // Juda uzoq kutib qolmaslik uchun — 28 soniyadan keyin so'rovni bekor
+  // qilamiz va tushunarli xabar chiqaramiz (Netlify funksiyasi odatda
+  // 10-26 soniyada javob berishi kerak; undan uzoq kutish foydasiz).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=> controller.abort(), 28000);
+
+  let res;
+  try{
+    res = await fetch('/.netlify/functions/admin-ai-assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+  }catch(err){
+    if(err.name === 'AbortError'){
+      throw new Error("So'rov juda uzoq davom etdi (server javob bermadi). Iltimos, xabarni qisqaroq qilib qayta yozing.");
+    }
+    throw new Error('Internet aloqasida muammo: ' + err.message);
+  }finally{
+    clearTimeout(timeoutId);
+  }
+
+  // Server ba'zan (masalan vaqt chegarasidan oshib ketganda) JSON o'rniga
+  // xato sahifa (HTML) qaytarishi mumkin — buni xavfsiz tekshiramiz, aks
+  // holda brauzer tushunarsiz inglizcha "Unexpected token" xatosini beradi.
+  const rawText = await res.text();
+  let data;
+  try{
+    data = JSON.parse(rawText);
+  }catch(e){
+    throw new Error("Server javobi noto'g'ri formatda keldi (ehtimol so'rov juda uzoq davom etib, vaqt tugadi). Iltimos, xabarni qisqaroq yozib qayta yuboring.");
+  }
+
+  if(!res.ok){
+    const errMsg = typeof data.error === 'string' ? data.error : (data.error && data.error.message) || 'Server xatosi';
+    throw new Error(errMsg);
+  }
   return data;
 }
 
@@ -2061,8 +2119,9 @@ function renderAdminNumbers(numbers){
           tag: row.querySelector('.an-tag').value
         });
         btn.textContent = '✓ Saqlandi';
+        btn.classList.add('saved-flash');
         vibrate(80);
-        setTimeout(()=>{ btn.textContent = 'Saqlash'; }, 1200);
+        setTimeout(()=>{ btn.textContent = 'Saqlash'; btn.classList.remove('saved-flash'); }, 1200);
       }catch(err){ alert('Saqlashda xato: ' + err.message); }
     });
   });
@@ -2078,12 +2137,25 @@ function renderAdminNumbers(numbers){
   });
 }
 
-document.getElementById('numberSearchInput').addEventListener('input', (e)=>{
+// Har bir harf uchun butun ro'yxatni (300 tagacha murakkab qator) qayta
+// chizish og'ir amal — tez yozganda sayt "qotib qolishi"ga sabab bo'lardi.
+// Shuning uchun foydalanuvchi yozishni bir oz to'xtatgandan keyingina
+// (180ms) qidiruv ishga tushadi — yozish esa hech qanday kechikishsiz,
+// darhol ko'rinadi.
+function debounce(fn, delay){
+  let timer = null;
+  return function(...args){
+    clearTimeout(timer);
+    timer = setTimeout(()=> fn.apply(this, args), delay);
+  };
+}
+
+document.getElementById('numberSearchInput').addEventListener('input', debounce((e)=>{
   const q = e.target.value.replace(/\D/g, '');
   if(!q){ renderAdminNumbers(currentNumbersCache); return; }
   const filtered = currentNumbersCache.filter(item => (item.number || '').replace(/\D/g,'').includes(q));
   renderAdminNumbers(filtered);
-});
+}, 180));
 
 /* ---- Raqam kiritilganda avtomatik formatlash + operatorni aniqlash ---- */
 const newNumberInput = document.getElementById('newNumber');

@@ -18,6 +18,14 @@
 //     mijozga hech narsa yozmaydi, faqat mijoz ismini adminning ICHKI
 //     Telegram botiga raqamlangan ro'yxat qilib yuboradi (1. Ism, 2. Ism...),
 //     shunda admin bunday mijozlarga o'zi qo'lda javob bera oladi.
+//  6) Mijoz bizga BIRINCHI MARTA yozganda: "Assalomu alaykum!" + "YORDAMCHI
+//     24/7" belgisi bilan boshlanadi, kanal havolasi tavsiya qilinadi.
+//     Qaytgan mijozlarga esa to'g'ridan-to'g'ri, kanal havolasini
+//     takrorlamasdan javob beriladi.
+//  7) Bot @vip_raqamlar_uz kanaliga ADMIN qilib qo'shilgan bo'lsa, kanalga
+//     joylangan postlardagi raqamlarni kuzatib boradi (so'nggi 2 kun) —
+//     shunda bazada hali yo'q, lekin kanalda e'lon qilingan raqamlar haqida
+//     ham "bor" deb javob bera oladi (faqat raqamning o'zi, narxsiz).
 //
 // Kerakli Environment variables (Netlify):
 //   TELEGRAM_BUSINESS_BOT_TOKEN — Secretary Mode yoqilgan alohida bot tokeni
@@ -108,6 +116,57 @@ async function alreadyProcessed(key){
   return false;
 }
 
+/* ==================================================================
+   TELEGRAM KANAL (@vip_raqamlar_uz) POSTLARINI KUZATISH
+   ==================================================================
+   Bot shu kanalga ADMIN sifatida qo'shilgan bo'lishi kerak (buni admin
+   Telegram ilovasida qo'lda qiladi). Shunda har safar kanalga yangi post
+   joylanganda, Telegram bizga "channel_post" turidagi webhook yuboradi.
+   Biz post matnidan telefon raqamiga o'xshagan ketma-ketliklarni topib,
+   Firestore'ga saqlab qo'yamiz — shunda mijoz "0101 bormi" deb so'rasa,
+   agar bazada bo'lmasa ham, "kanalda so'nggi 2 kunda joylangan edi"
+   holatini bot bila oladi.
+   ================================================================== */
+const CHANNEL_MATCH_WINDOW_MS = 2 * 24 * 60 * 60 * 1000; // 2 kun
+
+function extractNumbersFromText(text){
+  if(!text) return [];
+  // O'zbek raqamlariga xos ketma-ketlik: ixtiyoriy +998 bilan boshlanib,
+  // 9 ta raqamdan iborat (bo'sh joy/tire bilan ajratilgan bo'lishi mumkin)
+  const regex = /(?:\+?998[\s\-]?)?\d{2}[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}\b/g;
+  const found = new Set();
+  const matches = text.match(regex) || [];
+  for(const m of matches){
+    const digits = m.replace(/\D/g, '').slice(-9);
+    if(digits.length === 9) found.add(digits);
+  }
+  return Array.from(found);
+}
+
+async function saveChannelPost(text){
+  const nums = extractNumbersFromText(text);
+  for(const digits of nums){
+    try{
+      await withRetry(() => db.collection('channel_posted_numbers').doc(digits).set({
+        number: '+998' + digits,
+        postedAt: Date.now(),
+        rawText: (text || '').slice(0, 300)
+      }));
+    }catch(e){ /* muhim emas */ }
+  }
+}
+
+async function searchChannelPosts(suffix, contains){
+  try{
+    const cutoff = Date.now() - CHANNEL_MATCH_WINDOW_MS;
+    const snap = await withRetry(() => db.collection('channel_posted_numbers').where('postedAt', '>=', cutoff).get());
+    let items = snap.docs.map(d => d.data());
+    if(suffix){ const s = String(suffix).replace(/\D/g, ''); if(s) items = items.filter(it => it.number.replace(/\D/g, '').endsWith(s)); }
+    if(contains){ const c = String(contains).replace(/\D/g, ''); if(c) items = items.filter(it => it.number.replace(/\D/g, '').includes(c)); }
+    return items.slice(0, 5).map(it => ({ number: displayNumber(it.number) }));
+  }catch(e){ return []; }
+}
+
 /* ---------------- "Qo'lda javob bersam — bot aralashmasin" ----------------
    Agar akkaunt egasi (siz) shu mijozga o'zingiz shaxsan javob yozsangiz,
    bot o'sha muayyan suhbatga 30 daqiqa davomida aralashmaydi — sizning
@@ -134,11 +193,6 @@ async function isHumanOverrideActive(chatId){
    Barcha kanallardan (bu bot + mijoz Telegram boti) kelgan ovozli xabar
    yuboruvchilar BITTA umumiy ro'yxatga to'planadi — shu bilan admin qaysi
    kanaldan bo'lishidan qat'iy nazar, barcha "javobsiz qolgan" mijozlarni
-   bitta joydan ko'radi. Ro'yxat bitta xabarni tahrirlab (edit) yangilanadi. */
-/* ---------------- Ovozli xabar yuborgan mijozlar ro'yxati (adminga) ----------------
-   Barcha kanallardan (bu bot + mijoz Telegram boti) kelgan ovozli xabar
-   yuboruvchilar BITTA umumiy ro'yxatga to'planadi — shu bilan admin qaysi
-   kanaldan bo'lishidan qat'iy nazar, barcha "javobsiz qolgan" mijozlarni
    bitta joydan ko'radi. */
 async function logVoiceCustomer(userId, name){
   await updateAdminList(db, 'voice_message_customers', "🎤 Ovozli xabar yuborgan mijozlar (o'zingiz javob berishingiz kerak):", userId, name);
@@ -148,7 +202,7 @@ async function logVoiceCustomer(userId, name){
 const AI_TOOLS = [
   {
     name: 'search_numbers',
-    description: "Bazadagi telefon raqamlarini filtrlar bo'yicha qidiradi (faqat o'qish).",
+    description: "Bazadagi telefon raqamlarini filtrlar bo'yicha qidiradi (faqat o'qish). Bazada topilmasa, natijada 'channelMatches' orqali Telegram kanalidagi so'nggi 2 kunlik postlardan topilgan mos raqamlar ham qaytishi mumkin.",
     input_schema: {
       type: 'object',
       properties: {
@@ -181,25 +235,34 @@ async function loadBotSettings(){
     return {
       generalInstructions: data.generalInstructions || '',
       deliveryInfo: data.deliveryInfo || "Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud.",
+      telegramChannelLink: data.telegramChannelLink || 'https://t.me/vip_raqamlar_uz',
       faqRules: Array.isArray(data.faqRules) ? data.faqRules : []
     };
   }catch(e){
-    return { generalInstructions: '', deliveryInfo: "Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud.", faqRules: [] };
+    return { generalInstructions: '', deliveryInfo: "Ha, 12 ta viloyatga yetkazib berish xizmatimiz mavjud.", telegramChannelLink: 'https://t.me/vip_raqamlar_uz', faqRules: [] };
   }
 }
 
-function buildSystemPrompt(settings){
+function buildSystemPrompt(settings, isFirstTime){
   const parts = [];
-  parts.push(`Sen RAQAM.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) egasining shaxsiy Telegram akkauntiga yozilgan xabarlarga javob beryapsan. MUHIM: mijoz buni "bot" deb emas, xuddi akkaunt egasi o'zi yozayotgandek his qilishi kerak — shuning uchun tabiiy, inson kabi yoz.`);
+  parts.push(`Sen RAQAM.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) egasining shaxsiy Telegram akkauntiga yozilgan xabarlarga javob beryapsan. MUHIM: mijoz buni "bot" deb emas, xuddi akkaunt egasi o'zi yozayotgandek his qilishi kerak — shuning uchun tabiiy, HAQIQIY ODAM kabi (shablon/robot ohangida emas) yoz.`);
   parts.push(`QOIDALAR (BULARGA QAT'IY RIOYA QIL):
 - Javoblaring HECH QACHON ${MAX_REPLY_WORDS} ta so'zdan oshmasin. Juda qisqa va lo'nda yoz.
 - Kamida bitta mos emoji ishlat, lekin bachkana bo'lmasin.
 - Narxlarni faqat search_numbers natijasidan ol — o'ylab topma.
-- Agar mijoz so'ragan raqam qidiruvda TOPILMASA, buni hech qachon qat'iy "yo'q"/"mavjud emas" deb aytma — katalogimizda hali bazaga kiritilmagan ko'p raqam bor. Bunday holatda: "Operatorimiz tekshirib, tez orada javob beradi" kabi qisqa javob ber va albatta forward_lead_to_admin vositasini chaqirib, so'ralgan raqamni yetkaz.
+- Mijoz aniq raqam so'rasa (masalan "0101 bormi"): search_numbers bilan tekshir. Topilsa FAQAT RAQAMNING O'ZINI ayt — narxini aytish SHART EMAS.
+- Agar search_numbers natijasida "channelMatches" ro'yxati bo'lsa (bazada topilmagan, lekin bizning Telegram kanalimizda so'nggi 2 kun ichida joylangan raqam) — o'sha raqamni xuddi shunday, faqat o'zini ayt.
+- Agar hech qayerda (na bazada, na kanalda) topilmasa, buni hech qachon qat'iy "yo'q"/"mavjud emas" deb aytma — "Operatorimiz tekshirib, tez orada javob beradi" kabi qisqa javob ber va albatta forward_lead_to_admin vositasini chaqirib, so'ralgan raqamni yetkaz.
 - Yetkazib berish so'ralsa: "${settings.deliveryInfo}"
 - Salbiy fikrga bahslashmasdan xotirjam javob ber.
 - Mijoz aniq sotib olish niyatini bildirsa, forward_lead_to_admin vositasini chaqir.
 - "Siz botmisiz" deb so'rasa — rostini ayt, yashirma.`);
+
+  if(isFirstTime){
+    parts.push(`BU MIJOZ BIZGA HOZIR BIRINCHI MARTA YOZYAPTI. Javobingda o'zing "Assalomu alaykum" deb salomlashma — bu allaqachon xabar boshiga alohida qo'shib qo'yiladi, sen faqat undan keyingi asosiy mazmunni yoz. Mavzuga mos bo'lsa, Telegram kanalimizni tavsiya qil: "${settings.telegramChannelLink}" — masalan "Kanalimizdan yoqqan raqamni tanlab aytsangiz, rasmiylashtirib beramiz" kabi.`);
+  }else{
+    parts.push(`Bu mijoz bilan avval ham yozishgansiz — salomlashish shart emas, to'g'ridan-to'g'ri savoliga javob ber. Telegram kanal havolasini ("${settings.telegramChannelLink}") FAQAT mijoz o'zi so'rasa yoki aniq kerak bo'lganda ayt — har bir xabarda takrorlama.`);
+  }
 
   if(settings.faqRules && settings.faqRules.length){
     const rulesText = settings.faqRules
@@ -226,7 +289,15 @@ async function execSearch(input){
   const total = items.length;
   const limit = Math.min(input.limit || 5, 10);
   const shown = items.slice(0, limit).map(it => ({ number: displayNumber(it.number), operator: it.operator, price: it.price, tag: it.tag }));
-  return { total, items: shown };
+
+  // Bazada topilmasa, VA aniq suffix/contains bilan qidirilgan bo'lsa —
+  // Telegram kanalidagi so'nggi 2 kunlik postlardan ham tekshiramiz
+  let channelMatches = [];
+  if(total === 0 && (input.suffix || input.contains)){
+    channelMatches = await searchChannelPosts(input.suffix, input.contains);
+  }
+
+  return { total, items: shown, channelMatches };
 }
 
 async function notifyAdminLead(text){
@@ -250,9 +321,9 @@ async function callClaude(systemPrompt, messages){
   return data;
 }
 
-async function generateReply(userText, senderId){
+async function generateReply(userText, senderId, isFirstTime){
   const settings = await loadBotSettings();
-  const systemPrompt = buildSystemPrompt(settings);
+  const systemPrompt = buildSystemPrompt(settings, isFirstTime);
   let messages = [{ role: 'user', content: userText }];
 
   for(let round = 0; round < MAX_TOOL_ROUNDS; round++){
@@ -296,6 +367,16 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    // --- Kanalga (@vip_raqamlar_uz) yangi post joylanganda keladi. Bot shu
+    //     kanalga ADMIN sifatida qo'shilgan bo'lishi kerak. Post matnidan
+    //     raqamlarni ajratib, keyinchalik "0101 bormi" kabi so'rovlarga
+    //     javob berishda ishlatish uchun saqlaymiz. ---
+    if(update.channel_post){
+      const post = update.channel_post;
+      await saveChannelPost(post.text || post.caption || '');
+      return { statusCode: 200, body: 'ok' };
+    }
+
     if(update.business_message){
       const msg = update.business_message;
       const connectionId = msg.business_connection_id;
@@ -309,6 +390,8 @@ exports.handler = async function (event) {
       }
 
       const text = msg.text;
+      // Gift, stiker, rasm va h.k. (matni yo'q xabarlar) — botni buzmasdan,
+      // shunchaki hech narsa qilmasdan qabul qilinadi (xatoga olib kelmaydi).
       if(!connectionId || !text) return { statusCode: 200, body: 'ok' };
 
       const dedupKey = 'msg_' + connectionId + '_' + msg.message_id;
@@ -348,11 +431,18 @@ exports.handler = async function (event) {
         return { statusCode: 200, body: 'ok' };
       }
 
+      // Avval yozgan (qaytgan) mijozlarga bot DARHOL javob beradi — hech
+      // qanday qo'shimcha kechikish yoki tekshiruv qo'shilmagan.
       await tgBiz('sendChatAction', { chat_id: msg.chat.id, action: 'typing', business_connection_id: connectionId });
 
-      const reply = await generateReply(text, senderId);
-      if(reply){
-        await tgBiz('sendMessage', { chat_id: msg.chat.id, text: reply, business_connection_id: connectionId });
+      const rawReply = await generateReply(text, senderId, isFirstTime);
+      if(rawReply){
+        // Birinchi marta yozgan mijozga: "Assalomu alaykum" + ajratuvchi
+        // "YORDAMCHI 24/7" belgisi + asosiy javob. Qaytgan mijozga — to'g'ridan-to'g'ri javob.
+        const finalReply = isFirstTime
+          ? `Assalomu alaykum!\n\nYORDAMCHI 24/7\n\n${rawReply}`
+          : rawReply;
+        await tgBiz('sendMessage', { chat_id: msg.chat.id, text: finalReply, business_connection_id: connectionId });
       }
       return { statusCode: 200, body: 'ok' };
     }

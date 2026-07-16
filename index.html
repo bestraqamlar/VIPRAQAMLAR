@@ -1512,6 +1512,19 @@ function renderDailyDeal(){
   });
 }
 
+// Katalogni har bir katakchaga yozilgan harf uchun to'liq qayta chizish og'ir
+// amal — tez yozganda sayt "qotib qolishi"ga sabab bo'lardi. Katakcha ko'rinishi
+// (raqam kirishi, keyingi katakchaga o'tish) darhol, kechikishsiz ishlaydi;
+// faqat katalogni qayta chizish bir oz (150ms) kechiktiriladi.
+function debounce(fn, delay){
+  let timer = null;
+  return function(...args){
+    clearTimeout(timer);
+    timer = setTimeout(()=> fn.apply(this, args), delay);
+  };
+}
+const debouncedRenderCatalog = debounce(()=>{ updateSearchUI(); renderCatalog(); }, 150);
+
 operatorSelect.addEventListener('change', ()=>{ currentPage = 0; updateSearchUI(); renderCatalog(); });
 digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
@@ -1519,7 +1532,7 @@ digitBoxes.forEach((box, idx)=>{
     box.classList.toggle('filled', box.value !== '');
     if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus(); }
     currentPage = 0;
-    updateSearchUI(); renderCatalog();
+    debouncedRenderCatalog();
   });
   box.addEventListener('keydown', (e)=>{
     if(e.key === 'Backspace' && box.value === '' && idx > 0){ digitBoxes[idx-1].focus(); }
