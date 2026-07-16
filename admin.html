@@ -654,7 +654,7 @@
       <div class="video-progress-wrap" id="videoProgressWrap" style="display:none;">
         <div class="video-progress-bar" id="videoProgressBar"></div>
       </div>
-      <button id="videoUploadBtn" class="ig-save-btn">⬆️ Yuklash</button>
+      <button id="videoUploadBtn" class="ig-save-btn" onclick="if(window.handleVideoUpload){window.handleVideoUpload();}else{alert('Sahifa to\'liq yuklanmagan. Iltimos, sahifani yangilang (pastga torting) va qayta urinib ko\'ring.');}">⬆️ Yuklash</button>
       <div class="ig-save-msg" id="videoUploadMsg"></div>
     </div>
 
@@ -852,7 +852,9 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage();
+let storage = null;
+try{ storage = firebase.storage(); }
+catch(e){ console.error('Firebase Storage ishga tushmadi:', e); }
 
 let lastSeenOrders = 0;
 let currentOrdersCache = [];
@@ -2060,7 +2062,7 @@ document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
 });
 
 /* ---- Video sharhlar (mijoz fikri, saytda Reels uslubida ko'rsatiladi) ---- */
-document.getElementById('videoUploadBtn').addEventListener('click', async ()=>{
+window.handleVideoUpload = async function(){
   const fileInput = document.getElementById('videoFileInput');
   const captionInput = document.getElementById('videoCaptionInput');
   const msg = document.getElementById('videoUploadMsg');
@@ -2068,16 +2070,33 @@ document.getElementById('videoUploadBtn').addEventListener('click', async ()=>{
   const progressBar = document.getElementById('videoProgressBar');
   const btn = document.getElementById('videoUploadBtn');
 
-  const file = fileInput.files[0];
-  if(!file){ msg.textContent = 'Iltimos, video fayl tanlang.'; msg.style.color = 'var(--red)'; return; }
-  if(!file.type.startsWith('video/')){ msg.textContent = "Bu video fayl emas."; msg.style.color = 'var(--red)'; return; }
-
-  btn.disabled = true;
-  msg.textContent = '';
-  progressWrap.style.display = 'block';
-  progressBar.style.width = '0%';
+  function showError(text){
+    msg.textContent = '❌ ' + text;
+    msg.style.cssText = 'color:#fff;background:var(--red);padding:10px 12px;border-radius:8px;font-weight:700;font-size:13px;text-align:center;';
+    progressWrap.style.display = 'none';
+    btn.disabled = false;
+  }
 
   try{
+    const file = fileInput.files[0];
+    if(!file){ showError('Iltimos, video fayl tanlang.'); return; }
+
+    // iPhone (Safari)'da ba'zan video fayl turi (MIME type) bo'sh yoki
+    // noto'g'ri qaytadi — shuning uchun faqat fayl kengaytmasiga qarab ham
+    // tekshiramiz, aks holda haqiqiy video fayllar noto'g'ri rad etiladi.
+    const looksLikeVideo = file.type.startsWith('video/')
+      || /\.(mp4|mov|m4v|avi|webm|3gp|mkv)$/i.test(file.name || '');
+    if(!looksLikeVideo){ showError("Bu video fayl emas. Fayl turi: " + (file.type || "noma'lum")); return; }
+
+    if(!window.firebase || !firebase.storage){ showError("Firebase Storage SDK yuklanmadi. Internetni tekshiring va sahifani yangilang."); return; }
+    if(!storage){ showError("Video xizmati (Firebase Storage) sozlanmagan. Avval Firebase konsolida Storage'ni yoqing."); return; }
+
+    btn.disabled = true;
+    msg.textContent = '';
+    msg.style.cssText = '';
+    progressWrap.style.display = 'block';
+    progressBar.style.width = '0%';
+
     const path = `testimonial_videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
     const ref = storage.ref().child(path);
     const uploadTask = ref.put(file);
@@ -2108,19 +2127,19 @@ document.getElementById('videoUploadBtn').addEventListener('click', async ()=>{
     });
 
     msg.textContent = '✓ Video yuklandi va saytga qo\'shildi';
-    msg.style.color = 'var(--green)';
+    msg.style.cssText = 'color:var(--green);text-align:center;font-weight:700;';
     vibrate(80);
     fileInput.value = '';
     captionInput.value = '';
     progressWrap.style.display = 'none';
-    loadVideoTestimonials();
+    if(window.loadVideoTestimonials) loadVideoTestimonials();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
-    msg.style.color = 'var(--red)';
-    progressWrap.style.display = 'none';
+    showError(err && err.message ? err.message : "Noma'lum xato yuz berdi");
+    return;
   }
   btn.disabled = false;
-});
+};
+
 
 async function loadVideoTestimonials(){
   const list = document.getElementById('videoList');
