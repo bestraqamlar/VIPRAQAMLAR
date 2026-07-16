@@ -85,5 +85,12 @@ service cloud.firestore {
       allow list: if request.auth != null;
       allow update, delete: if request.auth != null;
     }
+
+    // Video sharhlar ("Mijozlarimiz fikri" bo'limi) — hamma o'qiy oladi
+    // (saytda ko'rsatilishi kerak), faqat admin qo'shishi/o'chirishi mumkin.
+    match /video_testimonials/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
   }
 }

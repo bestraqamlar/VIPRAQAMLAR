@@ -305,6 +305,39 @@
   }
   .ig-save-msg{text-align:center;font-size:12.5px;color:var(--green);margin-top:8px;min-height:16px;}
 
+  /* ---- Video sharhlar ---- */
+  .video-upload-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px;margin-bottom:16px;
+  }
+  .video-upload-box label{display:block;font-size:13px;font-weight:600;color:var(--text);margin:10px 0 6px;}
+  .video-upload-box label:first-child{margin-top:0;}
+  .video-upload-box input[type="file"]{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    padding:9px;color:var(--text);font-size:12px;
+  }
+  .video-upload-box textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;
+  }
+  .video-progress-wrap{
+    background:var(--panel-2);border-radius:8px;height:8px;overflow:hidden;margin:12px 0 4px;
+  }
+  .video-progress-bar{background:var(--amber);height:100%;width:0%;transition:width .2s ease;}
+  .video-upload-box .ig-save-btn{margin-top:12px;}
+
+  .video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .video-item{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    position:relative;
+  }
+  .video-item video{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;background:#000;}
+  .video-item .vi-caption{padding:8px;font-size:11px;color:var(--muted);line-height:1.4;max-height:52px;overflow:hidden;}
+  .video-item .vi-delete{
+    position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:var(--red);
+    border:none;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;
+  }
+
   .status-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;font-size:11.5px;color:var(--muted);}
 
   .credit-card{
@@ -473,6 +506,7 @@
     <button class="tab" data-tab="ai">🤖 AI Yordamchi</button>
     <button class="tab" data-tab="instagram">📸 Instagram AI</button>
     <button class="tab" data-tab="telegramai">💬 Telegram AI</button>
+    <button class="tab" data-tab="videos">🎥 Video sharhlar</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
@@ -604,6 +638,27 @@
 
     <button id="tgSaveBtn" class="ig-save-btn">💾 Saqlash</button>
     <div class="ig-save-msg" id="tgSaveMsg"></div>
+  </div>
+
+  <div class="pane" id="paneVideos">
+    <div class="ai-hint">
+      🎥 Bu yerda saytning eng pastidagi "Mijozlarimiz fikri" bo'limiga chiqadigan video sharhlarni boshqarasiz.
+      Mijoz videoni bosganda, Instagram Reels kabi to'liq ekranda ochiladi, pastga/tepaga surib keyingi videoga o'tadi.
+    </div>
+
+    <div class="video-upload-box">
+      <label for="videoFileInput">Video fayl <span class="ig-field-hint">(vertikal, telefon kamerasida olingan video eng yaxshi ko'rinadi)</span></label>
+      <input type="file" id="videoFileInput" accept="video/*">
+      <label for="videoCaptionInput">Izoh <span class="ig-field-hint">(video ostida ko'rsatiladi)</span></label>
+      <textarea id="videoCaptionInput" rows="2" placeholder="Masalan: Aziz aka Toshkentdan — bizdan VIP raqam sotib olgan mijozimiz"></textarea>
+      <div class="video-progress-wrap" id="videoProgressWrap" style="display:none;">
+        <div class="video-progress-bar" id="videoProgressBar"></div>
+      </div>
+      <button id="videoUploadBtn" class="ig-save-btn">⬆️ Yuklash</button>
+      <div class="ig-save-msg" id="videoUploadMsg"></div>
+    </div>
+
+    <div class="video-list" id="videoList"></div>
   </div>
 
   <div class="pane" id="paneOrders">
@@ -769,6 +824,8 @@
       <input type="text" id="siteWorkingHours" placeholder="Ish vaqti: Dushanba-Shanba 09:00 - 18:00">
       <label for="siteDeliveryText">Dostavka matni</label>
       <input type="text" id="siteDeliveryText" placeholder="O'zbekiston bo'ylab yetkazib berish xizmati mavjud">
+      <label for="installmentMonthlyRate">Bo'lib to'lash — oylik foiz stavkasi (%) <span style="color:var(--muted);font-weight:400;">(mijozga ko'rinmaydi, faqat oylik to'lovga qo'shib hisoblanadi)</span></label>
+      <input type="number" id="installmentMonthlyRate" placeholder="3" step="0.1" min="0">
       <button id="saveSiteSettingsBtn">Saqlash</button>
       <div class="settings-msg" id="siteSettingsMsg"></div>
     </div>
@@ -778,6 +835,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -794,6 +852,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 let lastSeenOrders = 0;
 let currentOrdersCache = [];
@@ -954,7 +1013,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -966,6 +1025,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
+    if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
     if(tab.dataset.tab === 'credit'){
       loadCreditContracts();
       const dateEl = document.getElementById('crStartDate');
@@ -1551,6 +1611,7 @@ async function loadSiteSettingsForm(){
     document.getElementById('yandexApiKey').value = s.yandexApiKey || '788242a0-f999-487f-801f-01d3a640f448';
     document.getElementById('siteWorkingHours').value = s.workingHours || '';
     document.getElementById('siteDeliveryText').value = s.deliveryText || '';
+    document.getElementById('installmentMonthlyRate').value = (typeof s.installmentMonthlyRate === 'number') ? s.installmentMonthlyRate : 3;
   }catch(e){ console.error('Sayt sozlamalarini yuklashda xato:', e); }
 }
 loadSiteSettingsForm();
@@ -1567,7 +1628,8 @@ document.getElementById('saveSiteSettingsBtn').addEventListener('click', async (
       officeLng: document.getElementById('officeLng').value.trim(),
       yandexApiKey: document.getElementById('yandexApiKey').value.trim(),
       workingHours: document.getElementById('siteWorkingHours').value.trim(),
-      deliveryText: document.getElementById('siteDeliveryText').value.trim()
+      deliveryText: document.getElementById('siteDeliveryText').value.trim(),
+      installmentMonthlyRate: Number(document.getElementById('installmentMonthlyRate').value) || 0
     }, { merge: true });
     msg.textContent = '✓ Sayt sozlamalari saqlandi.';
     msg.className = 'settings-msg ok';
@@ -1996,6 +2058,98 @@ document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
   }
   btn.disabled = false;
 });
+
+/* ---- Video sharhlar (mijoz fikri, saytda Reels uslubida ko'rsatiladi) ---- */
+document.getElementById('videoUploadBtn').addEventListener('click', async ()=>{
+  const fileInput = document.getElementById('videoFileInput');
+  const captionInput = document.getElementById('videoCaptionInput');
+  const msg = document.getElementById('videoUploadMsg');
+  const progressWrap = document.getElementById('videoProgressWrap');
+  const progressBar = document.getElementById('videoProgressBar');
+  const btn = document.getElementById('videoUploadBtn');
+
+  const file = fileInput.files[0];
+  if(!file){ msg.textContent = 'Iltimos, video fayl tanlang.'; msg.style.color = 'var(--red)'; return; }
+  if(!file.type.startsWith('video/')){ msg.textContent = "Bu video fayl emas."; msg.style.color = 'var(--red)'; return; }
+
+  btn.disabled = true;
+  msg.textContent = '';
+  progressWrap.style.display = 'block';
+  progressBar.style.width = '0%';
+
+  try{
+    const path = `testimonial_videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const ref = storage.ref().child(path);
+    const uploadTask = ref.put(file);
+
+    await new Promise((resolve, reject)=>{
+      uploadTask.on('state_changed',
+        (snap)=>{
+          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+          progressBar.style.width = pct + '%';
+        },
+        (err)=> reject(err),
+        ()=> resolve()
+      );
+    });
+
+    const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
+
+    // Ro'yxat oxiriga qo'shish uchun joriy eng katta "order" qiymatini topamiz
+    const snap = await db.collection('video_testimonials').orderBy('order', 'desc').limit(1).get();
+    const nextOrder = snap.empty ? 1 : (snap.docs[0].data().order || 0) + 1;
+
+    await db.collection('video_testimonials').add({
+      videoUrl,
+      caption: captionInput.value.trim(),
+      order: nextOrder,
+      createdAt: Date.now()
+    });
+
+    msg.textContent = '✓ Video yuklandi va saytga qo\'shildi';
+    msg.style.color = 'var(--green)';
+    vibrate(80);
+    fileInput.value = '';
+    captionInput.value = '';
+    progressWrap.style.display = 'none';
+    loadVideoTestimonials();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.style.color = 'var(--red)';
+    progressWrap.style.display = 'none';
+  }
+  btn.disabled = false;
+});
+
+async function loadVideoTestimonials(){
+  const list = document.getElementById('videoList');
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const snap = await db.collection('video_testimonials').orderBy('order', 'asc').get();
+    const videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if(videos.length === 0){ list.innerHTML = `<div class="empty-admin">Hali video qo'shilmagan.</div>`; return; }
+
+    list.innerHTML = videos.map(v => `
+      <div class="video-item" data-id="${v.id}">
+        <button class="vi-delete" data-id="${v.id}">✕</button>
+        <video src="${v.videoUrl}" muted preload="metadata"></video>
+        <div class="vi-caption">${(v.caption || '').replace(/</g,'&lt;')}</div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.vi-delete').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu videoni o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          await db.collection('video_testimonials').doc(btn.dataset.id).delete();
+          loadVideoTestimonials();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    list.innerHTML = 'Xato: ' + err.message;
+  }
+}
 
 /* ---- Tashrif buyuruvchilar kuzatuvi (real vaqtda) ---- */
 let visitorTrackingTimer = null;
@@ -2457,6 +2611,9 @@ function renderAdminOrders(orders){
       <div class="oc-row"><b>Viloyat:</b> ${o.region}</div>
       <div class="oc-row"><b>Telefon:</b> ${o.phone}</div>
       <div class="oc-row"><b>Narxi:</b> ${o.price ? formatPrice(o.price) : "Noma'lum"}</div>
+      ${o.paymentType === 'installment'
+        ? `<div class="oc-row" style="color:var(--amber);"><b>💳 To'lov:</b> Bo'lib to'lash — ${o.installmentMonths} oyga, oyiga ${formatPrice(o.monthlyPayment || 0)}dan</div>`
+        : ''}
       <div class="oc-row"><b>Qayerdan:</b> ${o.source || 'Sayt'}</div>
       <select class="order-status">
         ${ORDER_STATUSES.map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}

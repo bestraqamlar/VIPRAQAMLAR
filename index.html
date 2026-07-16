@@ -195,6 +195,17 @@
   }
   .drawer-links a svg{width:18px;height:18px;flex-shrink:0;color:var(--red);}
   .drawer-links a:hover{border-color:var(--red);}
+  .drawer-ai-link{
+    background:linear-gradient(90deg, rgba(255,176,0,0.16), rgba(230,57,70,0.16)) !important;
+    border-color:var(--amber) !important;position:relative;overflow:hidden;
+  }
+  .drawer-ai-link svg{color:var(--amber) !important;}
+  .drawer-ai-link::after{
+    content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    animation:drawerAiShine 3s ease-in-out infinite;
+  }
+  @keyframes drawerAiShine{ 0%{left:-60%;} 60%,100%{left:120%;} }
 
   .drawer-map-wrap{padding:0 16px;}
   .drawer-map{
@@ -575,6 +586,158 @@
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
   }
   .daily-deal-section{max-width:1100px;margin:0 auto;padding:14px 16px 6px;}
+
+  /* ---- Mijozlar fikri ---- */
+  .testimonials-section{max-width:1100px;margin:28px auto 8px;padding:0 16px;}
+  .testimonials-header{text-align:center;margin-bottom:16px;}
+  .testimonials-title{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);}
+  .testimonials-sub{color:var(--muted);font-size:12.5px;margin-top:4px;}
+  .testimonials-scroll{
+    display:flex;gap:12px;overflow-x:auto;padding:4px 4px 10px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .testimonials-scroll::-webkit-scrollbar{display:none;}
+
+  /* ---- Video sharh kartochkasi (yonma-yon, Reels'ga o'xshab) ---- */
+  .video-testi-card{
+    flex:0 0 128px;aspect-ratio:9/16;border-radius:14px;overflow:hidden;position:relative;
+    cursor:pointer;background:var(--panel);border:1px solid var(--line);
+    opacity:0;animation:fadeSlideUpT .5s ease forwards;
+  }
+  .video-testi-card:nth-child(1){animation-delay:.05s;}
+  .video-testi-card:nth-child(2){animation-delay:.13s;}
+  .video-testi-card:nth-child(3){animation-delay:.21s;}
+  .video-testi-card:nth-child(4){animation-delay:.29s;}
+  .video-testi-card:nth-child(5){animation-delay:.37s;}
+  @keyframes fadeSlideUpT{ from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+  .video-testi-card video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+  .video-testi-play{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,0.55) 100%);
+  }
+  .video-testi-play svg{width:34px;height:34px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));}
+  .video-testi-caption{
+    position:absolute;left:0;right:0;bottom:6px;padding:0 8px;color:#fff;font-size:9.5px;
+    line-height:1.3;max-height:32px;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,0.7);
+  }
+
+  /* ---- Reels uslubidagi to'liq ekran video ko'ruvchi ---- */
+  .reels-overlay{
+    position:fixed;inset:0;background:#000;z-index:900;display:none;
+    flex-direction:column;
+  }
+  .reels-overlay.open{display:flex;animation:fadeIn .2s ease;}
+  .reels-close{
+    position:absolute;top:calc(env(safe-area-inset-top, 0px) + 14px);right:16px;z-index:910;
+    background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border:none;color:#fff;
+    width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;
+  }
+  .reels-track{
+    flex:1;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .reels-track::-webkit-scrollbar{display:none;}
+  .reels-slide{
+    height:100%;width:100%;scroll-snap-align:start;position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .reels-slide video{width:100%;height:100%;object-fit:contain;background:#000;}
+  .reels-slide-caption{
+    position:absolute;left:0;right:0;bottom:0;padding:20px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    background:linear-gradient(0deg,rgba(0,0,0,0.75),rgba(0,0,0,0));
+    color:#fff;font-size:13px;line-height:1.5;
+  }
+  .reels-slide-hint{
+    position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.55);
+    font-size:10.5px;letter-spacing:0.5px;
+  }
+
+  /* ---- To'lov turi tanlash (Naqt / Bo'lib to'lash) ---- */
+  .pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px;}
+  .pay-tab{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    padding:11px 8px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;
+    transition:all .18s ease;
+  }
+  .pay-tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
+
+  /* ---- Bo'lib to'lash kalkulyatori ---- */
+  .installment-calc{
+    background:var(--panel-2);border:1px solid var(--amber);border-radius:12px;
+    padding:14px;margin:0 0 16px;animation:fadeSlideUpT .3s ease both;
+  }
+  .ic-slider{
+    -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:4px;
+    background:var(--line);outline:none;cursor:pointer;margin:6px 0 10px;
+  }
+  .ic-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+    background:var(--amber);border:3px solid var(--bg);cursor:pointer;
+    box-shadow:0 0 0 3px rgba(255,176,0,0.25);transition:transform .15s ease;
+  }
+  .ic-slider::-webkit-slider-thumb:active{transform:scale(1.15);}
+  .ic-slider::-moz-range-thumb{
+    width:20px;height:20px;border-radius:50%;background:var(--amber);
+    border:3px solid var(--bg);cursor:pointer;box-shadow:0 0 0 3px rgba(255,176,0,0.25);
+  }
+  .ic-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;}
+  .ic-months{color:var(--muted);font-weight:600;}
+  .ic-monthly{color:var(--text);}
+  .ic-monthly b{color:var(--amber);font-size:15px;font-family:'Sora',sans-serif;font-weight:800;}
+
+  /* ---- Saytdagi AI chat widget ---- */
+  .ai-widget-btn{
+    position:fixed;bottom:20px;right:20px;z-index:400;
+    width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--amber),var(--brand-red));
+    box-shadow:0 6px 20px rgba(255,176,0,0.35);
+    display:flex;align-items:center;justify-content:center;font-size:24px;
+    animation:aiBtnFloat 3s ease-in-out infinite;
+    transition:transform .2s ease;
+  }
+  .ai-widget-btn:active{transform:scale(0.92);}
+  @keyframes aiBtnFloat{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+  .ai-widget-btn .ai-widget-dot{
+    position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;
+    background:var(--green);border:2px solid var(--bg);
+  }
+
+  .ai-widget-panel{
+    position:fixed;bottom:88px;right:20px;z-index:401;width:340px;max-width:calc(100vw - 32px);
+    height:460px;max-height:calc(100vh - 140px);background:var(--panel);border:1px solid var(--line);
+    border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,0.45);display:none;
+    flex-direction:column;overflow:hidden;
+  }
+  .ai-widget-panel.open{display:flex;animation:aiPanelOpen .25s cubic-bezier(.34,1.56,.64,1) both;}
+  @keyframes aiPanelOpen{ from{opacity:0;transform:translateY(16px) scale(.96);} to{opacity:1;transform:translateY(0) scale(1);} }
+  .ai-widget-header{
+    background:linear-gradient(90deg,var(--amber),var(--brand-red));color:#0a1a12;
+    padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .ai-widget-header-title{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;}
+  .ai-widget-header-sub{font-size:10px;font-weight:600;opacity:.85;margin-top:1px;}
+  .ai-widget-close{background:rgba(0,0,0,0.15);border:none;color:#0a1a12;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .ai-widget-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg);}
+  .ai-widget-msg{max-width:85%;padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.55;white-space:pre-wrap;animation:popInW .2s cubic-bezier(.34,1.56,.64,1) both;}
+  @keyframes popInW{ from{opacity:0;transform:scale(.9);} to{opacity:1;transform:scale(1);} }
+  .ai-widget-msg.bot{align-self:flex-start;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-bottom-left-radius:3px;}
+  .ai-widget-msg.user{align-self:flex-end;background:var(--amber);color:#0a1a12;font-weight:600;border-bottom-right-radius:3px;}
+  .ai-widget-typing{align-self:flex-start;color:var(--muted);font-size:11.5px;padding:2px 6px;}
+  .ai-widget-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--panel);}
+  .ai-widget-input-row input{
+    flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    padding:9px 12px;color:var(--text);font-size:12.5px;outline:none;
+  }
+  .ai-widget-input-row input:focus{border-color:var(--amber);}
+  .ai-widget-input-row button{
+    background:var(--amber);color:#0a1a12;border:none;border-radius:9px;
+    width:38px;height:38px;font-size:16px;cursor:pointer;flex-shrink:0;
+  }
+  .ai-widget-input-row button:disabled{opacity:.5;}
+  @media (max-width:420px){
+    .ai-widget-panel{right:16px;left:16px;width:auto;bottom:84px;}
+    .ai-widget-btn{right:16px;bottom:16px;}
+  }
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     flex:0 0 150px;border-radius:12px;padding:10px;
@@ -772,17 +935,6 @@
   .success-view h3{font-family:'Space Mono',monospace;color:var(--green);font-size:16px;margin:0 0 6px;}
   .success-view p{color:var(--muted);font-size:13px;margin:0;}
 
-  .fab{
-    position:fixed;bottom:20px;right:20px;z-index:40;
-    background:linear-gradient(135deg,#2AABEE,#229ED9);
-    width:54px;height:54px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 6px 20px rgba(34,158,217,0.45);
-    animation:floatPulse 2.6s ease-in-out infinite;
-  }
-  @keyframes floatPulse{0%,100%{box-shadow:0 6px 20px rgba(34,158,217,0.45);}50%{box-shadow:0 6px 28px rgba(34,158,217,0.7);}}
-  .fab svg{width:26px;height:26px;fill:#fff;}
-
   footer{
     text-align:center;color:var(--muted);font-size:12px;padding:22px 20px 64px;border-top:1px solid var(--line);
   }
@@ -876,6 +1028,10 @@
   </div>
 
   <div class="drawer-links">
+    <a id="drawerAiChat" href="ai-chat.html" target="_blank" rel="noopener" class="drawer-ai-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.8 5.5L19 9l-5.2 1.5L12 16l-1.8-5.5L5 9l5.2-1.5z"/><circle cx="18" cy="18" r="3"/></svg>
+      YORDAMCHI AI
+    </a>
     <a id="drawerTelegram" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
       Telegram kanal
@@ -971,6 +1127,19 @@
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
+<section class="testimonials-section" id="testimonialsSection" style="display:none;">
+  <div class="testimonials-header">
+    <div class="testimonials-title">Mijozlarimiz fikri</div>
+    <div class="testimonials-sub">Bizdan raqam sotib olgan mijozlarning video sharhlari</div>
+  </div>
+  <div class="testimonials-scroll" id="testimonialsScroll"></div>
+</section>
+
+<div class="reels-overlay" id="reelsOverlay">
+  <button class="reels-close" id="reelsClose">✕</button>
+  <div class="reels-track" id="reelsTrack"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="contract-overlay" id="contractOverlay">
@@ -1004,6 +1173,20 @@
     <div id="formView">
       <h2>Buyurtma berish</h2>
       <div class="modal-number" id="modalNumber"></div>
+
+      <div class="pay-tabs" id="payTabs" style="display:none;">
+        <button type="button" class="pay-tab active" id="payTabCash" data-type="cash">💵 Naqt to'lov</button>
+        <button type="button" class="pay-tab" id="payTabInstallment" data-type="installment">📅 Bo'lib to'lash</button>
+      </div>
+
+      <div class="installment-calc" id="installmentCalc" style="display:none;">
+        <input type="range" id="icSlider" min="2" max="12" value="6" step="1" class="ic-slider">
+        <div class="ic-row">
+          <span class="ic-months"><span id="icMonthsValue">6</span> oyga</span>
+          <span class="ic-monthly">oyiga <b id="icMonthlyValue">0</b> so'm</span>
+        </div>
+      </div>
+
       <label for="custName">Ismingiz</label>
       <input type="text" id="custName" placeholder="Ism Familiya">
       <div class="field-error" id="errName">Ismingizni kiriting</div>
@@ -1055,9 +1238,26 @@
   </div>
 </div>
 
-<a class="fab" href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" aria-label="Telegram orqali murojaat">
-  <svg viewBox="0 0 24 24"><path d="M9.036 15.803l-.396 5.57c.568 0 .814-.244 1.11-.537l2.663-2.545 5.522 4.03c1.012.564 1.73.267 1.997-.938L23.94 3.61c.36-1.474-.532-2.05-1.517-1.693L1.116 9.79c-1.446.564-1.424 1.373-.247 1.735l5.517 1.72L18.98 5.13c.582-.38 1.113-.17.677.21L9.036 15.803z"/></svg>
-</a>
+<button class="ai-widget-btn" id="aiWidgetBtn" aria-label="AI yordamchi bilan suhbat">
+  🤖<span class="ai-widget-dot"></span>
+</button>
+
+<div class="ai-widget-panel" id="aiWidgetPanel">
+  <div class="ai-widget-header">
+    <div>
+      <div class="ai-widget-header-title">✨ RAQAM AI</div>
+      <div class="ai-widget-header-sub">Savolingizga darhol javob beramiz</div>
+    </div>
+    <button class="ai-widget-close" id="aiWidgetClose">✕</button>
+  </div>
+  <div class="ai-widget-body" id="aiWidgetBody">
+    <div class="ai-widget-msg bot">Salom! 👋 Raqam narxi, mavjudligi yoki yetkazib berish haqida so'rang.</div>
+  </div>
+  <div class="ai-widget-input-row">
+    <input type="text" id="aiWidgetInput" placeholder="Xabar yozing...">
+    <button id="aiWidgetSend">➤</button>
+  </div>
+</div>
 
 <footer>&copy; 2026 RAQAM.UZ. Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
 
@@ -1553,6 +1753,42 @@ const custPhone      = document.getElementById('custPhone');
 custPhone.addEventListener('input', ()=>{
   custPhone.value = formatUzNumber(extractRawDigits(custPhone.value));
 });
+
+/* ---- To'lov turi (Naqt / Bo'lib to'lash) va kalkulyator ---- */
+const payTabs          = document.getElementById('payTabs');
+const payTabCash        = document.getElementById('payTabCash');
+const payTabInstallment = document.getElementById('payTabInstallment');
+const installmentCalc  = document.getElementById('installmentCalc');
+const icSlider          = document.getElementById('icSlider');
+const icMonthsValue     = document.getElementById('icMonthsValue');
+const icMonthlyValue    = document.getElementById('icMonthlyValue');
+
+let selectedPaymentType = 'cash'; // 'cash' | 'installment'
+let selectedInstallmentMonths = 6;
+let selectedMonthlyPayment = 0;
+
+function updateInstallmentCalc(){
+  const months = Number(icSlider.value) || 1;
+  selectedInstallmentMonths = months;
+  icMonthsValue.textContent = months;
+  // Admin panelda belgilangan oylik foiz — mijozga ko'rinmaydi, faqat
+  // yakuniy oylik to'lov summasiga qo'shib hisoblanadi.
+  const totalWithMarkup = (selectedPrice || 0) * (1 + (installmentMonthlyRate / 100) * months);
+  const monthly = Math.ceil(totalWithMarkup / months / 1000) * 1000;
+  selectedMonthlyPayment = monthly;
+  icMonthlyValue.textContent = formatPrice(monthly).replace(" so'm", '');
+}
+icSlider.addEventListener('input', updateInstallmentCalc);
+
+function selectPaymentTab(type){
+  selectedPaymentType = type;
+  payTabCash.classList.toggle('active', type === 'cash');
+  payTabInstallment.classList.toggle('active', type === 'installment');
+  installmentCalc.style.display = type === 'installment' ? 'block' : 'none';
+}
+payTabCash.addEventListener('click', ()=> selectPaymentTab('cash'));
+payTabInstallment.addEventListener('click', ()=> selectPaymentTab('installment'));
+
 const formView       = document.getElementById('formView');
 const successView    = document.getElementById('successView');
 const confirmBtn     = document.getElementById('confirmBtn');
@@ -1564,6 +1800,7 @@ let selectedPrice = 0;
 let appliedDiscount = 0;
 
 function openModal(number, id){
+  if(window.closeAiWidget) closeAiWidget(); // ikkalasi bir vaqtda ochiq turib, ustma-ust tushmasin
   selectedNumberId = id || null;
   const item = NUMBERS.find(n => n.id === id);
   selectedPrice = item ? item.price : 0;
@@ -1574,6 +1811,20 @@ function openModal(number, id){
   const promoMsgEl = document.getElementById('promoMsg');
   promoMsgEl.style.display = 'none'; promoMsgEl.className = 'promo-msg';
   ['errName','errRegion','errPhone'].forEach(id=>document.getElementById(id).style.display='none');
+
+  // To'lov turi tanlash — faqat shu raqam uchun bo'lib to'lash mumkin
+  // bo'lsa ko'rsatiladi. Standart holat har doim "Naqt to'lov".
+  if(item && item.installment){
+    payTabs.style.display = 'grid';
+    selectPaymentTab('cash');
+    icSlider.value = 6;
+    updateInstallmentCalc();
+  }else{
+    payTabs.style.display = 'none';
+    installmentCalc.style.display = 'none';
+    selectedPaymentType = 'cash';
+  }
+
   formView.style.display = 'block';
   successView.style.display = 'none';
   overlay.classList.add('open');
@@ -1662,6 +1913,9 @@ function validate(){
 /* Har bir buyurtma yuborilganda shu Telegram botga darhol xabar boradi */
 /* Har bir buyurtma yuborilganda Netlify Function orqali (token ochiq ko'rinmaydi) Telegram'ga xabar ketadi */
 async function sendOrderToTelegram(payload, time, orderId){
+  const paymentLine = payload.paymentType === 'installment'
+    ? `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPrice(payload.monthlyPayment)}dan`
+    : `💵 To'lov turi: Naqt to'lov`;
   const text =
 `🔔 Yangi buyurtma
 
@@ -1669,6 +1923,7 @@ async function sendOrderToTelegram(payload, time, orderId){
 👤 Mijoz ismi: ${payload.name}
 ☎️ Ishlab turgan raqami: ${payload.phone}
 📍 Manzil: ${payload.region}
+${paymentLine}
 🕐 Vaqti: ${time}
 🌐 Qayerdan: ${payload.source || 'Sayt'}`;
 
@@ -1694,8 +1949,13 @@ confirmBtn.addEventListener('click', async ()=>{
     name: custName.value.trim(),
     region: custRegion.value,
     phone: custPhone.value.trim(),
-    source: 'Sayt'
+    source: 'Sayt',
+    paymentType: selectedPaymentType
   };
+  if(selectedPaymentType === 'installment'){
+    payload.installmentMonths = selectedInstallmentMonths;
+    payload.monthlyPayment = selectedMonthlyPayment;
+  }
   const orderTime = new Date().toLocaleString('uz-UZ');
 
   try{
@@ -2008,12 +2268,14 @@ function applyFont(fontName){
 
 let hideOrderButtonSetting = !!window.__cachedHideOrderBtn;
 let currentCatalogStyle = window.__cachedCatalogStyle || 'classic';
+let installmentMonthlyRate = 3; // standart: oyiga 3% — admin panelda o'zgartiriladi, mijozga ko'rinmaydi
 
 async function loadSiteSettings(){
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists){ if(window.__revealSite) window.__revealSite(); return; }
     const s = doc.data();
+    if(typeof s.installmentMonthlyRate === 'number') installmentMonthlyRate = s.installmentMonthlyRate;
     if(s.theme) applyTheme(s.theme);
     if(s.font !== undefined) applyFont(s.font);
     hideOrderButtonSetting = !!s.hideOrderButton;
@@ -2073,6 +2335,173 @@ setInterval(raqamuzHeartbeat, 20000);
 })();
 
 
+/* ==================================================================
+   VIDEO SHARHLAR ("Mijozlarimiz fikri") — Reels uslubidagi ko'ruvchi
+   ================================================================== */
+(function(){
+  const section = document.getElementById('testimonialsSection');
+  const scroll = document.getElementById('testimonialsScroll');
+  const overlay = document.getElementById('reelsOverlay');
+  const track = document.getElementById('reelsTrack');
+  const closeBtn = document.getElementById('reelsClose');
+  let videos = [];
+  let io = null; // IntersectionObserver — ekranda ko'rinib turgan videoni avtomatik ijro etadi
+
+  async function loadVideoTestimonials(){
+    try{
+      const snap = await db.collection('video_testimonials').orderBy('order', 'asc').get();
+      videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }catch(e){ videos = []; }
+
+    if(videos.length === 0){ section.style.display = 'none'; return; }
+    section.style.display = 'block';
+
+    scroll.innerHTML = videos.map((v, idx) => `
+      <div class="video-testi-card" data-idx="${idx}">
+        <video src="${v.videoUrl}#t=0.1" muted preload="metadata" playsinline></video>
+        <div class="video-testi-play">
+          <svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.35)"/><path d="M9.5 7.5v9l7-4.5z"/></svg>
+        </div>
+        ${v.caption ? `<div class="video-testi-caption">${v.caption.replace(/</g,'&lt;')}</div>` : ''}
+      </div>
+    `).join('');
+
+    scroll.querySelectorAll('.video-testi-card').forEach(card=>{
+      card.addEventListener('click', ()=> openReels(Number(card.dataset.idx)));
+    });
+  }
+
+  function openReels(startIdx){
+    if(window.closeAiWidget) closeAiWidget();
+    track.innerHTML = videos.map((v, idx) => `
+      <div class="reels-slide" data-idx="${idx}">
+        <video src="${v.videoUrl}" ${idx === startIdx ? '' : 'muted'} playsinline loop preload="metadata"></video>
+        ${v.caption ? `<div class="reels-slide-caption">${v.caption.replace(/</g,'&lt;')}</div>` : ''}
+        ${idx === startIdx ? `<div class="reels-slide-hint">↑ ↓ suring — keyingi video</div>` : ''}
+      </div>
+    `).join('');
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Boshlang'ich videoga sakraymiz (animatsiyasiz)
+    const startSlide = track.children[startIdx];
+    if(startSlide) startSlide.scrollIntoView({ block: 'start' });
+
+    // Faqat ekranda to'liq ko'rinib turgan video ijro etiladi, qolganlari
+    // to'xtatiladi — bu Instagram Reels'dagi kabi tabiiy tuyg'u beradi.
+    if(io) io.disconnect();
+    io = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        const video = entry.target.querySelector('video');
+        if(!video) return;
+        if(entry.isIntersecting && entry.intersectionRatio > 0.6){
+          video.muted = false;
+          video.play().catch(()=>{});
+        }else{
+          video.pause();
+        }
+      });
+    }, { root: track, threshold: [0, 0.6, 1] });
+
+    track.querySelectorAll('.reels-slide').forEach(slide => io.observe(slide));
+  }
+
+  function closeReels(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    track.querySelectorAll('video').forEach(v => v.pause());
+    if(io){ io.disconnect(); io = null; }
+    track.innerHTML = '';
+  }
+
+  closeBtn.addEventListener('click', closeReels);
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeReels(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && overlay.classList.contains('open')) closeReels(); });
+
+  window.__loadVideoTestimonials = loadVideoTestimonials;
+})();
+
+/* ==================================================================
+   SAYTDAGI AI CHAT WIDGET
+   ================================================================== */
+(function(){
+  const btn = document.getElementById('aiWidgetBtn');
+  const panel = document.getElementById('aiWidgetPanel');
+  const closeBtn = document.getElementById('aiWidgetClose');
+  const body = document.getElementById('aiWidgetBody');
+  const input = document.getElementById('aiWidgetInput');
+  const sendBtn = document.getElementById('aiWidgetSend');
+
+  let conversation = []; // Anthropic formatidagi suhbat tarixi (sahifa yangilansa tozalanadi)
+  let opened = false;
+
+  window.openAiWidget = function(){
+    panel.classList.add('open');
+    opened = true;
+    setTimeout(()=> input.focus(), 200);
+  };
+  window.closeAiWidget = function(){
+    panel.classList.remove('open');
+  };
+
+  btn.addEventListener('click', ()=>{
+    if(panel.classList.contains('open')) closeAiWidget();
+    else openAiWidget();
+  });
+  closeBtn.addEventListener('click', closeAiWidget);
+
+  function addMsg(text, cls){
+    const div = document.createElement('div');
+    div.className = 'ai-widget-msg ' + cls;
+    div.textContent = text;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+    return div;
+  }
+
+  async function sendMessage(){
+    const text = input.value.trim();
+    if(!text) return;
+    addMsg(text, 'user');
+    input.value = '';
+    input.disabled = true;
+    sendBtn.disabled = true;
+
+    const typing = document.createElement('div');
+    typing.className = 'ai-widget-typing';
+    typing.textContent = 'Yozmoqda...';
+    body.appendChild(typing);
+    body.scrollTop = body.scrollHeight;
+
+    try{
+      const res = await fetch('/.netlify/functions/site-ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation, userMessage: text })
+      });
+      const rawText = await res.text();
+      let data;
+      try{ data = JSON.parse(rawText); }
+      catch(e){ throw new Error('server_format'); }
+
+      typing.remove();
+      conversation = data.messages || conversation;
+      if(data.reply) addMsg(data.reply, 'bot');
+    }catch(err){
+      typing.remove();
+      addMsg("Kechirasiz, hozircha javob bera olmadim. Telegram botimiz orqali yozib qoldiring 🙏", 'bot');
+    }finally{
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') sendMessage(); });
+})();
+
 showSkeletons();
 (async function init(){
   await loadNumbers();
@@ -2080,6 +2509,7 @@ showSkeletons();
   renderFeatured();
   renderSale();
   renderDailyDeal();
+  if(window.__loadVideoTestimonials) window.__loadVideoTestimonials();
 })();
 </script>
 </body>
