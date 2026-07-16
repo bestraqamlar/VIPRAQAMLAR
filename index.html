@@ -651,6 +651,16 @@
     position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.55);
     font-size:10.5px;letter-spacing:0.5px;
   }
+  .reels-like-btn{
+    position:absolute;right:14px;bottom:100px;z-index:5;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:none;border:none;cursor:pointer;padding:6px;
+  }
+  .reels-like-btn svg{width:32px;height:32px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
+  .reels-like-btn.liked svg{transform:scale(1.15);}
+  .reels-like-count{color:#fff;font-size:11.5px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.6);}
+  @keyframes likePop{ 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1.15);} }
+  .reels-like-btn.liked svg{animation:likePop .35s ease;}
 
   /* ---- To'lov turi tanlash (Naqt / Bo'lib to'lash) ---- */
   .pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px;}
@@ -685,16 +695,20 @@
   .ic-monthly{color:var(--text);}
   .ic-monthly b{color:var(--amber);font-size:15px;font-family:'Sora',sans-serif;font-weight:800;}
 
-  /* ---- Saytdagi AI chat widget ---- */
-  .ai-widget-btn{
+  /* ---- Telegram FAB (suzib yuruvchi Telegram tugmasi) ---- */
+  .fab{
     position:fixed;bottom:20px;right:20px;z-index:400;
-    width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
-    background:linear-gradient(135deg,var(--amber),var(--brand-red));
-    box-shadow:0 6px 20px rgba(255,176,0,0.35);
-    display:flex;align-items:center;justify-content:center;font-size:24px;
-    animation:aiBtnFloat 3s ease-in-out infinite;
-    transition:transform .2s ease;
+    background:linear-gradient(135deg,#2AABEE,#229ED9);
+    width:54px;height:54px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 20px rgba(34,158,217,0.45);
+    animation:floatPulse 2.6s ease-in-out infinite;
   }
+  @keyframes floatPulse{0%,100%{box-shadow:0 6px 20px rgba(34,158,217,0.45);}50%{box-shadow:0 6px 28px rgba(34,158,217,0.7);}}
+  .fab svg{width:26px;height:26px;fill:#fff;}
+
+  /* ---- Saytdagi AI chat (faqat menyu ichidagi "YORDAMCHI AI" havolasidan ochiladi) ---- */
+  .ai-widget-btn{display:none;}
   .ai-widget-btn:active{transform:scale(0.92);}
   @keyframes aiBtnFloat{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
   .ai-widget-btn .ai-widget-dot{
@@ -703,16 +717,15 @@
   }
 
   .ai-widget-panel{
-    position:fixed;bottom:88px;right:20px;z-index:401;width:340px;max-width:calc(100vw - 32px);
-    height:460px;max-height:calc(100vh - 140px);background:var(--panel);border:1px solid var(--line);
-    border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,0.45);display:none;
+    position:fixed;inset:0;z-index:900;background:var(--panel);display:none;
     flex-direction:column;overflow:hidden;
   }
-  .ai-widget-panel.open{display:flex;animation:aiPanelOpen .25s cubic-bezier(.34,1.56,.64,1) both;}
-  @keyframes aiPanelOpen{ from{opacity:0;transform:translateY(16px) scale(.96);} to{opacity:1;transform:translateY(0) scale(1);} }
+  .ai-widget-panel.open{display:flex;animation:aiPanelOpen .22s ease both;}
+  @keyframes aiPanelOpen{ from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
   .ai-widget-header{
     background:linear-gradient(90deg,var(--amber),var(--brand-red));color:#0a1a12;
-    padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(env(safe-area-inset-top, 0px) + 14px) 16px 14px;
+    display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
   }
   .ai-widget-header-title{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;}
   .ai-widget-header-sub{font-size:10px;font-weight:600;opacity:.85;margin-top:1px;}
@@ -734,9 +747,9 @@
     width:38px;height:38px;font-size:16px;cursor:pointer;flex-shrink:0;
   }
   .ai-widget-input-row button:disabled{opacity:.5;}
+  .ai-widget-input-row{padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);}
   @media (max-width:420px){
-    .ai-widget-panel{right:16px;left:16px;width:auto;bottom:84px;}
-    .ai-widget-btn{right:16px;bottom:16px;}
+    .ai-widget-btn{right:16px;}
   }
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
@@ -1028,7 +1041,7 @@
   </div>
 
   <div class="drawer-links">
-    <a id="drawerAiChat" href="ai-chat.html" target="_blank" rel="noopener" class="drawer-ai-link">
+    <a id="drawerAiChat" href="#" class="drawer-ai-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.8 5.5L19 9l-5.2 1.5L12 16l-1.8-5.5L5 9l5.2-1.5z"/><circle cx="18" cy="18" r="3"/></svg>
       YORDAMCHI AI
     </a>
@@ -1237,6 +1250,10 @@
     </div>
   </div>
 </div>
+
+<a class="fab" href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" aria-label="Telegram orqali murojaat">
+  <svg viewBox="0 0 24 24"><path d="M9.036 15.803l-.396 5.57c.568 0 .814-.244 1.11-.537l2.663-2.545 5.522 4.03c1.012.564 1.73.267 1.997-.938L23.94 3.61c.36-1.474-.532-2.05-1.517-1.693L1.116 9.79c-1.446.564-1.424 1.373-.247 1.735l5.517 1.72L18.98 5.13c.582-.38 1.113-.17.677.21L9.036 15.803z"/></svg>
+</a>
 
 <button class="ai-widget-btn" id="aiWidgetBtn" aria-label="AI yordamchi bilan suhbat">
   🤖<span class="ai-widget-dot"></span>
@@ -2033,6 +2050,12 @@ menuBtn.addEventListener('click', openDrawer);
 drawerClose.addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
 
+document.getElementById('drawerAiChat').addEventListener('click', (e)=>{
+  e.preventDefault();
+  closeDrawer();
+  setTimeout(()=>{ if(window.openAiWidget) openAiWidget(); }, 250);
+});
+
 /* ---- Ofis manzili — Yandex xaritasi ---- */
 let yandexMapLoaded = false;
 let officeCoords = [41.289757, 69.201657]; // standart — admin sozlamalardan o'zgartirilishi mumkin
@@ -2371,18 +2394,68 @@ setInterval(raqamuzHeartbeat, 20000);
     });
   }
 
+  function heartSvg(filled){
+    return filled
+      ? `<svg viewBox="0 0 24 24" fill="#FF3B5C"><path d="M12 21s-6.7-4.35-9.3-8.1C.8 10.1 1.2 6.6 4 4.9c2.2-1.35 4.9-.7 6.3 1.2L12 8l1.7-1.9c1.4-1.9 4.1-2.55 6.3-1.2 2.8 1.7 3.2 5.2 1.3 8-2.6 3.75-9.3 8.1-9.3 8.1z"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-6.7-4.35-9.3-8.1C.8 10.1 1.2 6.6 4 4.9c2.2-1.35 4.9-.7 6.3 1.2L12 8l1.7-1.9c1.4-1.9 4.1-2.55 6.3-1.2 2.8 1.7 3.2 5.2 1.3 8-2.6 3.75-9.3 8.1-9.3 8.1z"/></svg>`;
+  }
+
+  function getLikedSet(){
+    try{ return new Set(JSON.parse(localStorage.getItem('raqamuz_liked_videos') || '[]')); }
+    catch(e){ return new Set(); }
+  }
+  function saveLikedSet(set){
+    try{ localStorage.setItem('raqamuz_liked_videos', JSON.stringify(Array.from(set))); }catch(e){}
+  }
+
   function openReels(startIdx){
     if(window.closeAiWidget) closeAiWidget();
-    track.innerHTML = videos.map((v, idx) => `
+    const likedSet = getLikedSet();
+    track.innerHTML = videos.map((v, idx) => {
+      const liked = likedSet.has(v.id);
+      return `
       <div class="reels-slide" data-idx="${idx}">
         <video src="${v.videoUrl}" ${idx === startIdx ? '' : 'muted'} playsinline loop preload="metadata"></video>
+        <button class="reels-like-btn ${liked ? 'liked' : ''}" data-id="${v.id}">
+          ${heartSvg(liked)}
+          <span class="reels-like-count">${v.likes || 0}</span>
+        </button>
         ${v.caption ? `<div class="reels-slide-caption">${v.caption.replace(/</g,'&lt;')}</div>` : ''}
         ${idx === startIdx ? `<div class="reels-slide-hint">↑ ↓ suring — keyingi video</div>` : ''}
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    // Instagram'dagi kabi — like tugmasi bosilsa, doimiy saqlanadi (Firestore'da
+    // hisoblagich oshadi) va shu foydalanuvchi uchun "yoqtirilgan" deb belgilanadi
+    // (localStorage orqali — qayta bossa, yechib olinadi).
+    track.querySelectorAll('.reels-like-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const videoId = btn.dataset.id;
+        const set = getLikedSet();
+        const countEl = btn.querySelector('.reels-like-count');
+        const video = videos.find(v => v.id === videoId);
+        const alreadyLiked = set.has(videoId);
+
+        btn.classList.toggle('liked', !alreadyLiked);
+        btn.innerHTML = heartSvg(!alreadyLiked) + `<span class="reels-like-count">${(video.likes || 0) + (alreadyLiked ? -1 : 1)}</span>`;
+
+        if(alreadyLiked) set.delete(videoId); else set.add(videoId);
+        saveLikedSet(set);
+
+        try{
+          const delta = alreadyLiked ? -1 : 1;
+          await db.collection('video_testimonials').doc(videoId).update({
+            likes: firebase.firestore.FieldValue.increment(delta)
+          });
+          if(video) video.likes = (video.likes || 0) + delta;
+        }catch(err){ /* internet bo'lmasa ham UI darhol yangilangan, keyinroq urinib ko'radi */ }
+      });
+    });
 
     // Boshlang'ich videoga sakraymiz (animatsiyasiz)
     const startSlide = track.children[startIdx];
