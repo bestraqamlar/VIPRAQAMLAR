@@ -235,35 +235,37 @@
   .hero{
     max-width:720px;margin:0 auto;padding:26px 20px 16px;text-align:center;
   }
-  /* ---- "VIP RAQAMLAR" video banneri — oq fon, yashil-sariq aylanuvchi ramka ---- */
+  /* ---- "VIP RAQAMLAR" video banneri — kichikroq, ko'k-yashil aylanuvchi ramka ---- */
+  .pvb-wrap{max-width:720px;margin:0 auto;padding:14px 20px 0;}
   .premium-video-banner{
     width:100%;box-sizing:border-box;
-    padding:3px;cursor:pointer;margin-bottom:16px;
+    padding:2px;cursor:pointer;
     background:#fff;
-    border:3px solid #33E28C;border-radius:14px;
+    border:2px solid #2AABEE;border-radius:11px;
     opacity:0;animation:fadeUp .6s ease forwards, pvbColorShift 6s ease-in-out infinite;
   }
   @keyframes pvbColorShift{
-    0%{ border-color:#33E28C; }
-    50%{ border-color:#FFB000; }
-    100%{ border-color:#33E28C; }
+    0%{ border-color:#2AABEE; }
+    50%{ border-color:#33E28C; }
+    100%{ border-color:#2AABEE; }
   }
   .pvb-inner{
-    display:flex;align-items:center;gap:10px;
-    padding:9px 12px;width:100%;box-sizing:border-box;
+    display:flex;align-items:center;gap:8px;
+    padding:6px 10px;width:100%;box-sizing:border-box;
+    background:#F4F7FB;border-radius:9px;
   }
   .pvb-ring{
-    width:40px;height:40px;border-radius:50%;flex-shrink:0;
+    width:26px;height:26px;border-radius:50%;flex-shrink:0;
     position:relative;background:#000;
   }
   .pvb-ring img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
   .pvb-play-badge{
     position:absolute;inset:0;border-radius:50%;
-    background:rgba(0,0,0,0.32);color:#fff;font-size:14px;
+    background:rgba(0,0,0,0.32);color:#fff;font-size:10px;
     display:flex;align-items:center;justify-content:center;line-height:1;
   }
   .pvb-text{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#1B7FC4;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:#1B7FC4;
     flex:1;
   }
   .hero h1{
@@ -1114,7 +1116,7 @@
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
-<section class="hero">
+<div class="pvb-wrap">
   <button class="premium-video-banner" id="premiumVideoBanner" style="display:none;">
     <div class="pvb-inner">
       <span class="pvb-ring">
@@ -1124,6 +1126,9 @@
       <span class="pvb-text">RELS - VIP RAQAMLAR</span>
     </div>
   </button>
+</div>
+
+<section class="hero">
   <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
 </section>
 
@@ -2717,6 +2722,8 @@ setInterval(raqamuzHeartbeat, 20000);
     }catch(e){ items = []; }
 
     banner.style.display = items.length ? 'flex' : 'none';
+    const wrap = document.querySelector('.pvb-wrap');
+    if(wrap) wrap.style.display = items.length ? 'block' : 'none';
   }
 
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
