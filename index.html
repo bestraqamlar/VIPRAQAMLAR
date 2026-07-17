@@ -252,7 +252,7 @@
     width:22px;height:22px;border-radius:50%;flex-shrink:0;
     background:#0B1220;display:flex;align-items:center;justify-content:center;
   }
-  .hrb-play{color:#2AABEE;font-size:11px;line-height:1;transform:scale(1.3);}
+  .hrb-play{font-size:11px;line-height:1;}
   .hrb-text{
     font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;color:var(--text);
   }
@@ -1071,7 +1071,7 @@
 
 <header>
   <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:none;" aria-label="Video reels">
-    <span class="hrb-ring"><span class="hrb-play">▶</span></span>
+    <span class="hrb-ring"><span class="hrb-play">🎬</span></span>
     <span class="hrb-text">RELS</span>
   </button>
   <button class="menu-btn" id="menuBtn" aria-label="Menyu">
@@ -2397,6 +2397,48 @@ setInterval(raqamuzHeartbeat, 20000);
 
 
 /* ==================================================================
+   Video reels ochilganda "kutib qolish" bo'lmasligi uchun — birinchi
+   ko'rsatiladigan videoni FON REJIMIDA (ko'rinmas holda) oldindan
+   yuklay boshlaymiz. MUHIM: shunchaki brauzer keshiga umid qilib
+   qo'ymaymiz (bu Firebase Storage sozlamalariga bog'liq, ishonchsiz) —
+   aksincha, video ochilganda AYNAN O'SHA yuklanayotgan DOM elementini
+   (uning buferi bilan birga) ko'chirib, joyiga qo'yamiz. Shunda video
+   hech qachon "noldan" boshlanmaydi.
+   ================================================================== */
+function getPreloadHolder(){
+  let holder = document.getElementById('reelsPreloadHolder');
+  if(!holder){
+    holder = document.createElement('div');
+    holder.id = 'reelsPreloadHolder';
+    holder.style.cssText = 'position:fixed;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;top:-9999px;left:-9999px;';
+    document.body.appendChild(holder);
+  }
+  return holder;
+}
+function warmVideoCache(url){
+  if(!url) return;
+  const holder = getPreloadHolder();
+  if(holder.querySelector(`video[data-warm-url="${CSS.escape(url)}"]`)) return; // allaqachon boshlangan
+  const v = document.createElement('video');
+  v.dataset.warmUrl = url;
+  v.preload = 'auto';
+  v.muted = true;
+  v.playsInline = true;
+  v.src = url;
+  holder.appendChild(v);
+  try{ v.load(); }catch(e){}
+}
+// Oldindan tayyorlanayotgan video elementini (agar bor bo'lsa) "olib
+// chiqib" beradi — buferi bilan birga, hech narsa yo'qotilmaydi.
+function takeWarmedVideo(url){
+  if(!url) return null;
+  const holder = getPreloadHolder();
+  const el = holder.querySelector(`video[data-warm-url="${CSS.escape(url)}"]`);
+  if(el) holder.removeChild(el);
+  return el || null;
+}
+
+/* ==================================================================
    VIDEO SHARHLAR ("Mijozlarimiz fikri") — Reels uslubidagi ko'ruvchi
    ================================================================== */
 (function(){
@@ -2416,6 +2458,11 @@ setInterval(raqamuzHeartbeat, 20000);
 
     if(videos.length === 0){ section.style.display = 'none'; return; }
     section.style.display = 'block';
+
+    // MUHIM: mijoz "RELS"ni bosgan zahoti video DARHOL ochilishi uchun,
+    // birinchi videoni FON REJIMIDA (ko'rinmas holda) oldindan yuklab
+    // qo'yamiz — shunda brauzer keshida tayyor turadi, kutish bo'lmaydi.
+    warmVideoCache(videos[0].videoUrl);
 
     // MUHIM: yuzlab video bo'lsa ham, faqat ekranga yaqin turgan
     // kartochkalarning videosi haqiqatan yuklanadi ("lazy loading") —
@@ -2521,10 +2568,23 @@ setInterval(raqamuzHeartbeat, 20000);
     const btn = slideEl.querySelector('.reels-like-btn');
     if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
 
+    // Agar shu video allaqachon fon rejimida oldindan yuklanayotgan bo'lsa
+    // (warmVideoCache orqali), o'sha AYNAN O'SHA elementni (buferi bilan
+    // birga) shu yerga ko'chiramiz — noldan boshlanmaydi, darhol ochiladi.
+    let video = slideEl.querySelector('video');
+    if(video){
+      const warmed = takeWarmedVideo(video.dataset.src);
+      if(warmed){
+        warmed.dataset.src = video.dataset.src;
+        warmed.className = video.className;
+        video.replaceWith(warmed);
+        video = warmed;
+      }
+    }
+
     // Video bir marta tugaganda: qisqa "tepaga surish mumkin" imosi
     // ko'rsatiladi, so'ng video avtomatik boshidan qayta boshlanadi
     // (loop) — xuddi Instagram Reels'dagi kabi.
-    const video = slideEl.querySelector('video');
     if(video){
       video.addEventListener('ended', ()=>{
         slideEl.classList.add('nudge-hint');
@@ -2741,7 +2801,12 @@ setInterval(raqamuzHeartbeat, 20000);
         .filter(Boolean);
     }catch(e){ items = []; }
 
+    // Tasodifiy tartib endi shu yerda, BIR MARTA (sahifa yuklanganda)
+    // belgilanadi — shunda "birinchi" video har doim aniq bo'ladi va
+    // uni oldindan (fon rejimida) tayyorlab qo'yish mumkin.
+    items = shuffle(items);
     banner.style.display = items.length ? 'flex' : 'none';
+    if(items.length) warmVideoCache(items[0].videoUrl);
   }
 
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
@@ -2839,8 +2904,14 @@ setInterval(raqamuzHeartbeat, 20000);
   }
 
   function bindSlideEvents(slideEl){
-    const video = slideEl.querySelector('video');
+    let video = slideEl.querySelector('video');
     if(video){
+      const warmed = takeWarmedVideo(video.dataset.src);
+      if(warmed){
+        warmed.dataset.src = video.dataset.src;
+        video.replaceWith(warmed);
+        video = warmed;
+      }
       video.addEventListener('ended', ()=>{
         slideEl.classList.add('nudge-hint');
         setTimeout(()=> slideEl.classList.remove('nudge-hint'), 550);
@@ -2905,8 +2976,6 @@ setInterval(raqamuzHeartbeat, 20000);
 
   function openPremiumReels(){
     if(!items.length) return;
-    const shuffled = shuffle(items.map((v, i) => i));
-    items = shuffled.map(i => items[i]); // tasodifiy tartib — har safar ochilganda boshqacha
     currentIdx = 0;
 
     overlay.classList.add('open');
