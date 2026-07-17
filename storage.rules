@@ -1,11 +1,31 @@
-[build]
-  command = "npm install"
+rules_version = '2';
 
-[functions]
-  directory = "netlify/functions"
+// FIREBASE STORAGE XAVFSIZLIK QOIDALARI
+// Bu faylni Firebase konsolida qo'lda joylashtirish kerak:
+// Firebase Console → Build → Storage → Rules → shu matnni joylashtiring → Publish
+//
+// (Agar "Storage" bo'limi hali yoqilmagan bo'lsa, avval "Get started"
+// tugmasini bosib yoqib oling.)
 
-[functions."check-credit-payments"]
-  schedule = "0 */6 * * *"
+service firebase.storage {
+  match /b/{bucket}/o {
 
-[functions."credit-excel-report"]
-  schedule = "0 4 * * *"
+    // Mijozlar fikri video sharhlari — hamma ko'ra oladi (saytda
+    // ko'rsatiladi), faqat tizimga kirgan admin yuklashi/o'chirishi mumkin.
+    match /testimonial_videos/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 100 * 1024 * 1024   // 100 MB dan katta bo'lmasin
+        && request.resource.contentType.matches('video/.*');
+    }
+
+    // "Premium raqamlar" reklama videolari — hamma ko'ra oladi, faqat
+    // admin yuklashi/o'chirishi mumkin.
+    match /premium_number_videos/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 100 * 1024 * 1024
+        && request.resource.contentType.matches('video/.*');
+    }
+  }
+}
