@@ -2340,6 +2340,7 @@ window.handlePremiumVideoUpload = async function(){
       videoUrl,
       numberId: pvSelectedNumberData.id,
       number: pvSelectedNumberData.number,
+      likes: 500 + Math.floor(Math.random() * 500),
       createdAt: Date.now()
     });
 
@@ -2371,6 +2372,12 @@ async function loadPremiumVideoList(){
         <button class="vi-delete" data-id="${v.id}">✕</button>
         <video src="${v.videoUrl}" muted preload="metadata"></video>
         <div class="vi-caption">${(v.number || '').replace(/</g,'&lt;')}</div>
+        <div class="vi-likes-row">
+          <span class="vi-likes-icon">❤️</span>
+          <input type="number" class="vi-likes-input" data-id="${v.id}" value="${v.likes || 0}" min="0">
+          <button class="vi-likes-save" data-id="${v.id}">💾</button>
+          <button class="vi-likes-rand" data-id="${v.id}" title="Tasodifiy 500-999">🎲</button>
+        </div>
       </div>
     `).join('');
 
@@ -2380,6 +2387,29 @@ async function loadPremiumVideoList(){
         try{
           await db.collection('premium_number_videos').doc(btn.dataset.id).delete();
           loadPremiumVideoList();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+
+    list.querySelectorAll('.vi-likes-save').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const input = list.querySelector(`.vi-likes-input[data-id="${btn.dataset.id}"]`);
+        const val = Math.max(0, parseInt(input.value, 10) || 0);
+        try{
+          await db.collection('premium_number_videos').doc(btn.dataset.id).update({ likes: val });
+          vibrate(60);
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+
+    list.querySelectorAll('.vi-likes-rand').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const val = 500 + Math.floor(Math.random() * 500);
+        const input = list.querySelector(`.vi-likes-input[data-id="${btn.dataset.id}"]`);
+        input.value = val;
+        try{
+          await db.collection('premium_number_videos').doc(btn.dataset.id).update({ likes: val });
+          vibrate(60);
         }catch(err){ alert('Xato: ' + err.message); }
       });
     });
