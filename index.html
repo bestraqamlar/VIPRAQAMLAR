@@ -600,31 +600,37 @@
 
   /* ---- Video sharh kartochkasi (yonma-yon, Reels'ga o'xshab) ---- */
   .video-testi-card{
-    flex:0 0 128px;aspect-ratio:9/16;border-radius:14px;overflow:hidden;position:relative;
-    cursor:pointer;background:var(--panel);border:1px solid var(--line);
+    flex:0 0 130px;aspect-ratio:9/16;border-radius:16px;overflow:hidden;position:relative;
+    cursor:pointer;background:var(--panel);
+    border:2px solid transparent;
+    background-image:linear-gradient(var(--panel),var(--panel)),linear-gradient(135deg,var(--amber),var(--brand-red));
+    background-origin:border-box;background-clip:padding-box, border-box;
+    box-shadow:0 8px 22px rgba(0,0,0,0.35);
     opacity:0;animation:fadeSlideUpT .5s ease forwards;
+    transition:transform .18s ease, box-shadow .18s ease;
   }
+  .video-testi-card:active{transform:scale(0.95);}
   .video-testi-card:nth-child(1){animation-delay:.05s;}
   .video-testi-card:nth-child(2){animation-delay:.13s;}
   .video-testi-card:nth-child(3){animation-delay:.21s;}
   .video-testi-card:nth-child(4){animation-delay:.29s;}
   .video-testi-card:nth-child(5){animation-delay:.37s;}
   @keyframes fadeSlideUpT{ from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
-  .video-testi-card video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+  .video-testi-card video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;border-radius:13px;}
   .video-testi-play{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,0.55) 100%);
+    position:absolute;inset:0;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,rgba(0,0,0,0.05) 45%,rgba(0,0,0,0.6) 100%);
   }
-  .video-testi-play svg{width:34px;height:34px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));}
+  .video-testi-play svg{width:32px;height:32px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));}
   .video-testi-caption{
-    position:absolute;left:0;right:0;bottom:6px;padding:0 8px;color:#fff;font-size:9.5px;
-    line-height:1.3;max-height:32px;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,0.7);
+    position:absolute;left:0;right:0;bottom:7px;padding:0 9px;color:#fff;font-size:9.5px;
+    line-height:1.3;max-height:32px;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,0.8);font-weight:600;
   }
 
   /* ---- Reels uslubidagi to'liq ekran video ko'ruvchi ---- */
   .reels-overlay{
     position:fixed;inset:0;background:#000;z-index:900;display:none;
-    flex-direction:column;
+    flex-direction:column;overflow:hidden;
   }
   .reels-overlay.open{display:flex;animation:fadeIn .2s ease;}
   .reels-close{
@@ -632,18 +638,21 @@
     background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border:none;color:#fff;
     width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;
   }
+  /* Endi tabiiy scroll emas — JS bitta videoni bir vaqtning o'zida ko'rsatadi
+     va translateY orqali silliq o'tkazadi. Shu bilan tez suriganda ham
+     HAR DOIM faqat KEYINGI (yoki oldingi) videoga o'tadi, sakrab ketmaydi. */
   .reels-track{
-    flex:1;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
+    position:relative;flex:1;overflow:hidden;
+    touch-action:none;
   }
-  .reels-track::-webkit-scrollbar{display:none;}
   .reels-slide{
-    height:100%;width:100%;scroll-snap-align:start;position:relative;
+    position:absolute;inset:0;
     display:flex;align-items:center;justify-content:center;
+    transition:transform .32s cubic-bezier(.22,.9,.4,1), opacity .32s ease;
   }
   .reels-slide video{width:100%;height:100%;object-fit:contain;background:#000;}
   .reels-slide-caption{
-    position:absolute;left:0;right:0;bottom:0;padding:20px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    position:absolute;left:0;right:0;bottom:0;padding:20px 76px calc(env(safe-area-inset-bottom, 0px) + 24px) 20px;
     background:linear-gradient(0deg,rgba(0,0,0,0.75),rgba(0,0,0,0));
     color:#fff;font-size:13px;line-height:1.5;
   }
@@ -652,13 +661,13 @@
     font-size:10.5px;letter-spacing:0.5px;
   }
   .reels-like-btn{
-    position:absolute;right:14px;bottom:100px;z-index:5;
-    display:flex;flex-direction:column;align-items:center;gap:4px;
-    background:none;border:none;cursor:pointer;padding:6px;
+    position:absolute;right:14px;bottom:190px;z-index:5;
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    background:none;border:none;cursor:pointer;padding:8px;
   }
-  .reels-like-btn svg{width:32px;height:32px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
+  .reels-like-btn svg{width:34px;height:34px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
   .reels-like-btn.liked svg{transform:scale(1.15);}
-  .reels-like-count{color:#fff;font-size:11.5px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.6);}
+  .reels-like-count{color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.6);}
   @keyframes likePop{ 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1.15);} }
   .reels-like-btn.liked svg{animation:likePop .35s ease;}
 
@@ -2368,7 +2377,7 @@ setInterval(raqamuzHeartbeat, 20000);
   const track = document.getElementById('reelsTrack');
   const closeBtn = document.getElementById('reelsClose');
   let videos = [];
-  let io = null; // IntersectionObserver — ekranda ko'rinib turgan videoni avtomatik ijro etadi
+  let currentIdx = 0;
 
   async function loadVideoTestimonials(){
     try{
@@ -2408,89 +2417,129 @@ setInterval(raqamuzHeartbeat, 20000);
     try{ localStorage.setItem('raqamuz_liked_videos', JSON.stringify(Array.from(set))); }catch(e){}
   }
 
-  function openReels(startIdx){
-    if(window.closeAiWidget) closeAiWidget();
+  async function toggleLike(videoId, btn){
+    const set = getLikedSet();
+    const video = videos.find(v => v.id === videoId);
+    const alreadyLiked = set.has(videoId);
+    const delta = alreadyLiked ? -1 : 1;
+
+    // Avval ko'rinishni darhol yangilaymiz (tez his qilinishi uchun)
+    btn.classList.toggle('liked', !alreadyLiked);
+    btn.innerHTML = heartSvg(!alreadyLiked) + `<span class="reels-like-count">${(video.likes || 0) + delta}</span>`;
+
+    try{
+      // Firestore'da doimiy saqlaymiz — shu bilan barcha tashrif buyuruvchilarning
+      // like'lari umumiy hisoblagichga qo'shilib boradi.
+      await db.collection('video_testimonials').doc(videoId).update({
+        likes: firebase.firestore.FieldValue.increment(delta)
+      });
+      if(video) video.likes = (video.likes || 0) + delta;
+      if(alreadyLiked) set.delete(videoId); else set.add(videoId);
+      saveLikedSet(set);
+    }catch(err){
+      // Saqlanmadi (masalan ruxsat xatosi) — ko'rinishni ORQAGA qaytaramiz,
+      // shunda mijoz "like bosdim-u lekin saqlanmadi" holatini ko'rmaydi.
+      console.error('Like saqlanmadi:', err);
+      btn.classList.toggle('liked', alreadyLiked);
+      btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${video.likes || 0}</span>`;
+    }
+  }
+
+  function renderSlide(idx){
+    const v = videos[idx];
+    if(!v) return '';
     const likedSet = getLikedSet();
-    track.innerHTML = videos.map((v, idx) => {
-      const liked = likedSet.has(v.id);
-      return `
+    const liked = likedSet.has(v.id);
+    return `
       <div class="reels-slide" data-idx="${idx}">
-        <video src="${v.videoUrl}" ${idx === startIdx ? '' : 'muted'} playsinline loop preload="metadata"></video>
+        <video src="${v.videoUrl}" playsinline loop preload="auto"></video>
         <button class="reels-like-btn ${liked ? 'liked' : ''}" data-id="${v.id}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
         </button>
         ${v.caption ? `<div class="reels-slide-caption">${v.caption.replace(/</g,'&lt;')}</div>` : ''}
-        ${idx === startIdx ? `<div class="reels-slide-hint">↑ ↓ suring — keyingi video</div>` : ''}
       </div>
     `;
-    }).join('');
+  }
 
+  function bindSlideEvents(slideEl){
+    const btn = slideEl.querySelector('.reels-like-btn');
+    if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
+  }
+
+  function playOnly(idx){
+    track.querySelectorAll('.reels-slide').forEach(slide=>{
+      const video = slide.querySelector('video');
+      if(!video) return;
+      if(Number(slide.dataset.idx) === idx){
+        video.muted = false;
+        video.currentTime = 0;
+        video.play().catch(()=>{});
+      }else{
+        video.pause();
+      }
+    });
+  }
+
+  // Hozirgi va (agar bo'lsa) qo'shni bitta slaydni ko'rsatamiz — shu bilan
+  // TEZ suriganda ham hech qachon 1 tadan ortiq video "sakramaydi".
+  function renderTrack(){
+    track.innerHTML = renderSlide(currentIdx);
+    track.querySelectorAll('.reels-slide').forEach(bindSlideEvents);
+    playOnly(currentIdx);
+  }
+
+  function goToIndex(newIdx){
+    if(newIdx < 0 || newIdx >= videos.length || newIdx === currentIdx) return;
+    currentIdx = newIdx;
+    renderTrack();
+  }
+
+  function openReels(startIdx){
+    if(window.closeAiWidget) closeAiWidget();
+    currentIdx = startIdx;
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-
-    // Instagram'dagi kabi — like tugmasi bosilsa, doimiy saqlanadi (Firestore'da
-    // hisoblagich oshadi) va shu foydalanuvchi uchun "yoqtirilgan" deb belgilanadi
-    // (localStorage orqali — qayta bossa, yechib olinadi).
-    track.querySelectorAll('.reels-like-btn').forEach(btn=>{
-      btn.addEventListener('click', async (e)=>{
-        e.stopPropagation();
-        const videoId = btn.dataset.id;
-        const set = getLikedSet();
-        const countEl = btn.querySelector('.reels-like-count');
-        const video = videos.find(v => v.id === videoId);
-        const alreadyLiked = set.has(videoId);
-
-        btn.classList.toggle('liked', !alreadyLiked);
-        btn.innerHTML = heartSvg(!alreadyLiked) + `<span class="reels-like-count">${(video.likes || 0) + (alreadyLiked ? -1 : 1)}</span>`;
-
-        if(alreadyLiked) set.delete(videoId); else set.add(videoId);
-        saveLikedSet(set);
-
-        try{
-          const delta = alreadyLiked ? -1 : 1;
-          await db.collection('video_testimonials').doc(videoId).update({
-            likes: firebase.firestore.FieldValue.increment(delta)
-          });
-          if(video) video.likes = (video.likes || 0) + delta;
-        }catch(err){ /* internet bo'lmasa ham UI darhol yangilangan, keyinroq urinib ko'radi */ }
-      });
-    });
-
-    // Boshlang'ich videoga sakraymiz (animatsiyasiz)
-    const startSlide = track.children[startIdx];
-    if(startSlide) startSlide.scrollIntoView({ block: 'start' });
-
-    // Faqat ekranda to'liq ko'rinib turgan video ijro etiladi, qolganlari
-    // to'xtatiladi — bu Instagram Reels'dagi kabi tabiiy tuyg'u beradi.
-    if(io) io.disconnect();
-    io = new IntersectionObserver((entries)=>{
-      entries.forEach(entry=>{
-        const video = entry.target.querySelector('video');
-        if(!video) return;
-        if(entry.isIntersecting && entry.intersectionRatio > 0.6){
-          video.muted = false;
-          video.play().catch(()=>{});
-        }else{
-          video.pause();
-        }
-      });
-    }, { root: track, threshold: [0, 0.6, 1] });
-
-    track.querySelectorAll('.reels-slide').forEach(slide => io.observe(slide));
+    renderTrack();
   }
 
   function closeReels(){
     overlay.classList.remove('open');
     document.body.style.overflow = '';
     track.querySelectorAll('video').forEach(v => v.pause());
-    if(io){ io.disconnect(); io = null; }
     track.innerHTML = '';
   }
 
+  // --- Svayp: har bir imo-ishora FAQAT bitta videoga o'tkazadi ---
+  let touchStartY = null;
+  track.addEventListener('touchstart', (e)=>{ touchStartY = e.touches[0].clientY; }, { passive: true });
+  track.addEventListener('touchend', (e)=>{
+    if(touchStartY === null) return;
+    const deltaY = touchStartY - e.changedTouches[0].clientY;
+    touchStartY = null;
+    if(Math.abs(deltaY) < 45) return; // juda kichik harakat — e'tiborsiz
+    if(deltaY > 0) goToIndex(currentIdx + 1); // yuqoriga surildi — keyingi video
+    else goToIndex(currentIdx - 1); // pastga surildi — oldingi video
+  }, { passive: true });
+
+  // Kompyuter uchun: sichqoncha g'ildiragi va yon strelka tugmalari
+  let wheelLocked = false;
+  track.addEventListener('wheel', (e)=>{
+    if(wheelLocked) return;
+    if(Math.abs(e.deltaY) < 30) return;
+    wheelLocked = true;
+    if(e.deltaY > 0) goToIndex(currentIdx + 1); else goToIndex(currentIdx - 1);
+    setTimeout(()=> wheelLocked = false, 400);
+  }, { passive: true });
+
   closeBtn.addEventListener('click', closeReels);
   overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeReels(); });
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && overlay.classList.contains('open')) closeReels(); });
+  document.addEventListener('keydown', (e)=>{
+    if(!overlay.classList.contains('open')) return;
+    if(e.key === 'Escape') closeReels();
+    else if(e.key === 'ArrowDown') goToIndex(currentIdx + 1);
+    else if(e.key === 'ArrowUp') goToIndex(currentIdx - 1);
+  });
 
   window.__loadVideoTestimonials = loadVideoTestimonials;
 })();
