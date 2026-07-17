@@ -235,32 +235,25 @@
   .hero{
     max-width:720px;margin:0 auto;padding:26px 20px 16px;text-align:center;
   }
-  /* ---- "Premium raqamlar" video banneri (Instagram Stories uslubida) ---- */
+  /* ---- "VIP RAQAMLAR" video banneri (qora-ko'k gradient, 6-dizayn asosida) ---- */
   .premium-video-banner{
     width:100%;box-sizing:border-box;
-    display:flex;align-items:center;
-    background:var(--panel);
-    padding:3px;cursor:pointer;margin-bottom:16px;
-    position:relative;text-align:left;
-    background-image:linear-gradient(var(--panel),var(--panel)),
-      conic-gradient(from var(--pvb-angle,0deg), #2AABEE, #1B7FC4, #4FC3F7, #2AABEE);
-    background-origin:border-box;background-clip:padding-box, border-box;
-    border:3px solid transparent;border-radius:16px;
-    opacity:0;animation:fadeUp .6s ease forwards, pvbSpin 22s linear infinite;
+    display:flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg,#000000 0%,#0B2A4A 55%,#2AABEE 140%);
+    padding:11px 14px;cursor:pointer;margin-bottom:16px;
+    border-radius:12px;border:1px solid rgba(42,171,238,0.4);
+    opacity:0;animation:fadeUp .6s ease forwards;
   }
-  @property --pvb-angle{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
-  @keyframes pvbSpin{ to{ --pvb-angle:360deg; } }
   .pvb-ring{
-    width:46px;height:46px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(135deg,#2AABEE,#1B7FC4);
-    display:flex;align-items:center;justify-content:center;margin:0 12px 0 0;
+    width:24px;height:24px;border-radius:50%;flex-shrink:0;
+    overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center;
   }
-  .pvb-icon{color:#fff;font-size:16px;}
+  .pvb-ring img{width:100%;height:100%;object-fit:cover;display:block;}
   .pvb-text{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#fff;
     flex:1;
   }
-  .pvb-arrow{color:var(--muted);font-size:22px;padding-right:8px;}
+  .pvb-arrow{color:rgba(255,255,255,0.55);font-size:19px;}
   .hero h1{
     font-family:'Sora',sans-serif;
     font-size:clamp(26px,7vw,40px);
@@ -1111,7 +1104,7 @@
 
 <section class="hero">
   <button class="premium-video-banner" id="premiumVideoBanner" style="display:none;">
-    <span class="pvb-ring"><span class="pvb-icon">▶</span></span>
+    <span class="pvb-ring"><img src="assets/logo-circle.png" alt="VIP RAQAMLAR"></span>
     <span class="pvb-text">VIP RAQAMLAR</span>
     <span class="pvb-arrow">›</span>
   </button>
