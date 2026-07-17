@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-<title>RAQAM.UZ — Chiroyli, Oltin va VIP Raqamlar | Raqam Tanlash Xizmati</title>
+<title>VIPRAQAMLAR.UZ — Chiroyli, Oltin va VIP Raqamlar | Raqam Tanlash Xizmati</title>
 <meta name="description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum raqamlari. Bepul yetkazib berish, muddatli to'lov (kredit) imkoniyati.">
 <meta name="keywords" content="raqam, nomer, oltin raqam, vip raqam, chiroyli raqam, raqam tanlash, telefon raqam sotib olish, sim karta, Beeline raqam, Ucell raqam, Uzmobile raqam, Mobiuz raqam, Toshkent raqam tanlash, O'zbekiston raqamlar katalogi">
 <link rel="canonical" href="https://vipraqamlar.uz/">
@@ -11,21 +11,21 @@
 <meta name="google-site-verification" content="I6UBu5Pm0CpwIE4txcOEXSVtieGWpQR5YkViiQCt7Vk" />
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="RAQAM.UZ">
-<meta property="og:title" content="RAQAM.UZ — Chiroyli, Oltin va VIP Raqamlar">
+<meta property="og:site_name" content="VIPRAQAMLAR.UZ">
+<meta property="og:title" content="VIPRAQAMLAR.UZ — Chiroyli, Oltin va VIP Raqamlar">
 <meta property="og:description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Barcha operatorlar, bepul yetkazib berish, muddatli to'lov imkoniyati.">
 <meta property="og:url" content="https://vipraqamlar.uz/">
 <meta property="og:locale" content="uz_UZ">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RAQAM.UZ — Chiroyli, Oltin va VIP Raqamlar">
+<meta name="twitter:title" content="VIPRAQAMLAR.UZ — Chiroyli, Oltin va VIP Raqamlar">
 <meta name="twitter:description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling.">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Store",
-  "name": "RAQAM.UZ",
+  "name": "VIPRAQAMLAR.UZ",
   "url": "https://vipraqamlar.uz/",
   "description": "O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlash va sotib olish xizmati.",
   "areaServed": "UZ",
@@ -130,8 +130,8 @@
   }
   .logo{
     font-family:'Sora',sans-serif;
-    font-weight:800;font-size:15px;
-    letter-spacing:0.3px;display:flex;align-items:center;gap:6px;
+    font-weight:800;font-size:13px;
+    letter-spacing:0.1px;display:flex;align-items:center;gap:6px;white-space:nowrap;
   }
   .logo .dot{
     width:8px;height:8px;border-radius:50%;background:var(--green);
@@ -632,7 +632,7 @@
     position:fixed;inset:0;background:#000;z-index:900;display:none;
     flex-direction:column;overflow:hidden;
   }
-  .reels-overlay.open{display:flex;animation:fadeIn .2s ease;}
+  .reels-overlay.open{display:flex;}
   .reels-close{
     position:absolute;top:calc(env(safe-area-inset-top, 0px) + 14px);right:16px;z-index:910;
     background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border:none;color:#fff;
@@ -660,6 +660,16 @@
     position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.55);
     font-size:10.5px;letter-spacing:0.5px;
   }
+  /* Video bir marta tugaganda, "tepaga surish mumkin" his qildirish uchun
+     video biroz tepaga sirg'alib, keyin joyiga qaytadi — Instagram Reels'da
+     ham shunga o'xshash imo bo'ladi. */
+  @keyframes nudgeHint{
+    0%{transform:translateY(0);}
+    30%{transform:translateY(-16px);}
+    58%{transform:translateY(3px);}
+    100%{transform:translateY(0);}
+  }
+  .reels-slide.nudge-hint video{ animation:nudgeHint .55s cubic-bezier(.34,1.56,.64,1); }
   .reels-like-btn{
     position:absolute;right:14px;bottom:190px;z-index:5;
     display:flex;flex-direction:column;align-items:center;gap:5px;
@@ -1034,7 +1044,7 @@
 <body>
 
 <header>
-  <div class="logo"><span class="dot"></span>RAQAM<span class="logo-accent">.UZ</span></div>
+  <div class="logo"><span class="dot"></span>VIPRAQAMLAR<span class="logo-accent">.UZ</span></div>
   <button class="menu-btn" id="menuBtn" aria-label="Menyu">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -1043,7 +1053,7 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <aside class="side-drawer" id="sideDrawer">
   <div class="drawer-top">
-    <div class="drawer-logo"><span class="dot"></span>RAQAM<span class="logo-accent">.UZ</span></div>
+    <div class="drawer-logo"><span class="dot"></span>VIPRAQAMLAR<span class="logo-accent">.UZ</span></div>
     <button class="drawer-close" id="drawerClose" aria-label="Yopish">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
     </button>
@@ -1095,7 +1105,7 @@
 </section>
 
 <section class="hero">
-  <h1><span class="brand-white">RAQAM</span><span class="brand-red">.UZ</span></h1>
+  <h1><span class="brand-white">VIPRAQAMLAR</span><span class="brand-red">.UZ</span></h1>
   <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
 </section>
 
@@ -1267,7 +1277,7 @@
 <div class="ai-widget-panel" id="aiWidgetPanel">
   <div class="ai-widget-header">
     <div>
-      <div class="ai-widget-header-title">✨ RAQAM AI</div>
+      <div class="ai-widget-header-title">✨ VIPRAQAMLAR AI</div>
       <div class="ai-widget-header-sub">Savolingizga darhol javob beramiz</div>
     </div>
     <button class="ai-widget-close" id="aiWidgetClose">✕</button>
@@ -1281,7 +1291,7 @@
   </div>
 </div>
 
-<footer>&copy; 2026 RAQAM.UZ. Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
+<footer>&copy; 2026 VIPRAQAMLAR.UZ. Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
 
 <!-- FIREBASE (mijoz sayti va admin sayti bir xil bazani ishlatadi) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -2444,7 +2454,7 @@ setInterval(raqamuzHeartbeat, 20000);
     const liked = likedSet.has(v.id);
     return `
       <div class="reels-slide" data-idx="${idx}">
-        <video src="${v.videoUrl}" playsinline loop preload="auto"></video>
+        <video src="${v.videoUrl}" playsinline preload="auto"></video>
         <button class="reels-like-btn ${liked ? 'liked' : ''}" data-id="${v.id}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
@@ -2457,6 +2467,19 @@ setInterval(raqamuzHeartbeat, 20000);
   function bindSlideEvents(slideEl){
     const btn = slideEl.querySelector('.reels-like-btn');
     if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
+
+    // Video bir marta tugaganda: qisqa "tepaga surish mumkin" imosi
+    // ko'rsatiladi, so'ng video avtomatik boshidan qayta boshlanadi
+    // (loop) — xuddi Instagram Reels'dagi kabi.
+    const video = slideEl.querySelector('video');
+    if(video){
+      video.addEventListener('ended', ()=>{
+        slideEl.classList.add('nudge-hint');
+        setTimeout(()=> slideEl.classList.remove('nudge-hint'), 550);
+        video.currentTime = 0;
+        video.play().catch(()=>{});
+      });
+    }
   }
 
   function playSlideVideo(slideEl){
@@ -2475,10 +2498,13 @@ setInterval(raqamuzHeartbeat, 20000);
   // faqat translateY orqali joyi almashadi. Shu bilan: (1) video oldindan
   // yuklanib turadi, o'tkazganda darhol ochiladi; (2) orqaga qaytganda
   // "muzlab qolish" bo'lmaydi, chunki video hech qachon qayta yaratilmaydi.
-  function positionSlides(){
+  // Pozitsiya piksellarda hisoblanadi — shunda barmoq bilan sudrash paytida
+  // qo'shimcha (qo'lda) siljish bilan bir xil birlikda ishlaydi.
+  function positionSlides(extraOffsetPx){
+    const h = track.clientHeight;
     track.querySelectorAll('.reels-slide').forEach(slide=>{
       const idx = Number(slide.dataset.idx);
-      slide.style.transform = `translateY(${(idx - currentIdx) * 100}%)`;
+      slide.style.transform = `translateY(${(idx - currentIdx) * h + (extraOffsetPx || 0)}px)`;
     });
   }
 
@@ -2490,7 +2516,7 @@ setInterval(raqamuzHeartbeat, 20000);
 
     track.innerHTML = videos.map((v, idx) => renderSlide(idx)).join('');
     track.querySelectorAll('.reels-slide').forEach(bindSlideEvents);
-    positionSlides();
+    positionSlides(0);
     playSlideVideo(slideAt(currentIdx));
   }
 
@@ -2505,7 +2531,7 @@ setInterval(raqamuzHeartbeat, 20000);
     pauseSlideVideo(slideAt(currentIdx));
     currentIdx = newIdx;
     isAnimating = true;
-    positionSlides(); // CSS transition o'zi silliq sirg'anish animatsiyasini beradi
+    positionSlides(0); // CSS transition o'zi silliq sirg'anish animatsiyasini beradi
     playSlideVideo(slideAt(currentIdx));
 
     setTimeout(()=>{ isAnimating = false; }, 340);
@@ -2518,16 +2544,46 @@ setInterval(raqamuzHeartbeat, 20000);
     track.innerHTML = '';
   }
 
-  // --- Svayp: har bir imo-ishora FAQAT bitta videoga o'tkazadi ---
+  // --- Svayp: Instagram'dagi kabi, barmoq harakati bilan BIR VAQTDA video
+  //     ko'rinadigan tarzda siljiydi (real vaqtli), qo'yib yuborilganda esa
+  //     yetarli masofa bosilgan bo'lsa keyingi/oldingi videoga sirg'aladi,
+  //     aks holda joyiga qaytadi. Har doim FAQAT bitta videoga o'tadi. ---
   let touchStartY = null;
-  track.addEventListener('touchstart', (e)=>{ touchStartY = e.touches[0].clientY; }, { passive: true });
-  track.addEventListener('touchend', (e)=>{
-    if(touchStartY === null) return;
-    const deltaY = touchStartY - e.changedTouches[0].clientY;
+  let dragOffset = 0;
+  let isDragging = false;
+
+  track.addEventListener('touchstart', (e)=>{
+    if(isAnimating) return;
+    touchStartY = e.touches[0].clientY;
+    isDragging = true;
+    track.querySelectorAll('.reels-slide').forEach(s => s.style.transition = 'none');
+  }, { passive: true });
+
+  track.addEventListener('touchmove', (e)=>{
+    if(!isDragging || touchStartY === null) return;
+    dragOffset = e.touches[0].clientY - touchStartY;
+    // Ro'yxat chetida (birinchi/oxirgi video) qarshilik hissi — ortiqcha sudrashga yo'l qo'ymaymiz
+    if((currentIdx === 0 && dragOffset > 0) || (currentIdx === videos.length - 1 && dragOffset < 0)){
+      dragOffset *= 0.35;
+    }
+    positionSlides(dragOffset);
+  }, { passive: true });
+
+  track.addEventListener('touchend', ()=>{
+    if(!isDragging) return;
+    isDragging = false;
+    track.querySelectorAll('.reels-slide').forEach(s => s.style.transition = '');
+
+    const threshold = track.clientHeight * 0.16;
+    if(dragOffset <= -threshold && currentIdx < videos.length - 1){
+      goToIndex(currentIdx + 1);
+    }else if(dragOffset >= threshold && currentIdx > 0){
+      goToIndex(currentIdx - 1);
+    }else{
+      positionSlides(0); // chegaraga yetmadi — silliq orqaga qaytadi
+    }
     touchStartY = null;
-    if(Math.abs(deltaY) < 45) return; // juda kichik harakat — e'tiborsiz
-    if(deltaY > 0) goToIndex(currentIdx + 1); // yuqoriga surildi — keyingi video
-    else goToIndex(currentIdx - 1); // pastga surildi — oldingi video
+    dragOffset = 0;
   }, { passive: true });
 
   // Kompyuter uchun: sichqoncha g'ildiragi va yon strelka tugmalari

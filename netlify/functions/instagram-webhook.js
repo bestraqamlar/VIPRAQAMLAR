@@ -1,5 +1,5 @@
-// INSTAGRAM DIRECT + KOMMENTARIYA BOTI — RAQAM.UZ'ning Instagram sahifasiga
-// yozilgan Direct xabarlar va post/reels kommentariyalariga "RAQAM AI"
+// INSTAGRAM DIRECT + KOMMENTARIYA BOTI — VIPRAQAMLAR.UZ'ning Instagram sahifasiga
+// yozilgan Direct xabarlar va post/reels kommentariyalariga "VIPRAQAMLAR AI"
 // nomi bilan avtomatik javob beradi.
 //
 // Botning xatti-harakati (Telegram kanal havolasi, dostavka javobi,
@@ -122,7 +122,7 @@ async function getCheapestPrice() {
 function buildSystemPrompt(channel, settings, cheapestPrice) {
   const parts = [];
 
-  parts.push(`Sen "RAQAM AI" — RAQAM.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) Instagram sahifasida ishlaydigan yordamchisan. Sahifamiz obunachilari orasida qimmatbaho narsalarni qadrlaydigan, badavlat auditoriya ko'p — shuning uchun har doim hurmatli, ishonchli va PREMIUM ohangda yoz, hech qachon arzimas yoki bosiq-oddiy ko'rinma.`);
+  parts.push(`Sen "VIPRAQAMLAR AI" — VIPRAQAMLAR.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) Instagram sahifasida ishlaydigan yordamchisan. Sahifamiz obunachilari orasida qimmatbaho narsalarni qadrlaydigan, badavlat auditoriya ko'p — shuning uchun har doim hurmatli, ishonchli va PREMIUM ohangda yoz, hech qachon arzimas yoki bosiq-oddiy ko'rinma.`);
 
   parts.push(`QOIDALAR:
 - Har bir javobingda albatta kamida bitta mos emoji bo'lsin, lekin BOLALARCHA yoki bachkana emojilardan (masalan 😂🤣💀😜) foydalanma — o'rniga did bilan tanlangan, holatga mos emoji ishlat (masalan 📞✨💎🚗📍✅).
@@ -141,7 +141,7 @@ function buildSystemPrompt(channel, settings, cheapestPrice) {
     parts.push(`BU — POST/REELS OSTIDAGI KOMMENTARIYAGA JAVOB (hammaga ko'rinadi).
 - Mijoz raqam haqida so'rasa (mavjudmi, narxi, va h.k.): "Siz qidirgan raqam bizda mavjud ✨, Telegram kanalimizdan (${settings.telegramChannelLink}) tanlab buyurtma bersangiz bo'ladi." tarzida javob ber — aniq narxni kommentariyada ochiq yozmaslik ma'qul (agar admin ko'rsatmasida boshqacha aytilmagan bo'lsa).
 - Yetkazib berish/dostavka haqida so'ralsa: "${settings.deliveryInfo}"
-- Javobingda tabiiy joyda o'zingni tanishtirib qo'y (masalan oxirida "— RAQAM AI" kabi qisqa imzo, lekin har safar shart emas, tabiiy ko'rinsin).`);
+- Javobingda tabiiy joyda o'zingni tanishtirib qo'y (masalan oxirida "— VIPRAQAMLAR AI" kabi qisqa imzo, lekin har safar shart emas, tabiiy ko'rinsin).`);
   }
 
   if (settings.faqRules && settings.faqRules.length) {

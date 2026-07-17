@@ -84,7 +84,7 @@ async function loadBotSettings(){
 
 function buildSystemPrompt(settings){
   const parts = [];
-  parts.push(`Sen "RAQAM AI" — RAQAM.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) saytida ishlaydigan yordamchisan. Saytga kirgan mehmonlar bilan gaplashasan.`);
+  parts.push(`Sen "VIPRAQAMLAR AI" — VIPRAQAMLAR.UZ (O'zbekistondagi chiroyli/oltin/VIP telefon raqamlari do'koni) saytida ishlaydigan yordamchisan. Saytga kirgan mehmonlar bilan gaplashasan.`);
   parts.push(`QOIDALAR:
 - Javoblaring qisqa va lo'nda bo'lsin (${MAX_REPLY_WORDS} so'zdan oshmasin), lekin foydali va aniq ma'lumot ber.
 - Kamida bitta mos emoji ishlat, lekin bachkana bo'lmasin — did bilan tanlangan bo'lsin.
