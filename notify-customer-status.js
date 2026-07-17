@@ -1,5 +1,6 @@
-// TELEGRAM XABARIDAGI TUGMALARNI BOSISH ORQALI BUYURTMA STATUSINI O'ZGARTIRISH
-// (firebase-admin bilan, ishonchli)
+// HAR KUNI AVTOMATIK ISHLAYDI — kredit shartnomalaridagi muddati o'tgan
+// to'lovlarni tekshirib, admin Telegram botiga xabar yuboradi.
+// Netlify Scheduled Function (netlify.toml'da "schedule" bilan sozlangan).
 
 const admin = require('firebase-admin');
 
@@ -13,106 +14,50 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
-db.settings({ preferRest: true }); // Netlify Functions'da gRPC ulanish muammosini oldini oladi
+db.settings({ preferRest: true });
 
-async function withRetry(fn, retries = 3, delayMs = 1500){
-  for(let i = 0; i <= retries; i++){
-    try{ return await fn(); }
-    catch(err){
-      const msg = String(err && err.message || err);
-      if(i === retries || !msg.includes('Quota exceeded')) throw err;
-      await new Promise(r => setTimeout(r, delayMs * (i + 1)));
-    }
-  }
-}
-
-const STATUS_MAP = { 'B': "Bog'lanildi", 'Y': 'Yakunlandi', 'C': 'Bekor qilindi' };
-
-async function answerCallback(callbackQueryId, text){
+async function notifyAdmin(text){
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if(!token || !chatId) return;
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ callback_query_id: callbackQueryId, text })
-  });
-}
-async function replaceKeyboardWithConfirmation(chatId, messageId, statusLabel){
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  await fetch(`https://api.telegram.org/bot${token}/editMessageReplyMarkup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      message_id: messageId,
-      reply_markup: { inline_keyboard: [[{ text: `✅ ${statusLabel}`, callback_data: 'noop' }]] }
-    })
+    body: JSON.stringify({ chat_id: chatId, text })
   });
 }
 
-exports.handler = async function (event) {
-  if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
-
-  let update;
-  try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
-
-  const callback = update.callback_query;
-  if(!callback || !callback.data) return { statusCode: 200, body: 'ok' };
-
-  const allowedChatId = process.env.TELEGRAM_CHAT_ID;
-  if(String(callback.message.chat.id) !== String(allowedChatId)){
-    return { statusCode: 200, body: 'ignored' };
-  }
-  if(callback.data === 'noop') return { statusCode: 200, body: 'ok' };
-
-  const parts = callback.data.split('|'); // st|{orderId}|{B/Y/C}
-  if(parts[0] !== 'st' || parts.length < 3) return { statusCode: 200, body: 'ok' };
-  const orderId = parts[1];
-  const statusCode = parts[2];
-  const statusLabel = STATUS_MAP[statusCode];
-  if(!statusLabel) return { statusCode: 200, body: 'ok' };
-
+exports.handler = async function () {
   try{
-    const orderDoc = await withRetry(() => db.collection('orders').doc(orderId).get());
-    const orderData = orderDoc.exists ? orderDoc.data() : {};
-    const numberId = orderData.numberId || null;
-    const customerChatId = orderData.customerChatId || null;
-    const orderNumber = orderData.number || '';
+    const snap = await db.collection('credit_contracts').get();
+    const now = Date.now();
 
-    await withRetry(() => db.collection('orders').doc(orderId).update({ status: statusLabel }));
+    for(const doc of snap.docs){
+      const data = doc.data();
+      if(data.contractStatus === 'cancelled' || data.contractStatus === 'completed') continue;
 
-    if(numberId){
-      if(statusCode === 'C'){
-        await withRetry(() => db.collection('numbers').doc(numberId).update({ reserved: false }));
-      }else if(statusCode === 'Y'){
-        await withRetry(() => db.collection('numbers').doc(numberId).delete());
+      let changed = false;
+      const payments = [];
+      for(const p of data.payments){
+        if(p.status === 'pending' && p.dueDate < now && !p.overdueNotified){
+          changed = true;
+          await notifyAdmin(
+            `⏰ To'lov vaqti keldi!\n\n👤 ${data.customerName}\n📱 ${data.number}\n🗓 ${p.month}-oy to'lovi\n💰 ${data.monthlyPayment.toLocaleString('ru-RU')} so'm`
+          );
+          payments.push({ ...p, overdueNotified: true });
+        }else{
+          payments.push(p);
+        }
+      }
+
+      if(changed){
+        await db.collection('credit_contracts').doc(doc.id).update({ payments });
       }
     }
 
-    if(customerChatId){
-      const customerBotToken = process.env.CUSTOMER_BOT_TOKEN;
-      if(customerBotToken){
-        const STATUS_MESSAGES = {
-          "Bog'lanildi": "📞 Operatorlarimiz siz bilan bog'landi.",
-          'Yakunlandi': "✅ Haridingiz uchun rahmat! Tez orada raqamingiz yetib boradi.",
-          'Bekor qilindi': "❌ Sizning buyurtmangiz bekor qilindi."
-        };
-        await fetch(`https://api.telegram.org/bot${customerBotToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: customerChatId,
-            text: `${STATUS_MESSAGES[statusLabel] || `📌 Buyurtmangiz holati: ${statusLabel}`}\n\n📱 ${orderNumber}`
-          })
-        });
-      }
-    }
-
-    await answerCallback(callback.id, `Holat yangilandi: ${statusLabel}`);
-    await replaceKeyboardWithConfirmation(callback.message.chat.id, callback.message.message_id, statusLabel);
+    return { statusCode: 200, body: 'ok' };
   }catch(err){
-    console.error('ORDER-STATUS XATOSI:', err);
-    await answerCallback(callback.id, `Xato: ${err.message}`);
+    console.error('CHECK-CREDIT-PAYMENTS XATOSI:', err);
+    return { statusCode: 500, body: err.message };
   }
-
-  return { statusCode: 200, body: 'ok' };
 };
