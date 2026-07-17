@@ -246,6 +246,12 @@
   .brand-red{
     color:var(--brand-red);
   }
+  #heroTypewriter{
+    display:inline-block;border-right:3px solid var(--brand-red);
+    padding-right:3px;animation:blinkCursor .8s step-end infinite;
+    min-height:1em;vertical-align:bottom;
+  }
+  @keyframes blinkCursor{ 50%{ border-color:transparent; } }
   .hero .tagline{
     color:var(--muted);font-size:15px;margin:8px 0 18px;
     opacity:0;animation:fadeUp .6s ease .1s forwards;
@@ -726,50 +732,6 @@
   @keyframes floatPulse{0%,100%{box-shadow:0 6px 20px rgba(34,158,217,0.45);}50%{box-shadow:0 6px 28px rgba(34,158,217,0.7);}}
   .fab svg{width:26px;height:26px;fill:#fff;}
 
-  /* ---- Saytdagi AI chat (faqat menyu ichidagi "YORDAMCHI AI" havolasidan ochiladi) ---- */
-  .ai-widget-btn{display:none;}
-  .ai-widget-btn:active{transform:scale(0.92);}
-  @keyframes aiBtnFloat{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
-  .ai-widget-btn .ai-widget-dot{
-    position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;
-    background:var(--green);border:2px solid var(--bg);
-  }
-
-  .ai-widget-panel{
-    position:fixed;inset:0;z-index:900;background:var(--panel);display:none;
-    flex-direction:column;overflow:hidden;
-  }
-  .ai-widget-panel.open{display:flex;animation:aiPanelOpen .22s ease both;}
-  @keyframes aiPanelOpen{ from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
-  .ai-widget-header{
-    background:linear-gradient(90deg,var(--amber),var(--brand-red));color:#0a1a12;
-    padding:calc(env(safe-area-inset-top, 0px) + 14px) 16px 14px;
-    display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-  }
-  .ai-widget-header-title{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;}
-  .ai-widget-header-sub{font-size:10px;font-weight:600;opacity:.85;margin-top:1px;}
-  .ai-widget-close{background:rgba(0,0,0,0.15);border:none;color:#0a1a12;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-  .ai-widget-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg);}
-  .ai-widget-msg{max-width:85%;padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.55;white-space:pre-wrap;animation:popInW .2s cubic-bezier(.34,1.56,.64,1) both;}
-  @keyframes popInW{ from{opacity:0;transform:scale(.9);} to{opacity:1;transform:scale(1);} }
-  .ai-widget-msg.bot{align-self:flex-start;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-bottom-left-radius:3px;}
-  .ai-widget-msg.user{align-self:flex-end;background:var(--amber);color:#0a1a12;font-weight:600;border-bottom-right-radius:3px;}
-  .ai-widget-typing{align-self:flex-start;color:var(--muted);font-size:11.5px;padding:2px 6px;}
-  .ai-widget-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--panel);}
-  .ai-widget-input-row input{
-    flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
-    padding:9px 12px;color:var(--text);font-size:12.5px;outline:none;
-  }
-  .ai-widget-input-row input:focus{border-color:var(--amber);}
-  .ai-widget-input-row button{
-    background:var(--amber);color:#0a1a12;border:none;border-radius:9px;
-    width:38px;height:38px;font-size:16px;cursor:pointer;flex-shrink:0;
-  }
-  .ai-widget-input-row button:disabled{opacity:.5;}
-  .ai-widget-input-row{padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);}
-  @media (max-width:420px){
-    .ai-widget-btn{right:16px;}
-  }
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     flex:0 0 150px;border-radius:12px;padding:10px;
@@ -1105,7 +1067,7 @@
 </section>
 
 <section class="hero">
-  <h1><span class="brand-white">070</span><span class="brand-red">.uz</span></h1>
+  <h1><span class="brand-white">VIP -</span> <span id="heroTypewriter" class="brand-red"></span></h1>
   <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
 </section>
 
@@ -1121,15 +1083,15 @@
       <option value="Uzmobile" style="color:#2E63C7;">Uzmobile</option>
       <option value="Perfektum" style="color:#C97A3D;">Perfektum</option>
     </select>
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="0">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="1">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="2">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="1" data-idx="0">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="2" data-idx="1">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="3" data-idx="2">
     <span class="dash">-</span>
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="3">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="4">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="4" data-idx="3">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="5" data-idx="4">
     <span class="dash">-</span>
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="6" data-idx="5">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="7" data-idx="6">
   </div>
   <div class="hint-text" id="hintText">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
   <button class="clear-search" id="clearSearchBtn" style="display:none;">Tozalash</button>
@@ -1270,27 +1232,6 @@
   <svg viewBox="0 0 24 24"><path d="M9.036 15.803l-.396 5.57c.568 0 .814-.244 1.11-.537l2.663-2.545 5.522 4.03c1.012.564 1.73.267 1.997-.938L23.94 3.61c.36-1.474-.532-2.05-1.517-1.693L1.116 9.79c-1.446.564-1.424 1.373-.247 1.735l5.517 1.72L18.98 5.13c.582-.38 1.113-.17.677.21L9.036 15.803z"/></svg>
 </a>
 
-<button class="ai-widget-btn" id="aiWidgetBtn" aria-label="AI yordamchi bilan suhbat">
-  🤖<span class="ai-widget-dot"></span>
-</button>
-
-<div class="ai-widget-panel" id="aiWidgetPanel">
-  <div class="ai-widget-header">
-    <div>
-      <div class="ai-widget-header-title">✨ VIP RAQAMLAR AI</div>
-      <div class="ai-widget-header-sub">Savolingizga darhol javob beramiz</div>
-    </div>
-    <button class="ai-widget-close" id="aiWidgetClose">✕</button>
-  </div>
-  <div class="ai-widget-body" id="aiWidgetBody">
-    <div class="ai-widget-msg bot">Salom! 👋 Raqam narxi, mavjudligi yoki yetkazib berish haqida so'rang.</div>
-  </div>
-  <div class="ai-widget-input-row">
-    <input type="text" id="aiWidgetInput" placeholder="Xabar yozing...">
-    <button id="aiWidgetSend">➤</button>
-  </div>
-</div>
-
 <footer>&copy; 2026 VIP RAQAMLAR (070.uz). Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
 
 <!-- FIREBASE (mijoz sayti va admin sayti bir xil bazani ishlatadi) -->
@@ -1399,6 +1340,10 @@ function getFilteredNumbers(){
   const selectedOp = operatorSelect.value;
 
   return NUMBERS.filter(item=>{
+    // "Bugungi aksiya"da ko'rsatilgan raqamlar asosiy katalogda (qidiruvda)
+    // takrorlanmaydi — bir xil raqam ikki joyda ko'rinishi mijozni
+    // chalkashtirishi mumkin edi.
+    if(item.dailyDeal === true) return false;
     if(selectedOp !== '' && item.operator !== selectedOp) return false;
     const local = getLocalDigits(item.number);
     for(let i = 0; i < 7; i++){
@@ -2619,83 +2564,35 @@ setInterval(raqamuzHeartbeat, 20000);
 })();
 
 /* ==================================================================
-   SAYTDAGI AI CHAT WIDGET
+   HERO SARLAVHASI — "TOIFADAGI RAQAMLAR" jonli yozilib-o'chirilib turadi
+   ("VIP -" so'zi esa qimirlamay, statik turadi)
    ================================================================== */
 (function(){
-  const btn = document.getElementById('aiWidgetBtn');
-  const panel = document.getElementById('aiWidgetPanel');
-  const closeBtn = document.getElementById('aiWidgetClose');
-  const body = document.getElementById('aiWidgetBody');
-  const input = document.getElementById('aiWidgetInput');
-  const sendBtn = document.getElementById('aiWidgetSend');
+  const el = document.getElementById('heroTypewriter');
+  if(!el) return;
+  const fullText = 'TOIFADAGI RAQAMLAR';
+  let i = 0, deleting = false;
 
-  let conversation = []; // Anthropic formatidagi suhbat tarixi (sahifa yangilansa tozalanadi)
-  let opened = false;
-
-  window.openAiWidget = function(){
-    panel.classList.add('open');
-    opened = true;
-    setTimeout(()=> input.focus(), 200);
-  };
-  window.closeAiWidget = function(){
-    panel.classList.remove('open');
-  };
-
-  btn.addEventListener('click', ()=>{
-    if(panel.classList.contains('open')) closeAiWidget();
-    else openAiWidget();
-  });
-  closeBtn.addEventListener('click', closeAiWidget);
-
-  function addMsg(text, cls){
-    const div = document.createElement('div');
-    div.className = 'ai-widget-msg ' + cls;
-    div.textContent = text;
-    body.appendChild(div);
-    body.scrollTop = body.scrollHeight;
-    return div;
-  }
-
-  async function sendMessage(){
-    const text = input.value.trim();
-    if(!text) return;
-    addMsg(text, 'user');
-    input.value = '';
-    input.disabled = true;
-    sendBtn.disabled = true;
-
-    const typing = document.createElement('div');
-    typing.className = 'ai-widget-typing';
-    typing.textContent = 'Yozmoqda...';
-    body.appendChild(typing);
-    body.scrollTop = body.scrollHeight;
-
-    try{
-      const res = await fetch('/.netlify/functions/site-ai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: conversation, userMessage: text })
-      });
-      const rawText = await res.text();
-      let data;
-      try{ data = JSON.parse(rawText); }
-      catch(e){ throw new Error('server_format'); }
-
-      typing.remove();
-      conversation = data.messages || conversation;
-      if(data.reply) addMsg(data.reply, 'bot');
-    }catch(err){
-      typing.remove();
-      addMsg("Kechirasiz, hozircha javob bera olmadim. Telegram botimiz orqali yozib qoldiring 🙏", 'bot');
-    }finally{
-      input.disabled = false;
-      sendBtn.disabled = false;
-      input.focus();
+  function tick(){
+    if(!deleting){
+      i++;
+      el.textContent = fullText.slice(0, i);
+      if(i >= fullText.length){
+        setTimeout(()=>{ deleting = true; tick(); }, 2200); // to'liq yozilgach biroz kutadi
+        return;
+      }
+    }else{
+      i--;
+      el.textContent = fullText.slice(0, i);
+      if(i <= 0){
+        deleting = false;
+        setTimeout(tick, 500); // o'chirilgach biroz kutib, qaytadan yoza boshlaydi
+        return;
+      }
     }
+    setTimeout(tick, deleting ? 35 : 80);
   }
-
-  sendBtn.addEventListener('click', sendMessage);
-  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') sendMessage(); });
+  tick();
 })();
 
 showSkeletons();

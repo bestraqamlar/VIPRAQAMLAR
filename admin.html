@@ -337,6 +337,18 @@
     position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:var(--red);
     border:none;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;
   }
+  .video-item .vi-likes-row{
+    display:flex;align-items:center;gap:5px;padding:0 8px 8px;
+  }
+  .video-item .vi-likes-icon{font-size:12px;}
+  .video-item .vi-likes-input{
+    flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    padding:5px 6px;color:var(--text);font-size:11.5px;
+  }
+  .video-item .vi-likes-save, .video-item .vi-likes-rand{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    width:26px;height:26px;cursor:pointer;font-size:12px;flex-shrink:0;
+  }
 
   .status-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;font-size:11.5px;color:var(--muted);}
 
@@ -2122,7 +2134,7 @@ window.handleVideoUpload = async function(){
       videoUrl,
       caption: captionInput.value.trim(),
       order: nextOrder,
-      likes: 0,
+      likes: 500 + Math.floor(Math.random() * 500), // boshlang'ich "mashhurlik" ko'rsatkichi (500-999), haqiqiy like'lar shu ustiga qo'shiladi
       createdAt: Date.now()
     });
 
@@ -2154,6 +2166,12 @@ async function loadVideoTestimonials(){
         <button class="vi-delete" data-id="${v.id}">✕</button>
         <video src="${v.videoUrl}" muted preload="metadata"></video>
         <div class="vi-caption">${(v.caption || '').replace(/</g,'&lt;')}</div>
+        <div class="vi-likes-row">
+          <span class="vi-likes-icon">❤️</span>
+          <input type="number" class="vi-likes-input" data-id="${v.id}" value="${v.likes || 0}" min="0">
+          <button class="vi-likes-save" data-id="${v.id}">💾</button>
+          <button class="vi-likes-rand" data-id="${v.id}" title="Tasodifiy 500-999">🎲</button>
+        </div>
       </div>
     `).join('');
 
@@ -2163,6 +2181,29 @@ async function loadVideoTestimonials(){
         try{
           await db.collection('video_testimonials').doc(btn.dataset.id).delete();
           loadVideoTestimonials();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+
+    list.querySelectorAll('.vi-likes-save').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const input = list.querySelector(`.vi-likes-input[data-id="${btn.dataset.id}"]`);
+        const val = Math.max(0, parseInt(input.value, 10) || 0);
+        try{
+          await db.collection('video_testimonials').doc(btn.dataset.id).update({ likes: val });
+          vibrate(60);
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+
+    list.querySelectorAll('.vi-likes-rand').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const val = 500 + Math.floor(Math.random() * 500);
+        const input = list.querySelector(`.vi-likes-input[data-id="${btn.dataset.id}"]`);
+        input.value = val;
+        try{
+          await db.collection('video_testimonials').doc(btn.dataset.id).update({ likes: val });
+          vibrate(60);
         }catch(err){ alert('Xato: ' + err.message); }
       });
     });
