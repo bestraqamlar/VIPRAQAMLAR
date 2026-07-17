@@ -327,6 +327,23 @@
   .video-upload-box .ig-save-btn{margin-top:12px;}
 
   .video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .pv-number-results{
+    max-height:180px;overflow-y:auto;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:9px;margin-top:6px;display:none;
+  }
+  .pv-number-results.show{display:block;}
+  .pv-number-row{
+    padding:9px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;color:var(--text);
+  }
+  .pv-number-row:last-child{border-bottom:none;}
+  .pv-number-row:hover{background:var(--panel);}
+  .pv-number-row .pvn-price{color:var(--amber);font-weight:700;}
+  .pv-selected-number{
+    margin-top:8px;padding:10px 12px;background:rgba(51,226,140,0.1);border:1px solid var(--green);
+    border-radius:9px;font-size:12.5px;color:var(--text);display:flex;justify-content:space-between;align-items:center;
+  }
+  .pv-selected-number .pvsel-clear{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;}
   .video-item{
     background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;
     position:relative;
@@ -519,6 +536,7 @@
     <button class="tab" data-tab="instagram">📸 Instagram AI</button>
     <button class="tab" data-tab="telegramai">💬 Telegram AI</button>
     <button class="tab" data-tab="videos">🎥 Video sharhlar</button>
+    <button class="tab" data-tab="premiumvideo">🎬 Premium video</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
@@ -671,6 +689,32 @@
     </div>
 
     <div class="video-list" id="videoList"></div>
+  </div>
+
+  <div class="pane" id="panePremiumvideo">
+    <div class="ai-hint">
+      🎬 Bu yerda saytning yuqorisidagi "Premium raqamlar" bannerini bosganda ochiladigan, sotuvdagi
+      raqamlarni reklama qiluvchi videolarni boshqarasiz. Har bir video ma'lum bir raqamga bog'lanadi —
+      mijoz video ostidagi "Buyurtma berish" tugmasini bossa, o'sha raqam uchun buyurtma oynasi ochiladi.
+      Videolar mijozga har safar TASODIFIY tartibda ko'rsatiladi.
+    </div>
+
+    <div class="video-upload-box">
+      <label for="pvNumberSearch">Qaysi raqam uchun? <span class="ig-field-hint">(raqamning bir qismini yozing, ro'yxatdan tanlang)</span></label>
+      <input type="text" id="pvNumberSearch" placeholder="Masalan: 90 123 45 67 yoki qismini yozing">
+      <div class="pv-number-results" id="pvNumberResults"></div>
+      <div class="pv-selected-number" id="pvSelectedNumber" style="display:none;"></div>
+
+      <label for="pvVideoFileInput">Video fayl <span class="ig-field-hint">(vertikal video eng yaxshi ko'rinadi)</span></label>
+      <input type="file" id="pvVideoFileInput" accept="video/*">
+      <div class="video-progress-wrap" id="pvVideoProgressWrap" style="display:none;">
+        <div class="video-progress-bar" id="pvVideoProgressBar"></div>
+      </div>
+      <button id="pvVideoUploadBtn" class="ig-save-btn" onclick="if(window.handlePremiumVideoUpload){window.handlePremiumVideoUpload();}else{alert('Sahifa to\'liq yuklanmagan. Iltimos, sahifani yangilang va qayta urinib ko\'ring.');}">⬆️ Yuklash</button>
+      <div class="ig-save-msg" id="pvVideoUploadMsg"></div>
+    </div>
+
+    <div class="video-list" id="pvVideoList"></div>
   </div>
 
   <div class="pane" id="paneOrders">
@@ -1027,7 +1071,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1040,6 +1084,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
+    if(tab.dataset.tab === 'premiumvideo'){ loadPremiumVideoList(); }
     if(tab.dataset.tab === 'credit'){
       loadCreditContracts();
       const dateEl = document.getElementById('crStartDate');
@@ -2204,6 +2249,137 @@ async function loadVideoTestimonials(){
         try{
           await db.collection('video_testimonials').doc(btn.dataset.id).update({ likes: val });
           vibrate(60);
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    list.innerHTML = 'Xato: ' + err.message;
+  }
+}
+
+/* ---- Premium raqamlar video-rels (admin boshqaruvi) ---- */
+let pvSelectedNumberData = null; // { id, number, price }
+
+const pvNumberSearch = document.getElementById('pvNumberSearch');
+const pvNumberResults = document.getElementById('pvNumberResults');
+const pvSelectedNumberEl = document.getElementById('pvSelectedNumber');
+
+pvNumberSearch.addEventListener('input', debounce(()=>{
+  const q = pvNumberSearch.value.replace(/\D/g, '');
+  if(!q){ pvNumberResults.classList.remove('show'); pvNumberResults.innerHTML = ''; return; }
+  const matches = currentNumbersCache.filter(n => (n.number || '').replace(/\D/g,'').includes(q)).slice(0, 15);
+  if(matches.length === 0){
+    pvNumberResults.innerHTML = `<div class="pv-number-row" style="cursor:default;color:var(--muted);">Topilmadi</div>`;
+  }else{
+    pvNumberResults.innerHTML = matches.map(n => `
+      <div class="pv-number-row" data-id="${n.id}" data-number="${n.number}" data-price="${n.price||0}">
+        <span>${n.number}</span>
+        <span class="pvn-price">${formatPrice(n.price||0)}</span>
+      </div>
+    `).join('');
+    pvNumberResults.querySelectorAll('.pv-number-row').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        pvSelectedNumberData = { id: row.dataset.id, number: row.dataset.number, price: Number(row.dataset.price) };
+        pvSelectedNumberEl.style.display = 'flex';
+        pvSelectedNumberEl.innerHTML = `<span>✓ Tanlandi: <b>${row.dataset.number}</b> — ${formatPrice(Number(row.dataset.price))}</span><button class="pvsel-clear" id="pvSelClear">✕</button>`;
+        document.getElementById('pvSelClear').addEventListener('click', ()=>{
+          pvSelectedNumberData = null;
+          pvSelectedNumberEl.style.display = 'none';
+        });
+        pvNumberResults.classList.remove('show');
+        pvNumberSearch.value = '';
+      });
+    });
+  }
+  pvNumberResults.classList.add('show');
+}, 200));
+
+window.handlePremiumVideoUpload = async function(){
+  const fileInput = document.getElementById('pvVideoFileInput');
+  const msg = document.getElementById('pvVideoUploadMsg');
+  const progressWrap = document.getElementById('pvVideoProgressWrap');
+  const progressBar = document.getElementById('pvVideoProgressBar');
+  const btn = document.getElementById('pvVideoUploadBtn');
+
+  function showError(text){
+    msg.textContent = '❌ ' + text;
+    msg.style.cssText = 'color:#fff;background:var(--red);padding:10px 12px;border-radius:8px;font-weight:700;font-size:13px;text-align:center;';
+    progressWrap.style.display = 'none';
+    btn.disabled = false;
+  }
+
+  try{
+    if(!pvSelectedNumberData){ showError('Avval qaysi raqam uchun ekanini tanlang.'); return; }
+    const file = fileInput.files[0];
+    if(!file){ showError('Iltimos, video fayl tanlang.'); return; }
+    const looksLikeVideo = file.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|webm|3gp|mkv)$/i.test(file.name || '');
+    if(!looksLikeVideo){ showError("Bu video fayl emas. Fayl turi: " + (file.type || "noma'lum")); return; }
+    if(!storage){ showError("Video xizmati (Firebase Storage) sozlanmagan."); return; }
+
+    btn.disabled = true;
+    msg.textContent = '';
+    msg.style.cssText = '';
+    progressWrap.style.display = 'block';
+    progressBar.style.width = '0%';
+
+    const path = `premium_number_videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const ref = storage.ref().child(path);
+    const uploadTask = ref.put(file);
+
+    await new Promise((resolve, reject)=>{
+      uploadTask.on('state_changed',
+        (snap)=>{ progressBar.style.width = Math.round((snap.bytesTransferred / snap.totalBytes) * 100) + '%'; },
+        (err)=> reject(err),
+        ()=> resolve()
+      );
+    });
+
+    const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
+
+    await db.collection('premium_number_videos').add({
+      videoUrl,
+      numberId: pvSelectedNumberData.id,
+      number: pvSelectedNumberData.number,
+      createdAt: Date.now()
+    });
+
+    msg.textContent = '✓ Video yuklandi va saytga qo\'shildi';
+    msg.style.cssText = 'color:var(--green);text-align:center;font-weight:700;';
+    vibrate(80);
+    fileInput.value = '';
+    pvSelectedNumberData = null;
+    pvSelectedNumberEl.style.display = 'none';
+    progressWrap.style.display = 'none';
+    loadPremiumVideoList();
+  }catch(err){
+    showError(err && err.message ? err.message : "Noma'lum xato yuz berdi");
+    return;
+  }
+  btn.disabled = false;
+};
+
+async function loadPremiumVideoList(){
+  const list = document.getElementById('pvVideoList');
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const snap = await db.collection('premium_number_videos').orderBy('createdAt', 'desc').get();
+    const videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if(videos.length === 0){ list.innerHTML = `<div class="empty-admin">Hali video qo'shilmagan.</div>`; return; }
+
+    list.innerHTML = videos.map(v => `
+      <div class="video-item" data-id="${v.id}">
+        <button class="vi-delete" data-id="${v.id}">✕</button>
+        <video src="${v.videoUrl}" muted preload="metadata"></video>
+        <div class="vi-caption">${(v.number || '').replace(/</g,'&lt;')}</div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.vi-delete').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu videoni o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          await db.collection('premium_number_videos').doc(btn.dataset.id).delete();
+          loadPremiumVideoList();
         }catch(err){ alert('Xato: ' + err.message); }
       });
     });

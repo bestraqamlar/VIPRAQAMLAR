@@ -98,5 +98,12 @@ service cloud.firestore {
       allow update: if request.auth != null
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
     }
+
+    // "Premium raqamlar" reklama videolari — hamma o'qiy oladi, faqat
+    // admin qo'shishi/o'chirishi mumkin.
+    match /premium_number_videos/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
   }
 }
