@@ -1105,7 +1105,7 @@
 </section>
 
 <section class="hero">
-  <h1><span class="brand-white">VIP</span> <span class="brand-red">RAQAMLAR</span></h1>
+  <h1><span class="brand-white">070</span><span class="brand-red">.uz</span></h1>
   <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
 </section>
 
@@ -2551,10 +2551,12 @@ setInterval(raqamuzHeartbeat, 20000);
   let touchStartY = null;
   let dragOffset = 0;
   let isDragging = false;
+  let touchStartTime = 0;
 
   track.addEventListener('touchstart', (e)=>{
     if(isAnimating) return;
     touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
     isDragging = true;
     track.querySelectorAll('.reels-slide').forEach(s => s.style.transition = 'none');
   }, { passive: true });
@@ -2574,10 +2576,18 @@ setInterval(raqamuzHeartbeat, 20000);
     isDragging = false;
     track.querySelectorAll('.reels-slide').forEach(s => s.style.transition = '');
 
-    const threshold = track.clientHeight * 0.16;
-    if(dragOffset <= -threshold && currentIdx < videos.length - 1){
+    const elapsed = Date.now() - touchStartTime;
+    const absOffset = Math.abs(dragOffset);
+    // Ozgina ko'tarib qo'ysa ham (kichik masofa) — agar bu tez harakat
+    // bo'lsa (flick), keyingi videoga o'tkazamiz. Sekin va uzoq surilsa,
+    // odatdagi masofa chegarasi (~7%) yetarli.
+    const isQuickFlick = elapsed < 300 && absOffset > 28;
+    const distanceThreshold = track.clientHeight * 0.07;
+    const passed = isQuickFlick || absOffset >= distanceThreshold;
+
+    if(passed && dragOffset < 0 && currentIdx < videos.length - 1){
       goToIndex(currentIdx + 1);
-    }else if(dragOffset >= threshold && currentIdx > 0){
+    }else if(passed && dragOffset > 0 && currentIdx > 0){
       goToIndex(currentIdx - 1);
     }else{
       positionSlides(0); // chegaraga yetmadi — silliq orqaga qaytadi
