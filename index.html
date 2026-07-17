@@ -128,6 +128,7 @@
     position:sticky;top:0;background:var(--bg);backdrop-filter:blur(10px);
     z-index:30;
   }
+  .header-right{display:flex;align-items:center;gap:10px;}
   .logo{
     font-family:'Sora',sans-serif;
     font-weight:800;font-size:13px;
@@ -235,38 +236,23 @@
   .hero{
     max-width:720px;margin:0 auto;padding:26px 20px 16px;text-align:center;
   }
-  /* ---- "VIP RAQAMLAR" video banneri — kichikroq, ko'k-yashil aylanuvchi ramka ---- */
-  .pvb-wrap{max-width:720px;margin:0 auto;padding:14px 20px 0;}
-  .premium-video-banner{
-    width:100%;box-sizing:border-box;
-    padding:2px;cursor:pointer;
-    background:#fff;
-    border:2px solid #2AABEE;border-radius:11px;
-    opacity:0;animation:fadeUp .6s ease forwards, pvbColorShift 6s ease-in-out infinite;
+  /* ---- Header'dagi kichkina "Video reels" tugmasi — to'q yashil/sariq/ko'k
+     ranglar orasida sekin almashib turadigan doira, ichida katta ▶ belgisi ---- */
+  .header-reels-btn{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    background:#0F5C3D;border:1px solid rgba(255,255,255,0.18);
+    animation:hrbColorShift 7.5s ease-in-out infinite;
   }
-  @keyframes pvbColorShift{
-    0%{ border-color:#2AABEE; }
-    50%{ border-color:#33E28C; }
-    100%{ border-color:#2AABEE; }
+  @keyframes hrbColorShift{
+    0%{ background:#0F5C3D; }
+    33%{ background:#B87E0A; }
+    66%{ background:#1B6FA8; }
+    100%{ background:#0F5C3D; }
   }
-  .pvb-inner{
-    display:flex;align-items:center;gap:8px;
-    padding:6px 10px;width:100%;box-sizing:border-box;
-    background:#F4F7FB;border-radius:9px;
-  }
-  .pvb-ring{
-    width:26px;height:26px;border-radius:50%;flex-shrink:0;
-    position:relative;background:#000;
-  }
-  .pvb-ring img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
-  .pvb-play-badge{
-    position:absolute;inset:0;border-radius:50%;
-    background:rgba(0,0,0,0.32);color:#fff;font-size:10px;
-    display:flex;align-items:center;justify-content:center;line-height:1;
-  }
-  .pvb-text{
-    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:#1B7FC4;
-    flex:1;
+  .hrb-play{
+    color:#fff;font-size:15px;line-height:1;
+    transform:scale(1.9);
   }
   .hero h1{
     font-family:'Sora',sans-serif;
@@ -1057,9 +1043,14 @@
 
 <header>
   <div class="logo"><span class="dot"></span>VIP <span class="logo-accent">RAQAMLAR</span></div>
-  <button class="menu-btn" id="menuBtn" aria-label="Menyu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
+  <div class="header-right">
+    <button class="header-reels-btn" id="premiumVideoBanner" style="display:none;" aria-label="Video reels">
+      <span class="hrb-play">▶</span>
+    </button>
+    <button class="menu-btn" id="menuBtn" aria-label="Menyu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
 </header>
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
@@ -1115,18 +1106,6 @@
   <div class="daily-deal-scroll" id="dailyDealScroll"></div>
   <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
 </section>
-
-<div class="pvb-wrap">
-  <button class="premium-video-banner" id="premiumVideoBanner" style="display:none;">
-    <div class="pvb-inner">
-      <span class="pvb-ring">
-        <img src="assets/logo-circle.png" alt="VIP RAQAMLAR">
-        <span class="pvb-play-badge">▶</span>
-      </span>
-      <span class="pvb-text">RELS - VIP RAQAMLAR</span>
-    </div>
-  </button>
-</div>
 
 <section class="hero">
   <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
@@ -2722,8 +2701,6 @@ setInterval(raqamuzHeartbeat, 20000);
     }catch(e){ items = []; }
 
     banner.style.display = items.length ? 'flex' : 'none';
-    const wrap = document.querySelector('.pvb-wrap');
-    if(wrap) wrap.style.display = items.length ? 'block' : 'none';
   }
 
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
