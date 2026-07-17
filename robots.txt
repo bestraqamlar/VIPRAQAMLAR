@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vipraqamlar.uz/sitemap.xml
+Sitemap: https://070.uz/sitemap.xml

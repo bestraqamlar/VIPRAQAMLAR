@@ -65,7 +65,7 @@ const CODE_TO_OPERATOR = {
 };
 const ORDER_STATUSES = ['Yangi', "Bog'lanildi", 'Yakunlandi', 'Bekor qilindi'];
 
-const SYSTEM_PROMPT = `Sen VIPRAQAMLAR.UZ saytining admin paneli uchun ichki yordamchisan. Admin senga o'zbek tilida (ba'zan lotin/kirill aralash) buyruq beradi. Sening ixtiyoringda quyidagi vositalar bor:
+const SYSTEM_PROMPT = `Sen VIP RAQAMLAR (070.uz) saytining admin paneli uchun ichki yordamchisan. Admin senga o'zbek tilida (ba'zan lotin/kirill aralash) buyruq beradi. Sening ixtiyoringda quyidagi vositalar bor:
 
 - search_numbers — raqamlarni filtr bo'yicha qidirish (oxiri/boshi/tarkibi, operator, tag, narx oralig'i)
 - delete_numbers — topilgan raqamlarni o'chirish
