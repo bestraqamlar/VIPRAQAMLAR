@@ -243,16 +243,16 @@
     padding:3px;cursor:pointer;margin-bottom:16px;
     position:relative;text-align:left;
     background-image:linear-gradient(var(--panel),var(--panel)),
-      conic-gradient(from var(--pvb-angle,0deg), #FFB000, #E63946, #FF3B5C, #FFB000);
+      conic-gradient(from var(--pvb-angle,0deg), #2AABEE, #1B7FC4, #4FC3F7, #2AABEE);
     background-origin:border-box;background-clip:padding-box, border-box;
     border:3px solid transparent;border-radius:16px;
-    opacity:0;animation:fadeUp .6s ease forwards, pvbSpin 4s linear infinite;
+    opacity:0;animation:fadeUp .6s ease forwards, pvbSpin 22s linear infinite;
   }
   @property --pvb-angle{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
   @keyframes pvbSpin{ to{ --pvb-angle:360deg; } }
   .pvb-ring{
     width:46px;height:46px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(135deg,var(--amber),var(--brand-red));
+    background:linear-gradient(135deg,#2AABEE,#1B7FC4);
     display:flex;align-items:center;justify-content:center;margin:0 12px 0 0;
   }
   .pvb-icon{color:#fff;font-size:16px;}
@@ -716,6 +716,19 @@
     cursor:pointer;box-shadow:0 4px 14px rgba(230,57,70,0.4);
   }
   .pv-order-btn:disabled{background:var(--muted);box-shadow:none;cursor:default;}
+  /* "Mijozlarimiz fikri"dagi bilan bir xil joylashuv, lekin bu yerda
+     narx+tugma ham bo'lgani uchun pastdan ko'proq joy beramiz — aks
+     holda tugma ekran chetidan (yoki gesture chizig'idan) tashqarida
+     qolib, "ramkadan pastga tushib" ko'rinardi. */
+  .pv-slide-info{
+    position:absolute;left:0;right:76px;bottom:0;
+    padding:20px 20px calc(env(safe-area-inset-bottom, 0px) + 46px) 20px;
+    background:linear-gradient(0deg,rgba(0,0,0,0.8),rgba(0,0,0,0));
+    color:#fff;
+  }
+  .pv-slide-number{font-family:'Space Mono',monospace;font-weight:700;font-size:16px;margin-bottom:4px;}
+  .pv-slide-price{color:var(--amber);font-weight:800;font-size:14px;margin-bottom:10px;}
+  .pv-like-elevated{ bottom:230px; }
 
   /* ---- To'lov turi tanlash (Naqt / Bo'lib to'lash) ---- */
   .pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px;}
@@ -1099,7 +1112,7 @@
 <section class="hero">
   <button class="premium-video-banner" id="premiumVideoBanner" style="display:none;">
     <span class="pvb-ring"><span class="pvb-icon">▶</span></span>
-    <span class="pvb-text">Premium raqamlar</span>
+    <span class="pvb-text">VIP RAQAMLAR</span>
     <span class="pvb-arrow">›</span>
   </button>
   <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
@@ -2374,16 +2387,21 @@ setInterval(raqamuzHeartbeat, 20000);
 
   async function loadVideoTestimonials(){
     try{
-      const snap = await db.collection('video_testimonials').orderBy('order', 'asc').get();
+      const snap = await db.collection('video_testimonials').orderBy('order', 'asc').limit(3000).get();
       videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }catch(e){ videos = []; }
 
     if(videos.length === 0){ section.style.display = 'none'; return; }
     section.style.display = 'block';
 
+    // MUHIM: yuzlab video bo'lsa ham, faqat ekranga yaqin turgan
+    // kartochkalarning videosi haqiqatan yuklanadi ("lazy loading") —
+    // aks holda sahifa juda sekinlashib, mijozning trafigi behuda
+    // sarflanadi. data-src'da manzil saqlanadi, IntersectionObserver
+    // ko'rinishga kirganda uni haqiqiy "src"ga o'tkazadi.
     scroll.innerHTML = videos.map((v, idx) => `
-      <div class="video-testi-card" data-idx="${idx}">
-        <video src="${v.videoUrl}#t=0.1" muted preload="metadata" playsinline></video>
+      <div class="video-testi-card" data-idx="${idx}" data-src="${v.videoUrl}#t=0.1">
+        <video muted preload="none" playsinline></video>
         <div class="video-testi-play">
           <svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.35)"/><path d="M9.5 7.5v9l7-4.5z"/></svg>
         </div>
@@ -2394,21 +2412,39 @@ setInterval(raqamuzHeartbeat, 20000);
     scroll.querySelectorAll('.video-testi-card').forEach(card=>{
       card.addEventListener('click', ()=> openReels(Number(card.dataset.idx)));
     });
+
+    const thumbObserver = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        const card = entry.target;
+        const video = card.querySelector('video');
+        if(entry.isIntersecting){
+          if(!video.getAttribute('src')) video.setAttribute('src', card.dataset.src);
+        }else{
+          // Ekrandan uzoqlashganda video manbasini olib tashlab, xotira/trafikni bo'shatamiz
+          if(video.getAttribute('src')){ video.removeAttribute('src'); video.load(); }
+        }
+      });
+    }, { root: scroll, rootMargin: '300px', threshold: 0.01 });
+
+    scroll.querySelectorAll('.video-testi-card').forEach(card => thumbObserver.observe(card));
   }
 
-  function heartSvg(filled){
+  window.heartSvg = function(filled){
     return filled
       ? `<svg viewBox="0 0 24 24" fill="#FF3B5C"><path d="M12 21s-6.7-4.35-9.3-8.1C.8 10.1 1.2 6.6 4 4.9c2.2-1.35 4.9-.7 6.3 1.2L12 8l1.7-1.9c1.4-1.9 4.1-2.55 6.3-1.2 2.8 1.7 3.2 5.2 1.3 8-2.6 3.75-9.3 8.1-9.3 8.1z"/></svg>`
       : `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-6.7-4.35-9.3-8.1C.8 10.1 1.2 6.6 4 4.9c2.2-1.35 4.9-.7 6.3 1.2L12 8l1.7-1.9c1.4-1.9 4.1-2.55 6.3-1.2 2.8 1.7 3.2 5.2 1.3 8-2.6 3.75-9.3 8.1-9.3 8.1z"/></svg>`;
-  }
+  };
+  const heartSvg = window.heartSvg;
 
-  function getLikedSet(){
+  window.getLikedSet = function(){
     try{ return new Set(JSON.parse(localStorage.getItem('raqamuz_liked_videos') || '[]')); }
     catch(e){ return new Set(); }
-  }
-  function saveLikedSet(set){
+  };
+  window.saveLikedSet = function(set){
     try{ localStorage.setItem('raqamuz_liked_videos', JSON.stringify(Array.from(set))); }catch(e){}
-  }
+  };
+  const getLikedSet = window.getLikedSet;
+  const saveLikedSet = window.saveLikedSet;
 
   async function toggleLike(videoId, btn){
     const set = getLikedSet();
@@ -2447,7 +2483,7 @@ setInterval(raqamuzHeartbeat, 20000);
     const liked = likedSet.has(v.id);
     return `
       <div class="reels-slide" data-idx="${idx}">
-        <video src="${v.videoUrl}" playsinline preload="auto"></video>
+        <video data-src="${v.videoUrl}" playsinline preload="none"></video>
         <button class="reels-like-btn ${liked ? 'liked' : ''}" data-id="${v.id}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
@@ -2487,6 +2523,26 @@ setInterval(raqamuzHeartbeat, 20000);
   }
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
 
+  // MUHIM (yuzlab video uchun): faqat HOZIRGI va unga QO'SHNI (oldingi/
+  // keyingi) videolarga haqiqiy manba beriladi — qolganlari "src"siz
+  // turadi. Shu bilan 500-1000 ta video bo'lsa ham, bir vaqtning o'zida
+  // faqat 2-3 tasi haqiqatan tarmoqdan yuklanadi.
+  const REELS_PRELOAD_WINDOW = 1;
+  function updateVideoWindow(){
+    track.querySelectorAll('.reels-slide').forEach(slide=>{
+      const idx = Number(slide.dataset.idx);
+      const video = slide.querySelector('video');
+      if(!video) return;
+      if(Math.abs(idx - currentIdx) <= REELS_PRELOAD_WINDOW){
+        if(!video.getAttribute('src')) video.setAttribute('src', video.dataset.src);
+      }else if(video.getAttribute('src')){
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
+    });
+  }
+
   // Barcha videolar BIR MARTA DOM'ga joylanadi va hech qachon o'chirilmaydi —
   // faqat translateY orqali joyi almashadi. Shu bilan: (1) video oldindan
   // yuklanib turadi, o'tkazganda darhol ochiladi; (2) orqaga qaytganda
@@ -2510,6 +2566,7 @@ setInterval(raqamuzHeartbeat, 20000);
     track.innerHTML = videos.map((v, idx) => renderSlide(idx)).join('');
     track.querySelectorAll('.reels-slide').forEach(bindSlideEvents);
     positionSlides(0);
+    updateVideoWindow();
     playSlideVideo(slideAt(currentIdx));
   }
 
@@ -2525,6 +2582,7 @@ setInterval(raqamuzHeartbeat, 20000);
     currentIdx = newIdx;
     isAnimating = true;
     positionSlides(0); // CSS transition o'zi silliq sirg'anish animatsiyasini beradi
+    updateVideoWindow();
     playSlideVideo(slideAt(currentIdx));
 
     setTimeout(()=>{ isAnimating = false; }, 340);
@@ -2638,13 +2696,13 @@ setInterval(raqamuzHeartbeat, 20000);
 
   async function loadPremiumVideos(){
     try{
-      const snap = await db.collection('premium_number_videos').orderBy('createdAt', 'desc').get();
+      const snap = await db.collection('premium_number_videos').orderBy('createdAt', 'desc').limit(3000).get();
       const raw = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       items = raw
         .map(v => {
           const num = NUMBERS.find(n => n.id === v.numberId);
           if(!num) return null; // raqam bazadan o'chirilgan/sotilgan bo'lishi mumkin
-          return { videoId: v.id, videoUrl: v.videoUrl, numberId: num.id, number: num.number, price: num.price, reserved: !!num.reserved };
+          return { videoId: v.id, videoUrl: v.videoUrl, numberId: num.id, number: num.number, price: num.price, reserved: !!num.reserved, likes: v.likes || 0 };
         })
         .filter(Boolean);
     }catch(e){ items = []; }
@@ -2664,15 +2722,79 @@ setInterval(raqamuzHeartbeat, 20000);
     if(video) video.pause();
   }
 
+  // MUHIM (minglab video uchun): DOM'da (sahifa tuzilishida) faqat
+  // HOZIRGI slaydga yaqin turgan bir nechtasi bo'ladi — qolgan minglab
+  // slayd sahifaga umuman qo'shilmaydi, faqat kerak bo'lganda yaratiladi.
+  const PV_DOM_WINDOW = 3;   // DOM'da currentIdx-3 ... currentIdx+3 saqlanadi
+  const PV_PRELOAD_WINDOW = 1; // faqat currentIdx-1 ... currentIdx+1 haqiqiy video yuklaydi
+
+  function syncSlidesDOM(){
+    const start = Math.max(0, currentIdx - PV_DOM_WINDOW);
+    const end = Math.min(items.length - 1, currentIdx + PV_DOM_WINDOW);
+    const h = track.clientHeight;
+
+    // Oyna tashqarisidagi slaydlarni DOM'dan olib tashlaymiz (xotira/tezlik uchun)
+    track.querySelectorAll('.reels-slide').forEach(slide=>{
+      const idx = Number(slide.dataset.idx);
+      if(idx < start || idx > end){
+        const video = slide.querySelector('video');
+        if(video){ video.pause(); video.removeAttribute('src'); video.load(); }
+        slide.remove();
+      }
+    });
+
+    // Oyna ichidagi, hali DOM'da yo'q slaydlarni qo'shamiz
+    for(let idx = start; idx <= end; idx++){
+      if(!slideAt(idx)){
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = renderSlide(idx);
+        const slideEl = wrapper.firstElementChild;
+        slideEl.style.transform = `translateY(${(idx - currentIdx) * h}px)`;
+        track.appendChild(slideEl);
+        bindSlideEvents(slideEl);
+      }
+    }
+  }
+
+  async function toggleLikePremium(videoId, btn){
+    const set = getLikedSet();
+    const item = items.find(v => v.videoId === videoId);
+    const alreadyLiked = set.has(videoId);
+    const delta = alreadyLiked ? -1 : 1;
+
+    btn.classList.toggle('liked', !alreadyLiked);
+    btn.innerHTML = heartSvg(!alreadyLiked) + `<span class="reels-like-count">${(item.likes || 0) + delta}</span>`;
+
+    try{
+      await db.collection('premium_number_videos').doc(videoId).update({
+        likes: firebase.firestore.FieldValue.increment(delta)
+      });
+      if(item) item.likes = (item.likes || 0) + delta;
+      if(alreadyLiked) set.delete(videoId); else set.add(videoId);
+      saveLikedSet(set);
+    }catch(err){
+      console.error('Like saqlanmadi:', err);
+      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      btn.classList.toggle('liked', alreadyLiked);
+      btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${item.likes || 0}</span>`;
+    }
+  }
+
   function renderSlide(idx){
     const v = items[idx];
     if(!v) return '';
+    const likedSet = getLikedSet();
+    const liked = likedSet.has(v.videoId);
     return `
       <div class="reels-slide" data-idx="${idx}">
-        <video src="${v.videoUrl}" playsinline preload="auto"></video>
-        <div class="reels-slide-caption" style="padding-right:20px;">
-          <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;margin-bottom:4px;">${displayNumber(v.number)}</div>
-          <div style="color:var(--amber);font-weight:800;font-size:14px;margin-bottom:10px;">${formatPrice(v.price)}</div>
+        <video data-src="${v.videoUrl}" playsinline preload="none"></video>
+        <button class="reels-like-btn pv-like-elevated ${liked ? 'liked' : ''}" data-video-id="${v.videoId}">
+          ${heartSvg(liked)}
+          <span class="reels-like-count">${v.likes || 0}</span>
+        </button>
+        <div class="pv-slide-info">
+          <div class="pv-slide-number">${displayNumber(v.number)}</div>
+          <div class="pv-slide-price">${formatPrice(v.price)}</div>
           ${v.reserved
             ? `<button class="pv-order-btn" disabled style="opacity:.6;">Band qilingan</button>`
             : `<button class="pv-order-btn" data-idx="${idx}">🛒 Buyurtma berish</button>`}
@@ -2690,6 +2812,10 @@ setInterval(raqamuzHeartbeat, 20000);
         video.currentTime = 0;
         video.play().catch(()=>{});
       });
+    }
+    const likeBtn = slideEl.querySelector('.reels-like-btn');
+    if(likeBtn){
+      likeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLikePremium(likeBtn.dataset.videoId, likeBtn); });
     }
     const orderBtn = slideEl.querySelector('.pv-order-btn:not([disabled])');
     if(orderBtn){
@@ -2709,6 +2835,23 @@ setInterval(raqamuzHeartbeat, 20000);
     }
   }
 
+  // MUHIM: faqat HOZIRGI va unga QO'SHNI videolarga haqiqiy manba
+  // beriladi (video ma'lumoti yuklanadi) — qolganlari "src"siz turadi.
+  function updateVideoWindow(){
+    track.querySelectorAll('.reels-slide').forEach(slide=>{
+      const idx = Number(slide.dataset.idx);
+      const video = slide.querySelector('video');
+      if(!video) return;
+      if(Math.abs(idx - currentIdx) <= PV_PRELOAD_WINDOW){
+        if(!video.getAttribute('src')) video.setAttribute('src', video.dataset.src);
+      }else if(video.getAttribute('src')){
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
+    });
+  }
+
   function positionSlides(extraOffsetPx){
     const h = track.clientHeight;
     track.querySelectorAll('.reels-slide').forEach(slide=>{
@@ -2725,9 +2868,10 @@ setInterval(raqamuzHeartbeat, 20000);
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-    track.innerHTML = items.map((v, idx) => renderSlide(idx)).join('');
-    track.querySelectorAll('.reels-slide').forEach(bindSlideEvents);
+    track.innerHTML = '';
+    syncSlidesDOM();
     positionSlides(0);
+    updateVideoWindow();
     playSlideVideo(slideAt(currentIdx));
   }
 
@@ -2737,7 +2881,9 @@ setInterval(raqamuzHeartbeat, 20000);
     pauseSlideVideo(slideAt(currentIdx));
     currentIdx = newIdx;
     isAnimating = true;
+    syncSlidesDOM();
     positionSlides(0);
+    updateVideoWindow();
     playSlideVideo(slideAt(currentIdx));
     setTimeout(()=>{ isAnimating = false; }, 340);
   }
