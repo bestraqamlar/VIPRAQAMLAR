@@ -1050,10 +1050,6 @@
   </div>
 
   <div class="drawer-links">
-    <a id="drawerAiChat" href="#" class="drawer-ai-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.8 5.5L19 9l-5.2 1.5L12 16l-1.8-5.5L5 9l5.2-1.5z"/><circle cx="18" cy="18" r="3"/></svg>
-      YORDAMCHI AI
-    </a>
     <a id="drawerTelegram" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
       Telegram kanal
@@ -1862,11 +1858,11 @@ document.getElementById('cancelBtn').addEventListener('click', closeModal);
 document.getElementById('closeSuccessBtn').addEventListener('click', closeModal);
 overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
 
-function showToast(text){
+function showToast(text, duration){
   const toast = document.getElementById('toast');
   toast.textContent = text;
   toast.classList.add('show');
-  setTimeout(()=> toast.classList.remove('show'), 3000);
+  setTimeout(()=> toast.classList.remove('show'), duration || 3000);
 }
 
 document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
@@ -2058,12 +2054,6 @@ function closeDrawer(){
 menuBtn.addEventListener('click', openDrawer);
 drawerClose.addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
-
-document.getElementById('drawerAiChat').addEventListener('click', (e)=>{
-  e.preventDefault();
-  closeDrawer();
-  setTimeout(()=>{ if(window.openAiWidget) openAiWidget(); }, 250);
-});
 
 /* ---- Ofis manzili — Yandex xaritasi ---- */
 let yandexMapLoaded = false;
@@ -2439,7 +2429,9 @@ setInterval(raqamuzHeartbeat, 20000);
     }catch(err){
       // Saqlanmadi (masalan ruxsat xatosi) — ko'rinishni ORQAGA qaytaramiz,
       // shunda mijoz "like bosdim-u lekin saqlanmadi" holatini ko'rmaydi.
+      // Xatoni EKRANDA ham ko'rsatamiz — telefonda konsolni ko'rib bo'lmaydi.
       console.error('Like saqlanmadi:', err);
+      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
       btn.classList.toggle('liked', alreadyLiked);
       btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${video.likes || 0}</span>`;
     }
@@ -2467,32 +2459,16 @@ setInterval(raqamuzHeartbeat, 20000);
     if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
   }
 
-  function playOnly(idx){
-    track.querySelectorAll('.reels-slide').forEach(slide=>{
-      const video = slide.querySelector('video');
-      if(!video) return;
-      if(Number(slide.dataset.idx) === idx){
-        video.muted = false;
-        video.currentTime = 0;
-        video.play().catch(()=>{});
-      }else{
-        video.pause();
-      }
-    });
+  function playSlideVideo(slideEl){
+    const video = slideEl && slideEl.querySelector('video');
+    if(!video) return;
+    video.muted = false;
+    video.currentTime = 0;
+    video.play().catch(()=>{});
   }
-
-  // Hozirgi va (agar bo'lsa) qo'shni bitta slaydni ko'rsatamiz — shu bilan
-  // TEZ suriganda ham hech qachon 1 tadan ortiq video "sakramaydi".
-  function renderTrack(){
-    track.innerHTML = renderSlide(currentIdx);
-    track.querySelectorAll('.reels-slide').forEach(bindSlideEvents);
-    playOnly(currentIdx);
-  }
-
-  function goToIndex(newIdx){
-    if(newIdx < 0 || newIdx >= videos.length || newIdx === currentIdx) return;
-    currentIdx = newIdx;
-    renderTrack();
+  function pauseSlideVideo(slideEl){
+    const video = slideEl && slideEl.querySelector('video');
+    if(video) video.pause();
   }
 
   function openReels(startIdx){
@@ -2500,7 +2476,49 @@ setInterval(raqamuzHeartbeat, 20000);
     currentIdx = startIdx;
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-    renderTrack();
+    track.innerHTML = renderSlide(currentIdx);
+    const slide = track.querySelector('.reels-slide');
+    if(slide){ bindSlideEvents(slide); playSlideVideo(slide); }
+  }
+
+  // Haqiqiy "sirg'anib o'tish" animatsiyasi: eski video bir tomonga
+  // suriladi, yangisi qarama-qarshi tomondan kirib keladi — xuddi
+  // Instagram Reels'dagi kabi. Shu bilan birga, har bir imo-ishora
+  // FAQAT bitta videoga o'tkazadi (tez surilsa ham sakrab ketmaydi),
+  // chunki navigatsiya paytida (isAnimating=true) yangi harakatlar
+  // e'tiborga olinmaydi.
+  let isAnimating = false;
+  function goToIndex(newIdx){
+    if(isAnimating) return;
+    if(newIdx < 0 || newIdx >= videos.length || newIdx === currentIdx) return;
+
+    const dir = newIdx > currentIdx ? 1 : -1; // 1: keyingi (tepaga suriladi), -1: oldingi
+    const oldSlide = track.querySelector('.reels-slide');
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = renderSlide(newIdx);
+    const newSlide = wrapper.firstElementChild;
+    newSlide.style.transition = 'none';
+    newSlide.style.transform = `translateY(${dir * 100}%)`;
+    track.appendChild(newSlide);
+    bindSlideEvents(newSlide);
+    void newSlide.offsetHeight; // reflow — animatsiya to'g'ri boshlanishi uchun
+    newSlide.style.transition = '';
+
+    isAnimating = true;
+    requestAnimationFrame(()=>{
+      if(oldSlide) oldSlide.style.transform = `translateY(${-dir * 100}%)`;
+      newSlide.style.transform = 'translateY(0)';
+    });
+
+    playSlideVideo(newSlide);
+    pauseSlideVideo(oldSlide);
+    currentIdx = newIdx;
+
+    setTimeout(()=>{
+      if(oldSlide && oldSlide.parentNode) oldSlide.remove();
+      isAnimating = false;
+    }, 340);
   }
 
   function closeReels(){
