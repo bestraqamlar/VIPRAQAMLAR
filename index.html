@@ -2463,12 +2463,23 @@ setInterval(raqamuzHeartbeat, 20000);
     const video = slideEl && slideEl.querySelector('video');
     if(!video) return;
     video.muted = false;
-    video.currentTime = 0;
     video.play().catch(()=>{});
   }
   function pauseSlideVideo(slideEl){
     const video = slideEl && slideEl.querySelector('video');
     if(video) video.pause();
+  }
+  function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
+
+  // Barcha videolar BIR MARTA DOM'ga joylanadi va hech qachon o'chirilmaydi —
+  // faqat translateY orqali joyi almashadi. Shu bilan: (1) video oldindan
+  // yuklanib turadi, o'tkazganda darhol ochiladi; (2) orqaga qaytganda
+  // "muzlab qolish" bo'lmaydi, chunki video hech qachon qayta yaratilmaydi.
+  function positionSlides(){
+    track.querySelectorAll('.reels-slide').forEach(slide=>{
+      const idx = Number(slide.dataset.idx);
+      slide.style.transform = `translateY(${(idx - currentIdx) * 100}%)`;
+    });
   }
 
   function openReels(startIdx){
@@ -2476,49 +2487,28 @@ setInterval(raqamuzHeartbeat, 20000);
     currentIdx = startIdx;
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-    track.innerHTML = renderSlide(currentIdx);
-    const slide = track.querySelector('.reels-slide');
-    if(slide){ bindSlideEvents(slide); playSlideVideo(slide); }
+
+    track.innerHTML = videos.map((v, idx) => renderSlide(idx)).join('');
+    track.querySelectorAll('.reels-slide').forEach(bindSlideEvents);
+    positionSlides();
+    playSlideVideo(slideAt(currentIdx));
   }
 
-  // Haqiqiy "sirg'anib o'tish" animatsiyasi: eski video bir tomonga
-  // suriladi, yangisi qarama-qarshi tomondan kirib keladi — xuddi
-  // Instagram Reels'dagi kabi. Shu bilan birga, har bir imo-ishora
-  // FAQAT bitta videoga o'tkazadi (tez surilsa ham sakrab ketmaydi),
-  // chunki navigatsiya paytida (isAnimating=true) yangi harakatlar
-  // e'tiborga olinmaydi.
+  // Har bir imo-ishora FAQAT bitta videoga o'tkazadi (tez surilsa ham
+  // sakrab ketmaydi) — navigatsiya animatsiyasi tugamaguncha (isAnimating)
+  // yangi harakatlar e'tiborga olinmaydi.
   let isAnimating = false;
   function goToIndex(newIdx){
     if(isAnimating) return;
     if(newIdx < 0 || newIdx >= videos.length || newIdx === currentIdx) return;
 
-    const dir = newIdx > currentIdx ? 1 : -1; // 1: keyingi (tepaga suriladi), -1: oldingi
-    const oldSlide = track.querySelector('.reels-slide');
-
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = renderSlide(newIdx);
-    const newSlide = wrapper.firstElementChild;
-    newSlide.style.transition = 'none';
-    newSlide.style.transform = `translateY(${dir * 100}%)`;
-    track.appendChild(newSlide);
-    bindSlideEvents(newSlide);
-    void newSlide.offsetHeight; // reflow — animatsiya to'g'ri boshlanishi uchun
-    newSlide.style.transition = '';
-
-    isAnimating = true;
-    requestAnimationFrame(()=>{
-      if(oldSlide) oldSlide.style.transform = `translateY(${-dir * 100}%)`;
-      newSlide.style.transform = 'translateY(0)';
-    });
-
-    playSlideVideo(newSlide);
-    pauseSlideVideo(oldSlide);
+    pauseSlideVideo(slideAt(currentIdx));
     currentIdx = newIdx;
+    isAnimating = true;
+    positionSlides(); // CSS transition o'zi silliq sirg'anish animatsiyasini beradi
+    playSlideVideo(slideAt(currentIdx));
 
-    setTimeout(()=>{
-      if(oldSlide && oldSlide.parentNode) oldSlide.remove();
-      isAnimating = false;
-    }, 340);
+    setTimeout(()=>{ isAnimating = false; }, 340);
   }
 
   function closeReels(){
