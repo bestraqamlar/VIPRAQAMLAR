@@ -2627,7 +2627,7 @@ function takeWarmedVideo(url){
   // keyingi) videolarga haqiqiy manba beriladi — qolganlari "src"siz
   // turadi. Shu bilan 500-1000 ta video bo'lsa ham, bir vaqtning o'zida
   // faqat 2-3 tasi haqiqatan tarmoqdan yuklanadi.
-  const REELS_PRELOAD_WINDOW = 1;
+  const REELS_PRELOAD_WINDOW = 10;
   function updateVideoWindow(){
     track.querySelectorAll('.reels-slide').forEach(slide=>{
       const idx = Number(slide.dataset.idx);
@@ -2834,8 +2834,8 @@ function takeWarmedVideo(url){
   // MUHIM (minglab video uchun): DOM'da (sahifa tuzilishida) faqat
   // HOZIRGI slaydga yaqin turgan bir nechtasi bo'ladi — qolgan minglab
   // slayd sahifaga umuman qo'shilmaydi, faqat kerak bo'lganda yaratiladi.
-  const PV_DOM_WINDOW = 3;   // DOM'da currentIdx-3 ... currentIdx+3 saqlanadi
-  const PV_PRELOAD_WINDOW = 1; // faqat currentIdx-1 ... currentIdx+1 haqiqiy video yuklaydi
+  const PV_DOM_WINDOW = 11;   // DOM'da currentIdx-11 ... currentIdx+11 saqlanadi
+  const PV_PRELOAD_WINDOW = 10; // currentIdx-10 ... currentIdx+10 haqiqiy video yuklaydi
 
   function syncSlidesDOM(){
     const start = Math.max(0, currentIdx - PV_DOM_WINDOW);
