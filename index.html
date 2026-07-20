@@ -4,11 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <title>VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar | Raqam Tanlash Xizmati</title>
-<link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
-<link rel="manifest" href="assets/favicon/site.webmanifest">
 <meta name="description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum raqamlari. Bepul yetkazib berish, muddatli to'lov (kredit) imkoniyati.">
 <meta name="keywords" content="raqam, nomer, oltin raqam, vip raqam, chiroyli raqam, raqam tanlash, telefon raqam sotib olish, sim karta, Beeline raqam, Ucell raqam, Uzmobile raqam, Mobiuz raqam, Toshkent raqam tanlash, O'zbekiston raqamlar katalogi">
 <link rel="canonical" href="https://070.uz/">
@@ -313,16 +308,8 @@
     background:linear-gradient(180deg, var(--bg) 60%, transparent);
     padding:10px 0 14px;
   }
-  .unified-search-frame{
-    max-width:480px;margin:0 auto;padding:16px 14px;
-    background:var(--panel);border:1px solid var(--line);border-radius:16px;
-  }
-  .section-label{
-    font-size:10.5px;color:var(--muted);text-transform:uppercase;
-    letter-spacing:0.5px;font-weight:700;margin-bottom:8px;
-  }
-  .usf-divider{height:1px;background:var(--line);margin:14px 0;}
   .number-builder{
+    max-width:480px;margin:0 auto;padding:0 12px;
     display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;
     gap:clamp(3px,1.4vw,7px);
     overflow-x:auto;-webkit-overflow-scrolling:touch;
@@ -336,7 +323,7 @@
   }
   .op-select{
     flex:0 0 auto;
-    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
     color:var(--amber);font-family:'Space Mono',monospace;font-weight:700;
     font-size:clamp(10px,3vw,13px);
     text-align:center;text-align-last:center;
@@ -351,7 +338,7 @@
   .digit-box{
     flex:0 0 auto;
     width:clamp(19px,7vw,32px);height:clamp(32px,11vw,44px);
-    background:var(--panel-2);border:1px solid var(--line);border-radius:7px;
+    background:var(--panel);border:1px solid var(--line);border-radius:7px;
     color:var(--text);font-family:'Sora',sans-serif;
     font-size:clamp(12px,3.8vw,17px);font-weight:700;
     text-align:center;outline:none;transition:border-color .15s ease, background .15s ease;
@@ -361,38 +348,6 @@
   .digit-box:focus{border-color:var(--amber);}
   .digit-box.filled{border-color:var(--green);background:rgba(51,226,140,0.08);}
   .dash{flex:0 0 auto;color:var(--muted);font-family:'Sora',sans-serif;font-size:clamp(11px,3vw,14px);}
-  .price-range-label{
-    display:flex;justify-content:flex-end;align-items:center;
-    font-size:11.5px;color:var(--muted);margin-bottom:10px;
-  }
-  .price-range-label b{color:var(--amber);font-family:'Space Mono',monospace;font-weight:700;font-size:11.5px;}
-  .range-dual{position:relative;height:22px;}
-  .range-track{position:absolute;top:9px;left:0;right:0;height:4px;background:var(--line);border-radius:2px;}
-  .range-fill{position:absolute;top:9px;height:4px;background:var(--amber);border-radius:2px;}
-  .range-dual input[type=range]{
-    position:absolute;top:0;left:0;width:100%;height:22px;margin:0;
-    -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;
-  }
-  /* Native tutqich VIZUAL jihatdan ko'rinmas qilinadi (faqat sudrash
-     uchun ishlatiladi) — ko'rinadigan nuqtalarni pastda O'ZIMIZ,
-     ishonchli JS hisob-kitobi bilan chizamiz, shunda brauzerlar
-     orasidagi farq/xatolik bo'lmaydi. */
-  .range-dual input[type=range]::-webkit-slider-thumb{
-    pointer-events:auto;-webkit-appearance:none;appearance:none;
-    width:22px;height:22px;border-radius:50%;background:transparent;
-    border:none;cursor:pointer;
-  }
-  .range-dual input[type=range]::-moz-range-thumb{
-    pointer-events:auto;width:22px;height:22px;border-radius:50%;background:transparent;
-    border:none;cursor:pointer;
-  }
-  .range-dual input[type=range]::-webkit-slider-runnable-track{background:transparent;}
-  .range-dual input[type=range]::-moz-range-track{background:transparent;}
-  .range-dot{
-    position:absolute;top:3px;width:16px;height:16px;border-radius:50%;
-    background:var(--amber);border:2px solid var(--bg);box-shadow:0 1px 4px rgba(0,0,0,0.4);
-    pointer-events:none;transform:translateX(-50%);
-  }
   .hint-text{
     text-align:center;font-size:12px;color:var(--muted);margin-top:10px;
     font-family:'Space Mono',monospace;
@@ -1058,7 +1013,7 @@
   @media (min-width:640px) and (max-width:1023px){
     .hero{max-width:640px;padding-top:34px;}
     .hero h1{font-size:clamp(32px,6vw,42px);}
-    .unified-search-frame{max-width:560px;}
+    .number-builder{max-width:560px;}
     .catalog{
       max-width:900px;
       grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
@@ -1082,8 +1037,7 @@
     .stats-row{gap:16px;}
     .stat{max-width:130px;padding:16px 10px;}
     .stat b{font-size:17px;}
-    .unified-search-frame{max-width:600px;}
-    .number-builder{gap:8px;}
+    .number-builder{max-width:600px;gap:8px;}
     .digit-box{width:38px;height:50px;font-size:19px;}
 
     .catalog{
@@ -1198,48 +1152,28 @@
 </section>
 
 <div class="search-wrap">
-  <div class="unified-search-frame">
-    <div class="section-label">Raqam qidirish</div>
-    <div class="number-builder">
-      <span class="prefix">+998</span>
-      <select id="operatorSelect" class="op-select">
-        <option value="">Barchasi</option>
-        <option value="Mobiuz" style="color:#C0392B;">Mobiuz</option>
-        <option value="Beeline" style="color:#E0A400;">Beeline</option>
-        <option value="Ucell" style="color:#B07CC6;">Ucell</option>
-        <option value="Humans" style="color:#FFD37A;">Humans</option>
-        <option value="Uzmobile" style="color:#2E63C7;">Uzmobile</option>
-        <option value="Perfektum" style="color:#C97A3D;">Perfektum</option>
-      </select>
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="0">
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="1">
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="2">
-      <span class="dash">-</span>
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="3">
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="4">
-      <span class="dash">-</span>
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
-      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
-    </div>
-    <div class="hint-text" id="hintText">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
-
-    <div class="usf-divider"></div>
-
-    <div class="section-label">Narx oralig'i</div>
-    <div class="price-range-label">
-      <span></span>
-      <b id="priceRangeValue">Hammasi</b>
-    </div>
-    <div class="range-dual">
-      <div class="range-track"></div>
-      <div class="range-fill" id="rangeFill"></div>
-      <input type="range" id="priceMinSlider" min="0" max="5000000" step="50000" value="0">
-      <input type="range" id="priceMaxSlider" min="0" max="5000000" step="50000" value="5000000">
-      <span class="range-dot" id="rangeDotMin"></span>
-      <span class="range-dot" id="rangeDotMax"></span>
-    </div>
+  <div class="number-builder">
+    <span class="prefix">+998</span>
+    <select id="operatorSelect" class="op-select">
+      <option value="">Barchasi</option>
+      <option value="Mobiuz" style="color:#C0392B;">Mobiuz</option>
+      <option value="Beeline" style="color:#E0A400;">Beeline</option>
+      <option value="Ucell" style="color:#B07CC6;">Ucell</option>
+      <option value="Humans" style="color:#FFD37A;">Humans</option>
+      <option value="Uzmobile" style="color:#2E63C7;">Uzmobile</option>
+      <option value="Perfektum" style="color:#C97A3D;">Perfektum</option>
+    </select>
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="0">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="1">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="2">
+    <span class="dash">-</span>
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="3">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="4">
+    <span class="dash">-</span>
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
+    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
   </div>
-
+  <div class="hint-text" id="hintText">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
   <button class="clear-search" id="clearSearchBtn" style="display:none;">Tozalash</button>
 </div>
 
@@ -1441,7 +1375,6 @@ async function loadNumbers(retryDelay){
     const cached = localStorage.getItem('raqamuz_cache');
     if(cached){
       NUMBERS = JSON.parse(cached);
-      if(window.initPriceSliderRange) initPriceSliderRange();
       renderCatalog();
       renderFeatured();
       renderSale();
@@ -1455,7 +1388,6 @@ async function loadNumbers(retryDelay){
     NUMBERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     numbersLoaded = true;
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
-    if(window.initPriceSliderRange) initPriceSliderRange();
     renderCatalog();
     renderFeatured();
     renderSale();
@@ -1476,101 +1408,16 @@ const catalogEl      = document.getElementById('catalog');
 const operatorSelect = document.getElementById('operatorSelect');
 const digitBoxes     = Array.from(document.querySelectorAll('.digit-box'));
 const clearSearchBtn = document.getElementById('clearSearchBtn');
-const priceMinSlider  = document.getElementById('priceMinSlider');
-const priceMaxSlider  = document.getElementById('priceMaxSlider');
-const priceRangeValue = document.getElementById('priceRangeValue');
-const rangeFill        = document.getElementById('rangeFill');
-let PRICE_SLIDER_MIN = 0;
-let PRICE_SLIDER_MAX = 5000000; // NUMBERS yuklanguncha vaqtinchalik standart qiymat
 const PAGE_SIZE = 15;
 const MAX_PAGES_WITHOUT_SEARCH = 2; // qidiruvsiz holatda faqat shuncha sahifa ko'rsatiladi
 let currentPage = 0;
-let priceMin = 0, priceMax = 0; // 0,0 = "Hammasi" (filtrsiz)
 
 function currentPattern(){ return digitBoxes.map(box => box.value.trim()); }
-function isSearchActive(){ return operatorSelect.value !== '' || currentPattern().some(d => d !== '') || priceMin !== PRICE_SLIDER_MIN || priceMax !== PRICE_SLIDER_MAX; }
+function isSearchActive(){ return operatorSelect.value !== '' || currentPattern().some(d => d !== ''); }
 function updateSearchUI(){
   operatorSelect.classList.toggle('filtered', operatorSelect.value !== '');
   clearSearchBtn.style.display = isSearchActive() ? 'block' : 'none';
 }
-
-// Narx oralig'i slideri — boshida "Hammasi" (filtrsiz) holatda turadi,
-// mijoz tutqichlarni surganda o'ziga yoqqan oraliqni belgilab qidiradi.
-function formatShortPrice(n){
-  if(n >= 1000000) return (n/1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + ' mln';
-  if(n >= 1000) return Math.round(n/1000) + ' ming';
-  return String(n);
-}
-function updatePriceRangeUI(){
-  let minV = Number(priceMinSlider.value);
-  let maxV = Number(priceMaxSlider.value);
-  if(minV > maxV){ [minV, maxV] = [maxV, minV]; } // tutqichlar bir-birini bosib o'tmasin
-
-  const totalRange = PRICE_SLIDER_MAX - PRICE_SLIDER_MIN;
-  const minPct = totalRange > 0 ? ((minV - PRICE_SLIDER_MIN) / totalRange) * 100 : 0;
-  const maxPct = totalRange > 0 ? ((maxV - PRICE_SLIDER_MIN) / totalRange) * 100 : 100;
-  rangeFill.style.left = minPct + '%';
-  rangeFill.style.right = (100 - maxPct) + '%';
-  // Ko'rinadigan nuqtalarni O'ZIMIZNING hisob-kitobimizga qarab
-  // joylashtiramiz — brauzerning o'z slider chizilishiga bog'liq emas,
-  // shuning uchun har doim aniq "eng boshida" / "eng oxirida" turadi.
-  const dotMin = document.getElementById('rangeDotMin');
-  const dotMax = document.getElementById('rangeDotMax');
-  if(dotMin) dotMin.style.left = minPct + '%';
-  if(dotMax) dotMax.style.left = maxPct + '%';
-
-  priceMin = minV;
-  priceMax = maxV;
-
-  if(minV === PRICE_SLIDER_MIN && maxV === PRICE_SLIDER_MAX){
-    priceRangeValue.textContent = 'Hammasi';
-  }else{
-    priceRangeValue.textContent = `${formatShortPrice(minV)} – ${formatShortPrice(maxV)} so'm`;
-  }
-}
-let userAdjustedPrice = false; // mijoz tutqichni QO'LDA surganini bildiradi
-function onPriceSliderChange(){
-  userAdjustedPrice = true;
-  updatePriceRangeUI();
-  currentPage = 0;
-  updateSearchUI();
-  renderCatalog();
-}
-
-// Slider chegaralarini bazadagi HAQIQIY eng arzon va eng qimmat raqam
-// narxiga qarab sozlaydi — qattiq belgilangan son emas. Mijoz hali
-// tutqichni o'zi surmagan bo'lsa, ikkala nuqta ANIQ eng chekkalarga
-// (eng arzon / eng qimmat) qo'yiladi — shartsiz, hech nimaga bog'liq
-// bo'lmagan holda.
-function initPriceSliderRange(){
-  if(!NUMBERS.length) return;
-  const prices = NUMBERS.map(n => Number(n.price) || 0).filter(p => p > 0);
-  if(!prices.length) return;
-
-  const realMin = Math.min(...prices);
-  const realMax = Math.max(...prices) > realMin ? Math.max(...prices) : realMin + 1;
-
-  PRICE_SLIDER_MIN = realMin;
-  PRICE_SLIDER_MAX = realMax;
-
-  [priceMinSlider, priceMaxSlider].forEach(el=>{
-    el.min = PRICE_SLIDER_MIN;
-    el.max = PRICE_SLIDER_MAX;
-    el.step = 1000;
-  });
-
-  if(!userAdjustedPrice){
-    priceMinSlider.value = PRICE_SLIDER_MIN;
-    priceMaxSlider.value = PRICE_SLIDER_MAX;
-  }
-  updatePriceRangeUI();
-}
-priceMinSlider.addEventListener('input', updatePriceRangeUI);
-priceMaxSlider.addEventListener('input', updatePriceRangeUI);
-priceMinSlider.addEventListener('change', onPriceSliderChange);
-priceMaxSlider.addEventListener('change', onPriceSliderChange);
-updatePriceRangeUI();
-
 function showSkeletons(){ catalogEl.innerHTML = Array(6).fill('<div class="skeleton"></div>').join(''); }
 
 function getFilteredNumbers(){
@@ -1583,8 +1430,6 @@ function getFilteredNumbers(){
     // chalkashtirishi mumkin edi.
     if(item.dailyDeal === true) return false;
     if(selectedOp !== '' && item.operator !== selectedOp) return false;
-    if(priceMin > PRICE_SLIDER_MIN && item.price < priceMin) return false;
-    if(priceMax < PRICE_SLIDER_MAX && item.price > priceMax) return false;
     const local = getLocalDigits(item.number);
     for(let i = 0; i < 7; i++){
       if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
@@ -1958,10 +1803,6 @@ digitBoxes.forEach((box, idx)=>{
 clearSearchBtn.addEventListener('click', ()=>{
   operatorSelect.value = '';
   digitBoxes.forEach(box=>{ box.value=''; box.classList.remove('filled'); });
-  userAdjustedPrice = false;
-  priceMinSlider.value = PRICE_SLIDER_MIN;
-  priceMaxSlider.value = PRICE_SLIDER_MAX;
-  updatePriceRangeUI();
   currentPage = 0;
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus();
 });
