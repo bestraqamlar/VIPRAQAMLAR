@@ -148,7 +148,7 @@ async function showNumberDetail(chatId, item){
     text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
   }
   if(item.installment){
-    text += `💰 Raqamni 12,24 oygacha bo'lib to'lash sharti bilan olish mumkin.\n`;
+    text += `💰 Raqamni 6,12,24,36 oygacha bo'lib to'lash sharti bilan olish mumkin.\n`;
   }
   if(item.reserved){
     text += `\n⚠️ Bu raqam hozir band qilinmoqda.`;

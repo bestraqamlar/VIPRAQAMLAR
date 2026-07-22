@@ -7,6 +7,9 @@
 <meta name="description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum raqamlari. Bepul yetkazib berish, muddatli to'lov (kredit) imkoniyati.">
 <meta name="keywords" content="raqam, nomer, oltin raqam, vip raqam, chiroyli raqam, raqam tanlash, telefon raqam sotib olish, sim karta, Beeline raqam, Ucell raqam, Uzmobile raqam, Mobiuz raqam, Toshkent raqam tanlash, O'zbekiston raqamlar katalogi">
 <link rel="canonical" href="https://070.uz/">
+<link rel="icon" type="image/png" sizes="256x256" href="assets/logo-circle.png?v=2">
+<link rel="shortcut icon" type="image/png" href="assets/logo-circle.png?v=2">
+<link rel="apple-touch-icon" href="assets/logo-circle.png?v=2">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="google-site-verification" content="I6UBu5Pm0CpwIE4txcOEXSVtieGWpQR5YkViiQCt7Vk" />
 
@@ -765,20 +768,13 @@
     background:var(--panel-2);border:1px solid var(--amber);border-radius:12px;
     padding:14px;margin:0 0 16px;animation:fadeSlideUpT .3s ease both;
   }
-  .ic-slider{
-    -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:4px;
-    background:var(--line);outline:none;cursor:pointer;margin:6px 0 10px;
+  .ic-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:2px 0 12px;}
+  .ic-tab{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:9px 4px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;text-align:center;
+    transition:all .15s ease;
   }
-  .ic-slider::-webkit-slider-thumb{
-    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
-    background:var(--amber);border:3px solid var(--bg);cursor:pointer;
-    box-shadow:0 0 0 3px rgba(255,176,0,0.25);transition:transform .15s ease;
-  }
-  .ic-slider::-webkit-slider-thumb:active{transform:scale(1.15);}
-  .ic-slider::-moz-range-thumb{
-    width:20px;height:20px;border-radius:50%;background:var(--amber);
-    border:3px solid var(--bg);cursor:pointer;box-shadow:0 0 0 3px rgba(255,176,0,0.25);
-  }
+  .ic-tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
   .ic-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;}
   .ic-months{color:var(--muted);font-weight:600;}
   .ic-monthly{color:var(--text);}
@@ -1037,8 +1033,16 @@
     .stats-row{gap:16px;}
     .stat{max-width:130px;padding:16px 10px;}
     .stat b{font-size:17px;}
-    .number-builder{max-width:600px;gap:8px;}
-    .digit-box{width:38px;height:50px;font-size:19px;}
+    .number-builder{
+      max-width:720px;gap:12px;
+      background:var(--panel);border:1px solid var(--line);border-radius:16px;
+      padding:18px 26px;
+    }
+    .prefix{font-size:19px;}
+    .op-select{font-size:15px;padding:14px 30px 14px 16px;width:112px;border-radius:10px;}
+    .digit-box{width:54px;height:66px;font-size:24px;border-radius:10px;}
+    .dash{font-size:18px;}
+    .hint-text{font-size:13px;margin-top:14px;}
 
     .catalog{
       max-width:1360px;
@@ -1060,7 +1064,17 @@
     .featured-card{flex:0 0 250px;padding:16px;}
     .featured-num{font-size:19px;}
     .featured-btn{padding:12px;}
-    .daily-deal-card{flex:0 0 165px;}
+
+    .daily-deal-section{max-width:1360px;padding:20px 40px 10px;}
+    .daily-deal-scroll{gap:18px;}
+    .daily-deal-card{
+      flex:0 0 235px;min-height:190px;padding:18px;border-radius:16px;
+    }
+    .daily-deal-card .dd-badge{font-size:11px;padding:4px 9px;border-radius:8px;margin-bottom:10px;}
+    .daily-deal-card .dd-num{font-size:19px;margin-bottom:12px;}
+    .daily-deal-card .dd-price{font-size:16px;}
+    .daily-deal-card .dd-oldprice{font-size:13px;}
+    .daily-deal-card button{padding:12px;font-size:13.5px;border-radius:10px;margin-top:14px;}
 
     .side-drawer{width:360px;}
     footer{padding:30px 20px 40px;}
@@ -1255,7 +1269,12 @@
       </div>
 
       <div class="installment-calc" id="installmentCalc" style="display:none;">
-        <input type="range" id="icSlider" min="2" max="12" value="6" step="1" class="ic-slider">
+        <div class="ic-tabs" id="icTabs">
+          <button type="button" class="ic-tab" data-months="6">6 oy</button>
+          <button type="button" class="ic-tab" data-months="12">12 oy</button>
+          <button type="button" class="ic-tab" data-months="24">24 oy</button>
+          <button type="button" class="ic-tab" data-months="36">36 oy</button>
+        </div>
         <div class="ic-row">
           <span class="ic-months"><span id="icMonthsValue">6</span> oyga</span>
           <span class="ic-monthly">oyiga <b id="icMonthlyValue">0</b> so'm</span>
@@ -1821,7 +1840,8 @@ const payTabs          = document.getElementById('payTabs');
 const payTabCash        = document.getElementById('payTabCash');
 const payTabInstallment = document.getElementById('payTabInstallment');
 const installmentCalc  = document.getElementById('installmentCalc');
-const icSlider          = document.getElementById('icSlider');
+const icTabs            = document.getElementById('icTabs');
+const icTabButtons      = Array.from(icTabs.querySelectorAll('.ic-tab'));
 const icMonthsValue     = document.getElementById('icMonthsValue');
 const icMonthlyValue    = document.getElementById('icMonthlyValue');
 
@@ -1829,18 +1849,19 @@ let selectedPaymentType = 'cash'; // 'cash' | 'installment'
 let selectedInstallmentMonths = 6;
 let selectedMonthlyPayment = 0;
 
-function updateInstallmentCalc(){
-  const months = Number(icSlider.value) || 1;
+function selectInstallmentMonths(months){
   selectedInstallmentMonths = months;
+  icTabButtons.forEach(btn => btn.classList.toggle('active', Number(btn.dataset.months) === months));
   icMonthsValue.textContent = months;
-  // Admin panelda belgilangan oylik foiz — mijozga ko'rinmaydi, faqat
-  // yakuniy oylik to'lov summasiga qo'shib hisoblanadi.
-  const totalWithMarkup = (selectedPrice || 0) * (1 + (installmentMonthlyRate / 100) * months);
+  // Admin panelda har bir muddat (6/12/24/36 oy) uchun belgilangan foiz —
+  // mijozga ko'rinmaydi, faqat yakuniy oylik to'lov summasiga qo'shib hisoblanadi.
+  const rate = installmentRates[months] || 0;
+  const totalWithMarkup = (selectedPrice || 0) * (1 + rate / 100);
   const monthly = Math.ceil(totalWithMarkup / months / 1000) * 1000;
   selectedMonthlyPayment = monthly;
   icMonthlyValue.textContent = formatPrice(monthly).replace(" so'm", '');
 }
-icSlider.addEventListener('input', updateInstallmentCalc);
+icTabButtons.forEach(btn => btn.addEventListener('click', ()=> selectInstallmentMonths(Number(btn.dataset.months))));
 
 function selectPaymentTab(type){
   selectedPaymentType = type;
@@ -1878,8 +1899,7 @@ function openModal(number, id){
   if(item && item.installment){
     payTabs.style.display = 'grid';
     selectPaymentTab('cash');
-    icSlider.value = 6;
-    updateInstallmentCalc();
+    selectInstallmentMonths(6);
   }else{
     payTabs.style.display = 'none';
     installmentCalc.style.display = 'none';
@@ -2339,14 +2359,21 @@ function applyFont(fontName){
 
 let hideOrderButtonSetting = !!window.__cachedHideOrderBtn;
 let currentCatalogStyle = window.__cachedCatalogStyle || 'classic';
-let installmentMonthlyRate = 3; // standart: oyiga 3% — admin panelda o'zgartiriladi, mijozga ko'rinmaydi
+let installmentRates = { 6: 5, 12: 10, 24: 20, 36: 30 }; // standart foizlar — admin panelda o'zgartiriladi, mijozga ko'rinmaydi
 
 async function loadSiteSettings(){
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists){ if(window.__revealSite) window.__revealSite(); return; }
     const s = doc.data();
-    if(typeof s.installmentMonthlyRate === 'number') installmentMonthlyRate = s.installmentMonthlyRate;
+    if(s.installmentRates && typeof s.installmentRates === 'object'){
+      installmentRates = {
+        6: Number(s.installmentRates[6]) || 0,
+        12: Number(s.installmentRates[12]) || 0,
+        24: Number(s.installmentRates[24]) || 0,
+        36: Number(s.installmentRates[36]) || 0
+      };
+    }
     if(s.theme) applyTheme(s.theme);
     if(s.font !== undefined) applyFont(s.font);
     hideOrderButtonSetting = !!s.hideOrderButton;
