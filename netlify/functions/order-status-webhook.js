@@ -141,9 +141,19 @@ async function handleControlCallback(callback){
   }
 
   if(action === 'stats'){
-    const userIds = await getCustomerBotUserIds();
+    const users = await getCustomerBotUsers();
     await answerCallback(callback.id);
-    await sendTelegram('sendMessage', { chat_id: chatId, text: `📊 Mijoz botidan foydalangan: ${userIds.length} kishi` });
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: `📊 Mijoz botidan foydalangan: ${users.length} kishi`,
+      reply_markup: { inline_keyboard: [[{ text: "📋 To'liq ko'rish", callback_data: 'bc|full_list' }]] }
+    });
+    return;
+  }
+  if(action === 'full_list'){
+    const users = await getCustomerBotUsers();
+    await answerCallback(callback.id);
+    await sendFullCustomerList(chatId, users);
     return;
   }
   if(action === 'broadcast'){
@@ -203,9 +213,35 @@ async function replaceKeyboardWithConfirmation(chatId, messageId, statusLabel){
    biror tugma bosgan) HAR BIR odam uchun yoziladi, shuning uchun
    eng to'liq foydalanuvchilar ro'yxati sifatida shu yerdan olinadi.
    ================================================================== */
-async function getCustomerBotUserIds(){
-  const snap = await withRetry(() => db.collection('bot_sessions').select().get());
-  return snap.docs.map(d => d.id);
+async function getCustomerBotUsers(){
+  const snap = await withRetry(() => db.collection('bot_sessions').get());
+  return snap.docs.map(d => {
+    const data = d.data() || {};
+    return { id: d.id, name: data.name || null, username: data.username || null };
+  });
+}
+function escapeHtml(s){
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+/* Har bir mijozni "N - Ism" ko'rinishida, ismi bosilsa uning Telegram
+   profiliga o'tadigan qilib (tg://user?id=...), raqamlangan ro'yxat
+   qilib chiqaradi. Ko'p bo'lsa, bir nechta xabarga bo'lib yuboradi. */
+async function sendFullCustomerList(chatId, users){
+  if(users.length === 0){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Hozircha hech kim yo'q." });
+    return;
+  }
+  const CHUNK = 50;
+  for(let i = 0; i < users.length; i += CHUNK){
+    const batch = users.slice(i, i + CHUNK);
+    const lines = batch.map((u, idx) => {
+      const n = i + idx + 1;
+      const name = escapeHtml(u.name || `ID:${u.id}`);
+      const usernamePart = u.username ? ` (@${escapeHtml(u.username)})` : '';
+      return `${n} - <a href="tg://user?id=${u.id}">${name}</a>${usernamePart}`;
+    });
+    await sendTelegram('sendMessage', { chat_id: chatId, text: lines.join('\n'), parse_mode: 'HTML' });
+  }
 }
 
 async function getAdminState(){
@@ -294,7 +330,7 @@ async function handleIncomingBroadcastContent(msg){
     return;
   }
 
-  const userIds = await getCustomerBotUserIds();
+  const userIds = (await getCustomerBotUsers()).map(u => u.id);
   await setAdminState({ awaitingBroadcast: false });
   await setPendingBroadcast(pending);
 
@@ -321,7 +357,7 @@ async function executeBroadcast(adminChatId){
   const pending = await getPendingBroadcast();
   if(!pending) throw new Error("Yuborilishi kerak bo'lgan xabar topilmadi.");
 
-  const userIds = await getCustomerBotUserIds();
+  const userIds = (await getCustomerBotUsers()).map(u => u.id);
   const customerToken = process.env.CUSTOMER_BOT_TOKEN;
   if(!customerToken) throw new Error('CUSTOMER_BOT_TOKEN sozlanmagan.');
 

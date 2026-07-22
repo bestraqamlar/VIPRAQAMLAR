@@ -70,7 +70,18 @@ async function getSession(chatId){
   return { step: 'menu' };
 }
 async function saveSession(chatId, session){
-  await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({ data: JSON.stringify(session) }));
+  await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({ data: JSON.stringify(session) }, { merge: true }));
+}
+/* Mijozning Telegram profil ismi va username'ini saqlaydi — admin panelidagi
+   "mijozlar ro'yxati"da ko'rsatish uchun. Sessiya bilan bir hujjatda,
+   merge:true bilan (bir-birini ustidan yozib yubormasligi uchun). */
+async function saveCustomerProfile(chatId, from){
+  if(!from) return;
+  const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || null;
+  const username = from.username || null;
+  try{
+    await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({ name, username, lastSeenAt: Date.now() }, { merge: true }));
+  }catch(e){ /* muhim emas */ }
 }
 
 /* ---------------- Telegram yordamchi funksiyalari ---------------- */
@@ -441,6 +452,7 @@ exports.handler = async function (event) {
     const cq = update.callback_query;
     const chatId = cq.message.chat.id;
     const data = cq.data;
+    await saveCustomerProfile(chatId, cq.from);
     let session = await getSession(chatId);
 
     if(data === 'backmenu' || data === 'cancelview'){
@@ -513,6 +525,7 @@ exports.handler = async function (event) {
   const message = update.message;
   if(!message) return { statusCode: 200, body: 'ok' };
   const chatId = message.chat.id;
+  await saveCustomerProfile(chatId, message.from);
 
   // --- Ovozli/audio xabar: bot o'qimaydi, mijozga javob yozmaydi — faqat
   //     adminga (siz) ismini raqamlangan ro'yxat qilib yuboradi ---
