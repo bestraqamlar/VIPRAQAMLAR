@@ -51,6 +51,7 @@ const REGIONS = [
   ['Sirdaryo', "Qoraqalpog'iston"]
 ];
 const BTN = {
+  CHOOSE: '🔢 Raqam tanlash',
   PREMIUM: '💎 Premium raqamlar',
   SALE: '🔥 Aksiya raqamlar',
   CONTACT: '📞 Biz bilan aloqa',
@@ -92,9 +93,7 @@ function inlineKb(rows){ return { inline_keyboard: rows }; }
 
 function mainMenuKeyboard(){
   return replyKb([
-    OPERATORS.slice(0,2).map(op => `${OPERATOR_EMOJI[op]} ${op}`),
-    OPERATORS.slice(2,4).map(op => `${OPERATOR_EMOJI[op]} ${op}`),
-    OPERATORS.slice(4,6).map(op => `${OPERATOR_EMOJI[op]} ${op}`),
+    [BTN.CHOOSE],
     [BTN.PREMIUM, BTN.SALE],
     [BTN.CONTACT, BTN.MYORDERS]
   ]);
@@ -113,11 +112,6 @@ function contactKeyboard(){
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
 function displayNumber(numberStr){ return (numberStr || '').replace(/-/g, ' '); }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
-function operatorFromButton(text){
-  for(const op of OPERATORS){ if(text === `${OPERATOR_EMOJI[op]} ${op}`) return op; }
-  return null;
-}
-
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
 async function showNumberList(chatId, session, items, emptyText){
   if(items.length === 0){
@@ -552,11 +546,10 @@ exports.handler = async function (event) {
 
   /* ---- Asosiy menyu tugmalari ---- */
   if(session.step === 'menu' || !session.step){
-    const operator = operatorFromButton(text);
-    if(operator){
-      session = { step: 'awaiting_digits', operator };
+    if(text === BTN.CHOOSE){
+      session = { step: 'awaiting_digits' };
       await saveSession(chatId, session);
-      await send(chatId, 'Sevimli raqamingizni kiriting.\nMisol: 0707', backKeyboard());
+      await send(chatId, 'Raqamning oxirgi 4 ta raqamini kiriting.\nMisol: 0707', backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -596,36 +589,34 @@ exports.handler = async function (event) {
   /* ---- Raqam qidirish: operator tanlangandan keyin raqam kutilmoqda ---- */
   if(session.step === 'awaiting_digits'){
     const digits = text.replace(/\D/g, '');
-    if(!digits || digits.length > 4){
-      await send(chatId, "Iltimos, 1 dan 4 tagacha raqam kiriting. Misol: 0707", backKeyboard());
+    if(!digits || digits.length !== 4){
+      await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const suffixField = 'last' + digits.length; // last1, last2, last3 yoki last4
 
     // Qidiruv boshlanganini darhol bildiramiz — mijoz jim kutib qolmasin
     await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
     await send(chatId, "🔍 Qidirilmoqda...");
 
-    // Avval tezkor (indekslangan) qidiruv — yangi qo'shilgan raqamlar uchun
+    // Avval tezkor (indekslangan) qidiruv — barcha operatorlar orasidan,
+    // yangi qo'shilgan raqamlar uchun
     let matches = [];
     try{
       const snap = await withRetry(() => db.collection('numbers')
-        .where('operator', '==', session.operator)
-        .where(suffixField, '==', digits)
+        .where('last4', '==', digits)
         .limit(50).get());
       matches = snap.docs.map(docToItem).filter(item => !item.reserved);
     }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
 
-    // Agar topilmasa (yoki indeks yo'q bo'lsa) — shu operatordagi BARCHA raqamlarni
-    // (sahifalab, cheklovsiz) tekshirib chiqamiz — bu "qidiruv belgisi"siz eski
-    // raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
+    // Agar topilmasa (yoki indeks yo'q bo'lsa) — bazadagi BARCHA raqamlarni
+    // (sahifalab, cheklovsiz, operatordan qat'iy nazar) tekshirib chiqamiz —
+    // bu eski raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
     if(matches.length === 0){
       const allDocs = [];
       let lastDoc = null;
       while(true){
         await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
         let q = db.collection('numbers')
-          .where('operator', '==', session.operator)
           .orderBy(admin.firestore.FieldPath.documentId())
           .limit(300);
         if(lastDoc) q = q.startAfter(lastDoc);
