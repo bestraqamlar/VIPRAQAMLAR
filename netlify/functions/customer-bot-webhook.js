@@ -52,7 +52,7 @@ const REGIONS = [
 ];
 const BTN = {
   CHOOSE: '🔢 Raqam tanlash',
-  PREMIUM: '💎 Premium raqamlar',
+  PREMIUM: '💎 VIP raqamlar',
   SALE: '🔥 Aksiya raqamlar',
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
@@ -129,18 +129,20 @@ async function showNumberList(chatId, session, items, emptyText){
 }
 
 async function showNumberDetail(chatId, item){
-  const hasDiscount = item.oldPrice && item.oldPrice > item.price;
-  let text = `${OPERATOR_EMOJI[item.operator] || ''} ${item.operator}\n`;
-  text += `📱 ${displayNumber(item.number)}\n\n`;
-  if(hasDiscount){
-    const pct = Math.round((1 - item.price / item.oldPrice) * 100);
-    text += `💰 ${formatPrice(item.price)}  (eski narx: ${formatPrice(item.oldPrice)}, -${pct}%)\n`;
-  }else{
-    text += `💰 ${formatPrice(item.price)}\n`;
+  const plainNumber = '+' + (item.number || '').replace(/\D/g, '');
+  let text = `${plainNumber}\n\n`;
+  text += `💵 Narxi: ${formatPrice(item.price)}\n`;
+  if(item.onSale && item.oldPrice > item.price){
+    text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
   }
-  text += `🏷 ${item.tag === 'vip' ? 'VIP' : 'Oddiy'}\n`;
-  if(item.installment) text += `📅 Bo'lib to'lash mumkin\n`;
-  if(item.reserved) text += `\n⚠️ Bu raqam hozir band qilinmoqda.`;
+  if(item.installment){
+    text += `💰 Raqamni 12,24 oygacha bo'lib to'lash sharti bilan olish mumkin.\n`;
+  }
+  if(item.reserved){
+    text += `\n⚠️ Bu raqam hozir band qilinmoqda.`;
+  }else{
+    text += `✍️ Ushbu raqamga buyurtma berishni istaysizmi?`;
+  }
 
   const buttons = item.reserved
     ? [[{ text: '⬅️ Orqaga', callback_data: 'backmenu' }]]
@@ -148,7 +150,7 @@ async function showNumberDetail(chatId, item){
         [{ text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` }],
         [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
       ];
-  await tg('sendMessage', { chat_id: chatId, text, reply_markup: inlineKb(buttons) });
+  await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(buttons) });
 }
 
 /* ---------------- Admin bildirishnomasi (buyurtma tushganda) ---------------- */
@@ -555,16 +557,27 @@ exports.handler = async function (event) {
 
     if(text === BTN.PREMIUM){
       const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(8).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha premium raqamlar yo'q.");
+      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha VIP raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
-      const snap = await withRetry(() => db.collection('numbers').where('onSale', '==', true).limit(8).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha aksiyadagi raqamlar yo'q.");
+      const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(8).get());
+      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.CONTACT){
-      await send(chatId, "📞 Biz bilan bog'lanish:\n\nTelegram: @Vip_raqamlar_admin\n\nSavollaringiz bo'lsa, xabar yozishingiz mumkin!", mainMenuKeyboard());
+      const contactText =
+`🤖 Botga o'tish 👉 @vipraqamlarbot
+
+🚚 📦 O'zbekistonning istalgan hududiga yetkazib berish mavjud
+☎️ Call Markaz: 878880101 | 888620101
+👨‍💻 Operator: @Vip_raqamlar_admin
+🆔 Telegram kanal : @Vip_raqamlar_uz`;
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: contactText,
+        reply_markup: inlineKb([[{ text: "VIP RAQAMLAR RO'YXATI", url: 'https://t.me/vip_raqamlar_uz' }]])
+      });
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.MYORDERS){
