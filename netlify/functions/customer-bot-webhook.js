@@ -50,6 +50,27 @@ const REGIONS = [
   ['Surxondaryo', 'Jizzax'],
   ['Sirdaryo', "Qoraqalpog'iston"]
 ];
+const DISTRICTS_BY_REGION = {
+  'Toshkent shahri': ['Bektemir', 'Chilonzor', 'Yashnobod', "Mirzo Ulug'bek", 'Mirobod', 'Sergeli', 'Shayxontohur', 'Olmazor', 'Uchtepa', 'Yakkasaroy', 'Yunusobod', 'Yangihayot'],
+  'Toshkent viloyati': ['Bekobod', "Bo'ka", "Bo'stonliq", 'Chinoz', 'Ohangaron', "Oqqo'rg'on", 'Parkent', 'Piskent', 'Quyichirchiq', 'Toshkent tumani', "O'rtachirchiq", "Yangiyo'l", 'Yuqorichirchiq', 'Zangiota'],
+  'Andijon': ['Andijon tumani', 'Asaka', 'Baliqchi', "Bo'z", 'Buloqboshi', 'Izboskan', 'Jalaquduq', "Xo'jaobod", "Qo'rg'ontepa", 'Marhamat', "Oltinko'l", 'Paxtaobod', 'Shahrixon', "Ulug'nor"],
+  "Farg'ona": ['Beshariq', "Bog'dod", 'Buvayda', "Dang'ara", "Farg'ona tumani", 'Furqat', "Qo'shtepa", 'Quva', 'Rishton', "So'x", 'Toshloq', "Uchko'prik", "O'zbekiston", 'Yozyovon', 'Oltiariq'],
+  'Namangan': ['Chortoq', 'Chust', 'Kosonsoy', "Mingbuloq", 'Namangan tumani', 'Norin', 'Pop', "To'raqo'rg'on", "Uchqo'rg'on", 'Uychi', "Yangiqo'rg'on"],
+  'Samarqand': ["Bulung'ur", 'Ishtixon', 'Jomboy', "Kattaqo'rg'on", "Qo'shrabot", 'Narpay', 'Nurobod', 'Oqdaryo', 'Pastdarg\'om', 'Paxtachi', 'Payariq', 'Samarqand tumani', 'Toyloq', 'Urgut'],
+  'Buxoro': ['Buxoro tumani', "G'ijduvon", 'Jondor', 'Kogon', "Qorako'l", 'Qorovulbozor', 'Peshku', 'Romitan', 'Shofirkon', 'Vobkent', 'Olot'],
+  'Xorazm': ["Bog'ot", 'Gurlan', 'Xazorasp', 'Xonqa', "Qo'shko'pir", 'Shovot', 'Urganch tumani', 'Yangiariq', 'Yangibozor', 'Xiva'],
+  'Navoiy': ['Konimex', 'Karmana', 'Navbahor', 'Nurota', 'Qiziltepa', 'Tomdi', "Uchquduq", 'Xatirchi'],
+  'Qashqadaryo': ['Chiroqchi', "Dehqonobod", "G'uzor", 'Kasbi', 'Kitob', 'Koson', 'Mirishkor', 'Muborak', 'Nishon', 'Qamashi', 'Qarshi tumani', 'Shahrisabz', "Yakkabog'", "Ko'kdala"],
+  'Surxondaryo': ['Angor', 'Bandixon', 'Boysun', 'Denov', "Jarqo'rg'on", 'Muzrabot', 'Oltinsoy', 'Qiziriq', "Qumqo'rg'on", 'Sariosiyo', 'Sherobod', "Sho'rchi", 'Termiz tumani', 'Uzun'],
+  'Jizzax': ['Arnasoy', 'Baxmal', "Do'stlik", 'Forish', "G'allaorol", 'Jizzax tumani', "Mirzacho'l", 'Paxtakor', 'Zafarobod', 'Zarbdor', 'Zomin'],
+  'Sirdaryo': ['Boyovut', 'Guliston tumani', 'Mirzaobod', 'Oqoltin', 'Sardoba', 'Sayxunobod', 'Sirdaryo tumani', 'Xovos'],
+  "Qoraqalpog'iston": ['Amudaryo', 'Beruniy', 'Chimboy', "Ellikqal'a", 'Kegeyli', "Mo'ynoq", 'Nukus tumani', "Qanliko'l", "Qorao'zak", "Qo'ng'irot", 'Shumanay', "Taxtako'pir", "To'rtko'l", "Xo'jayli"]
+};
+function regionDisplayName(region){
+  if(region === 'Toshkent shahri' || region === 'Toshkent viloyati') return region;
+  if(region === "Qoraqalpog'iston") return "Qoraqalpog'iston Respublikasi";
+  return `${region} viloyati`;
+}
 const BTN = {
   CHOOSE: '🔢 Raqam tanlash',
   PREMIUM: '💎 VIP raqamlar',
@@ -57,8 +78,9 @@ const BTN = {
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
   BACK: '⬅️ Orqaga',
-  CANCEL: '❌ Bekor qilish',
-  SHARE_CONTACT: '📱 Kontaktni yuborish'
+  CANCEL: '🔁 Bekor qilish',
+  STEP_BACK: '🔙 Orqaga',
+  SHARE_CONTACT: '📱 Raqamimni yuborish'
 };
 
 /* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
@@ -121,14 +143,23 @@ function mainMenuKeyboard(){
   ]);
 }
 function backKeyboard(){ return replyKb([[BTN.BACK]]); }
-function cancelKeyboard(){ return replyKb([[BTN.CANCEL]]); }
+function cancelKeyboard(){ return replyKb([[BTN.CANCEL, BTN.STEP_BACK]]); }
 function regionKeyboard(){
   const rows = REGIONS.map(r => [...r]);
-  rows.push([BTN.CANCEL]);
+  rows.push([BTN.CANCEL, BTN.STEP_BACK]);
+  return replyKb(rows);
+}
+function districtKeyboard(region){
+  const districts = DISTRICTS_BY_REGION[region] || [];
+  const rows = [];
+  for(let i = 0; i < districts.length; i += 2){
+    rows.push(districts.slice(i, i + 2));
+  }
+  rows.push([BTN.CANCEL, BTN.STEP_BACK]);
   return replyKb(rows);
 }
 function contactKeyboard(){
-  return replyKb([[{ text: BTN.SHARE_CONTACT, request_contact: true }], [BTN.CANCEL]]);
+  return replyKb([[{ text: BTN.SHARE_CONTACT, request_contact: true }], [BTN.CANCEL, BTN.STEP_BACK]]);
 }
 
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
@@ -172,8 +203,8 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
 
 async function showNumberDetail(chatId, item){
   const plainNumber = '+' + (item.number || '').replace(/\D/g, '');
-  let text = `${plainNumber}\n\n`;
-  text += `💵 Narxi: ${formatPrice(item.price)}\n`;
+  let text = `<b>${plainNumber}</b>\n\n`;
+  text += `💵 Narxi: <b>${formatPrice(item.price)}</b>\n`;
   if(item.onSale && item.oldPrice > item.price){
     text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
   }
@@ -564,12 +595,15 @@ exports.handler = async function (event) {
       const numberStr = displayNumber(nd.number || '');
       const price = nd.price || 0;
       const time = new Date().toLocaleString('uz-UZ');
+      const manzil = session.draftDistrict
+        ? `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`
+        : (session.draftRegion || '');
 
       const orderRef = await withRetry(() => db.collection('orders').add({
         number: numberStr,
         price,
         name: session.draftName || '',
-        region: session.draftRegion || '',
+        region: manzil,
         phone: session.draftPhone || '',
         numberId: session.numberId,
         customerChatId: String(chatId),
@@ -587,7 +621,7 @@ exports.handler = async function (event) {
 
       await notifyAdmin(orderRef.id, {
         number: numberStr, name: session.draftName, phone: session.draftPhone,
-        region: session.draftRegion, time,
+        region: manzil, time,
         installmentMonths: session.installmentMonths || null,
         installmentMonthly: session.installmentMonthly || null
       });
@@ -647,6 +681,30 @@ exports.handler = async function (event) {
     session = { step: 'menu' };
     await saveSession(chatId, session);
     await send(chatId, 'Bekor qilindi.', mainMenuKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+  if(text === BTN.STEP_BACK){
+    if(session.step === 'awaiting_phone'){
+      session.step = 'awaiting_name';
+      await saveSession(chatId, session);
+      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+    }else if(session.step === 'awaiting_region'){
+      session.step = 'awaiting_phone';
+      await saveSession(chatId, session);
+      await send(chatId, "Hozir ishlatib turgan raqamingizni yuboring (yozing yoki kontaktni ulashing):", contactKeyboard());
+    }else if(session.step === 'awaiting_district'){
+      session.step = 'awaiting_region';
+      await saveSession(chatId, session);
+      await send(chatId, "Viloyatingizni tanlang:", regionKeyboard());
+    }else if(session.step === 'confirm'){
+      session.step = 'awaiting_district';
+      await saveSession(chatId, session);
+      await send(chatId, 'Tumanni tanlang:', districtKeyboard(session.draftRegion));
+    }else{
+      session = { step: 'menu' };
+      await saveSession(chatId, session);
+      await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
+    }
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -806,28 +864,46 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
     session.draftRegion = text;
+    session.step = 'awaiting_district';
+    await saveSession(chatId, session);
+    await send(chatId, 'Tumanni tanlang:', districtKeyboard(text));
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* ---- Buyurtma: tuman ---- */
+  if(session.step === 'awaiting_district'){
+    const districts = DISTRICTS_BY_REGION[session.draftRegion] || [];
+    if(!districts.includes(text)){
+      await send(chatId, "Iltimos, ro'yxatdan tumanni tanlang.", districtKeyboard(session.draftRegion));
+      return { statusCode: 200, body: 'ok' };
+    }
+    session.draftDistrict = text;
     session.step = 'confirm';
     await saveSession(chatId, session);
 
     const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
-    const numberStr = numberDoc.exists ? displayNumber(numberDoc.data().number || '') : '';
-    let summary =
-`Buyurtmangizni tasdiqlang:
+    const nd = numberDoc.exists ? numberDoc.data() : {};
+    const numberStr = displayNumber(nd.number || '');
+    const priceStr = formatPrice(nd.price || 0);
+    const manzil = `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`;
 
-📱 Raqam: ${numberStr}
-👤 Ism: ${session.draftName}
-☎️ Telefon: ${session.draftPhone}
-📍 Viloyat: ${session.draftRegion}`;
+    let summary =
+`Barcha ma'lumotlar to'g'ri ekanligini tasdiqlaysizmi?
+
+FIO: ${session.draftName}
+Sevimli raqam: <b>${numberStr}</b>
+Narxi: <b>${priceStr}</b>
+Bog'lanish uchun raqam: ${session.draftPhone}
+Manzil: ${manzil}`;
     if(session.installmentMonths){
-      summary += `\n💳 To'lov turi: ${session.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(session.installmentMonthly)})`;
+      summary += `\nTo'lov turi: ${session.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(session.installmentMonthly)})`;
     }
 
     await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
     await tg('sendMessage', {
-      chat_id: chatId, text: summary,
+      chat_id: chatId, text: summary, parse_mode: 'HTML',
       reply_markup: inlineKb([
-        [{ text: '✅ Tasdiqlash', callback_data: 'confirmorder' }],
-        [{ text: '❌ Bekor qilish', callback_data: 'cancelorder' }]
+        [{ text: '✅ Ha', callback_data: 'confirmorder' }, { text: "❌ Yo'q", callback_data: 'cancelorder' }]
       ])
     });
     return { statusCode: 200, body: 'ok' };

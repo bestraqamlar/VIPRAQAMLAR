@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Raqamlar ro'yxati</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body{margin:0;background:#0B1220;color:#EDEFF3;font-family:sans-serif;
+    display:flex;align-items:center;justify-content:center;height:100vh;}
+</style>
+</head>
+<body>
+<div>Kanalga o'tilmoqda...</div>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  var channelUrl = 'https://t.me/vip_raqamlar_uz';
+  try{
+    Telegram.WebApp.ready();
+    Telegram.WebApp.openTelegramLink(channelUrl);
+    setTimeout(function(){ Telegram.WebApp.close(); }, 300);
+  }catch(e){
+    window.location.href = channelUrl;
+  }
+</script>
+</body>
+</html>
