@@ -567,7 +567,7 @@ exports.handler = async function (event) {
     }
     if(text === BTN.CONTACT){
       const contactText =
-`🤖 Botga o'tish 👉 @vipraqamlarbot
+`🤖 Botga o'tish 👉 @vipraqambot
 
 🚚 📦 O'zbekistonning istalgan hududiga yetkazib berish mavjud
 ☎️ Call Markaz: 878880101 | 888620101
