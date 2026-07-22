@@ -83,7 +83,8 @@ async function tg(method, payload){
   });
   return res.json();
 }
-function send(chatId, text, keyboard){
+async function send(chatId, text, keyboard){
+  await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
   const payload = { chat_id: chatId, text };
   if(keyboard) payload.reply_markup = keyboard;
   return tg('sendMessage', payload);
@@ -150,6 +151,7 @@ async function showNumberDetail(chatId, item){
         [{ text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` }],
         [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
       ];
+  await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
   await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(buttons) });
 }
 
@@ -573,6 +575,7 @@ exports.handler = async function (event) {
 ☎️ Call Markaz: 878880101 | 888620101
 👨‍💻 Operator: @Vip_raqamlar_admin
 🆔 Telegram kanal : @Vip_raqamlar_uz`;
+      await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
       await tg('sendMessage', {
         chat_id: chatId,
         text: contactText,
@@ -710,6 +713,7 @@ exports.handler = async function (event) {
 ☎️ Telefon: ${session.draftPhone}
 📍 Viloyat: ${session.draftRegion}`;
 
+    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
     await tg('sendMessage', {
       chat_id: chatId, text: summary,
       reply_markup: inlineKb([
