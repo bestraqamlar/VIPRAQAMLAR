@@ -51,58 +51,73 @@ const REGIONS = [
   ['Sirdaryo', "Qoraqalpog'iston"]
 ];
 const DISTRICTS_BY_REGION = {
-  'Toshkent shahri': ['Bektemir', 'Chilonzor', "Mirzo Ulug'bek", 'Mirobod', 'Sergeli', 'Shayxontohur', 'Olmazor', 'Uchtepa', 'Yakkasaroy', 'Yunusobod', 'Yashnobod', 'Yangihayot'],
+  'Toshkent shahri': [
+    'Bektemir tumani', "Mirzo Ulug'bek tumani", 'Mirobod tumani', 'Olmazor tumani', "Sirg'ali tumani", 'Uchtepa tumani',
+    'Chilonzor tumani', 'Shayxontohur tumani', 'Yunusobod tumani', 'Yakkasaroy tumani', 'Yashnobod tumani'
+  ],
   'Toshkent viloyati': [
-    'Bekobod tumani', "Bo'ka", "Bo'stonliq", 'Chinoz', 'Qibray', 'Ohangaron tumani', "Oqqo'rg'on", 'Parkent', 'Piskent', 'Quyichirchiq', 'Toshkent tumani', "O'rtachirchiq", "Yangiyo'l tumani", 'Yuqorichirchiq', 'Zangiota',
-    'Nurafshon shahri', 'Angren shahri', 'Bekobod shahri', 'Chirchiq shahri', 'Ohangaron shahri', 'Olmaliq shahri', "Yangiyo'l shahri"
+    'Angren shahri', 'Bekobod tumani', 'Bekobod shahri', "Bo'ka tumani", "Bo'stonliq tumani", 'Zangiota tumani',
+    'Qibray tumani', 'Quyichirchiq tumani', "Oqqo'rg'on tumani", 'Olmaliq shahri', 'Ohangaron tumani', 'Ohangaron shahri',
+    'Parkent tumani', 'Piskent tumani', 'Toshkent tumani', "O'rtachirchiq tumani", 'Chinoz tumani', 'Chirchiq shahri',
+    'Yuqorichirchiq tumani', "Yangiyo'l tumani", "Yangiyo'l shahri"
   ],
   'Andijon': [
-    'Andijon tumani', 'Asaka tumani', 'Baliqchi', "Bo'z", 'Buloqboshi', 'Izboskan', 'Jalaquduq', "Xo'jaobod tumani", "Qo'rg'ontepa tumani", 'Marhamat', "Oltinko'l", 'Paxtaobod', 'Shahrixon tumani', "Ulug'nor",
-    'Andijon shahri', 'Xonobod shahri', 'Asaka shahri', "Xo'jaobod shahri", "Qo'rg'ontepa shahri", 'Shahrixon shahri'
+    'Andijon tumani', 'Andijon shahri', 'Asaka tumani', 'Asaka shahri', 'Baliqchi tumani', "Bo'z tumani",
+    'Buloqboshi tumani', 'Jalaquduq tumani', 'Izboskan tumani', 'Qorasuv shahri', "Qo'rg'ontepa tumani",
+    'Marhamat tumani', "Oltinko'l tumani", 'Paxtaobod tumani', "Ulug'nor tumani", 'Xonobod shahri',
+    "Xo'jaobod tumani", 'Shahrixon tumani'
   ],
   "Farg'ona": [
-    'Beshariq', "Bog'dod", 'Buvayda', "Dang'ara", "Farg'ona tumani", 'Furqat', "Qo'shtepa", 'Quva tumani', 'Rishton tumani', "So'x", 'Toshloq', "Uchko'prik", "O'zbekiston", 'Yozyovon', 'Oltiariq',
-    "Farg'ona shahri", "Qo'qon shahri", "Marg'ilon shahri", 'Quvasoy shahri', 'Quva shahri', 'Rishton shahri'
+    'Beshariq tumani', "Bog'dod tumani", 'Buvayda tumani', "Dang'ara tumani", 'Yozyovon tumani', 'Kirguli tumani',
+    'Quva tumani', 'Quvasoy shahri', "Qo'qon shahri", "Qo'shtepa tumani", "Marg'ilon shahri", 'Oltiariq tumani',
+    'Rishton tumani', "So'x tumani", 'Toshloq tumani', "O'zbekiston tumani", "Uchko'prik tumani",
+    "Farg'ona tumani", "Farg'ona shahri", 'Furqat tumani'
   ],
   'Namangan': [
-    'Chortoq', 'Chust tumani', 'Kosonsoy tumani', 'Mingbuloq', 'Namangan tumani', 'Norin', 'Pop tumani', "To'raqo'rg'on tumani", "Uchqo'rg'on", 'Uychi', "Yangiqo'rg'on",
-    'Namangan shahri', 'Chust shahri', 'Kosonsoy shahri', 'Pop shahri', "To'raqo'rg'on shahri"
+    'Kosonsoy tumani', 'Mingbuloq tumani', 'Namangan tumani', 'Namangan shahri', 'Norin tumani', 'Pop tumani',
+    "To'raqo'rg'on tumani", 'Uychi tumani', "Uchqo'rg'on tumani", 'Chortoq tumani', 'Chust tumani', "Yangiqo'rg'on tumani"
   ],
   'Samarqand': [
-    "Bulung'ur", 'Ishtixon', 'Jomboy', "Kattaqo'rg'on tumani", "Qo'shrabot", 'Narpay', 'Nurobod', 'Oqdaryo', "Pastdarg'om", 'Paxtachi', 'Payariq', 'Samarqand tumani', 'Toyloq', 'Urgut tumani',
-    'Samarqand shahri', "Kattaqo'rg'on shahri", 'Urgut shahri'
+    "Bulung'ur tumani", 'Jomboy tumani', 'Ishtixon tumani', "Kattaqo'rg'on tumani", "Kattaqo'rg'on shahri",
+    "Qo'shrabot tumani", 'Narpay tumani', 'Nurobod tumani', 'Oqdaryo tumani', 'Paxtachi tumani', 'Payariq tumani',
+    "Pastdarg'om tumani", 'Samarqand tumani', 'Samarqand shahri', 'Toyloq tumani', 'Urgut tumani'
   ],
   'Buxoro': [
-    'Buxoro tumani', "G'ijduvon tumani", 'Jondor', 'Kogon tumani', "Qorako'l", 'Qorovulbozor', 'Peshku', 'Romitan', 'Shofirkon tumani', 'Vobkent', 'Olot',
-    'Buxoro shahri', 'Kogon shahri', "G'ijduvon shahri", 'Shofirkon shahri'
+    'Buxoro tumani', 'Buxoro shahri', 'Vobkent tumani', "G'ijduvon tumani", 'Jondor tumani', 'Kogon tumani',
+    'Kogon shahri', 'Qorovulbozor tumani', "Qorako'l tumani", 'Olot tumani', 'Peshku tumani', 'Romitan tumani', 'Shofirkon tumani'
   ],
   'Xorazm': [
-    "Bog'ot", 'Gurlan', 'Xazorasp tumani', 'Xonqa', "Qo'shko'pir", 'Shovot tumani', 'Urganch tumani', 'Yangiariq', 'Yangibozor', 'Xiva tumani',
-    'Urganch shahri', 'Xiva shahri', 'Xazorasp shahri', 'Shovot shahri'
+    "Bog'ot tumani", 'Gurlan tumani', "Qo'shko'pir tumani", 'Pitnyak tumani', 'Urganch tumani', 'Urganch shahri',
+    'Xazorasp tumani', 'Xiva tumani', 'Xiva shahri', 'Xonqa tumani', 'Shovot tumani', 'Yangiariq tumani', 'Yangibozor tumani'
   ],
   'Navoiy': [
-    'Konimex', 'Karmana', 'Navbahor', 'Nurota tumani', 'Qiziltepa', 'Tomdi', 'Uchquduq tumani', 'Xatirchi',
-    'Navoiy shahri', 'Zarafshon shahri', 'Uchquduq shahri', 'Nurota shahri', "G'azli shahri"
+    'Zarafshon shahri', 'Karmana tumani', 'Konimex tumani', 'Qiziltepa tumani', 'Navbahor tumani',
+    'Navoiy shahri', 'Nurota tumani', 'Tomdi tumani', 'Uchquduq tumani', 'Xatirchi tumani'
   ],
   'Qashqadaryo': [
-    'Chiroqchi', 'Dehqonobod', "G'uzor tumani", 'Kasbi', 'Kitob tumani', 'Koson tumani', 'Mirishkor', 'Muborak tumani', 'Nishon', 'Qamashi', 'Qarshi tumani', 'Shahrisabz tumani', "Yakkabog'", "Ko'kdala",
-    'Qarshi shahri', 'Shahrisabz shahri', 'Kitob shahri', 'Koson shahri', "G'uzor shahri", 'Muborak shahri'
+    "G'uzor tumani", 'Dehqonobod tumani', 'Kasbi tumani', 'Kitob tumani', 'Koson tumani', 'Qamashi tumani',
+    'Qarshi tumani', 'Qarshi shahri', 'Mirishkor tumani', 'Muborak tumani', 'Nishon tumani', 'Chiroqchi tumani',
+    'Shahrisabz tumani', "Yakkabog' tumani", "Ko'kdala tumani"
   ],
   'Surxondaryo': [
-    'Angor', 'Bandixon', 'Boysun tumani', 'Denov tumani', "Jarqo'rg'on", 'Muzrabot', 'Oltinsoy', 'Qiziriq', "Qumqo'rg'on", 'Sariosiyo', 'Sherobod tumani', "Sho'rchi", 'Termiz tumani', 'Uzun',
-    'Termiz shahri', 'Denov shahri', 'Sherobod shahri', 'Boysun shahri'
+    'Angor tumani', 'Bandixon tumani', 'Boysun tumani', 'Denov tumani', "Jarqo'rg'on tumani", 'Qiziriq tumani',
+    "Qumqo'rg'on tumani", 'Muzrabot tumani', 'Oltinsoy tumani', 'Sariosiyo tumani', 'Termiz tumani', 'Termiz shahri',
+    'Uzun tumani', 'Sherobod tumani', "Sho'rchi tumani"
   ],
   'Jizzax': [
-    'Arnasoy', 'Baxmal', "Do'stlik tumani", 'Forish', "G'allaorol tumani", 'Jizzax tumani', "Mirzacho'l", 'Paxtakor', 'Yangiobod', 'Zafarobod', 'Zarbdor', 'Zomin tumani',
-    'Jizzax shahri', "G'allaorol shahri", "Do'stlik shahri"
+    'Arnasoy tumani', 'Baxmal tumani', "G'allaorol tumani", "Do'stlik tumani", 'Jizzax shahri', 'Zarbdor tumani',
+    'Zafarobod tumani', 'Zomin tumani', "Mirzacho'l tumani", 'Paxtakor tumani', 'Forish tumani',
+    'Sharof Rashidov tumani', 'Yangiobod tumani'
   ],
   'Sirdaryo': [
-    'Boyovut', 'Guliston tumani', 'Mirzaobod', 'Oqoltin', 'Sardoba', 'Sayxunobod', 'Sirdaryo tumani', 'Xovos',
-    'Guliston shahri', 'Shirin shahri', 'Yangiyer shahri', 'Sirdaryo shahri', 'Boyovut shahri'
+    'Boyovut tumani', 'Guliston tumani', 'Guliston shahri', 'Mirzaobod tumani', 'Oqoltin tumani', 'Sayxunobod tumani',
+    'Sardoba tumani', 'Sirdaryo tumani', 'Xovos tumani', 'Shirin shahri', 'Yangiyer shahri'
   ],
   "Qoraqalpog'iston": [
-    'Amudaryo', 'Beruniy tumani', 'Chimboy tumani', "Ellikqal'a", 'Kegeyli', "Mo'ynoq tumani", 'Nukus tumani', "Qanliko'l", "Qorao'zak", "Qo'ng'irot tumani", 'Shumanay', "Taxtako'pir tumani", "To'rtko'l tumani", "Xo'jayli tumani",
-    'Nukus shahri', 'Taxiatosh shahri', "Xo'jayli shahri", 'Chimboy shahri', 'Beruniy shahri', "To'rtko'l shahri", "Qo'ng'irot shahri", "Mo'ynoq shahri", "Taxtako'pir shahri"
+    'Amudaryo tumani', 'Beruniy tumani', 'Kegeyli tumani', "Qanliko'l tumani", "Qorao'zak tumani",
+    "Qo'ng'irot tumani", "Mo'ynoq tumani", 'Nukus tumani', 'Nukus shahri', 'Taxiatosh shahri',
+    "Taxtako'pir tumani", "To'rtko'l tumani", "Xo'jayli tumani", 'Chimboy tumani', 'Shumanay tumani',
+    "Ellikqal'a tumani", "Bo'zatov tumani"
   ]
 };
 function regionDisplayName(region){
