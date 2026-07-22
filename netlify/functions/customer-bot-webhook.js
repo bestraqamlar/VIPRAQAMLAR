@@ -122,6 +122,21 @@ function contactKeyboard(){
 }
 
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
+
+async function getInstallmentRates(){
+  try{
+    const doc = await withRetry(() => db.collection('site_settings').doc('general').get());
+    const r = (doc.exists && doc.data().installmentRates) || {};
+    return {
+      6: Number(r[6]) || 0,
+      12: Number(r[12]) || 0,
+      24: Number(r[24]) || 0,
+      36: Number(r[36]) || 0
+    };
+  }catch(e){
+    return { 6: 0, 12: 0, 24: 0, 36: 0 };
+  }
+}
 function displayNumber(numberStr){ return (numberStr || '').replace(/-/g, ' '); }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
@@ -158,10 +173,18 @@ async function showNumberDetail(chatId, item){
 
   const buttons = item.reserved
     ? [[{ text: '⬅️ Orqaga', callback_data: 'backmenu' }]]
-    : [
-        [{ text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` }],
-        [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
-      ];
+    : item.installment
+      ? [
+          [
+            { text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` },
+            { text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }
+          ],
+          [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
+        ]
+      : [
+          [{ text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` }],
+          [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
+        ];
   await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
   await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(buttons) });
 }
@@ -171,7 +194,7 @@ async function notifyAdmin(orderId, payload){
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if(!token || !chatId) return;
-  const text =
+  let text =
 `🔔 Yangi buyurtma (Telegram bot orqali)
 
 📱 Buyurtma raqami: ${payload.number}
@@ -180,6 +203,9 @@ async function notifyAdmin(orderId, payload){
 📍 Manzil: ${payload.region}
 🕐 Vaqti: ${payload.time}
 🌐 Qayerdan: Telegram bot`;
+  if(payload.installmentMonths){
+    text += `\n💳 To'lov turi: ${payload.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(payload.installmentMonthly)})`;
+  }
 
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
@@ -463,6 +489,46 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    if(data.startsWith('installment|')){
+      const numberId = data.split('|')[1];
+      const numberDoc = await withRetry(() => db.collection('numbers').doc(numberId).get());
+      if(!numberDoc.exists){
+        await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Raqam topilmadi' });
+        return { statusCode: 200, body: 'ok' };
+      }
+      const price = numberDoc.data().price || 0;
+      const rates = await getInstallmentRates();
+      const months = [6, 12, 24, 36];
+      const tierButtons = months.map(m => {
+        const rate = rates[m] || 0;
+        const total = price * (1 + rate / 100);
+        const monthly = Math.ceil(total / m / 1000) * 1000;
+        return [{ text: `${Number(monthly).toLocaleString('ru-RU').replace(/,/g, ' ')} so'mdan - ${m} oy`, callback_data: `installmentpick|${numberId}|${m}|${monthly}` }];
+      });
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: "To'lash muddatini tanlang:",
+        reply_markup: inlineKb([...tierButtons, [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]])
+      });
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    if(data.startsWith('installmentpick|')){
+      const [, numberId, monthsStr, monthlyStr] = data.split('|');
+      session = {
+        step: 'awaiting_name',
+        numberId,
+        installmentMonths: Number(monthsStr),
+        installmentMonthly: Number(monthlyStr)
+      };
+      await saveSession(chatId, session);
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
     if(data.startsWith('buy|')){
       const numberId = data.split('|')[1];
       session = { step: 'awaiting_name', numberId };
@@ -490,6 +556,8 @@ exports.handler = async function (event) {
         customerChatId: String(chatId),
         status: 'Yangi',
         source: 'Telegram bot',
+        installmentMonths: session.installmentMonths || null,
+        installmentMonthly: session.installmentMonthly || null,
         createdAt: time,
         createdAtSort: Date.now()
       }));
@@ -500,7 +568,9 @@ exports.handler = async function (event) {
 
       await notifyAdmin(orderRef.id, {
         number: numberStr, name: session.draftName, phone: session.draftPhone,
-        region: session.draftRegion, time
+        region: session.draftRegion, time,
+        installmentMonths: session.installmentMonths || null,
+        installmentMonthly: session.installmentMonthly || null
       });
 
       session = { step: 'menu' };
@@ -625,7 +695,7 @@ exports.handler = async function (event) {
 
     // Qidiruv boshlanganini darhol bildiramiz — mijoz jim kutib qolmasin
     await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-    await send(chatId, "🔍 Qidirilmoqda...");
+    const searchingMsg = await send(chatId, "🔍 Qidirilmoqda...");
 
     // Avval tezkor (indekslangan) qidiruv — barcha operatorlar orasidan,
     // yangi qo'shilgan raqamlar uchun
@@ -659,6 +729,9 @@ exports.handler = async function (event) {
         .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
     }
 
+    if(searchingMsg && searchingMsg.result && searchingMsg.result.message_id){
+      await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
+    }
     await showNumberList(chatId, session, matches,
       `"${digits}" bilan tugaydigan raqam topilmadi. Boshqa raqam kiriting.`);
     return { statusCode: 200, body: 'ok' };
@@ -718,13 +791,16 @@ exports.handler = async function (event) {
 
     const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
     const numberStr = numberDoc.exists ? displayNumber(numberDoc.data().number || '') : '';
-    const summary =
+    let summary =
 `Buyurtmangizni tasdiqlang:
 
 📱 Raqam: ${numberStr}
 👤 Ism: ${session.draftName}
 ☎️ Telefon: ${session.draftPhone}
 📍 Viloyat: ${session.draftRegion}`;
+    if(session.installmentMonths){
+      summary += `\n💳 To'lov turi: ${session.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(session.installmentMonthly)})`;
+    }
 
     await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
     await tg('sendMessage', {
