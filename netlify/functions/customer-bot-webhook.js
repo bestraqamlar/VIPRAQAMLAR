@@ -51,20 +51,59 @@ const REGIONS = [
   ['Sirdaryo', "Qoraqalpog'iston"]
 ];
 const DISTRICTS_BY_REGION = {
-  'Toshkent shahri': ['Bektemir', 'Chilonzor', 'Yashnobod', "Mirzo Ulug'bek", 'Mirobod', 'Sergeli', 'Shayxontohur', 'Olmazor', 'Uchtepa', 'Yakkasaroy', 'Yunusobod', 'Yangihayot'],
-  'Toshkent viloyati': ['Bekobod', "Bo'ka", "Bo'stonliq", 'Chinoz', 'Ohangaron', "Oqqo'rg'on", 'Parkent', 'Piskent', 'Quyichirchiq', 'Toshkent tumani', "O'rtachirchiq", "Yangiyo'l", 'Yuqorichirchiq', 'Zangiota'],
-  'Andijon': ['Andijon tumani', 'Asaka', 'Baliqchi', "Bo'z", 'Buloqboshi', 'Izboskan', 'Jalaquduq', "Xo'jaobod", "Qo'rg'ontepa", 'Marhamat', "Oltinko'l", 'Paxtaobod', 'Shahrixon', "Ulug'nor"],
-  "Farg'ona": ['Beshariq', "Bog'dod", 'Buvayda', "Dang'ara", "Farg'ona tumani", 'Furqat', "Qo'shtepa", 'Quva', 'Rishton', "So'x", 'Toshloq', "Uchko'prik", "O'zbekiston", 'Yozyovon', 'Oltiariq'],
-  'Namangan': ['Chortoq', 'Chust', 'Kosonsoy', "Mingbuloq", 'Namangan tumani', 'Norin', 'Pop', "To'raqo'rg'on", "Uchqo'rg'on", 'Uychi', "Yangiqo'rg'on"],
-  'Samarqand': ["Bulung'ur", 'Ishtixon', 'Jomboy', "Kattaqo'rg'on", "Qo'shrabot", 'Narpay', 'Nurobod', 'Oqdaryo', 'Pastdarg\'om', 'Paxtachi', 'Payariq', 'Samarqand tumani', 'Toyloq', 'Urgut'],
-  'Buxoro': ['Buxoro tumani', "G'ijduvon", 'Jondor', 'Kogon', "Qorako'l", 'Qorovulbozor', 'Peshku', 'Romitan', 'Shofirkon', 'Vobkent', 'Olot'],
-  'Xorazm': ["Bog'ot", 'Gurlan', 'Xazorasp', 'Xonqa', "Qo'shko'pir", 'Shovot', 'Urganch tumani', 'Yangiariq', 'Yangibozor', 'Xiva'],
-  'Navoiy': ['Konimex', 'Karmana', 'Navbahor', 'Nurota', 'Qiziltepa', 'Tomdi', "Uchquduq", 'Xatirchi'],
-  'Qashqadaryo': ['Chiroqchi', "Dehqonobod", "G'uzor", 'Kasbi', 'Kitob', 'Koson', 'Mirishkor', 'Muborak', 'Nishon', 'Qamashi', 'Qarshi tumani', 'Shahrisabz', "Yakkabog'", "Ko'kdala"],
-  'Surxondaryo': ['Angor', 'Bandixon', 'Boysun', 'Denov', "Jarqo'rg'on", 'Muzrabot', 'Oltinsoy', 'Qiziriq', "Qumqo'rg'on", 'Sariosiyo', 'Sherobod', "Sho'rchi", 'Termiz tumani', 'Uzun'],
-  'Jizzax': ['Arnasoy', 'Baxmal', "Do'stlik", 'Forish', "G'allaorol", 'Jizzax tumani', "Mirzacho'l", 'Paxtakor', 'Zafarobod', 'Zarbdor', 'Zomin'],
-  'Sirdaryo': ['Boyovut', 'Guliston tumani', 'Mirzaobod', 'Oqoltin', 'Sardoba', 'Sayxunobod', 'Sirdaryo tumani', 'Xovos'],
-  "Qoraqalpog'iston": ['Amudaryo', 'Beruniy', 'Chimboy', "Ellikqal'a", 'Kegeyli', "Mo'ynoq", 'Nukus tumani', "Qanliko'l", "Qorao'zak", "Qo'ng'irot", 'Shumanay', "Taxtako'pir", "To'rtko'l", "Xo'jayli"]
+  'Toshkent shahri': ['Bektemir', 'Chilonzor', "Mirzo Ulug'bek", 'Mirobod', 'Sergeli', 'Shayxontohur', 'Olmazor', 'Uchtepa', 'Yakkasaroy', 'Yunusobod', 'Yashnobod', 'Yangihayot'],
+  'Toshkent viloyati': [
+    'Bekobod tumani', "Bo'ka", "Bo'stonliq", 'Chinoz', 'Qibray', 'Ohangaron tumani', "Oqqo'rg'on", 'Parkent', 'Piskent', 'Quyichirchiq', 'Toshkent tumani', "O'rtachirchiq", "Yangiyo'l tumani", 'Yuqorichirchiq', 'Zangiota',
+    'Nurafshon shahri', 'Angren shahri', 'Bekobod shahri', 'Chirchiq shahri', 'Ohangaron shahri', 'Olmaliq shahri', "Yangiyo'l shahri"
+  ],
+  'Andijon': [
+    'Andijon tumani', 'Asaka tumani', 'Baliqchi', "Bo'z", 'Buloqboshi', 'Izboskan', 'Jalaquduq', "Xo'jaobod tumani", "Qo'rg'ontepa tumani", 'Marhamat', "Oltinko'l", 'Paxtaobod', 'Shahrixon tumani', "Ulug'nor",
+    'Andijon shahri', 'Xonobod shahri', 'Asaka shahri', "Xo'jaobod shahri", "Qo'rg'ontepa shahri", 'Shahrixon shahri'
+  ],
+  "Farg'ona": [
+    'Beshariq', "Bog'dod", 'Buvayda', "Dang'ara", "Farg'ona tumani", 'Furqat', "Qo'shtepa", 'Quva tumani', 'Rishton tumani', "So'x", 'Toshloq', "Uchko'prik", "O'zbekiston", 'Yozyovon', 'Oltiariq',
+    "Farg'ona shahri", "Qo'qon shahri", "Marg'ilon shahri", 'Quvasoy shahri', 'Quva shahri', 'Rishton shahri'
+  ],
+  'Namangan': [
+    'Chortoq', 'Chust tumani', 'Kosonsoy tumani', 'Mingbuloq', 'Namangan tumani', 'Norin', 'Pop tumani', "To'raqo'rg'on tumani", "Uchqo'rg'on", 'Uychi', "Yangiqo'rg'on",
+    'Namangan shahri', 'Chust shahri', 'Kosonsoy shahri', 'Pop shahri', "To'raqo'rg'on shahri"
+  ],
+  'Samarqand': [
+    "Bulung'ur", 'Ishtixon', 'Jomboy', "Kattaqo'rg'on tumani", "Qo'shrabot", 'Narpay', 'Nurobod', 'Oqdaryo', "Pastdarg'om", 'Paxtachi', 'Payariq', 'Samarqand tumani', 'Toyloq', 'Urgut tumani',
+    'Samarqand shahri', "Kattaqo'rg'on shahri", 'Urgut shahri'
+  ],
+  'Buxoro': [
+    'Buxoro tumani', "G'ijduvon tumani", 'Jondor', 'Kogon tumani', "Qorako'l", 'Qorovulbozor', 'Peshku', 'Romitan', 'Shofirkon tumani', 'Vobkent', 'Olot',
+    'Buxoro shahri', 'Kogon shahri', "G'ijduvon shahri", 'Shofirkon shahri'
+  ],
+  'Xorazm': [
+    "Bog'ot", 'Gurlan', 'Xazorasp tumani', 'Xonqa', "Qo'shko'pir", 'Shovot tumani', 'Urganch tumani', 'Yangiariq', 'Yangibozor', 'Xiva tumani',
+    'Urganch shahri', 'Xiva shahri', 'Xazorasp shahri', 'Shovot shahri'
+  ],
+  'Navoiy': [
+    'Konimex', 'Karmana', 'Navbahor', 'Nurota tumani', 'Qiziltepa', 'Tomdi', 'Uchquduq tumani', 'Xatirchi',
+    'Navoiy shahri', 'Zarafshon shahri', 'Uchquduq shahri', 'Nurota shahri', "G'azli shahri"
+  ],
+  'Qashqadaryo': [
+    'Chiroqchi', 'Dehqonobod', "G'uzor tumani", 'Kasbi', 'Kitob tumani', 'Koson tumani', 'Mirishkor', 'Muborak tumani', 'Nishon', 'Qamashi', 'Qarshi tumani', 'Shahrisabz tumani', "Yakkabog'", "Ko'kdala",
+    'Qarshi shahri', 'Shahrisabz shahri', 'Kitob shahri', 'Koson shahri', "G'uzor shahri", 'Muborak shahri'
+  ],
+  'Surxondaryo': [
+    'Angor', 'Bandixon', 'Boysun tumani', 'Denov tumani', "Jarqo'rg'on", 'Muzrabot', 'Oltinsoy', 'Qiziriq', "Qumqo'rg'on", 'Sariosiyo', 'Sherobod tumani', "Sho'rchi", 'Termiz tumani', 'Uzun',
+    'Termiz shahri', 'Denov shahri', 'Sherobod shahri', 'Boysun shahri'
+  ],
+  'Jizzax': [
+    'Arnasoy', 'Baxmal', "Do'stlik tumani", 'Forish', "G'allaorol tumani", 'Jizzax tumani', "Mirzacho'l", 'Paxtakor', 'Yangiobod', 'Zafarobod', 'Zarbdor', 'Zomin tumani',
+    'Jizzax shahri', "G'allaorol shahri", "Do'stlik shahri"
+  ],
+  'Sirdaryo': [
+    'Boyovut', 'Guliston tumani', 'Mirzaobod', 'Oqoltin', 'Sardoba', 'Sayxunobod', 'Sirdaryo tumani', 'Xovos',
+    'Guliston shahri', 'Shirin shahri', 'Yangiyer shahri', 'Sirdaryo shahri', 'Boyovut shahri'
+  ],
+  "Qoraqalpog'iston": [
+    'Amudaryo', 'Beruniy tumani', 'Chimboy tumani', "Ellikqal'a", 'Kegeyli', "Mo'ynoq tumani", 'Nukus tumani', "Qanliko'l", "Qorao'zak", "Qo'ng'irot tumani", 'Shumanay', "Taxtako'pir tumani", "To'rtko'l tumani", "Xo'jayli tumani",
+    'Nukus shahri', 'Taxiatosh shahri', "Xo'jayli shahri", 'Chimboy shahri', 'Beruniy shahri', "To'rtko'l shahri", "Qo'ng'irot shahri", "Mo'ynoq shahri", "Taxtako'pir shahri"
+  ]
 };
 function regionDisplayName(region){
   if(region === 'Toshkent shahri' || region === 'Toshkent viloyati') return region;
@@ -684,7 +723,19 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
   if(text === BTN.STEP_BACK){
-    if(session.step === 'awaiting_phone'){
+    if(session.step === 'awaiting_name'){
+      // Ism so'ralayotgan bosqichdan orqaga — o'sha raqamning tafsilotiga qaytaramiz,
+      // shunda mijoz "Naqt to'lov" / "Bo'lib to'lash"ni qayta tanlashi mumkin.
+      const numberId = session.numberId;
+      const numberDoc = numberId ? await withRetry(() => db.collection('numbers').doc(numberId).get()) : null;
+      session = { step: 'list_shown' };
+      await saveSession(chatId, session);
+      if(numberDoc && numberDoc.exists){
+        await showNumberDetail(chatId, docToItem(numberDoc));
+      }else{
+        await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
+      }
+    }else if(session.step === 'awaiting_phone'){
       session.step = 'awaiting_name';
       await saveSession(chatId, session);
       await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
