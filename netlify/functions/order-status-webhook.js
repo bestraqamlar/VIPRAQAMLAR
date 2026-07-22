@@ -62,7 +62,9 @@ function controlPanelKeyboard(state){
       [{ text: state.botEnabled ? '✅ Bot ishlamoqda' : '▶️ Botni ishga tushirish', callback_data: 'bc|start' }],
       [{ text: !state.botEnabled ? "⏹ Bot to'xtatilgan" : "⏸ Botni to'xtatish", callback_data: 'bc|stop' }],
       [{ text: `🤖 Avtobot: ${state.autoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|auto' }],
-      [{ text: `🆕 Yangi mijozlarga avto javob: ${state.newUserAutoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|newuser' }]
+      [{ text: `🆕 Yangi mijozlarga avto javob: ${state.newUserAutoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|newuser' }],
+      [{ text: '📊 Statistika', callback_data: 'bc|stats' }],
+      [{ text: '📢 Barchaga xabar yuborish', callback_data: 'bc|broadcast' }]
     ]
   };
 }
@@ -138,6 +140,34 @@ async function handleControlCallback(callback){
     return;
   }
 
+  if(action === 'stats'){
+    const userIds = await getCustomerBotUserIds();
+    await answerCallback(callback.id);
+    await sendTelegram('sendMessage', { chat_id: chatId, text: `📊 Mijoz botidan foydalangan: ${userIds.length} kishi` });
+    return;
+  }
+  if(action === 'broadcast'){
+    await setAdminState({ awaitingBroadcast: true });
+    await answerCallback(callback.id);
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: "✍️ Yubormoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin).\n\nBekor qilish uchun /bekor yozing."
+    });
+    return;
+  }
+  if(action === 'broadcast_confirm'){
+    await answerCallback(callback.id, 'Yuborilmoqda...');
+    try{ await executeBroadcast(chatId); }
+    catch(err){ await sendTelegram('sendMessage', { chat_id: chatId, text: 'Xato: ' + err.message }); }
+    return;
+  }
+  if(action === 'broadcast_cancel'){
+    await clearPendingBroadcast();
+    await answerCallback(callback.id, 'Bekor qilindi');
+    await sendTelegram('sendMessage', { chat_id: chatId, text: 'Xabar yuborish bekor qilindi.' });
+    return;
+  }
+
   if(action === 'back'){
     await answerCallback(callback.id);
     await editControlPanel(chatId, messageId, state);
@@ -167,6 +197,168 @@ async function replaceKeyboardWithConfirmation(chatId, messageId, statusLabel){
   });
 }
 
+/* ==================================================================
+   MIJOZ BOTIDAN FOYDALANGANLAR RO'YXATI VA BARCHAGA XABAR YUBORISH
+   — "bot_sessions" collection'i mijoz botiga /start bosgan (yoki
+   biror tugma bosgan) HAR BIR odam uchun yoziladi, shuning uchun
+   eng to'liq foydalanuvchilar ro'yxati sifatida shu yerdan olinadi.
+   ================================================================== */
+async function getCustomerBotUserIds(){
+  const snap = await withRetry(() => db.collection('bot_sessions').select().get());
+  return snap.docs.map(d => d.id);
+}
+
+async function getAdminState(){
+  try{
+    const doc = await withRetry(() => db.collection('site_settings').doc('admin_state').get());
+    return doc.exists ? doc.data() : {};
+  }catch(e){ return {}; }
+}
+async function setAdminState(patch){
+  await withRetry(() => db.collection('site_settings').doc('admin_state').set(patch, { merge: true }));
+}
+async function getPendingBroadcast(){
+  const doc = await withRetry(() => db.collection('site_settings').doc('pending_broadcast').get());
+  return doc.exists ? doc.data() : null;
+}
+async function setPendingBroadcast(data){
+  await withRetry(() => db.collection('site_settings').doc('pending_broadcast').set(data));
+}
+async function clearPendingBroadcast(){
+  await withRetry(() => db.collection('site_settings').doc('pending_broadcast').delete());
+}
+
+/* Admin botiga yuborilgan faylni (rasm/video) yuklab oladi — file_id'lar
+   bot-token'ga bog'liq bo'lgani uchun boshqa bot orqali qayta yuborishdan
+   oldin haqiqiy baytlarni olish shart. */
+async function downloadTelegramFile(token, fileId){
+  const infoRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+  const info = await infoRes.json();
+  if(!info.ok) throw new Error('Faylni olishda xato: ' + (info.description || JSON.stringify(info)));
+  const filePath = info.result.file_path;
+  const fileRes = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
+  const arrayBuffer = await fileRes.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
+/* Haqiqiy fayl baytlarini (multipart) mijoz botining bitta chatiga yuboradi —
+   javobda mijoz botiga tegishli YANGI file_id qaytadi, shu file_id keyin
+   qolgan barcha mijozlarga tezkor (qayta yuklamasdan) yuboriladi. */
+async function uploadMediaToChat(token, chatId, type, buffer, caption){
+  const form = new FormData();
+  form.append('chat_id', String(chatId));
+  if(caption) form.append('caption', caption);
+  const field = type === 'photo' ? 'photo' : 'video';
+  const filename = type === 'photo' ? 'broadcast.jpg' : 'broadcast.mp4';
+  const mime = type === 'photo' ? 'image/jpeg' : 'video/mp4';
+  form.append(field, new Blob([buffer], { type: mime }), filename);
+  const method = type === 'photo' ? 'sendPhoto' : 'sendVideo';
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, { method: 'POST', body: form });
+  return res.json();
+}
+
+/* Bitta mijozga (JSON orqali, tezkor) xabar/rasm/video yuboradi */
+async function sendBroadcastToOne(token, chatId, pending, uploadedFileId){
+  if(pending.type === 'text'){
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: pending.text })
+    });
+    return res.json();
+  }
+  const method = pending.type === 'photo' ? 'sendPhoto' : 'sendVideo';
+  const field = pending.type === 'photo' ? 'photo' : 'video';
+  const payload = { chat_id: chatId, [field]: uploadedFileId };
+  if(pending.caption) payload.caption = pending.caption;
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+/* Admin "📢 Barchaga xabar yuborish"ni bosgandan keyin yuborgan birinchi
+   xabarini (matn/rasm/video) qabul qiladi — bazaga vaqtincha saqlaydi va
+   tasdiqlash so'raydi (hech narsa hali mijozlarga yuborilmaydi). */
+async function handleIncomingBroadcastContent(msg){
+  let pending;
+  if(msg.photo && msg.photo.length){
+    const best = msg.photo[msg.photo.length - 1];
+    pending = { type: 'photo', sourceFileId: best.file_id, caption: msg.caption || '', createdAt: Date.now() };
+  }else if(msg.video){
+    pending = { type: 'video', sourceFileId: msg.video.file_id, caption: msg.caption || '', createdAt: Date.now() };
+  }else if(msg.text){
+    pending = { type: 'text', text: msg.text, createdAt: Date.now() };
+  }else{
+    await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: "Iltimos, matn, rasm yoki video yuboring." });
+    return;
+  }
+
+  const userIds = await getCustomerBotUserIds();
+  await setAdminState({ awaitingBroadcast: false });
+  await setPendingBroadcast(pending);
+
+  if(userIds.length === 0){
+    await clearPendingBroadcast();
+    await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: "Hozircha mijoz botidan foydalangan hech kim yo'q." });
+    return;
+  }
+
+  await sendTelegram('sendMessage', {
+    chat_id: msg.chat.id,
+    text: `${userIds.length} ta mijozga yuborilsinmi?`,
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '✅ Ha, yuborish', callback_data: 'bc|broadcast_confirm' }],
+        [{ text: '❌ Bekor qilish', callback_data: 'bc|broadcast_cancel' }]
+      ]
+    }
+  });
+}
+
+/* Tasdiqlangandan keyin — HAMMAGA bir vaqtda (parallel, bo'lib-bo'lib) yuboradi */
+async function executeBroadcast(adminChatId){
+  const pending = await getPendingBroadcast();
+  if(!pending) throw new Error("Yuborilishi kerak bo'lgan xabar topilmadi.");
+
+  const userIds = await getCustomerBotUserIds();
+  const customerToken = process.env.CUSTOMER_BOT_TOKEN;
+  if(!customerToken) throw new Error('CUSTOMER_BOT_TOKEN sozlanmagan.');
+
+  let uploadedFileId = null;
+  let remaining = userIds;
+
+  if(pending.type !== 'text' && userIds.length > 0){
+    const adminToken = process.env.TELEGRAM_BOT_TOKEN;
+    const buffer = await downloadTelegramFile(adminToken, pending.sourceFileId);
+    const first = userIds[0];
+    const uploadRes = await uploadMediaToChat(customerToken, first, pending.type, buffer, pending.caption);
+    if(!uploadRes.ok) throw new Error('Birinchi mijozga yuborishda xato: ' + (uploadRes.description || JSON.stringify(uploadRes)));
+    uploadedFileId = pending.type === 'photo'
+      ? uploadRes.result.photo[uploadRes.result.photo.length - 1].file_id
+      : uploadRes.result.video.file_id;
+    remaining = userIds.slice(1);
+  }
+
+  let success = (pending.type !== 'text' && userIds.length > 0) ? 1 : 0;
+  let fail = 0;
+  const CHUNK = 20;
+  for(let i = 0; i < remaining.length; i += CHUNK){
+    const batch = remaining.slice(i, i + CHUNK);
+    const results = await Promise.allSettled(batch.map(uid => sendBroadcastToOne(customerToken, uid, pending, uploadedFileId)));
+    results.forEach(r => {
+      if(r.status === 'fulfilled' && r.value && r.value.ok) success++;
+      else fail++;
+    });
+  }
+
+  await clearPendingBroadcast();
+  await sendTelegram('sendMessage', {
+    chat_id: adminChatId,
+    text: `✅ Yuborildi: ${success} ta\n❌ Yetib bormadi: ${fail} ta\n👥 Jami mijozlar: ${userIds.length} ta`
+  });
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
@@ -176,13 +368,35 @@ exports.handler = async function (event) {
   const allowedChatId = process.env.TELEGRAM_CHAT_ID;
 
   /* ---- "/panel" buyrug'i — bot boshqaruv panelini ko'rsatadi ---- */
-  if(update.message && update.message.text){
-    if(String(update.message.chat.id) !== String(allowedChatId)) return { statusCode: 200, body: 'ignored' };
-    const cmd = update.message.text.trim();
-    if(cmd === '/panel' || cmd === '/bot' || cmd === '/start'){
-      await sendControlPanel(update.message.chat.id);
+  if(update.message){
+    const msg = update.message;
+    if(String(msg.chat.id) !== String(allowedChatId)) return { statusCode: 200, body: 'ignored' };
+
+    if(msg.text && msg.text.trim() === '/bekor'){
+      await setAdminState({ awaitingBroadcast: false });
+      await clearPendingBroadcast().catch(() => {});
+      await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Bekor qilindi.' });
       return { statusCode: 200, body: 'ok' };
     }
+
+    if(msg.text){
+      const cmd = msg.text.trim();
+      if(cmd === '/panel' || cmd === '/bot' || cmd === '/start'){
+        await sendControlPanel(msg.chat.id);
+        return { statusCode: 200, body: 'ok' };
+      }
+    }
+
+    const adminState = await getAdminState();
+    if(adminState.awaitingBroadcast){
+      try{ await handleIncomingBroadcastContent(msg); }
+      catch(err){
+        console.error('BROADCAST XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
     return { statusCode: 200, body: 'ok' };
   }
 
