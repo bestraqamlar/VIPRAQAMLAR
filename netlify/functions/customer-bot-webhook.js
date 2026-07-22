@@ -83,6 +83,16 @@ async function saveCustomerProfile(chatId, from){
     await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({ name, username, lastSeenAt: Date.now() }, { merge: true }));
   }catch(e){ /* muhim emas */ }
 }
+/* Mijoz bir tugmani bosgach, o'sha eski xabardagi tugmalarni olib tashlaydi —
+   shunda eski (allaqachon bosilgan) tugmalar chatda "tirik" qolib, mijozni
+   chalg'itmaydi. Xabar juda eski/o'zgarmagan bo'lsa Telegram xato qaytarishi
+   mumkin — bu muhim emas, e'tiborsiz qoldiriladi. */
+async function clearInlineButtons(chatId, messageId){
+  if(!messageId) return;
+  try{
+    await tg('editMessageReplyMarkup', { chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [] } });
+  }catch(e){ /* muhim emas */ }
+}
 
 /* ---------------- Telegram yordamchi funksiyalari ---------------- */
 async function tg(method, payload){
@@ -140,9 +150,14 @@ async function getInstallmentRates(){
 function displayNumber(numberStr){ return (numberStr || '').replace(/-/g, ' '); }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
-async function showNumberList(chatId, session, items, emptyText){
+async function showNumberList(chatId, session, items, emptyText, emptyExtraKeyboard){
   if(items.length === 0){
-    await send(chatId, emptyText, backKeyboard());
+    if(emptyExtraKeyboard){
+      await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+      await tg('sendMessage', { chat_id: chatId, text: emptyText, reply_markup: emptyExtraKeyboard });
+    }else{
+      await send(chatId, emptyText, backKeyboard());
+    }
     return;
   }
   session.step = 'list_shown';
@@ -176,13 +191,13 @@ async function showNumberDetail(chatId, item){
     : item.installment
       ? [
           [
-            { text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` },
+            { text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` },
             { text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }
           ],
           [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
         ]
       : [
-          [{ text: '🛒 Buyurtma berish', callback_data: `buy|${item.id}` }],
+          [{ text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` }],
           [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
         ];
   await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
@@ -325,7 +340,7 @@ function buildTelegramSystemPrompt(settings){
 - Narxlarni faqat search_numbers natijasidan ol — hech qachon o'ylab topma.
 - Mijoz aniq raqamning oxirini aytsa (masalan "0101 bormi"), search_numbers bilan tekshir va natijani qisqa ayt.
 - Agar mijoz so'ragan raqam qidiruvda TOPILMASA, buni hech qachon qat'iy "yo'q"/"mavjud emas" deb aytma — katalogimizda hali bazaga kiritilmagan ko'p raqam bor. Bunday holatda: "Operatorimiz tekshirib, tez orada javob beradi" kabi qisqa javob ber va albatta forward_lead_to_admin vositasini chaqirib, so'ralgan raqamni yetkaz.
-- Agar mijoz aniq buyurtma bermoqchi bo'lsa, unga botdagi tugmalardan (operatorni tanlab, so'ng raqam kiritib) yoki ro'yxatdan raqamni tanlab "🛒 Buyurtma berish" tugmasini bosishni tavsiya qil — bu orqali rasmiy buyurtma tizimidan o'tadi.
+- Agar mijoz aniq buyurtma bermoqchi bo'lsa, unga botdagi tugmalardan (operatorni tanlab, so'ng raqam kiritib) yoki ro'yxatdan raqamni tanlab "💵 Naqt to'lov" tugmasini bosishni tavsiya qil — bu orqali rasmiy buyurtma tizimidan o'tadi.
 - Yetkazib berish haqida so'ralsa: "${settings.deliveryInfo}"
 - Salbiy/norozi fikrga bahslashmasdan, xotirjam va qisqa javob ber.
 - Mijoz aniq sotib olish niyatini yoki maxsus so'rovini bildirsa, forward_lead_to_admin vositasini chaqir.
@@ -480,6 +495,10 @@ exports.handler = async function (event) {
     const data = cq.data;
     await saveCustomerProfile(chatId, cq.from);
     let session = await getSession(chatId);
+
+    // Har qanday tugma bosilganda — o'sha xabardagi tugmalarni darhol olib tashlaymiz,
+    // shunda mijoz eski tugmalarga chalg'imaydi, faqat oxirgi (joriy) tugmalar ko'rinadi.
+    await clearInlineButtons(chatId, cq.message.message_id);
 
     if(data === 'backmenu' || data === 'cancelview'){
       session = { step: 'menu' };
@@ -733,7 +752,8 @@ exports.handler = async function (event) {
       await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
     }
     await showNumberList(chatId, session, matches,
-      `"${digits}" bilan tugaydigan raqam topilmadi. Boshqa raqam kiriting.`);
+      `${digits} raqami sotuvda mavjud emas`,
+      inlineKb([[{ text: '📋 Raqam ro\'yxati', url: 'https://t.me/vip_raqamlar_uz' }]]));
     return { statusCode: 200, body: 'ok' };
   }
 
