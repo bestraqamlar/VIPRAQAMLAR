@@ -9,3 +9,22 @@
 
 [functions."credit-excel-report"]
   schedule = "0 4 * * *"
+
+# HTML sahifalar HECH QACHON eski nusxada keshda qolib ketmasin — har safar
+# brauzer serverdan eng yangi versiyani tekshirib oladi (sekin internetda ham).
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Rasm/logo kabi statik fayllar tez yuklanishi uchun keshlansa bo'ladi —
+# ular kamdan-kam o'zgaradi.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

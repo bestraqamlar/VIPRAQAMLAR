@@ -2,6 +2,9 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <title>VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar | Raqam Tanlash Xizmati</title>
 <meta name="description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum raqamlari. Bepul yetkazib berish, muddatli to'lov (kredit) imkoniyati.">
@@ -308,8 +311,9 @@
 
   .search-wrap{
     position:sticky;top:57px;z-index:25;
-    background:linear-gradient(180deg, var(--bg) 60%, transparent);
+    background:var(--bg);
     padding:10px 0 14px;
+    border-bottom:1px solid var(--line);
   }
   .number-builder{
     max-width:480px;margin:0 auto;padding:0 12px;
@@ -533,7 +537,7 @@
     padding:3px 8px;border-radius:6px;
   }
   .card-body{padding:18px 16px;display:flex;flex-direction:column;flex:1;}
-  .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
+  .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;margin-top:auto;}
   .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--amber);}
   .price-row .old-price{
     font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;
@@ -551,7 +555,6 @@
     padding:11px;font-weight:600;font-size:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:8px;
     transition:transform .12s ease, opacity .12s ease, background .15s ease;
-    margin-top:auto;
   }
   .card button.order-btn:hover{filter:brightness(1.15);}
   .card button.order-btn:active{transform:scale(0.96);}
@@ -664,6 +667,12 @@
     background:linear-gradient(180deg,rgba(0,0,0,0.05) 45%,rgba(0,0,0,0.6) 100%);
   }
   .video-testi-play svg{width:32px;height:32px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));}
+  .video-testi-number{
+    position:absolute;left:6px;right:6px;top:6px;color:#fff;font-size:10px;font-weight:800;
+    background:rgba(0,0,0,0.5);border-radius:7px;padding:4px 6px;text-align:center;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-family:'Space Mono',monospace;letter-spacing:-0.2px;
+  }
   .video-testi-caption{
     position:absolute;left:0;right:0;bottom:7px;padding:0 9px;color:#fff;font-size:9.5px;
     line-height:1.3;max-height:32px;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,0.8);font-weight:600;
@@ -693,6 +702,11 @@
     transition:transform .32s cubic-bezier(.22,.9,.4,1), opacity .32s ease;
   }
   .reels-slide video{width:100%;height:100%;object-fit:contain;background:#000;}
+  .reels-slide-number{
+    position:absolute;left:20px;bottom:64px;color:#fff;font-weight:800;font-size:17px;
+    font-family:'Space Mono',monospace;text-shadow:0 2px 6px rgba(0,0,0,0.7);
+    background:rgba(0,0,0,0.4);padding:6px 12px;border-radius:20px;
+  }
   .reels-slide-caption{
     position:absolute;left:0;right:0;bottom:0;padding:20px 76px calc(env(safe-area-inset-bottom, 0px) + 24px) 20px;
     background:linear-gradient(0deg,rgba(0,0,0,0.75),rgba(0,0,0,0));
@@ -753,6 +767,15 @@
   .pv-slide-number{font-family:'Space Mono',monospace;font-weight:700;font-size:16px;margin-bottom:4px;}
   .pv-slide-price{color:var(--amber);font-weight:800;font-size:14px;margin-bottom:10px;}
   .pv-like-elevated{ bottom:230px; }
+
+  .reels-share-btn{
+    position:absolute;right:14px;bottom:135px;z-index:5;
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    background:none;border:none;cursor:pointer;padding:8px;
+  }
+  .reels-share-btn svg{width:30px;height:30px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));transition:transform .15s ease;}
+  .reels-share-btn:active svg{transform:scale(0.85);}
+  .pv-share-elevated{ bottom:175px; }
 
   /* ---- To'lov turi tanlash (Naqt / Bo'lib to'lash) ---- */
   .pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px;}
@@ -1802,19 +1825,19 @@ digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
     box.value = box.value.replace(/\D/g,'').slice(0,1);
     box.classList.toggle('filled', box.value !== '');
-    if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus(); }
+    if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus({ preventScroll: true }); }
     currentPage = 0;
     debouncedRenderCatalog();
   });
   box.addEventListener('keydown', (e)=>{
-    if(e.key === 'Backspace' && box.value === '' && idx > 0){ digitBoxes[idx-1].focus(); }
+    if(e.key === 'Backspace' && box.value === '' && idx > 0){ digitBoxes[idx-1].focus({ preventScroll: true }); }
   });
 });
 clearSearchBtn.addEventListener('click', ()=>{
   operatorSelect.value = '';
   digitBoxes.forEach(box=>{ box.value=''; box.classList.remove('filled'); });
   currentPage = 0;
-  updateSearchUI(); renderCatalog(); digitBoxes[0].focus();
+  updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
 });
 
 const overlay       = document.getElementById('overlay');
@@ -2504,6 +2527,7 @@ function takeWarmedVideo(url){
         <div class="video-testi-play">
           <svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.35)"/><path d="M9.5 7.5v9l7-4.5z"/></svg>
         </div>
+        ${v.number ? `<div class="video-testi-number">${v.number}</div>` : ''}
         ${v.caption ? `<div class="video-testi-caption">${v.caption.replace(/</g,'&lt;')}</div>` : ''}
       </div>
     `).join('');
@@ -2526,6 +2550,13 @@ function takeWarmedVideo(url){
     }, { root: scroll, rootMargin: '300px', threshold: 0.01 });
 
     scroll.querySelectorAll('.video-testi-card').forEach(card => thumbObserver.observe(card));
+
+    // Ulashilgan havola orqali kirilgan bo'lsa (?tv=videoId) — o'sha videoni darhol ochamiz
+    const sharedTvId = new URLSearchParams(location.search).get('tv');
+    if(sharedTvId){
+      const idx = videos.findIndex(v => v.id === sharedTvId);
+      if(idx !== -1) openReels(idx);
+    }
   }
 
   window.heartSvg = function(filled){
@@ -2534,6 +2565,33 @@ function takeWarmedVideo(url){
       : `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-6.7-4.35-9.3-8.1C.8 10.1 1.2 6.6 4 4.9c2.2-1.35 4.9-.7 6.3 1.2L12 8l1.7-1.9c1.4-1.9 4.1-2.55 6.3-1.2 2.8 1.7 3.2 5.2 1.3 8-2.6 3.75-9.3 8.1-9.3 8.1z"/></svg>`;
   };
   const heartSvg = window.heartSvg;
+
+  window.shareSvg = function(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6L8.6 10.5"/></svg>`;
+  };
+  const shareSvg = window.shareSvg;
+
+  // Videoni ulashish — mavjud bo'lsa qurilmaning o'z "Yuborish" oynasi (Telegram,
+  // Instagram va h.k. ro'yxati bilan) ochiladi, aks holda havola nusxalanadi.
+  // Havola shu videoni ochish uchun maxsus parametr bilan yuboriladi — kimdir
+  // shu havolani bossa, sayt ochilishi bilan aynan shu video darhol ko'rsatiladi.
+  window.shareReelsVideo = async function(type, id){
+    const param = type === 'premium' ? 'pv' : 'tv';
+    const url = `${location.origin}${location.pathname}?${param}=${encodeURIComponent(id)}`;
+    const shareData = { title: 'VIP RAQAMLAR', text: "Shu videoni ko'ring 👇", url };
+    try{
+      if(navigator.share){
+        await navigator.share(shareData);
+        return;
+      }
+    }catch(e){ return; /* foydalanuvchi ulashishni bekor qilgan */ }
+    try{
+      await navigator.clipboard.writeText(url);
+      if(window.showToast) showToast('Havola nusxalandi — istalgan odamga yuborishingiz mumkin', 3500);
+    }catch(e){
+      window.prompt('Havolani nusxalab oling:', url);
+    }
+  };
 
   window.getLikedSet = function(){
     try{ return new Set(JSON.parse(localStorage.getItem('raqamuz_liked_videos') || '[]')); }
@@ -2588,6 +2646,10 @@ function takeWarmedVideo(url){
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
         </button>
+        <button class="reels-share-btn" data-share-type="testimonial" data-share-id="${v.id}" aria-label="Ulashish">
+          ${shareSvg()}
+        </button>
+        ${v.number ? `<div class="reels-slide-number">${v.number}</div>` : ''}
         ${v.caption ? `<div class="reels-slide-caption">${v.caption.replace(/</g,'&lt;')}</div>` : ''}
       </div>
     `;
@@ -2596,6 +2658,12 @@ function takeWarmedVideo(url){
   function bindSlideEvents(slideEl){
     const btn = slideEl.querySelector('.reels-like-btn');
     if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
+
+    const shareBtn = slideEl.querySelector('.reels-share-btn');
+    if(shareBtn) shareBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      shareReelsVideo(shareBtn.dataset.shareType, shareBtn.dataset.shareId);
+    });
 
     // Agar shu video allaqachon fon rejimida oldindan yuklanayotgan bo'lsa
     // (warmVideoCache orqali), o'sha AYNAN O'SHA elementni (buferi bilan
@@ -2836,6 +2904,13 @@ function takeWarmedVideo(url){
     items = shuffle(items);
     banner.style.display = items.length ? 'flex' : 'none';
     if(items.length) warmVideoCache(items[0].videoUrl);
+
+    // Ulashilgan havola orqali kirilgan bo'lsa (?pv=videoId) — o'sha videoni darhol ochamiz
+    const sharedPvId = new URLSearchParams(location.search).get('pv');
+    if(sharedPvId){
+      const idx = items.findIndex(v => v.videoId === sharedPvId);
+      if(idx !== -1) openPremiumReels(idx);
+    }
   }
 
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
@@ -2921,6 +2996,9 @@ function takeWarmedVideo(url){
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
         </button>
+        <button class="reels-share-btn pv-share-elevated" data-share-type="premium" data-share-id="${v.videoId}" aria-label="Ulashish">
+          ${shareSvg()}
+        </button>
         <div class="pv-slide-info">
           <div class="pv-slide-number">${displayNumber(v.number)}</div>
           <div class="pv-slide-price">${formatPrice(v.price)}</div>
@@ -2955,6 +3033,13 @@ function takeWarmedVideo(url){
     const likeBtn = slideEl.querySelector('.reels-like-btn');
     if(likeBtn){
       likeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLikePremium(likeBtn.dataset.videoId, likeBtn); });
+    }
+    const shareBtn = slideEl.querySelector('.reels-share-btn');
+    if(shareBtn){
+      shareBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        shareReelsVideo(shareBtn.dataset.shareType, shareBtn.dataset.shareId);
+      });
     }
     const orderBtn = slideEl.querySelector('.pv-order-btn:not([disabled])');
     if(orderBtn){
@@ -3003,9 +3088,9 @@ function takeWarmedVideo(url){
     });
   }
 
-  function openPremiumReels(){
+  function openPremiumReels(startIdx){
     if(!items.length) return;
-    currentIdx = 0;
+    currentIdx = (typeof startIdx === 'number' && startIdx >= 0 && startIdx < items.length) ? startIdx : 0;
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';

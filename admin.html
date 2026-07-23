@@ -679,6 +679,8 @@
     <div class="video-upload-box">
       <label for="videoFileInput">Video fayl <span class="ig-field-hint">(vertikal, telefon kamerasida olingan video eng yaxshi ko'rinadi)</span></label>
       <input type="file" id="videoFileInput" accept="video/*">
+      <label for="videoNumberInput">Raqam <span class="ig-field-hint">(mijoz sotib olgan raqam, video ustida ko'rsatiladi)</span></label>
+      <input type="text" id="videoNumberInput" placeholder="+998 90 123 45 67">
       <label for="videoCaptionInput">Izoh <span class="ig-field-hint">(video ostida ko'rsatiladi)</span></label>
       <textarea id="videoCaptionInput" rows="2" placeholder="Masalan: Aziz aka Toshkentdan — bizdan VIP raqam sotib olgan mijozimiz"></textarea>
       <div class="video-progress-wrap" id="videoProgressWrap" style="display:none;">
@@ -2157,6 +2159,7 @@ document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
 /* ---- Video sharhlar (mijoz fikri, saytda Reels uslubida ko'rsatiladi) ---- */
 window.handleVideoUpload = async function(){
   const fileInput = document.getElementById('videoFileInput');
+  const numberInput = document.getElementById('videoNumberInput');
   const captionInput = document.getElementById('videoCaptionInput');
   const msg = document.getElementById('videoUploadMsg');
   const progressWrap = document.getElementById('videoProgressWrap');
@@ -2213,6 +2216,7 @@ window.handleVideoUpload = async function(){
 
     await db.collection('video_testimonials').add({
       videoUrl,
+      number: numberInput.value.trim(),
       caption: captionInput.value.trim(),
       order: nextOrder,
       likes: 500 + Math.floor(Math.random() * 500), // boshlang'ich "mashhurlik" ko'rsatkichi (500-999), haqiqiy like'lar shu ustiga qo'shiladi
@@ -2223,6 +2227,7 @@ window.handleVideoUpload = async function(){
     msg.style.cssText = 'color:var(--green);text-align:center;font-weight:700;';
     vibrate(80);
     fileInput.value = '';
+    numberInput.value = '';
     captionInput.value = '';
     progressWrap.style.display = 'none';
     if(window.loadVideoTestimonials) loadVideoTestimonials();
