@@ -20,8 +20,27 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true });
 
+/* XAVFSIZLIK: App Check — MAJBURIY. Faqat haqiqiy saytimiz (App Check
+   tokeni bilan) yuborgan so'rovlar qabul qilinadi — token bo'lmasa yoki
+   noto'g'ri bo'lsa, so'rov DARHOL rad etiladi. Skript, bot yoki
+   to'g'ridan-to'g'ri API chaqiruvlari orqali bu funksiyadan FOYDALANIB
+   BO'LMAYDI — faqat saytimiz orqali ishlaydi. */
+async function verifyAppCheckStrict(event){
+  const token = (event.headers && (event.headers['x-firebase-appcheck'] || event.headers['X-Firebase-AppCheck'])) || '';
+  if(!token) return false; // MAJBURIY: token bo'lmasa — RAD ETILADI
+  try{
+    await admin.appCheck().verifyToken(token);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
+  if(!(await verifyAppCheckStrict(event))){
+    return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
+  }
 
   try{
     const { code, numberId } = JSON.parse(event.body || '{}');

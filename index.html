@@ -6,10 +6,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-<title>VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar | Raqam Tanlash Xizmati</title>
-<meta name="description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum raqamlari. Bepul yetkazib berish, muddatli to'lov (kredit) imkoniyati.">
-<meta name="keywords" content="raqam, nomer, oltin raqam, vip raqam, chiroyli raqam, raqam tanlash, telefon raqam sotib olish, sim karta, Beeline raqam, Ucell raqam, Uzmobile raqam, Mobiuz raqam, Toshkent raqam tanlash, O'zbekiston raqamlar katalogi">
-<link rel="canonical" href="https://070.uz/">
+<title>VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar | Nomer Sotib Olish</title>
+<meta name="description" content="O'zbekistonda chiroyli, oltin va VIP telefon raqamlarini (nomerlarni) tanlang va onlayn sotib oling. Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum raqamlari — eng arzon narxlarda. Bepul yetkazib berish, bo'lib to'lash (kredit) imkoniyati.">
+<meta name="keywords" content="raqam sotib olish, nomer sotib olish, oltin raqam, vip raqam, chiroyli raqam, raqam tanlash, telefon raqami narxi, sim karta, Beeline raqam, Ucell raqam, Uzmobile raqam, Mobiuz raqam, Toshkent raqam tanlash, O'zbekiston raqamlar katalogi, vip nomer narxi, chiroyli nomer sotib olish">
+<link rel="canonical" href="https://vipraqamlar.uz/">
 <link rel="icon" type="image/png" sizes="256x256" href="assets/logo-circle.png?v=2">
 <link rel="shortcut icon" type="image/png" href="assets/logo-circle.png?v=2">
 <link rel="apple-touch-icon" href="assets/logo-circle.png?v=2">
@@ -20,7 +20,7 @@
 <meta property="og:site_name" content="VIP RAQAMLAR">
 <meta property="og:title" content="VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar">
 <meta property="og:description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Barcha operatorlar, bepul yetkazib berish, muddatli to'lov imkoniyati.">
-<meta property="og:url" content="https://070.uz/">
+<meta property="og:url" content="https://vipraqamlar.uz/">
 <meta property="og:locale" content="uz_UZ">
 
 <meta name="twitter:card" content="summary_large_image">
@@ -32,7 +32,7 @@
   "@context": "https://schema.org",
   "@type": "Store",
   "name": "VIP RAQAMLAR",
-  "url": "https://070.uz/",
+  "url": "https://vipraqamlar.uz/",
   "description": "O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlash va sotib olish xizmati.",
   "areaServed": "UZ",
   "priceRange": "$$"
@@ -152,6 +152,16 @@
   }
   .menu-btn svg{width:20px;height:20px;}
   .menu-btn:hover{border-color:var(--red);color:var(--red);}
+
+  .header-right-group{display:flex;align-items:center;gap:8px;}
+  .lang-switch{display:flex;align-items:center;gap:4px;}
+  .lang-flag-btn{
+    background:none;border:1px solid transparent;border-radius:6px;
+    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    font-size:15px;cursor:pointer;opacity:0.45;transition:all .15s ease;padding:0;
+  }
+  .lang-flag-btn.active{opacity:1;border-color:var(--line);background:var(--panel-2);}
+  .lang-flag-btn:hover{opacity:1;}
 
   .drawer-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.55);
@@ -801,6 +811,14 @@
   }
   .pay-tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
 
+  .mo-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 16px;}
+  .mo-tab{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    padding:11px 8px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;
+    transition:all .18s ease;
+  }
+  .mo-tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
+
   /* ---- Bo'lib to'lash kalkulyatori ---- */
   .installment-calc{
     background:var(--panel-2);border:1px solid var(--amber);border-radius:12px;
@@ -981,6 +999,14 @@
     border:1.5px solid;background:var(--panel-2);
     font-size:12.5px;font-weight:700;text-align:center;
   }
+  .cr-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:10.5px;color:var(--muted);}
+  .cr-legend span{display:flex;align-items:center;gap:5px;}
+  .cr-legend i{width:9px;height:9px;border-radius:3px;display:inline-block;}
+  .cr-download-link{
+    display:block;text-align:center;margin-top:12px;color:var(--muted);
+    font-size:11px;text-decoration:underline;opacity:0.7;cursor:pointer;
+  }
+  .cr-download-link:hover{opacity:1;color:var(--amber);}
   .cr-month-chip{
     aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-size:10px;font-weight:700;
@@ -1127,9 +1153,15 @@
     </span>
     <span class="hrb-text">RELS</span>
   </button>
-  <button class="menu-btn" id="menuBtn" aria-label="Menyu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
+  <div class="header-right-group">
+    <div class="lang-switch" id="langSwitch">
+      <button type="button" class="lang-flag-btn active" id="langUzBtn" data-lang="uz" aria-label="O'zbekcha" title="O'zbekcha">🇺🇿</button>
+      <button type="button" class="lang-flag-btn" id="langRuBtn" data-lang="ru" aria-label="Русский" title="Русский">🇷🇺</button>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Menyu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
 </header>
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
@@ -1144,19 +1176,19 @@
   <div class="drawer-links">
     <a id="drawerTelegram" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
-      Telegram kanal
+      <span data-i18n="telegramChannel">Telegram kanal</span>
     </a>
     <a id="drawerInstagram" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
-      Instagram kanal
+      <span data-i18n="instagramChannel">Instagram kanal</span>
     </a>
     <a id="drawerContact" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Murojaat uchun
+      <span data-i18n="contactUs">Murojaat uchun</span>
     </a>
     <a id="drawerBotLink" href="https://t.me/vipraqambot" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg>
-      Bot orqali raqam tanlash
+      <span data-i18n="chooseViaBot">Bot orqali raqam tanlash</span>
     </a>
   </div>
 
@@ -1164,7 +1196,7 @@
     <div id="drawerYandexMap" class="drawer-map"></div>
     <a id="drawerDirectionsBtn" class="drawer-directions-btn" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Yo'l ko'rsatish
+      <span data-i18n="getDirections">Yo'l ko'rsatish</span>
     </a>
   </div>
 
@@ -1176,7 +1208,7 @@
   <div class="drawer-links" style="padding-top:0;">
     <a href="#" id="openContractCheck">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-      Shartnomani tekshirish
+      <span data-i18n="myOrders">Buyurtmalarim</span>
     </a>
   </div>
 </aside>
@@ -1191,14 +1223,14 @@
 </div>
 
 <section class="hero">
-  <p class="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
+  <p class="tagline" data-i18n="tagline">O'zbekiston bo'ylab yetkazib berish xizmati mavjud</p>
 </section>
 
 <div class="search-wrap">
   <div class="number-builder">
     <span class="prefix">+998</span>
     <select id="operatorSelect" class="op-select">
-      <option value="">Barchasi</option>
+      <option value="" data-i18n="all">Barchasi</option>
       <option value="Mobiuz" style="color:#C0392B;">Mobiuz</option>
       <option value="Beeline" style="color:#E0A400;">Beeline</option>
       <option value="Ucell" style="color:#B07CC6;">Ucell</option>
@@ -1216,34 +1248,34 @@
     <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
     <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
   </div>
-  <div class="hint-text" id="hintText">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
-  <button class="clear-search" id="clearSearchBtn" style="display:none;">Tozalash</button>
+  <div class="hint-text" id="hintText" data-i18n="searchHint">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
+  <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
 </div>
 
 <div class="catalog" id="catalog"></div>
 
 <section class="featured-section" id="featuredSection" style="display:none;">
   <div class="featured-header">
-    <span class="featured-title">Mashhur raqamlar</span>
-    <a href="#catalog" class="featured-link">Barchasini ko'rish</a>
+    <span class="featured-title" data-i18n="featuredTitle">Mashhur raqamlar</span>
+    <a href="#catalog" class="featured-link" data-i18n="viewAll">Barchasini ko'rish</a>
   </div>
   <div class="featured-scroll" id="featuredScroll"></div>
-  <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
+  <div class="featured-hint" data-i18n="swipeHint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
 <section class="featured-section" id="saleSection" style="display:none;">
   <div class="featured-header">
-    <span class="featured-title">Aksiyadagi raqamlar</span>
-    <a href="#catalog" class="featured-link">Barchasini ko'rish</a>
+    <span class="featured-title" data-i18n="saleTitle">Aksiyadagi raqamlar</span>
+    <a href="#catalog" class="featured-link" data-i18n="viewAll">Barchasini ko'rish</a>
   </div>
   <div class="featured-scroll" id="saleScroll"></div>
-  <div class="featured-hint">&larr; siljitib ko'ring &rarr;</div>
+  <div class="featured-hint" data-i18n="swipeHint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
 <section class="testimonials-section" id="testimonialsSection" style="display:none;">
   <div class="testimonials-header">
-    <div class="testimonials-title">Mijozlarimiz fikri</div>
-    <div class="testimonials-sub">Bizdan raqam sotib olgan mijozlarning video sharhlari</div>
+    <div class="testimonials-title" data-i18n="testimonialsTitle">Mijozlarimiz fikri</div>
+    <div class="testimonials-sub" data-i18n="testimonialsSub">Bizdan raqam sotib olgan mijozlarning video sharhlari</div>
   </div>
   <div class="testimonials-scroll" id="testimonialsScroll"></div>
 </section>
@@ -1263,25 +1295,46 @@
 <div class="contract-overlay" id="contractOverlay">
   <div class="contract-modal">
     <div class="contract-top">
-      <span class="contract-title">Shartnomani tekshirish</span>
+      <span class="contract-title" data-i18n="myOrders">Buyurtmalarim</span>
       <button class="drawer-close" id="contractClose">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
       </button>
     </div>
 
-    <div id="contractSearchView">
-      <label for="contractIdInput">Shartnoma raqamini kiriting</label>
-      <input type="text" id="contractIdInput" placeholder="">
-      <label for="contractNumberInput">Raqamingizni kiriting</label>
-      <input type="text" id="contractNumberInput" placeholder="">
-      <div class="field-error" id="contractError">Ma'lumot topilmadi. ID va raqamni tekshiring.</div>
-      <button class="btn-confirm contract-search-btn" id="contractSearchBtn" style="width:100%;margin-top:10px;">
-        <span id="contractSearchLabel">🔍 Qidirish</span>
-        <span class="spinner" id="contractSearchSpinner" style="display:none;"></span>
-      </button>
+    <div class="mo-tabs">
+      <button type="button" class="mo-tab active" id="moTabContract" data-tab="contract" data-i18n="myContracts">Shartnomalarim</button>
+      <button type="button" class="mo-tab" id="moTabOrders" data-tab="orders" data-i18n="myOrders">Buyurtmalarim</button>
     </div>
 
-    <div id="contractResultView" style="display:none;"></div>
+    <div id="contractPane">
+      <div id="contractSearchView">
+        <label for="contractIdInput" data-i18n="enterContractId">Shartnoma raqamini kiriting</label>
+        <input type="text" id="contractIdInput" placeholder="">
+        <label for="contractNumberInput" data-i18n="enterYourNumber">Raqamingizni kiriting</label>
+        <input type="text" id="contractNumberInput" placeholder="">
+        <div class="field-error" id="contractError" data-i18n="notFoundError">Ma'lumot topilmadi. ID va raqamni tekshiring.</div>
+        <button class="btn-confirm contract-search-btn" id="contractSearchBtn" style="width:100%;margin-top:10px;">
+          <span id="contractSearchLabel" data-i18n="search">🔍 Qidirish</span>
+          <span class="spinner" id="contractSearchSpinner" style="display:none;"></span>
+        </button>
+      </div>
+      <div id="contractResultView" style="display:none;"></div>
+    </div>
+
+    <div id="ordersPane" style="display:none;">
+      <div id="ordersSearchView">
+        <label for="ordersPhoneInput" data-i18n="enterYourPhone">Telefon raqamingizni kiriting</label>
+        <input type="text" id="ordersPhoneInput" placeholder="">
+        <label for="ordersLastDigitsInput" data-i18n="enterLastDigits">Sotib olgan raqamning oxirgi 4 raqami</label>
+        <input type="text" id="ordersLastDigitsInput" maxlength="4" inputmode="numeric" placeholder="0000">
+        <div class="field-error" id="ordersError" data-i18n="ordersNotFoundError">Ma'lumot topilmadi. Raqamni tekshiring.</div>
+        <button class="btn-confirm contract-search-btn" id="ordersSearchBtn" style="width:100%;margin-top:10px;">
+          <span id="ordersSearchLabel" data-i18n="search">🔍 Qidirish</span>
+          <span class="spinner" id="ordersSearchSpinner" style="display:none;"></span>
+        </button>
+      </div>
+      <div id="ordersResultView" style="display:none;"></div>
+    </div>
   </div>
 </div>
 
@@ -1289,12 +1342,12 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <div id="formView">
-      <h2>Buyurtma berish</h2>
+      <h2 data-i18n="placeOrder">Buyurtma berish</h2>
       <div class="modal-number" id="modalNumber"></div>
 
       <div class="pay-tabs" id="payTabs" style="display:none;">
-        <button type="button" class="pay-tab active" id="payTabCash" data-type="cash">💵 Naqt to'lov</button>
-        <button type="button" class="pay-tab" id="payTabInstallment" data-type="installment">📅 Bo'lib to'lash</button>
+        <button type="button" class="pay-tab active" id="payTabCash" data-type="cash" data-i18n="cashPay">💵 Naqt to'lov</button>
+        <button type="button" class="pay-tab" id="payTabInstallment" data-type="installment" data-i18n="installmentPay">📅 Bo'lib to'lash</button>
       </div>
 
       <div class="installment-calc" id="installmentCalc" style="display:none;">
@@ -1365,7 +1418,7 @@
   <svg viewBox="0 0 24 24"><path d="M9.036 15.803l-.396 5.57c.568 0 .814-.244 1.11-.537l2.663-2.545 5.522 4.03c1.012.564 1.73.267 1.997-.938L23.94 3.61c.36-1.474-.532-2.05-1.517-1.693L1.116 9.79c-1.446.564-1.424 1.373-.247 1.735l5.517 1.72L18.98 5.13c.582-.38 1.113-.17.677.21L9.036 15.803z"/></svg>
 </a>
 
-<footer>&copy; 2026 VIP RAQAMLAR (070.uz). Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
+<footer>&copy; 2026 VIP RAQAMLAR (vipraqamlar.uz). Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
 
 <!-- FIREBASE (mijoz sayti va admin sayti bir xil bazani ishlatadi) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1398,6 +1451,17 @@ firebase.initializeApp(firebaseConfig);
 firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 
 const db = firebase.firestore();
+
+/* Server funksiyalariga (check-contract-status, check-my-orders,
+   check-promo-code) so'rov yuborganda App Check tokenini ham qo'shib
+   yuboramiz — shunda funksiya so'rov haqiqiy brauzerdan kelganini
+   tasdiqlay oladi. */
+async function getAppCheckHeaders(){
+  try{
+    const t = await firebase.appCheck().getToken();
+    return { 'X-Firebase-AppCheck': t.token };
+  }catch(e){ return {}; }
+}
 
 let NUMBERS = [];
 
@@ -1441,12 +1505,46 @@ function escapeHtml(s){
 
 let numbersLoaded = false;
 
+/* Mijoz saytga kirganda katalog "eng qimmat -> eng arzon -> ..." tarzida
+   almashib chiqadi (birinchi eng qimmat, keyin eng arzon, va h.k.), lekin
+   har safar (har bir tashrifda) o'rta qismi aralashtiriladi — shunda hamma
+   mijozga bir xil, "qotib qolgan" tartib emas, har safar birozgina yangi
+   ko'rinish chiqadi. Faqat qidiruv FAOL BO'LMAGANDA ishlaydi. */
+function shuffleArray(a){
+  const arr = a.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function buildZigzagOrder(list){
+  const arr = list.filter(item => !item.reserved && item.dailyDeal !== true);
+  if(arr.length <= 2) return arr.slice();
+  const sorted = arr.slice().sort((a, b) => (b.price || 0) - (a.price || 0));
+  const mostExpensive = sorted[0];
+  const cheapest = sorted[sorted.length - 1];
+  const rest = sorted.slice(1, sorted.length - 1);
+  const mid = Math.ceil(rest.length / 2);
+  const upperHalf = shuffleArray(rest.slice(0, mid));   // qimmatroq yarmi
+  const lowerHalf = shuffleArray(rest.slice(mid));      // arzonroq yarmi
+  const result = [mostExpensive, cheapest];
+  const maxLen = Math.max(upperHalf.length, lowerHalf.length);
+  for(let i = 0; i < maxLen; i++){
+    if(upperHalf[i]) result.push(upperHalf[i]);
+    if(lowerHalf[i]) result.push(lowerHalf[i]);
+  }
+  return result;
+}
+let ZIGZAG_ORDER = [];
+
 async function loadNumbers(retryDelay){
   // Avval keshni ko'rsatamiz — sayt darhol raqamlar bilan ochiladi
   try{
     const cached = localStorage.getItem('raqamuz_cache');
     if(cached){
       NUMBERS = JSON.parse(cached);
+      ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
       renderCatalog();
       renderFeatured();
       renderSale();
@@ -1458,6 +1556,7 @@ async function loadNumbers(retryDelay){
   try{
     const snap = await withClientTimeout(db.collection('numbers').get(), 10000);
     NUMBERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
     numbersLoaded = true;
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
     renderCatalog();
@@ -1495,8 +1594,10 @@ function showSkeletons(){ catalogEl.innerHTML = Array(6).fill('<div class="skele
 function getFilteredNumbers(){
   const pattern = currentPattern();
   const selectedOp = operatorSelect.value;
+  const searching = isSearchActive();
+  const source = searching ? NUMBERS : ZIGZAG_ORDER;
 
-  return NUMBERS.filter(item=>{
+  return source.filter(item=>{
     // "Bugungi aksiya"da ko'rsatilgan raqamlar asosiy katalogda (qidiruvda)
     // takrorlanmaydi — bir xil raqam ikki joyda ko'rinishi mijozni
     // chalkashtirishi mumkin edi.
@@ -2010,7 +2111,7 @@ document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
   try{
     const res = await fetch('/.netlify/functions/check-promo-code', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
       body: JSON.stringify({ code, numberId: selectedNumberId })
     });
     const result = await res.json();
@@ -2231,6 +2332,15 @@ document.getElementById('openContractCheck').addEventListener('click', (e)=>{
   document.getElementById('contractError').style.display = 'none';
   contractSearchView.style.display = 'block';
   contractResultView.style.display = 'none';
+  document.getElementById('ordersPhoneInput').value = '';
+  document.getElementById('ordersLastDigitsInput').value = '';
+  document.getElementById('ordersError').style.display = 'none';
+  document.getElementById('ordersSearchView').style.display = 'block';
+  document.getElementById('ordersResultView').style.display = 'none';
+  document.getElementById('moTabContract').classList.add('active');
+  document.getElementById('moTabOrders').classList.remove('active');
+  document.getElementById('contractPane').style.display = 'block';
+  document.getElementById('ordersPane').style.display = 'none';
   contractOverlay.classList.add('open');
 });
 document.getElementById('contractClose').addEventListener('click', ()=> contractOverlay.classList.remove('open'));
@@ -2263,7 +2373,7 @@ document.getElementById('contractSearchBtn').addEventListener('click', async ()=
   try{
     const res = await fetch('/.netlify/functions/check-contract-status', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
       body: JSON.stringify({ contractId: idVal, phone: numVal })
     });
     const result = await res.json();
@@ -2320,14 +2430,148 @@ function renderContractResult(data){
     <div class="cr-progress-wrap"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
     <div class="cr-months-title">Har oy holati:</div>
     <div class="cr-months-grid">${monthsHtml}</div>
+    <div class="cr-legend">
+      <span><i style="background:var(--green);"></i> To'landi</span>
+      <span><i style="background:var(--panel-2);border:1px solid var(--line);"></i> Muddati kelmagan</span>
+      <span><i style="background:var(--red);"></i> Kechikmoqda</span>
+    </div>
     <div class="cr-status-banner" style="border-color:${st.color};color:${st.color};">● ${st.label}</div>
     <button class="btn-confirm contract-search-btn" id="contractBackBtn" style="width:100%;margin-top:14px;">⬅ Orqaga</button>
+    <a href="#" id="contractDownloadBtn" class="cr-download-link">📄 Shartnomani yuklab olish</a>
   `;
   document.getElementById('contractBackBtn').addEventListener('click', ()=>{
     contractResultView.style.display = 'none';
     contractSearchView.style.display = 'block';
   });
+  document.getElementById('contractDownloadBtn').addEventListener('click', async (e)=>{
+    e.preventDefault();
+    const link = e.currentTarget;
+    const originalText = link.textContent;
+    link.textContent = 'Tayyorlanmoqda...';
+    try{
+      const res = await fetch('/.netlify/functions/generate-contract-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
+        body: JSON.stringify({ contractId: data.contractId, phone: (data.number || '') })
+      });
+      if(!res.ok) throw new Error("Yuklab bo'lmadi");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shartnoma-${data.contractId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }catch(err){
+      if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000);
+    }
+    link.textContent = originalText;
+  });
 }
+
+/* ---- "Buyurtmalarim" / "Shartnomalarim" tab almashish ---- */
+const contractPane = document.getElementById('contractPane');
+const ordersPane = document.getElementById('ordersPane');
+const moTabContract = document.getElementById('moTabContract');
+const moTabOrders = document.getElementById('moTabOrders');
+moTabContract.addEventListener('click', ()=>{
+  moTabContract.classList.add('active');
+  moTabOrders.classList.remove('active');
+  contractPane.style.display = 'block';
+  ordersPane.style.display = 'none';
+});
+moTabOrders.addEventListener('click', ()=>{
+  moTabOrders.classList.add('active');
+  moTabContract.classList.remove('active');
+  ordersPane.style.display = 'block';
+  contractPane.style.display = 'none';
+});
+
+/* ---- "Buyurtmalarim" — telefon raqami bo'yicha qidirish ---- */
+const ordersSearchView = document.getElementById('ordersSearchView');
+const ordersResultView = document.getElementById('ordersResultView');
+const ordersPhoneInput = document.getElementById('ordersPhoneInput');
+ordersPhoneInput.addEventListener('focus', ()=>{
+  if(!ordersPhoneInput.value) ordersPhoneInput.value = '+998 ';
+});
+ordersPhoneInput.addEventListener('input', ()=>{
+  ordersPhoneInput.value = formatUzNumber(extractRawDigits(ordersPhoneInput.value));
+});
+
+const ORDER_STATUS_COLORS = {
+  'Yangi': 'var(--muted)',
+  "Bog'lanildi": 'var(--amber)',
+  'Yakunlandi': 'var(--green)',
+  'Bekor qilindi': 'var(--red)'
+};
+
+document.getElementById('ordersSearchBtn').addEventListener('click', async ()=>{
+  const numVal = ordersPhoneInput.value.replace(/\D/g,'');
+  const lastDigitsVal = document.getElementById('ordersLastDigitsInput').value.replace(/\D/g,'');
+  const errEl = document.getElementById('ordersError');
+  errEl.style.display = 'none';
+
+  if(!numVal || numVal.length < 9 || lastDigitsVal.length !== 4){
+    errEl.textContent = "Telefon raqami va oxirgi 4 raqamni to'liq kiriting";
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const label = document.getElementById('ordersSearchLabel');
+  const spinner = document.getElementById('ordersSearchSpinner');
+  label.style.display = 'none'; spinner.style.display = 'inline-block';
+
+  try{
+    const res = await fetch('/.netlify/functions/check-my-orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ phone: numVal, lastDigits: lastDigitsVal })
+    });
+    const result = await res.json();
+    if(!result.ok || !result.orders || result.orders.length === 0){
+      errEl.textContent = result.error || "Bu ma'lumotlarga tegishli buyurtma topilmadi.";
+      errEl.style.display = 'block';
+    }else{
+      renderOrdersResult(result.orders);
+      ordersSearchView.style.display = 'none';
+      ordersResultView.style.display = 'block';
+    }
+  }catch(err){
+    errEl.textContent = 'Xato: ' + err.message;
+    errEl.style.display = 'block';
+  }
+
+  label.style.display = 'inline'; spinner.style.display = 'none';
+});
+
+function renderOrdersResult(orders){
+  const rowsHtml = orders.map(o=>{
+    const color = ORDER_STATUS_COLORS[o.status] || 'var(--muted)';
+    const installmentLine = o.paymentType === 'installment'
+      ? `<div class="cr-row"><span>To'lov</span><b>Bo'lib to'lash — ${escapeHtml(o.installmentMonths)} oyga</b></div>`
+      : '';
+    return `
+      <div class="cr-summary" style="margin-bottom:12px;">
+        <div class="cr-row"><span>Raqam</span><b>${escapeHtml(o.number)}</b></div>
+        <div class="cr-row"><span>Narxi</span><b>${formatPrice(o.price)}</b></div>
+        ${installmentLine}
+        <div class="cr-row"><span>Sana</span><b>${escapeHtml(o.createdAt)}</b></div>
+        <div class="cr-status-banner" style="border-color:${color};color:${color};margin-top:8px;">● ${escapeHtml(o.status)}</div>
+      </div>`;
+  }).join('');
+
+  ordersResultView.innerHTML = `
+    ${rowsHtml}
+    <button class="btn-confirm contract-search-btn" id="ordersBackBtn" style="width:100%;margin-top:6px;">⬅ Orqaga</button>
+  `;
+  document.getElementById('ordersBackBtn').addEventListener('click', ()=>{
+    ordersResultView.style.display = 'none';
+    ordersSearchView.style.display = 'block';
+  });
+}
+
 
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {
@@ -2460,6 +2704,74 @@ async function loadSiteSettings(){
     if(window.__revealSite) window.__revealSite();
   }
 }
+/* ===========================================================
+   TIL ALMASHTIRISH (O'zbek / Rus)
+   -----------------------------------------------------------
+   Eslatma: bu hozircha saytning ASOSIY, doim ko'rinadigan
+   matnlarini (menyu, sarlavhalar, tugmalar) tarjima qiladi.
+   Har bir raqam kartochkasidagi matn, admin kiritgan ish
+   vaqti/yetkazib berish matni kabi DINAMIK kontent hozircha
+   faqat o'zbek tilida qoladi — bu keyingi bosqichda kengaytirilishi
+   mumkin.
+=========================================================== */
+const I18N = {
+  tagline:            { uz: "O'zbekiston bo'ylab yetkazib berish xizmati mavjud", ru: 'Доставка по всему Узбекистану' },
+  searchHint:         { uz: "O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring", ru: 'Введите понравившиеся цифры в любую ячейку для поиска' },
+  clear:               { uz: 'Tozalash', ru: 'Очистить' },
+  all:                 { uz: 'Barchasi', ru: 'Все' },
+  featuredTitle:       { uz: 'Mashhur raqamlar', ru: 'Популярные номера' },
+  saleTitle:           { uz: 'Aksiyadagi raqamlar', ru: 'Номера по акции' },
+  viewAll:             { uz: "Barchasini ko'rish", ru: 'Смотреть все' },
+  swipeHint:           { uz: '&larr; siljitib ko\'ring &rarr;', ru: '&larr; листайте &rarr;' },
+  testimonialsTitle:   { uz: 'Mijozlarimiz fikri', ru: 'Отзывы наших клиентов' },
+  testimonialsSub:     { uz: "Bizdan raqam sotib olgan mijozlarning video sharhlari", ru: 'Видеоотзывы клиентов, купивших номер у нас' },
+  telegramChannel:     { uz: 'Telegram kanal', ru: 'Telegram канал' },
+  instagramChannel:    { uz: 'Instagram kanal', ru: 'Instagram канал' },
+  contactUs:           { uz: 'Murojaat uchun', ru: 'Связаться с нами' },
+  chooseViaBot:        { uz: 'Bot orqali raqam tanlash', ru: 'Выбрать номер через бота' },
+  getDirections:       { uz: "Yo'l ko'rsatish", ru: 'Проложить маршрут' },
+  myOrders:            { uz: 'Buyurtmalarim', ru: 'Мои заказы' },
+  myContracts:         { uz: 'Shartnomalarim', ru: 'Мои договоры' },
+  enterContractId:     { uz: 'Shartnoma raqamini kiriting', ru: 'Введите номер договора' },
+  enterYourNumber:     { uz: 'Raqamingizni kiriting', ru: 'Введите ваш номер телефона' },
+  enterYourPhone:      { uz: 'Telefon raqamingizni kiriting', ru: 'Введите ваш номер телефона' },
+  enterLastDigits:     { uz: 'Sotib olgan raqamning oxirgi 4 raqami', ru: 'Последние 4 цифры купленного номера' },
+  notFoundError:       { uz: "Ma'lumot topilmadi. ID va raqamni tekshiring.", ru: 'Данные не найдены. Проверьте ID и номер.' },
+  ordersNotFoundError: { uz: 'Ma\'lumot topilmadi. Raqamni tekshiring.', ru: 'Данные не найдены. Проверьте номер.' },
+  search:              { uz: '🔍 Qidirish', ru: '🔍 Поиск' },
+  placeOrder:          { uz: 'Buyurtma berish', ru: 'Оформить заказ' },
+  cashPay:             { uz: "💵 Naqt to'lov", ru: '💵 Наличная оплата' },
+  installmentPay:      { uz: "📅 Bo'lib to'lash", ru: '📅 Рассрочка' }
+};
+
+function applyLanguage(lang){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const entry = I18N[key];
+    if(!entry) return;
+    const text = entry[lang] || entry.uz;
+    if(el.tagName === 'OPTION' || el.tagName === 'DIV' || el.tagName === 'SPAN' || el.tagName === 'LABEL'
+       || el.tagName === 'A' || el.tagName === 'BUTTON' || el.tagName === 'H2' || el.tagName === 'P'){
+      el.innerHTML = text;
+    }else{
+      el.textContent = text;
+    }
+  });
+  document.documentElement.lang = lang;
+  try{ localStorage.setItem('raqamuz_lang', lang); }catch(e){}
+  document.getElementById('langUzBtn').classList.toggle('active', lang === 'uz');
+  document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
+}
+
+document.getElementById('langUzBtn').addEventListener('click', ()=> applyLanguage('uz'));
+document.getElementById('langRuBtn').addEventListener('click', ()=> applyLanguage('ru'));
+
+(function initLanguage(){
+  let saved = 'uz';
+  try{ saved = localStorage.getItem('raqamuz_lang') || 'uz'; }catch(e){}
+  if(saved === 'ru') applyLanguage('ru');
+})();
+
 loadSiteSettings();
 
 /* ---- Tashrif buyuruvchilar hisobi (admin panel uchun) ---- */

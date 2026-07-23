@@ -197,7 +197,7 @@ const TOOLS = [
       properties: {
         onlyDebtors: { type: 'boolean', description: "true bo'lsa, faqat kechikkan to'lovi bor (qarzdor) mijozlarni qaytaradi" },
         customerName: { type: 'string', description: "Mijoz ismi bo'yicha qidirish" },
-        contractId: { type: 'string', description: "Shartnoma ID (masalan KR001) bo'yicha qidirish" },
+        contractId: { type: 'string', description: "Shartnoma ID (masalan 7XQ2M) bo'yicha qidirish" },
         contractStatus: { type: 'string', enum: ['active', 'trouble', 'cancelling', 'cancelled', 'completed'] }
       }
     }

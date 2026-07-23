@@ -1286,12 +1286,25 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
   }
 
   try{
-    // Ketma-ket ID raqam olish (KR001, KR002, ...)
-    const counterRef = db.collection('admin_meta').doc('creditCounter');
-    const counterDoc = await counterRef.get();
-    const nextNum = counterDoc.exists ? (counterDoc.data().value || 0) + 1 : 1;
-    await counterRef.set({ value: nextNum });
-    const contractId = 'KR' + String(nextNum).padStart(3, '0');
+    // XAVFSIZLIK: eski "KR001, KR002..." ketma-ket ID tizimi hakkerlar uchun
+    // OSON TOPILADIGAN edi (KR001dan KR999gacha "sinab" ko'rish mumkin edi).
+    // Endi shartnoma ID'si 5 ta belgidan iborat, TASODIFIY harf+raqam
+    // kombinatsiyasi (masalan "7XQ2M") — buni taxmin qilish amalda imkonsiz.
+    // Chalkash bo'lishi mumkin bo'lgan belgilar (0/O, 1/I) ataylab
+    // ishlatilmaydi. Juda kam ehtimol bilan takrorlanib qolsa (kolliziya),
+    // qayta generatsiya qilinadi.
+    const ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    function randomContractId(){
+      let id = '';
+      for(let i = 0; i < 5; i++) id += ID_CHARS[Math.floor(Math.random() * ID_CHARS.length)];
+      return id;
+    }
+    let contractId = randomContractId();
+    for(let attempt = 0; attempt < 5; attempt++){
+      const existing = await db.collection('credit_contracts').doc(contractId).get();
+      if(!existing.exists) break;
+      contractId = randomContractId();
+    }
 
     // Admin tanlagan sana bo'yicha shartnoma boshlanish vaqti (kiritilmasa — bugungi kun)
     const startTs = startDateVal ? new Date(startDateVal + 'T00:00:00').getTime() : Date.now();
@@ -1300,15 +1313,45 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
       payments.push({ month: i + 1, dueDate: calcDueDate(startTs, payDay, i), status: 'pending', paidAt: null });
     }
 
+    // Agar bu mijoz avval Telegram bot orqali biror buyurtma bergan bo'lsa,
+    // uning chat ID'sini topib olamiz — shunda to'lov muddati yaqinlashganda
+    // botning o'zi orqali avtomatik eslatma yubora olamiz.
+    let customerChatId = null;
+    try{
+      const phoneDigits = phone.replace(/\D/g, '').slice(-9);
+      const ordersSnap = await db.collection('orders').orderBy('createdAtSort', 'desc').limit(500).get();
+      const matchOrder = ordersSnap.docs
+        .map(d => d.data())
+        .find(o => o.customerChatId && (o.phone || '').replace(/\D/g, '').slice(-9) === phoneDigits);
+      if(matchOrder) customerChatId = matchOrder.customerChatId;
+    }catch(e){ console.error('customerChatId topishda xato:', e); }
+
     await db.collection('credit_contracts').doc(contractId).set({
       contractId, customerName: name, customerPhone: phone, region, number,
       totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
-      additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active'
+      additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active',
+      customerChatId
     });
 
-    msg.textContent = `✓ Shartnoma qo'shildi. ID: ${contractId}`;
+    msg.textContent = customerChatId
+      ? `✓ Shartnoma qo'shildi. ID: ${contractId} (mijozga PDF va avtomatik eslatma yuboriladi)`
+      : `✓ Shartnoma qo'shildi. ID: ${contractId} (mijoz Telegram botda topilmadi — PDF/eslatma yuborilmaydi)`;
     msg.className = 'settings-msg ok';
     vibrate(80);
+
+    // Mijozning chat ID'si topilgan bo'lsa, shartnoma PDF faylini
+    // darhol uning botiga yuboramiz — qo'lda hech narsa qilish shart emas.
+    if(customerChatId){
+      try{
+        const idToken = await firebase.auth().currentUser.getIdToken();
+        await fetch('/.netlify/functions/send-contract-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+          body: JSON.stringify({ contractId })
+        });
+      }catch(e){ console.error('Shartnoma PDF yuborishda xato:', e); }
+    }
+
     ['crName','crPhone','crRegion','crNumber','crMonths','crMonthly','crPayDay','crInfo'].forEach(id=>{
       document.getElementById(id).value = '';
     });
