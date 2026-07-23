@@ -2,6 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Like/repost hisoblagichlarini +1/-1 dan boshqacha o'zgartirib bo'lmasligi
+    // uchun (masalan brauzer konsolidan to'g'ridan-to'g'ri "likes: 999999"
+    // deb yozib qo'yishning oldini olish uchun) qiymatni ham tekshiramiz.
+    function isValidLikeToggle(resourceBefore, dataAfter){
+      let oldLikes = resourceBefore.data.has('likes') ? resourceBefore.data.likes : 0;
+      return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['likes'])
+        && dataAfter.likes is int
+        && (dataAfter.likes == oldLikes + 1 || dataAfter.likes == oldLikes - 1);
+    }
+    function isValidRepostIncrement(resourceBefore, dataAfter){
+      let oldReposts = resourceBefore.data.has('reposts') ? resourceBefore.data.reposts : 0;
+      return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['reposts'])
+        && dataAfter.reposts is int
+        && dataAfter.reposts == oldReposts + 1;
+    }
+
     match /numbers/{doc} {
       allow read: if true;
       allow create, delete: if request.auth != null;
@@ -16,8 +32,15 @@ service cloud.firestore {
             && request.resource.data.reserved == true);
     }
 
+    // Yolg'on/keraksiz buyurtmalar bilan bazani "iflos" qilishning oldini
+    // olish uchun eng zaruriy maydonlar mavjudligi va turi tekshiriladi;
+    // "status" har doim "Yangi" bo'lishi shart — hech kim to'g'ridan-to'g'ri
+    // "to'langan/yakunlangan" degan soxta buyurtma yarata olmaydi.
     match /orders/{doc} {
-      allow create: if true;
+      allow create: if request.resource.data.status == 'Yangi'
+        && request.resource.data.name is string && request.resource.data.name.size() < 200
+        && request.resource.data.phone is string && request.resource.data.phone.size() < 50
+        && request.resource.data.region is string && request.resource.data.region.size() < 300;
       allow read, update, delete: if request.auth != null;
     }
 
@@ -58,28 +81,29 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
+    // TUZATILDI: promokodlarni endi bevosita Firestore'dan (brauzerdan)
+    // o'qib bo'lmaydi — aks holda kimdir barcha kodlarning ro'yxatini
+    // (VIP mijozlarga maxsus berilganlari ham) bir zumda ko'rishi mumkin
+    // edi. Tekshirish endi faqat "check-promo-code" server funksiyasi
+    // orqali (admin SDK bilan, qoidalarni chetlab o'tib) amalga oshadi.
     match /promo_codes/{doc} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if request.auth != null;
     }
 
-    // TUZATILDI: oldin "read: if true" butun kolleksiyani (barcha
-    // mijozlarning ismi, telefon raqami, manzili, to'lov ma'lumotlari)
-    // har kimga ochiq qilib qo'ygan edi. Endi faqat ANIQ bitta shartnoma
-    // ID'sini bilgan holda o'sha bitta hujjatni o'qish mumkin ("get"),
-    // butun ro'yxatni ko'rish ("list") esa faqat admin uchun.
-    // (Kod tomonida ham mos ravishda o'zgartirildi — endi qidiruv
-    // to'g'ridan-to'g'ri shartnoma ID'si bo'yicha ishlaydi.)
+    // TUZATILDI (2-marta mahkamlandi): shartnoma ID'lari ketma-ket (KR001,
+    // KR002...) bo'lgani uchun, hatto "faqat bitta ID bo'yicha o'qish"
+    // (get) ham ochiq bo'lsa, buni "sinab ko'rib" barcha mijozlarning
+    // ma'lumotini olish mumkin edi. Endi mijozlar UCHUN shartnoma holatini
+    // tekshirish FAQAT maxsus server funksiyasi (check-contract-status)
+    // orqali, ID VA telefon raqami ikkalasi to'g'ri kelgandagina beriladi.
+    // Bevosita Firestore'dan o'qish endi faqat admin uchun.
     match /credit_contracts/{doc} {
-      allow get: if true;
-      allow list: if request.auth != null;
+      allow get, list: if request.auth != null;
       allow write: if request.auth != null;
     }
 
     // TUZATILDI: "list" (butun ro'yxatni ko'rish) endi faqat admin uchun,
-    // bitta ma'lum ID bo'yicha tekshirish ("get") esa hammaga ochiq qoladi
-    // (kod bunga ehtiyoj sezmaydi ham — mavjud kod allaqachon "get"
-    // ishlatadi, o'zgarish shart emas edi).
+    // bitta ma'lum ID bo'yicha tekshirish ("get") esa hammaga ochiq qoladi.
     match /promo_usage/{doc} {
       allow get, create: if true;
       allow list: if request.auth != null;
@@ -87,26 +111,36 @@ service cloud.firestore {
     }
 
     // Video sharhlar ("Mijozlarimiz fikri" bo'limi) — hamma o'qiy oladi
-    // (saytda ko'rsatilishi kerak), faqat admin qo'shishi/o'chirishi mumkin.
-    // Video sharhlar ("Mijozlarimiz fikri" bo'limi) — hamma o'qiy oladi
     // (saytda ko'rsatilishi kerak). Admin video qo'shishi/o'chirishi mumkin.
-    // Mijozlar (tizimga kirmasdan) FAQAT "likes" (like bosish) maydonini
-    // o'zgartira oladi — boshqa hech qanday maydonni o'zgartira olmaydi.
+    // Mijozlar (tizimga kirmasdan) FAQAT "likes"ni +1/-1 yoki "reposts"ni
+    // +1 qilishi mumkin — qiymat ham tekshiriladi (o'zboshimchalik bilan
+    // katta/kichik songa o'zgartirib bo'lmaydi).
     match /video_testimonials/{doc} {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+        || isValidLikeToggle(resource, request.resource.data)
+        || isValidRepostIncrement(resource, request.resource.data);
     }
 
     // "Premium raqamlar" reklama videolari — hamma o'qiy oladi, admin
     // qo'shishi/o'chirishi mumkin. Mijozlar (tizimga kirmasdan) FAQAT
-    // "likes" maydonini o'zgartira oladi.
+    // "likes" yoki "reposts"ni yuqoridagi kabi cheklangan tarzda o'zgartira oladi.
     match /premium_number_videos/{doc} {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+        || isValidLikeToggle(resource, request.resource.data)
+        || isValidRepostIncrement(resource, request.resource.data);
     }
+
+    // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram
+    // botlar) orqali, Firebase Admin SDK bilan ishlatiladi — u xavfsizlik
+    // qoidalarini ORQAVOR aylanib o'tadi (bypass), shuning uchun ularga
+    // brauzerdan (mijoz saytidan) kirish MUTLAQO KERAK EMAS. Bu yerda
+    // ataylab hech qanday "match" yozilmagan — demak ular uchun standart
+    // qoida ishlaydi: "hamma narsa taqiqlangan" (brauzerdan hech kim
+    // o'qiy ham, yoza ham olmaydi). Tegishli kolleksiyalar: bot_sessions,
+    // known_customers_tgmenu, known_customers, admin_list.
   }
 }

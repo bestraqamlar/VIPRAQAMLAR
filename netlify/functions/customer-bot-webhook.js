@@ -217,6 +217,14 @@ function contactKeyboard(){
 }
 
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
+/* Mijoz ismiga tasodifan (yoki ataylab) "<", "&" kabi belgilar yozib
+   qo'yishi mumkin — bu HTML rejimidagi xabarni butunlay yuborilmay
+   qolishiga sabab bo'lishi mumkin edi. Shu sabab ekranga chiqarishdan
+   oldin xavfsiz qilib "escape" qilamiz. */
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 async function getInstallmentRates(){
   try{
@@ -563,6 +571,17 @@ async function handleFreeTextReply(chatId, text, from, control){
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
+
+  // XAVFSIZLIK: agar CUSTOMER_BOT_WEBHOOK_SECRET sozlangan bo'lsa, faqat
+  // Telegram'ning o'zi (setWebhook'da shu maxfiy so'z bilan ro'yxatdan
+  // o'tgan) yubora oladigan so'rovlarni qabul qilamiz — soxta so'rovlar
+  // (masalan, kimdir bu havolani topib, o'zi buyurtma/xabar "yasab"
+  // yuborishga urinishi) rad etiladi. Sozlanmagan bo'lsa, eskicha ishlayveradi.
+  const expectedSecret = process.env.CUSTOMER_BOT_WEBHOOK_SECRET;
+  if(expectedSecret){
+    const got = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
+    if(got !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  }
 
   let update;
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
@@ -956,11 +975,11 @@ exports.handler = async function (event) {
     let summary =
 `Barcha ma'lumotlar to'g'ri ekanligini tasdiqlaysizmi?
 
-FIO: ${session.draftName}
+FIO: ${escapeHtml(session.draftName)}
 Sevimli raqam: <b>${numberStr}</b>
 Narxi: <b>${priceStr}</b>
-Bog'lanish uchun raqam: ${session.draftPhone}
-Manzil: ${manzil}`;
+Bog'lanish uchun raqam: ${escapeHtml(session.draftPhone)}
+Manzil: ${escapeHtml(manzil)}`;
     if(session.installmentMonths){
       summary += `\nTo'lov turi: ${session.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(session.installmentMonthly)})`;
     }

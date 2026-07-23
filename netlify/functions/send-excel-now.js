@@ -252,6 +252,16 @@ async function handler(event){
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
+  // XAVFSIZLIK: bu hisobotda BARCHA mijozlarning ismi, telefoni, manzili
+  // va shartnoma ma'lumotlari bor — faqat tizimga kirgan admin chaqira olishi shart.
+  try {
+    const authHeader = event.headers.authorization || event.headers.Authorization || '';
+    const idToken = authHeader.replace(/^Bearer\s+/i, '');
+    if (!idToken) throw new Error("Token yo'q");
+    await admin.auth().verifyIdToken(idToken);
+  } catch (err) {
+    return { statusCode: 401, body: JSON.stringify({ error: "Ruxsat yo'q. Iltimos, qaytadan tizimga kiring." }) };
+  }
   try{
     const result = await buildAndSendReport();
     return { statusCode: 200, body: JSON.stringify({ ok: true, ...result }) };

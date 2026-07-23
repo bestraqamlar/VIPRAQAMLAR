@@ -970,6 +970,18 @@ function operatorOptionsHtml(selected){
   return OPERATORS.map(op => `<option value="${op}" ${op===selected?'selected':''}>${op}</option>`).join('');
 }
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+/* XAVFSIZLIK: mijozlar tomonidan kiritilgan (masalan buyurtma formasidagi
+   ism/telefon/manzil) matnlarni HTML sifatida emas, oddiy matn sifatida
+   ko'rsatish uchun — aks holda kimdir ismiga zararli kod yozib, admin
+   ochganda ishga tushirishi mumkin edi (XSS). */
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 /* ---- Oxirgi ko'rilgan vaqt (bildirishnoma uchun) ---- */
 async function loadLastSeen(){
@@ -1552,7 +1564,11 @@ document.getElementById('sendExcelNowBtn').addEventListener('click', async ()=>{
   msg.textContent = '';
   msg.className = 'settings-msg';
   try{
-    const res = await fetch('/.netlify/functions/send-excel-now', { method: 'POST' });
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/send-excel-now', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + idToken }
+    });
     const data = await res.json().catch(()=>({}));
     if(res.ok && data.ok){
       msg.textContent = `✓ Excel Telegram botingizga yuborildi (${data.contracts} ta shartnoma, ${data.numbers} ta raqam).`;
@@ -2912,17 +2928,17 @@ function renderAdminOrders(orders){
   adminOrdersList.innerHTML = orders.map(o => `
     <div class="order-card ${statusClass(o.status)}" data-id="${o.id}">
       <div class="oc-top">
-        <span class="oc-number">${o.number}</span>
-        <span class="oc-time">${o.createdAt || ''}</span>
+        <span class="oc-number">${escapeHtml(o.number)}</span>
+        <span class="oc-time">${escapeHtml(o.createdAt || '')}</span>
       </div>
-      <div class="oc-row"><b>Ism:</b> ${o.name}</div>
-      <div class="oc-row"><b>Viloyat:</b> ${o.region}</div>
-      <div class="oc-row"><b>Telefon:</b> ${o.phone}</div>
+      <div class="oc-row"><b>Ism:</b> ${escapeHtml(o.name)}</div>
+      <div class="oc-row"><b>Viloyat:</b> ${escapeHtml(o.region)}</div>
+      <div class="oc-row"><b>Telefon:</b> ${escapeHtml(o.phone)}</div>
       <div class="oc-row"><b>Narxi:</b> ${o.price ? formatPrice(o.price) : "Noma'lum"}</div>
       ${o.paymentType === 'installment'
-        ? `<div class="oc-row" style="color:var(--amber);"><b>💳 To'lov:</b> Bo'lib to'lash — ${o.installmentMonths} oyga, oyiga ${formatPrice(o.monthlyPayment || 0)}dan</div>`
+        ? `<div class="oc-row" style="color:var(--amber);"><b>💳 To'lov:</b> Bo'lib to'lash — ${escapeHtml(o.installmentMonths)} oyga, oyiga ${formatPrice(o.monthlyPayment || 0)}dan</div>`
         : ''}
-      <div class="oc-row"><b>Qayerdan:</b> ${o.source || 'Sayt'}</div>
+      <div class="oc-row"><b>Qayerdan:</b> ${escapeHtml(o.source || 'Sayt')}</div>
       <select class="order-status">
         ${ORDER_STATUSES.map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
       </select>
@@ -2959,18 +2975,20 @@ function renderAdminOrders(orders){
 
         // Agar bu buyurtma Telegram bot orqali kelgan bo'lsa, mijozga ham xabar boradi
         if(cached && cached.customerChatId){
+          const idToken = await firebase.auth().currentUser.getIdToken();
           fetch('/.netlify/functions/notify-customer-status', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
             body: JSON.stringify({ chatId: cached.customerChatId, number: cached.number, status: newStatus })
           }).catch(()=>{ /* mijoz bildirishnomasi ishlamasa ham, status baribir yangilangan */ });
         }
 
         // Admin Telegram xabaridagi tugmalarni ham "tasdiqlangan" holatga o'tkazamiz
         if(cached && cached.adminMessageId){
+          const idToken2 = await firebase.auth().currentUser.getIdToken();
           fetch('/.netlify/functions/update-admin-message', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken2 },
             body: JSON.stringify({ messageId: cached.adminMessageId, statusLabel: newStatus })
           }).catch(()=>{ /* muhim emas */ });
         }

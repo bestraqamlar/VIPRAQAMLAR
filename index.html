@@ -768,14 +768,23 @@
   .pv-slide-price{color:var(--amber);font-weight:800;font-size:14px;margin-bottom:10px;}
   .pv-like-elevated{ bottom:230px; }
 
-  .reels-share-btn{
+  .reels-repost-btn{
     position:absolute;right:14px;bottom:135px;z-index:5;
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    background:none;border:none;cursor:pointer;padding:8px;
+  }
+  .reels-repost-btn svg{width:30px;height:30px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
+  .reels-repost-btn.reposted svg{animation:likePop .35s ease;}
+  .pv-repost-elevated{ bottom:175px; }
+
+  .reels-share-btn{
+    position:absolute;right:14px;bottom:80px;z-index:5;
     display:flex;flex-direction:column;align-items:center;gap:5px;
     background:none;border:none;cursor:pointer;padding:8px;
   }
   .reels-share-btn svg{width:30px;height:30px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));transition:transform .15s ease;}
   .reels-share-btn:active svg{transform:scale(0.85);}
-  .pv-share-elevated{ bottom:175px; }
+  .pv-share-elevated{ bottom:120px; }
 
   /* ---- To'lov turi tanlash (Naqt / Bo'lib to'lash) ---- */
   .pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px;}
@@ -1377,6 +1386,17 @@ const db = firebase.firestore();
 
 let NUMBERS = [];
 
+/* Ba'zan internet aloqasi "osilib qoladi" — na natija, na xato qaytaradi,
+   shu sabab pastdagi qayta-urinish mexanizmi ishga tushmay, sahifa abadiy
+   "yuklanmoqda..." holatida qolib ketishi mumkin edi. Endi bunday holatda
+   ham 10 soniyadan keyin xato deb hisoblab, avtomatik qayta urinamiz. */
+function withClientTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Vaqt tugadi: server javob bermadi')), ms))
+  ]);
+}
+
 function getLocalDigits(numberStr){ return numberStr.replace(/\D/g,'').slice(5); }
 
 /* Mijozga ko'rsatilganda chiziqchalarni bo'shliqqa almashtiradi (faqat ko'rinish uchun) */
@@ -1399,6 +1419,10 @@ function formatUzNumber(rawDigits){
   return out;
 }
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 let numbersLoaded = false;
 
@@ -1417,7 +1441,7 @@ async function loadNumbers(retryDelay){
 
   // Keyin bazadan eng so'nggi holatni yuklab, keshni yangilaymiz
   try{
-    const snap = await db.collection('numbers').get();
+    const snap = await withClientTimeout(db.collection('numbers').get(), 10000);
     NUMBERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     numbersLoaded = true;
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
@@ -1825,6 +1849,13 @@ digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
     box.value = box.value.replace(/\D/g,'').slice(0,1);
     box.classList.toggle('filled', box.value !== '');
+    // Mijoz pastga tushib raqamlarni ko'rib yurgan bo'lsa ham, qidiruvni
+    // BOSHLASHI bilan (birinchi raqamni kiritganda) sahifani avtomatik
+    // tepaga qaytaramiz — xuddi saytga endi kirganday, natijani darhol ko'radi.
+    const filledCount = digitBoxes.filter(b => b.value !== '').length;
+    if(box.value !== '' && filledCount === 1){
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus({ preventScroll: true }); }
     currentPage = 0;
     debouncedRenderCatalog();
@@ -1962,25 +1993,19 @@ document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
     return;
   }
   try{
-    // Bitta raqamga faqat bir marta promokod ishlatish mumkin
-    if(selectedNumberId){
-      const usageDoc = await db.collection('promo_usage').doc(selectedNumberId).get();
-      if(usageDoc.exists){
-        msgEl.textContent = "Bu raqamga promokod allaqachon ishlatilgan";
-        msgEl.className = 'promo-msg bad';
-        appliedDiscount = 0;
-        return;
-      }
-    }
-
-    const snap = await db.collection('promo_codes').where('code', '==', code).limit(1).get();
-    if(snap.empty){
-      msgEl.textContent = "Promokod topilmadi";
+    const res = await fetch('/.netlify/functions/check-promo-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, numberId: selectedNumberId })
+    });
+    const result = await res.json();
+    if(!result.ok){
+      msgEl.textContent = result.error || 'Promokod topilmadi';
       msgEl.className = 'promo-msg bad';
       appliedDiscount = 0;
       return;
     }
-    const discount = snap.docs[0].data().discount || 0;
+    const discount = result.discount || 0;
     appliedDiscount = discount;
     msgEl.textContent = `✓ Promokod qabul qilindi (-${formatPrice(discount)})`;
     msgEl.className = 'promo-msg ok';
@@ -2221,21 +2246,19 @@ document.getElementById('contractSearchBtn').addEventListener('click', async ()=
   label.style.display = 'none'; spinner.style.display = 'inline-block';
 
   try{
-    const doc = await db.collection('credit_contracts').doc(idVal).get();
-    if(!doc.exists){
-      errEl.textContent = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
+    const res = await fetch('/.netlify/functions/check-contract-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractId: idVal, phone: numVal })
+    });
+    const result = await res.json();
+    if(!result.ok){
+      errEl.textContent = result.error || "Ma'lumot topilmadi. ID va raqamni tekshiring.";
       errEl.style.display = 'block';
     }else{
-      const data = doc.data();
-      const docNumDigits = (data.number || '').replace(/\D/g,'');
-      if(!docNumDigits.endsWith(numVal.slice(-9))){
-        errEl.textContent = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
-        errEl.style.display = 'block';
-      }else{
-        renderContractResult(data);
-        contractSearchView.style.display = 'none';
-        contractResultView.style.display = 'block';
-      }
+      renderContractResult(result.data);
+      contractSearchView.style.display = 'none';
+      contractResultView.style.display = 'block';
     }
   }catch(err){
     errEl.textContent = 'Xato: ' + err.message;
@@ -2272,8 +2295,8 @@ function renderContractResult(data){
 
   contractResultView.innerHTML = `
     <div class="cr-summary">
-      <div class="cr-row"><span>Mijoz</span><b>${data.customerName}</b></div>
-      <div class="cr-row"><span>Raqam</span><b>${data.number}</b></div>
+      <div class="cr-row"><span>Mijoz</span><b>${escapeHtml(data.customerName)}</b></div>
+      <div class="cr-row"><span>Raqam</span><b>${escapeHtml(data.number)}</b></div>
       <div class="cr-row"><span>Muddat</span><b>${data.totalMonths} oy</b></div>
       <div class="cr-row"><span>Oylik to'lov</span><b>${formatPrice(data.monthlyPayment)}</b></div>
       <div class="cr-row"><span>To'landi</span><b>${paidCount} / ${data.totalMonths} oy</b></div>
@@ -2377,7 +2400,7 @@ let installmentRates = { 6: 5, 12: 10, 24: 20, 36: 30 }; // standart foizlar —
 
 async function loadSiteSettings(){
   try{
-    const doc = await db.collection('site_settings').doc('general').get();
+    const doc = await withClientTimeout(db.collection('site_settings').doc('general').get(), 10000);
     if(!doc.exists){ if(window.__revealSite) window.__revealSite(); return; }
     const s = doc.data();
     if(s.installmentRates && typeof s.installmentRates === 'object'){
@@ -2567,9 +2590,14 @@ function takeWarmedVideo(url){
   const heartSvg = window.heartSvg;
 
   window.shareSvg = function(){
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6L8.6 10.5"/></svg>`;
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>`;
   };
   const shareSvg = window.shareSvg;
+
+  window.repostSvg = function(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+  };
+  const repostSvg = window.repostSvg;
 
   // Videoni ulashish — mavjud bo'lsa qurilmaning o'z "Yuborish" oynasi (Telegram,
   // Instagram va h.k. ro'yxati bilan) ochiladi, aks holda havola nusxalanadi.
@@ -2602,6 +2630,26 @@ function takeWarmedVideo(url){
   };
   const getLikedSet = window.getLikedSet;
   const saveLikedSet = window.saveLikedSet;
+
+  // Like'dan farqli o'laroq, repost "yoqib/o'chirib" bo'lmaydi — har bosishda
+  // shunchaki hisoblagich +1 bo'lib boraveradi ("nechta repost bossa,
+  // qo'shilib borsin" — mijoz talabi bo'yicha).
+  async function toggleRepost(videoId, btn){
+    const video = videos.find(v => v.id === videoId);
+    btn.classList.add('reposted');
+    btn.innerHTML = repostSvg() + `<span class="reels-like-count">${(video.reposts || 0) + 1}</span>`;
+    try{
+      await db.collection('video_testimonials').doc(videoId).update({
+        reposts: firebase.firestore.FieldValue.increment(1)
+      });
+      if(video) video.reposts = (video.reposts || 0) + 1;
+    }catch(err){
+      console.error('Repost saqlanmadi:', err);
+      if(window.showToast) showToast('Repost saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      btn.innerHTML = repostSvg() + `<span class="reels-like-count">${video.reposts || 0}</span>`;
+    }
+    setTimeout(()=> btn.classList.remove('reposted'), 350);
+  }
 
   async function toggleLike(videoId, btn){
     const set = getLikedSet();
@@ -2646,6 +2694,10 @@ function takeWarmedVideo(url){
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
         </button>
+        <button class="reels-repost-btn" data-id="${v.id}" aria-label="Repost">
+          ${repostSvg()}
+          <span class="reels-like-count">${v.reposts || 0}</span>
+        </button>
         <button class="reels-share-btn" data-share-type="testimonial" data-share-id="${v.id}" aria-label="Ulashish">
           ${shareSvg()}
         </button>
@@ -2658,6 +2710,9 @@ function takeWarmedVideo(url){
   function bindSlideEvents(slideEl){
     const btn = slideEl.querySelector('.reels-like-btn');
     if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
+
+    const repostBtn = slideEl.querySelector('.reels-repost-btn');
+    if(repostBtn) repostBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleRepost(repostBtn.dataset.id, repostBtn); });
 
     const shareBtn = slideEl.querySelector('.reels-share-btn');
     if(shareBtn) shareBtn.addEventListener('click', (e)=>{
@@ -2959,6 +3014,23 @@ function takeWarmedVideo(url){
     }
   }
 
+  async function toggleRepostPremium(videoId, btn){
+    const item = items.find(v => v.videoId === videoId);
+    btn.classList.add('reposted');
+    btn.innerHTML = repostSvg() + `<span class="reels-like-count">${(item.reposts || 0) + 1}</span>`;
+    try{
+      await db.collection('premium_number_videos').doc(videoId).update({
+        reposts: firebase.firestore.FieldValue.increment(1)
+      });
+      if(item) item.reposts = (item.reposts || 0) + 1;
+    }catch(err){
+      console.error('Repost saqlanmadi:', err);
+      if(window.showToast) showToast('Repost saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      btn.innerHTML = repostSvg() + `<span class="reels-like-count">${item.reposts || 0}</span>`;
+    }
+    setTimeout(()=> btn.classList.remove('reposted'), 350);
+  }
+
   async function toggleLikePremium(videoId, btn){
     const set = getLikedSet();
     const item = items.find(v => v.videoId === videoId);
@@ -2995,6 +3067,10 @@ function takeWarmedVideo(url){
         <button class="reels-like-btn pv-like-elevated ${liked ? 'liked' : ''}" data-video-id="${v.videoId}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
+        </button>
+        <button class="reels-repost-btn pv-repost-elevated" data-video-id="${v.videoId}" aria-label="Repost">
+          ${repostSvg()}
+          <span class="reels-like-count">${v.reposts || 0}</span>
         </button>
         <button class="reels-share-btn pv-share-elevated" data-share-type="premium" data-share-id="${v.videoId}" aria-label="Ulashish">
           ${shareSvg()}
@@ -3033,6 +3109,10 @@ function takeWarmedVideo(url){
     const likeBtn = slideEl.querySelector('.reels-like-btn');
     if(likeBtn){
       likeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLikePremium(likeBtn.dataset.videoId, likeBtn); });
+    }
+    const repostBtn = slideEl.querySelector('.reels-repost-btn');
+    if(repostBtn){
+      repostBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleRepostPremium(repostBtn.dataset.videoId, repostBtn); });
     }
     const shareBtn = slideEl.querySelector('.reels-share-btn');
     if(shareBtn){
