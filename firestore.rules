@@ -11,12 +11,6 @@ service cloud.firestore {
         && dataAfter.likes is int
         && (dataAfter.likes == oldLikes + 1 || dataAfter.likes == oldLikes - 1);
     }
-    function isValidRepostIncrement(resourceBefore, dataAfter){
-      let oldReposts = resourceBefore.data.has('reposts') ? resourceBefore.data.reposts : 0;
-      return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['reposts'])
-        && dataAfter.reposts is int
-        && dataAfter.reposts == oldReposts + 1;
-    }
 
     match /numbers/{doc} {
       allow read: if true;
@@ -112,26 +106,24 @@ service cloud.firestore {
 
     // Video sharhlar ("Mijozlarimiz fikri" bo'limi) — hamma o'qiy oladi
     // (saytda ko'rsatilishi kerak). Admin video qo'shishi/o'chirishi mumkin.
-    // Mijozlar (tizimga kirmasdan) FAQAT "likes"ni +1/-1 yoki "reposts"ni
-    // +1 qilishi mumkin — qiymat ham tekshiriladi (o'zboshimchalik bilan
-    // katta/kichik songa o'zgartirib bo'lmaydi).
+    // Mijozlar (tizimga kirmasdan) FAQAT "likes"ni +1/-1 qilishi mumkin —
+    // qiymat ham tekshiriladi (o'zboshimchalik bilan katta/kichik songa
+    // o'zgartirib bo'lmaydi).
     match /video_testimonials/{doc} {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null
-        || isValidLikeToggle(resource, request.resource.data)
-        || isValidRepostIncrement(resource, request.resource.data);
+        || isValidLikeToggle(resource, request.resource.data);
     }
 
     // "Premium raqamlar" reklama videolari — hamma o'qiy oladi, admin
     // qo'shishi/o'chirishi mumkin. Mijozlar (tizimga kirmasdan) FAQAT
-    // "likes" yoki "reposts"ni yuqoridagi kabi cheklangan tarzda o'zgartira oladi.
+    // "likes"ni yuqoridagi kabi cheklangan tarzda o'zgartira oladi.
     match /premium_number_videos/{doc} {
       allow read: if true;
       allow create, delete: if request.auth != null;
       allow update: if request.auth != null
-        || isValidLikeToggle(resource, request.resource.data)
-        || isValidRepostIncrement(resource, request.resource.data);
+        || isValidLikeToggle(resource, request.resource.data);
     }
 
     // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram

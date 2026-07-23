@@ -907,6 +907,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -922,6 +923,7 @@ const firebaseConfig = {
   measurementId: "G-SB37FEXJ0F"
 };
 firebase.initializeApp(firebaseConfig);
+firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 const db = firebase.firestore();
 let storage = null;
 try{ storage = firebase.storage(); }

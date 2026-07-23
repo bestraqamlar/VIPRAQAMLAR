@@ -747,6 +747,21 @@
   .reels-like-btn.liked svg{transform:scale(1.15);}
   .reels-like-count{color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.6);}
   @keyframes likePop{ 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1.15);} }
+
+  /* Instagram uslubidagi "ikki marta bosib like qilish" — bosilgan joydan
+     katta yurakcha chiqib, kattalashib, so'ng sekin so'nadi. */
+  .dt-heart-burst{
+    position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(0);
+    pointer-events:none;z-index:20;
+    animation:dtHeartPop 0.85s ease forwards;
+  }
+  .dt-heart-burst svg{width:92px;height:92px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.45));}
+  @keyframes dtHeartPop{
+    0%{transform:translate(-50%,-50%) scale(0);opacity:0;}
+    18%{transform:translate(-50%,-50%) scale(1.25);opacity:1;}
+    32%{transform:translate(-50%,-50%) scale(1);opacity:1;}
+    100%{transform:translate(-50%,-50%) scale(1);opacity:0;}
+  }
   .reels-like-btn.liked svg{animation:likePop .35s ease;}
   .pv-order-btn{
     background:linear-gradient(135deg,var(--amber),var(--brand-red));color:#fff;
@@ -768,23 +783,14 @@
   .pv-slide-price{color:var(--amber);font-weight:800;font-size:14px;margin-bottom:10px;}
   .pv-like-elevated{ bottom:230px; }
 
-  .reels-repost-btn{
-    position:absolute;right:14px;bottom:135px;z-index:5;
-    display:flex;flex-direction:column;align-items:center;gap:5px;
-    background:none;border:none;cursor:pointer;padding:8px;
-  }
-  .reels-repost-btn svg{width:30px;height:30px;transition:transform .18s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
-  .reels-repost-btn.reposted svg{animation:likePop .35s ease;}
-  .pv-repost-elevated{ bottom:175px; }
-
   .reels-share-btn{
-    position:absolute;right:14px;bottom:80px;z-index:5;
+    position:absolute;right:14px;bottom:135px;z-index:5;
     display:flex;flex-direction:column;align-items:center;gap:5px;
     background:none;border:none;cursor:pointer;padding:8px;
   }
   .reels-share-btn svg{width:30px;height:30px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));transition:transform .15s ease;}
   .reels-share-btn:active svg{transform:scale(0.85);}
-  .pv-share-elevated{ bottom:120px; }
+  .pv-share-elevated{ bottom:175px; }
 
   /* ---- To'lov turi tanlash (Naqt / Bo'lib to'lash) ---- */
   .pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px;}
@@ -1364,6 +1370,7 @@
 <!-- FIREBASE (mijoz sayti va admin sayti bir xil bazani ishlatadi) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -1382,6 +1389,14 @@ const firebaseConfig = {
   measurementId: "G-SB37FEXJ0F"
 };
 firebase.initializeApp(firebaseConfig);
+
+/* XAVFSIZLIK: App Check — faqat haqiqiy brauzerdan (odam tomonidan)
+   kelayotgan so'rovlarni tasdiqlaydi. Bu skript/bot orqali ommaviy
+   hujum (masalan bazani spamlash yoki resurslarni tugatish) qilishga
+   urinishlarning katta qismini avtomatik bloklaydi — Firebase buni
+   bizning kodimizga yetib kelmasdan turib to'xtatadi. */
+firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
+
 const db = firebase.firestore();
 
 let NUMBERS = [];
@@ -2589,15 +2604,49 @@ function takeWarmedVideo(url){
   };
   const heartSvg = window.heartSvg;
 
+  /* Instagram uslubidagi "ekranga ikki marta bosib like qilish". Bosilgan
+     aniq nuqtadan katta yurakcha chiqib, animatsiya bilan so'nadi — video
+     hech qachon to'xtamaydi, oddiy davom etaveradi. */
+  window.spawnHeartBurst = function(container, clientX, clientY){
+    const rect = container.getBoundingClientRect();
+    const heart = document.createElement('div');
+    heart.className = 'dt-heart-burst';
+    heart.style.left = (clientX - rect.left) + 'px';
+    heart.style.top = (clientY - rect.top) + 'px';
+    heart.innerHTML = heartSvg(true);
+    container.appendChild(heart);
+    setTimeout(()=>{ heart.remove(); }, 850);
+  };
+  const spawnHeartBurst = window.spawnHeartBurst;
+
+  // slideEl ustiga ikki marta bosilganda chaqiriladi. isLiked() joriy holatni
+  // qaytaradi, onLike() esa hali like qilinmagan bo'lsagina chaqiriladi
+  // (ikkinchi marta bosib "unlike" bo'lib qolmasligi uchun) — yurakcha esa
+  // har doim, holatidan qat'iy nazar, chiqib turadi (Instagramdagidek).
+  window.attachDoubleTapLike = function(slideEl, isLiked, onLike){
+    let lastTapTime = 0;
+    let lastTapTimer = null;
+    slideEl.addEventListener('click', (e)=>{
+      if(e.target.closest('button')) return; // like/repost/yuborish tugmalariga tegmaymiz
+      const now = Date.now();
+      if(now - lastTapTime < 300){
+        clearTimeout(lastTapTimer);
+        lastTapTime = 0;
+        spawnHeartBurst(slideEl, e.clientX, e.clientY);
+        if(!isLiked()) onLike();
+      }else{
+        lastTapTime = now;
+        lastTapTimer = setTimeout(()=>{ lastTapTime = 0; }, 300);
+      }
+    });
+  };
+  const attachDoubleTapLike = window.attachDoubleTapLike;
+
+
   window.shareSvg = function(){
     return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>`;
   };
   const shareSvg = window.shareSvg;
-
-  window.repostSvg = function(){
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
-  };
-  const repostSvg = window.repostSvg;
 
   // Videoni ulashish — mavjud bo'lsa qurilmaning o'z "Yuborish" oynasi (Telegram,
   // Instagram va h.k. ro'yxati bilan) ochiladi, aks holda havola nusxalanadi.
@@ -2631,25 +2680,6 @@ function takeWarmedVideo(url){
   const getLikedSet = window.getLikedSet;
   const saveLikedSet = window.saveLikedSet;
 
-  // Like'dan farqli o'laroq, repost "yoqib/o'chirib" bo'lmaydi — har bosishda
-  // shunchaki hisoblagich +1 bo'lib boraveradi ("nechta repost bossa,
-  // qo'shilib borsin" — mijoz talabi bo'yicha).
-  async function toggleRepost(videoId, btn){
-    const video = videos.find(v => v.id === videoId);
-    btn.classList.add('reposted');
-    btn.innerHTML = repostSvg() + `<span class="reels-like-count">${(video.reposts || 0) + 1}</span>`;
-    try{
-      await db.collection('video_testimonials').doc(videoId).update({
-        reposts: firebase.firestore.FieldValue.increment(1)
-      });
-      if(video) video.reposts = (video.reposts || 0) + 1;
-    }catch(err){
-      console.error('Repost saqlanmadi:', err);
-      if(window.showToast) showToast('Repost saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
-      btn.innerHTML = repostSvg() + `<span class="reels-like-count">${video.reposts || 0}</span>`;
-    }
-    setTimeout(()=> btn.classList.remove('reposted'), 350);
-  }
 
   async function toggleLike(videoId, btn){
     const set = getLikedSet();
@@ -2694,10 +2724,6 @@ function takeWarmedVideo(url){
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
         </button>
-        <button class="reels-repost-btn" data-id="${v.id}" aria-label="Repost">
-          ${repostSvg()}
-          <span class="reels-like-count">${v.reposts || 0}</span>
-        </button>
         <button class="reels-share-btn" data-share-type="testimonial" data-share-id="${v.id}" aria-label="Ulashish">
           ${shareSvg()}
         </button>
@@ -2711,14 +2737,18 @@ function takeWarmedVideo(url){
     const btn = slideEl.querySelector('.reels-like-btn');
     if(btn) btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLike(btn.dataset.id, btn); });
 
-    const repostBtn = slideEl.querySelector('.reels-repost-btn');
-    if(repostBtn) repostBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleRepost(repostBtn.dataset.id, repostBtn); });
-
     const shareBtn = slideEl.querySelector('.reels-share-btn');
     if(shareBtn) shareBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       shareReelsVideo(shareBtn.dataset.shareType, shareBtn.dataset.shareId);
     });
+
+    if(btn){
+      attachDoubleTapLike(slideEl,
+        () => getLikedSet().has(btn.dataset.id),
+        () => toggleLike(btn.dataset.id, btn)
+      );
+    }
 
     // Agar shu video allaqachon fon rejimida oldindan yuklanayotgan bo'lsa
     // (warmVideoCache orqali), o'sha AYNAN O'SHA elementni (buferi bilan
@@ -3014,23 +3044,6 @@ function takeWarmedVideo(url){
     }
   }
 
-  async function toggleRepostPremium(videoId, btn){
-    const item = items.find(v => v.videoId === videoId);
-    btn.classList.add('reposted');
-    btn.innerHTML = repostSvg() + `<span class="reels-like-count">${(item.reposts || 0) + 1}</span>`;
-    try{
-      await db.collection('premium_number_videos').doc(videoId).update({
-        reposts: firebase.firestore.FieldValue.increment(1)
-      });
-      if(item) item.reposts = (item.reposts || 0) + 1;
-    }catch(err){
-      console.error('Repost saqlanmadi:', err);
-      if(window.showToast) showToast('Repost saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
-      btn.innerHTML = repostSvg() + `<span class="reels-like-count">${item.reposts || 0}</span>`;
-    }
-    setTimeout(()=> btn.classList.remove('reposted'), 350);
-  }
-
   async function toggleLikePremium(videoId, btn){
     const set = getLikedSet();
     const item = items.find(v => v.videoId === videoId);
@@ -3067,10 +3080,6 @@ function takeWarmedVideo(url){
         <button class="reels-like-btn pv-like-elevated ${liked ? 'liked' : ''}" data-video-id="${v.videoId}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
-        </button>
-        <button class="reels-repost-btn pv-repost-elevated" data-video-id="${v.videoId}" aria-label="Repost">
-          ${repostSvg()}
-          <span class="reels-like-count">${v.reposts || 0}</span>
         </button>
         <button class="reels-share-btn pv-share-elevated" data-share-type="premium" data-share-id="${v.videoId}" aria-label="Ulashish">
           ${shareSvg()}
@@ -3110,16 +3119,18 @@ function takeWarmedVideo(url){
     if(likeBtn){
       likeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLikePremium(likeBtn.dataset.videoId, likeBtn); });
     }
-    const repostBtn = slideEl.querySelector('.reels-repost-btn');
-    if(repostBtn){
-      repostBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleRepostPremium(repostBtn.dataset.videoId, repostBtn); });
-    }
     const shareBtn = slideEl.querySelector('.reels-share-btn');
     if(shareBtn){
       shareBtn.addEventListener('click', (e)=>{
         e.stopPropagation();
         shareReelsVideo(shareBtn.dataset.shareType, shareBtn.dataset.shareId);
       });
+    }
+    if(likeBtn){
+      attachDoubleTapLike(slideEl,
+        () => getLikedSet().has(likeBtn.dataset.videoId),
+        () => toggleLikePremium(likeBtn.dataset.videoId, likeBtn)
+      );
     }
     const orderBtn = slideEl.querySelector('.pv-order-btn:not([disabled])');
     if(orderBtn){
