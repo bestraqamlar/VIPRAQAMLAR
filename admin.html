@@ -538,6 +538,7 @@
     <button class="tab" data-tab="videos">🎥 Video sharhlar</button>
     <button class="tab" data-tab="premiumvideo">🎬 Premium video</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
+    <button class="tab" data-tab="zakaz">📥 Zakaz</button>
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
     <button class="tab" data-tab="styles">Uslublar</button>
@@ -727,6 +728,29 @@
       <span><i class="lg-bekor"></i> Bekor qilindi <b id="cntBekor">0</b></span>
     </div>
     <div class="orders-list" id="adminOrdersList"></div>
+  </div>
+
+  <div class="pane" id="paneZakaz">
+    <div class="settings-form" style="margin-bottom:16px;">
+      <h3>💰 Raqam toifasi narxi</h3>
+      <p style="color:var(--muted);font-size:11.5px;margin:0 0 12px;">
+        Mijoz saytda "Raqam buyurtma berish" orqali oxirgi 4 raqamni kiritganda,
+        shu yerda belgilangan boshlang'ich narx ko'rsatiladi. Masalan "6666" uchun
+        narx belgilasangiz, mijoz shu 4 raqamni kiritganda o'sha narxni ko'radi.
+      </p>
+      <label for="zkPattern">Oxirgi 4 raqam (naqsh)</label>
+      <input type="text" id="zkPattern" maxlength="4" inputmode="numeric" placeholder="6666">
+      <label for="zkPrice">Boshlang'ich narxi (so'm)</label>
+      <input type="number" id="zkPrice" placeholder="5000000">
+      <button id="zkSaveBtn">Saqlash</button>
+      <div class="settings-msg" id="zkMsg"></div>
+      <div class="zk-category-list" id="zkCategoryList" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="settings-form">
+      <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
+      <div class="orders-list" id="customOrdersList"></div>
+    </div>
   </div>
 
   <div class="pane" id="paneCredit">
@@ -1005,7 +1029,105 @@ function updateBellBadge(){
   else{ badge.style.display = 'none'; }
 }
 
-/* ---- Kirish tarixini qayd etish ---- */
+/* ==================================================================
+   "ZAKAZ" — raqam toifa narxlari va mijozlardan kelgan maxsus so'rovlar
+   ================================================================== */
+document.getElementById('zkSaveBtn').addEventListener('click', async ()=>{
+  const pattern = document.getElementById('zkPattern').value.trim();
+  const price = Number(document.getElementById('zkPrice').value);
+  const msg = document.getElementById('zkMsg');
+  if(!/^\d{4}$/.test(pattern)){
+    msg.textContent = "4 ta raqamni to'g'ri kiriting (masalan: 6666)";
+    msg.className = 'settings-msg bad';
+    return;
+  }
+  if(!price || price <= 0){
+    msg.textContent = "Narxni to'g'ri kiriting";
+    msg.className = 'settings-msg bad';
+    return;
+  }
+  try{
+    await db.collection('number_price_categories').doc(pattern).set({ startPrice: price });
+    msg.textContent = `✓ "${pattern}" uchun narx saqlandi`;
+    msg.className = 'settings-msg ok';
+    document.getElementById('zkPattern').value = '';
+    document.getElementById('zkPrice').value = '';
+    vibrate(80);
+    loadPriceCategories();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.className = 'settings-msg bad';
+  }
+});
+
+async function loadPriceCategories(){
+  const listEl = document.getElementById('zkCategoryList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('number_price_categories').get();
+    if(snap.empty){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali hech qanday toifa narxi kiritilmagan.</div>';
+      return;
+    }
+    listEl.innerHTML = snap.docs.map(d=>{
+      const data = d.data();
+      return `
+        <div class="zk-cat-row" style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;margin-bottom:6px;">
+          <span style="font-family:'Space Mono',monospace;font-weight:700;">••${escapeHtml(d.id)}</span>
+          <span style="color:var(--amber);font-weight:700;font-size:12.5px;">${formatPrice(data.startPrice)}</span>
+          <button data-id="${d.id}" class="zk-del-btn" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;">✕</button>
+        </div>`;
+    }).join('');
+    listEl.querySelectorAll('.zk-del-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm(`"${btn.dataset.id}" narxini o'chirasizmi?`)) return;
+        await db.collection('number_price_categories').doc(btn.dataset.id).delete();
+        loadPriceCategories();
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+
+const ZAKAZ_STATUS_OPTIONS = ['Yangi', "Bog'lanildi", 'Yakunlandi', 'Bekor qilindi'];
+async function loadCustomOrders(){
+  const listEl = document.getElementById('customOrdersList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('custom_orders').orderBy('createdAtSort', 'desc').limit(100).get();
+    if(snap.empty){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali so\'rovlar yo\'q.</div>';
+      return;
+    }
+    listEl.innerHTML = snap.docs.map(d=>{
+      const o = d.data();
+      return `
+        <div class="order-card" data-id="${d.id}">
+          <div class="oc-top">
+            <span class="oc-number">••••${escapeHtml(o.pattern)}</span>
+            <span class="oc-time">${escapeHtml(o.createdAt || '')}</span>
+          </div>
+          <div class="oc-row"><b>Ism:</b> ${escapeHtml(o.name)}</div>
+          <div class="oc-row"><b>Viloyat:</b> ${escapeHtml(o.region)}</div>
+          <div class="oc-row"><b>Telefon:</b> ${escapeHtml(o.phone)}</div>
+          <select class="zk-status-select" data-id="${d.id}" style="margin-top:8px;">
+            ${ZAKAZ_STATUS_OPTIONS.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>`;
+    }).join('');
+    listEl.querySelectorAll('.zk-status-select').forEach(sel=>{
+      sel.addEventListener('change', async ()=>{
+        await db.collection('custom_orders').doc(sel.dataset.id).update({ status: sel.value });
+        vibrate(60);
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+
+
 function detectDevice(ua){
   let os = "Noma'lum qurilma";
   if(/iPhone/.test(ua)) os = 'iPhone';
@@ -1100,7 +1222,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1109,6 +1231,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('pane' + TAB_PANE_MAP[tab.dataset.tab]).classList.add('active');
 
     if(tab.dataset.tab === 'orders'){ markOrdersSeen(); }
+    if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }

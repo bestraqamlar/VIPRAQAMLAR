@@ -127,6 +127,15 @@
     *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
   }
 
+  .new-numbers-banner{
+    position:fixed;top:0;left:0;right:0;z-index:250;
+    background:linear-gradient(90deg,#1a8a4c,#25b869);color:#fff;
+    text-align:center;font-weight:800;font-size:13px;padding:12px 16px;
+    transform:translateY(-100%);transition:transform 0.4s cubic-bezier(.22,1,.36,1);
+    cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,0.25);
+  }
+  .new-numbers-banner.show{transform:translateY(0);}
+
   header{
     padding:12px 20px;
     display:flex;align-items:center;justify-content:space-between;
@@ -154,14 +163,26 @@
   .menu-btn:hover{border-color:var(--red);color:var(--red);}
 
   .header-right-group{display:flex;align-items:center;gap:8px;}
-  .lang-switch{display:flex;align-items:center;gap:4px;}
+  .lang-switch-wrap{position:relative;}
   .lang-flag-btn{
-    background:none;border:1px solid transparent;border-radius:6px;
-    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-    font-size:15px;cursor:pointer;opacity:0.45;transition:all .15s ease;padding:0;
+    background:none;border:1px solid var(--line);border-radius:8px;
+    width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+    font-size:17px;cursor:pointer;
   }
-  .lang-flag-btn.active{opacity:1;border-color:var(--line);background:var(--panel-2);}
-  .lang-flag-btn:hover{opacity:1;}
+  .lang-flag-btn:hover{border-color:var(--red);}
+  .lang-dropdown{
+    position:absolute;top:46px;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:6px;display:none;flex-direction:column;gap:3px;z-index:40;
+    box-shadow:0 10px 24px rgba(0,0,0,0.35);min-width:110px;
+  }
+  .lang-dropdown.open{display:flex;}
+  .lang-opt{
+    background:none;border:1px solid transparent;border-radius:7px;
+    padding:8px 10px;font-size:12.5px;font-weight:700;color:var(--muted);
+    text-align:left;cursor:pointer;transition:all .15s ease;
+  }
+  .lang-opt:hover{background:var(--panel-2);color:var(--text);}
+  .lang-opt.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
 
   .drawer-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.55);
@@ -965,6 +986,55 @@
   }
   .toast.show{top:16px;}
 
+  .hub-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity 0.35s ease;z-index:215;padding:20px;
+  }
+  .hub-overlay.open{opacity:1;pointer-events:auto;}
+  .hub-modal{
+    background:linear-gradient(160deg,#2c1aa0,#180d5c);
+    border-radius:22px;padding:26px 20px 30px;width:100%;max-width:380px;
+    position:relative;box-shadow:0 30px 60px rgba(0,0,0,0.5);
+    transform:scale(0.92) translateY(14px);opacity:0;
+    transition:transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.35s ease;
+  }
+  .hub-overlay.open .hub-modal{transform:scale(1) translateY(0);opacity:1;}
+  .hub-close{
+    position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.12);
+    border:none;border-radius:10px;width:34px;height:34px;color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .hub-close svg{width:18px;height:18px;}
+  .hub-close:hover{background:rgba(255,255,255,0.22);}
+  .hub-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px;
+  }
+  .hub-btn{
+    background:#4633ea;border:1px solid rgba(255,255,255,0.1);border-radius:16px;
+    color:#fff;font-weight:800;font-size:14px;text-align:left;cursor:pointer;
+    padding:22px 14px;min-height:96px;display:flex;align-items:flex-end;
+    line-height:1.3;transition:transform .15s ease, background .15s ease;
+  }
+  .hub-btn:hover{background:#5442ff;transform:translateY(-2px);}
+  .hub-btn:active{transform:translateY(0) scale(0.98);}
+
+  .co-number-row{
+    display:flex;align-items:center;gap:8px;margin-top:6px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;
+  }
+  .co-prefix{font-family:'Space Mono',monospace;color:var(--muted);font-size:13px;white-space:nowrap;}
+  .co-number-row input{
+    border:none;background:none;padding:0;width:70px;font-family:'Space Mono',monospace;
+    font-size:15px;font-weight:700;letter-spacing:2px;color:var(--amber);
+  }
+  .co-price-result{
+    margin-top:12px;background:var(--panel-2);border:1px solid var(--amber);border-radius:10px;
+    padding:12px 14px;font-size:13px;text-align:center;color:var(--text);
+  }
+  .co-price-result b{color:var(--amber);font-size:15px;}
+  .co-nav-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+
   .contract-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.6);
     display:flex;align-items:center;justify-content:center;
@@ -1138,6 +1208,7 @@
 </head>
 <body>
 
+<div class="new-numbers-banner" id="newNumbersBanner"></div>
 <header>
   <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:none;" aria-label="Video reels">
     <span class="hrb-ring">
@@ -1154,9 +1225,13 @@
     <span class="hrb-text">RELS</span>
   </button>
   <div class="header-right-group">
-    <div class="lang-switch" id="langSwitch">
-      <button type="button" class="lang-flag-btn active" id="langUzBtn" data-lang="uz" aria-label="O'zbekcha" title="O'zbekcha">🇺🇿</button>
-      <button type="button" class="lang-flag-btn" id="langRuBtn" data-lang="ru" aria-label="Русский" title="Русский">🇷🇺</button>
+    <div class="lang-switch-wrap">
+      <button type="button" class="lang-flag-btn" id="langFlagBtn" aria-label="Til tanlash">🇺🇿</button>
+      <div class="lang-dropdown" id="langDropdown">
+        <button type="button" class="lang-opt active" data-lang="uz">O'zbek</button>
+        <button type="button" class="lang-opt" data-lang="ru">Русский</button>
+        <button type="button" class="lang-opt" data-lang="cy">Ўзбек</button>
+      </div>
     </div>
     <button class="menu-btn" id="menuBtn" aria-label="Menyu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -1206,7 +1281,7 @@
   </div>
 
   <div class="drawer-links" style="padding-top:0;">
-    <a href="#" id="openContractCheck">
+    <a href="#" id="openMyOrdersHub">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       <span data-i18n="myOrders">Buyurtmalarim</span>
     </a>
@@ -1291,6 +1366,95 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="hub-overlay" id="hubOverlay">
+  <div class="hub-modal">
+    <button class="hub-close" id="hubClose" aria-label="Yopish">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+    </button>
+    <div class="hub-grid">
+      <button type="button" class="hub-btn" id="hubBtnOrders">📋 Buyurtmalarim</button>
+      <button type="button" class="hub-btn" id="hubBtnContracts">📄 Shartnomalarim</button>
+      <button type="button" class="hub-btn" id="hubBtnCustomOrder">🔢 Raqam buyurtma berish</button>
+      <button type="button" class="hub-btn" id="hubBtnAbout">ℹ️ Biz haqimizda</button>
+    </div>
+  </div>
+</div>
+
+<div class="contract-overlay" id="customOrderOverlay">
+  <div class="contract-modal">
+    <div class="contract-top">
+      <span class="contract-title">Raqam buyurtma berish</span>
+      <button class="drawer-close" id="customOrderClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+      </button>
+    </div>
+
+    <div id="coStep1">
+      <label>Xohlagan raqamingizning oxirgi 4 ta raqamini kiriting</label>
+      <div class="co-number-row">
+        <span class="co-prefix">+998 (XX)-XXX-</span>
+        <input type="text" id="coPatternInput" maxlength="4" inputmode="numeric" placeholder="0000">
+      </div>
+      <button class="btn-confirm contract-search-btn" id="coPriceBtn" style="width:100%;margin-top:12px;">💰 Narxini bilish</button>
+      <div id="coPriceResult" class="co-price-result" style="display:none;"></div>
+      <button class="btn-confirm contract-search-btn" id="coStep1Next" style="width:100%;margin-top:12px;display:none;">Keyingisi →</button>
+    </div>
+
+    <div id="coStep2" style="display:none;">
+      <label for="coName">Ism va familiyangiz</label>
+      <input type="text" id="coName" placeholder="Ism Familiya">
+      <label for="coRegion">Viloyatingiz</label>
+      <select id="coRegion">
+        <option value="">Tanlang</option>
+        <option>Toshkent shahri</option>
+        <option>Toshkent viloyati</option>
+        <option>Andijon</option>
+        <option>Farg'ona</option>
+        <option>Namangan</option>
+        <option>Samarqand</option>
+        <option>Buxoro</option>
+        <option>Xorazm</option>
+        <option>Navoiy</option>
+        <option>Qashqadaryo</option>
+        <option>Surxondaryo</option>
+        <option>Jizzax</option>
+        <option>Sirdaryo</option>
+        <option>Qoraqalpog'iston</option>
+      </select>
+      <label for="coPhone">Hozir ishlatib turgan raqamingiz</label>
+      <input type="text" id="coPhone" placeholder="90 123-45-67" inputmode="numeric">
+      <div class="field-error" id="coError">Barcha maydonlarni to'ldiring</div>
+      <div class="co-nav-row">
+        <button class="btn-confirm contract-search-btn" id="coStep2Back" style="background:var(--panel-2);color:var(--text);">⬅ Orqaga</button>
+        <button class="btn-confirm contract-search-btn" id="coSubmitBtn">✅ Yuborish</button>
+      </div>
+    </div>
+
+    <div id="coSuccessView" style="display:none;text-align:center;padding:10px 0;">
+      <div style="font-size:34px;margin-bottom:10px;">✅</div>
+      <p style="font-size:13.5px;line-height:1.6;">So'rovingiz qabul qilindi! Tez orada operatorlarimiz siz bilan bog'lanishadi.</p>
+      <button class="btn-confirm contract-search-btn" id="coCloseSuccess" style="width:100%;margin-top:14px;">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<div class="contract-overlay" id="aboutOverlay">
+  <div class="contract-modal">
+    <div class="contract-top">
+      <span class="contract-title">Biz haqimizda</span>
+      <button class="drawer-close" id="aboutClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+      </button>
+    </div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text);">
+      <p><b>VIP RAQAMLAR</b> — O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlash va sotib olish xizmati.</p>
+      <p>Biz mijozlarimizga barcha operatorlar (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) raqamlarini keng katalog orqali taqdim etamiz, O'zbekiston bo'ylab bepul yetkazib berish va bo'lib to'lash (kredit) imkoniyatini beramiz.</p>
+      <p>Savol va takliflar uchun: <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" style="color:var(--amber);">@Vip_raqamlar_admin</a></p>
+    </div>
+    <button class="btn-confirm contract-search-btn" id="aboutBackBtn" style="width:100%;margin-top:16px;">⬅ Yopish</button>
+  </div>
+</div>
 
 <div class="contract-overlay" id="contractOverlay">
   <div class="contract-modal">
@@ -1805,6 +1969,7 @@ function renderCatalog(){
 }
 
 function renderPagination(page, totalPages){
+  if(window.currentLangMode && window.currentLangMode !== 'uz' && window.applyCurrentLanguage) window.applyCurrentLanguage();
   let pagEl = document.getElementById('pagination');
   if(!pagEl){
     pagEl = document.createElement('div');
@@ -2324,9 +2489,7 @@ const contractOverlay = document.getElementById('contractOverlay');
 const contractSearchView = document.getElementById('contractSearchView');
 const contractResultView = document.getElementById('contractResultView');
 
-document.getElementById('openContractCheck').addEventListener('click', (e)=>{
-  e.preventDefault();
-  closeDrawer();
+function openContractOverlay(tab){
   document.getElementById('contractIdInput').value = '';
   document.getElementById('contractNumberInput').value = '';
   document.getElementById('contractError').style.display = 'none';
@@ -2337,12 +2500,44 @@ document.getElementById('openContractCheck').addEventListener('click', (e)=>{
   document.getElementById('ordersError').style.display = 'none';
   document.getElementById('ordersSearchView').style.display = 'block';
   document.getElementById('ordersResultView').style.display = 'none';
-  document.getElementById('moTabContract').classList.add('active');
-  document.getElementById('moTabOrders').classList.remove('active');
-  document.getElementById('contractPane').style.display = 'block';
-  document.getElementById('ordersPane').style.display = 'none';
+  const isContract = tab !== 'orders';
+  document.getElementById('moTabContract').classList.toggle('active', isContract);
+  document.getElementById('moTabOrders').classList.toggle('active', !isContract);
+  document.getElementById('contractPane').style.display = isContract ? 'block' : 'none';
+  document.getElementById('ordersPane').style.display = isContract ? 'none' : 'block';
   contractOverlay.classList.add('open');
+}
+
+const hubOverlay = document.getElementById('hubOverlay');
+const aboutOverlay = document.getElementById('aboutOverlay');
+document.getElementById('aboutClose').addEventListener('click', ()=> aboutOverlay.classList.remove('open'));
+document.getElementById('aboutBackBtn').addEventListener('click', ()=> aboutOverlay.classList.remove('open'));
+aboutOverlay.addEventListener('click', (e)=>{ if(e.target === aboutOverlay) aboutOverlay.classList.remove('open'); });
+document.getElementById('openMyOrdersHub').addEventListener('click', (e)=>{
+  e.preventDefault();
+  closeDrawer();
+  hubOverlay.classList.add('open');
 });
+document.getElementById('hubClose').addEventListener('click', ()=> hubOverlay.classList.remove('open'));
+hubOverlay.addEventListener('click', (e)=>{ if(e.target === hubOverlay) hubOverlay.classList.remove('open'); });
+
+document.getElementById('hubBtnOrders').addEventListener('click', ()=>{
+  hubOverlay.classList.remove('open');
+  openContractOverlay('orders');
+});
+document.getElementById('hubBtnContracts').addEventListener('click', ()=>{
+  hubOverlay.classList.remove('open');
+  openContractOverlay('contract');
+});
+document.getElementById('hubBtnCustomOrder').addEventListener('click', ()=>{
+  hubOverlay.classList.remove('open');
+  openCustomOrderOverlay();
+});
+document.getElementById('hubBtnAbout').addEventListener('click', ()=>{
+  hubOverlay.classList.remove('open');
+  aboutOverlay.classList.add('open');
+});
+
 document.getElementById('contractClose').addEventListener('click', ()=> contractOverlay.classList.remove('open'));
 contractOverlay.addEventListener('click', (e)=>{ if(e.target === contractOverlay) contractOverlay.classList.remove('open'); });
 
@@ -2454,16 +2649,25 @@ function renderContractResult(data){
         headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
         body: JSON.stringify({ contractId: data.contractId, phone: (data.number || '') })
       });
-      if(!res.ok) throw new Error("Yuklab bo'lmadi");
-      const blob = await res.blob();
+      const result = await res.json();
+      if(!result.ok || !result.pdfBase64) throw new Error(result.error || "Yuklab bo'lmadi");
+
+      // Base64'dan haqiqiy PDF fayl (Blob) yasaymiz — bu usul iPhone/Safari
+      // va boshqa barcha brauzerlarda eng ishonchli ishlaydi (avvalgi usul
+      // ba'zi brauzerlarda faylni ".pdf.txt" deb noto'g'ri saqlab qo'yardi).
+      const byteChars = atob(result.pdfBase64);
+      const byteNumbers = new Array(byteChars.length);
+      for(let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `shartnoma-${data.contractId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+
+      // Yangi oynada ochamiz — kompyuterda brauzerning o'z PDF ko'ruvchisida
+      // ochiladi, iPhone'da esa Safari PDF'ni ko'rsatadi va "Ulashish" orqali
+      // saqlash imkonini beradi. Bu "majburiy yuklab olish"dan ko'ra
+      // barcha qurilmalarda ancha ishonchli ishlaydi.
+      window.open(url, '_blank');
+      setTimeout(()=> URL.revokeObjectURL(url), 60000);
     }catch(err){
       if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000);
     }
@@ -2571,6 +2775,111 @@ function renderOrdersResult(orders){
     ordersSearchView.style.display = 'block';
   });
 }
+
+/* ==================================================================
+   "Raqam buyurtma berish" — mijoz aniq raqamni emas, faqat OXIRGI
+   4 RAQAMNI (naqshni) tanlaydi, narxini bilib, so'ng ismi/viloyati/
+   hozirgi raqamini qoldiradi. Bu "Zakaz" sifatida admin panelga boradi.
+   ================================================================== */
+const customOrderOverlay = document.getElementById('customOrderOverlay');
+const coStep1 = document.getElementById('coStep1');
+const coStep2 = document.getElementById('coStep2');
+const coSuccessView = document.getElementById('coSuccessView');
+const coPatternInput = document.getElementById('coPatternInput');
+const coPriceResult = document.getElementById('coPriceResult');
+const coStep1Next = document.getElementById('coStep1Next');
+let coDraftPattern = '';
+
+function openCustomOrderOverlay(){
+  coStep1.style.display = 'block';
+  coStep2.style.display = 'none';
+  coSuccessView.style.display = 'none';
+  coPatternInput.value = '';
+  coPriceResult.style.display = 'none';
+  coStep1Next.style.display = 'none';
+  document.getElementById('coName').value = '';
+  document.getElementById('coRegion').value = '';
+  document.getElementById('coPhone').value = '';
+  document.getElementById('coError').style.display = 'none';
+  customOrderOverlay.classList.add('open');
+}
+document.getElementById('customOrderClose').addEventListener('click', ()=> customOrderOverlay.classList.remove('open'));
+customOrderOverlay.addEventListener('click', (e)=>{ if(e.target === customOrderOverlay) customOrderOverlay.classList.remove('open'); });
+
+coPatternInput.addEventListener('input', ()=>{
+  coPatternInput.value = coPatternInput.value.replace(/\D/g,'').slice(0,4);
+  coPriceResult.style.display = 'none';
+  coStep1Next.style.display = 'none';
+});
+
+document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
+  const pattern = coPatternInput.value;
+  if(pattern.length !== 4){
+    if(window.showToast) showToast("Iltimos, 4 ta raqamni to'liq kiriting", 2500);
+    return;
+  }
+  coDraftPattern = pattern;
+  try{
+    const doc = await db.collection('number_price_categories').doc(pattern).get();
+    if(doc.exists){
+      const startPrice = doc.data().startPrice || 0;
+      coPriceResult.innerHTML = `Bunday raqamlar <b>${formatPrice(startPrice)}</b> dan boshlanadi`;
+    }else{
+      coPriceResult.innerHTML = `Bu toifadagi narx hali belgilanmagan — buyurtma qoldiring, operatorlarimiz narxni aytib beradi.`;
+    }
+    coPriceResult.style.display = 'block';
+    coStep1Next.style.display = 'block';
+  }catch(err){
+    if(window.showToast) showToast('Xato: ' + err.message, 3000);
+  }
+});
+
+coStep1Next.addEventListener('click', ()=>{
+  coStep1.style.display = 'none';
+  coStep2.style.display = 'block';
+});
+document.getElementById('coStep2Back').addEventListener('click', ()=>{
+  coStep2.style.display = 'none';
+  coStep1.style.display = 'block';
+});
+
+document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('coName').value.trim();
+  const region = document.getElementById('coRegion').value;
+  const phone = document.getElementById('coPhone').value.trim();
+  const errEl = document.getElementById('coError');
+
+  if(!name || !region || !phone){
+    errEl.textContent = "Barcha maydonlarni to'ldiring";
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const btn = document.getElementById('coSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Yuborilmoqda...';
+
+  try{
+    await db.collection('custom_orders').add({
+      pattern: coDraftPattern,
+      name, region, phone,
+      status: 'Yangi',
+      createdAt: new Date().toLocaleString('uz-UZ'),
+      createdAtSort: Date.now()
+    });
+    coStep2.style.display = 'none';
+    coSuccessView.style.display = 'block';
+  }catch(err){
+    errEl.textContent = 'Xato: ' + err.message;
+    errEl.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✅ Yuborish';
+});
+document.getElementById('coCloseSuccess').addEventListener('click', ()=> customOrderOverlay.classList.remove('open'));
+
 
 
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
@@ -2705,71 +3014,134 @@ async function loadSiteSettings(){
   }
 }
 /* ===========================================================
-   TIL ALMASHTIRISH (O'zbek / Rus)
+   TIL ALMASHTIRISH — O'zbek (lotin) / Rus / Ўзбек (кирилл)
    -----------------------------------------------------------
-   Eslatma: bu hozircha saytning ASOSIY, doim ko'rinadigan
-   matnlarini (menyu, sarlavhalar, tugmalar) tarjima qiladi.
-   Har bir raqam kartochkasidagi matn, admin kiritgan ish
-   vaqti/yetkazib berish matni kabi DINAMIK kontent hozircha
-   faqat o'zbek tilida qoladi — bu keyingi bosqichda kengaytirilishi
-   mumkin.
+   - "Rus" — asosiy interfeys matnlari (menyu, sarlavhalar, tugmalar)
+     lug'at orqali tarjima qilinadi.
+   - "Kirill" — bu tarjima emas, TRANSLITERATSIYA (harf almashtirish),
+     shu sababli SAYTDAGI DEYARLI BARCHA matn (jumladan raqam
+     kartochkalari, narxlar so'zi va h.k.) avtomatik kirillga
+     o'giriladi — bu "hamma narsa haqiqatan o'zgarsin" talabiga
+     mos, chunki bu qat'iy qoidali harf almashtirish, lug'atga
+     bog'liq emas.
+   - Til tanlanganda sahifa qayta yuklanadi (reload) — bu eng
+     ishonchli usul: aralashib/buzilib qolish xavfi yo'q.
 =========================================================== */
-const I18N = {
-  tagline:            { uz: "O'zbekiston bo'ylab yetkazib berish xizmati mavjud", ru: 'Доставка по всему Узбекистану' },
-  searchHint:         { uz: "O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring", ru: 'Введите понравившиеся цифры в любую ячейку для поиска' },
-  clear:               { uz: 'Tozalash', ru: 'Очистить' },
-  all:                 { uz: 'Barchasi', ru: 'Все' },
-  featuredTitle:       { uz: 'Mashhur raqamlar', ru: 'Популярные номера' },
-  saleTitle:           { uz: 'Aksiyadagi raqamlar', ru: 'Номера по акции' },
-  viewAll:             { uz: "Barchasini ko'rish", ru: 'Смотреть все' },
-  swipeHint:           { uz: '&larr; siljitib ko\'ring &rarr;', ru: '&larr; листайте &rarr;' },
-  testimonialsTitle:   { uz: 'Mijozlarimiz fikri', ru: 'Отзывы наших клиентов' },
-  testimonialsSub:     { uz: "Bizdan raqam sotib olgan mijozlarning video sharhlari", ru: 'Видеоотзывы клиентов, купивших номер у нас' },
-  telegramChannel:     { uz: 'Telegram kanal', ru: 'Telegram канал' },
-  instagramChannel:    { uz: 'Instagram kanal', ru: 'Instagram канал' },
-  contactUs:           { uz: 'Murojaat uchun', ru: 'Связаться с нами' },
-  chooseViaBot:        { uz: 'Bot orqali raqam tanlash', ru: 'Выбрать номер через бота' },
-  getDirections:       { uz: "Yo'l ko'rsatish", ru: 'Проложить маршрут' },
-  myOrders:            { uz: 'Buyurtmalarim', ru: 'Мои заказы' },
-  myContracts:         { uz: 'Shartnomalarim', ru: 'Мои договоры' },
-  enterContractId:     { uz: 'Shartnoma raqamini kiriting', ru: 'Введите номер договора' },
-  enterYourNumber:     { uz: 'Raqamingizni kiriting', ru: 'Введите ваш номер телефона' },
-  enterYourPhone:      { uz: 'Telefon raqamingizni kiriting', ru: 'Введите ваш номер телефона' },
-  enterLastDigits:     { uz: 'Sotib olgan raqamning oxirgi 4 raqami', ru: 'Последние 4 цифры купленного номера' },
-  notFoundError:       { uz: "Ma'lumot topilmadi. ID va raqamni tekshiring.", ru: 'Данные не найдены. Проверьте ID и номер.' },
-  ordersNotFoundError: { uz: 'Ma\'lumot topilmadi. Raqamni tekshiring.', ru: 'Данные не найдены. Проверьте номер.' },
-  search:              { uz: '🔍 Qidirish', ru: '🔍 Поиск' },
-  placeOrder:          { uz: 'Buyurtma berish', ru: 'Оформить заказ' },
-  cashPay:             { uz: "💵 Naqt to'lov", ru: '💵 Наличная оплата' },
-  installmentPay:      { uz: "📅 Bo'lib to'lash", ru: '📅 Рассрочка' }
+const RU_DICT = {
+  tagline:            'Доставка по всему Узбекистану',
+  searchHint:         'Введите понравившиеся цифры в любую ячейку для поиска',
+  clear:              'Очистить',
+  all:                'Все',
+  featuredTitle:      'Популярные номера',
+  saleTitle:          'Номера по акции',
+  viewAll:            'Смотреть все',
+  swipeHint:          '&larr; листайте &rarr;',
+  testimonialsTitle:  'Отзывы наших клиентов',
+  testimonialsSub:    'Видеоотзывы клиентов, купивших номер у нас',
+  telegramChannel:    'Telegram канал',
+  instagramChannel:   'Instagram канал',
+  contactUs:          'Связаться с нами',
+  chooseViaBot:       'Выбрать номер через бота',
+  getDirections:      'Проложить маршрут',
+  myOrders:           'Мои заказы',
+  myContracts:        'Мои договоры',
+  enterContractId:    'Введите номер договора',
+  enterYourNumber:    'Введите ваш номер телефона',
+  enterYourPhone:     'Введите ваш номер телефона',
+  enterLastDigits:    'Последние 4 цифры купленного номера',
+  notFoundError:      'Данные не найдены. Проверьте ID и номер.',
+  ordersNotFoundError:'Данные не найдены. Проверьте номер.',
+  search:             '🔍 Поиск',
+  placeOrder:         'Оформить заказ',
+  cashPay:            '💵 Наличная оплата',
+  installmentPay:     '📅 Рассрочка'
 };
 
-function applyLanguage(lang){
+function applyRussianDict(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const key = el.getAttribute('data-i18n');
-    const entry = I18N[key];
-    if(!entry) return;
-    const text = entry[lang] || entry.uz;
-    if(el.tagName === 'OPTION' || el.tagName === 'DIV' || el.tagName === 'SPAN' || el.tagName === 'LABEL'
-       || el.tagName === 'A' || el.tagName === 'BUTTON' || el.tagName === 'H2' || el.tagName === 'P'){
-      el.innerHTML = text;
-    }else{
-      el.textContent = text;
-    }
+    const val = RU_DICT[el.getAttribute('data-i18n')];
+    if(val !== undefined) el.innerHTML = val;
   });
-  document.documentElement.lang = lang;
-  try{ localStorage.setItem('raqamuz_lang', lang); }catch(e){}
-  document.getElementById('langUzBtn').classList.toggle('active', lang === 'uz');
-  document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
 }
 
-document.getElementById('langUzBtn').addEventListener('click', ()=> applyLanguage('uz'));
-document.getElementById('langRuBtn').addEventListener('click', ()=> applyLanguage('ru'));
+/* ---- Lotin -> Kirill transliteratsiya (o'zbek tili qoidalariga ko'ra) ---- */
+const CYR_DIGRAPHS = [
+  ["sh","ш"],["Sh","Ш"],["SH","Ш"],
+  ["ch","ч"],["Ch","Ч"],["CH","Ч"],
+  ["yo","ё"],["Yo","Ё"],["YO","Ё"],
+  ["yu","ю"],["Yu","Ю"],["YU","Ю"],
+  ["ya","я"],["Ya","Я"],["YA","Я"],
+  ["o'","ў"],["O'","Ў"],["o‘","ў"],["O‘","Ў"],
+  ["g'","ғ"],["G'","Ғ"],["g‘","ғ"],["G‘","Ғ"]
+];
+const CYR_SINGLE = {
+  a:'а',b:'б',d:'д',e:'е',f:'ф',g:'г',h:'ҳ',i:'и',j:'ж',k:'к',l:'л',m:'м',
+  n:'н',o:'о',p:'п',q:'қ',r:'р',s:'с',t:'т',u:'у',v:'в',x:'х',y:'й',z:'з',c:'с',
+  A:'А',B:'Б',D:'Д',E:'Е',F:'Ф',G:'Г',H:'Ҳ',I:'И',J:'Ж',K:'К',L:'Л',M:'М',
+  N:'Н',O:'О',P:'П',Q:'Қ',R:'Р',S:'С',T:'Т',U:'У',V:'В',X:'Х',Y:'Й',Z:'З',C:'С'
+};
+function transliterateToCyrillic(text){
+  if(!text) return text;
+  let result = text;
+  CYR_DIGRAPHS.forEach(([lat, cyr]) => { result = result.split(lat).join(cyr); });
+  return result.split('').map(ch => (CYR_SINGLE[ch] !== undefined ? CYR_SINGLE[ch] : ch)).join('');
+}
+function walkAndTransliterate(root){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node){
+      const p = node.parentElement;
+      if(!p) return NodeFilter.FILTER_REJECT;
+      const tag = p.tagName;
+      if(tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+      if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const nodes = [];
+  let n;
+  while((n = walker.nextNode())) nodes.push(n);
+  nodes.forEach(node => { node.nodeValue = transliterateToCyrillic(node.nodeValue); });
+  root.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el=>{
+    el.setAttribute('placeholder', transliterateToCyrillic(el.getAttribute('placeholder')));
+  });
+  root.querySelectorAll('option').forEach(el=>{ el.textContent = transliterateToCyrillic(el.textContent); });
+}
 
-(function initLanguage(){
+window.currentLangMode = 'uz';
+function applyCurrentLanguage(){
+  const mode = window.currentLangMode;
+  if(mode === 'ru'){ applyRussianDict(); }
+  else if(mode === 'cy'){ walkAndTransliterate(document.body); }
+}
+function setLanguage(lang){
+  try{ localStorage.setItem('raqamuz_lang', lang); }catch(e){}
+  location.reload();
+}
+
+(function initLangSwitcher(){
   let saved = 'uz';
   try{ saved = localStorage.getItem('raqamuz_lang') || 'uz'; }catch(e){}
-  if(saved === 'ru') applyLanguage('ru');
+  window.currentLangMode = saved;
+
+  const FLAGS = { uz: '🇺🇿', ru: '🇷🇺', cy: '🇺🇿' };
+  const flagBtn = document.getElementById('langFlagBtn');
+  const dropdown = document.getElementById('langDropdown');
+  flagBtn.textContent = FLAGS[saved] || '🇺🇿';
+
+  document.querySelectorAll('.lang-opt').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.lang === saved);
+    btn.addEventListener('click', ()=>{
+      dropdown.classList.remove('open');
+      if(btn.dataset.lang !== window.currentLangMode) setLanguage(btn.dataset.lang);
+    });
+  });
+  flagBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', ()=> dropdown.classList.remove('open'));
+
+  if(saved !== 'uz') applyCurrentLanguage();
 })();
 
 loadSiteSettings();
@@ -2784,6 +3156,35 @@ async function raqamuzHeartbeat(){
 }
 raqamuzHeartbeat();
 setInterval(raqamuzHeartbeat, 20000);
+
+/* ---- Yangi raqam qo'shilganda — jonli yashil bildirishnoma ---- */
+(function watchNewNumbers(){
+  const banner = document.getElementById('newNumbersBanner');
+  let listenerReady = false;
+  let hideTimer = null;
+
+  function showBanner(count){
+    banner.textContent = `🆕 Bazaga ${count} dona yangi raqam qo'shildi`;
+    banner.classList.add('show');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(()=> banner.classList.remove('show'), 6000);
+  }
+  banner.addEventListener('click', ()=>{
+    banner.classList.remove('show');
+    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  try{
+    db.collection('numbers').onSnapshot(snap=>{
+      if(!listenerReady){
+        listenerReady = true;
+        return; // birinchi ulanish — bularning barchasi eski raqamlar
+      }
+      const added = snap.docChanges().filter(c => c.type === 'added');
+      if(added.length > 0) showBanner(added.length);
+    });
+  }catch(e){ /* muhim emas — banner ko'rsatilmasa ham sayt ishlayveradi */ }
+})();
 
 (async function countUniqueVisitor(){
   try{

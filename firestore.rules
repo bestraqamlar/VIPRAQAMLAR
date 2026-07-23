@@ -84,6 +84,26 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // "Raqam buyurtma berish" — mijoz oxirgi 4 raqamni kiritganda, admin
+    // belgilagan boshlang'ich narxni ko'rish uchun. Hamma o'qiy oladi
+    // (narx ko'rish uchun kerak), faqat admin yozadi/o'zgartiradi.
+    match /number_price_categories/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Mijoz "Raqam buyurtma berish" orqali qoldirgan so'rovlari — xuddi
+    // "orders" kabi, faqat asosiy maydonlar to'g'ri turdagi bo'lsagina
+    // yaratish mumkin, o'qish/o'zgartirish faqat admin uchun.
+    match /custom_orders/{doc} {
+      allow create: if request.resource.data.status == 'Yangi'
+        && request.resource.data.name is string && request.resource.data.name.size() < 200
+        && request.resource.data.phone is string && request.resource.data.phone.size() < 50
+        && request.resource.data.region is string && request.resource.data.region.size() < 300
+        && request.resource.data.pattern is string && request.resource.data.pattern.size() == 4;
+      allow read, update, delete: if request.auth != null;
+    }
+
     // TUZATILDI (2-marta mahkamlandi): shartnoma ID'lari ketma-ket (KR001,
     // KR002...) bo'lgani uchun, hatto "faqat bitta ID bo'yicha o'qish"
     // (get) ham ochiq bo'lsa, buni "sinab ko'rib" barcha mijozlarning

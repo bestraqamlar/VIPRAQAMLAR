@@ -55,12 +55,12 @@ exports.handler = async function (event) {
     const pdfBuffer = await buildContractPdfBuffer(data);
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="shartnoma-${idVal}.pdf"`
-      },
-      body: pdfBuffer.toString('base64'),
-      isBase64Encoded: true
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ok: true,
+        filename: `shartnoma-${idVal}.pdf`,
+        pdfBase64: pdfBuffer.toString('base64')
+      })
     };
   }catch(err){
     console.error('GENERATE-CONTRACT-PDF XATOSI:', err);

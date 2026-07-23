@@ -132,6 +132,7 @@ const BTN = {
   SALE: '🔥 Aksiya raqamlar',
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
+  CONTRACTS: '📄 Shartnomalarim',
   BACK: '⬅️ Orqaga',
   CANCEL: '🔁 Bekor qilish',
   STEP_BACK: '🔙 Orqaga',
@@ -192,9 +193,9 @@ function inlineKb(rows){ return { inline_keyboard: rows }; }
 
 function mainMenuKeyboard(){
   return replyKb([
-    [BTN.CHOOSE],
+    [BTN.CHOOSE, BTN.MYORDERS],
     [BTN.PREMIUM, BTN.SALE],
-    [BTN.CONTACT, BTN.MYORDERS]
+    [BTN.CONTACT, BTN.CONTRACTS]
   ]);
 }
 function backKeyboard(){ return replyKb([[BTN.BACK]]); }
@@ -653,30 +654,6 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
-    if(data === 'myorders_orders'){
-      await tg('answerCallbackQuery', { callback_query_id: cq.id });
-      const snap = await withRetry(() => db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get());
-      const orders = snap.docs.map(d => d.data());
-      if(orders.length === 0){
-        await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
-      }else{
-        const list = orders
-          .sort((a,b)=> (b.createdAtSort||0) - (a.createdAtSort||0))
-          .map(o => `📱 ${o.number}\n💰 ${formatPrice(o.price)}\n📌 Holati: ${o.status}`)
-          .join('\n\n—\n\n');
-        await send(chatId, `📋 Sizning buyurtmalaringiz:\n\n${list}`, mainMenuKeyboard());
-      }
-      return { statusCode: 200, body: 'ok' };
-    }
-
-    if(data === 'myorders_contract'){
-      session = { step: 'awaiting_contract_id' };
-      await saveSession(chatId, session);
-      await tg('answerCallbackQuery', { callback_query_id: cq.id });
-      await send(chatId, 'Shartnoma raqamini kiriting:', cancelKeyboard());
-      return { statusCode: 200, body: 'ok' };
-    }
-
     if(data.startsWith('download_contract|')){
       const contractId = data.split('|')[1];
       await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Tayyorlanmoqda...' });
@@ -878,14 +855,23 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.MYORDERS){
-      await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-      await tg('sendMessage', {
-        chat_id: chatId,
-        text: 'Nimani ko\'rmoqchisiz?',
-        reply_markup: inlineKb([
-          [{ text: '📄 Shartnoma', callback_data: 'myorders_contract' }, { text: '🛒 Buyurtma', callback_data: 'myorders_orders' }]
-        ])
-      });
+      const snap = await withRetry(() => db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get());
+      const orders = snap.docs.map(d => d.data());
+      if(orders.length === 0){
+        await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
+      }else{
+        const list = orders
+          .sort((a,b)=> (b.createdAtSort||0) - (a.createdAtSort||0))
+          .map(o => `📱 ${o.number}\n💰 ${formatPrice(o.price)}\n📌 Holati: ${o.status}`)
+          .join('\n\n—\n\n');
+        await send(chatId, `📋 Sizning buyurtmalaringiz:\n\n${list}`, mainMenuKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(text === BTN.CONTRACTS){
+      session = { step: 'awaiting_contract_id' };
+      await saveSession(chatId, session);
+      await send(chatId, 'Shartnoma raqamini kiriting:', cancelKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
