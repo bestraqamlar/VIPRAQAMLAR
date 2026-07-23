@@ -1058,7 +1058,16 @@
     .featured-btn{padding:12px;}
     .daily-deal-card{flex:0 0 165px;}
 
-    .side-drawer{width:360px;}
+    body{margin-right:380px;}
+    .menu-btn{display:none;}
+    .drawer-overlay{display:none;}
+    .side-drawer{
+      width:380px;max-width:380px;
+      transform:translateX(0);
+      box-shadow:-4px 0 24px rgba(0,0,0,0.25);
+      border-left:1px solid var(--line);
+    }
+    .drawer-close{display:none;}
     footer{padding:30px 20px 40px;}
   }
 </style>
@@ -2366,6 +2375,8 @@ async function loadSiteSettings(){
     if(s.contactLink) document.getElementById('drawerContact').href = s.contactLink;
     if(s.officeLat && s.officeLng){ officeCoords = [Number(s.officeLat), Number(s.officeLng)]; setDirectionsLink(); }
     if(s.yandexApiKey) yandexApiKey = s.yandexApiKey;
+    // Kompyuterda yon panel doim ochiq turadi — xaritani ham darhol yuklaymiz
+    if(window.innerWidth >= 1024) initYandexOfficeMap();
     if(s.workingHours) document.getElementById('drawerHours').textContent = s.workingHours;
     if(s.deliveryText) document.getElementById('drawerDelivery').textContent = s.deliveryText;
 
