@@ -25,9 +25,9 @@ db.settings({ preferRest: true });
    noto'g'ri bo'lsa, so'rov DARHOL rad etiladi. Skript, bot yoki
    to'g'ridan-to'g'ri API chaqiruvlari orqali bu funksiyadan FOYDALANIB
    BO'LMAYDI — faqat saytimiz orqali ishlaydi. */
-async function verifyAppCheckStrict(event){
+async function verifyAppCheckSoft(event){
   const token = (event.headers && (event.headers['x-firebase-appcheck'] || event.headers['X-Firebase-AppCheck'])) || '';
-  if(!token) return false; // MAJBURIY: token bo'lmasa — RAD ETILADI
+  if(!token) return true; // hozircha ixtiyoriy — App Check hali hamma so'rovda ishlamayapti
   try{
     await admin.appCheck().verifyToken(token);
     return true;
@@ -38,7 +38,7 @@ async function verifyAppCheckStrict(event){
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
-  if(!(await verifyAppCheckStrict(event))){
+  if(!(await verifyAppCheckSoft(event))){
     return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
   }
 

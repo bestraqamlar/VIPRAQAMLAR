@@ -14,6 +14,7 @@ const admin = require('firebase-admin');
 const { getBotControl } = require('./lib/botControl');
 const { checkAndMarkKnown } = require('./lib/knownCustomers');
 const { updateAdminList } = require('./lib/adminList');
+const { buildContractPdfBuffer } = require('./lib/contractPdf');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -652,6 +653,54 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    if(data === 'myorders_orders'){
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      const snap = await withRetry(() => db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get());
+      const orders = snap.docs.map(d => d.data());
+      if(orders.length === 0){
+        await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
+      }else{
+        const list = orders
+          .sort((a,b)=> (b.createdAtSort||0) - (a.createdAtSort||0))
+          .map(o => `📱 ${o.number}\n💰 ${formatPrice(o.price)}\n📌 Holati: ${o.status}`)
+          .join('\n\n—\n\n');
+        await send(chatId, `📋 Sizning buyurtmalaringiz:\n\n${list}`, mainMenuKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    if(data === 'myorders_contract'){
+      session = { step: 'awaiting_contract_id' };
+      await saveSession(chatId, session);
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      await send(chatId, 'Shartnoma raqamini kiriting:', cancelKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    if(data.startsWith('download_contract|')){
+      const contractId = data.split('|')[1];
+      await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Tayyorlanmoqda...' });
+      try{
+        const doc = await withRetry(() => db.collection('credit_contracts').doc(contractId).get());
+        if(!doc.exists){
+          await send(chatId, 'Shartnoma topilmadi.', mainMenuKeyboard());
+          return { statusCode: 200, body: 'ok' };
+        }
+        const cdata = doc.data();
+        const pdfBuffer = await buildContractPdfBuffer(cdata);
+        const token = process.env.CUSTOMER_BOT_TOKEN;
+        const form = new FormData();
+        form.append('chat_id', String(chatId));
+        form.append('caption', `📄 Shartnoma: ${contractId}`);
+        form.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), `shartnoma-${contractId}.pdf`);
+        await fetch(`https://api.telegram.org/bot${token}/sendDocument`, { method: 'POST', body: form });
+      }catch(err){
+        console.error('PDF yuborishda xato:', err);
+        await send(chatId, 'PDF tayyorlashda xato yuz berdi. Birozdan keyin qayta urinib ko\'ring.', mainMenuKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
     if(data.startsWith('buy|')){
       const numberId = data.split('|')[1];
       session = { step: 'awaiting_name', numberId };
@@ -829,17 +878,14 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.MYORDERS){
-      const snap = await withRetry(() => db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get());
-      const orders = snap.docs.map(d => d.data());
-      if(orders.length === 0){
-        await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
-      }else{
-        const list = orders
-          .sort((a,b)=> (b.createdAtSort||0) - (a.createdAtSort||0))
-          .map(o => `📱 ${o.number}\n💰 ${formatPrice(o.price)}\n📌 Holati: ${o.status}`)
-          .join('\n\n—\n\n');
-        await send(chatId, `📋 Sizning buyurtmalaringiz:\n\n${list}`, mainMenuKeyboard());
-      }
+      await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: 'Nimani ko\'rmoqchisiz?',
+        reply_markup: inlineKb([
+          [{ text: '📄 Shartnoma', callback_data: 'myorders_contract' }, { text: '🛒 Buyurtma', callback_data: 'myorders_orders' }]
+        ])
+      });
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -907,6 +953,92 @@ exports.handler = async function (event) {
     if(numberDoc.exists){
       await showNumberDetail(chatId, docToItem(numberDoc));
     }
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* ---- Shartnoma tekshirish: ID ---- */
+  if(session.step === 'awaiting_contract_id'){
+    session.contractIdDraft = text.trim().toUpperCase();
+    session.step = 'awaiting_contract_phone';
+    await saveSession(chatId, session);
+    await send(chatId, 'Sotib olgan raqamingizni kiriting (shartnomadagi raqam):', cancelKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* ---- Shartnoma tekshirish: 2-omil (raqam) va to'liq ma'lumot ---- */
+  if(session.step === 'awaiting_contract_phone'){
+    const numVal = text.replace(/\D/g, '');
+    const contractId = session.contractIdDraft;
+    session = { step: 'menu' };
+    await saveSession(chatId, session);
+
+    const notFoundMsg = "Ma'lumot topilmadi. ID va raqamni tekshiring.";
+    if(!contractId || !numVal || numVal.length < 9){
+      await send(chatId, notFoundMsg, mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    const doc = await withRetry(() => db.collection('credit_contracts').doc(contractId).get());
+    if(!doc.exists){
+      await send(chatId, notFoundMsg, mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    const cdata = doc.data();
+    const docNumDigits = (cdata.number || '').replace(/\D/g, '');
+    if(!docNumDigits.endsWith(numVal.slice(-9))){
+      await send(chatId, notFoundMsg, mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    // Mijoz ID+raqam bilan shartnomani tasdiqladi — kelajakda kunlik to'lov
+    // eslatmalari (2 kun oldin / kuni / kechiksa) shu chatga avtomatik
+    // yuborilishi uchun chat ID'sini shartnomaga bog'lab qo'yamiz
+    // (agar hali bog'lanmagan bo'lsa).
+    if(!cdata.customerChatId){
+      await withRetry(() => db.collection('credit_contracts').doc(contractId).update({ customerChatId: String(chatId) }));
+    }
+
+    const now = Date.now();
+    const paidCount = (cdata.payments || []).filter(p => p.status === 'paid').length;
+    const totalMonths = cdata.totalMonths || 0;
+    const CONTRACT_STATUS_LABELS = {
+      active: "To'lov muvaffaqiyatli bajarilmoqda",
+      trouble: "To'lov uzilishlari ko'p",
+      cancelling: "Shartnoma bekor qilish jarayonida",
+      cancelled: "Shartnoma bekor bo'ldi",
+      completed: "Shartnoma muvaffaqiyatli yakunlandi"
+    };
+    const stLabel = CONTRACT_STATUS_LABELS[cdata.contractStatus] || CONTRACT_STATUS_LABELS.active;
+
+    const monthsLines = (cdata.payments || []).map(p=>{
+      let label;
+      if(p.status === 'paid') label = "✅ To'landi";
+      else if(p.dueDate < now) label = '⚠️ Kechikmoqda';
+      else label = 'Muddati kelmagan';
+      const d = new Date(p.dueDate);
+      const dateStr = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+      return `${p.month}-oy (${dateStr}): ${label}`;
+    }).join('\n');
+
+    const summary =
+`📄 Shartnoma: ${contractId}
+
+👤 Mijoz: ${cdata.customerName}
+📱 Raqam: ${cdata.number}
+🗓 Muddat: ${totalMonths} oy
+💰 Oylik to'lov: ${formatPrice(cdata.monthlyPayment)}
+✅ To'landi: ${paidCount} / ${totalMonths} oy
+
+${monthsLines}
+
+● ${stLabel}`;
+
+    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+    await tg('sendMessage', {
+      chat_id: chatId, text: summary,
+      reply_markup: inlineKb([[{ text: '📄 Shartnomani yuklab olish', callback_data: `download_contract|${contractId}` }]])
+    });
+    await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
 

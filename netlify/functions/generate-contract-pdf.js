@@ -21,7 +21,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true });
 
-async function verifyAppCheckStrict(event){
+async function verifyAppCheckSoft(event){
   const token = (event.headers && (event.headers['x-firebase-appcheck'] || event.headers['X-Firebase-AppCheck'])) || '';
   if(!token) return false;
   try{ await admin.appCheck().verifyToken(token); return true; }
@@ -30,7 +30,7 @@ async function verifyAppCheckStrict(event){
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
-  if(!(await verifyAppCheckStrict(event))){
+  if(!(await verifyAppCheckSoft(event))){
     return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
   }
 
