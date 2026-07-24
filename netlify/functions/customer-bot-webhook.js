@@ -573,35 +573,6 @@ async function generateTelegramAIReply(userText, chatId){
       yozmaydi, faqat ismini adminga ro'yxat qilib yuboradi (admin o'zi
       shaxsan javob yozadi). Qaytgan mijozlarga bu tekshiruv qo'llanmaydi. */
 async function handleFreeTextReply(chatId, text, from, control){
-  // Agar mijoz "Zakaz" (Raqam buyurtma berish) bo'yicha admin bilan faol
-  // suhbatda bo'lsa — bu matn AI'ga EMAS, aynan shu suhbat tarixiga va
-  // to'g'ridan-to'g'ri adminga boradi (ikki tomonlama "chat" effekti).
-  try{
-    const sessionDoc = await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).get());
-    const activeCustomOrderId = sessionDoc.exists ? sessionDoc.data().activeCustomOrderId : null;
-    if(activeCustomOrderId){
-      await withRetry(() => db.collection('custom_orders').doc(activeCustomOrderId).update({
-        messages: admin.firestore.FieldValue.arrayUnion({ sender: 'customer', text, at: Date.now() })
-      }));
-
-      const adminToken = process.env.TELEGRAM_BOT_TOKEN;
-      const adminChatId = process.env.TELEGRAM_CHAT_ID;
-      if(adminToken && adminChatId){
-        await fetch(`https://api.telegram.org/bot${adminToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: adminChatId,
-            text: `💬 Mijozdan javob (Zakaz so'rovi bo'yicha):\n\n"${text}"\n\nTo'liq suhbat: Admin panel → 📥 Zakaz bo'limi.`
-          })
-        }).catch(()=>{});
-      }
-
-      await send(chatId, 'Xabaringiz qabul qilindi, tez orada javob beramiz ✅', mainMenuKeyboard());
-      return;
-    }
-  }catch(e){ console.error('Zakaz suhbatini tekshirishda xato:', e); }
-
   if(!control.autoReplyEnabled){
     await send(chatId, "Iltimos, menyudagi tugmalardan foydalaning 👇", mainMenuKeyboard());
     return;

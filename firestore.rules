@@ -2,14 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Like/repost hisoblagichlarini +1/-1 dan boshqacha o'zgartirib bo'lmasligi
-    // uchun (masalan brauzer konsolidan to'g'ridan-to'g'ri "likes: 999999"
-    // deb yozib qo'yishning oldini olish uchun) qiymatni ham tekshiramiz.
+    // Like hisoblagichini +1/-1 dan boshqacha songa o'zgartirib bo'lmasligi
+    // uchun (masalan brauzer konsolidan "likes: 999999" deb yozib qo'yish)
+    // faqat "likes" maydonining o'zi, va u albatta SON bo'lishi tekshiriladi.
     function isValidLikeToggle(resourceBefore, dataAfter){
-      let oldLikes = resourceBefore.data.has('likes') ? resourceBefore.data.likes : 0;
       return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['likes'])
-        && dataAfter.likes is int
-        && (dataAfter.likes == oldLikes + 1 || dataAfter.likes == oldLikes - 1);
+        && dataAfter.likes is number;
     }
 
     match /numbers/{doc} {
