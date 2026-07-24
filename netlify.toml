@@ -3,6 +3,11 @@
 
 [functions]
   directory = "netlify/functions"
+  # pdfkit shrift fayllari (.afm) — bular bo'lmasa PDF generatsiya funksiyalari
+  # (shartnoma yuklab olish) xato beradi. Bu Netlify'da pdfkit ishlatishning
+  # mashhur "tuzog'i" — shrift fayllari avtomatik bog'lanmaydi (bundle),
+  # shu sabab bu yerda ANIQ ko'rsatib qo'yamiz.
+  included_files = ["node_modules/pdfkit/js/data/*.afm"]
 
 [functions."check-credit-payments"]
   schedule = "0 */6 * * *"

@@ -133,6 +133,8 @@ const BTN = {
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
   CONTRACTS: '📄 Shartnomalarim',
+  PREV_PAGE: '◀️ Oldingi',
+  NEXT_PAGE: 'Keyingisi ▶️',
   BACK: '⬅️ Orqaga',
   CANCEL: '🔁 Bekor qilish',
   STEP_BACK: '🔙 Orqaga',
@@ -245,7 +247,8 @@ async function getInstallmentRates(){
 function displayNumber(numberStr){ return (numberStr || '').replace(/-/g, ' '); }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
-async function showNumberList(chatId, session, items, emptyText, emptyExtraKeyboard){
+const LIST_PAGE_SIZE = 10;
+async function showNumberList(chatId, session, items, emptyText, emptyExtraKeyboard, page){
   if(items.length === 0){
     if(emptyExtraKeyboard){
       await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
@@ -255,14 +258,32 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
     }
     return;
   }
+
+  page = page || 0;
+  const totalPages = Math.ceil(items.length / LIST_PAGE_SIZE);
+  if(page >= totalPages) page = totalPages - 1;
+  if(page < 0) page = 0;
+  const pageItems = items.slice(page * LIST_PAGE_SIZE, (page + 1) * LIST_PAGE_SIZE);
+
   session.step = 'list_shown';
   session.candidates = {};
-  items.slice(0, 8).forEach(item => { session.candidates[displayNumber(item.number)] = item.id; });
+  pageItems.forEach(item => { session.candidates[displayNumber(item.number)] = item.id; });
+  // Sahifalar orasida almashish uchun — to'liq ro'yxatning faqat ID+raqamini
+  // saqlaymiz (batafsil ma'lumot tanlanganda Firestore'dan qayta olinadi).
+  session.listAll = items.map(item => ({ id: item.id, number: item.number }));
+  session.listPage = page;
+  session.listEmptyText = emptyText;
   await saveSession(chatId, session);
 
-  const rows = items.slice(0, 8).map(item => [displayNumber(item.number)]);
+  const rows = pageItems.map(item => [displayNumber(item.number)]);
+  const navRow = [];
+  if(page > 0) navRow.push(BTN.PREV_PAGE);
+  if(page < totalPages - 1) navRow.push(BTN.NEXT_PAGE);
+  if(navRow.length) rows.push(navRow);
   rows.push([BTN.BACK]);
-  await send(chatId, "Mos raqamlar topildi. Batafsil ko'rish uchun birini tanlang 👇", replyKb(rows));
+
+  const pageInfo = totalPages > 1 ? ` (${page + 1}/${totalPages}-sahifa)` : '';
+  await send(chatId, `Mos raqamlar topildi${pageInfo}. Batafsil ko'rish uchun birini tanlang 👇`, replyKb(rows));
 }
 
 async function showNumberDetail(chatId, item){
@@ -776,6 +797,17 @@ exports.handler = async function (event) {
     await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
+  if(text === BTN.PREV_PAGE || text === BTN.NEXT_PAGE){
+    if(!session.listAll || session.step !== 'list_shown'){
+      session = { step: 'menu' };
+      await saveSession(chatId, session);
+      await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    const newPage = (session.listPage || 0) + (text === BTN.NEXT_PAGE ? 1 : -1);
+    await showNumberList(chatId, session, session.listAll, session.listEmptyText || "Natija topilmadi.", null, newPage);
+    return { statusCode: 200, body: 'ok' };
+  }
   if(text === BTN.CANCEL){
     session = { step: 'menu' };
     await saveSession(chatId, session);
@@ -829,12 +861,12 @@ exports.handler = async function (event) {
     }
 
     if(text === BTN.PREMIUM){
-      const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(8).get());
+      const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(200).get());
       await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha VIP raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
-      const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(8).get());
+      const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(200).get());
       await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }

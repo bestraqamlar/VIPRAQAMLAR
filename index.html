@@ -165,11 +165,13 @@
   .header-right-group{display:flex;align-items:center;gap:8px;}
   .lang-switch-wrap{position:relative;}
   .lang-flag-btn{
-    background:none;border:1px solid var(--line);border-radius:8px;
-    width:38px;height:38px;display:flex;align-items:center;justify-content:center;
-    font-size:17px;cursor:pointer;
+    background:linear-gradient(160deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:11px;
+    width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+    font-size:18px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    transition:transform .15s ease, border-color .15s ease;
   }
-  .lang-flag-btn:hover{border-color:var(--red);}
+  .lang-flag-btn:hover{border-color:var(--amber);transform:translateY(-1px);}
   .lang-dropdown{
     position:absolute;top:46px;right:0;background:var(--panel);border:1px solid var(--line);
     border-radius:10px;padding:6px;display:none;flex-direction:column;gap:3px;z-index:40;
@@ -828,17 +830,10 @@
   .pay-tab{
     background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
     padding:11px 8px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;
-    transition:all .18s ease;
+    transition:all .18s ease;display:flex;align-items:center;justify-content:center;gap:7px;
   }
+  .pay-tab svg{width:16px;height:16px;flex-shrink:0;}
   .pay-tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
-
-  .mo-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 16px;}
-  .mo-tab{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
-    padding:11px 8px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;
-    transition:all .18s ease;
-  }
-  .mo-tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
 
   /* ---- Bo'lib to'lash kalkulyatori ---- */
   .installment-calc{
@@ -987,37 +982,45 @@
   .toast.show{top:16px;}
 
   .hub-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,0.6);
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;pointer-events:none;transition:opacity 0.35s ease;z-index:215;padding:20px;
+    position:fixed;inset:0;background:linear-gradient(160deg,#2c1aa0,#180d5c);
+    z-index:215;overflow-y:auto;
+    opacity:0;pointer-events:none;transform:scale(0.96);
+    transition:opacity 0.35s ease, transform 0.35s cubic-bezier(.22,1,.36,1);
+    padding:0 0 30px;
   }
-  .hub-overlay.open{opacity:1;pointer-events:auto;}
-  .hub-modal{
-    background:linear-gradient(160deg,#2c1aa0,#180d5c);
-    border-radius:22px;padding:26px 20px 30px;width:100%;max-width:380px;
-    position:relative;box-shadow:0 30px 60px rgba(0,0,0,0.5);
-    transform:scale(0.92) translateY(14px);opacity:0;
-    transition:transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.35s ease;
+  .hub-overlay.open{opacity:1;pointer-events:auto;transform:scale(1);}
+  .hub-top-bar{
+    position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 14px;
+    background:linear-gradient(160deg,#2c1aa0,#180d5c);z-index:2;
   }
-  .hub-overlay.open .hub-modal{transform:scale(1) translateY(0);opacity:1;}
+  .hub-top-title{color:#fff;font-family:'Sora',sans-serif;font-weight:800;font-size:18px;}
   .hub-close{
-    position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.12);
-    border:none;border-radius:10px;width:34px;height:34px;color:#fff;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    background:rgba(255,255,255,0.12);
+    border:none;border-radius:10px;width:36px;height:36px;color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
   }
   .hub-close svg{width:18px;height:18px;}
   .hub-close:hover{background:rgba(255,255,255,0.22);}
   .hub-grid{
-    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px;
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:6px 20px 20px;
   }
   .hub-btn{
-    background:#4633ea;border:1px solid rgba(255,255,255,0.1);border-radius:16px;
-    color:#fff;font-weight:800;font-size:14px;text-align:left;cursor:pointer;
-    padding:22px 14px;min-height:96px;display:flex;align-items:flex-end;
-    line-height:1.3;transition:transform .15s ease, background .15s ease;
+    background:#4633ea;border:1px solid rgba(255,255,255,0.12);border-radius:18px;
+    color:#fff;text-align:left;cursor:pointer;
+    padding:18px 16px;min-height:140px;display:flex;flex-direction:column;
+    justify-content:flex-start;gap:8px;
+    transition:transform .15s ease, background .15s ease;
   }
   .hub-btn:hover{background:#5442ff;transform:translateY(-2px);}
   .hub-btn:active{transform:translateY(0) scale(0.98);}
+  .hub-btn-icon{
+    width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.14);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .hub-btn-icon svg{width:19px;height:19px;}
+  .hub-btn-title{font-weight:800;font-size:14px;line-height:1.25;margin-top:2px;}
+  .hub-btn-sub{font-size:10.5px;color:rgba(255,255,255,0.65);line-height:1.4;font-weight:500;}
 
   .co-number-row{
     display:flex;align-items:center;gap:8px;margin-top:6px;
@@ -1230,7 +1233,6 @@
       <div class="lang-dropdown" id="langDropdown">
         <button type="button" class="lang-opt active" data-lang="uz">O'zbek</button>
         <button type="button" class="lang-opt" data-lang="ru">Русский</button>
-        <button type="button" class="lang-opt" data-lang="cy">Ўзбек</button>
       </div>
     </div>
     <button class="menu-btn" id="menuBtn" aria-label="Menyu">
@@ -1368,16 +1370,33 @@
 <div class="toast" id="toast"></div>
 
 <div class="hub-overlay" id="hubOverlay">
-  <div class="hub-modal">
+  <div class="hub-top-bar">
+    <span class="hub-top-title">Buyurtmalarim</span>
     <button class="hub-close" id="hubClose" aria-label="Yopish">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
     </button>
-    <div class="hub-grid">
-      <button type="button" class="hub-btn" id="hubBtnOrders">📋 Buyurtmalarim</button>
-      <button type="button" class="hub-btn" id="hubBtnContracts">📄 Shartnomalarim</button>
-      <button type="button" class="hub-btn" id="hubBtnCustomOrder">🔢 Raqam buyurtma berish</button>
-      <button type="button" class="hub-btn" id="hubBtnAbout">ℹ️ Biz haqimizda</button>
-    </div>
+  </div>
+  <div class="hub-grid">
+    <button type="button" class="hub-btn" id="hubBtnOrders">
+      <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+      <span class="hub-btn-title">Buyurtmalarim</span>
+      <span class="hub-btn-sub">Buyurtma qilgan raqamimni holatini ko'rish</span>
+    </button>
+    <button type="button" class="hub-btn" id="hubBtnContracts">
+      <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
+      <span class="hub-btn-title">Shartnomalarim</span>
+      <span class="hub-btn-sub">Bo'lib to'lashga olgan raqamim holatini ko'rish</span>
+    </button>
+    <button type="button" class="hub-btn" id="hubBtnCustomOrder">
+      <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 10.5h1M12 10.5h1M16 10.5h1M8 14.5h8"/></svg></span>
+      <span class="hub-btn-title">Raqam buyurtma berish</span>
+      <span class="hub-btn-sub">Saytda mavjud bo'lmagan raqam buyurtma qilish</span>
+    </button>
+    <button type="button" class="hub-btn" id="hubBtnAbout">
+      <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.9" fill="currentColor" stroke="none"/></svg></span>
+      <span class="hub-btn-title">Biz haqimizda</span>
+      <span class="hub-btn-sub">Kompaniyamiz va aloqa ma'lumotlari</span>
+    </button>
   </div>
 </div>
 
@@ -1396,9 +1415,15 @@
         <span class="co-prefix">+998 (XX)-XXX-</span>
         <input type="text" id="coPatternInput" maxlength="4" inputmode="numeric" placeholder="0000">
       </div>
-      <button class="btn-confirm contract-search-btn" id="coPriceBtn" style="width:100%;margin-top:12px;">💰 Narxini bilish</button>
+      <button class="btn-confirm contract-search-btn" id="coPriceBtn" style="width:100%;margin-top:12px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5c0 3 6 1.5 6 4.5 0 1.4-1.3 2.5-3 2.5s-3-1.1-3-2.5"/></svg>
+        Narxini bilish
+      </button>
       <div id="coPriceResult" class="co-price-result" style="display:none;"></div>
-      <button class="btn-confirm contract-search-btn" id="coStep1Next" style="width:100%;margin-top:12px;display:none;">Keyingisi →</button>
+      <button class="btn-confirm contract-search-btn" id="coStep1Next" style="width:100%;margin-top:12px;display:none;">
+        Keyingisi
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-left:6px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </div>
 
     <div id="coStep2" style="display:none;">
@@ -1426,13 +1451,19 @@
       <input type="text" id="coPhone" placeholder="90 123-45-67" inputmode="numeric">
       <div class="field-error" id="coError">Barcha maydonlarni to'ldiring</div>
       <div class="co-nav-row">
-        <button class="btn-confirm contract-search-btn" id="coStep2Back" style="background:var(--panel-2);color:var(--text);">⬅ Orqaga</button>
-        <button class="btn-confirm contract-search-btn" id="coSubmitBtn">✅ Yuborish</button>
+        <button class="btn-confirm contract-search-btn" id="coStep2Back" style="background:var(--panel-2);color:var(--text);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Orqaga
+        </button>
+        <button class="btn-confirm contract-search-btn" id="coSubmitBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg>
+          Yuborish
+        </button>
       </div>
     </div>
 
     <div id="coSuccessView" style="display:none;text-align:center;padding:10px 0;">
-      <div style="font-size:34px;margin-bottom:10px;">✅</div>
+      <div style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" style="width:52px;height:52px;"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5.5-6"/></svg></div>
       <p style="font-size:13.5px;line-height:1.6;">So'rovingiz qabul qilindi! Tez orada operatorlarimiz siz bilan bog'lanishadi.</p>
       <button class="btn-confirm contract-search-btn" id="coCloseSuccess" style="width:100%;margin-top:14px;">Yopish</button>
     </div>
@@ -1452,22 +1483,17 @@
       <p>Biz mijozlarimizga barcha operatorlar (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) raqamlarini keng katalog orqali taqdim etamiz, O'zbekiston bo'ylab bepul yetkazib berish va bo'lib to'lash (kredit) imkoniyatini beramiz.</p>
       <p>Savol va takliflar uchun: <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" style="color:var(--amber);">@Vip_raqamlar_admin</a></p>
     </div>
-    <button class="btn-confirm contract-search-btn" id="aboutBackBtn" style="width:100%;margin-top:16px;">⬅ Yopish</button>
+    <button class="btn-confirm contract-search-btn" id="aboutBackBtn" style="width:100%;margin-top:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Yopish</button>
   </div>
 </div>
 
 <div class="contract-overlay" id="contractOverlay">
   <div class="contract-modal">
     <div class="contract-top">
-      <span class="contract-title" data-i18n="myOrders">Buyurtmalarim</span>
+      <span class="contract-title" id="contractOverlayTitle">Buyurtmalarim</span>
       <button class="drawer-close" id="contractClose">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
       </button>
-    </div>
-
-    <div class="mo-tabs">
-      <button type="button" class="mo-tab active" id="moTabContract" data-tab="contract" data-i18n="myContracts">Shartnomalarim</button>
-      <button type="button" class="mo-tab" id="moTabOrders" data-tab="orders" data-i18n="myOrders">Buyurtmalarim</button>
     </div>
 
     <div id="contractPane">
@@ -1478,7 +1504,8 @@
         <input type="text" id="contractNumberInput" placeholder="">
         <div class="field-error" id="contractError" data-i18n="notFoundError">Ma'lumot topilmadi. ID va raqamni tekshiring.</div>
         <button class="btn-confirm contract-search-btn" id="contractSearchBtn" style="width:100%;margin-top:10px;">
-          <span id="contractSearchLabel" data-i18n="search">🔍 Qidirish</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <span id="contractSearchLabel" data-i18n="search">Qidirish</span>
           <span class="spinner" id="contractSearchSpinner" style="display:none;"></span>
         </button>
       </div>
@@ -1493,7 +1520,8 @@
         <input type="text" id="ordersLastDigitsInput" maxlength="4" inputmode="numeric" placeholder="0000">
         <div class="field-error" id="ordersError" data-i18n="ordersNotFoundError">Ma'lumot topilmadi. Raqamni tekshiring.</div>
         <button class="btn-confirm contract-search-btn" id="ordersSearchBtn" style="width:100%;margin-top:10px;">
-          <span id="ordersSearchLabel" data-i18n="search">🔍 Qidirish</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <span id="ordersSearchLabel" data-i18n="search">Qidirish</span>
           <span class="spinner" id="ordersSearchSpinner" style="display:none;"></span>
         </button>
       </div>
@@ -1510,8 +1538,14 @@
       <div class="modal-number" id="modalNumber"></div>
 
       <div class="pay-tabs" id="payTabs" style="display:none;">
-        <button type="button" class="pay-tab active" id="payTabCash" data-type="cash" data-i18n="cashPay">💵 Naqt to'lov</button>
-        <button type="button" class="pay-tab" id="payTabInstallment" data-type="installment" data-i18n="installmentPay">📅 Bo'lib to'lash</button>
+        <button type="button" class="pay-tab active" id="payTabCash" data-type="cash">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 6v12M18 6v12" opacity="0"/></svg>
+          <span data-i18n="cashPay">Naqt to'lov</span>
+        </button>
+        <button type="button" class="pay-tab" id="payTabInstallment" data-type="installment">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8 14h1M12 14h1M16 14h1M8 17h1M12 17h1"/></svg>
+          <span data-i18n="installmentPay">Bo'lib to'lash</span>
+        </button>
       </div>
 
       <div class="installment-calc" id="installmentCalc" style="display:none;">
@@ -1661,7 +1695,10 @@ function formatUzNumber(rawDigits){
   if(rawDigits.length > 7) out += '-' + rawDigits.slice(7,9);
   return out;
 }
-function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+function formatPrice(n){
+  const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
+  return num + (window.currentLangMode === 'ru' ? " сум" : " so'm");
+}
 function escapeHtml(s){
   return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1674,6 +1711,10 @@ let numbersLoaded = false;
    har safar (har bir tashrifda) o'rta qismi aralashtiriladi — shunda hamma
    mijozga bir xil, "qotib qolgan" tartib emas, har safar birozgina yangi
    ko'rinish chiqadi. Faqat qidiruv FAOL BO'LMAGANDA ishlaydi. */
+/* Mijoz saytga har kirganda (yoki sahifani yangilaganda) katalog TO'LIQ
+   TASODIFIY tartibda chiqadi — hamma mijozga har xil, har safar boshqacha
+   ko'rinish. Faqat qidiruv FAOL BO'LMAGANDA ishlaydi (qidiruv natijalari
+   tasodifiylashtirilmaydi). */
 function shuffleArray(a){
   const arr = a.slice();
   for(let i = arr.length - 1; i > 0; i--){
@@ -1684,21 +1725,7 @@ function shuffleArray(a){
 }
 function buildZigzagOrder(list){
   const arr = list.filter(item => !item.reserved && item.dailyDeal !== true);
-  if(arr.length <= 2) return arr.slice();
-  const sorted = arr.slice().sort((a, b) => (b.price || 0) - (a.price || 0));
-  const mostExpensive = sorted[0];
-  const cheapest = sorted[sorted.length - 1];
-  const rest = sorted.slice(1, sorted.length - 1);
-  const mid = Math.ceil(rest.length / 2);
-  const upperHalf = shuffleArray(rest.slice(0, mid));   // qimmatroq yarmi
-  const lowerHalf = shuffleArray(rest.slice(mid));      // arzonroq yarmi
-  const result = [mostExpensive, cheapest];
-  const maxLen = Math.max(upperHalf.length, lowerHalf.length);
-  for(let i = 0; i < maxLen; i++){
-    if(upperHalf[i]) result.push(upperHalf[i]);
-    if(lowerHalf[i]) result.push(lowerHalf[i]);
-  }
-  return result;
+  return shuffleArray(arr);
 }
 let ZIGZAG_ORDER = [];
 
@@ -1780,7 +1807,7 @@ const NO_BUTTON_STYLES = ['list_minimal', 'bold_price'];
 const CART_ICON_SVG = '<svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>';
 
 function orderButtonHtml(item, label, extraClass){
-  if(item.reserved) return `<button class="order-btn reserved-btn ${extraClass}" disabled>Band qilingan</button>`;
+  if(item.reserved) return `<button class="order-btn reserved-btn ${extraClass}" disabled>${t('Band qilingan')}</button>`;
   return `<button class="order-btn ${extraClass}" data-number="${item.number}" data-id="${item.id}">${label}</button>`;
 }
 
@@ -1793,7 +1820,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
   const numDisp = displayNumber(item.number);
   const priceDisp = formatPrice(item.price);
   const oldPriceDisp = hasDiscount ? formatPrice(item.oldPrice) : '';
-  const installmentHtml = item.installment ? `<div class="installment-tag">📅 Bo'lib to'lash mumkin</div>` : '';
+  const installmentHtml = item.installment ? `<div class="installment-tag">📅 ${t("Bo'lib to'lash mumkin")}</div>` : '';
   const discountHtml = hasDiscount ? `<span class="discount-badge">-${discountPct}%</span>` : '';
 
   switch(style){
@@ -1806,7 +1833,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
           <span class="db-price">${priceDisp}</span>
         </div>
         <div class="db-num">${numDisp}</div>
-        <div class="db-sub">${item.reserved ? 'Band qilingan' : 'Buyurtma berish uchun bosing'}</div>
+        <div class="db-sub">${item.reserved ? t('Band qilingan') : t('Buyurtma berish uchun bosing')}</div>
         ${orderButtonHtml(item, `Buyurtma ${CART_ICON_SVG}`, 'db-btn')}`;
 
     case 'list_icon':
@@ -1828,7 +1855,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
         <div class="ol-num">${numDisp}</div>
         <div class="ol-price">${priceDisp}</div>
         ${installmentHtml}
-        ${orderButtonHtml(item, 'Buyurtma berish', 'ol-btn')}`;
+        ${orderButtonHtml(item, t('Buyurtma berish'), 'ol-btn')}`;
 
     case 'glass':
       return `
@@ -1841,7 +1868,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
         ${hasDiscount ? `<div class="rb-ribbon">-${discountPct}%</div>` : ''}
         <div class="rb-num">${numDisp}</div>
         <div class="rb-price-row"><span class="rb-price">${priceDisp}</span>${hasDiscount ? `<s class="rb-old">${oldPriceDisp}</s>` : ''}</div>
-        ${orderButtonHtml(item, 'Buyurtma berish', 'rb-btn')}`;
+        ${orderButtonHtml(item, t('Buyurtma berish'), 'rb-btn')}`;
 
     case 'ticket':
       return `
@@ -1857,7 +1884,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
       return `
         <div class="bp-price">${priceDisp}</div>
         <div class="bp-num">${numDisp}</div>
-        ${item.reserved ? `<div class="bp-reserved">Band qilingan</div>` : ''}`;
+        ${item.reserved ? `<div class="bp-reserved">${t('Band qilingan')}</div>` : ''}`;
 
     case 'horizontal':
       return `
@@ -1868,14 +1895,14 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
       return `
         <div class="gr-num">${numDisp}</div>
         <div class="gr-price">${priceDisp}</div>
-        ${orderButtonHtml(item, 'Buyurtma berish', 'gr-btn')}`;
+        ${orderButtonHtml(item, t('Buyurtma berish'), 'gr-btn')}`;
 
     case 'numbered_badge':
       return `
         <div class="nb-badge">#${String(rank).padStart(3,'0')}</div>
         <div class="nb-num">${numDisp}</div>
         <div class="nb-price">${priceDisp}</div>
-        ${orderButtonHtml(item, 'Buyurtma berish', 'nb-btn')}`;
+        ${orderButtonHtml(item, t('Buyurtma berish'), 'nb-btn')}`;
 
     case 'classic_locked':
       // MUHIM: bu uslub ATAYLAB o'zgarmas mavzu o'rniga QATTIQ YOZILGAN
@@ -1892,7 +1919,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
           </div>
           ${installmentHtml}
           ${item.reserved
-            ? `<button class="lk-btn lk-reserved" disabled>Band qilingan</button>`
+            ? `<button class="lk-btn lk-reserved" disabled>${t('Band qilingan')}</button>`
             : `<button class="order-btn lk-btn" data-number="${item.number}" data-id="${item.id}">Buyurtma berish</button>`}
         </div>`;
 
@@ -1932,10 +1959,10 @@ function renderCatalog(){
       catalogEl.innerHTML = `
         <div class="loading-state">
           <div class="spinner"></div>
-          <p>Raqamlar yuklanmoqda...</p>
+          <p>${t('Raqamlar yuklanmoqda...')}</p>
         </div>`;
     }else{
-      catalogEl.innerHTML = `<div class="empty-state">Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.</div>`;
+      catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
     }
     renderPagination(0, 1);
     return;
@@ -2101,8 +2128,8 @@ function renderDailyDeal(){
           ${hasDiscount ? `<span class="dd-oldprice">${formatPrice(item.oldPrice)}</span>` : ''}
         </div>
         ${item.reserved
-          ? `<button disabled style="opacity:0.6;">Band qilingan</button>`
-          : `<button data-number="${item.number}" data-id="${item.id}">Buyurtma berish</button>`}
+          ? `<button disabled style="opacity:0.6;">${t('Band qilingan')}</button>`
+          : `<button data-number="${item.number}" data-id="${item.id}">${t('Buyurtma berish')}</button>`}
       </div>
     `;
   }).join('');
@@ -2501,8 +2528,7 @@ function openContractOverlay(tab){
   document.getElementById('ordersSearchView').style.display = 'block';
   document.getElementById('ordersResultView').style.display = 'none';
   const isContract = tab !== 'orders';
-  document.getElementById('moTabContract').classList.toggle('active', isContract);
-  document.getElementById('moTabOrders').classList.toggle('active', !isContract);
+  document.getElementById('contractOverlayTitle').textContent = isContract ? 'Shartnomalarim' : 'Buyurtmalarim';
   document.getElementById('contractPane').style.display = isContract ? 'block' : 'none';
   document.getElementById('ordersPane').style.display = isContract ? 'none' : 'block';
   contractOverlay.classList.add('open');
@@ -2631,8 +2657,8 @@ function renderContractResult(data){
       <span><i style="background:var(--red);"></i> Kechikmoqda</span>
     </div>
     <div class="cr-status-banner" style="border-color:${st.color};color:${st.color};">● ${st.label}</div>
-    <button class="btn-confirm contract-search-btn" id="contractBackBtn" style="width:100%;margin-top:14px;">⬅ Orqaga</button>
-    <a href="#" id="contractDownloadBtn" class="cr-download-link">📄 Shartnomani yuklab olish</a>
+    <button class="btn-confirm contract-search-btn" id="contractBackBtn" style="width:100%;margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Orqaga</button>
+    <a href="#" id="contractDownloadBtn" class="cr-download-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:5px;"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>Shartnomani yuklab olish</a>
   `;
   document.getElementById('contractBackBtn').addEventListener('click', ()=>{
     contractResultView.style.display = 'none';
@@ -2641,7 +2667,7 @@ function renderContractResult(data){
   document.getElementById('contractDownloadBtn').addEventListener('click', async (e)=>{
     e.preventDefault();
     const link = e.currentTarget;
-    const originalText = link.textContent;
+    const originalText = link.innerHTML;
     link.textContent = 'Tayyorlanmoqda...';
     try{
       const res = await fetch('/.netlify/functions/generate-contract-pdf', {
@@ -2671,27 +2697,15 @@ function renderContractResult(data){
     }catch(err){
       if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000);
     }
-    link.textContent = originalText;
+    link.innerHTML = originalText;
   });
 }
 
-/* ---- "Buyurtmalarim" / "Shartnomalarim" tab almashish ---- */
+/* ---- "Buyurtmalarim" va "Shartnomalarim" endi mustaqil, alohida
+   oynalar — hub'dagi tugmalar orqali to'g'ridan-to'g'ri ochiladi,
+   ular orasida ichki almashish (tab) endi yo'q. ---- */
 const contractPane = document.getElementById('contractPane');
 const ordersPane = document.getElementById('ordersPane');
-const moTabContract = document.getElementById('moTabContract');
-const moTabOrders = document.getElementById('moTabOrders');
-moTabContract.addEventListener('click', ()=>{
-  moTabContract.classList.add('active');
-  moTabOrders.classList.remove('active');
-  contractPane.style.display = 'block';
-  ordersPane.style.display = 'none';
-});
-moTabOrders.addEventListener('click', ()=>{
-  moTabOrders.classList.add('active');
-  moTabContract.classList.remove('active');
-  ordersPane.style.display = 'block';
-  contractPane.style.display = 'none';
-});
 
 /* ---- "Buyurtmalarim" — telefon raqami bo'yicha qidirish ---- */
 const ordersSearchView = document.getElementById('ordersSearchView');
@@ -2768,7 +2782,7 @@ function renderOrdersResult(orders){
 
   ordersResultView.innerHTML = `
     ${rowsHtml}
-    <button class="btn-confirm contract-search-btn" id="ordersBackBtn" style="width:100%;margin-top:6px;">⬅ Orqaga</button>
+    <button class="btn-confirm contract-search-btn" id="ordersBackBtn" style="width:100%;margin-top:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Orqaga</button>
   `;
   document.getElementById('ordersBackBtn').addEventListener('click', ()=>{
     ordersResultView.style.display = 'none';
@@ -2876,7 +2890,7 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
   }
 
   btn.disabled = false;
-  btn.textContent = '✅ Yuborish';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg>Yuborish';
 });
 document.getElementById('coCloseSuccess').addEventListener('click', ()=> customOrderOverlay.classList.remove('open'));
 
@@ -3051,11 +3065,28 @@ const RU_DICT = {
   enterLastDigits:    'Последние 4 цифры купленного номера',
   notFoundError:      'Данные не найдены. Проверьте ID и номер.',
   ordersNotFoundError:'Данные не найдены. Проверьте номер.',
-  search:             '🔍 Поиск',
+  search:             'Поиск',
   placeOrder:         'Оформить заказ',
-  cashPay:            '💵 Наличная оплата',
-  installmentPay:     '📅 Рассрочка'
+  cashPay:            'Наличная оплата',
+  installmentPay:     'Рассрочка'
 };
+
+/* Kartochkalar va boshqa DINAMIK (JS shablonlar orqali qayta-qayta
+   yaratiladigan) matnlar uchun — bular data-i18n orqali emas, shu
+   funksiya orqali tarjima qilinadi, chunki har render'da qaytadan
+   yaratiladi. */
+const DYNAMIC_DICT = {
+  "Buyurtma berish":       'Заказать',
+  "Buyurtma berish uchun bosing": 'Нажмите, чтобы заказать',
+  "Band qilingan":         'Забронировано',
+  "Raqamlar yuklanmoqda...": 'Загрузка номеров...',
+  "Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.": 'Такой номер не найден. Попробуйте другие цифры.',
+  "Bo'lib to'lash mumkin": 'Доступна рассрочка'
+};
+function t(uzText){
+  if(window.currentLangMode !== 'ru') return uzText;
+  return DYNAMIC_DICT[uzText] || uzText;
+}
 
 function applyRussianDict(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -3064,54 +3095,9 @@ function applyRussianDict(){
   });
 }
 
-/* ---- Lotin -> Kirill transliteratsiya (o'zbek tili qoidalariga ko'ra) ---- */
-const CYR_DIGRAPHS = [
-  ["sh","ш"],["Sh","Ш"],["SH","Ш"],
-  ["ch","ч"],["Ch","Ч"],["CH","Ч"],
-  ["yo","ё"],["Yo","Ё"],["YO","Ё"],
-  ["yu","ю"],["Yu","Ю"],["YU","Ю"],
-  ["ya","я"],["Ya","Я"],["YA","Я"],
-  ["o'","ў"],["O'","Ў"],["o‘","ў"],["O‘","Ў"],
-  ["g'","ғ"],["G'","Ғ"],["g‘","ғ"],["G‘","Ғ"]
-];
-const CYR_SINGLE = {
-  a:'а',b:'б',d:'д',e:'е',f:'ф',g:'г',h:'ҳ',i:'и',j:'ж',k:'к',l:'л',m:'м',
-  n:'н',o:'о',p:'п',q:'қ',r:'р',s:'с',t:'т',u:'у',v:'в',x:'х',y:'й',z:'з',c:'с',
-  A:'А',B:'Б',D:'Д',E:'Е',F:'Ф',G:'Г',H:'Ҳ',I:'И',J:'Ж',K:'К',L:'Л',M:'М',
-  N:'Н',O:'О',P:'П',Q:'Қ',R:'Р',S:'С',T:'Т',U:'У',V:'В',X:'Х',Y:'Й',Z:'З',C:'С'
-};
-function transliterateToCyrillic(text){
-  if(!text) return text;
-  let result = text;
-  CYR_DIGRAPHS.forEach(([lat, cyr]) => { result = result.split(lat).join(cyr); });
-  return result.split('').map(ch => (CYR_SINGLE[ch] !== undefined ? CYR_SINGLE[ch] : ch)).join('');
-}
-function walkAndTransliterate(root){
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node){
-      const p = node.parentElement;
-      if(!p) return NodeFilter.FILTER_REJECT;
-      const tag = p.tagName;
-      if(tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
-      if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
-    }
-  });
-  const nodes = [];
-  let n;
-  while((n = walker.nextNode())) nodes.push(n);
-  nodes.forEach(node => { node.nodeValue = transliterateToCyrillic(node.nodeValue); });
-  root.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el=>{
-    el.setAttribute('placeholder', transliterateToCyrillic(el.getAttribute('placeholder')));
-  });
-  root.querySelectorAll('option').forEach(el=>{ el.textContent = transliterateToCyrillic(el.textContent); });
-}
-
 window.currentLangMode = 'uz';
 function applyCurrentLanguage(){
-  const mode = window.currentLangMode;
-  if(mode === 'ru'){ applyRussianDict(); }
-  else if(mode === 'cy'){ walkAndTransliterate(document.body); }
+  if(window.currentLangMode === 'ru'){ applyRussianDict(); }
 }
 function setLanguage(lang){
   try{ localStorage.setItem('raqamuz_lang', lang); }catch(e){}
@@ -3123,7 +3109,7 @@ function setLanguage(lang){
   try{ saved = localStorage.getItem('raqamuz_lang') || 'uz'; }catch(e){}
   window.currentLangMode = saved;
 
-  const FLAGS = { uz: '🇺🇿', ru: '🇷🇺', cy: '🇺🇿' };
+  const FLAGS = { uz: '🇺🇿', ru: '🇷🇺' };
   const flagBtn = document.getElementById('langFlagBtn');
   const dropdown = document.getElementById('langDropdown');
   flagBtn.textContent = FLAGS[saved] || '🇺🇿';
@@ -3164,7 +3150,7 @@ setInterval(raqamuzHeartbeat, 20000);
   let hideTimer = null;
 
   function showBanner(count){
-    banner.textContent = `🆕 Bazaga ${count} dona yangi raqam qo'shildi`;
+    banner.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>Bazaga ${count} dona yangi raqam qo'shildi`;
     banner.classList.add('show');
     clearTimeout(hideTimer);
     hideTimer = setTimeout(()=> banner.classList.remove('show'), 6000);
@@ -3801,7 +3787,7 @@ function takeWarmedVideo(url){
           <div class="pv-slide-number">${displayNumber(v.number)}</div>
           <div class="pv-slide-price">${formatPrice(v.price)}</div>
           ${v.reserved
-            ? `<button class="pv-order-btn" disabled style="opacity:.6;">Band qilingan</button>`
+            ? `<button class="pv-order-btn" disabled style="opacity:.6;">${t('Band qilingan')}</button>`
             : `<button class="pv-order-btn" data-idx="${idx}">🛒 Buyurtma berish</button>`}
         </div>
       </div>

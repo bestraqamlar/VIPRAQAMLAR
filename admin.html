@@ -258,7 +258,14 @@
   .ai-confirm-actions button{flex:1;border:none;border-radius:8px;padding:9px 10px;font-size:12.5px;font-weight:700;cursor:pointer;}
   .ai-confirm-yes{background:var(--red);color:#fff;}
   .ai-confirm-no{background:var(--panel-2);color:var(--text);border:1px solid var(--line) !important;}
-  .ai-typing{align-self:flex-start;color:var(--muted);font-size:12.5px;padding:4px 6px;}
+  .ai-typing{align-self:flex-start;color:var(--muted);font-size:12.5px;padding:8px 12px;background:var(--panel-2);border-radius:12px;display:flex;align-items:center;gap:4px;}
+  .ai-typing-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:aiTypingBounce 1.2s infinite ease-in-out;}
+  .ai-typing-dot:nth-child(2){animation-delay:0.15s;}
+  .ai-typing-dot:nth-child(3){animation-delay:0.3s;}
+  @keyframes aiTypingBounce{
+    0%, 60%, 100%{transform:translateY(0);opacity:0.4;}
+    30%{transform:translateY(-4px);opacity:1;}
+  }
   .ai-input-row{display:flex;gap:8px;}
   .ai-input-row input{
     flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
@@ -1120,6 +1127,14 @@ async function loadCustomOrders(){
       sel.addEventListener('change', async ()=>{
         await db.collection('custom_orders').doc(sel.dataset.id).update({ status: sel.value });
         vibrate(60);
+        try{
+          const idToken = await firebase.auth().currentUser.getIdToken();
+          await fetch('/.netlify/functions/notify-custom-order-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+            body: JSON.stringify({ customOrderId: sel.dataset.id, status: sel.value })
+          });
+        }catch(e){ console.error('Mijozga xabar yuborishda xato:', e); }
       });
     });
   }catch(err){
@@ -2161,7 +2176,11 @@ async function aiSendMessage(){
   aiChatInput.value = '';
   aiChatInput.disabled = true;
   aiChatSendBtn.disabled = true;
-  const typing = aiAddBubble('Yozmoqda...', 'ai-typing');
+  const typing = document.createElement('div');
+  typing.className = 'ai-typing';
+  typing.innerHTML = '<span class="ai-typing-dot"></span><span class="ai-typing-dot"></span><span class="ai-typing-dot"></span>';
+  aiChatBox.appendChild(typing);
+  aiChatBox.scrollTop = aiChatBox.scrollHeight;
 
   try{
     const data = await aiCallServer({ messages: aiConversation, userMessage: text });
@@ -2827,17 +2846,6 @@ newNumberInput.addEventListener('input', ()=>{
     codeHint.textContent = '';
     codeHint.className = 'code-hint';
   }
-});
-
-/* Kredit formasidagi ikkala telefon maydoni ham avtomatik +998 formatida yoziladi */
-['crPhone', 'crNumber'].forEach(id=>{
-  const el = document.getElementById(id);
-  el.addEventListener('input', ()=>{
-    el.value = formatUzNumber(extractRawDigits(el.value));
-  });
-  el.addEventListener('focus', ()=>{
-    if(!el.value) el.value = '+998 ';
-  });
 });
 
 document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
