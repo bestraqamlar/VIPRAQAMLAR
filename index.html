@@ -350,6 +350,18 @@
     padding:10px 0 14px;
     border-bottom:1px solid var(--line);
   }
+
+  /* Raqam kiritish qutisi — katalogdagi raqam kartochkasi bilan bir xil
+     o'lcham/cho'zilishda (kengligi), faqat balandligi mazmuniga moslashadi.
+     Fon — ochroq ko'k, ichidagi katakchalar — undan ham ochroq ko'k,
+     shu bilan bir-biridan aniq ajralib turadi. */
+  .number-entry-card{
+    max-width:1100px;margin:0 auto;padding:0 16px;
+  }
+  .number-entry-card > .number-builder{
+    background:#f9f9fa;border:1.5px solid #000100;border-radius:18px;
+    padding:22px 14px;max-width:none;
+  }
   .number-builder{
     max-width:480px;margin:0 auto;padding:0 12px;
     display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;
@@ -358,6 +370,7 @@
     scrollbar-width:none;
   }
   .number-builder::-webkit-scrollbar{display:none;}
+
   .prefix{
     flex:0 0 auto;
     font-family:'Sora',sans-serif;font-size:clamp(11px,3.4vw,15px);color:var(--muted);
@@ -394,6 +407,20 @@
     text-align:center;font-size:12px;color:var(--muted);margin-top:10px;
     font-family:'Space Mono',monospace;
   }
+
+  /* Ko'k karobka ichidagi elementlar — o'ziga xos, ajralib turadigan ranglar */
+  .number-entry-card .prefix{color:#3355CC;}
+  .number-entry-card .dash{color:#7C93E0;}
+  .number-entry-card .op-select{background:#FFFFFF;border-color:#B9CCFB;color:#3355CC;}
+  .number-entry-card .op-select:focus{border-color:#3355CC;}
+  .number-entry-card .digit-box{
+    background:#FFFFFF;border:1.5px solid #C7D6FB;color:#141A3D;
+  }
+  .number-entry-card .digit-box::placeholder{color:#AFC0F2;}
+  .number-entry-card .digit-box:focus{border-color:#3355CC;background:#FFFFFF;}
+  .number-entry-card .digit-box.filled{border-color:#2AA36F;background:#EAFBF3;}
+  .number-entry-card .hint-text{color:#5D74C4;}
+
   .clear-search{
     display:block;margin:8px auto 0;background:none;border:none;color:var(--amber);
     font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Sora',sans-serif;
@@ -951,6 +978,13 @@
   .modal-handle{width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;}
   .modal h2{font-family:'Space Mono',monospace;color:var(--amber);font-size:17px;margin:0 0 4px;}
   .modal .modal-number{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--text);margin-bottom:14px;}
+
+  .order-info-banner{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+    padding:11px 13px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px;
+  }
+  .oib-row{display:flex;align-items:flex-start;gap:9px;font-size:11.5px;color:var(--muted);line-height:1.5;}
+  .oib-row svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;color:var(--amber);}
   .modal label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px;}
   .modal input, .modal select{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
@@ -1320,28 +1354,30 @@
 </section>
 
 <div class="search-wrap">
-  <div class="number-builder">
-    <span class="prefix">+998</span>
-    <select id="operatorSelect" class="op-select">
-      <option value="" data-i18n="all">Barchasi</option>
-      <option value="Mobiuz" style="color:#C0392B;">Mobiuz</option>
-      <option value="Beeline" style="color:#E0A400;">Beeline</option>
-      <option value="Ucell" style="color:#B07CC6;">Ucell</option>
-      <option value="Humans" style="color:#FFD37A;">Humans</option>
-      <option value="Uzmobile" style="color:#2E63C7;">Uzmobile</option>
-      <option value="Perfektum" style="color:#C97A3D;">Perfektum</option>
-    </select>
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="0">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="1">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="2">
-    <span class="dash">-</span>
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="3">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="4">
-    <span class="dash">-</span>
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
-    <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
+  <div class="number-entry-card">
+    <div class="number-builder" id="numberBuilder">
+      <span class="prefix">+998</span>
+      <select id="operatorSelect" class="op-select">
+        <option value="" data-i18n="all">Barchasi</option>
+        <option value="Mobiuz" style="color:#C0392B;">Mobiuz</option>
+        <option value="Beeline" style="color:#E0A400;">Beeline</option>
+        <option value="Ucell" style="color:#B07CC6;">Ucell</option>
+        <option value="Humans" style="color:#FFD37A;">Humans</option>
+        <option value="Uzmobile" style="color:#2E63C7;">Uzmobile</option>
+        <option value="Perfektum" style="color:#C97A3D;">Perfektum</option>
+      </select>
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="0">
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="1">
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="2">
+      <span class="dash">-</span>
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="3">
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="4">
+      <span class="dash">-</span>
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
+      <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
+    </div>
+    <div class="hint-text" id="hintText" data-i18n="searchHint">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
   </div>
-  <div class="hint-text" id="hintText" data-i18n="searchHint">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
   <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
 </div>
 
@@ -1560,6 +1596,11 @@
     <div id="formView">
       <h2 data-i18n="placeOrder">Buyurtma berish</h2>
       <div class="modal-number" id="modalNumber"></div>
+
+      <div class="order-info-banner">
+        <div class="oib-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Yetkazib berish: O'zbekiston bo'ylab, 1-3 kun ichida (bepul)</span></div>
+        <div class="oib-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Buyurtma tasdiqlangach, operatorimiz sizga qo'ng'iroq qilib to'lov tafsilotlarini kelishadi</span></div>
+      </div>
 
       <div class="pay-tabs" id="payTabs" style="display:none;">
         <button type="button" class="pay-tab active" id="payTabCash" data-type="cash">
@@ -2201,6 +2242,7 @@ clearSearchBtn.addEventListener('click', ()=>{
   digitBoxes.forEach(box=>{ box.value=''; box.classList.remove('filled'); });
   currentPage = 0;
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
+  document.querySelectorAll('.fp-op-chip').forEach(c => c.classList.toggle('active', c.dataset.op === ''));
 });
 
 const overlay       = document.getElementById('overlay');
