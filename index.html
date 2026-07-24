@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
@@ -167,9 +167,10 @@
   .lang-flag-btn{
     background:none;border:none;
     width:34px;height:34px;display:flex;align-items:center;justify-content:center;
-    font-size:20px;cursor:pointer;padding:0;
+    cursor:pointer;padding:0;
     transition:transform .15s ease;
   }
+  .lang-flag-btn svg{border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,0.15);}
   .lang-flag-btn:hover{transform:scale(1.1);}
   .lang-dropdown{
     position:absolute;top:46px;right:0;background:var(--panel);border:1px solid var(--line);
@@ -181,20 +182,22 @@
     background:none;border:1px solid transparent;border-radius:7px;
     padding:8px 10px;font-size:12.5px;font-weight:700;color:var(--muted);
     text-align:left;cursor:pointer;transition:all .15s ease;
+    display:flex;align-items:center;gap:8px;
   }
+  .lang-opt svg{border-radius:2px;flex-shrink:0;}
   .lang-opt:hover{background:var(--panel-2);color:var(--text);}
   .lang-opt.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
 
   .drawer-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.55);
-    opacity:0;pointer-events:none;transition:opacity 0.25s ease;z-index:90;
+    opacity:0;pointer-events:none;transition:opacity 0.35s ease;z-index:90;
   }
   .drawer-overlay.open{opacity:1;pointer-events:auto;}
 
   .side-drawer{
     position:fixed;top:0;right:0;height:100%;width:100%;max-width:100vw;
     background:var(--panel);
-    transform:translateX(100%);transition:transform 0.3s ease;z-index:95;
+    transform:translateX(100%);transition:transform 0.4s cubic-bezier(.22,1,.36,1);z-index:95;
     display:flex;flex-direction:column;overflow-y:auto;
     box-shadow:-10px 0 40px rgba(0,0,0,0.35);
   }
@@ -1021,6 +1024,17 @@
   .hub-btn-title{font-weight:800;font-size:14px;line-height:1.25;margin-top:2px;}
   .hub-btn-sub{font-size:10.5px;color:rgba(255,255,255,0.65);line-height:1.4;font-weight:500;}
 
+  .co-steps{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 18px;}
+  .co-step-dot{
+    width:26px;height:26px;border-radius:50%;background:var(--panel-2);border:1.5px solid var(--line);
+    color:var(--muted);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;
+    transition:all .2s ease;
+  }
+  .co-step-dot.active{background:var(--amber);border-color:var(--amber);color:#1a1200;}
+  .co-step-dot.done{background:var(--green);border-color:var(--green);color:#06231a;}
+  .co-step-line{width:36px;height:2px;background:var(--line);}
+  .co-intro{color:var(--muted);font-size:12px;line-height:1.6;margin:0 0 14px;}
+
   .co-number-row{
     display:flex;align-items:center;gap:8px;margin-top:6px;
     background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;
@@ -1228,10 +1242,13 @@
   </button>
   <div class="header-right-group">
     <div class="lang-switch-wrap">
-      <button type="button" class="lang-flag-btn" id="langFlagBtn" aria-label="Til tanlash">🇺🇿</button>
+      <button type="button" class="lang-flag-btn" id="langFlagBtn" aria-label="Til tanlash">
+        <svg id="langFlagSvgUz" viewBox="0 0 32 20" width="26" height="17"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/><circle cx="6.2" cy="3" r="2.1" fill="#fff"/><circle cx="7.1" cy="3" r="1.8" fill="#0099b5"/><g fill="#fff"><circle cx="11" cy="1.3" r="0.4"/><circle cx="13" cy="1.3" r="0.4"/><circle cx="15" cy="1.3" r="0.4"/><circle cx="11" cy="3" r="0.4"/><circle cx="13" cy="3" r="0.4"/><circle cx="15" cy="3" r="0.4"/><circle cx="11" cy="4.7" r="0.4"/><circle cx="13" cy="4.7" r="0.4"/><circle cx="15" cy="4.7" r="0.4"/></g></svg>
+        <svg id="langFlagSvgRu" viewBox="0 0 32 20" width="26" height="17" style="display:none;"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6.7" y="6.7" fill="#0039a6"/><rect width="32" height="6.7" y="13.3" fill="#d52b1e"/></svg>
+      </button>
       <div class="lang-dropdown" id="langDropdown">
-        <button type="button" class="lang-opt active" data-lang="uz">O'zbek</button>
-        <button type="button" class="lang-opt" data-lang="ru">Русский</button>
+        <button type="button" class="lang-opt active" data-lang="uz"><svg viewBox="0 0 32 20" width="18" height="12"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/></svg>O'zbek</button>
+        <button type="button" class="lang-opt" data-lang="ru"><svg viewBox="0 0 32 20" width="18" height="12"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6.7" y="6.7" fill="#0039a6"/><rect width="32" height="6.7" y="13.3" fill="#d52b1e"/></svg>Русский</button>
       </div>
     </div>
     <button class="menu-btn" id="menuBtn" aria-label="Menyu">
@@ -1370,7 +1387,7 @@
 
 <div class="hub-overlay" id="hubOverlay">
   <div class="hub-top-bar">
-    <span class="hub-top-title">Buyurtmalarim</span>
+    <span class="hub-top-title" data-i18n="myOrders">Buyurtmalarim</span>
     <button class="hub-close" id="hubClose" aria-label="Yopish">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
     </button>
@@ -1378,23 +1395,23 @@
   <div class="hub-grid">
     <button type="button" class="hub-btn" id="hubBtnOrders">
       <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
-      <span class="hub-btn-title">Buyurtmalarim</span>
-      <span class="hub-btn-sub">Buyurtma qilgan raqamimni holatini ko'rish</span>
+      <span class="hub-btn-title" data-i18n="myOrders">Buyurtmalarim</span>
+      <span class="hub-btn-sub" data-i18n="hubOrdersSub">Buyurtma qilgan raqamimni holatini ko'rish</span>
     </button>
     <button type="button" class="hub-btn" id="hubBtnContracts">
       <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
-      <span class="hub-btn-title">Shartnomalarim</span>
-      <span class="hub-btn-sub">Bo'lib to'lashga olgan raqamim holatini ko'rish</span>
+      <span class="hub-btn-title" data-i18n="myContracts">Shartnomalarim</span>
+      <span class="hub-btn-sub" data-i18n="hubContractsSub">Bo'lib to'lashga olgan raqamim holatini ko'rish</span>
     </button>
     <button type="button" class="hub-btn" id="hubBtnCustomOrder">
       <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 10.5h1M12 10.5h1M16 10.5h1M8 14.5h8"/></svg></span>
-      <span class="hub-btn-title">Raqam buyurtma berish</span>
-      <span class="hub-btn-sub">Saytda mavjud bo'lmagan raqam buyurtma qilish</span>
+      <span class="hub-btn-title" data-i18n="customOrderTitle">Raqam buyurtma berish</span>
+      <span class="hub-btn-sub" data-i18n="customOrderSub">Saytda mavjud bo'lmagan raqam buyurtma qilish</span>
     </button>
     <button type="button" class="hub-btn" id="hubBtnAbout">
       <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.9" fill="currentColor" stroke="none"/></svg></span>
-      <span class="hub-btn-title">Biz haqimizda</span>
-      <span class="hub-btn-sub">Kompaniyamiz va aloqa ma'lumotlari</span>
+      <span class="hub-btn-title" data-i18n="aboutUs">Biz haqimizda</span>
+      <span class="hub-btn-sub" data-i18n="aboutUsSub">Kompaniyamiz va aloqa ma'lumotlari</span>
     </button>
   </div>
 </div>
@@ -1402,35 +1419,43 @@
 <div class="contract-overlay" id="customOrderOverlay">
   <div class="contract-modal">
     <div class="contract-top">
-      <span class="contract-title">Raqam buyurtma berish</span>
+      <span class="contract-title" data-i18n="customOrderTitle">Raqam buyurtma berish</span>
       <button class="drawer-close" id="customOrderClose">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
       </button>
     </div>
 
+    <div class="co-steps">
+      <div class="co-step-dot active" id="coDot1">1</div>
+      <div class="co-step-line"></div>
+      <div class="co-step-dot" id="coDot2">2</div>
+    </div>
+
     <div id="coStep1">
-      <label>Xohlagan raqamingizning oxirgi 4 ta raqamini kiriting</label>
+      <p class="co-intro" data-i18n="coIntro">Bizda hozircha mavjud bo'lmagan, lekin sizga yoqqan raqam naqshini buyurtma qilishingiz mumkin. Oxirgi 4 raqamni kiriting — operatorlarimiz mos raqam topib, narxini aytib beradi.</p>
+      <label data-i18n="coPatternLabel">Xohlagan raqamingizning oxirgi 4 ta raqamini kiriting</label>
       <div class="co-number-row">
         <span class="co-prefix">+998 (XX)-XXX-</span>
         <input type="text" id="coPatternInput" maxlength="4" inputmode="numeric" placeholder="0000">
       </div>
       <button class="btn-confirm contract-search-btn" id="coPriceBtn" style="width:100%;margin-top:12px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5c0 3 6 1.5 6 4.5 0 1.4-1.3 2.5-3 2.5s-3-1.1-3-2.5"/></svg>
-        Narxini bilish
+        <span data-i18n="coPriceBtnLabel">Narxini bilish</span>
       </button>
       <div id="coPriceResult" class="co-price-result" style="display:none;"></div>
       <button class="btn-confirm contract-search-btn" id="coStep1Next" style="width:100%;margin-top:12px;display:none;">
-        Keyingisi
+        <span data-i18n="next">Keyingisi</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-left:6px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </button>
     </div>
 
     <div id="coStep2" style="display:none;">
-      <label for="coName">Ism va familiyangiz</label>
+      <p class="co-intro" data-i18n="coIntro2">So'nggi qadam — biz sizga qanday murojaat qilishimiz uchun ma'lumotlaringizni qoldiring.</p>
+      <label for="coName" data-i18n="fullNameLabel">Ism va familiyangiz</label>
       <input type="text" id="coName" placeholder="Ism Familiya">
-      <label for="coRegion">Viloyatingiz</label>
+      <label for="coRegion" data-i18n="regionLabel">Viloyatingiz</label>
       <select id="coRegion">
-        <option value="">Tanlang</option>
+        <option value="" data-i18n="chooseOption">Tanlang</option>
         <option>Toshkent shahri</option>
         <option>Toshkent viloyati</option>
         <option>Andijon</option>
@@ -1446,25 +1471,25 @@
         <option>Sirdaryo</option>
         <option>Qoraqalpog'iston</option>
       </select>
-      <label for="coPhone">Hozir ishlatib turgan raqamingiz</label>
+      <label for="coPhone" data-i18n="currentPhoneLabel">Hozir ishlatib turgan raqamingiz</label>
       <input type="text" id="coPhone" placeholder="90 123-45-67" inputmode="numeric">
-      <div class="field-error" id="coError">Barcha maydonlarni to'ldiring</div>
+      <div class="field-error" id="coError" data-i18n="fillAllFields">Barcha maydonlarni to'ldiring</div>
       <div class="co-nav-row">
         <button class="btn-confirm contract-search-btn" id="coStep2Back" style="background:var(--panel-2);color:var(--text);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
-          Orqaga
+          <span data-i18n="back">Orqaga</span>
         </button>
         <button class="btn-confirm contract-search-btn" id="coSubmitBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg>
-          Yuborish
+          <span data-i18n="submit">Yuborish</span>
         </button>
       </div>
     </div>
 
     <div id="coSuccessView" style="display:none;text-align:center;padding:10px 0;">
       <div style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" style="width:52px;height:52px;"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5.5-6"/></svg></div>
-      <p style="font-size:13.5px;line-height:1.6;">So'rovingiz qabul qilindi! Tez orada operatorlarimiz siz bilan bog'lanishadi.</p>
-      <button class="btn-confirm contract-search-btn" id="coCloseSuccess" style="width:100%;margin-top:14px;">Yopish</button>
+      <p style="font-size:13.5px;line-height:1.6;" data-i18n="coSuccessText">So'rovingiz qabul qilindi! Tez orada operatorlarimiz siz bilan bog'lanishadi.</p>
+      <button class="btn-confirm contract-search-btn" id="coCloseSuccess" style="width:100%;margin-top:14px;"><span data-i18n="close">Yopish</span></button>
     </div>
   </div>
 </div>
@@ -1472,17 +1497,17 @@
 <div class="contract-overlay" id="aboutOverlay">
   <div class="contract-modal">
     <div class="contract-top">
-      <span class="contract-title">Biz haqimizda</span>
+      <span class="contract-title" data-i18n="aboutUs">Biz haqimizda</span>
       <button class="drawer-close" id="aboutClose">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
       </button>
     </div>
     <div style="font-size:13px;line-height:1.7;color:var(--text);">
-      <p><b>VIP RAQAMLAR</b> — O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlash va sotib olish xizmati.</p>
-      <p>Biz mijozlarimizga barcha operatorlar (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) raqamlarini keng katalog orqali taqdim etamiz, O'zbekiston bo'ylab bepul yetkazib berish va bo'lib to'lash (kredit) imkoniyatini beramiz.</p>
-      <p>Savol va takliflar uchun: <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" style="color:var(--amber);">@Vip_raqamlar_admin</a></p>
+      <p data-i18n="aboutP1"><b>VIP RAQAMLAR</b> — O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlash va sotib olish xizmati.</p>
+      <p data-i18n="aboutP2">Biz mijozlarimizga barcha operatorlar (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) raqamlarini keng katalog orqali taqdim etamiz, O'zbekiston bo'ylab bepul yetkazib berish va bo'lib to'lash (kredit) imkoniyatini beramiz.</p>
+      <p><span data-i18n="aboutContact">Savol va takliflar uchun:</span> <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" style="color:var(--amber);">@Vip_raqamlar_admin</a></p>
     </div>
-    <button class="btn-confirm contract-search-btn" id="aboutBackBtn" style="width:100%;margin-top:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Yopish</button>
+    <button class="btn-confirm contract-search-btn" id="aboutBackBtn" style="width:100%;margin-top:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span data-i18n="close">Yopish</span></button>
   </div>
 </div>
 
@@ -2577,7 +2602,7 @@ document.getElementById('contractSearchBtn').addEventListener('click', async ()=
   errEl.style.display = 'none';
 
   if(!idVal || !numVal){
-    errEl.textContent = "ID va raqamni to'liq kiriting";
+    errEl.textContent = t("ID va raqamni to'liq kiriting");
     errEl.style.display = 'block';
     return;
   }
@@ -2626,33 +2651,33 @@ function renderContractResult(data){
   }).join('');
 
   const CONTRACT_STATUS_LABELS = {
-    active:    { label: "To'lov muvaffaqiyatli bajarilmoqda", color: 'var(--green)' },
-    trouble:   { label: "To'lov uzilishlari ko'p",            color: 'var(--amber)' },
-    cancelling:{ label: "Shartnoma bekor qilish jarayonida",  color: 'var(--red)' },
-    cancelled: { label: "Shartnoma bekor bo'ldi",             color: 'var(--red)' },
-    completed: { label: "Shartnoma muvaffaqiyatli yakunlandi", color: 'var(--green)' }
+    active:    { label: t("To'lov muvaffaqiyatli bajarilmoqda"), color: 'var(--green)' },
+    trouble:   { label: t("To'lov uzilishlari ko'p"),            color: 'var(--amber)' },
+    cancelling:{ label: t("Shartnoma bekor qilish jarayonida"),  color: 'var(--red)' },
+    cancelled: { label: t("Shartnoma bekor bo'ldi"),             color: 'var(--red)' },
+    completed: { label: t("Shartnoma muvaffaqiyatli yakunlandi"), color: 'var(--green)' }
   };
   const st = CONTRACT_STATUS_LABELS[data.contractStatus] || CONTRACT_STATUS_LABELS.active;
 
   contractResultView.innerHTML = `
     <div class="cr-summary">
-      <div class="cr-row"><span>Mijoz</span><b>${escapeHtml(data.customerName)}</b></div>
-      <div class="cr-row"><span>Raqam</span><b>${escapeHtml(data.number)}</b></div>
-      <div class="cr-row"><span>Muddat</span><b>${data.totalMonths} oy</b></div>
-      <div class="cr-row"><span>Oylik to'lov</span><b>${formatPrice(data.monthlyPayment)}</b></div>
-      <div class="cr-row"><span>To'landi</span><b>${paidCount} / ${data.totalMonths} oy</b></div>
-      <div class="cr-row"><span>Qoldi</span><b>${data.totalMonths - paidCount} oy</b></div>
+      <div class="cr-row"><span>${t('Mijoz')}</span><b>${escapeHtml(data.customerName)}</b></div>
+      <div class="cr-row"><span>${t('Raqam')}</span><b>${escapeHtml(data.number)}</b></div>
+      <div class="cr-row"><span>${t('Muddat')}</span><b>${data.totalMonths} ${t('oy')}</b></div>
+      <div class="cr-row"><span>${t("Oylik to'lov")}</span><b>${formatPrice(data.monthlyPayment)}</b></div>
+      <div class="cr-row"><span>${t("To'landi")}</span><b>${paidCount} / ${data.totalMonths} ${t('oy')}</b></div>
+      <div class="cr-row"><span>${t('Qoldi')}</span><b>${data.totalMonths - paidCount} ${t('oy')}</b></div>
     </div>
     <div class="cr-progress-wrap"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
-    <div class="cr-months-title">Har oy holati:</div>
+    <div class="cr-months-title">${t('Har oy holati:')}</div>
     <div class="cr-months-grid">${monthsHtml}</div>
     <div class="cr-legend">
-      <span><i style="background:var(--green);"></i> To'landi</span>
-      <span><i style="background:var(--panel-2);border:1px solid var(--line);"></i> Muddati kelmagan</span>
-      <span><i style="background:var(--red);"></i> Kechikmoqda</span>
+      <span><i style="background:var(--green);"></i> ${t("To'landi")}</span>
+      <span><i style="background:var(--panel-2);border:1px solid var(--line);"></i> ${t('Muddati kelmagan')}</span>
+      <span><i style="background:var(--red);"></i> ${t('Kechikmoqda')}</span>
     </div>
     <div class="cr-status-banner" style="border-color:${st.color};color:${st.color};">● ${st.label}</div>
-    <button class="btn-confirm contract-search-btn" id="contractBackBtn" style="width:100%;margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Orqaga</button>
+    <button class="btn-confirm contract-search-btn" id="contractBackBtn" style="width:100%;margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>${t('Orqaga')}</button>
     <a href="#" id="contractDownloadBtn" class="cr-download-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:5px;"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>Shartnomani yuklab olish</a>
   `;
   document.getElementById('contractBackBtn').addEventListener('click', ()=>{
@@ -2727,7 +2752,7 @@ document.getElementById('ordersSearchBtn').addEventListener('click', async ()=>{
   errEl.style.display = 'none';
 
   if(!numVal || numVal.length < 9 || lastDigitsVal.length !== 4){
-    errEl.textContent = "Telefon raqami va oxirgi 4 raqamni to'liq kiriting";
+    errEl.textContent = t("Telefon raqami va oxirgi 4 raqamni to'liq kiriting");
     errEl.style.display = 'block';
     return;
   }
@@ -2759,25 +2784,32 @@ document.getElementById('ordersSearchBtn').addEventListener('click', async ()=>{
   label.style.display = 'inline'; spinner.style.display = 'none';
 });
 
+const ORDER_STATUS_RU = {
+  'Yangi': 'Новый',
+  "Bog'lanildi": 'Связались',
+  'Yakunlandi': 'Завершён',
+  'Bekor qilindi': 'Отменён'
+};
 function renderOrdersResult(orders){
   const rowsHtml = orders.map(o=>{
     const color = ORDER_STATUS_COLORS[o.status] || 'var(--muted)';
+    const statusLabel = window.currentLangMode === 'ru' ? (ORDER_STATUS_RU[o.status] || o.status) : o.status;
     const installmentLine = o.paymentType === 'installment'
-      ? `<div class="cr-row"><span>To'lov</span><b>Bo'lib to'lash — ${escapeHtml(o.installmentMonths)} oyga</b></div>`
+      ? `<div class="cr-row"><span>${t("To'lov")}</span><b>${t("Bo'lib to'lash")} — ${escapeHtml(o.installmentMonths)} ${t('oyga')}</b></div>`
       : '';
     return `
       <div class="cr-summary" style="margin-bottom:12px;">
-        <div class="cr-row"><span>Raqam</span><b>${escapeHtml(o.number)}</b></div>
-        <div class="cr-row"><span>Narxi</span><b>${formatPrice(o.price)}</b></div>
+        <div class="cr-row"><span>${t('Raqam')}</span><b>${escapeHtml(o.number)}</b></div>
+        <div class="cr-row"><span>${t('Narxi')}</span><b>${formatPrice(o.price)}</b></div>
         ${installmentLine}
-        <div class="cr-row"><span>Sana</span><b>${escapeHtml(o.createdAt)}</b></div>
-        <div class="cr-status-banner" style="border-color:${color};color:${color};margin-top:8px;">● ${escapeHtml(o.status)}</div>
+        <div class="cr-row"><span>${t('Sana')}</span><b>${escapeHtml(o.createdAt)}</b></div>
+        <div class="cr-status-banner" style="border-color:${color};color:${color};margin-top:8px;">● ${escapeHtml(statusLabel)}</div>
       </div>`;
   }).join('');
 
   ordersResultView.innerHTML = `
     ${rowsHtml}
-    <button class="btn-confirm contract-search-btn" id="ordersBackBtn" style="width:100%;margin-top:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Orqaga</button>
+    <button class="btn-confirm contract-search-btn" id="ordersBackBtn" style="width:100%;margin-top:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>${t('Orqaga')}</button>
   `;
   document.getElementById('ordersBackBtn').addEventListener('click', ()=>{
     ordersResultView.style.display = 'none';
@@ -2799,6 +2831,15 @@ const coPriceResult = document.getElementById('coPriceResult');
 const coStep1Next = document.getElementById('coStep1Next');
 let coDraftPattern = '';
 
+function coSetStep(step){
+  const dot1 = document.getElementById('coDot1');
+  const dot2 = document.getElementById('coDot2');
+  dot1.classList.toggle('active', step === 1);
+  dot1.classList.toggle('done', step === 2);
+  dot2.classList.toggle('active', step === 2);
+  dot2.classList.toggle('done', false);
+}
+
 function openCustomOrderOverlay(){
   coStep1.style.display = 'block';
   coStep2.style.display = 'none';
@@ -2810,6 +2851,7 @@ function openCustomOrderOverlay(){
   document.getElementById('coRegion').value = '';
   document.getElementById('coPhone').value = '';
   document.getElementById('coError').style.display = 'none';
+  coSetStep(1);
   customOrderOverlay.classList.add('open');
 }
 document.getElementById('customOrderClose').addEventListener('click', ()=> customOrderOverlay.classList.remove('open'));
@@ -2832,9 +2874,9 @@ document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
     const doc = await db.collection('number_price_categories').doc(pattern).get();
     if(doc.exists){
       const startPrice = doc.data().startPrice || 0;
-      coPriceResult.innerHTML = `Bunday raqamlar <b>${formatPrice(startPrice)}</b> dan boshlanadi`;
+      coPriceResult.innerHTML = t('priceFrom').replace('{price}', `<b>${formatPrice(startPrice)}</b>`);
     }else{
-      coPriceResult.innerHTML = `Bu toifadagi narx hali belgilanmagan — buyurtma qoldiring, operatorlarimiz narxni aytib beradi.`;
+      coPriceResult.innerHTML = t('priceUnset');
     }
     coPriceResult.style.display = 'block';
     coStep1Next.style.display = 'block';
@@ -2846,10 +2888,12 @@ document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
 coStep1Next.addEventListener('click', ()=>{
   coStep1.style.display = 'none';
   coStep2.style.display = 'block';
+  coSetStep(2);
 });
 document.getElementById('coStep2Back').addEventListener('click', ()=>{
   coStep2.style.display = 'none';
   coStep1.style.display = 'block';
+  coSetStep(1);
 });
 
 document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
@@ -2859,7 +2903,7 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
   const errEl = document.getElementById('coError');
 
   if(!name || !region || !phone){
-    errEl.textContent = "Barcha maydonlarni to'ldiring";
+    errEl.textContent = t("Barcha maydonlarni to'ldiring");
     errEl.style.display = 'block';
     return;
   }
@@ -2867,7 +2911,7 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
 
   const btn = document.getElementById('coSubmitBtn');
   btn.disabled = true;
-  btn.textContent = 'Yuborilmoqda...';
+  btn.textContent = t('Yuborilmoqda...');
 
   try{
     await db.collection('custom_orders').add({
@@ -3063,7 +3107,32 @@ const RU_DICT = {
   search:             'Поиск',
   placeOrder:         'Оформить заказ',
   cashPay:            'Наличная оплата',
-  installmentPay:     'Рассрочка'
+  installmentPay:     'Рассрочка',
+  hubOrdersSub:       'Посмотреть статус моего заказа',
+  hubContractsSub:    'Посмотреть статус номера в рассрочке',
+  customOrderTitle:   'Заказать номер',
+  customOrderSub:     'Заказать номер, которого нет на сайте',
+  aboutUs:            'О нас',
+  aboutUsSub:         'Информация о компании и контакты',
+  coIntro:            'Вы можете заказать понравившийся узор номера, которого пока нет в наличии. Введите последние 4 цифры — наши операторы найдут подходящий номер и сообщат цену.',
+  coPatternLabel:     'Введите последние 4 цифры желаемого номера',
+  coPriceBtnLabel:    'Узнать цену',
+  next:               'Далее',
+  coIntro2:           'Последний шаг — оставьте свои данные, чтобы мы могли с вами связаться.',
+  fullNameLabel:      'Ваше имя и фамилия',
+  regionLabel:        'Ваш регион',
+  chooseOption:       'Выберите',
+  currentPhoneLabel:  'Ваш текущий номер телефона',
+  fillAllFields:      'Заполните все поля',
+  back:               'Назад',
+  submit:             'Отправить',
+  priceFrom:          'Такие номера начинаются от {price}',
+  priceUnset:         'Цена для этой категории ещё не установлена — оставьте заявку, наши операторы сообщат цену.',
+  aboutP1:            '<b>VIP RAQAMLAR</b> — сервис подбора и продажи красивых, золотых и VIP номеров телефонов по всему Узбекистану.',
+  aboutP2:            'Мы предлагаем клиентам номера всех операторов (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) в широком каталоге, бесплатную доставку по Узбекистану и возможность рассрочки.',
+  aboutContact:       'По вопросам и предложениям:',
+  close:              'Закрыть',
+  coSuccessText:      'Ваша заявка принята! В ближайшее время наши операторы свяжутся с вами.'
 };
 
 /* Kartochkalar va boshqa DINAMIK (JS shablonlar orqali qayta-qayta
@@ -3077,7 +3146,32 @@ const DYNAMIC_DICT = {
   "Bu raqamni boshqa inson bron qilish jarayonida": 'Этот номер сейчас бронирует другой человек',
   "Raqamlar yuklanmoqda...": 'Загрузка номеров...',
   "Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.": 'Такой номер не найден. Попробуйте другие цифры.',
-  "Bo'lib to'lash mumkin": 'Доступна рассрочка'
+  "Bo'lib to'lash mumkin": 'Доступна рассрочка',
+  "Yuborilmoqda...": 'Отправка...',
+  "Barcha maydonlarni to'ldiring": 'Заполните все поля',
+  "Mijoz": 'Клиент',
+  "Raqam": 'Номер',
+  "Muddat": 'Срок',
+  "oy": 'мес.',
+  "oyga": 'мес.',
+  "Oylik to'lov": 'Ежемесячный платёж',
+  "To'landi": 'Оплачено',
+  "Qoldi": 'Осталось',
+  "Har oy holati:": 'Статус по месяцам:',
+  "Muddati kelmagan": 'Срок не наступил',
+  "Kechikmoqda": 'Просрочено',
+  "Orqaga": 'Назад',
+  "To'lov muvaffaqiyatli bajarilmoqda": 'Оплата производится вовремя',
+  "To'lov uzilishlari ko'p": 'Много просрочек по оплате',
+  "Shartnoma bekor qilish jarayonida": 'Договор в процессе расторжения',
+  "Shartnoma bekor bo'ldi": 'Договор расторгнут',
+  "Shartnoma muvaffaqiyatli yakunlandi": 'Договор успешно завершён',
+  "To'lov": 'Оплата',
+  "Bo'lib to'lash": 'Рассрочка',
+  "Narxi": 'Цена',
+  "Sana": 'Дата',
+  "ID va raqamni to'liq kiriting": 'Введите ID и номер полностью',
+  "Telefon raqami va oxirgi 4 raqamni to'liq kiriting": 'Введите номер телефона и последние 4 цифры полностью'
 };
 function t(uzText){
   if(window.currentLangMode !== 'ru') return uzText;
@@ -3105,10 +3199,10 @@ function setLanguage(lang){
   try{ saved = localStorage.getItem('raqamuz_lang') || 'uz'; }catch(e){}
   window.currentLangMode = saved;
 
-  const FLAGS = { uz: '🇺🇿', ru: '🇷🇺' };
   const flagBtn = document.getElementById('langFlagBtn');
   const dropdown = document.getElementById('langDropdown');
-  flagBtn.textContent = FLAGS[saved] || '🇺🇿';
+  document.getElementById('langFlagSvgUz').style.display = saved === 'ru' ? 'none' : 'block';
+  document.getElementById('langFlagSvgRu').style.display = saved === 'ru' ? 'block' : 'none';
 
   document.querySelectorAll('.lang-opt').forEach(btn=>{
     btn.classList.toggle('active', btn.dataset.lang === saved);

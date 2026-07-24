@@ -15,17 +15,21 @@
 [functions."credit-excel-report"]
   schedule = "0 4 * * *"
 
-# HTML sahifalar HECH QACHON eski nusxada keshda qolib ketmasin — har safar
-# brauzer serverdan eng yangi versiyani tekshirib oladi (sekin internetda ham).
+# HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
+# ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
+# tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga
+# tugmalari va sahifalar orasida o'tishni "qattiq" qilib, ochiq turgan
+# oynalar/holatni yo'qotib yuborar edi (mijozlar buni "sayt o'zi ochilib
+# ketyapti" deb tushungan edi).
 [[headers]]
   for = "/*.html"
   [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
+    Cache-Control = "no-cache, must-revalidate"
 
 [[headers]]
   for = "/"
   [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
+    Cache-Control = "no-cache, must-revalidate"
 
 # Rasm/logo kabi statik fayllar tez yuklanishi uchun keshlansa bo'ladi —
 # ular kamdan-kam o'zgaradi.

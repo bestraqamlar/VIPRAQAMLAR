@@ -450,6 +450,28 @@
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
     padding:10px;color:var(--text);font-size:13.5px;outline:none;
   }
+
+  .zk-chat-info{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;font-size:12.5px;margin-bottom:14px;line-height:1.8;
+  }
+  .zk-chat-thread{
+    max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;
+    padding:4px 2px 10px;margin-bottom:10px;
+  }
+  .zk-msg{
+    max-width:80%;padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.5;
+  }
+  .zk-msg-admin{align-self:flex-end;background:var(--amber-soft);border:1px solid var(--amber);border-bottom-right-radius:3px;}
+  .zk-msg-customer{align-self:flex-start;background:var(--panel-2);border:1px solid var(--line);border-bottom-left-radius:3px;}
+  .zk-msg-time{font-size:9.5px;color:var(--muted);margin-top:3px;}
+  .zk-msg-empty{color:var(--muted);font-size:12px;text-align:center;padding:16px 0;}
+  .zk-chat-input-row{display:flex;gap:6px;}
+  .zk-chat-input-row input{flex:1;}
+  .zk-chat-input-row button{
+    width:auto;padding:0 16px;background:var(--amber);color:#1a1200;border:none;
+    border-radius:8px;font-weight:800;font-size:12.5px;cursor:pointer;
+  }
   .settings-form input:focus, .settings-form select:focus{border-color:var(--amber);}
   .settings-form .checkbox-field{margin-top:4px;}
   .settings-form .checkbox-field input{width:auto;}
@@ -754,9 +776,25 @@
       <div class="zk-category-list" id="zkCategoryList" style="margin-top:14px;"></div>
     </div>
 
-    <div class="settings-form">
+    <div class="settings-form" id="zkListWrap">
       <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
+      <p style="color:var(--muted);font-size:11.2px;margin:0 0 10px;">Har bir so'rovni bosib, mijozga to'g'ridan-to'g'ri xabar/narx yozishingiz mumkin.</p>
       <div class="orders-list" id="customOrdersList"></div>
+    </div>
+
+    <div class="settings-form" id="zkChatWrap" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <button id="zkChatBackBtn" style="width:auto;padding:8px 12px;background:var(--panel-2);">← Orqaga</button>
+        <h3 style="margin:0;" id="zkChatTitle">So'rov</h3>
+      </div>
+      <div class="zk-chat-info" id="zkChatInfo"></div>
+      <div class="zk-chat-thread" id="zkChatThread"></div>
+      <div class="zk-chat-input-row">
+        <input type="text" id="zkChatPriceInput" placeholder="Narx (so'm, ixtiyoriy)" style="width:130px;" inputmode="numeric">
+        <input type="text" id="zkChatMsgInput" placeholder="Xabar yozing...">
+        <button id="zkChatSendBtn">Yuborish</button>
+      </div>
+      <div class="settings-msg" id="zkChatMsg"></div>
     </div>
   </div>
 
@@ -1109,8 +1147,9 @@ async function loadCustomOrders(){
     }
     listEl.innerHTML = snap.docs.map(d=>{
       const o = d.data();
+      const msgCount = (o.messages || []).length;
       return `
-        <div class="order-card" data-id="${d.id}">
+        <div class="order-card zk-clickable-card" data-id="${d.id}" style="cursor:pointer;">
           <div class="oc-top">
             <span class="oc-number">••••${escapeHtml(o.pattern)}</span>
             <span class="oc-time">${escapeHtml(o.createdAt || '')}</span>
@@ -1121,9 +1160,13 @@ async function loadCustomOrders(){
           <select class="zk-status-select" data-id="${d.id}" style="margin-top:8px;">
             ${ZAKAZ_STATUS_OPTIONS.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
+          <button class="zk-open-chat-btn" data-id="${d.id}" style="width:100%;margin-top:8px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:9px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+            💬 Mijozga yozish${msgCount ? ` (${msgCount})` : ''}
+          </button>
         </div>`;
     }).join('');
     listEl.querySelectorAll('.zk-status-select').forEach(sel=>{
+      sel.addEventListener('click', e => e.stopPropagation());
       sel.addEventListener('change', async ()=>{
         await db.collection('custom_orders').doc(sel.dataset.id).update({ status: sel.value });
         vibrate(60);
@@ -1137,10 +1180,109 @@ async function loadCustomOrders(){
         }catch(e){ console.error('Mijozga xabar yuborishda xato:', e); }
       });
     });
+    listEl.querySelectorAll('.zk-open-chat-btn').forEach(btn=>{
+      btn.addEventListener('click', () => openZkChat(btn.dataset.id));
+    });
   }catch(err){
     listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
   }
 }
+
+/* ==================================================================
+   ZAKAZ "CHAT" — admin mijozga to'g'ridan-to'g'ri (narx bilan yoki
+   oddiy) xabar yozadi. Xabar Telegram orqali mijozga yuboriladi
+   (agar uning chat ID'si topilgan bo'lsa) va shu yerda, tarix
+   sifatida saqlanadi. Mijoz botda javob yozsa, u ham shu tarixga
+   qo'shiladi (customer-bot-webhook.js orqali).
+   ================================================================== */
+let zkCurrentOrderId = null;
+
+async function openZkChat(orderId){
+  zkCurrentOrderId = orderId;
+  document.getElementById('zkListWrap').style.display = 'none';
+  document.getElementById('zkChatWrap').style.display = 'block';
+  document.getElementById('zkChatMsgInput').value = '';
+  document.getElementById('zkChatPriceInput').value = '';
+  document.getElementById('zkChatMsg').textContent = '';
+  await renderZkChat();
+}
+
+async function renderZkChat(){
+  const doc = await db.collection('custom_orders').doc(zkCurrentOrderId).get();
+  if(!doc.exists) return;
+  const o = doc.data();
+
+  document.getElementById('zkChatTitle').textContent = `••••${o.pattern} — ${o.name}`;
+  document.getElementById('zkChatInfo').innerHTML = `
+    <div><b>Ism:</b> ${escapeHtml(o.name)}</div>
+    <div><b>Telefon:</b> ${escapeHtml(o.phone)}</div>
+    <div><b>Viloyat:</b> ${escapeHtml(o.region)}</div>
+    <div><b>Holati:</b> ${escapeHtml(o.status)}</div>
+    <div><b>Telegram:</b> ${o.customerChatId ? "✅ Bog'langan (xabar yetadi)" : "⚠️ Topilmagan (mijoz botga yozmagan — xabar faqat shu yerda saqlanadi)"}</div>
+  `;
+
+  const thread = document.getElementById('zkChatThread');
+  const messages = o.messages || [];
+  if(messages.length === 0){
+    thread.innerHTML = '<div class="zk-msg-empty">Hali xabar yo\'q — birinchi xabarni yozing.</div>';
+  }else{
+    thread.innerHTML = messages.map(m=>{
+      const cls = m.sender === 'customer' ? 'zk-msg-customer' : 'zk-msg-admin';
+      const time = m.at ? new Date(m.at).toLocaleString('uz-UZ', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      return `<div class="zk-msg ${cls}">${escapeHtml(m.text)}<div class="zk-msg-time">${time}</div></div>`;
+    }).join('');
+  }
+  thread.scrollTop = thread.scrollHeight;
+}
+
+document.getElementById('zkChatBackBtn').addEventListener('click', ()=>{
+  document.getElementById('zkChatWrap').style.display = 'none';
+  document.getElementById('zkListWrap').style.display = 'block';
+  zkCurrentOrderId = null;
+});
+
+document.getElementById('zkChatSendBtn').addEventListener('click', async ()=>{
+  const msgInput = document.getElementById('zkChatMsgInput');
+  const priceInput = document.getElementById('zkChatPriceInput');
+  const msgEl = document.getElementById('zkChatMsg');
+  const text = msgInput.value.trim();
+  const price = priceInput.value.trim();
+  if(!text && !price){
+    msgEl.textContent = "Xabar yoki narx kiriting";
+    msgEl.className = 'settings-msg bad';
+    return;
+  }
+
+  let finalText = text;
+  if(price){
+    const priceLine = `💰 Narx: ${Number(price).toLocaleString('ru-RU').replace(/,/g,' ')} so'm`;
+    finalText = text ? `${priceLine}\n\n${text}` : priceLine;
+  }
+
+  const btn = document.getElementById('zkChatSendBtn');
+  btn.disabled = true;
+  try{
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/send-custom-order-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify({ customOrderId: zkCurrentOrderId, text: finalText })
+    });
+    const result = await res.json();
+    if(!result.ok) throw new Error(result.error || 'Xato');
+    msgInput.value = '';
+    priceInput.value = '';
+    msgEl.textContent = result.delivered ? '✓ Yuborildi' : '✓ Saqlandi (mijozga Telegram orqali yetmadi — chat ID topilmagan)';
+    msgEl.className = 'settings-msg ok';
+    vibrate(60);
+    await renderZkChat();
+    loadCustomOrders();
+  }catch(err){
+    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.className = 'settings-msg bad';
+  }
+  btn.disabled = false;
+});
 
 
 function detectDevice(ua){
