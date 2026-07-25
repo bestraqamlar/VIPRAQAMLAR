@@ -18,10 +18,29 @@ service cloud.firestore {
       // qilingan raqamni bo'shatish) FAQAT admin orqali bo'ladi. Shu bilan
       // birov barcha raqamlarni ataylab "band" qilib qo'ya olmaydi va
       // haqiqiy sotilgan raqamlarni qayta "bo'sh" qilolmaydi.
+      //
+      // "views" (ko'rishlar soni) — bu maydon ADMIN PANELDA UMUMAN
+      // TAHRIRLANMAYDI, faqat mijozlar tomonidan avtomatik ishlaydi:
+      //  1) Raqam BIRINCHI marta ko'rilganda — "views" maydoni hali
+      //     umuman bo'lmagani uchun, faqat 800–1500 oralig'idagi
+      //     songa BIR MARTA o'rnatilishi mumkin (tasodifiy boshlang'ich).
+      //  2) Shundan keyin — faqat oldingi qiymatga ANIQ +1 qo'shish
+      //     mumkin. Boshqa hech qanday qiymatga to'g'ridan-to'g'ri
+      //     o'zgartirib (masalan katta songa "sakratib") bo'lmaydi.
       allow update: if request.auth != null
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserved'])
             && resource.data.reserved == false
-            && request.resource.data.reserved == true);
+            && request.resource.data.reserved == true)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+            && request.resource.data.views is number
+            && (
+              (!(resource.data.views is number)
+                && request.resource.data.views >= 800
+                && request.resource.data.views <= 1500)
+              ||
+              (resource.data.views is number
+                && request.resource.data.views == resource.data.views + 1)
+            ));
     }
 
     // Yolg'on/keraksiz buyurtmalar bilan bazani "iflos" qilishning oldini

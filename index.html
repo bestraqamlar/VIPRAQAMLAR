@@ -302,7 +302,7 @@
   }
 
   /* ---- "VIP RAQAMLAR" — kattaroq brend banneri, Bugungi aksiyadan keyin ---- */
-  .brand-banner-wrap{max-width:720px;margin:0 auto;padding:12px 20px 0;text-align:center;}
+  .brand-banner-wrap{max-width:720px;margin:0 auto;padding:2px 20px 0;text-align:center;}
   .brand-banner{
     font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:var(--text);
     display:inline-flex;align-items:center;gap:9px;
@@ -573,7 +573,13 @@
     padding:3px 8px;border-radius:6px;
   }
   .card-body{padding:18px 16px;display:flex;flex-direction:column;flex:1;}
-  .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;margin-top:auto;}
+  .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
+  .view-count-row{margin-top:auto;display:flex;justify-content:flex-end;margin-bottom:8px;}
+  .view-count{
+    display:flex;align-items:center;gap:3px;
+    color:var(--muted);font-size:10.5px;font-weight:600;white-space:nowrap;
+  }
+  .view-count svg{width:12px;height:12px;flex-shrink:0;}
   .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--amber);}
   .price-row .old-price{
     font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;
@@ -668,7 +674,7 @@
     display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
   }
-  .daily-deal-section{max-width:1100px;margin:0 auto;padding:14px 16px 6px;}
+  .daily-deal-section{max-width:1100px;margin:0 auto;padding:14px 16px 0;}
 
   /* ---- Mijozlar fikri ---- */
   .testimonials-section{max-width:1100px;margin:14px auto 8px;padding:0 16px;}
@@ -1980,11 +1986,47 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
             ${hasDiscount ? `<span class="old-price">${oldPriceDisp}</span>` : ''}
           </div>
           ${installmentHtml}
+          <div class="view-count-row">
+            <span class="view-count">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>${(item.views || 0).toLocaleString('ru-RU')}
+            </span>
+          </div>
           ${item.reserved
             ? `<button class="order-btn reserved-btn" disabled>${t('Bu raqamni boshqa inson bron qilish jarayonida')}</button>`
             : (hideOrderButtonSetting ? '' : orderButtonHtml(item, `${CART_ICON_SVG}${t('Buyurtma berish')}`, ''))}
         </div>`;
   }
+}
+
+/* Raqam kartochkasi ko'rsatilganda — bitta brauzer seansida FAQAT BIR
+   MARTA — ko'rishlar sonini oshiramiz (bazada saqlanadi, hammaga bir
+   xil ko'rinadi). sessionStorage orqali qayta-qayta hisoblanib
+   ketishining oldi olinadi.
+   MUHIM: bu maydon qo'lda (admin panelda) HECH QACHON tahrirlanmaydi —
+   faqat shu funksiya orqali, avtomatik ishlaydi. Har bir raqam uchun
+   ENG BIRINCHI marta ko'rilganda, tizim o'zi 800–1500 oralig'ida
+   tasodifiy boshlang'ich son tanlaydi; shundan keyingi har bir haqiqiy
+   ko'rish shu songa +1 qo'shib boradi. */
+function trackNumberView(item){
+  try{
+    const seenKey = 'viewed_num_' + item.id;
+    if(sessionStorage.getItem(seenKey)) return;
+    sessionStorage.setItem(seenKey, '1');
+
+    if(typeof item.views === 'number'){
+      item.views += 1;
+      db.collection('numbers').doc(item.id).update({
+        views: firebase.firestore.FieldValue.increment(1)
+      }).catch(()=>{ /* muhim emas — ko'rinishga ta'sir qilmaydi */ });
+    }else{
+      // Ushbu raqam UMUMAN birinchi marta ko'rilyapti — boshlang'ich
+      // songa tasodifiy (800–1500) qiymat beriladi.
+      const seedVal = 800 + Math.floor(Math.random() * 701);
+      item.views = seedVal;
+      db.collection('numbers').doc(item.id).update({ views: seedVal })
+        .catch(()=>{ /* muhim emas — ko'rinishga ta'sir qilmaydi */ });
+    }
+  }catch(e){ /* sessionStorage yo'q bo'lsa ham sayt ishlayveradi */ }
 }
 
 function renderCatalog(){
@@ -2014,6 +2056,7 @@ function renderCatalog(){
   }
 
   pageItems.forEach((item, idx)=>{
+    trackNumberView(item);
     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
     const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
     const rank = currentPage * PAGE_SIZE + idx + 1;
