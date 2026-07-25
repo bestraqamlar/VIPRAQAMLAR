@@ -195,10 +195,11 @@
   .drawer-overlay.open{opacity:1;pointer-events:auto;}
 
   .side-drawer{
-    position:fixed;top:0;right:0;height:100%;width:100%;max-width:100vw;
+    position:fixed;top:0;right:0;width:100%;max-width:100vw;
+    height:100vh;height:100dvh;
     background:var(--panel);
     transform:translateX(100%);transition:transform 0.4s cubic-bezier(.22,1,.36,1);z-index:95;
-    display:flex;flex-direction:column;overflow-y:auto;
+    display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;
     box-shadow:-10px 0 40px rgba(0,0,0,0.35);
   }
   .side-drawer.open{transform:translateX(0);}
@@ -226,7 +227,7 @@
   .drawer-close svg{width:16px;height:16px;}
   .drawer-close:hover{border-color:var(--red);color:var(--red);}
 
-  .drawer-links{display:flex;flex-direction:column;gap:8px;padding:4px 16px 16px;}
+  .drawer-links{display:flex;flex-direction:column;gap:8px;padding:4px 16px calc(16px + env(safe-area-inset-bottom,0px));}
   .drawer-links a{
     display:flex;align-items:center;gap:10px;
     background:color-mix(in srgb, var(--panel) 84%, var(--text) 16%);
@@ -371,7 +372,7 @@
     font-size:clamp(9px,2.8vw,13px);
     text-align:center;text-align-last:center;
     padding:0 16px 0 clamp(5px,1.6vw,9px);
-    width:clamp(50px,15vw,88px);outline:none;cursor:pointer;transition:border-color .2s;
+    width:clamp(62px,19vw,96px);outline:none;cursor:pointer;transition:border-color .2s;
     -webkit-appearance:none;appearance:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238494B0'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 6px center;
@@ -404,14 +405,12 @@
   .catalog{
     max-width:1100px;margin:0 auto;padding:16px 16px 24px;
     display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;
+    transition:opacity .18s ease;
   }
   .card{
     background:var(--panel);border:1px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
-    opacity:0;transform:translateY(16px);
-    animation:cardIn .5s ease forwards;
   }
-  @keyframes cardIn{to{opacity:1;transform:translateY(0);}}
   .card:hover{border-color:var(--amber);}
   .card:active{transform:scale(0.98);}
   .card.clickable-card{cursor:pointer;}
@@ -933,24 +932,43 @@
 
   .overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.65);
-    display:none;align-items:flex-end;justify-content:center;z-index:50;
+    display:none;align-items:stretch;justify-content:stretch;z-index:50;
     backdrop-filter:blur(2px);
   }
-  .overlay.open{display:flex;animation:fadeIn .2s ease;}
+  .overlay.open{display:flex;animation:fadeIn .25s ease;}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-  @media (min-width:600px){ .overlay{align-items:center;} }
+  @media (min-width:600px){ .overlay{align-items:center;justify-content:center;} }
 
   .modal{
     background:var(--panel);border:1px solid var(--line);
-    border-radius:18px 18px 0 0;
-    padding:24px 22px 28px;max-width:420px;width:100%;
-    transform:translateY(30px);animation:slideUp .28s ease forwards;
-    max-height:90vh;overflow-y:auto;
+    border-radius:0;
+    padding:calc(env(safe-area-inset-top,0px) + 22px) 22px calc(env(safe-area-inset-bottom,0px) + 24px);
+    width:100%;height:100%;max-width:none;
+    position:relative;
+    transform:translateY(30px);opacity:0;
+    animation:slideUp .32s cubic-bezier(.22,1,.36,1) forwards;
+    max-height:100vh;overflow-y:auto;
+    display:flex;flex-direction:column;
   }
-  @media (min-width:600px){ .modal{border-radius:18px;} }
-  @keyframes slideUp{to{transform:translateY(0);}}
+  @media (min-width:600px){
+    .modal{
+      border-radius:20px;width:100%;height:auto;max-width:420px;
+      max-height:90vh;padding:24px 22px 28px;
+    }
+  }
+  @keyframes slideUp{to{transform:translateY(0);opacity:1;}}
 
-  .modal-handle{width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;}
+  .modal-close-x{
+    position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);right:16px;z-index:2;
+    width:34px;height:34px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;
+    transition:all .15s ease;
+  }
+  .modal-close-x svg{width:16px;height:16px;}
+  .modal-close-x:hover{color:var(--red);border-color:var(--red);}
+
+  .modal-handle{display:none;}
+  @media (min-width:600px){ .modal-handle{display:block;width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;} }
   .modal h2{font-family:'Space Mono',monospace;color:var(--amber);font-size:17px;margin:0 0 4px;}
   .modal .modal-number{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--text);margin-bottom:14px;}
 
@@ -1326,7 +1344,6 @@
 
 <div class="search-wrap">
   <div class="number-builder" id="numberBuilder">
-    <span class="prefix">+998</span>
     <select id="operatorSelect" class="op-select">
       <option value="" data-i18n="all">Barchasi</option>
       <option value="Mobiuz" style="color:#C0392B;">Mobiuz</option>
@@ -1562,6 +1579,9 @@
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-handle"></div>
+    <button class="modal-close-x" id="modalCloseX" aria-label="Yopish">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+    </button>
     <div id="formView">
       <h2 data-i18n="placeOrder">Buyurtma berish</h2>
       <div class="modal-number" id="modalNumber"></div>
@@ -2031,6 +2051,7 @@ function renderCatalog(){
 
 function renderPagination(page, totalPages){
   if(window.currentLangMode && window.currentLangMode !== 'uz' && window.applyCurrentLanguage) window.applyCurrentLanguage();
+  requestAnimationFrame(()=>{ catalogEl.style.opacity = '1'; });
   let pagEl = document.getElementById('pagination');
   if(!pagEl){
     pagEl = document.createElement('div');
@@ -2200,6 +2221,7 @@ digitBoxes.forEach((box, idx)=>{
     }
     if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus({ preventScroll: true }); }
     currentPage = 0;
+    catalogEl.style.opacity = '0.35';
     debouncedRenderCatalog();
   });
   box.addEventListener('keydown', (e)=>{
@@ -2211,7 +2233,6 @@ clearSearchBtn.addEventListener('click', ()=>{
   digitBoxes.forEach(box=>{ box.value=''; box.classList.remove('filled'); });
   currentPage = 0;
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
-  document.querySelectorAll('.fp-op-chip').forEach(c => c.classList.toggle('active', c.dataset.op === ''));
 });
 
 const overlay       = document.getElementById('overlay');
@@ -2312,6 +2333,7 @@ function closeModal(){
   }
 }
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('modalCloseX').addEventListener('click', closeModal);
 document.getElementById('closeSuccessBtn').addEventListener('click', closeModal);
 overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
 
