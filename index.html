@@ -405,6 +405,7 @@
   .catalog{
     max-width:1100px;margin:0 auto;padding:16px 16px 24px;
     display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;
+    align-items:start;
     transition:opacity .18s ease;
   }
   .card{
@@ -573,13 +574,13 @@
     padding:3px 8px;border-radius:6px;
   }
   .card-body{padding:18px 16px;display:flex;flex-direction:column;flex:1;}
-  .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
-  .view-count-row{margin-top:auto;display:flex;justify-content:flex-end;margin-bottom:8px;}
+  .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;margin-top:auto;}
   .view-count{
+    position:absolute;top:38px;right:14px;
     display:flex;align-items:center;gap:3px;
-    color:var(--muted);font-size:10.5px;font-weight:600;white-space:nowrap;
+    color:var(--muted);font-size:10px;font-weight:600;white-space:nowrap;
   }
-  .view-count svg{width:12px;height:12px;flex-shrink:0;}
+  .view-count svg{width:11px;height:11px;flex-shrink:0;}
   .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--amber);}
   .price-row .old-price{
     font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;
@@ -1980,17 +1981,15 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
           <span class="num-label">${numDisp}</span>
         </div>
         ${discountHtml}
+        <span class="view-count">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>${(item.views || 0).toLocaleString('ru-RU')}
+        </span>
         <div class="card-body">
           <div class="price-row">
             <span class="new-price">${priceDisp}</span>
             ${hasDiscount ? `<span class="old-price">${oldPriceDisp}</span>` : ''}
           </div>
           ${installmentHtml}
-          <div class="view-count-row">
-            <span class="view-count">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>${(item.views || 0).toLocaleString('ru-RU')}
-            </span>
-          </div>
           ${item.reserved
             ? `<button class="order-btn reserved-btn" disabled>${t('Bu raqamni boshqa inson bron qilish jarayonida')}</button>`
             : (hideOrderButtonSetting ? '' : orderButtonHtml(item, `${CART_ICON_SVG}${t('Buyurtma berish')}`, ''))}
