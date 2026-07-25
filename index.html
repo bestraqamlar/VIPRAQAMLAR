@@ -573,6 +573,19 @@
     background:var(--amber);color:var(--bg);font-size:10px;font-weight:700;
     padding:3px 8px;border-radius:6px;
   }
+  .fav-btn{
+    position:absolute;top:8px;right:10px;z-index:2;
+    width:30px;height:30px;border-radius:9px;border:none;cursor:pointer;
+    background:rgba(59,110,235,0.1);color:#3B6EEB;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), background .15s ease, color .15s ease;
+  }
+  .fav-btn svg{width:16px;height:16px;transition:fill .15s ease;}
+  .fav-btn:hover{background:rgba(59,110,235,0.18);}
+  .fav-btn.active{background:rgba(59,110,235,0.16);color:#3B6EEB;}
+  .fav-btn.active svg{fill:#3B6EEB;}
+  .fav-btn.fav-pop{animation:favPop .35s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes favPop{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1);}}
   .card-body{padding:18px 16px;display:flex;flex-direction:column;flex:1;}
   .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;margin-top:auto;}
   .view-count{
@@ -1052,6 +1065,53 @@
   .hub-btn-title{font-weight:800;font-size:14px;line-height:1.25;margin-top:2px;}
   .hub-btn-sub{font-size:10.5px;color:rgba(255,255,255,0.65);line-height:1.4;font-weight:500;}
 
+  /* ---- "Savatdagi raqamlar" (sevimlilar) oynasi — hub bilan bir xil
+     ko'k-binafsha gradient uslubida ---- */
+  .fav-overlay{
+    position:fixed;inset:0;background:linear-gradient(160deg,#2c1aa0,#180d5c);
+    z-index:216;overflow-y:auto;
+    opacity:0;pointer-events:none;transform:scale(0.96);
+    transition:opacity 0.35s ease, transform 0.35s cubic-bezier(.22,1,.36,1);
+    padding:0 0 30px;
+  }
+  .fav-overlay.open{opacity:1;pointer-events:auto;transform:scale(1);}
+  .fav-top-bar{
+    position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 14px;
+    background:linear-gradient(160deg,#2c1aa0,#180d5c);z-index:2;
+  }
+  .fav-top-title{color:#fff;font-family:'Sora',sans-serif;font-weight:800;font-size:18px;}
+  .fav-empty{text-align:center;padding:70px 24px;color:rgba(255,255,255,0.7);}
+  .fav-empty .fav-empty-icon{font-size:40px;margin-bottom:14px;}
+  .fav-empty .fav-empty-title{color:#fff;font-weight:700;font-size:15px;margin-bottom:6px;}
+  .fav-empty .fav-empty-sub{font-size:12px;line-height:1.5;max-width:260px;margin:0 auto;}
+
+  .fav-list{padding:6px 20px 20px;display:flex;flex-direction:column;gap:12px;}
+  .fav-item{
+    background:#4633ea;border:1px solid rgba(255,255,255,0.12);border-radius:16px;
+    padding:16px;color:#fff;
+  }
+  .fav-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .fav-item-number{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;letter-spacing:.3px;}
+  .fav-item-remove{
+    background:rgba(255,255,255,0.14);border:none;border-radius:8px;
+    width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;transition:background .15s ease;
+  }
+  .fav-item-remove:hover{background:rgba(255,90,90,0.4);}
+  .fav-item-remove svg{width:14px;height:14px;}
+  .fav-item-price{font-weight:800;font-size:15px;margin-bottom:12px;display:flex;align-items:baseline;gap:8px;}
+  .fav-item-price .fav-old-price{font-weight:600;font-size:11.5px;color:rgba(255,255,255,0.55);text-decoration:line-through;}
+  .fav-item-order-btn{
+    width:100%;background:#fff;color:#2c1aa0;border:none;border-radius:11px;
+    padding:12px;font-weight:800;font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .fav-item-order-btn:hover{background:#eee6ff;}
+  .fav-item-order-btn:active{transform:scale(0.98);}
+  .fav-item-order-btn svg{width:15px;height:15px;}
+
   .co-steps{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 18px;}
   .co-step-dot{
     width:26px;height:26px;border-radius:50%;background:var(--panel-2);border:1.5px solid var(--line);
@@ -1331,6 +1391,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       <span data-i18n="myOrders">Buyurtmalarim</span>
     </a>
+    <a href="#" id="openFavoritesLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+      <span>Savatdagi raqamlar</span>
+    </a>
   </div>
 </aside>
 
@@ -1575,6 +1639,16 @@
       <div id="ordersResultView" style="display:none;"></div>
     </div>
   </div>
+</div>
+
+<div class="fav-overlay" id="favoritesOverlay">
+  <div class="fav-top-bar">
+    <span class="fav-top-title">🛒 Savatdagi raqamlar</span>
+    <button class="hub-close" id="favoritesClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+    </button>
+  </div>
+  <div id="favoritesListView"></div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -1980,7 +2054,9 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
         <div class="card-header">
           <span class="num-label">${numDisp}</span>
         </div>
-        ${discountHtml}
+        <button class="fav-btn ${isFavoriteId(item.id) ? 'active' : ''}" data-id="${item.id}" aria-label="Sevimlilarga qo'shish">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        </button>
         <span class="view-count">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>${(item.views || 0).toLocaleString('ru-RU')}
         </span>
@@ -1997,6 +2073,92 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
   }
 }
 
+/* ==================================================================
+   "SAVATDAGI RAQAMLAR" — localStorage orqali, real ravishda saqlanadi
+   (qurilmada). Karta ustidagi belgi bosilganda, YOKI kartaga ikki marta
+   ketma-ket bosilganda (like tugmasiga o'xshab), qo'shiladi/olib
+   tashlanadi.
+   XAVFSIZLIK: bu ma'lumot faqat brauzerning o'zida turadi (serverga
+   yozilmaydi), lekin baribir brauzer konsolidan qo'lda o'zgartirilgan
+   yoki buzilgan bo'lishi mumkin — shu sabab har bir o'qishda qat'iy
+   tekshiriladi: faqat massiv, faqat haqiqiy Firestore ID shakliga mos
+   qatorlar, va cheksiz o'sib ketmasligi uchun maksimal chegara bilan. */
+const FAV_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+const FAV_MAX_ITEMS = 20;
+
+function getFavorites(){
+  let raw;
+  try{ raw = JSON.parse(localStorage.getItem('vip_favorites') || '[]'); }
+  catch(e){ return []; }
+  if(!Array.isArray(raw)) return [];
+  // Faqat to'g'ri shakldagi ID'larni qoldiramiz, takrorlanganlarni
+  // olib tashlaymiz, va son chegarasidan oshib ketmasligini ta'minlaymiz.
+  const clean = raw.filter(id => typeof id === 'string' && FAV_ID_PATTERN.test(id));
+  return Array.from(new Set(clean)).slice(0, FAV_MAX_ITEMS);
+}
+function isFavoriteId(id){ return getFavorites().includes(id); }
+function toggleFavorite(id, btnEl){
+  if(typeof id !== 'string' || !FAV_ID_PATTERN.test(id)) return; // shubhali/nomos ID — e'tiborsiz qoldiriladi
+  let favs = getFavorites();
+  const idx = favs.indexOf(id);
+  const nowFav = idx === -1;
+  if(nowFav){
+    if(favs.length >= FAV_MAX_ITEMS){
+      if(window.showToast) showToast(`Maksimal ${FAV_MAX_ITEMS} ta raqam saqlash mumkin. Avval birortasini o'chiring.`, 2200);
+      return;
+    }
+    favs.push(id);
+  }else{
+    favs.splice(idx, 1);
+  }
+  try{ localStorage.setItem('vip_favorites', JSON.stringify(favs)); }catch(e){ /* joy yo'q bo'lsa ham davom etadi */ }
+
+  if(btnEl){
+    btnEl.classList.toggle('active', nowFav);
+    btnEl.classList.remove('fav-pop');
+    void btnEl.offsetWidth; // animatsiyani qayta ishga tushirish uchun
+    btnEl.classList.add('fav-pop');
+  }
+  if(window.showToast) showToast(nowFav ? "❤️ Savatga qo'shildi" : "Savatdan olib tashlandi", 1600);
+  return nowFav;
+}
+
+// ID'ni CSS selektorda xavfsiz ishlatish uchun (maxsus belgilar selektor
+// sintaksisini buzib qo'ymasligi uchun).
+function favSelector(id){
+  return `.fav-btn[data-id="${(window.CSS && CSS.escape) ? CSS.escape(id) : String(id).replace(/["\\]/g, '\\$&')}"]`;
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(!catalogEl) return;
+
+  // Belgiga bosilganda — darhol qo'shish/olib tashlash
+  catalogEl.addEventListener('click', (e)=>{
+    const favBtn = e.target.closest('.fav-btn');
+    if(!favBtn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(favBtn.dataset.id, favBtn);
+  });
+
+  // Kartaning o'ziga ikki marta ketma-ket bosilganda — xuddi shunday
+  let lastTapId = null, lastTapTime = 0;
+  catalogEl.addEventListener('click', (e)=>{
+    if(e.target.closest('.fav-btn') || e.target.closest('.order-btn')) return;
+    const card = e.target.closest('.card');
+    if(!card || !card.dataset.id) return;
+    const now = Date.now();
+    if(lastTapId === card.dataset.id && now - lastTapTime < 400){
+      toggleFavorite(card.dataset.id, card.querySelector('.fav-btn'));
+      lastTapId = null; lastTapTime = 0;
+    }else{
+      lastTapId = card.dataset.id;
+      lastTapTime = now;
+    }
+  });
+});
+
+
 /* Raqam kartochkasi ko'rsatilganda — bitta brauzer seansida FAQAT BIR
    MARTA — ko'rishlar sonini oshiramiz (bazada saqlanadi, hammaga bir
    xil ko'rinadi). sessionStorage orqali qayta-qayta hisoblanib
@@ -2007,6 +2169,8 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
    tasodifiy boshlang'ich son tanlaydi; shundan keyingi har bir haqiqiy
    ko'rish shu songa +1 qo'shib boradi. */
 function trackNumberView(item){
+  if(!numbersLoaded) return; // hali eski kesh ko'rsatilyapti — kutamiz, chunki
+                              // bu vaqtinchalik ma'lumot, hisoblash uchun mos emas
   try{
     const seenKey = 'viewed_num_' + item.id;
     if(sessionStorage.getItem(seenKey)) return;
@@ -2061,6 +2225,7 @@ function renderCatalog(){
     const rank = currentPage * PAGE_SIZE + idx + 1;
     const card = document.createElement('div');
     card.className = `card cs-${style}`;
+    card.dataset.id = item.id;
     card.style.animationDelay = Math.min(idx * 0.04, 0.24) + 's';
     card.innerHTML = buildCardInnerHtml(style, item, hasDiscount, discountPct, rank);
 
@@ -2651,6 +2816,68 @@ document.getElementById('hubBtnAbout').addEventListener('click', ()=>{
 
 document.getElementById('contractClose').addEventListener('click', ()=> contractOverlay.classList.remove('open'));
 contractOverlay.addEventListener('click', (e)=>{ if(e.target === contractOverlay) contractOverlay.classList.remove('open'); });
+
+/* ---- "Savatdagi raqamlar" ro'yxati ---- */
+const favoritesOverlay = document.getElementById('favoritesOverlay');
+function renderFavoritesList(){
+  const view = document.getElementById('favoritesListView');
+  const favIds = getFavorites();
+  const items = favIds.map(id => NUMBERS.find(n => n.id === id)).filter(Boolean);
+
+  if(items.length === 0){
+    view.innerHTML = `<div class="fav-empty">
+      <div class="fav-empty-icon">🤍</div>
+      <div class="fav-empty-title">Hali raqam saqlanmagan</div>
+      <div class="fav-empty-sub">Yoqqan raqam ustidagi belgini bosing yoki kartaga ikki marta teging — shu yerda paydo bo'ladi.</div>
+    </div>`;
+    return;
+  }
+
+  view.innerHTML = `<div class="fav-list">` + items.map(item=>{
+    const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+    return `
+      <div class="fav-item" data-id="${item.id}">
+        <div class="fav-item-top">
+          <span class="fav-item-number">${displayNumber(item.number)}</span>
+          <button class="fav-item-remove" data-id="${item.id}" aria-label="O'chirish">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+          </button>
+        </div>
+        <div class="fav-item-price">
+          ${formatPrice(item.price)}
+          ${hasDiscount ? `<span class="fav-old-price">${formatPrice(item.oldPrice)}</span>` : ''}
+        </div>
+        <button class="fav-item-order-btn" data-number="${item.number}" data-id="${item.id}">
+          ${CART_ICON_SVG}${t('Buyurtma berish')}
+        </button>
+      </div>`;
+  }).join('') + `</div>`;
+
+  view.querySelectorAll('.fav-item-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      toggleFavorite(btn.dataset.id, null);
+      renderFavoritesList();
+      // Katalogdagi shu raqam belgisini ham yangilaymiz (agar ko'rinib turgan bo'lsa)
+      const cardBtn = catalogEl.querySelector(favSelector(btn.dataset.id));
+      if(cardBtn) cardBtn.classList.remove('active');
+    });
+  });
+  view.querySelectorAll('.fav-item-order-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      favoritesOverlay.classList.remove('open');
+      openModal(btn.dataset.number, btn.dataset.id);
+    });
+  });
+}
+
+document.getElementById('openFavoritesLink').addEventListener('click', (e)=>{
+  e.preventDefault();
+  closeDrawer();
+  renderFavoritesList();
+  favoritesOverlay.classList.add('open');
+});
+document.getElementById('favoritesClose').addEventListener('click', ()=> favoritesOverlay.classList.remove('open'));
+favoritesOverlay.addEventListener('click', (e)=>{ if(e.target === favoritesOverlay) favoritesOverlay.classList.remove('open'); });
 
 const contractNumberInput = document.getElementById('contractNumberInput');
 contractNumberInput.addEventListener('focus', ()=>{
