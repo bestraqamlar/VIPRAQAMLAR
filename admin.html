@@ -82,7 +82,7 @@
   .login-screen p{color:var(--muted);font-size:13px;margin:0 0 20px;}
   .login-screen input{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
-    padding:12px;color:var(--text);font-size:15px;outline:none;text-align:center;margin-bottom:10px;
+    padding:12px;color:var(--text);font-size:16px;outline:none;text-align:center;margin-bottom:10px;
   }
   .login-screen input:focus{border-color:var(--amber);}
   .login-screen button{
@@ -269,7 +269,7 @@
   .ai-input-row{display:flex;gap:8px;}
   .ai-input-row input{
     flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
-    padding:11px 14px;color:var(--text);font-size:13.5px;
+    padding:11px 14px;color:var(--text);font-size:16px;
   }
   .ai-input-row input:focus{border-color:var(--amber);}
   .ai-input-row button{
@@ -448,10 +448,58 @@
   .settings-form label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px;}
   .settings-form input, .settings-form select{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
-    padding:10px;color:var(--text);font-size:13.5px;outline:none;
+    padding:10px;color:var(--text);font-size:16px;outline:none;
   }
 
   .settings-form input:focus, .settings-form select:focus{border-color:var(--amber);}
+
+  /* ---- "Zakaz" bo'limi — jonli statistika + ikki ustunli tuzilma ---- */
+  .zk-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px;}
+  .zk-stat-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+    border-left:3px solid var(--line);
+  }
+  .zk-stat-card b{display:block;font-family:'Space Mono',monospace;font-size:22px;color:var(--text);}
+  .zk-stat-card span{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  .zk-stat-card.st-new{border-left-color:#5C8DF6;}
+  .zk-stat-card.st-contacted{border-left-color:var(--amber);}
+  .zk-stat-card.st-done{border-left-color:var(--green);}
+  .zk-stat-card.st-cancelled{border-left-color:var(--red);}
+
+  .zk-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media (min-width:900px){ .zk-grid{grid-template-columns:340px 1fr;align-items:start;} }
+
+  .zk-category-list{display:flex;flex-direction:column;gap:7px;}
+  .zk-cat-row{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 13px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+  }
+  .zk-cat-pattern{font-family:'Space Mono',monospace;font-weight:800;color:var(--text);letter-spacing:1px;}
+  .zk-cat-price{color:var(--amber);font-weight:800;font-size:12.5px;white-space:nowrap;}
+  .zk-del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;padding:2px 4px;opacity:.7;}
+  .zk-del-btn:hover{opacity:1;}
+
+  .zk-order-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin-bottom:10px;position:relative;
+  }
+  .zk-order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .zk-order-pattern{
+    font-family:'Space Mono',monospace;font-weight:800;font-size:15px;color:var(--text);
+    background:var(--panel-2);padding:4px 10px;border-radius:7px;letter-spacing:1px;
+  }
+  .zk-order-time{font-size:10.5px;color:var(--muted);}
+  .zk-order-info{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12.5px;margin-bottom:12px;}
+  .zk-order-info span:nth-child(odd){color:var(--muted);}
+  .zk-order-info span:nth-child(even){color:var(--text);font-weight:600;}
+  .zk-status-select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:9px 10px;color:var(--text);font-size:13px;font-weight:700;outline:none;cursor:pointer;
+  }
+  .zk-status-select.opt-yangi{border-color:#5C8DF6;color:#5C8DF6;}
+  .zk-status-select.opt-boglanildi{border-color:var(--amber);color:var(--amber);}
+  .zk-status-select.opt-yakunlandi{border-color:var(--green);color:var(--green);}
+  .zk-status-select.opt-bekor{border-color:var(--red);color:var(--red);}
   .settings-form .checkbox-field{margin-top:4px;}
   .settings-form .checkbox-field input{width:auto;}
   .settings-form button{
@@ -597,7 +645,7 @@
     <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
       <button id="deleteAllNumbersBtn" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">🗑 Barcha raqamlarni o'chirish</button>
     </div>
-    <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
+    <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
     <div class="admin-list" id="adminNumbersList"></div>
   </div>
 
@@ -739,25 +787,29 @@
   </div>
 
   <div class="pane" id="paneZakaz">
-    <div class="settings-form" style="margin-bottom:16px;">
-      <h3>💰 Raqam toifasi narxi</h3>
-      <p style="color:var(--muted);font-size:11.5px;margin:0 0 12px;">
-        Mijoz saytda "Raqam buyurtma berish" orqali oxirgi 4 raqamni kiritganda,
-        shu yerda belgilangan boshlang'ich narx ko'rsatiladi. Masalan "6666" uchun
-        narx belgilasangiz, mijoz shu 4 raqamni kiritganda o'sha narxni ko'radi.
-      </p>
-      <label for="zkPattern">Oxirgi 4 raqam (naqsh)</label>
-      <input type="text" id="zkPattern" maxlength="4" inputmode="numeric" placeholder="6666" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)">
-      <label for="zkPrice">Boshlang'ich narxi (so'm)</label>
-      <input type="number" id="zkPrice" placeholder="5000000">
-      <button id="zkSaveBtn">Saqlash</button>
-      <div class="settings-msg" id="zkMsg"></div>
-      <div class="zk-category-list" id="zkCategoryList" style="margin-top:14px;"></div>
-    </div>
+    <div class="zk-stats-row" id="zkStatsRow"></div>
 
-    <div class="settings-form">
-      <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
-      <div class="orders-list" id="customOrdersList"></div>
+    <div class="zk-grid">
+      <div class="settings-form zk-price-form">
+        <h3>💰 Raqam toifasi narxi</h3>
+        <p style="color:var(--muted);font-size:11.5px;margin:0 0 12px;">
+          Mijoz saytda "Raqam buyurtma berish" orqali oxirgi 4 raqamni kiritganda,
+          shu yerda belgilangan boshlang'ich narx ko'rsatiladi.
+        </p>
+        <label for="zkPattern">Oxirgi 4 raqam (naqsh)</label>
+        <input type="text" id="zkPattern" maxlength="4" inputmode="numeric" placeholder="6666" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)">
+        <label for="zkPrice">Boshlang'ich narxi (so'm)</label>
+        <input type="number" id="zkPrice" placeholder="5000000">
+        <button id="zkSaveBtn">Saqlash</button>
+        <div class="settings-msg" id="zkMsg"></div>
+        <div class="zk-category-list" id="zkCategoryList" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="settings-form zk-orders-form" style="max-width:none;">
+        <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
+        <div class="orders-list" id="customOrdersList"></div>
+      </div>
+    </div>
     </div>
   </div>
 
@@ -807,7 +859,7 @@
       <div class="settings-msg" id="migrateContractsMsg"></div>
     </div>
 
-    <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;margin-bottom:10px;">
+    <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
     <div id="creditList"></div>
   </div>
 
@@ -1080,10 +1132,10 @@ async function loadPriceCategories(){
     listEl.innerHTML = snap.docs.map(d=>{
       const data = d.data();
       return `
-        <div class="zk-cat-row" style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;margin-bottom:6px;">
-          <span style="font-family:'Space Mono',monospace;font-weight:700;">••${escapeHtml(d.id)}</span>
-          <span style="color:var(--amber);font-weight:700;font-size:12.5px;">${formatPrice(data.startPrice)}</span>
-          <button data-id="${d.id}" class="zk-del-btn" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;">✕</button>
+        <div class="zk-cat-row">
+          <span class="zk-cat-pattern">••${escapeHtml(d.id)}</span>
+          <span class="zk-cat-price">${formatPrice(data.startPrice)}</span>
+          <button data-id="${d.id}" class="zk-del-btn" aria-label="O'chirish">✕</button>
         </div>`;
     }).join('');
     listEl.querySelectorAll('.zk-del-btn').forEach(btn=>{
@@ -1099,36 +1151,56 @@ async function loadPriceCategories(){
 }
 
 const ZAKAZ_STATUS_OPTIONS = ['Yangi', "Bog'lanildi", 'Yakunlandi', 'Bekor qilindi'];
+const ZAKAZ_STATUS_CLASS = { 'Yangi':'opt-yangi', "Bog'lanildi":'opt-boglanildi', 'Yakunlandi':'opt-yakunlandi', 'Bekor qilindi':'opt-bekor' };
+
+function renderZkStats(orders){
+  const counts = { 'Yangi':0, "Bog'lanildi":0, 'Yakunlandi':0, 'Bekor qilindi':0 };
+  orders.forEach(o => { if(counts[o.status] !== undefined) counts[o.status]++; });
+  const statsEl = document.getElementById('zkStatsRow');
+  statsEl.innerHTML = `
+    <div class="zk-stat-card"><b>${orders.length}</b><span>Jami so'rov</span></div>
+    <div class="zk-stat-card st-new"><b>${counts['Yangi']}</b><span>Yangi</span></div>
+    <div class="zk-stat-card st-contacted"><b>${counts["Bog'lanildi"]}</b><span>Bog'lanildi</span></div>
+    <div class="zk-stat-card st-done"><b>${counts['Yakunlandi']}</b><span>Yakunlandi</span></div>
+    <div class="zk-stat-card st-cancelled"><b>${counts['Bekor qilindi']}</b><span>Bekor qilindi</span></div>
+  `;
+}
+
 async function loadCustomOrders(){
   const listEl = document.getElementById('customOrdersList');
   listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
   try{
     const snap = await db.collection('custom_orders').orderBy('createdAtSort', 'desc').limit(100).get();
-    if(snap.empty){
+    const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderZkStats(orders);
+
+    if(orders.length === 0){
       listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali so\'rovlar yo\'q.</div>';
       return;
     }
-    listEl.innerHTML = snap.docs.map(d=>{
-      const o = d.data();
-      const msgCount = (o.messages || []).length;
+    listEl.innerHTML = orders.map(o=>{
       return `
-        <div class="order-card zk-clickable-card" data-id="${d.id}" style="cursor:pointer;">
-          <div class="oc-top">
-            <span class="oc-number">••••${escapeHtml(o.pattern)}</span>
-            <span class="oc-time">${escapeHtml(o.createdAt || '')}</span>
+        <div class="zk-order-card" data-id="${o.id}">
+          <div class="zk-order-top">
+            <span class="zk-order-pattern">••••${escapeHtml(o.pattern)}</span>
+            <span class="zk-order-time">${escapeHtml(o.createdAt || '')}</span>
           </div>
-          <div class="oc-row"><b>Ism:</b> ${escapeHtml(o.name)}</div>
-          <div class="oc-row"><b>Viloyat:</b> ${escapeHtml(o.region)}</div>
-          <div class="oc-row"><b>Telefon:</b> ${escapeHtml(o.phone)}</div>
-          <select class="zk-status-select" data-id="${d.id}" style="margin-top:8px;">
+          <div class="zk-order-info">
+            <span>Ism</span><span>${escapeHtml(o.name)}</span>
+            <span>Viloyat</span><span>${escapeHtml(o.region)}</span>
+            <span>Telefon</span><span>${escapeHtml(o.phone)}</span>
+          </div>
+          <select class="zk-status-select ${ZAKAZ_STATUS_CLASS[o.status] || 'opt-yangi'}" data-id="${o.id}">
             ${ZAKAZ_STATUS_OPTIONS.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
         </div>`;
     }).join('');
     listEl.querySelectorAll('.zk-status-select').forEach(sel=>{
       sel.addEventListener('change', async ()=>{
+        sel.className = 'zk-status-select ' + (ZAKAZ_STATUS_CLASS[sel.value] || 'opt-yangi');
         await db.collection('custom_orders').doc(sel.dataset.id).update({ status: sel.value });
         vibrate(60);
+        renderZkStats(orders.map(o => o.id === sel.dataset.id ? { ...o, status: sel.value } : o));
         try{
           const idToken = await firebase.auth().currentUser.getIdToken();
           await fetch('/.netlify/functions/notify-custom-order-status', {
