@@ -576,13 +576,13 @@
   .fav-btn{
     position:absolute;top:8px;right:10px;z-index:2;
     width:30px;height:30px;border-radius:9px;border:none;cursor:pointer;
-    background:rgba(59,110,235,0.1);color:#3B6EEB;
+    background:rgba(59,110,235,0.06);color:#3B6EEB;
     display:flex;align-items:center;justify-content:center;
     transition:transform .18s cubic-bezier(.34,1.56,.64,1), background .15s ease, color .15s ease;
   }
-  .fav-btn svg{width:16px;height:16px;transition:fill .15s ease;}
-  .fav-btn:hover{background:rgba(59,110,235,0.18);}
-  .fav-btn.active{background:rgba(59,110,235,0.16);color:#3B6EEB;}
+  .fav-btn svg{width:17px;height:17px;transition:fill .15s ease;}
+  .fav-btn:hover{background:rgba(59,110,235,0.14);}
+  .fav-btn.active{background:rgba(59,110,235,0.12);color:#3B6EEB;}
   .fav-btn.active svg{fill:#3B6EEB;}
   .fav-btn.fav-pop{animation:favPop .35s cubic-bezier(.34,1.56,.64,1);}
   @keyframes favPop{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1);}}
@@ -1017,10 +1017,13 @@
   .promo-msg.bad{color:var(--red);display:block;}
 
   .toast{
-    position:fixed;top:-80px;left:50%;transform:translateX(-50%);
-    background:var(--green);color:#0a1a12;font-weight:700;font-size:13px;
-    padding:12px 20px;border-radius:10px;z-index:200;
-    transition:top 0.35s ease;white-space:nowrap;
+    position:fixed;top:-120px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#0a1a12;font-weight:700;font-size:13px;line-height:1.45;
+    padding:13px 18px;border-radius:12px;z-index:200;
+    max-width:min(92vw, 380px);width:max-content;
+    text-align:center;white-space:normal;word-break:break-word;
+    box-shadow:0 8px 24px rgba(0,0,0,0.28);
+    transition:top 0.35s cubic-bezier(.22,1,.36,1);
   }
   .toast.show{top:16px;}
 
@@ -1355,17 +1358,17 @@
   </div>
 
   <div class="drawer-links">
-    <a id="drawerTelegram" href="#" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
-      <span data-i18n="telegramChannel">Telegram kanal</span>
+    <a href="#" id="openFavoritesLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+      <span>Savatdagi raqamlar</span>
     </a>
     <a id="drawerInstagram" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
       <span data-i18n="instagramChannel">Instagram kanal</span>
     </a>
-    <a id="drawerContact" href="#" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span data-i18n="contactUs">Murojaat uchun</span>
+    <a id="drawerTelegram" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
+      <span data-i18n="telegramChannel">Telegram kanal</span>
     </a>
     <a id="drawerBotLink" href="https://t.me/vipraqambot" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg>
@@ -1391,9 +1394,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       <span data-i18n="myOrders">Buyurtmalarim</span>
     </a>
-    <a href="#" id="openFavoritesLink">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-      <span>Savatdagi raqamlar</span>
+    <a id="drawerContact" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span data-i18n="contactUs">Call Markaz</span>
     </a>
   </div>
 </aside>
@@ -2119,7 +2122,10 @@ function toggleFavorite(id, btnEl){
     void btnEl.offsetWidth; // animatsiyani qayta ishga tushirish uchun
     btnEl.classList.add('fav-pop');
   }
-  if(window.showToast) showToast(nowFav ? "❤️ Savatga qo'shildi" : "Savatdan olib tashlandi", 1600);
+  if(window.showToast){
+    const favIconSvg = '<svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>';
+    showToast(favIconSvg + (nowFav ? "Savatga qo'shildi" : "Savatdan olib tashlandi"), 1600, { html:true, bg:'var(--btn-bg, #1D2A44)', color:'var(--btn-text, #fff)' });
+  }
   return nowFav;
 }
 
@@ -2174,20 +2180,30 @@ function trackNumberView(item){
   try{
     const seenKey = 'viewed_num_' + item.id;
     if(sessionStorage.getItem(seenKey)) return;
-    sessionStorage.setItem(seenKey, '1');
 
     if(typeof item.views === 'number'){
-      item.views += 1;
+      item.views += 1; // ko'rinishda darhol +1 (bazaga yozish tugashini kutmasdan)
       db.collection('numbers').doc(item.id).update({
         views: firebase.firestore.FieldValue.increment(1)
-      }).catch(()=>{ /* muhim emas — ko'rinishga ta'sir qilmaydi */ });
+      }).then(()=>{
+        // Faqat MUVAFFAQIYATLI yozilgandan keyin "ko'rildi" deb belgilaymiz —
+        // aks holda xato bo'lsa, keyingi safar qayta urinib ko'radi.
+        try{ sessionStorage.setItem(seenKey, '1'); }catch(e){}
+      }).catch(err=>{
+        console.error('views +1 yozishda xato (raqam: ' + item.id + '):', err);
+      });
     }else{
       // Ushbu raqam UMUMAN birinchi marta ko'rilyapti — boshlang'ich
       // songa tasodifiy (800–1500) qiymat beriladi.
       const seedVal = 800 + Math.floor(Math.random() * 701);
       item.views = seedVal;
       db.collection('numbers').doc(item.id).update({ views: seedVal })
-        .catch(()=>{ /* muhim emas — ko'rinishga ta'sir qilmaydi */ });
+        .then(()=>{
+          try{ sessionStorage.setItem(seenKey, '1'); }catch(e){}
+        })
+        .catch(err=>{
+          console.error('views boshlang\'ich qiymat yozishda xato (raqam: ' + item.id + '):', err);
+        });
     }
   }catch(e){ /* sessionStorage yo'q bo'lsa ham sayt ishlayveradi */ }
 }
@@ -2534,9 +2550,12 @@ document.getElementById('cancelBtn').addEventListener('click', closeModal);
 document.getElementById('closeSuccessBtn').addEventListener('click', closeModal);
 overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
 
-function showToast(text, duration){
+function showToast(text, duration, opts){
   const toast = document.getElementById('toast');
-  toast.textContent = text;
+  if(opts && opts.html) toast.innerHTML = text;
+  else toast.textContent = text;
+  toast.style.background = (opts && opts.bg) ? opts.bg : '';
+  toast.style.color = (opts && opts.color) ? opts.color : '';
   toast.classList.add('show');
   setTimeout(()=> toast.classList.remove('show'), duration || 3000);
 }
