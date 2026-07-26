@@ -21,7 +21,7 @@
 //     "totalMonths": 12,
 //     "monthlyPayment": 500000,
 //     "contractStatus": "active",
-//     "payments": [ { "month": 1, "paid": true, "dueDate": "..." }, ... ]
+//     "payments": [ { "month": 1, "status": "paid", "paid": true, "dueDate": "26.07.2026", "dueDateRaw": 1785099906646, "paidAt": null }, ... ]
 //   }
 // }
 //
@@ -83,6 +83,36 @@ exports.handler = async function (event) {
     const docNumDigits = (data.number || '').replace(/\D/g, '');
     if (!docNumDigits.endsWith(numVal.slice(-9))) return notFound;
 
+    const now = Date.now();
+    const totalMonths = data.totalMonths || 0;
+
+    const payments = (data.payments || []).map(p => {
+      const isOverdue = p.status === 'pending' && typeof p.dueDate === 'number' && p.dueDate < now;
+      return {
+        month: p.month,
+        status: p.status || 'pending',
+        paid: p.status === 'paid',
+        overdue: isOverdue,
+        dueDate: p.dueDate ? new Date(p.dueDate).toLocaleDateString('uz-UZ') : '',
+        dueDateRaw: p.dueDate || null,
+        paidAt: p.paidAt ? new Date(p.paidAt).toLocaleDateString('uz-UZ') : null
+      };
+    });
+
+    const paidCount = payments.filter(p => p.paid).length;
+    const percent = totalMonths > 0 ? Math.round((paidCount / totalMonths) * 100) : 0;
+
+    // Saytda ko'rsatilgan xuddi shu matn/rang — ilova hech narsa
+    // hisoblab o'tirmasdan, to'g'ridan-to'g'ri shu yerdan oladi.
+    const STATUS_LABELS = {
+      active:     { label: "To'lov muvaffaqiyatli bajarilmoqda", color: '#33E28C' },
+      trouble:    { label: "To'lov uzilishlari ko'p",            color: '#FFB000' },
+      cancelling: { label: 'Shartnoma bekor qilish jarayonida',  color: '#FF5C5C' },
+      cancelled:  { label: "Shartnoma bekor bo'ldi",             color: '#FF5C5C' },
+      completed:  { label: 'Shartnoma muvaffaqiyatli yakunlandi', color: '#33E28C' }
+    };
+    const statusInfo = STATUS_LABELS[data.contractStatus] || STATUS_LABELS.active;
+
     return {
       statusCode: 200,
       headers,
@@ -91,10 +121,15 @@ exports.handler = async function (event) {
         data: {
           customerName: data.customerName || '',
           number: data.number || '',
-          totalMonths: data.totalMonths || 0,
+          totalMonths,
           monthlyPayment: data.monthlyPayment || 0,
+          paidCount,
+          remainingMonths: totalMonths - paidCount,
+          percent,
           contractStatus: data.contractStatus || 'active',
-          payments: data.payments || []
+          contractStatusLabel: statusInfo.label,
+          contractStatusColor: statusInfo.color,
+          payments
         }
       })
     };
