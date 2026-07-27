@@ -983,6 +983,31 @@
   }
   .oib-row{display:flex;align-items:flex-start;gap:9px;font-size:11.5px;color:var(--muted);line-height:1.5;}
   .oib-row svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;color:var(--amber);}
+
+  /* ---- SMS tasdiqlash oynasi ---- */
+  .sms-verify-icon{
+    width:52px;height:52px;border-radius:50%;background:var(--amber-soft);
+    display:flex;align-items:center;justify-content:center;margin:4px auto 12px;
+    color:var(--amber);
+  }
+  .sms-verify-icon svg{width:24px;height:24px;}
+  .sms-verify-sub{text-align:center;color:var(--muted);font-size:12.5px;margin:0 0 18px;}
+  .sms-verify-sub span{color:var(--text);font-weight:700;}
+  .sms-code-input{
+    display:block;width:160px;margin:0 auto;text-align:center;
+    font-family:'Space Mono',monospace;font-size:26px;font-weight:800;letter-spacing:10px;
+    background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;
+    padding:12px 8px 12px 18px;color:var(--text);outline:none;
+  }
+  .sms-code-input:focus{border-color:var(--amber);}
+  .sms-code-error{text-align:center;color:var(--red);font-size:12px;margin-top:8px;}
+  .sms-safe-note{
+    display:flex;align-items:flex-start;gap:8px;margin-top:16px;
+    background:rgba(51,226,140,0.08);border:1px solid rgba(51,226,140,0.25);border-radius:9px;
+    padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.5;
+  }
+  .sms-safe-note svg{width:15px;height:15px;flex-shrink:0;margin-top:1px;color:var(--green);}
+
   .modal label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px;}
   .modal input, .modal select{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
@@ -1757,6 +1782,22 @@
           <span class="spinner" id="confirmSpinner"></span>
         </button>
       </div>
+
+      <div id="smsVerifyView" style="display:none;">
+        <div class="sms-verify-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <h2 style="text-align:center;">Tasdiqlash kodi</h2>
+        <p class="sms-verify-sub"><span id="smsPhoneDisplay"></span> raqamiga 4 xonali kod yubordik</p>
+        <input type="text" id="smsCodeInput" class="sms-code-input" inputmode="numeric" maxlength="4" placeholder="0000">
+        <div class="sms-code-error" id="smsCodeError" style="display:none;"></div>
+        <div class="sms-safe-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Bu — xavfsizlik uchun oddiy tasdiqlash. Hech qanday to'lov yoki karta ma'lumoti so'ralmaydi.</span>
+        </div>
+        <button class="btn-confirm" id="smsVerifyBtn" style="width:100%;margin-top:14px;">Tasdiqlash</button>
+        <button id="smsSkipBtn" style="width:100%;margin-top:10px;background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px;">Kod kelmadimi? O'tkazib yuborish</button>
+      </div>
     </div>
     <div class="success-view" id="successView">
       <div class="success-glow-ring"></div>
@@ -2490,6 +2531,13 @@ function openModal(number, id){
   if(navigator.vibrate) navigator.vibrate(35);
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){ recapEl.style.display = 'none'; recapEl.innerHTML = ''; }
+  // Agar avvalgi buyurtmadan SMS oynasi ko'rinib qolgan bo'lsa — hammasini
+  // asl holatiga qaytaramiz.
+  document.getElementById('smsVerifyView').style.display = 'none';
+  formView.querySelectorAll(':scope > *').forEach(el=>{
+    if(el.id !== 'smsVerifyView') el.style.display = '';
+  });
+  pendingOrderPayload = null;
   selectedNumberId = id || null;
   const item = NUMBERS.find(n => n.id === id);
   selectedPrice = item ? item.price : 0;
@@ -2656,6 +2704,66 @@ function spawnConfetti(){
   }
 }
 
+/* Buyurtmani bazaga yozish, raqamni "band" qilish, Telegramga xabar —
+   bu funksiya SMS tasdiqlangan holatda HAM, tasdiqlanmagan (SMS
+   ishlamagan/o'tkazib yuborilgan) holatda HAM chaqiriladi — SMS hech
+   qachon buyurtma qabul qilishga TO'SIQ bo'lmaydi. */
+async function finalizeOrder(payload, smsVerified){
+  payload.smsVerified = !!smsVerified;
+  const orderTime = new Date().toLocaleString('uz-UZ');
+
+  try{
+    const orderRef = await db.collection('orders').add({
+      ...payload,
+      numberId: selectedNumberId,
+      status: 'Yangi',
+      createdAt: orderTime,
+      createdAtSort: Date.now()
+    });
+
+    if(selectedNumberId){
+      await db.collection('numbers').doc(selectedNumberId).update({ reserved: true });
+      const localItem = NUMBERS.find(n => n.id === selectedNumberId);
+      if(localItem) localItem.reserved = true;
+    }
+
+    if(appliedDiscount > 0 && selectedNumberId){
+      try{
+        await db.collection('promo_usage').doc(selectedNumberId).set({ usedAt: Date.now() });
+      }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
+    }
+
+    sendOrderToTelegram(payload, orderTime, orderRef.id);
+  }catch(err){
+    console.error('Buyurtmani bazaga yozishda xato:', err);
+  }
+
+  confirmBtn.disabled = false;
+  confirmLabel.style.display = 'inline';
+  confirmSpinner.style.display = 'none';
+  const smsView = document.getElementById('smsVerifyView');
+  if(smsView) smsView.style.display = 'none';
+
+  formView.style.display = 'none';
+  successView.style.display = 'block';
+
+  const recapEl = document.getElementById('successOrderRecap');
+  if(recapEl){
+    recapEl.innerHTML = `<div class="sor-number">${escapeHtml(payload.number)}</div>`;
+    recapEl.style.display = 'block';
+  }
+
+  if(navigator.vibrate) navigator.vibrate([40, 60, 80]);
+  spawnConfetti();
+
+  renderCatalog();
+  renderFeatured();
+  renderSale();
+  renderDailyDeal();
+}
+
+let pendingOrderPayload = null;
+
 confirmBtn.addEventListener('click', async ()=>{
   if(!validate()) return;
   if(navigator.vibrate) navigator.vibrate(40);
@@ -2677,60 +2785,85 @@ confirmBtn.addEventListener('click', async ()=>{
     payload.installmentMonths = selectedInstallmentMonths;
     payload.monthlyPayment = selectedMonthlyPayment;
   }
-  const orderTime = new Date().toLocaleString('uz-UZ');
 
+  // SMS tasdiqlashga URINIB KO'RAMIZ — lekin bu hech qachon buyurtmani
+  // TO'SMAYDI. Agar SMS yuborish muvaffaqiyatsiz bo'lsa (Eskiz balansi
+  // tugagan, tarmoq xatosi va h.k.) — mijoz buni sezmaydi, buyurtma
+  // oddiy tarzda (tasdiqlanmagan holatda) qabul qilinadi.
+  pendingOrderPayload = payload;
   try{
-    const orderRef = await db.collection('orders').add({
-      ...payload,
-      numberId: selectedNumberId,
-      status: 'Yangi',
-      createdAt: orderTime,
-      createdAtSort: Date.now()
+    const res = await fetch('/.netlify/functions/send-sms-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: payload.phone })
     });
-
-    if(selectedNumberId){
-      await db.collection('numbers').doc(selectedNumberId).update({ reserved: true });
-      const localItem = NUMBERS.find(n => n.id === selectedNumberId);
-      if(localItem) localItem.reserved = true;
+    const data = await res.json();
+    if(data.ok){
+      // SMS ketdi — mijozdan kodni so'raymiz
+      confirmBtn.disabled = false;
+      confirmLabel.style.display = 'inline';
+      confirmSpinner.style.display = 'none';
+      showSmsVerifyView(payload.phone);
+      return;
     }
+    // SMS yuborilmadi (masalan 1 daqiqalik cheklov) — baribir davom etamiz
+    await finalizeOrder(payload, false);
+  }catch(e){
+    // Tarmoq xatosi yoki server ishlamayapti — SMS'siz davom etamiz
+    console.error('SMS yuborishda xato (buyurtma baribir davom etadi):', e);
+    await finalizeOrder(payload, false);
+  }
+});
 
-    // Promokod ishlatilgan bo'lsa, shu raqamga qayta ishlatib bo'lmasligi uchun belgilab qo'yamiz
-    if(appliedDiscount > 0 && selectedNumberId){
-      try{
-        await db.collection('promo_usage').doc(selectedNumberId).set({ usedAt: Date.now() });
-      }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
+function showSmsVerifyView(phone){
+  const smsView = document.getElementById('smsVerifyView');
+  document.getElementById('smsPhoneDisplay').textContent = phone;
+  document.getElementById('smsCodeInput').value = '';
+  document.getElementById('smsCodeError').style.display = 'none';
+  formView.querySelectorAll(':scope > *:not(#smsVerifyView)').forEach(el => el.style.display = 'none');
+  smsView.style.display = 'block';
+}
+
+document.getElementById('smsVerifyBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('smsVerifyBtn');
+  const code = document.getElementById('smsCodeInput').value.trim();
+  const errEl = document.getElementById('smsCodeError');
+  if(code.length !== 4){
+    errEl.textContent = "4 xonali kodni to'liq kiriting";
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  try{
+    const res = await fetch('/.netlify/functions/verify-sms-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: pendingOrderPayload.phone, code })
+    });
+    const data = await res.json();
+    if(data.ok){
+      if(navigator.vibrate) navigator.vibrate(40);
+      await finalizeOrder(pendingOrderPayload, true);
+    }else{
+      errEl.textContent = data.error || "Kod noto'g'ri";
+      errEl.style.display = 'block';
+      if(navigator.vibrate) navigator.vibrate([30,40,30]);
     }
-
-    sendOrderToTelegram(payload, orderTime, orderRef.id);
-  }catch(err){
-    console.error('Buyurtmani bazaga yozishda xato:', err);
+  }catch(e){
+    errEl.textContent = 'Xato yuz berdi, qayta urining';
+    errEl.style.display = 'block';
   }
+  btn.disabled = false;
+});
 
-  confirmBtn.disabled = false;
-  confirmLabel.style.display = 'inline';
-  confirmSpinner.style.display = 'none';
+// "SMS kelmadi" — mijoz uchun ham chiqish yo'li, tasdiqlashsiz davom etadi
+document.getElementById('smsSkipBtn').addEventListener('click', async ()=>{
+  if(pendingOrderPayload) await finalizeOrder(pendingOrderPayload, false);
+});
 
-  formView.style.display = 'none';
-  successView.style.display = 'block';
-
-  // Shaxsiylashtirilgan xulosa — mijoz aynan nima sotib olganini yana bir
-  // marta, chiroyli tarzda ko'radi.
-  const recapEl = document.getElementById('successOrderRecap');
-  if(recapEl){
-    recapEl.innerHTML = `
-      <div class="sor-number">${escapeHtml(payload.number)}</div>
-    `;
-    recapEl.style.display = 'block';
-  }
-
-  // Muvaffaqiyatli buyurtma — kuchliroq vibratsiya + konfetti animatsiyasi
-  if(navigator.vibrate) navigator.vibrate([40, 60, 80]);
-  spawnConfetti();
-
-  renderCatalog();
-  renderFeatured();
-  renderSale();
-  renderDailyDeal();
+document.getElementById('smsCodeInput').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+  document.getElementById('smsCodeError').style.display = 'none';
 });
 
 /* Hero'dagi "sotilgan raqam" sonini 0 dan boshlab jonli sanaydi */
