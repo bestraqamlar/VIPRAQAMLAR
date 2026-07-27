@@ -1,0 +1,19 @@
+{
+  "name": "VIP RAQAMLAR",
+  "short_name": "VIP RAQAMLAR",
+  "description": "O'zbekistonda chiroyli, oltin va VIP telefon raqamlarini tanlang va onlayn sotib oling.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1220",
+  "theme_color": "#0B1220",
+  "orientation": "portrait",
+  "lang": "uz",
+  "icons": [
+    {
+      "src": "assets/logo-circle.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

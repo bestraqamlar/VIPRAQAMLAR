@@ -13,6 +13,8 @@
 <link rel="icon" type="image/png" sizes="256x256" href="assets/logo-circle.png?v=2">
 <link rel="shortcut icon" type="image/png" href="assets/logo-circle.png?v=2">
 <link rel="apple-touch-icon" href="assets/logo-circle.png?v=2">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B1220">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="google-site-verification" content="I6UBu5Pm0CpwIE4txcOEXSVtieGWpQR5YkViiQCt7Vk" />
 
@@ -20,12 +22,16 @@
 <meta property="og:site_name" content="VIP RAQAMLAR">
 <meta property="og:title" content="VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar">
 <meta property="og:description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling. Barcha operatorlar, bepul yetkazib berish, muddatli to'lov imkoniyati.">
+<meta property="og:image" content="https://vipraqamlar.uz/assets/logo-circle.png">
+<meta property="og:image:width" content="256">
+<meta property="og:image:height" content="256">
 <meta property="og:url" content="https://vipraqamlar.uz/">
 <meta property="og:locale" content="uz_UZ">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar">
 <meta name="twitter:description" content="O'zbekiston bo'ylab chiroyli, oltin va VIP telefon raqamlarini tanlang va sotib oling.">
+<meta name="twitter:image" content="https://vipraqamlar.uz/assets/logo-circle.png">
 
 <script type="application/ld+json">
 {
@@ -126,15 +132,6 @@
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
   }
-
-  .new-numbers-banner{
-    position:fixed;top:0;left:0;right:0;z-index:250;
-    background:linear-gradient(90deg,#1a8a4c,#25b869);color:#fff;
-    text-align:center;font-weight:800;font-size:13px;padding:12px 16px;
-    transform:translateY(-100%);transition:transform 0.4s cubic-bezier(.22,1,.36,1);
-    cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,0.25);
-  }
-  .new-numbers-banner.show{transform:translateY(0);}
 
   header{
     padding:12px 20px;
@@ -1213,16 +1210,55 @@
   }
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  .success-view{display:none;text-align:center;padding:12px 0 4px;}
+  .success-view{display:none;text-align:center;padding:16px 0 4px;position:relative;overflow:hidden;}
+  .success-glow-ring{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    width:96px;height:96px;border-radius:50%;
+    background:radial-gradient(circle, rgba(51,226,140,0.35) 0%, rgba(51,226,140,0) 70%);
+    animation:glowPulse 1.8s ease-out infinite;z-index:0;
+  }
+  @keyframes glowPulse{
+    0%{transform:translateX(-50%) scale(0.7);opacity:0.9;}
+    70%{transform:translateX(-50%) scale(1.4);opacity:0;}
+    100%{transform:translateX(-50%) scale(1.4);opacity:0;}
+  }
   .success-check{
-    width:56px;height:56px;border-radius:50%;background:rgba(51,226,140,0.12);
-    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
-    animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+    width:68px;height:68px;border-radius:50%;
+    background:linear-gradient(160deg, rgba(51,226,140,0.22), rgba(51,226,140,0.06));
+    border:1.5px solid rgba(51,226,140,0.35);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+    animation:popIn .45s cubic-bezier(.34,1.56,.64,1);
+    position:relative;z-index:2;
+    box-shadow:0 6px 18px rgba(51,226,140,0.25);
   }
   @keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
-  .success-check svg{width:26px;height:26px;}
-  .success-view h3{font-family:'Space Mono',monospace;color:var(--green);font-size:16px;margin:0 0 6px;}
-  .success-view p{color:var(--muted);font-size:13px;margin:0;}
+  .success-check svg{width:32px;height:32px;}
+  .success-check .check-path{
+    stroke-dasharray:24;stroke-dashoffset:24;
+    animation:drawCheck .4s ease-out .35s forwards;
+  }
+  @keyframes drawCheck{to{stroke-dashoffset:0;}}
+  .success-view h3{font-family:'Space Mono',monospace;color:var(--green);font-size:18px;margin:0 0 6px;position:relative;z-index:2;}
+  .success-view p{color:var(--muted);font-size:13px;margin:0;position:relative;z-index:2;}
+
+  .success-order-recap{
+    position:relative;z-index:2;margin:16px 12px 0;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;text-align:left;display:none;
+    animation:recapFadeIn .4s ease .5s both;
+  }
+  @keyframes recapFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .success-order-recap .sor-number{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);}
+  .success-order-recap .sor-price{font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--amber);margin-top:3px;}
+
+  .confetti-piece{
+    position:absolute;top:-10px;left:50%;width:8px;height:12px;z-index:1;
+    animation:confettiFall 1.7s ease-in forwards;pointer-events:none;
+  }
+  @keyframes confettiFall{
+    0%{transform:translate(0,0) rotate(0deg);opacity:1;}
+    100%{transform:translate(var(--cx,0px),220px) rotate(var(--cr,360deg));opacity:0;}
+  }
 
   footer{
     text-align:center;color:var(--muted);font-size:12px;padding:22px 20px 64px;border-top:1px solid var(--line);
@@ -1310,7 +1346,6 @@
 </head>
 <body>
 
-<div class="new-numbers-banner" id="newNumbersBanner"></div>
 <header>
   <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:none;" aria-label="Video reels">
     <span class="hrb-ring">
@@ -1724,11 +1759,13 @@
       </div>
     </div>
     <div class="success-view" id="successView">
+      <div class="success-glow-ring"></div>
       <div class="success-check">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33E28C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none"><path class="check-path" d="M5 13l4 4L19 7" stroke="#33E28C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <h3>Buyurtma yuborildi!</h3>
       <p>Tez orada admin siz bilan bog'lanadi.</p>
+      <div class="success-order-recap" id="successOrderRecap"></div>
       <div class="modal-actions" style="margin-top:18px;">
         <button class="btn-cancel" id="closeSuccessBtn" style="flex:1;">Yopish</button>
       </div>
@@ -2450,11 +2487,15 @@ let selectedPrice = 0;
 let appliedDiscount = 0;
 
 function openModal(number, id){
+  if(navigator.vibrate) navigator.vibrate(35);
+  const recapEl = document.getElementById('successOrderRecap');
+  if(recapEl){ recapEl.style.display = 'none'; recapEl.innerHTML = ''; }
   selectedNumberId = id || null;
   const item = NUMBERS.find(n => n.id === id);
   selectedPrice = item ? item.price : 0;
   appliedDiscount = 0;
   modalNumber.textContent = displayNumber(number);
+
   custName.value = ''; custRegion.value = ''; custPhone.value = '+998';
   document.getElementById('promoCode').value = '';
   const promoMsgEl = document.getElementById('promoMsg');
@@ -2591,8 +2632,33 @@ ${paymentLine}
   }catch(err){ console.error('Telegramga yuborishda xato:', err); }
 }
 
+/* Buyurtma muvaffaqiyatli bo'lganda — yashil "✓" belgisi atrofida
+   rangli qog'ozchalar (konfetti) yuqoridan pastga tushib, aylanib,
+   sekin yo'qoladi. */
+const CONFETTI_COLORS = ['#FFB000', '#33E28C', '#E63946', '#5C8DF6', '#FFD778'];
+function spawnConfetti(){
+  const container = document.getElementById('successView');
+  if(!container) return;
+  for(let i = 0; i < 34; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    piece.style.background = color;
+    piece.style.left = (28 + Math.random() * 44) + '%';
+    piece.style.setProperty('--cx', (Math.random() * 220 - 110) + 'px');
+    piece.style.setProperty('--cr', (360 + Math.random() * 540) + 'deg');
+    piece.style.animationDelay = (Math.random() * 0.3) + 's';
+    piece.style.width = (5 + Math.random() * 5) + 'px';
+    piece.style.height = (8 + Math.random() * 6) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '2px' : '50%';
+    container.appendChild(piece);
+    setTimeout(()=> piece.remove(), 2100);
+  }
+}
+
 confirmBtn.addEventListener('click', async ()=>{
   if(!validate()) return;
+  if(navigator.vibrate) navigator.vibrate(40);
   confirmBtn.disabled = true;
   confirmLabel.style.display = 'none';
   confirmSpinner.style.display = 'inline-block';
@@ -2646,6 +2712,20 @@ confirmBtn.addEventListener('click', async ()=>{
 
   formView.style.display = 'none';
   successView.style.display = 'block';
+
+  // Shaxsiylashtirilgan xulosa — mijoz aynan nima sotib olganini yana bir
+  // marta, chiroyli tarzda ko'radi.
+  const recapEl = document.getElementById('successOrderRecap');
+  if(recapEl){
+    recapEl.innerHTML = `
+      <div class="sor-number">${escapeHtml(payload.number)}</div>
+    `;
+    recapEl.style.display = 'block';
+  }
+
+  // Muvaffaqiyatli buyurtma — kuchliroq vibratsiya + konfetti animatsiyasi
+  if(navigator.vibrate) navigator.vibrate([40, 60, 80]);
+  spawnConfetti();
 
   renderCatalog();
   renderFeatured();
@@ -3495,35 +3575,6 @@ async function raqamuzHeartbeat(){
 }
 raqamuzHeartbeat();
 setInterval(raqamuzHeartbeat, 20000);
-
-/* ---- Yangi raqam qo'shilganda — jonli yashil bildirishnoma ---- */
-(function watchNewNumbers(){
-  const banner = document.getElementById('newNumbersBanner');
-  let listenerReady = false;
-  let hideTimer = null;
-
-  function showBanner(count){
-    banner.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>Bazaga ${count} dona yangi raqam qo'shildi`;
-    banner.classList.add('show');
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(()=> banner.classList.remove('show'), 6000);
-  }
-  banner.addEventListener('click', ()=>{
-    banner.classList.remove('show');
-    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
-  try{
-    db.collection('numbers').onSnapshot(snap=>{
-      if(!listenerReady){
-        listenerReady = true;
-        return; // birinchi ulanish — bularning barchasi eski raqamlar
-      }
-      const added = snap.docChanges().filter(c => c.type === 'added');
-      if(added.length > 0) showBanner(added.length);
-    });
-  }catch(e){ /* muhim emas — banner ko'rsatilmasa ham sayt ishlayveradi */ }
-})();
 
 (async function countUniqueVisitor(){
   try{
