@@ -151,6 +151,7 @@ service cloud.firestore {
     // ataylab hech qanday "match" yozilmagan — demak ular uchun standart
     // qoida ishlaydi: "hamma narsa taqiqlangan" (brauzerdan hech kim
     // o'qiy ham, yoza ham olmaydi). Tegishli kolleksiyalar: bot_sessions,
-    // known_customers_tgmenu, known_customers, admin_list, sms_verifications.
+    // known_customers_tgmenu, known_customers, admin_list, sms_verifications,
+    // personal_bot_tx, personal_bot_state, personal_bot_plans.
   }
 }

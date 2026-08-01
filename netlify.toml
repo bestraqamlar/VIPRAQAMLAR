@@ -15,6 +15,9 @@
 [functions."credit-excel-report"]
   schedule = "0 4 * * *"
 
+[functions."personal-bot-reminder-check"]
+  schedule = "*/5 * * * *"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga
