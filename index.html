@@ -53,7 +53,11 @@
    rang, keyin to'g'ri rangga almashish" holati BIRINCHI tashrifda ham
    umuman ko'rinmaydi. */
 (function(){
-  function showNow(){ document.documentElement.style.visibility = 'visible'; }
+  function showNow(){
+    document.documentElement.style.visibility = 'visible';
+    var loader = document.getElementById('lyuksLoader');
+    if(loader) loader.style.display = 'none';
+  }
   function reveal(){
     // Rang tayyor bo'ldi — endi shirft (Sora, yoki tanlangan boshqa shirft)
     // to'liq yuklanishini ham kutamiz, shundan keyingina sahifani ko'rsatamiz.
@@ -86,6 +90,7 @@
       btnBorderColor:'--btn-border-color', btnRadius:'--btn-radius', cardRadius:'--card-radius'
     };
     Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
+    if(t.themeKey === 'lyuks_premium') document.documentElement.classList.add('lyuks-mode');
     if(t.font){
       root.setProperty('--font-main', "'" + t.font + "', 'Sora', sans-serif");
       document.documentElement.setAttribute('data-custom-font', '1');
@@ -98,6 +103,8 @@
 </script>
 <style>
   html{visibility:hidden;}
+  html.lyuks-mode #lyuksLoader{display:flex;}
+  @keyframes lyuksSpin{ to{ transform:rotate(360deg); } }
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&display=swap');
 
   :root{
@@ -1367,9 +1374,38 @@
     .drawer-close{display:none;}
     footer{padding:30px 20px 40px;}
   }
+  /* ---- "Lyuks Premium" mavzusi uchun — sekinroq, nafisroq o'tishlar.
+     Odatdagi tez "sakrash" o'rniga, hashamat brendlariga xos sokin,
+     deyarli sezilmaydigan animatsiya. ---- */
+  html.lyuks-mode .card,
+  html.lyuks-mode .order-btn,
+  html.lyuks-mode .fav-btn,
+  html.lyuks-mode .featured-btn,
+  html.lyuks-mode button,
+  html.lyuks-mode a,
+  html.lyuks-mode .digit-box,
+  html.lyuks-mode .op-select{
+    transition-duration:0.55s !important;
+    transition-timing-function:cubic-bezier(.19,1,.22,1) !important;
+  }
+  html.lyuks-mode .card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 34px rgba(212,175,55,0.10);
+  }
+  html.lyuks-mode .order-btn:hover,
+  html.lyuks-mode .featured-btn:hover{
+    filter:none !important;
+    box-shadow:0 0 0 1px var(--amber) inset, 0 8px 22px rgba(212,175,55,0.18);
+  }
 </style>
 </head>
 <body>
+
+<div id="lyuksLoader" style="visibility:visible;position:fixed;inset:0;z-index:9999;background:#0A0806;display:none;align-items:center;justify-content:center;">
+  <div style="width:44px;height:44px;border-radius:50%;border:1px solid #D4AF37;position:relative;animation:lyuksSpin 2.4s linear infinite;">
+    <div style="position:absolute;inset:-1px;border-radius:50%;border-top:1px solid #D4AF37;opacity:0.9;"></div>
+  </div>
+</div>
 
 <header>
   <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:none;" aria-label="Video reels">
@@ -3442,7 +3478,8 @@ const SITE_THEMES = {
   white_navy:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1E3A8A', amberSoft:'rgba(30,58,138,0.10)', green:'#1FA97F', red:'#1E3A8A', brandRed:'#1E3A8A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1E3A8A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
   black_red:      { bg:'#0A0A0A', panel:'#1A1A1A', panel2:'#1A1A1A', line:'#3A1414', amber:'#FF3B3B', amberSoft:'rgba(255,59,59,0.2)', green:'#33E28C', red:'#FF3B3B', brandRed:'#FF3B3B', text:'#FFFFFF', muted:'#B08A8A', btnBg:'#FF3B3B', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   white_gold:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#EDE4CC', amber:'#CA8A04', amberSoft:'rgba(202,138,4,0.12)', green:'#1FA97F', red:'#CA8A04', brandRed:'#CA8A04', text:'#0B1F3A', muted:'#6B7688', btnBg:'#CA8A04', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_maroon:   { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F0DCDC', amber:'#7F1D1D', amberSoft:'rgba(127,29,29,0.10)', green:'#1FA97F', red:'#7F1D1D', brandRed:'#7F1D1D', text:'#0B1F3A', muted:'#6B7688', btnBg:'#7F1D1D', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' }
+  white_maroon:   { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F0DCDC', amber:'#7F1D1D', amberSoft:'rgba(127,29,29,0.10)', green:'#1FA97F', red:'#7F1D1D', brandRed:'#7F1D1D', text:'#0B1F3A', muted:'#6B7688', btnBg:'#7F1D1D', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  lyuks_premium:  { bg:'#0A0806', panel:'#15120D', panel2:'#1C1811', line:'#3A3123', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.14)', green:'#B8935A', red:'#D4AF37', brandRed:'#D4AF37', text:'#F3EEE3', muted:'#9C9280', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'2px', cardRadius:'2px' }
 };
 
 function applyTheme(themeKey){
@@ -3466,6 +3503,10 @@ function applyTheme(themeKey){
   root.setProperty('--btn-border-color', t.btnBorderColor);
   root.setProperty('--btn-radius', t.btnRadius);
   root.setProperty('--card-radius', t.cardRadius);
+
+  // "Lyuks Premium" mavzusi tanlanganda — butun sayt bo'ylab sekinroq,
+  // nafisroq animatsiya rejimiga o'tamiz (oddiy "sakraydigan" his emas).
+  document.documentElement.classList.toggle('lyuks-mode', themeKey === 'lyuks_premium');
 }
 
 /* ---- Sayt bo'ylab yozuvlar shirftini (font) o'zgartirish ---- */
@@ -3525,6 +3566,7 @@ async function loadSiteSettings(){
     try{
       if(s.theme && SITE_THEMES[s.theme]){
         const cache = Object.assign({}, SITE_THEMES[s.theme], {
+          themeKey: s.theme,
           font: s.font || '',
           catalogStyle: s.catalogStyle || 'classic',
           hideOrderButton: !!s.hideOrderButton
