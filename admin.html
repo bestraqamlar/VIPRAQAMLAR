@@ -3282,7 +3282,17 @@ function renderAdminOrders(orders){
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idTokenPush },
             body: JSON.stringify({ fcmToken: cached.fcmToken, number: cached.number, status: newStatus })
-          }).catch(()=>{ /* push ishlamasa ham, status baribir yangilangan */ });
+          }).then(async r=>{
+            const data = await r.json().catch(()=>({}));
+            console.log('[PUSH-ADMIN] Yuborish natijasi:', data);
+            alert('Push yuborish natijasi: ' + JSON.stringify(data));
+          }).catch(err=>{
+            console.error('[PUSH-ADMIN] Xato:', err);
+            alert('Push yuborishda xato: ' + err.message);
+          });
+        }else{
+          console.log('[PUSH-ADMIN] Bu buyurtmada fcmToken yo\'q — mijoz push\'ga ruxsat bermagan yoki hali saqlanmagan.');
+          alert("Bu buyurtmada fcmToken yo'q (mijoz push'ga ruxsat bermagan yoki hali saqlanmagan)");
         }
 
         // Admin Telegram xabaridagi tugmalarni ham "tasdiqlangan" holatga o'tkazamiz

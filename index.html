@@ -2802,7 +2802,11 @@ async function finalizeOrder(payload, smsVerified){
     if(pendingPushTokenPromise){
       pendingPushTokenPromise.then(token=>{
         if(token){
-          db.collection('orders').doc(orderRef.id).update({ fcmToken: token }).catch(()=>{});
+          db.collection('orders').doc(orderRef.id).update({ fcmToken: token })
+            .then(()=> pushDebugMsg('Token buyurtmaga saqlandi ✅'))
+            .catch(e=> pushDebugMsg('Tokenni saqlashda XATO: ' + (e.code || e.message)));
+        }else{
+          pushDebugMsg('Token yo\'q edi — buyurtmaga hech narsa saqlanmadi.');
         }
       }).catch(()=>{});
     }
