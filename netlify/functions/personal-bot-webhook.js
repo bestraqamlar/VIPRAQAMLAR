@@ -36,6 +36,27 @@ const INCOME_CATEGORIES = ['Vip raqamlar', 'Oylik xazna', 'Boshqalar'];
 const BACK = '🔙 Orqaga';
 const CANCEL = '❌ Bekor qilish';
 
+// Toshkent — doim UTC+5 (yozgi vaqtga o'tish yo'q). Server odatda UTC'da
+// ishlaydi, shuning uchun foydalanuvchi kiritgan "soat"ni TO'G'RI, Toshkent
+// vaqti sifatida tushunish uchun aniq shu funksiya orqali hisoblaymiz.
+const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000;
+function tashkentDateTime(year, month, day, hour, minute) {
+  return Date.UTC(year, month - 1, day, hour || 0, minute || 0) - TASHKENT_OFFSET_MS;
+}
+function tashkentToday() {
+  const nowTashkent = new Date(Date.now() + TASHKENT_OFFSET_MS);
+  return { y: nowTashkent.getUTCFullYear(), m: nowTashkent.getUTCMonth() + 1, d: nowTashkent.getUTCDate() };
+}
+// Berilgan vaqtni (epoch ms) — Toshkent devor-soati bo'yicha, ko'rsatish
+// uchun matnga aylantiradi (server qaysi vaqt mintaqasida ishlashidan
+// qat'i nazar, HAR DOIM to'g'ri Toshkent soatini ko'rsatadi).
+function formatTashkent(ts, withTime) {
+  const d = new Date(ts + TASHKENT_OFFSET_MS);
+  const p = x => String(x).padStart(2, '0');
+  const datePart = `${p(d.getUTCDate())}.${p(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
+  return withTime === false ? datePart : `${datePart} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
+}
+
 // ---------- Telegram yordamchi funksiyalar ----------
 
 async function sendDocument(chatId, buffer, filename, caption) {
@@ -43,7 +64,11 @@ async function sendDocument(chatId, buffer, filename, caption) {
   form.append('chat_id', chatId);
   if (caption) form.append('caption', caption);
   form.append('document', new Blob([buffer], { type: 'application/pdf' }), filename);
-  await fetch(`${API}/sendDocument`, { method: 'POST', body: form });
+  const res = await fetch(`${API}/sendDocument`, { method: 'POST', body: form });
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    console.error('Telegram sendDocument xatosi:', res.status, errBody);
+  }
 }
 
 async function sendMessage(chatId, text, keyboardRows) {
@@ -51,11 +76,15 @@ async function sendMessage(chatId, text, keyboardRows) {
   body.reply_markup = keyboardRows
     ? { keyboard: keyboardRows, resize_keyboard: true }
     : { keyboard: mainMenuRows(), resize_keyboard: true };
-  await fetch(`${API}/sendMessage`, {
+  const res = await fetch(`${API}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    console.error('Telegram sendMessage xatosi:', res.status, errBody);
+  }
 }
 
 async function sendTyping(chatId) {
@@ -97,6 +126,12 @@ function categoryRows(categories) {
 
 function formatSom(n) {
   return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+}
+// Foydalanuvchi kiritgan (yoki AI yozgan) matnda "<", ">", "&" bo'lsa,
+// Telegram HTML formatlashni buzib, xabar YUBORILMAY qolishi mumkin edi —
+// shu sabab bunday matnlarni HAR DOIM shu orqali "ekranlaymiz".
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ---------- Holat va "orqaga" tarixi ----------
@@ -151,7 +186,7 @@ async function renderStep(chatId, state) {
       await sendMessage(chatId, `💰 ${formatSom(state.data.pendingAmount)} — qaysi toifaga?`, categoryRows(INCOME_CATEGORIES));
       break;
     case 'STATS_PERIOD':
-      await sendMessage(chatId, "📊 Qaysi davr uchun?", stepRows([['📅 Bugungi', '🗓 1 haftalik'], ['📆 1 oylik', '✏️ Boshqa']]));
+      await sendMessage(chatId, "📊 Qaysi davr uchun?", stepRows([['📅 Bugungi', '🗓 1 haftalik'], ['📆 1 oylik', '✏️ Boshqa'], ['✅ Bajarilganlar']]));
       break;
     case 'STATS_CUSTOM':
       await sendMessage(chatId, "Davrni yozing:\nOy: <b>08.2026</b>\nOraliq: <b>01.08.2026-31.08.2026</b>", stepRows([]));
@@ -205,6 +240,7 @@ exports.handler = async function (event) {
 async function handleMessage(msg) {
   const chatId = String(msg.chat.id);
   if (chatId !== OWNER_CHAT_ID) return; // faqat egasi ishlata oladi
+
   const text = (msg.text || '').trim();
   if (!text) return;
 
@@ -234,10 +270,12 @@ async function handleMessage(msg) {
     await goToStep(chatId, 'EXPENSE_CATEGORY', { pendingAmount: amount });
     return;
   }
-  if (state.step === 'EXPENSE_CATEGORY' && EXPENSE_CATEGORIES.includes(text)) {
+  if (state.step === 'EXPENSE_CATEGORY') {
+    if (!EXPENSE_CATEGORIES.includes(text)) { await sendMessage(chatId, "❗️ Iltimos, tugmalardan birini tanlang.", categoryRows(EXPENSE_CATEGORIES)); return; }
     await db.collection('personal_bot_tx').add({ type: 'expense', amount: state.data.pendingAmount, category: text, ts: Date.now() });
     await saveState({ step: 'MAIN', history: [], data: {} });
     await sendMessage(chatId, `✅ -${formatSom(state.data.pendingAmount)} (${text})`);
+    await checkBudgetAndWarn(chatId, text);
     return;
   }
 
@@ -248,7 +286,8 @@ async function handleMessage(msg) {
     await goToStep(chatId, 'INCOME_CATEGORY', { pendingAmount: amount });
     return;
   }
-  if (state.step === 'INCOME_CATEGORY' && INCOME_CATEGORIES.includes(text)) {
+  if (state.step === 'INCOME_CATEGORY') {
+    if (!INCOME_CATEGORIES.includes(text)) { await sendMessage(chatId, "❗️ Iltimos, tugmalardan birini tanlang.", categoryRows(INCOME_CATEGORIES)); return; }
     await db.collection('personal_bot_tx').add({ type: 'income', amount: state.data.pendingAmount, category: text, ts: Date.now() });
     await saveState({ step: 'MAIN', history: [], data: {} });
     await sendMessage(chatId, `✅ +${formatSom(state.data.pendingAmount)} (${text})`);
@@ -259,7 +298,8 @@ async function handleMessage(msg) {
   if (state.step === 'STATS_PERIOD') {
     const now = new Date();
     if (text === '📅 Bugungi') {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
+      const t = tashkentToday();
+      const start = tashkentDateTime(t.y, t.m, t.d, 0, 0);
       await goToStep(chatId, 'STATS_FORMAT', { statsStart: start, statsEnd: now.getTime(), statsLabel: 'Bugun' });
       return;
     }
@@ -275,6 +315,11 @@ async function handleMessage(msg) {
     }
     if (text === '✏️ Boshqa') {
       await goToStep(chatId, 'STATS_CUSTOM');
+      return;
+    }
+    if (text === '✅ Bajarilganlar') {
+      await sendCompletedPlans(chatId);
+      await saveState({ step: 'MAIN', history: [], data: {} });
       return;
     }
   }
@@ -345,7 +390,7 @@ async function handleMessage(msg) {
         planType: state.data.planType, text: state.data.planText, reminderAt, status: 'pending', createdAt: Date.now()
       });
       await saveState({ step: 'MAIN', history: [], data: {} });
-      await sendMessage(chatId, `✅ Reja saqlandi: «${state.data.planText}»`);
+      await sendMessage(chatId, `✅ Reja saqlandi: «${escapeHtml(state.data.planText)}»`);
     }
     return;
   }
@@ -366,12 +411,17 @@ async function handleCallback(cq) {
   if (data.startsWith('plan_done:')) {
     const planId = data.split(':')[1];
     await db.collection('personal_bot_plans').doc(planId).update({ status: 'done', completedAt: Date.now() });
-    await sendMessage(chatId, "✅ Bajarildi deb belgilandi.");
+    await sendMessage(chatId, "✅ Ajoyib! Bajarilganlar ro'yxatiga qo'shildi.");
     return;
   }
   if (data.startsWith('plan_notdone:')) {
     const planId = data.split(':')[1];
-    await goToStep(chatId, 'PLAN_DATETIME', { replanId: planId });
+    const doc = await db.collection('personal_bot_plans').doc(planId).get();
+    if (doc.exists) {
+      const newReminderAt = Date.now() + 24 * 60 * 60 * 1000; // ertaga, shu vaqtda
+      await doc.ref.update({ status: 'pending', reminderAt: newReminderAt });
+      await sendMessage(chatId, `🔁 Xo'p, ertaga yana eslataman: «${escapeHtml(doc.data().text)}»`);
+    }
     return;
   }
 }
@@ -390,9 +440,8 @@ async function renderPlansList(chatId, state) {
   } else {
     for (const p of plans) {
       const label = p.planType === 'long' ? '🎯' : '⏱';
-      const d = new Date(p.reminderAt);
-      const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-      text += `${label} «${p.text}» — ${dateStr}\n`;
+      const dateStr = formatTashkent(p.reminderAt);
+      text += `${label} «${escapeHtml(p.text)}» — ${dateStr}\n`;
     }
   }
   await sendMessage(chatId, text, stepRows([['➕ Yangi reja']]));
@@ -404,9 +453,9 @@ function parseUzDateTime(text) {
   const m = text.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})/);
   if (!m) return null;
   const [, day, month, year, hour, minute] = m.map(Number);
-  const date = new Date(year, month - 1, day, hour, minute);
-  if (isNaN(date.getTime())) return null;
-  return date.getTime();
+  const ts = tashkentDateTime(year, month, day, hour, minute);
+  if (isNaN(ts)) return null;
+  return ts;
 }
 
 // ---------- Statistika ----------
@@ -448,10 +497,29 @@ function parsePeriodText(periodText) {
   return null;
 }
 
+async function sendCompletedPlans(chatId) {
+  const snap = await db.collection('personal_bot_plans').where('status', '==', 'done').get();
+  const items = [];
+  snap.forEach(doc => items.push(doc.data()));
+  items.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+
+  let text = "✅ <b>Bajarilgan vazifalar</b>\n\n";
+  if (items.length === 0) {
+    text += "Hozircha bajarilgan vazifa yo'q.";
+  } else {
+    for (const p of items.slice(0, 30)) {
+      const dateStr = formatTashkent(p.completedAt, false);
+      text += `✔️ «${escapeHtml(p.text)}» — ${dateStr}\n`;
+    }
+  }
+  await sendMessage(chatId, text);
+}
+
 async function sendPlansPdf(chatId) {
   const now = new Date();
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
-  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).getTime();
+  const t = tashkentToday();
+  const dayStart = tashkentDateTime(t.y, t.m, t.d, 0, 0);
+  const dayEnd = tashkentDateTime(t.y, t.m, t.d, 23, 59) + 59000;
 
   const snap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
   const allPlans = [];
@@ -534,6 +602,42 @@ const TOOLS = [
       },
       required: ['which']
     }
+  },
+  {
+    name: 'set_budget',
+    description: "Foydalanuvchi biror toifaga oylik xarajat chegarasi (byudjet) belgilashni so'raganda ishlatiladi. Masalan: 'Ovqatlanishga oyiga 2 million dan oshmasin'.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        category: { type: 'string', description: "Xarajat toifasi: Taksi, Ovqatlanish, Ofis uchun, O'zim uchun, Investitsiya Raqam" },
+        monthly_limit: { type: 'number' }
+      },
+      required: ['category', 'monthly_limit']
+    }
+  },
+  {
+    name: 'add_recurring',
+    description: "Foydalanuvchi har oy takrorlanadigan xarajat/daromadni (masalan ijara, internet) avtomatik yozib borishni so'raganda ishlatiladi.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        type: { type: 'string', enum: ['expense', 'income'] },
+        amount: { type: 'number' },
+        category: { type: 'string' },
+        day_of_month: { type: 'number', description: 'Har oyning nechanchi kunida yozilsin (1-28 oralig\'ida)' },
+        description: { type: 'string', description: "Qisqa izoh, masalan 'Ijara'" }
+      },
+      required: ['type', 'amount', 'category', 'day_of_month', 'description']
+    }
+  },
+  {
+    name: 'remove_recurring',
+    description: "Foydalanuvchi mavjud doimiy xarajat/daromadni bekor qilishni so'raganda ishlatiladi.",
+    input_schema: {
+      type: 'object',
+      properties: { recurring_id: { type: 'string' } },
+      required: ['recurring_id']
+    }
   }
 ];
 
@@ -543,15 +647,30 @@ async function handleFreeTextWithAI(chatId, userText) {
     const plansSnap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
     const plans = [];
     plansSnap.forEach(doc => plans.push({ id: doc.id, text: doc.data().text }));
+    plans.splice(50); // AI kontekstiga yuborishdan oldin, cheksiz o'sib ketmasligi uchun chegara
 
     const since = now.getTime() - 30 * 24 * 60 * 60 * 1000;
     const summary = await computeSummary(since, now.getTime());
 
-    const context = `Bugungi sana: ${now.toISOString().slice(0, 16).replace('T', ' ')}
+    const budgetsSnap = await db.collection('personal_bot_budgets').get();
+    const budgets = [];
+    budgetsSnap.forEach(doc => budgets.push(`${doc.id}: ${doc.data().limit} so'm/oy`));
+
+    const recurringSnap = await db.collection('personal_bot_recurring').get();
+    const recurring = [];
+    recurringSnap.forEach(doc => {
+      const r = doc.data();
+      recurring.push(`[${doc.id}] ${r.description} — ${r.amount} so'm, har oyning ${r.dayOfMonth}-kunida (${r.type})`);
+    });
+
+    const tashkentNow = new Date(now.getTime() + TASHKENT_OFFSET_MS);
+    const context = `Bugungi sana va vaqt (Toshkent): ${tashkentNow.toISOString().slice(0, 16).replace('T', ' ')}
 Foydalanuvchi ismi: ${OWNER_NAME}
 Oxirgi 30 kun — Daromad: ${summary.totalIncome} so'm, Xarajat: ${summary.totalExpense} so'm
 Toifalar: ${JSON.stringify(summary.byCategory)}
-Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'q"}`;
+Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'q"}
+Byudjet chegaralari: ${budgets.join('; ') || "yo'q"}
+Doimiy (takrorlanuvchi) xarajat/daromadlar: ${recurring.join('; ') || "yo'q"}`;
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -562,8 +681,10 @@ Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 500,
-        system: `Sen ${OWNER_NAME}ning shaxsiy yordamchisisan. Xabarni tushunib, mos vositani (tool) chaqir. Agar shunchaki savol/suhbat bo'lsa, hech qanday tool chaqirmasdan, JUDA QISQA (maksimal 20 so'z), aniq javob ber — o'zbek tilida, lo'nda.`,
+        max_tokens: 1000,
+        system: `Sen ${OWNER_NAME}ning shaxsiy yordamchisisan. Xabarni tushunib, mos vositani (tool) chaqir. Agar shunchaki savol/suhbat bo'lsa, hech qanday tool chaqirmasdan, JUDA QISQA (maksimal 20 so'z), aniq javob ber — o'zbek tilida, lo'nda.
+
+KATTA VAZIFALAR: agar foydalanuvchi tasvirlagan ish katta/murakkab bo'lib tuyulsa (bir necha kun/hafta talab qiladigan loyiha, masalan "yangi loyiha boshlashim kerak"), DARHOL add_plan chaqirmang — buning o'rniga, oddiy matn bilan so'rang: "Buni kichikroq qadamlarga bo'lib beraymi?" Agar foydalanuvchi KEYINGI xabarida rozi bo'lsa ("ha", "bo'ling" va h.k.), o'sha safar add_plan'ni BIR NECHA MARTA (har bir kichik qadam uchun alohida) chaqiring, mantiqiy ketma-ketlik va oqilona sanalar bilan. Oddiy, kichik vazifalar uchun (masalan "dukonga bor") buni qilmang — to'g'ridan-to'g'ri add_plan chaqiring.`,
         tools: TOOLS,
         messages: [{ role: 'user', content: context + `\n\n${OWNER_NAME} yozdi: "${userText}"` }]
       })
@@ -572,13 +693,17 @@ Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'
 
     if (!data.content) { await sendMessage(chatId, "❗️ Xatolik yuz berdi."); return; }
 
-    const toolUse = data.content.find(b => b.type === 'tool_use');
+    const toolUses = data.content.filter(b => b.type === 'tool_use');
     const textBlock = data.content.find(b => b.type === 'text');
 
-    if (toolUse) {
-      await executeTool(chatId, toolUse);
+    if (toolUses.length > 0) {
+      // Bir nechta vosita chaqirilgan bo'lishi mumkin — masalan katta
+      // vazifa bir necha kichik rejaga bo'lib qo'shilganda.
+      for (const toolUse of toolUses) {
+        await executeTool(chatId, toolUse);
+      }
     } else if (textBlock) {
-      const words = textBlock.text.trim().split(/\s+/).slice(0, 25).join(' ');
+      const words = escapeHtml(textBlock.text.trim().split(/\s+/).slice(0, 25).join(' '));
       await sendMessage(chatId, words);
     } else {
       await sendMessage(chatId, "Tushunmadim, qaytadan yozing.");
@@ -589,18 +714,45 @@ Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'
   }
 }
 
+async function checkBudgetAndWarn(chatId, category) {
+  try {
+    const budgetDoc = await db.collection('personal_bot_budgets').doc(category).get();
+    if (!budgetDoc.exists) return;
+    const limit = budgetDoc.data().limit;
+
+    const t = tashkentToday();
+    const monthStart = tashkentDateTime(t.y, t.m, 1, 0, 0);
+    const snap = await db.collection('personal_bot_tx').where('category', '==', category).get();
+    let total = 0;
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.type === 'expense' && d.ts >= monthStart) total += d.amount;
+    });
+
+    if (total > limit) {
+      await sendMessage(chatId, `⚠️ Diqqat! <b>${escapeHtml(category)}</b> byudjetidan oshib ketdingiz: ${formatSom(total)} / ${formatSom(limit)}`);
+    } else if (total >= limit * 0.85) {
+      await sendMessage(chatId, `⚠️ <b>${escapeHtml(category)}</b> byudjetining 85%i sarflandi: ${formatSom(total)} / ${formatSom(limit)}`);
+    }
+  } catch (err) {
+    console.error('checkBudgetAndWarn xatosi:', err);
+  }
+}
+
 async function executeTool(chatId, toolUse) {
   const input = toolUse.input || {};
 
   if (toolUse.name === 'add_plan') {
-    const reminderAt = new Date(input.reminder_datetime.replace(' ', 'T')).getTime();
+    const m = (input.reminder_datetime || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (!m) { await sendMessage(chatId, "❗️ Vaqtni aniqlay olmadim, qaytadan urining."); return; }
+    const [, yr, mo, dy, hr, mi] = m.map(Number);
+    const reminderAt = tashkentDateTime(yr, mo, dy, hr, mi);
     if (isNaN(reminderAt)) { await sendMessage(chatId, "❗️ Vaqtni aniqlay olmadim, qaytadan urining."); return; }
     await db.collection('personal_bot_plans').add({
       planType: input.plan_type, text: input.text, reminderAt, status: 'pending', createdAt: Date.now()
     });
-    const d = new Date(reminderAt);
-    const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    await sendMessage(chatId, `✅ Rejaga qo'shildi: «${input.text}» — ${dateStr}`);
+    const dateStr = formatTashkent(reminderAt);
+    await sendMessage(chatId, `✅ Rejaga qo'shildi: «${escapeHtml(input.text)}» — ${dateStr}`);
     return;
   }
 
@@ -616,6 +768,7 @@ async function executeTool(chatId, toolUse) {
     });
     const sign = input.type === 'expense' ? '-' : '+';
     await sendMessage(chatId, `✅ ${sign}${formatSom(input.amount)} (${input.category})`);
+    if (input.type === 'expense') await checkBudgetAndWarn(chatId, input.category);
     return;
   }
 
@@ -638,6 +791,28 @@ async function executeTool(chatId, toolUse) {
     await target.ref.delete();
     const sign = d.type === 'expense' ? '-' : '+';
     await sendMessage(chatId, `✅ O'chirildi: ${sign}${formatSom(d.amount)} (${d.category})`);
+    return;
+  }
+
+  if (toolUse.name === 'set_budget') {
+    await db.collection('personal_bot_budgets').doc(input.category).set({ category: input.category, limit: input.monthly_limit });
+    await sendMessage(chatId, `✅ Byudjet belgilandi: ${escapeHtml(input.category)} — oyiga maksimal ${formatSom(input.monthly_limit)}`);
+    return;
+  }
+
+  if (toolUse.name === 'add_recurring') {
+    const day = Math.min(28, Math.max(1, Math.round(input.day_of_month)));
+    await db.collection('personal_bot_recurring').add({
+      type: input.type, amount: input.amount, category: input.category,
+      dayOfMonth: day, description: input.description, lastRunKey: null, createdAt: Date.now()
+    });
+    await sendMessage(chatId, `✅ Doimiy ${input.type === 'expense' ? 'xarajat' : 'daromad'} qo'shildi: «${escapeHtml(input.description)}» — ${formatSom(input.amount)}, har oyning ${day}-kunida.`);
+    return;
+  }
+
+  if (toolUse.name === 'remove_recurring') {
+    await db.collection('personal_bot_recurring').doc(input.recurring_id).delete();
+    await sendMessage(chatId, "✅ Doimiy yozuv bekor qilindi.");
     return;
   }
 }

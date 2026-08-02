@@ -24,6 +24,18 @@
 [functions."personal-bot-morning-pdf"]
   schedule = "0 0 * * *"
 
+[functions."personal-bot-weekly-report"]
+  schedule = "0 2 * * 1"
+
+[functions."personal-bot-monthly-report"]
+  schedule = "0 2 1 * *"
+
+[functions."personal-bot-recurring-check"]
+  schedule = "0 2 * * *"
+
+[functions."personal-bot-anomaly-check"]
+  schedule = "0 16 * * *"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga

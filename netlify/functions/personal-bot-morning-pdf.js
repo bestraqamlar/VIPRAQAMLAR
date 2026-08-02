@@ -34,9 +34,12 @@ exports.handler = async function () {
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
 
   try {
+    const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000;
     const now = new Date();
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
-    const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).getTime();
+    const tashkentNow = new Date(now.getTime() + TASHKENT_OFFSET_MS);
+    const y = tashkentNow.getUTCFullYear(), mo = tashkentNow.getUTCMonth(), d = tashkentNow.getUTCDate();
+    const dayStart = Date.UTC(y, mo, d, 0, 0) - TASHKENT_OFFSET_MS;
+    const dayEnd = Date.UTC(y, mo, d, 23, 59, 59) - TASHKENT_OFFSET_MS;
 
     const snap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
     const allPlans = [];

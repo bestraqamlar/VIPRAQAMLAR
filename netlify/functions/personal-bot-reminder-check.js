@@ -1,5 +1,6 @@
-// HAR 5 DAQIQADA AVTOMATIK ISHLAYDI — vaqti kelgan rejalarni tekshirib,
-// egasiga Telegram orqali eslatma yuboradi ("X rejangiz tayyormi?").
+// HAR 5 DAQIQADA AVTOMATIK ISHLAYDI — rejalashtirilgan vaqtdan 24 SOAT
+// o'tgan, hali javob berilmagan vazifalarni tekshirib, egasiga
+// "X vazifa bajarildimi?" deb so'raydi.
 // netlify.toml'da "schedule" bilan sozlangan.
 
 const admin = require('firebase-admin');
@@ -18,21 +19,23 @@ db.settings({ preferRest: true });
 
 const TOKEN = process.env.PERSONAL_BOT_TOKEN;
 const OWNER_CHAT_ID = process.env.PERSONAL_BOT_CHAT_ID;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 exports.handler = async function () {
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
 
   try {
     const now = Date.now();
+    // reminderAt + 24 soat <= hozir — ya'ni belgilangan vaqtdan 24 soat o'tgan
     const snap = await db.collection('personal_bot_plans')
       .where('status', '==', 'pending')
-      .where('reminderAt', '<=', now)
+      .where('reminderAt', '<=', now - DAY_MS)
       .get();
 
     for (const doc of snap.docs) {
       const plan = doc.data();
-      const label = plan.planType === 'long' ? 'Uzoq muddat' : 'Yaqin muddat';
-      const text = `⏰ <b>${label} rejangiz tayyormi?</b>\n\n«${plan.text}»`;
+      const escapedText = String(plan.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const text = `❓ <b>«${escapedText}»</b> vazifa bajarildimi?`;
 
       await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
         method: 'POST',
@@ -50,14 +53,12 @@ exports.handler = async function () {
         })
       });
 
-      // Qayta-qayta yubormaslik uchun — "eslatildi" deb belgilaymiz.
-      // (status 'pending' qoladi, chunki javob kutilyapti — lekin
-      // reminderAt ni juda uzoq muddatga surib qo'yamiz, shu bilan
-      // keyingi tekshiruvda qayta ushlanib qolmaydi)
-      await doc.ref.update({ reminderAt: now + 100 * 365 * 24 * 60 * 60 * 1000 });
+      // Qayta-qayta so'ramaslik uchun — javob kutilyapti deb, vaqtincha
+      // juda uzoqqa suramiz (javob kelganda webhook o'zi to'g'rilaydi).
+      await doc.ref.update({ reminderAt: now + 100 * 365 * DAY_MS });
     }
 
-    return { statusCode: 200, body: `ok, ${snap.size} ta eslatma yuborildi` };
+    return { statusCode: 200, body: `ok, ${snap.size} ta so'rov yuborildi` };
   } catch (err) {
     console.error('personal-bot-reminder-check xato:', err);
     return { statusCode: 500, body: 'error' };

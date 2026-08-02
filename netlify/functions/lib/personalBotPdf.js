@@ -1,123 +1,197 @@
 // SHAXSIY BOT UCHUN PDF QURUVCHISI — rejalar va statistikani chiroyli,
-// tartibli jadval (va statistikada oddiy diagramma) ko'rinishida tayyorlaydi.
+// tartibli jadval (va statistikada rangli diagramma) ko'rinishida
+// tayyorlaydi. Har bir qator balandligi MATN UZUNLIGIGA QARAB hisoblanadi
+// (uzun matn keyingi qatorga "bosib tushib" qolmasligi uchun).
 
 const PDFDocument = require('pdfkit');
+
+const BRAND = '#173ea6';
+const BRAND_DARK = '#0f2a7a';
+const GREEN = '#1FA97F';
+const RED = '#C0392B';
+const TEXT_DARK = '#1a1a1a';
+const TEXT_MUTED = '#6b7280';
+const ROW_ALT = '#F3F6FC';
+const PAGE_MARGIN = 42;
+const PAGE_WIDTH = 595.28; // A4 pt
+const CONTENT_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2;
 
 function fmtMoney(n) {
   return Number(n || 0).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
 }
+const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000;
 function fmtDateTime(ts) {
-  const d = new Date(ts);
+  const d = new Date(ts + TASHKENT_OFFSET_MS);
   const p = x => String(x).padStart(2, '0');
-  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${p(d.getUTCDate())}.${p(d.getUTCMonth() + 1)}.${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
+}
+
+// Sahifa tepasida — brend rangli chiroyli sarlavha banneri
+function drawHeader(doc, title, subtitle) {
+  doc.rect(0, 0, PAGE_WIDTH, 86).fill(BRAND);
+  doc.fillColor('#fff').font('Helvetica-Bold').fontSize(19)
+    .text(title, PAGE_MARGIN, 28, { width: CONTENT_WIDTH, align: 'left' });
+  if (subtitle) {
+    doc.font('Helvetica').fontSize(10.5).fillColor('rgba(255,255,255,0.85)')
+      .text(subtitle, PAGE_MARGIN, 56, { width: CONTENT_WIDTH, align: 'left' });
+  }
+  doc.fillColor('#000');
+  doc.y = 106;
+}
+
+// Sahifa pastida — sahifa raqami
+function drawFooter(doc) {
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(i);
+    doc.font('Helvetica').fontSize(8).fillColor(TEXT_MUTED)
+      .text(`${i + 1} / ${range.count}`, 0, 810, { width: PAGE_WIDTH, align: 'center' });
+  }
+}
+
+// Yangi sahifaga o'tish kerak bo'lsa, avtomatik o'tkazadi
+function ensureSpace(doc, neededHeight) {
+  const bottomLimit = 780;
+  if (doc.y + neededHeight > bottomLimit) {
+    doc.addPage();
+    doc.y = PAGE_MARGIN;
+  }
 }
 
 // ---------------- REJALAR PDF ----------------
-// todayPlans — bugunga tegishli rejalar, allPlans — barcha kutilayotgan rejalar
 function buildPlansPdfBuffer(todayPlans, allPlans, ownerName) {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: 'A4', margin: 42 });
+      const doc = new PDFDocument({ size: 'A4', margin: PAGE_MARGIN, bufferPages: true });
       const chunks = [];
       doc.on('data', c => chunks.push(c));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      doc.font('Helvetica-Bold').fontSize(17).fillColor('#1a1a1a')
-        .text(`${ownerName || ''} — Bugungi rejalarim`.trim(), { align: 'center' });
-      doc.font('Helvetica').fontSize(10).fillColor('#666')
-        .text(fmtDateTime(Date.now()), { align: 'center' });
-      doc.moveDown(1.2);
+      drawHeader(doc, `${ownerName || ''} — Rejalarim`.trim(), fmtDateTime(Date.now()));
 
-      drawPlanTable(doc, todayPlans, '📅 Bugungi rejalar');
-      doc.moveDown(1);
+      drawPlanTable(doc, todayPlans, '📅  Bugungi rejalar');
+      doc.y += 18;
+      drawPlanTable(doc, allPlans, '📋  Umumiy rejalarim (barcha kutilayotgan)');
 
-      drawPlanTable(doc, allPlans, '📋 Umumiy rejalarim (barcha kutilayotgan)');
-
+      drawFooter(doc);
       doc.end();
     } catch (err) { reject(err); }
   });
 }
 
 function drawPlanTable(doc, plans, title) {
-  doc.font('Helvetica-Bold').fontSize(12).fillColor('#173ea6').text(title);
-  doc.moveDown(0.4);
+  ensureSpace(doc, 40);
+  doc.font('Helvetica-Bold').fontSize(13).fillColor(BRAND).text(title, PAGE_MARGIN, doc.y);
+  doc.y += 20;
 
   if (!plans || plans.length === 0) {
-    doc.font('Helvetica').fontSize(10).fillColor('#888').text('Reja topilmadi.');
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor(TEXT_MUTED).text('Reja topilmadi.', PAGE_MARGIN, doc.y);
+    doc.y += 18;
     doc.fillColor('#000');
     return;
   }
 
-  const startX = doc.x, colType = 46, colDate = 110, colText = 340;
-  doc.font('Helvetica-Bold').fontSize(9).fillColor('#fff');
-  doc.rect(startX, doc.y, colType + colDate + colText, 20).fill('#173ea6');
-  const headerY = doc.y - 20 + 5;
-  doc.fillColor('#fff').text('Turi', startX + 6, headerY, { width: colType });
-  doc.text('Sana / vaqt', startX + colType + 6, headerY, { width: colDate });
-  doc.text('Reja', startX + colType + colDate + 6, headerY, { width: colText });
-  doc.moveDown(0.9);
+  const startX = PAGE_MARGIN;
+  const colType = 60, colDate = 118, colText = CONTENT_WIDTH - colType - colDate;
 
+  // ---- Jadval boshi (header) ----
+  ensureSpace(doc, 26);
+  const headerH = 24;
+  doc.rect(startX, doc.y, CONTENT_WIDTH, headerH).fill(BRAND_DARK);
+  doc.fillColor('#fff').font('Helvetica-Bold').fontSize(9.5);
+  doc.text('TURI', startX + 10, doc.y + 8, { width: colType - 10 });
+  doc.text('SANA / VAQT', startX + colType + 10, doc.y + 8, { width: colDate - 10 });
+  doc.text('REJA', startX + colType + colDate + 10, doc.y + 8, { width: colText - 20 });
+  doc.y += headerH;
+
+  // ---- Qatorlar (har birining balandligi matn uzunligiga qarab) ----
   let rowIdx = 0;
   for (const p of plans) {
+    const textOptions = { width: colText - 20 };
+    const textHeight = doc.font('Helvetica').fontSize(9.5).heightOfString(p.text || '', textOptions);
+    const rowHeight = Math.max(24, textHeight + 14);
+
+    ensureSpace(doc, rowHeight);
     const rowY = doc.y;
-    const bg = rowIdx % 2 === 0 ? '#F3F6FC' : '#FFFFFF';
-    const rowHeight = 22;
-    doc.rect(startX, rowY, colType + colDate + colText, rowHeight).fill(bg);
-    doc.fillColor('#1a1a1a').font('Helvetica').fontSize(9);
-    const label = p.planType === 'long' ? 'Uzoq' : 'Yaqin';
-    doc.text(label, startX + 6, rowY + 6, { width: colType });
-    doc.text(fmtDateTime(p.reminderAt), startX + colType + 6, rowY + 6, { width: colDate });
-    doc.text(p.text, startX + colType + colDate + 6, rowY + 6, { width: colText - 10 });
+
+    const bg = rowIdx % 2 === 0 ? ROW_ALT : '#FFFFFF';
+    doc.rect(startX, rowY, CONTENT_WIDTH, rowHeight).fill(bg);
+
+    const label = p.planType === 'long' ? '🎯 Uzoq' : '⏱ Yaqin';
+    doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9.5);
+    doc.text(label, startX + 10, rowY + 7, { width: colType - 10 });
+    doc.fillColor(TEXT_MUTED).text(fmtDateTime(p.reminderAt), startX + colType + 10, rowY + 7, { width: colDate - 10 });
+    doc.fillColor(TEXT_DARK).text(p.text || '', startX + colType + colDate + 10, rowY + 7, textOptions);
+
     doc.y = rowY + rowHeight;
     rowIdx++;
   }
   doc.fillColor('#000');
+  doc.y += 6;
 }
 
 // ---------------- STATISTIKA PDF ----------------
 function buildStatsPdfBuffer(summary, periodLabel, ownerName) {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: 'A4', margin: 42 });
+      const doc = new PDFDocument({ size: 'A4', margin: PAGE_MARGIN, bufferPages: true });
       const chunks = [];
       doc.on('data', c => chunks.push(c));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      doc.font('Helvetica-Bold').fontSize(17).fillColor('#1a1a1a')
-        .text(`${ownerName || ''} — Statistika`.trim(), { align: 'center' });
-      doc.font('Helvetica').fontSize(10).fillColor('#666').text(periodLabel, { align: 'center' });
-      doc.moveDown(1.2);
+      drawHeader(doc, `${ownerName || ''} — Statistika`.trim(), periodLabel);
 
-      // ---- Umumiy ko'rsatkichlar ----
+      // ---- Umumiy ko'rsatkich kartalari ----
       const net = summary.totalIncome - summary.totalExpense;
-      doc.font('Helvetica-Bold').fontSize(11).fillColor('#000');
-      doc.text(`Jami daromad: `, { continued: true }).fillColor('#1FA97F').text(fmtMoney(summary.totalIncome));
-      doc.fillColor('#000').text(`Jami xarajat: `, { continued: true }).fillColor('#C0392B').text(fmtMoney(summary.totalExpense));
-      doc.fillColor('#000').text(`Sof natija: `, { continued: true }).fillColor(net >= 0 ? '#1FA97F' : '#C0392B').text(fmtMoney(net));
-      doc.fillColor('#000');
-      doc.moveDown(1);
+      const cardW = (CONTENT_WIDTH - 20) / 3;
+      const cards = [
+        { label: 'DAROMAD', value: summary.totalIncome, color: GREEN },
+        { label: 'XARAJAT', value: summary.totalExpense, color: RED },
+        { label: 'SOF NATIJA', value: net, color: net >= 0 ? GREEN : RED }
+      ];
+      cards.forEach((c, i) => {
+        const x = PAGE_MARGIN + i * (cardW + 10);
+        doc.roundedRect(x, doc.y, cardW, 60, 6).fillAndStroke('#F7F9FC', '#E5E9F2');
+        doc.font('Helvetica').fontSize(8.5).fillColor(TEXT_MUTED).text(c.label, x + 12, doc.y + 10);
+        doc.font('Helvetica-Bold').fontSize(10.5).fillColor(c.color).text(fmtMoney(c.value), x + 12, doc.y + 27, { width: cardW - 22 });
+      });
+      doc.y += 76;
 
-      // ---- Toifalar jadvali ----
+      // ---- Toifalar bo'yicha diagramma ----
       const cats = Object.keys(summary.byCategory).sort();
       if (cats.length > 0) {
-        doc.font('Helvetica-Bold').fontSize(12).fillColor('#173ea6').text('Toifalar bo\'yicha taqsimot');
-        doc.moveDown(0.4);
+        ensureSpace(doc, 30);
+        doc.font('Helvetica-Bold').fontSize(13).fillColor(BRAND).text("Toifalar bo'yicha taqsimot", PAGE_MARGIN, doc.y);
+        doc.y += 22;
+
         const maxVal = Math.max(...cats.map(c => summary.byCategory[c]));
-        const startX = doc.x;
+        const labelWidth = 130, valueWidth = 95, gap = 8;
+        const barMaxWidth = CONTENT_WIDTH - labelWidth - valueWidth - gap * 2;
+
         for (const cat of cats) {
+          ensureSpace(doc, 26);
           const val = summary.byCategory[cat];
-          const barWidth = maxVal > 0 ? Math.max(4, (val / maxVal) * 320) : 4;
           const isIncome = cat.startsWith('➕');
-          doc.font('Helvetica').fontSize(9).fillColor('#333').text(`${cat}: ${fmtMoney(val)}`, startX, doc.y);
-          doc.moveDown(0.15);
-          doc.rect(startX, doc.y, barWidth, 10).fill(isIncome ? '#1FA97F' : '#C0392B');
-          doc.moveDown(0.7);
+          const barWidth = maxVal > 0 ? Math.max(6, (val / maxVal) * barMaxWidth) : 6;
+          const cleanLabel = cat.replace('➕ ', '').replace('➖ ', '');
+          const barX = PAGE_MARGIN + labelWidth + gap;
+
+          const rowY = doc.y;
+          doc.font('Helvetica').fontSize(9.5).fillColor(TEXT_DARK)
+            .text(cleanLabel, PAGE_MARGIN, rowY + 3, { width: labelWidth });
+          doc.roundedRect(barX, rowY, barMaxWidth, 14, 3).fill('#EEF1F7');
+          doc.roundedRect(barX, rowY, barWidth, 14, 3).fill(isIncome ? GREEN : RED);
+          doc.font('Helvetica-Bold').fontSize(9).fillColor(TEXT_DARK)
+            .text(fmtMoney(val), barX + barMaxWidth + gap, rowY + 3, { width: valueWidth, align: 'right' });
+
+          doc.y = rowY + 24;
         }
       }
       doc.fillColor('#000');
 
+      drawFooter(doc);
       doc.end();
     } catch (err) { reject(err); }
   });
