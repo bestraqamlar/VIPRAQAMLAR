@@ -977,74 +977,6 @@
   .modal h2{font-family:'Space Mono',monospace;color:var(--amber);font-size:17px;margin:0 0 4px;}
   .modal .modal-number{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--text);margin-bottom:14px;}
 
-  /* ---- Buyurtma oldindan ko'rish (preview) oynasi — "Xarid qilish" bosilganda
-     to'liq forma OLDIDAN chiqadigan qisqa tasdiqlash varag'i. Ekranning
-     pastki qismidan chiqadi, lekin (asosiy .modal'dan farqli) ekran bo'ylab
-     to'liq cho'zilmaydi — chap/o'ng/pastdan bo'sh joy qoladi, kompakt kartochka
-     ko'rinishida. Rang sxemasi: tashqi varaq — ochroq ko'k, ichidagi raqam
-     kartochkasi va "Rasmiylashtirish" tugmasi — to'q ko'k. ---- */
-  .preview-modal{
-    --pv-light-blue: #23477E;
-    --pv-dark-blue: #0B1B33;
-    --pv-glow-blue: #7CC4FF;
-    background:var(--pv-light-blue);border:1px solid rgba(255,255,255,0.08);
-    border-radius:20px;
-    padding:18px 16px 20px;max-width:400px;width:calc(100% - 24px);
-    margin-bottom:14px;
-    position:relative;
-    transform:translateY(30px);animation:slideUp .28s ease forwards;
-  }
-  .preview-modal .modal-handle{background:rgba(255,255,255,0.25);}
-  .preview-card{
-    background:var(--pv-dark-blue);border:1px solid rgba(255,255,255,0.06);border-radius:16px;
-    padding:20px 18px;margin-bottom:18px;
-    display:flex;align-items:center;flex-direction:column;gap:12px;text-align:center;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
-  }
-  .preview-op-badge{
-    display:inline-block;padding:6px 16px;border-radius:20px;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:12px;color:#fff;
-    background:var(--muted);letter-spacing:0.3px;
-  }
-  .preview-number{
-    font-family:'Space Mono',monospace;font-weight:800;font-size:25px;color:#FFFFFF;
-    letter-spacing:0.4px;word-break:break-word;
-  }
-  .preview-hint{color:rgba(255,255,255,0.8);font-size:13px;text-align:center;margin:0 0 18px;line-height:1.5;}
-  .preview-confirm-btn{
-    position:relative;
-    width:100%;padding:3px;border-radius:15px;border:none;cursor:pointer;
-    background:transparent;overflow:hidden;
-    margin-bottom:10px;
-    transition:transform .12s ease;
-  }
-  .preview-confirm-btn:active{transform:scale(0.97);}
-  .preview-confirm-btn::before{
-    content:'';
-    position:absolute;inset:-60%;
-    background:conic-gradient(from 0deg, var(--pv-glow-blue), transparent 35%, transparent 65%, var(--pv-glow-blue));
-    animation:pvBorderSpin 2.6s linear infinite;
-  }
-  .preview-confirm-btn-inner{
-    position:relative;z-index:1;
-    display:flex;align-items:center;justify-content:center;gap:9px;
-    width:100%;padding:14px;border-radius:13px;
-    background:var(--pv-dark-blue);color:#FFFFFF;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;
-    transition:filter .15s ease;
-  }
-  .preview-confirm-btn:hover .preview-confirm-btn-inner{filter:brightness(1.25);}
-  .preview-confirm-btn-inner svg{width:19px;height:19px;flex-shrink:0;}
-  @keyframes pvBorderSpin{to{transform:rotate(360deg);}}
-  .preview-cancel-btn{
-    width:100%;padding:15px;border-radius:14px;cursor:pointer;
-    background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.18);
-    font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;
-    transition:border-color .15s ease, color .15s ease;
-  }
-  .preview-cancel-btn:hover{border-color:rgba(255,255,255,0.4);color:#fff;}
-  .preview-cancel-btn:active{transform:scale(0.97);}
-
   .order-info-banner{
     background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
     padding:11px 13px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px;
@@ -1797,24 +1729,6 @@
   <div id="favoritesListView"></div>
 </div>
 
-<div class="overlay" id="previewOverlay">
-  <div class="preview-modal">
-    <div class="modal-handle"></div>
-    <div class="preview-card">
-      <span class="preview-op-badge" id="previewOpBadge"></span>
-      <div class="preview-number" id="previewNumber"></div>
-    </div>
-    <p class="preview-hint">Raqamni rasmiylashtirish uchun ma'lumotlaringizni to'ldiring</p>
-    <button type="button" class="preview-confirm-btn" id="previewConfirmBtn">
-      <span class="preview-confirm-btn-inner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-        Rasmiylashtirish
-      </span>
-    </button>
-    <button type="button" class="preview-cancel-btn" id="previewCancelBtn">Bekor qilish</button>
-  </div>
-</div>
-
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1884,7 +1798,7 @@
       <div class="modal-actions">
         <button class="btn-cancel" id="cancelBtn">Bekor qilish</button>
         <button class="btn-confirm" id="confirmBtn">
-          <span id="confirmLabel" data-i18n="submit">Yuborish</span>
+          <span id="confirmLabel" data-i18n="confirmOrder">Tasdiqlash</span>
           <span class="spinner" id="confirmSpinner"></span>
         </button>
       </div>
@@ -2594,7 +2508,7 @@ let selectedNumberId = null;
 let selectedPrice = 0;
 let appliedDiscount = 0;
 
-function openOrderForm(number, id){
+function openModal(number, id){
   if(navigator.vibrate) navigator.vibrate(35);
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){ recapEl.style.display = 'none'; recapEl.innerHTML = ''; }
@@ -2635,60 +2549,6 @@ function openOrderForm(number, id){
   document.body.style.overflow = 'hidden';
   setTimeout(()=>custName.focus(), 250);
 }
-
-/* ---- "Xarid qilish"/"Buyurtma berish" bosilganda AVVAL chiqadigan qisqa
-   tasdiqlash varag'i (preview). Mijoz shu yerda raqam va narxni yana bir
-   marta ko'rib tasdiqlaydi ("Rasmiylashtirish" — keyin to'liq forma ochiladi)
-   yoki bekor qiladi ("Bekor qilish" — hech narsa ochilmaydi, orqaga qaytadi). ---- */
-const OP_BADGE_COLORS = {
-  Mobiuz: '#C0392B', Beeline: '#E0A400', Ucell: '#B07CC6',
-  Humans: '#B8860B', Uzmobile: '#2E63C7', Perfektum: '#C97A3D'
-};
-const previewOverlay = document.getElementById('previewOverlay');
-let pendingPreviewArgs = null;
-
-function openModal(number, id){
-  const item = NUMBERS.find(n => n.id === id);
-
-  const opBadge = document.getElementById('previewOpBadge');
-  if(item && item.operator){
-    opBadge.textContent = item.operator;
-    opBadge.style.background = OP_BADGE_COLORS[item.operator] || 'var(--muted)';
-    opBadge.style.display = 'inline-block';
-  }else{
-    opBadge.style.display = 'none';
-  }
-
-  document.getElementById('previewNumber').textContent = '+998 ' + displayNumber(number);
-
-  pendingPreviewArgs = { number, id };
-  previewOverlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closePreview(){
-  previewOverlay.classList.remove('open');
-  document.body.style.overflow = '';
-  pendingPreviewArgs = null;
-  // Agar preview "Premium raqamlar" video-reels ichidan ochilgan bo'lsa
-  // va mijoz bekor qilsa — videoni davom ettiramiz, reels ochiq qoladi.
-  if(window.__returnToPremiumReels){
-    previewOverlay.style.zIndex = '';
-    window.__returnToPremiumReels();
-    window.__returnToPremiumReels = null;
-  }
-}
-document.getElementById('previewConfirmBtn').addEventListener('click', ()=>{
-  const args = pendingPreviewArgs;
-  previewOverlay.classList.remove('open');
-  previewOverlay.style.zIndex = '';
-  document.body.style.overflow = '';
-  pendingPreviewArgs = null;
-  if(args) openOrderForm(args.number, args.id);
-});
-document.getElementById('previewCancelBtn').addEventListener('click', closePreview);
-previewOverlay.addEventListener('click', (e)=>{
-  if(e.target === previewOverlay) closePreview();
-});
 
 function closeModal(){
   overlay.classList.remove('open');
@@ -3726,6 +3586,7 @@ const RU_DICT = {
   fillAllFields:      'Заполните все поля',
   back:               'Назад',
   submit:             'Отправить',
+  confirmOrder:       'Подтвердить',
   priceFrom:          'Такие номера начинаются от {price}',
   priceUnset:         'Цена для этой категории ещё не установлена — оставьте заявку, наши операторы сообщат цену.',
   aboutP1:            '<b>VIP RAQAMLAR</b> — сервис подбора и продажи красивых, золотых и VIP номеров телефонов по всему Узбекистану.',
@@ -4502,11 +4363,10 @@ function takeWarmedVideo(url){
         const v = items[idx];
         if(!v) return;
         pauseSlideVideo(slideAt(idx));
-        // Buyurtma oynasi (preview VA to'liq forma) Reels'dan YUQORIDA
-        // ko'rinishi uchun z-index'ini vaqtincha oshiramiz, yopilganda
-        // esa Reels'ga qaytamiz.
-        document.getElementById('overlay').style.zIndex = '950';
-        document.getElementById('previewOverlay').style.zIndex = '950';
+        // Buyurtma oynasi Reels'dan YUQORIDA ko'rinishi uchun z-index'ini
+        // vaqtincha oshiramiz, yopilganda esa Reels'ga qaytamiz.
+        const orderOverlay = document.getElementById('overlay');
+        orderOverlay.style.zIndex = '950';
         window.__returnToPremiumReels = function(){ playSlideVideo(slideAt(idx)); };
         openModal(v.number, v.numberId);
       });
