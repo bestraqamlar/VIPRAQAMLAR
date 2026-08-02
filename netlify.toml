@@ -18,6 +18,12 @@
 [functions."personal-bot-reminder-check"]
   schedule = "*/5 * * * *"
 
+[functions."personal-bot-evening-reminder"]
+  schedule = "0 18 * * *"
+
+[functions."personal-bot-morning-pdf"]
+  schedule = "0 0 * * *"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga

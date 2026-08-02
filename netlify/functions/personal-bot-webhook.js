@@ -11,6 +11,7 @@
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 const admin = require('firebase-admin');
+const { buildPlansPdfBuffer, buildStatsPdfBuffer } = require('./lib/personalBotPdf');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -36,6 +37,14 @@ const BACK = '🔙 Orqaga';
 const CANCEL = '❌ Bekor qilish';
 
 // ---------- Telegram yordamchi funksiyalar ----------
+
+async function sendDocument(chatId, buffer, filename, caption) {
+  const form = new FormData();
+  form.append('chat_id', chatId);
+  if (caption) form.append('caption', caption);
+  form.append('document', new Blob([buffer], { type: 'application/pdf' }), filename);
+  await fetch(`${API}/sendDocument`, { method: 'POST', body: form });
+}
 
 async function sendMessage(chatId, text, keyboardRows) {
   const body = { chat_id: chatId, text, parse_mode: 'HTML' };
@@ -142,7 +151,13 @@ async function renderStep(chatId, state) {
       await sendMessage(chatId, `💰 ${formatSom(state.data.pendingAmount)} — qaysi toifaga?`, categoryRows(INCOME_CATEGORIES));
       break;
     case 'STATS_PERIOD':
-      await sendMessage(chatId, "📊 Davrni yozing:\nOy: <b>08.2026</b>\nOraliq: <b>01.08.2026-31.08.2026</b>", stepRows([]));
+      await sendMessage(chatId, "📊 Qaysi davr uchun?", stepRows([['📅 Bugungi', '🗓 1 haftalik'], ['📆 1 oylik', '✏️ Boshqa']]));
+      break;
+    case 'STATS_CUSTOM':
+      await sendMessage(chatId, "Davrni yozing:\nOy: <b>08.2026</b>\nOraliq: <b>01.08.2026-31.08.2026</b>", stepRows([]));
+      break;
+    case 'PLANS_FORMAT':
+      await sendMessage(chatId, "Qanday ko'rinishda ko'rsataylik?", stepRows([['📝 Matn orqali', '📄 PDF orqali']]));
       break;
     case 'PLANS_LIST':
       await renderPlansList(chatId, state);
@@ -155,6 +170,9 @@ async function renderStep(chatId, state) {
       break;
     case 'PLAN_DATETIME':
       await sendMessage(chatId, "📅 Qachon eslatib turay?\n(Masalan: <b>25.08.2026 14:00</b>)", stepRows([]));
+      break;
+    case 'STATS_FORMAT':
+      await sendMessage(chatId, "Qanday ko'rinishda ko'rsataylik?", stepRows([['📝 Matn orqali', '📄 PDF orqali']]));
       break;
   }
 }
@@ -205,7 +223,7 @@ async function handleMessage(msg) {
   if (text === '➖ Xarajat') { await goToStep(chatId, 'EXPENSE_AMOUNT'); return; }
   if (text === '➕ Daromad') { await goToStep(chatId, 'INCOME_AMOUNT'); return; }
   if (text === '📊 Statistika') { await goToStep(chatId, 'STATS_PERIOD'); return; }
-  if (text === '📝 Rejalarim') { await goToStep(chatId, 'PLANS_LIST'); return; }
+  if (text === '📝 Rejalarim') { await goToStep(chatId, 'PLANS_FORMAT'); return; }
 
   const state = await getState();
 
@@ -237,11 +255,63 @@ async function handleMessage(msg) {
     return;
   }
 
-  // ---- Statistika davri ----
+  // ---- Statistika tez tanlovlari ----
   if (state.step === 'STATS_PERIOD') {
-    const ok = await sendStatistics(chatId, text);
-    if (ok) await saveState({ step: 'MAIN', history: [], data: {} });
+    const now = new Date();
+    if (text === '📅 Bugungi') {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
+      await goToStep(chatId, 'STATS_FORMAT', { statsStart: start, statsEnd: now.getTime(), statsLabel: 'Bugun' });
+      return;
+    }
+    if (text === '🗓 1 haftalik') {
+      const start = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+      await goToStep(chatId, 'STATS_FORMAT', { statsStart: start, statsEnd: now.getTime(), statsLabel: 'Oxirgi 7 kun' });
+      return;
+    }
+    if (text === '📆 1 oylik') {
+      const start = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+      await goToStep(chatId, 'STATS_FORMAT', { statsStart: start, statsEnd: now.getTime(), statsLabel: 'Oxirgi 30 kun' });
+      return;
+    }
+    if (text === '✏️ Boshqa') {
+      await goToStep(chatId, 'STATS_CUSTOM');
+      return;
+    }
+  }
+
+  // ---- Statistika davri (qo'lda kiritilgan) ----
+  if (state.step === 'STATS_CUSTOM') {
+    const range = parsePeriodText(text);
+    if (!range) { await sendMessage(chatId, "❗️ Masalan: <b>08.2026</b> yoki <b>01.08.2026-31.08.2026</b>", stepRows([])); return; }
+    await goToStep(chatId, 'STATS_FORMAT', { statsStart: range.startTs, statsEnd: range.endTs, statsLabel: text });
     return;
+  }
+
+  // ---- Statistika format tanlovi ----
+  if (state.step === 'STATS_FORMAT') {
+    const { statsStart, statsEnd, statsLabel } = state.data;
+    if (text === '📝 Matn orqali') {
+      await sendStatisticsRange(chatId, statsStart, statsEnd, statsLabel);
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      return;
+    }
+    if (text === '📄 PDF orqali') {
+      await sendTyping(chatId);
+      await sendStatsPdf(chatId, statsStart, statsEnd, statsLabel);
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      return;
+    }
+  }
+
+  // ---- Rejalar format tanlovi ----
+  if (state.step === 'PLANS_FORMAT') {
+    if (text === '📝 Matn orqali') { await goToStep(chatId, 'PLANS_LIST'); return; }
+    if (text === '📄 PDF orqali') {
+      await sendTyping(chatId);
+      await sendPlansPdf(chatId);
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      return;
+    }
   }
 
   // ---- Rejalar ro'yxati ekranida — "Yangi reja" tugmasi ----
@@ -341,26 +411,9 @@ function parseUzDateTime(text) {
 
 // ---------- Statistika ----------
 
-async function sendStatistics(chatId, periodText) {
-  let startTs, endTs;
-  const rangeMatch = periodText.match(/(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/);
-  const monthMatch = periodText.match(/^(\d{1,2})\.(\d{4})$/);
-
-  if (rangeMatch) {
-    const [, d1, m1, y1, d2, m2, y2] = rangeMatch.map(Number);
-    startTs = new Date(y1, m1 - 1, d1, 0, 0, 0).getTime();
-    endTs = new Date(y2, m2 - 1, d2, 23, 59, 59).getTime();
-  } else if (monthMatch) {
-    const [, mo, yr] = monthMatch.map(Number);
-    startTs = new Date(yr, mo - 1, 1, 0, 0, 0).getTime();
-    endTs = new Date(yr, mo, 0, 23, 59, 59).getTime();
-  } else {
-    await sendMessage(chatId, "❗️ Masalan: <b>08.2026</b> yoki <b>01.08.2026-31.08.2026</b>", stepRows([]));
-    return false;
-  }
-
+async function sendStatisticsRange(chatId, startTs, endTs, label) {
   const summary = await computeSummary(startTs, endTs);
-  let text = `📊 <b>Statistika</b> — ${periodText}\n\n`;
+  let text = `📊 <b>Statistika</b> — ${label}\n\n`;
   if (Object.keys(summary.byCategory).length === 0) {
     text += "Bu davrda yozuv topilmadi.\n";
   } else {
@@ -371,9 +424,49 @@ async function sendStatistics(chatId, periodText) {
   text += `\n💰 Daromad: <b>${formatSom(summary.totalIncome)}</b>`;
   text += `\n💸 Xarajat: <b>${formatSom(summary.totalExpense)}</b>`;
   text += `\n📈 Sof: <b>${formatSom(summary.totalIncome - summary.totalExpense)}</b>`;
-
   await sendMessage(chatId, text);
-  return true;
+}
+
+function parsePeriodText(periodText) {
+  const rangeMatch = periodText.match(/(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/);
+  const monthMatch = periodText.match(/^(\d{1,2})\.(\d{4})$/);
+
+  if (rangeMatch) {
+    const [, d1, m1, y1, d2, m2, y2] = rangeMatch.map(Number);
+    return {
+      startTs: new Date(y1, m1 - 1, d1, 0, 0, 0).getTime(),
+      endTs: new Date(y2, m2 - 1, d2, 23, 59, 59).getTime()
+    };
+  }
+  if (monthMatch) {
+    const [, mo, yr] = monthMatch.map(Number);
+    return {
+      startTs: new Date(yr, mo - 1, 1, 0, 0, 0).getTime(),
+      endTs: new Date(yr, mo, 0, 23, 59, 59).getTime()
+    };
+  }
+  return null;
+}
+
+async function sendPlansPdf(chatId) {
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
+  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).getTime();
+
+  const snap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
+  const allPlans = [];
+  snap.forEach(doc => allPlans.push(doc.data()));
+  allPlans.sort((a, b) => a.reminderAt - b.reminderAt);
+  const todayPlans = allPlans.filter(p => p.reminderAt >= dayStart && p.reminderAt <= dayEnd);
+
+  const buffer = await buildPlansPdfBuffer(todayPlans, allPlans, OWNER_NAME);
+  await sendDocument(chatId, buffer, `rejalar_${now.toISOString().slice(0, 10)}.pdf`, '📄 Rejalaringiz');
+}
+
+async function sendStatsPdf(chatId, startTs, endTs, label) {
+  const summary = await computeSummary(startTs, endTs);
+  const buffer = await buildStatsPdfBuffer(summary, label, OWNER_NAME);
+  await sendDocument(chatId, buffer, `statistika_${Date.now()}.pdf`, `📄 Statistika — ${label}`);
 }
 
 async function computeSummary(startTs, endTs) {
@@ -427,6 +520,19 @@ const TOOLS = [
         category: { type: 'string', description: "Xarajat: Taksi, Ovqatlanish, Ofis uchun, O'zim uchun, Investitsiya Raqam. Daromad: Vip raqamlar, Oylik xazna, Boshqalar." }
       },
       required: ['type', 'amount', 'category']
+    }
+  },
+  {
+    name: 'remove_transaction',
+    description: "Foydalanuvchi adashib kiritgan yoki noto'g'ri yozilgan xarajat/daromadni o'chirishni so'raganda ishlatiladi. Agar u aniq qaysi yozuvni aytmasa (masalan shunchaki 'adashib yozdim, o'chir'), ENG OXIRGI qo'shilgan yozuvni o'chir.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        which: { type: 'string', enum: ['last', 'match'], description: "'last' = eng oxirgi yozuv, 'match' = summasi/toifasi mos keladigan yozuv" },
+        amount: { type: 'number', description: "'match' tanlansa, o'chiriladigan yozuvning summasi" },
+        category: { type: 'string', description: "'match' tanlansa, o'chiriladigan yozuvning toifasi" }
+      },
+      required: ['which']
     }
   }
 ];
@@ -510,6 +616,28 @@ async function executeTool(chatId, toolUse) {
     });
     const sign = input.type === 'expense' ? '-' : '+';
     await sendMessage(chatId, `✅ ${sign}${formatSom(input.amount)} (${input.category})`);
+    return;
+  }
+
+  if (toolUse.name === 'remove_transaction') {
+    const snap = await db.collection('personal_bot_tx').orderBy('ts', 'desc').limit(20).get();
+    let target = null;
+    if (input.which === 'match' && (input.amount || input.category)) {
+      snap.forEach(doc => {
+        if (target) return;
+        const d = doc.data();
+        const amountOk = !input.amount || d.amount === input.amount;
+        const catOk = !input.category || d.category === input.category;
+        if (amountOk && catOk) target = doc;
+      });
+    }
+    if (!target && !snap.empty) target = snap.docs[0]; // eng oxirgisi
+
+    if (!target) { await sendMessage(chatId, "❗️ O'chiriladigan yozuv topilmadi."); return; }
+    const d = target.data();
+    await target.ref.delete();
+    const sign = d.type === 'expense' ? '-' : '+';
+    await sendMessage(chatId, `✅ O'chirildi: ${sign}${formatSom(d.amount)} (${d.category})`);
     return;
   }
 }
