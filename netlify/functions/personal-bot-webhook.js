@@ -1,18 +1,10 @@
-// SHAXSIY BOT — faqat SIZ uchun (bitta odam boshqaradi).
-// Xarajat/daromad hisoblagichi + rejalar (eslatma bilan) + AI maslahatchi.
+// SHAXSIY BOT — faqat SIZ (Asadbek) uchun.
+// Xarajat/daromad hisoblagichi + rejalar (eslatma bilan) + erkin gaplashib
+// buyruq beriladigan AI yordamchi.
 //
 // Kerakli Environment variables (Netlify):
-//   PERSONAL_BOT_TOKEN   — @BotFather'dan olingan yangi bot tokeni
-//   PERSONAL_BOT_CHAT_ID — sizning shaxsiy Telegram chat ID'ingiz (faqat
-//                          shu ID'dan kelgan xabarlarga javob beriladi —
-//                          boshqa hech kim botdan foydalana olmaydi)
-//   ANTHROPIC_API_KEY    — Maslahatchi AI uchun (boshqa botlaringizda
-//                          allaqachon bor bo'lishi kerak)
+//   PERSONAL_BOT_TOKEN, PERSONAL_BOT_CHAT_ID, ANTHROPIC_API_KEY,
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
-//
-// O'RNATISH: @BotFather orqali yangi bot yarating, tokenni oling, so'ng
-// bu manzilga webhook o'rnating (brauzerda oching, bir marta yetarli):
-//   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://SIZNING-SAYTINGIZ/.netlify/functions/personal-bot-webhook
 
 const admin = require('firebase-admin');
 
@@ -31,6 +23,7 @@ db.settings({ preferRest: true });
 const TOKEN = process.env.PERSONAL_BOT_TOKEN;
 const OWNER_CHAT_ID = String(process.env.PERSONAL_BOT_CHAT_ID || '');
 const API = `https://api.telegram.org/bot${TOKEN}`;
+const OWNER_NAME = 'Asadbek';
 
 const EXPENSE_CATEGORIES = ['Taksi', 'Ovqatlanish', "Ofis uchun", "O'zim uchun", 'Investitsiya Raqam'];
 const INCOME_CATEGORIES = ['Vip raqamlar', 'Oylik xazna', 'Boshqalar'];
@@ -47,6 +40,16 @@ async function sendMessage(chatId, text, replyMarkup) {
   });
 }
 
+async function sendTyping(chatId) {
+  try {
+    await fetch(`${API}/sendChatAction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, action: 'typing' })
+    });
+  } catch (e) { /* muhim emas */ }
+}
+
 async function answerCallback(callbackId, text) {
   await fetch(`${API}/answerCallbackQuery`, {
     method: 'POST',
@@ -55,12 +58,12 @@ async function answerCallback(callbackId, text) {
   });
 }
 
+// Sodda, tekis asosiy menyu — hech narsa ichma-ich yashiringan emas
 function mainMenuKeyboard() {
   return {
     inline_keyboard: [
       [{ text: '➖ Xarajat', callback_data: 'menu_expense' }, { text: '➕ Daromad', callback_data: 'menu_income' }],
-      [{ text: '📊 Statistika', callback_data: 'menu_stats' }],
-      [{ text: '🧠 Maslahatchi AI', callback_data: 'menu_ai' }]
+      [{ text: '📊 Statistika', callback_data: 'menu_stats' }, { text: '📝 Rejalarim', callback_data: 'menu_plans' }]
     ]
   };
 }
@@ -117,10 +120,13 @@ async function handleMessage(msg) {
   const chatId = String(msg.chat.id);
   if (chatId !== OWNER_CHAT_ID) return; // faqat egasi ishlata oladi
   const text = (msg.text || '').trim();
+  if (!text) return;
 
   if (text === '/start' || text === '/menu') {
     await clearState();
-    await sendMessage(chatId, "🤖 <b>Shaxsiy botingiz</b>\n\nQuyidagilardan birini tanlang:", mainMenuKeyboard());
+    await sendMessage(chatId,
+      `👋 Salom, <b>${OWNER_NAME}</b>!\n\nTugmalardan foydalaning, YOKI menga oddiy so'z bilan yozing — masalan:\n«bugun taksiga 30 ming ishlatdim»\n«shu hafta hisobot topshirishim kerak, seshanba kuni eslat»\n«umumiy xarajatim qancha?»\n\nMen tushunaman va o'zim bajaraman.`,
+      mainMenuKeyboard());
     return;
   }
 
@@ -130,15 +136,15 @@ async function handleMessage(msg) {
   if (state.awaiting === 'expense_amount' || state.awaiting === 'income_amount') {
     const amount = parseFloat(text.replace(/[^\d.]/g, ''));
     if (!amount || amount <= 0) {
-      await sendMessage(chatId, "❗️ Iltimos, summani raqamda kiriting (masalan: 50000)");
+      await sendMessage(chatId, "❗️ Summani raqamda kiriting (masalan: 50000)");
       return;
     }
     if (state.awaiting === 'expense_amount') {
       await setState({ awaiting: 'expense_category', pendingAmount: amount });
-      await sendMessage(chatId, `💸 Summa: <b>${formatSom(amount)}</b>\n\nQaysi toifaga?`, categoryKeyboard(EXPENSE_CATEGORIES, 'exp_cat'));
+      await sendMessage(chatId, `💸 ${formatSom(amount)} — qaysi toifaga?`, categoryKeyboard(EXPENSE_CATEGORIES, 'exp_cat'));
     } else {
       await setState({ awaiting: 'income_category', pendingAmount: amount });
-      await sendMessage(chatId, `💰 Summa: <b>${formatSom(amount)}</b>\n\nQaysi toifaga?`, categoryKeyboard(INCOME_CATEGORIES, 'inc_cat'));
+      await sendMessage(chatId, `💰 ${formatSom(amount)} — qaysi toifaga?`, categoryKeyboard(INCOME_CATEGORIES, 'inc_cat'));
     }
     return;
   }
@@ -150,10 +156,10 @@ async function handleMessage(msg) {
     return;
   }
 
-  // ---- Reja matni kutilmoqda ----
+  // ---- Reja matni kutilmoqda (tugma orqali kiritilayotgan bo'lsa) ----
   if (state.awaiting === 'plan_text') {
     await setState({ awaiting: 'plan_datetime', planType: state.planType, planText: text });
-    await sendMessage(chatId, "📅 Qachon eslatib turay?\n(Sana va vaqtni shu ko'rinishda yozing: <b>25.08.2026 14:00</b>)");
+    await sendMessage(chatId, "📅 Qachon eslatib turay?\n(Masalan: <b>25.08.2026 14:00</b>)");
     return;
   }
 
@@ -161,24 +167,26 @@ async function handleMessage(msg) {
   if (state.awaiting === 'plan_datetime') {
     const reminderAt = parseUzDateTime(text);
     if (!reminderAt) {
-      await sendMessage(chatId, "❗️ Format noto'g'ri. Masalan: <b>25.08.2026 14:00</b> ko'rinishida yozing.");
+      await sendMessage(chatId, "❗️ Format: <b>25.08.2026 14:00</b> ko'rinishida yozing.");
       return;
     }
-    await db.collection('personal_bot_plans').add({
-      planType: state.planType,
-      text: state.planText,
-      reminderAt,
-      status: 'pending',
-      createdAt: Date.now()
-    });
-    await clearState();
-    const label = state.planType === 'long' ? 'Uzoq muddat' : 'Yaqin muddat';
-    await sendMessage(chatId, `✅ <b>${label} reja</b> saqlandi:\n«${state.planText}»\n\n⏰ Belgilangan vaqtda eslataman.`, mainMenuKeyboard());
+    if (state.replanId) {
+      await db.collection('personal_bot_plans').doc(state.replanId).update({ status: 'pending', reminderAt });
+      await clearState();
+      await sendMessage(chatId, "✅ Yangi vaqt belgilandi.", mainMenuKeyboard());
+    } else {
+      await db.collection('personal_bot_plans').add({
+        planType: state.planType, text: state.planText, reminderAt, status: 'pending', createdAt: Date.now()
+      });
+      await clearState();
+      await sendMessage(chatId, `✅ Reja saqlandi: «${state.planText}»`, mainMenuKeyboard());
+    }
     return;
   }
 
-  // Hech qanday kutilayotgan holat yo'q — asosiy menyuni ko'rsatamiz
-  await sendMessage(chatId, "Quyidagi menyudan tanlang:", mainMenuKeyboard());
+  // ---- Hech qanday kutilayotgan holat yo'q — ERKIN MATN, AI qabul qiladi ----
+  await sendTyping(chatId);
+  await handleFreeTextWithAI(chatId, text);
 }
 
 // ---------- Tugma bosilganda ----------
@@ -191,19 +199,19 @@ async function handleCallback(cq) {
 
   if (data === 'menu_main') {
     await clearState();
-    await sendMessage(chatId, "Quyidagilardan birini tanlang:", mainMenuKeyboard());
+    await sendMessage(chatId, "Tanlang:", mainMenuKeyboard());
     return;
   }
 
   if (data === 'menu_expense') {
     await setState({ awaiting: 'expense_amount' });
-    await sendMessage(chatId, "➖ Xarajat summasini kiriting (masalan: 50000):");
+    await sendMessage(chatId, "➖ Summani kiriting:");
     return;
   }
 
   if (data === 'menu_income') {
     await setState({ awaiting: 'income_amount' });
-    await sendMessage(chatId, "➕ Daromad summasini kiriting (masalan: 500000):");
+    await sendMessage(chatId, "➕ Summani kiriting:");
     return;
   }
 
@@ -212,36 +220,32 @@ async function handleCallback(cq) {
     const category = data.split(':')[1];
     const state = await getState();
     const amount = state.pendingAmount;
-    if (!amount) { await sendMessage(chatId, "Xatolik: summa topilmadi, qaytadan urinib ko'ring.", mainMenuKeyboard()); return; }
+    if (!amount) { await sendMessage(chatId, "Xatolik, qaytadan urinib ko'ring.", mainMenuKeyboard()); return; }
 
     await db.collection('personal_bot_tx').add({
-      type: isExpense ? 'expense' : 'income',
-      amount,
-      category,
-      ts: Date.now()
+      type: isExpense ? 'expense' : 'income', amount, category, ts: Date.now()
     });
     await clearState();
-
     const sign = isExpense ? '-' : '+';
-    await sendMessage(chatId, `✅ Saqlandi: <b>${sign}${formatSom(amount)}</b> (${category})`, mainMenuKeyboard());
+    await sendMessage(chatId, `✅ ${sign}${formatSom(amount)} (${category})`, mainMenuKeyboard());
     return;
   }
 
   if (data === 'menu_stats') {
     await setState({ awaiting: 'stats_period' });
-    await sendMessage(chatId,
-      "📊 Qaysi davr uchun statistika kerak?\n\n" +
-      "Oy uchun: <b>08.2026</b>\n" +
-      "Sanalar oralig'i uchun: <b>01.08.2026-31.08.2026</b>\n\n" +
-      "ko'rinishida yozing.");
+    await sendMessage(chatId, "📊 Davrni yozing:\nOy: <b>08.2026</b>\nOraliq: <b>01.08.2026-31.08.2026</b>");
     return;
   }
 
   if (data === 'menu_plans') {
-    await sendMessage(chatId, "📝 Qaysi turdagi reja?", {
+    await showPlansList(chatId);
+    return;
+  }
+
+  if (data === 'plan_new') {
+    await sendMessage(chatId, "Qaysi turdagi reja?", {
       inline_keyboard: [
-        [{ text: '🎯 Uzoq muddat reja', callback_data: 'plan_long' }],
-        [{ text: '⏱ Yaqin muddat reja', callback_data: 'plan_short' }],
+        [{ text: '🎯 Uzoq muddat', callback_data: 'plan_long' }, { text: '⏱ Yaqin muddat', callback_data: 'plan_short' }],
         [{ text: '⬅️ Orqaga', callback_data: 'menu_main' }]
       ]
     });
@@ -249,8 +253,7 @@ async function handleCallback(cq) {
   }
 
   if (data === 'plan_long' || data === 'plan_short') {
-    const planType = data === 'plan_long' ? 'long' : 'short';
-    await setState({ awaiting: 'plan_text', planType });
+    await setState({ awaiting: 'plan_text', planType: data === 'plan_long' ? 'long' : 'short' });
     await sendMessage(chatId, "✍️ Rejangizni yozing:");
     return;
   }
@@ -258,26 +261,46 @@ async function handleCallback(cq) {
   if (data.startsWith('plan_done:')) {
     const planId = data.split(':')[1];
     await db.collection('personal_bot_plans').doc(planId).update({ status: 'done', completedAt: Date.now() });
-    await sendMessage(chatId, "✅ Ajoyib! Reja bajarildi deb belgilandi va statistikaga qo'shildi.", mainMenuKeyboard());
+    await sendMessage(chatId, "✅ Bajarildi deb belgilandi.", mainMenuKeyboard());
     return;
   }
 
   if (data.startsWith('plan_notdone:')) {
     const planId = data.split(':')[1];
-    await setState({ awaiting: 'plan_datetime', planType: null, planText: null, replanId: planId });
-    await sendMessage(chatId, "📅 Yangi sana va vaqtni kiriting (masalan: 25.08.2026 14:00):");
-    return;
-  }
-
-  if (data === 'menu_ai') {
-    await sendMessage(chatId, "🧠 Tahlil qilinmoqda...");
-    const advice = await getAiAdvice();
-    await sendMessage(chatId, advice, mainMenuKeyboard());
+    await setState({ awaiting: 'plan_datetime', replanId: planId });
+    await sendMessage(chatId, "📅 Yangi sana va vaqt (masalan: 25.08.2026 14:00):");
     return;
   }
 }
 
-// ---------- Sana/vaqt tahlili (25.08.2026 14:00 ko'rinishida) ----------
+// ---------- Rejalar ro'yxati (alohida, mustaqil bo'lim) ----------
+
+async function showPlansList(chatId) {
+  const snap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
+  const plans = [];
+  snap.forEach(doc => plans.push({ id: doc.id, ...doc.data() }));
+  plans.sort((a, b) => a.reminderAt - b.reminderAt);
+
+  let text = "📝 <b>Rejalaringiz</b>\n\n";
+  if (plans.length === 0) {
+    text += "Hozircha reja yo'q.";
+  } else {
+    for (const p of plans) {
+      const label = p.planType === 'long' ? '🎯' : '⏱';
+      const d = new Date(p.reminderAt);
+      const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      text += `${label} «${p.text}» — ${dateStr}\n`;
+    }
+  }
+  await sendMessage(chatId, text, {
+    inline_keyboard: [
+      [{ text: '➕ Yangi reja', callback_data: 'plan_new' }],
+      [{ text: '⬅️ Bosh menyu', callback_data: 'menu_main' }]
+    ]
+  });
+}
+
+// ---------- Sana/vaqt tahlili ----------
 
 function parseUzDateTime(text) {
   const m = text.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})/);
@@ -304,67 +327,104 @@ async function sendStatistics(chatId, periodText) {
     startTs = new Date(yr, mo - 1, 1, 0, 0, 0).getTime();
     endTs = new Date(yr, mo, 0, 23, 59, 59).getTime();
   } else {
-    await sendMessage(chatId, "❗️ Format tushunarsiz. Masalan: <b>08.2026</b> yoki <b>01.08.2026-31.08.2026</b>");
+    await sendMessage(chatId, "❗️ Masalan: <b>08.2026</b> yoki <b>01.08.2026-31.08.2026</b>");
     return;
   }
 
-  const snap = await db.collection('personal_bot_tx')
-    .where('ts', '>=', startTs).where('ts', '<=', endTs).get();
+  const summary = await computeSummary(startTs, endTs);
+  let text = `📊 <b>Statistika</b> — ${periodText}\n\n`;
+  if (Object.keys(summary.byCategory).length === 0) {
+    text += "Bu davrda yozuv topilmadi.\n";
+  } else {
+    for (const k of Object.keys(summary.byCategory).sort()) {
+      text += `${k}: <b>${formatSom(summary.byCategory[k])}</b>\n`;
+    }
+  }
+  text += `\n💰 Daromad: <b>${formatSom(summary.totalIncome)}</b>`;
+  text += `\n💸 Xarajat: <b>${formatSom(summary.totalExpense)}</b>`;
+  text += `\n📈 Sof: <b>${formatSom(summary.totalIncome - summary.totalExpense)}</b>`;
 
+  await sendMessage(chatId, text, mainMenuKeyboard());
+}
+
+async function computeSummary(startTs, endTs) {
+  const snap = await db.collection('personal_bot_tx').where('ts', '>=', startTs).where('ts', '<=', endTs).get();
   const byCategory = {};
   let totalIncome = 0, totalExpense = 0;
-
   snap.forEach(doc => {
     const d = doc.data();
     const key = `${d.type === 'income' ? '➕' : '➖'} ${d.category}`;
     byCategory[key] = (byCategory[key] || 0) + d.amount;
     if (d.type === 'income') totalIncome += d.amount; else totalExpense += d.amount;
   });
-
-  let text = `📊 <b>Statistika</b>\n${periodText}\n\n`;
-  const sortedKeys = Object.keys(byCategory).sort();
-  if (sortedKeys.length === 0) {
-    text += "Bu davrda yozuv topilmadi.\n";
-  } else {
-    for (const k of sortedKeys) {
-      text += `${k}: <b>${formatSom(byCategory[k])}</b>\n`;
-    }
-  }
-  text += `\n💰 Jami daromad: <b>${formatSom(totalIncome)}</b>`;
-  text += `\n💸 Jami xarajat: <b>${formatSom(totalExpense)}</b>`;
-  text += `\n📈 Sof: <b>${formatSom(totalIncome - totalExpense)}</b>`;
-
-  await sendMessage(chatId, text, {
-    inline_keyboard: [
-      [{ text: '📝 Rejalarim', callback_data: 'menu_plans' }],
-      [{ text: '⬅️ Bosh menyu', callback_data: 'menu_main' }]
-    ]
-  });
+  return { byCategory, totalIncome, totalExpense };
 }
 
-// ---------- Maslahatchi AI ----------
+// ================================================================
+// ERKIN MATN — AI orqali tushunish va harakat qilish (asosiy yangilik)
+// ================================================================
+//
+// Foydalanuvchi oddiy so'z bilan yozganda ("shu hafta hisobot topshirishim
+// kerak, seshanba eslat", "umumiy xarajatim qancha?", "palov yeb 30 ming
+// ishlatdim"), AI xabarni tushunadi va quyidagilardan birini bajaradi:
+//  - reja qo'shish (add_plan)
+//  - rejani bekor qilish/o'chirish (remove_plan)
+//  - xarajat/daromad qo'shish (add_transaction)
+//  - savolga (masalan umumiy xarajat) qisqa javob berish (just_reply)
 
-async function getAiAdvice() {
+const TOOLS = [
+  {
+    name: 'add_plan',
+    description: "Foydalanuvchi biror ish/vazifani rejaga qo'shishni so'raganda ishlatiladi. Masalan: 'shu hafta hisobot topshirishim kerak'.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        plan_type: { type: 'string', enum: ['long', 'short'], description: "'long' = uzoq muddat (oy/yildan keyin), 'short' = yaqin muddat (kun/hafta ichida)" },
+        text: { type: 'string', description: 'Reja matni, qisqa va aniq' },
+        reminder_datetime: { type: 'string', description: "Eslatma sanasi va vaqti 'YYYY-MM-DD HH:MM' formatida. Agar aniq vaqt aytilmagan bo'lsa, mos vaqtni o'zing tanla (masalan 'seshanba' desa, eng yaqin seshanba kuni, soat 10:00)." }
+      },
+      required: ['plan_type', 'text', 'reminder_datetime']
+    }
+  },
+  {
+    name: 'remove_plan',
+    description: "Foydalanuvchi mavjud rejani bekor qilish/o'chirishni so'raganda ishlatiladi.",
+    input_schema: {
+      type: 'object',
+      properties: { plan_id: { type: 'string', description: "O'chiriladigan rejaning ID'si (berilgan ro'yxatdan)" } },
+      required: ['plan_id']
+    }
+  },
+  {
+    name: 'add_transaction',
+    description: "Foydalanuvchi xarajat yoki daromad haqida gapirsa (masalan 'taksiga 30 ming ishlatdim') ishlatiladi.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        type: { type: 'string', enum: ['expense', 'income'] },
+        amount: { type: 'number' },
+        category: { type: 'string', description: "Eng mos toifa: xarajat uchun (Taksi, Ovqatlanish, Ofis uchun, O'zim uchun, Investitsiya Raqam), daromad uchun (Vip raqamlar, Oylik xazna, Boshqalar)" }
+      },
+      required: ['type', 'amount', 'category']
+    }
+  }
+];
+
+async function handleFreeTextWithAI(chatId, userText) {
   try {
-    const since = Date.now() - 30 * 24 * 60 * 60 * 1000; // oxirgi 30 kun
-    const txSnap = await db.collection('personal_bot_tx').where('ts', '>=', since).get();
+    const now = new Date();
     const plansSnap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
-
-    let totalIncome = 0, totalExpense = 0;
-    const byCategory = {};
-    txSnap.forEach(doc => {
-      const d = doc.data();
-      byCategory[d.category] = (byCategory[d.category] || 0) + d.amount;
-      if (d.type === 'income') totalIncome += d.amount; else totalExpense += d.amount;
-    });
     const plans = [];
-    plansSnap.forEach(doc => plans.push(doc.data().text));
+    plansSnap.forEach(doc => plans.push({ id: doc.id, text: doc.data().text }));
 
-    const context = `Oxirgi 30 kunlik moliyaviy ma'lumot:
-Jami daromad: ${totalIncome} so'm
-Jami xarajat: ${totalExpense} so'm
-Toifalar bo'yicha: ${JSON.stringify(byCategory)}
-Kutilayotgan rejalar: ${plans.join('; ') || 'yo\'q'}`;
+    const since = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+    const summary = await computeSummary(since, now.getTime());
+
+    const context = `Bugungi sana: ${now.toISOString().slice(0, 16).replace('T', ' ')}
+Foydalanuvchi ismi: ${OWNER_NAME}
+Oxirgi 30 kun — Daromad: ${summary.totalIncome} so'm, Xarajat: ${summary.totalExpense} so'm
+Toifalar: ${JSON.stringify(summary.byCategory)}
+Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'q"}`;
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -375,19 +435,60 @@ Kutilayotgan rejalar: ${plans.join('; ') || 'yo\'q'}`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 400,
-        system: "Sen shaxsiy moliyaviy maslahatchisan. FAQAT berilgan ma'lumot asosida, o'zbek tilida, ANIQ va LO'NDA maslahat ber. Javob 15 qatordan OSHMASIN. Umumiy gap yo'q, faqat shu odamning real raqamlariga asoslangan aniq tavsiya.",
-        messages: [{ role: 'user', content: context + "\n\nShu ma'lumot asosida menga maslahat ber." }]
+        max_tokens: 500,
+        system: `Sen ${OWNER_NAME}ning shaxsiy yordamchisisan — moliya va rejalarni boshqarasan. Xabarni tushunib, mos vositani (tool) chaqir. Agar bu shunchaki savol yoki suhbat bo'lsa (masalan "umumiy xarajatim qancha"), hech qanday tool chaqirmasdan, TO'G'RIDAN-TO'G'RI, JUDA QISQA (maksimal 20 so'z), aniq javob ber — o'zbek tilida, do'stona, lekin lo'nda. Hech qachon uzun tushuntirish yozma.`,
+        tools: TOOLS,
+        messages: [{ role: 'user', content: context + `\n\n${OWNER_NAME} yozdi: "${userText}"` }]
       })
     });
     const data = await res.json();
-    const text = data.content && data.content[0] ? data.content[0].text : "Xatolik yuz berdi, keyinroq urinib ko'ring.";
 
-    // Xavfsizlik: 15 qatordan oshsa, kesib tashlaymiz
-    const lines = text.split('\n').filter(l => l.trim());
-    return "🧠 <b>Maslahatchi AI</b>\n\n" + lines.slice(0, 15).join('\n');
+    if (!data.content) { await sendMessage(chatId, "❗️ Xatolik yuz berdi."); return; }
+
+    const toolUse = data.content.find(b => b.type === 'tool_use');
+    const textBlock = data.content.find(b => b.type === 'text');
+
+    if (toolUse) {
+      await executeTool(chatId, toolUse);
+    } else if (textBlock) {
+      const words = textBlock.text.trim().split(/\s+/).slice(0, 25).join(' ');
+      await sendMessage(chatId, words, mainMenuKeyboard());
+    } else {
+      await sendMessage(chatId, "Tushunmadim, qaytadan yozing.", mainMenuKeyboard());
+    }
   } catch (err) {
-    console.error('AI maslahat xatosi:', err);
-    return "❗️ AI maslahat olishda xatolik yuz berdi.";
+    console.error('AI erkin matn xatosi:', err);
+    await sendMessage(chatId, "❗️ Xatolik yuz berdi, qayta urinib ko'ring.", mainMenuKeyboard());
+  }
+}
+
+async function executeTool(chatId, toolUse) {
+  const input = toolUse.input || {};
+
+  if (toolUse.name === 'add_plan') {
+    const reminderAt = new Date(input.reminder_datetime.replace(' ', 'T')).getTime();
+    if (isNaN(reminderAt)) { await sendMessage(chatId, "❗️ Vaqtni aniqlay olmadim, qaytadan urining."); return; }
+    await db.collection('personal_bot_plans').add({
+      planType: input.plan_type, text: input.text, reminderAt, status: 'pending', createdAt: Date.now()
+    });
+    const d = new Date(reminderAt);
+    const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    await sendMessage(chatId, `✅ Rejaga qo'shildi: «${input.text}» — ${dateStr}`, mainMenuKeyboard());
+    return;
+  }
+
+  if (toolUse.name === 'remove_plan') {
+    await db.collection('personal_bot_plans').doc(input.plan_id).delete();
+    await sendMessage(chatId, "✅ Reja o'chirildi.", mainMenuKeyboard());
+    return;
+  }
+
+  if (toolUse.name === 'add_transaction') {
+    await db.collection('personal_bot_tx').add({
+      type: input.type, amount: input.amount, category: input.category, ts: Date.now()
+    });
+    const sign = input.type === 'expense' ? '-' : '+';
+    await sendMessage(chatId, `✅ ${sign}${formatSom(input.amount)} (${input.category})`, mainMenuKeyboard());
+    return;
   }
 }
