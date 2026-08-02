@@ -18,6 +18,15 @@
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="google-site-verification" content="I6UBu5Pm0CpwIE4txcOEXSVtieGWpQR5YkViiQCt7Vk" />
 
+<!-- Shriftlar (Sora, Space Mono) — CSS @import o'rniga <link> orqali,
+     shunda brauzer ularni HEAD o'qilishi bilanoq, boshqa hamma narsa bilan
+     PARALLEL yuklay boshlaydi. @import esa butun <style> blokini o'qib
+     bo'lguncha kutib turardi — sekin internetda aynan shu "avval oddiy
+     shrift, keyin almashadi" holatiga sabab bo'lgan. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&display=swap">
+
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VIP RAQAMLAR">
 <meta property="og:title" content="VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar">
@@ -105,7 +114,6 @@
   html{visibility:hidden;}
   html.lyuks-mode #lyuksLoader{display:flex;}
   @keyframes lyuksSpin{ to{ transform:rotate(360deg); } }
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&display=swap');
 
   :root{
     --bg: #0B1220;
