@@ -1909,27 +1909,36 @@ async function getAppCheckHeaders(){
    "Web configuration" bo'limidan olib, quyida sozlab qo'yilgan. ---- */
 const VAPID_PUBLIC_KEY = 'BIcutL9TjLlhQhU5Drso_WHAuowYNkUR0_IrNlobijw1VvZcaVrVI2IRBts7JB4ySM6t_Cb6meKR0BqGIIDqvDI';
 let messaging = null;
-try{ messaging = firebase.messaging(); console.log('[PUSH] Firebase Messaging ishga tushdi.'); }
-catch(e){ console.error('[PUSH] Firebase Messaging ishga tushmadi:', e); }
+try{
+  messaging = firebase.messaging();
+  console.log('[PUSH] Firebase Messaging ishga tushdi.');
+}catch(e){
+  console.error('[PUSH] Firebase Messaging ishga tushmadi:', e);
+  try{ if(window.showToast) showToast('🔔 Messaging xato: ' + (e.code || e.message || String(e)), 4000); }catch(e2){}
+}
 
+function pushDebugMsg(text){
+  console.log('[PUSH]', text);
+  try{ if(window.showToast) showToast('🔔 ' + text, 3500); }catch(e){}
+}
 async function requestPushToken(){
-  if(!messaging){ console.warn('[PUSH] messaging ishga tushmagan — brauzer qo\'llamasligi yoki Firebase Messaging SDK yuklanmagan bo\'lishi mumkin.'); return null; }
-  if(!VAPID_PUBLIC_KEY){ console.warn('[PUSH] VAPID_PUBLIC_KEY bo\'sh.'); return null; }
-  if(!('serviceWorker' in navigator)){ console.warn('[PUSH] Bu brauzer serviceWorker\'ni qo\'llamaydi.'); return null; }
-  if(!('Notification' in window)){ console.warn('[PUSH] Bu brauzer Notification API\'ni qo\'llamaydi.'); return null; }
+  if(!messaging){ pushDebugMsg("Messaging ishga tushmagan (brauzer qo'llamasligi mumkin)"); return null; }
+  if(!VAPID_PUBLIC_KEY){ pushDebugMsg('VAPID kalit sozlanmagan'); return null; }
+  if(!('serviceWorker' in navigator)){ pushDebugMsg("Bu brauzer serviceWorker'ni qo'llamaydi"); return null; }
+  if(!('Notification' in window)){ pushDebugMsg("Bu brauzer Notification'ni qo'llamaydi"); return null; }
   try{
-    console.log('[PUSH] Ruxsat so\'ralmoqda... Joriy holat:', Notification.permission);
+    pushDebugMsg('Ruxsat so\'ralmoqda... (joriy holat: ' + Notification.permission + ')');
     const permission = await Notification.requestPermission();
-    console.log('[PUSH] Ruxsat natijasi:', permission);
+    pushDebugMsg('Ruxsat natijasi: ' + permission);
     if(permission !== 'granted') return null;
-    console.log('[PUSH] Service worker ro\'yxatdan o\'tkazilmoqda...');
+    pushDebugMsg('Service worker ro\'yxatdan o\'tkazilmoqda...');
     const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    console.log('[PUSH] Service worker OK, token so\'ralmoqda...');
+    pushDebugMsg('Service worker OK. Token so\'ralmoqda...');
     const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: reg });
-    console.log('[PUSH] Token olindi:', token ? (token.slice(0,20) + '...') : null);
+    pushDebugMsg(token ? ('Token olindi: ' + token.slice(0,16) + '...') : 'Token bo\'sh qaytdi');
     return token || null;
   }catch(e){
-    console.error('[PUSH] Xato:', e);
+    pushDebugMsg('XATO: ' + (e.code || e.message || String(e)));
     return null;
   }
 }
@@ -4542,7 +4551,10 @@ function takeWarmedVideo(url){
     track.innerHTML = '';
   }
 
-  banner.addEventListener('click', openPremiumReels);
+  banner.addEventListener('click', ()=>{
+    items = shuffle(items);
+    openPremiumReels(0);
+  });
   closeBtn.addEventListener('click', closePremiumReels);
   overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closePremiumReels(); });
 
