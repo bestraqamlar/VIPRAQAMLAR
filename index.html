@@ -2435,11 +2435,7 @@ function renderFeatured(){
   }).join('');
 
   featuredScroll.querySelectorAll('.featured-heart-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      toggleFavorite(btn.dataset.id, btn);
-      renderFavoritesList();
-      favoritesOverlay.classList.add('open');
-    });
+    btn.addEventListener('click', ()=> toggleFavorite(btn.dataset.id, btn));
   });
   featuredScroll.querySelectorAll('.featured-btn:not(.reserved-btn)').forEach(btn=>{
     btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
@@ -2789,6 +2785,17 @@ async function finalizeOrder(payload, smsVerified){
       }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
     }
 
+    // Push ruxsat so'rovi hali javob kutayotgan bo'lishi mumkin (mijoz
+    // ruxsat oynasiga sekin javob bergan bo'lsa ham) — tayyor bo'lgach,
+    // buyurtmaga ORQADAN biriktiramiz, hech narsaga to'sqinlik qilmaydi.
+    if(pendingPushTokenPromise){
+      pendingPushTokenPromise.then(token=>{
+        if(token){
+          db.collection('orders').doc(orderRef.id).update({ fcmToken: token }).catch(()=>{});
+        }
+      }).catch(()=>{});
+    }
+
     sendOrderToTelegram(payload, orderTime, orderRef.id);
   }catch(err){
     console.error('Buyurtmani bazaga yozishda xato:', err);
@@ -2818,6 +2825,7 @@ async function finalizeOrder(payload, smsVerified){
 }
 
 let pendingOrderPayload = null;
+let pendingPushTokenPromise = null;
 
 confirmBtn.addEventListener('click', async ()=>{
   if(!validate()) return;
@@ -2837,15 +2845,13 @@ confirmBtn.addEventListener('click', async ()=>{
     paymentType: selectedPaymentType
   };
   // Mijozga buyurtma holati o'zgarganda push bildirishnoma yuborish uchun —
-  // ruxsat so'raymiz va tokenni buyurtmaga biriktiramiz. 3s dan ortiq
-  // kutmaymiz (ruxsat so'rovi "osilib qolsa" ham, buyurtma to'xtab qolmasin).
-  try{
-    const fcmToken = await Promise.race([
-      requestPushToken(),
-      new Promise(resolve => setTimeout(()=>resolve(null), 3000))
-    ]);
-    if(fcmToken) payload.fcmToken = fcmToken;
-  }catch(e){}
+  // ruxsat so'rovini DARHOL boshlaymiz (mijoz javob berguncha qancha vaqt
+  // ketishidan qat'i nazar), lekin BUYURTMANI UNGA BOG'LAB QO'YMAYMIZ —
+  // buyurtma darhol yaratiladi, token esa tayyor bo'lgach (finalizeOrder
+  // ichida) orqadan biriktiriladi. Shunda mijoz ruxsat oynasiga sekin
+  // javob bersa ham, token yo'qolib qolmaydi.
+  const pushTokenPromise = requestPushToken().catch(()=>null);
+  pendingPushTokenPromise = pushTokenPromise;
   if(selectedPaymentType === 'installment'){
     payload.installmentMonths = selectedInstallmentMonths;
     payload.monthlyPayment = selectedMonthlyPayment;
@@ -3451,23 +3457,22 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
   btn.disabled = true;
   btn.textContent = t('Yuborilmoqda...');
 
-  let coFcmToken = null;
-  try{
-    coFcmToken = await Promise.race([
-      requestPushToken(),
-      new Promise(resolve => setTimeout(()=>resolve(null), 3000))
-    ]);
-  }catch(e){}
+  // Push ruxsat so'rovini DARHOL boshlaymiz, lekin so'rovni yuborishni
+  // UNGA BOG'LAB QO'YMAYMIZ — mijoz ruxsat oynasiga sekin javob bersa ham,
+  // so'rov kutib turmaydi; token tayyor bo'lgach orqadan biriktiriladi.
+  const coPushTokenPromise = requestPushToken().catch(()=>null);
 
   try{
-    await db.collection('custom_orders').add({
+    const coRef = await db.collection('custom_orders').add({
       pattern: coDraftPattern,
       name, region, phone,
       status: 'Yangi',
       createdAt: new Date().toLocaleString('uz-UZ'),
-      createdAtSort: Date.now(),
-      ...(coFcmToken ? { fcmToken: coFcmToken } : {})
+      createdAtSort: Date.now()
     });
+    coPushTokenPromise.then(token=>{
+      if(token) coRef.update({ fcmToken: token }).catch(()=>{});
+    }).catch(()=>{});
     coStep2.style.display = 'none';
     coSuccessView.style.display = 'block';
     fetch('/.netlify/functions/notify-admin-push', {
