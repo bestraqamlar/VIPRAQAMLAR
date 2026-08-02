@@ -7,13 +7,14 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
   :root{
-    --bg:#0B1220; --panel:#121B2E; --panel-2:#17223A; --line:#263450;
-    --amber:#FFB000; --amber-soft:rgba(255,176,0,0.15); --green:#33E28C;
-    --red:#FF5C5C; --text:#EDEFF3; --muted:#8494B0;
+    --bg:#160b52; --panel:#4633ea; --panel-2:#3a28c4; --line:rgba(255,255,255,0.14);
+    --amber:#FFB000; --amber-soft:rgba(255,176,0,0.18); --green:#33E28C;
+    --red:#FF5C5C; --text:#FFFFFF; --muted:rgba(255,255,255,0.68);
   }
   *{box-sizing:border-box;}
   body{
-    margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
+    margin:0;background:linear-gradient(160deg,#2c1aa0,#160b52);background-attachment:fixed;
+    color:var(--text);font-family:'Inter',sans-serif;
     -webkit-user-select:none;-moz-user-select:none;user-select:none;
     -webkit-touch-callout:none;
   }
@@ -49,22 +50,31 @@
     display:flex;align-items:center;justify-content:space-between;
     padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--line);
     flex-wrap:wrap;gap:10px;
+    animation:fadeSlideUp .3s ease both;
   }
-  .logo{font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:var(--amber);}
+  .logo{font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:var(--amber);display:flex;align-items:center;gap:8px;}
+  .logo::before{
+    content:'';width:8px;height:8px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 6px var(--green);animation:vpulse 1.6s ease-in-out infinite;flex-shrink:0;
+  }
   .logo span{color:var(--text);font-weight:400;}
   .header-actions{display:flex;align-items:center;gap:10px;}
   #logoutBtn{
     background:none;border:1px solid var(--line);color:var(--muted);
     padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;
+    transition:border-color .18s ease, color .18s ease, transform .15s ease;
   }
   #logoutBtn:hover{border-color:var(--red);color:var(--red);}
+  #logoutBtn:active{transform:scale(0.95);}
 
   .bell-btn{
     position:relative;background:var(--panel);border:1px solid var(--line);
     width:38px;height:38px;border-radius:9px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;font-size:17px;
+    transition:border-color .18s ease, transform .15s cubic-bezier(.34,1.56,.64,1);
   }
-  .bell-btn:hover{border-color:var(--amber);}
+  .bell-btn:hover{border-color:var(--amber);transform:rotate(-8deg);}
+  .bell-btn:active{transform:scale(0.92);}
   .bell-badge{
     position:absolute;top:-6px;right:-6px;
     background:var(--red);color:#fff;font-family:'Space Mono',monospace;
@@ -74,31 +84,96 @@
   }
 
   /* ---- Login ekrani ---- */
+  .login-bg{
+    position:fixed;inset:0;overflow:hidden;
+    background:radial-gradient(ellipse at top, var(--panel), var(--bg) 65%);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .login-orb{
+    position:absolute;border-radius:50%;filter:blur(60px);opacity:0.35;
+    animation:orbFloat 14s ease-in-out infinite;
+  }
+  .login-orb-1{width:280px;height:280px;background:var(--amber);top:-60px;left:-60px;animation-duration:16s;}
+  .login-orb-2{width:220px;height:220px;background:#5C8DF6;bottom:-40px;right:-40px;animation-duration:19s;animation-delay:-4s;}
+  .login-orb-3{width:180px;height:180px;background:var(--green);bottom:20%;left:8%;animation-duration:13s;animation-delay:-8s;opacity:0.22;}
+  @keyframes orbFloat{
+    0%,100%{transform:translate(0,0) scale(1);}
+    33%{transform:translate(24px,-18px) scale(1.08);}
+    66%{transform:translate(-16px,14px) scale(0.95);}
+  }
   .login-screen{
-    max-width:340px;margin:80px auto;text-align:center;
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:32px 24px;
+    position:relative;z-index:1;
+    max-width:340px;width:100%;text-align:center;
+    background:rgba(18,27,46,0.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--line);border-radius:20px;padding:36px 26px 30px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    animation:loginCardIn .55s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes loginCardIn{
+    from{opacity:0;transform:translateY(24px) scale(0.96);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+  .login-badge{
+    width:56px;height:56px;margin:0 auto 16px;border-radius:16px;
+    background:linear-gradient(135deg, var(--amber), #FF8A3D);
+    display:flex;align-items:center;justify-content:center;color:var(--bg);
+    box-shadow:0 0 0 rgba(255,176,0,0.5);
+    animation:badgeGlow 2.6s ease-in-out infinite;
+  }
+  .login-badge svg{width:26px;height:26px;}
+  @keyframes badgeGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,176,0,0.35);transform:scale(1);}
+    50%{box-shadow:0 0 0 10px rgba(255,176,0,0);transform:scale(1.04);}
   }
   .login-screen h1{font-family:'Space Mono',monospace;color:var(--amber);font-size:18px;margin:0 0 6px;}
-  .login-screen p{color:var(--muted);font-size:13px;margin:0 0 20px;}
+  .login-screen p{color:var(--muted);font-size:13px;margin:0 0 22px;}
+  .login-field{position:relative;margin-bottom:12px;}
   .login-screen input{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
-    padding:12px;color:var(--text);font-size:16px;outline:none;text-align:center;margin-bottom:10px;
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+    padding:13px 14px;color:var(--text);font-size:15px;outline:none;text-align:center;
+    transition:border-color .2s ease, box-shadow .2s ease, transform .15s ease;
   }
-  .login-screen input:focus{border-color:var(--amber);}
+  .login-screen input:focus{border-color:var(--amber);box-shadow:0 0 0 4px rgba(255,176,0,0.12);transform:translateY(-1px);}
   .login-screen button{
-    width:100%;background:var(--amber);color:var(--bg);border:none;border-radius:9px;
-    padding:12px;font-weight:700;font-size:14px;cursor:pointer;
+    position:relative;overflow:hidden;
+    width:100%;background:var(--amber);color:var(--bg);border:none;border-radius:10px;
+    padding:13px;font-weight:800;font-size:14.5px;cursor:pointer;margin-top:6px;
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), filter .15s ease;
   }
-  .login-error{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+  .login-screen button span{position:relative;z-index:1;}
+  .login-screen button::before{
+    content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,0.45), transparent);
+    transform:skewX(-20deg);animation:btnShine 2.8s ease-in-out infinite;
+  }
+  @keyframes btnShine{
+    0%{left:-120%;}
+    45%{left:130%;}
+    100%{left:130%;}
+  }
+  .login-screen button:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .login-screen button:active{transform:scale(0.97);}
+  .login-screen button:disabled{opacity:0.7;cursor:not-allowed;}
+  .login-screen button:disabled::before{animation-play-state:paused;}
+  .login-error{color:var(--red);font-size:12px;margin-top:12px;display:none;animation:loginShake .4s ease;}
+  @keyframes loginShake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
 
   /* ---- Dashboard ---- */
-  #dashboard{display:none;}
+  #dashboard{display:none;animation:fadeSlideUp .4s ease both;}
   .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;}
   .tab{
     background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
     padding:11px 6px;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:600;
+    transition:background-color .18s ease, border-color .18s ease, color .18s ease, transform .15s cubic-bezier(.34,1.56,.64,1);
   }
-  .tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
+  .tab:hover{border-color:var(--amber);color:var(--text);}
+  .tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
   .pane{display:none;}
   .pane.active{display:block;}
 
@@ -514,6 +589,7 @@
   .visitors-box{
     background:var(--panel);border:1px solid var(--line);border-radius:12px;
     padding:12px 16px;margin-bottom:18px;display:flex;flex-direction:column;gap:6px;
+    animation:fadeSlideUp .35s ease both;animation-delay:.12s;
   }
   .visitors-live{font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;}
   .visitors-live b{color:var(--green);font-size:15px;}
@@ -526,9 +602,22 @@
   .visitors-total b{color:var(--amber);font-size:13px;}
 
   .ov-card{
+    position:relative;overflow:hidden;
     background:var(--panel);border:1px solid var(--line);border-radius:12px;
     padding:14px 10px;text-align:center;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, box-shadow .2s ease;
+    opacity:0;animation:fadeSlideUp .4s ease forwards;
   }
+  .ov-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg, var(--amber), transparent);
+    opacity:0;transition:opacity .2s ease;
+  }
+  .ov-card:nth-child(1){animation-delay:.03s;}
+  .ov-card:nth-child(2){animation-delay:.09s;}
+  .ov-card:nth-child(3){animation-delay:.15s;}
+  .ov-card:hover{border-color:var(--amber);transform:translateY(-3px);box-shadow:0 8px 20px rgba(255,176,0,0.1);}
+  .ov-card:hover::before{opacity:1;}
   .ov-card b{
     display:block;font-family:'Space Mono',monospace;font-size:22px;color:var(--green);
     margin-bottom:2px;
@@ -550,13 +639,25 @@
 </head>
 <body>
 
-<div class="login-screen" id="loginScreen">
-  <h1>VIP RAQAMLAR (070.uz)</h1>
-  <p>Admin panelga kirish uchun email va parolni kiriting</p>
-  <input type="email" id="usernameInput" placeholder="Email" autocomplete="username">
-  <input type="password" id="passwordInput" placeholder="Parol" autocomplete="current-password">
-  <button id="loginBtn">Kirish</button>
-  <div class="login-error" id="loginError">Email yoki parol noto'g'ri</div>
+<div class="login-bg" id="loginBg">
+  <div class="login-orb login-orb-1"></div>
+  <div class="login-orb login-orb-2"></div>
+  <div class="login-orb login-orb-3"></div>
+  <div class="login-screen" id="loginScreen">
+    <div class="login-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5L12 2z"/></svg>
+    </div>
+    <h1>VIP RAQAMLAR (070.uz)</h1>
+    <p>Admin panelga kirish uchun email va parolni kiriting</p>
+    <div class="login-field">
+      <input type="email" id="usernameInput" placeholder="Email" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <input type="password" id="passwordInput" placeholder="Parol" autocomplete="current-password">
+    </div>
+    <button id="loginBtn"><span>Kirish</span></button>
+    <div class="login-error" id="loginError">Email yoki parol noto'g'ri</div>
+  </div>
 </div>
 
 <div class="wrap" id="dashboard">
@@ -1245,7 +1346,7 @@ async function recordSession(){
 }
 
 /* ---- Login ---- */
-const loginScreen  = document.getElementById('loginScreen');
+const loginScreen  = document.getElementById('loginBg');
 const dashboard    = document.getElementById('dashboard');
 const usernameInput= document.getElementById('usernameInput');
 const passwordInput= document.getElementById('passwordInput');
