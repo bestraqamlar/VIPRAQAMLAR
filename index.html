@@ -13,9 +13,6 @@
 <link rel="icon" type="image/png" sizes="256x256" href="assets/logo-circle.png?v=2">
 <link rel="shortcut icon" type="image/png" href="assets/logo-circle.png?v=2">
 <link rel="apple-touch-icon" href="assets/logo-circle.png?v=2">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VIP RAQAMLAR">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B1220">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
@@ -1860,7 +1857,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -1898,71 +1894,6 @@ async function getAppCheckHeaders(){
     const t = await firebase.appCheck().getToken();
     return { 'X-Firebase-AppCheck': t.token };
   }catch(e){ return {}; }
-}
-
-/* ===========================================================
-   PUSH BILDIRISHNOMALAR (brauzer orqali) — mijoz buyurtma
-   yuborganda, ruxsat bersa, uning brauzeriga "push token" biriktirib
-   qo'yiladi. Admin keyinchalik buyurtma holatini o'zgartirganda,
-   Telegram bilan bir qatorda shu tokenga ham xabar yuboriladi —
-   shunda Telegram botsiz, to'g'ridan-to'g'ri saytdan buyurtma bergan
-   mijozlar ham holat o'zgarishidan xabardor bo'ladi.
-
-   VAPID kalit Firebase Console → Project Settings → Cloud Messaging →
-   "Web configuration" bo'limidan olib, quyida sozlab qo'yilgan. ---- */
-const VAPID_PUBLIC_KEY = 'BIcutL9TjLlhQhU5Drso_WHAuowYNkUR0_IrNlobijw1VvZcaVrVI2IRBts7JB4ySM6t_Cb6meKR0BqGIIDqvDI';
-let messaging = null;
-try{
-  messaging = firebase.messaging();
-  console.log('[PUSH] Firebase Messaging ishga tushdi.');
-}catch(e){
-  console.error('[PUSH] Firebase Messaging ishga tushmadi:', e);
-  try{ if(window.showToast) showToast('🔔 Messaging xato: ' + (e.code || e.message || String(e)), 4000); }catch(e2){}
-}
-
-function pushDebugMsg(text){
-  console.log('[PUSH]', text);
-  try{ if(window.showToast) showToast('🔔 ' + text, 3500); }catch(e){}
-}
-async function requestPushToken(){
-  if(!messaging){ pushDebugMsg("Messaging ishga tushmagan (brauzer qo'llamasligi mumkin)"); return null; }
-  if(!VAPID_PUBLIC_KEY){ pushDebugMsg('VAPID kalit sozlanmagan'); return null; }
-  if(!('serviceWorker' in navigator)){ pushDebugMsg("Bu brauzer serviceWorker'ni qo'llamaydi"); return null; }
-  if(!('Notification' in window)){
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isStandalone = window.navigator.standalone === true;
-    if(isIOS && !isStandalone){
-      pushDebugMsg("iPhone'da bildirishnoma olish uchun: saytni Safari'ning pastidagi \"Ulashish\" tugmasi orqali \"Bosh ekranga qo'shish\"ga qo'shing, keyin dastur ichidan oching.");
-    }else{
-      pushDebugMsg("Bu brauzer Notification'ni qo'llamaydi");
-    }
-    return null;
-  }
-  try{
-    pushDebugMsg('Ruxsat so\'ralmoqda... (joriy holat: ' + Notification.permission + ')');
-    const permission = await Notification.requestPermission();
-    pushDebugMsg('Ruxsat natijasi: ' + permission);
-    if(permission !== 'granted') return null;
-    pushDebugMsg('Service worker ro\'yxatdan o\'tkazilmoqda...');
-    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    pushDebugMsg('Service worker OK. Token so\'ralmoqda...');
-    const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: reg });
-    pushDebugMsg(token ? ('Token olindi: ' + token.slice(0,16) + '...') : 'Token bo\'sh qaytdi');
-    return token || null;
-  }catch(e){
-    pushDebugMsg('XATO: ' + (e.code || e.message || String(e)));
-    return null;
-  }
-}
-// Sayt ochiq turgan payt (foreground) push kelsa — tizim bildirishnomasi
-// o'rniga saytdagi mavjud "toast" orqali ko'rsatamiz.
-if(messaging){
-  try{
-    messaging.onMessage((payload)=>{
-      const body = (payload.notification && payload.notification.body) || '';
-      if(body) showToast(body, 4000);
-    });
-  }catch(e){}
 }
 
 let NUMBERS = [];
@@ -2747,12 +2678,6 @@ ${paymentLine}
       body: JSON.stringify({ text, orderId })
     });
   }catch(err){ console.error('Telegramga yuborishda xato:', err); }
-
-  fetch('/.netlify/functions/notify-admin-push', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: '🔔 Yangi buyurtma', body: `${payload.number} — ${payload.name}` })
-  }).catch(()=>{ /* push ishlamasa ham, Telegram xabari baribir boradi */ });
 }
 
 /* Buyurtma muvaffaqiyatli bo'lganda — yashil "✓" belgisi atrofida
@@ -2808,21 +2733,6 @@ async function finalizeOrder(payload, smsVerified){
       }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
     }
 
-    // Push ruxsat so'rovi hali javob kutayotgan bo'lishi mumkin (mijoz
-    // ruxsat oynasiga sekin javob bergan bo'lsa ham) — tayyor bo'lgach,
-    // buyurtmaga ORQADAN biriktiramiz, hech narsaga to'sqinlik qilmaydi.
-    if(pendingPushTokenPromise){
-      pendingPushTokenPromise.then(token=>{
-        if(token){
-          db.collection('orders').doc(orderRef.id).update({ fcmToken: token })
-            .then(()=> pushDebugMsg('Token buyurtmaga saqlandi ✅'))
-            .catch(e=> pushDebugMsg('Tokenni saqlashda XATO: ' + (e.code || e.message)));
-        }else{
-          pushDebugMsg('Token yo\'q edi — buyurtmaga hech narsa saqlanmadi.');
-        }
-      }).catch(()=>{});
-    }
-
     sendOrderToTelegram(payload, orderTime, orderRef.id);
   }catch(err){
     console.error('Buyurtmani bazaga yozishda xato:', err);
@@ -2852,7 +2762,6 @@ async function finalizeOrder(payload, smsVerified){
 }
 
 let pendingOrderPayload = null;
-let pendingPushTokenPromise = null;
 
 confirmBtn.addEventListener('click', async ()=>{
   if(!validate()) return;
@@ -2871,14 +2780,6 @@ confirmBtn.addEventListener('click', async ()=>{
     source: 'Sayt',
     paymentType: selectedPaymentType
   };
-  // Mijozga buyurtma holati o'zgarganda push bildirishnoma yuborish uchun —
-  // ruxsat so'rovini DARHOL boshlaymiz (mijoz javob berguncha qancha vaqt
-  // ketishidan qat'i nazar), lekin BUYURTMANI UNGA BOG'LAB QO'YMAYMIZ —
-  // buyurtma darhol yaratiladi, token esa tayyor bo'lgach (finalizeOrder
-  // ichida) orqadan biriktiriladi. Shunda mijoz ruxsat oynasiga sekin
-  // javob bersa ham, token yo'qolib qolmaydi.
-  const pushTokenPromise = requestPushToken().catch(()=>null);
-  pendingPushTokenPromise = pushTokenPromise;
   if(selectedPaymentType === 'installment'){
     payload.installmentMonths = selectedInstallmentMonths;
     payload.monthlyPayment = selectedMonthlyPayment;
@@ -3484,29 +3385,16 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
   btn.disabled = true;
   btn.textContent = t('Yuborilmoqda...');
 
-  // Push ruxsat so'rovini DARHOL boshlaymiz, lekin so'rovni yuborishni
-  // UNGA BOG'LAB QO'YMAYMIZ — mijoz ruxsat oynasiga sekin javob bersa ham,
-  // so'rov kutib turmaydi; token tayyor bo'lgach orqadan biriktiriladi.
-  const coPushTokenPromise = requestPushToken().catch(()=>null);
-
   try{
-    const coRef = await db.collection('custom_orders').add({
+    await db.collection('custom_orders').add({
       pattern: coDraftPattern,
       name, region, phone,
       status: 'Yangi',
       createdAt: new Date().toLocaleString('uz-UZ'),
       createdAtSort: Date.now()
     });
-    coPushTokenPromise.then(token=>{
-      if(token) coRef.update({ fcmToken: token }).catch(()=>{});
-    }).catch(()=>{});
     coStep2.style.display = 'none';
     coSuccessView.style.display = 'block';
-    fetch('/.netlify/functions/notify-admin-push', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: '🔔 Yangi "Zakaz" so\'rovi', body: `••••${coDraftPattern} — ${name}` })
-    }).catch(()=>{});
   }catch(err){
     errEl.textContent = 'Xato: ' + err.message;
     errEl.style.display = 'block';
