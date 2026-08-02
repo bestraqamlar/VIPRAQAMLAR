@@ -952,13 +952,6 @@
   }
   .featured-btn:hover{filter:brightness(1.1);}
   .featured-btn:active{transform:scale(0.96);}
-  .sale-badge{
-    background:var(--amber);color:var(--bg);font-size:11px;font-weight:800;
-    padding:5px 10px;border-radius:20px;
-  }
-  .sale-price-row{display:flex;align-items:baseline;gap:7px;margin:0 0 12px;flex-wrap:wrap;}
-  .sale-price-row .new-price{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--amber);opacity:0.88;}
-  .sale-price-row .old-price{font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;}
 
   .overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.65);
@@ -983,6 +976,61 @@
   .modal-handle{width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;}
   .modal h2{font-family:'Space Mono',monospace;color:var(--amber);font-size:17px;margin:0 0 4px;}
   .modal .modal-number{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--text);margin-bottom:14px;}
+
+  /* ---- Buyurtma oldindan ko'rish (preview) oynasi — "Xarid qilish" bosilganda
+     to'liq forma OLDIDAN chiqadigan qisqa tasdiqlash varag'i. Ekranning
+     pastki qismidan chiqadi, lekin (asosiy .modal'dan farqli) ekran bo'ylab
+     to'liq cho'zilmaydi — chap/o'ng/pastdan bo'sh joy qoladi, kompakt kartochka
+     ko'rinishida. ---- */
+  .preview-modal{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:20px;
+    padding:16px 16px 20px;max-width:400px;width:calc(100% - 24px);
+    margin-bottom:14px;
+    position:relative;
+    transform:translateY(30px);animation:slideUp .28s ease forwards;
+  }
+  .preview-card{
+    background:var(--bg);border:1px solid var(--line);border-radius:16px;
+    padding:18px 18px 20px;margin-bottom:16px;
+  }
+  .preview-top-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:18px;}
+  .preview-op-badge{
+    display:inline-block;padding:6px 14px;border-radius:8px;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;color:#fff;
+    background:var(--muted);
+  }
+  .preview-discount-badge{
+    display:inline-block;padding:6px 14px;border-radius:8px;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
+    background:var(--brand-red);color:#fff;
+  }
+  .preview-number{
+    font-family:'Space Mono',monospace;font-weight:800;font-size:24px;color:var(--text);
+    margin-bottom:12px;letter-spacing:0.3px;word-break:break-word;
+  }
+  .preview-price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .preview-price{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:var(--amber);}
+  .preview-oldprice{font-family:'Sora',sans-serif;font-size:14px;color:var(--muted);text-decoration:line-through;}
+  .preview-hint{color:var(--muted);font-size:13px;text-align:center;margin:0 0 18px;line-height:1.5;}
+  .preview-confirm-btn{
+    width:100%;padding:16px;border-radius:14px;border:none;cursor:pointer;
+    background:var(--panel-2);color:var(--text);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;
+    display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:10px;
+    transition:filter .15s ease, transform .12s ease;
+  }
+  .preview-confirm-btn svg{width:19px;height:19px;flex-shrink:0;}
+  .preview-confirm-btn:hover{filter:brightness(1.15);}
+  .preview-confirm-btn:active{transform:scale(0.97);}
+  .preview-cancel-btn{
+    width:100%;padding:15px;border-radius:14px;cursor:pointer;
+    background:transparent;color:var(--muted);border:1px solid var(--line);
+    font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .preview-cancel-btn:hover{border-color:var(--muted);color:var(--text);}
+  .preview-cancel-btn:active{transform:scale(0.97);}
 
   .order-info-banner{
     background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
@@ -1537,15 +1585,6 @@
   <div class="featured-hint" data-i18n="swipeHint">&larr; siljitib ko'ring &rarr;</div>
 </section>
 
-<section class="featured-section" id="saleSection" style="display:none;">
-  <div class="featured-header">
-    <span class="featured-title" data-i18n="saleTitle">Aksiyadagi raqamlar</span>
-    <a href="#catalog" class="featured-link" data-i18n="viewAll">Barchasini ko'rish</a>
-  </div>
-  <div class="featured-scroll" id="saleScroll"></div>
-  <div class="featured-hint" data-i18n="swipeHint">&larr; siljitib ko'ring &rarr;</div>
-</section>
-
 <section class="testimonials-section" id="testimonialsSection" style="display:none;">
   <div class="testimonials-header">
     <div class="testimonials-title" data-i18n="testimonialsTitle">Mijozlarimiz fikri</div>
@@ -1743,6 +1782,29 @@
     </button>
   </div>
   <div id="favoritesListView"></div>
+</div>
+
+<div class="overlay" id="previewOverlay">
+  <div class="preview-modal">
+    <div class="modal-handle"></div>
+    <div class="preview-card">
+      <div class="preview-top-row">
+        <span class="preview-op-badge" id="previewOpBadge"></span>
+        <span class="preview-discount-badge" id="previewDiscountBadge" style="display:none;"></span>
+      </div>
+      <div class="preview-number" id="previewNumber"></div>
+      <div class="preview-price-row">
+        <span class="preview-price" id="previewPrice"></span>
+        <span class="preview-oldprice" id="previewOldPrice" style="display:none;"></span>
+      </div>
+    </div>
+    <p class="preview-hint">Raqamni rasmiylashtirish uchun ma'lumotlaringizni to'ldiring</p>
+    <button type="button" class="preview-confirm-btn" id="previewConfirmBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      Rasmiylashtirish
+    </button>
+    <button type="button" class="preview-cancel-btn" id="previewCancelBtn">Bekor qilish</button>
+  </div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -1976,7 +2038,6 @@ async function loadNumbers(retryDelay){
       ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
       renderCatalog();
       renderFeatured();
-      renderSale();
       renderDailyDeal();
     }
   }catch(e){ /* kesh yo'q yoki buzilgan — muammo emas, pastda yangisi yuklanadi */ }
@@ -1990,7 +2051,6 @@ async function loadNumbers(retryDelay){
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
     renderCatalog();
     renderFeatured();
-    renderSale();
     renderDailyDeal();
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
@@ -2396,43 +2456,6 @@ function renderFeatured(){
   });
 }
 
-/* "Aksiyadagi raqamlar" karuseli — eski narxi joriy narxdan katta bo'lgan raqamlar */
-const saleSection = document.getElementById('saleSection');
-const saleScroll   = document.getElementById('saleScroll');
-
-function renderSale(){
-  const picks = NUMBERS.filter(item => item.oldPrice && item.oldPrice > item.price).slice(0, 8);
-  if(picks.length < 2){
-    saleSection.style.display = 'none';
-    return;
-  }
-  saleSection.style.display = 'block';
-  saleScroll.innerHTML = picks.map(item => {
-    const { head, tail } = splitNumberDisplay(item.number);
-    const discountPct = Math.round((1 - item.price / item.oldPrice) * 100);
-    return `
-      <div class="featured-card">
-        <div class="featured-top-row">
-          <span class="sale-badge">-${discountPct}%</span>
-          <svg class="featured-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 8 2 4 6 4c2.2 0 3.5 1.3 4 2 .5-.7 1.8-2 4-2 4 0 5 4 3.5 8-2.5 4.5-9.5 9-9.5 9z"/></svg>
-        </div>
-        <div class="featured-num">${head} <span class="featured-num-accent">${tail}</span></div>
-        <div class="sale-price-row">
-          <span class="new-price">${formatPrice(item.price)}</span>
-          <span class="old-price">${formatPrice(item.oldPrice)}</span>
-        </div>
-        ${item.reserved
-          ? `<button class="featured-btn reserved-btn" disabled>${t("Bron qilish jarayonida")}</button>`
-          : `<button class="featured-btn" data-number="${item.number}" data-id="${item.id}"><svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>${t("Xarid qilish")}</button>`}
-      </div>
-    `;
-  }).join('');
-
-  saleScroll.querySelectorAll('.featured-btn:not(.reserved-btn)').forEach(btn=>{
-    btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
-  });
-}
-
 const dailyDealSection = document.getElementById('dailyDealSection');
 const dailyDealScroll  = document.getElementById('dailyDealScroll');
 
@@ -2563,7 +2586,7 @@ let selectedNumberId = null;
 let selectedPrice = 0;
 let appliedDiscount = 0;
 
-function openModal(number, id){
+function openOrderForm(number, id){
   if(navigator.vibrate) navigator.vibrate(35);
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){ recapEl.style.display = 'none'; recapEl.innerHTML = ''; }
@@ -2604,6 +2627,79 @@ function openModal(number, id){
   document.body.style.overflow = 'hidden';
   setTimeout(()=>custName.focus(), 250);
 }
+
+/* ---- "Xarid qilish"/"Buyurtma berish" bosilganda AVVAL chiqadigan qisqa
+   tasdiqlash varag'i (preview). Mijoz shu yerda raqam va narxni yana bir
+   marta ko'rib tasdiqlaydi ("Rasmiylashtirish" — keyin to'liq forma ochiladi)
+   yoki bekor qiladi ("Bekor qilish" — hech narsa ochilmaydi, orqaga qaytadi). ---- */
+const OP_BADGE_COLORS = {
+  Mobiuz: '#C0392B', Beeline: '#E0A400', Ucell: '#B07CC6',
+  Humans: '#B8860B', Uzmobile: '#2E63C7', Perfektum: '#C97A3D'
+};
+const previewOverlay = document.getElementById('previewOverlay');
+let pendingPreviewArgs = null;
+
+function openModal(number, id){
+  const item = NUMBERS.find(n => n.id === id);
+  const hasDiscount = item && item.oldPrice && item.oldPrice > item.price;
+  const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+
+  const opBadge = document.getElementById('previewOpBadge');
+  if(item && item.operator){
+    opBadge.textContent = item.operator;
+    opBadge.style.background = OP_BADGE_COLORS[item.operator] || 'var(--muted)';
+    opBadge.style.display = 'inline-block';
+  }else{
+    opBadge.style.display = 'none';
+  }
+
+  const discBadge = document.getElementById('previewDiscountBadge');
+  if(hasDiscount){
+    discBadge.textContent = '-' + discountPct + '%';
+    discBadge.style.display = 'inline-block';
+  }else{
+    discBadge.style.display = 'none';
+  }
+
+  document.getElementById('previewNumber').textContent = '+998 ' + displayNumber(number);
+  document.getElementById('previewPrice').textContent = formatPrice(item ? item.price : 0);
+  const oldPriceEl = document.getElementById('previewOldPrice');
+  if(hasDiscount){
+    oldPriceEl.textContent = formatPrice(item.oldPrice);
+    oldPriceEl.style.display = 'inline';
+  }else{
+    oldPriceEl.style.display = 'none';
+  }
+
+  pendingPreviewArgs = { number, id };
+  previewOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePreview(){
+  previewOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+  pendingPreviewArgs = null;
+  // Agar preview "Premium raqamlar" video-reels ichidan ochilgan bo'lsa
+  // va mijoz bekor qilsa — videoni davom ettiramiz, reels ochiq qoladi.
+  if(window.__returnToPremiumReels){
+    previewOverlay.style.zIndex = '';
+    window.__returnToPremiumReels();
+    window.__returnToPremiumReels = null;
+  }
+}
+document.getElementById('previewConfirmBtn').addEventListener('click', ()=>{
+  const args = pendingPreviewArgs;
+  previewOverlay.classList.remove('open');
+  previewOverlay.style.zIndex = '';
+  document.body.style.overflow = '';
+  pendingPreviewArgs = null;
+  if(args) openOrderForm(args.number, args.id);
+});
+document.getElementById('previewCancelBtn').addEventListener('click', closePreview);
+previewOverlay.addEventListener('click', (e)=>{
+  if(e.target === previewOverlay) closePreview();
+});
+
 function closeModal(){
   overlay.classList.remove('open');
   document.body.style.overflow = '';
@@ -2794,7 +2890,6 @@ async function finalizeOrder(payload, smsVerified){
 
   renderCatalog();
   renderFeatured();
-  renderSale();
   renderDailyDeal();
 }
 
@@ -3601,7 +3696,6 @@ const RU_DICT = {
   clear:              'Очистить',
   all:                'Все',
   featuredTitle:      'Популярные номера',
-  saleTitle:          'Номера по акции',
   viewAll:            'Смотреть все',
   swipeHint:          '&larr; листайте &rarr;',
   testimonialsTitle:  'Отзывы наших клиентов',
@@ -4418,10 +4512,11 @@ function takeWarmedVideo(url){
         const v = items[idx];
         if(!v) return;
         pauseSlideVideo(slideAt(idx));
-        // Buyurtma oynasi Reels'dan YUQORIDA ko'rinishi uchun z-index'ini
-        // vaqtincha oshiramiz, yopilganda esa Reels'ga qaytamiz.
-        const orderOverlay = document.getElementById('overlay');
-        orderOverlay.style.zIndex = '950';
+        // Buyurtma oynasi (preview VA to'liq forma) Reels'dan YUQORIDA
+        // ko'rinishi uchun z-index'ini vaqtincha oshiramiz, yopilganda
+        // esa Reels'ga qaytamiz.
+        document.getElementById('overlay').style.zIndex = '950';
+        document.getElementById('previewOverlay').style.zIndex = '950';
         window.__returnToPremiumReels = function(){ playSlideVideo(slideAt(idx)); };
         openModal(v.number, v.numberId);
       });
@@ -4557,7 +4652,6 @@ showSkeletons();
   await loadNumbers();
   renderCatalog();
   renderFeatured();
-  renderSale();
   renderDailyDeal();
   if(window.__loadVideoTestimonials) window.__loadVideoTestimonials();
   if(window.__loadPremiumVideos) window.__loadPremiumVideos();
