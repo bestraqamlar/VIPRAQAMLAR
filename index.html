@@ -981,55 +981,68 @@
      to'liq forma OLDIDAN chiqadigan qisqa tasdiqlash varag'i. Ekranning
      pastki qismidan chiqadi, lekin (asosiy .modal'dan farqli) ekran bo'ylab
      to'liq cho'zilmaydi — chap/o'ng/pastdan bo'sh joy qoladi, kompakt kartochka
-     ko'rinishida. ---- */
+     ko'rinishida. Rang sxemasi: tashqi varaq — ochroq ko'k, ichidagi raqam
+     kartochkasi va "Rasmiylashtirish" tugmasi — to'q ko'k. ---- */
   .preview-modal{
-    background:var(--panel);border:1px solid var(--line);
+    --pv-light-blue: #23477E;
+    --pv-dark-blue: #0B1B33;
+    --pv-glow-blue: #7CC4FF;
+    background:var(--pv-light-blue);border:1px solid rgba(255,255,255,0.08);
     border-radius:20px;
-    padding:16px 16px 20px;max-width:400px;width:calc(100% - 24px);
+    padding:18px 16px 20px;max-width:400px;width:calc(100% - 24px);
     margin-bottom:14px;
     position:relative;
     transform:translateY(30px);animation:slideUp .28s ease forwards;
   }
+  .preview-modal .modal-handle{background:rgba(255,255,255,0.25);}
   .preview-card{
-    background:var(--bg);border:1px solid var(--line);border-radius:16px;
-    padding:18px 18px 20px;margin-bottom:16px;
+    background:var(--pv-dark-blue);border:1px solid rgba(255,255,255,0.06);border-radius:16px;
+    padding:20px 18px;margin-bottom:18px;
+    display:flex;align-items:center;flex-direction:column;gap:12px;text-align:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  .preview-top-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:18px;}
   .preview-op-badge{
-    display:inline-block;padding:6px 14px;border-radius:8px;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;color:#fff;
-    background:var(--muted);
-  }
-  .preview-discount-badge{
-    display:inline-block;padding:6px 14px;border-radius:8px;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
-    background:var(--brand-red);color:#fff;
+    display:inline-block;padding:6px 16px;border-radius:20px;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:12px;color:#fff;
+    background:var(--muted);letter-spacing:0.3px;
   }
   .preview-number{
-    font-family:'Space Mono',monospace;font-weight:800;font-size:24px;color:var(--text);
-    margin-bottom:12px;letter-spacing:0.3px;word-break:break-word;
+    font-family:'Space Mono',monospace;font-weight:800;font-size:25px;color:#FFFFFF;
+    letter-spacing:0.4px;word-break:break-word;
   }
-  .preview-price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
-  .preview-price{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:var(--amber);}
-  .preview-oldprice{font-family:'Sora',sans-serif;font-size:14px;color:var(--muted);text-decoration:line-through;}
-  .preview-hint{color:var(--muted);font-size:13px;text-align:center;margin:0 0 18px;line-height:1.5;}
+  .preview-hint{color:rgba(255,255,255,0.8);font-size:13px;text-align:center;margin:0 0 18px;line-height:1.5;}
   .preview-confirm-btn{
-    width:100%;padding:16px;border-radius:14px;border:none;cursor:pointer;
-    background:var(--panel-2);color:var(--text);
-    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;
-    display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:10px;
-    transition:filter .15s ease, transform .12s ease;
+    position:relative;
+    width:100%;padding:3px;border-radius:15px;border:none;cursor:pointer;
+    background:transparent;overflow:hidden;
+    margin-bottom:10px;
+    transition:transform .12s ease;
   }
-  .preview-confirm-btn svg{width:19px;height:19px;flex-shrink:0;}
-  .preview-confirm-btn:hover{filter:brightness(1.15);}
   .preview-confirm-btn:active{transform:scale(0.97);}
+  .preview-confirm-btn::before{
+    content:'';
+    position:absolute;inset:-60%;
+    background:conic-gradient(from 0deg, var(--pv-glow-blue), transparent 35%, transparent 65%, var(--pv-glow-blue));
+    animation:pvBorderSpin 2.6s linear infinite;
+  }
+  .preview-confirm-btn-inner{
+    position:relative;z-index:1;
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    width:100%;padding:14px;border-radius:13px;
+    background:var(--pv-dark-blue);color:#FFFFFF;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;
+    transition:filter .15s ease;
+  }
+  .preview-confirm-btn:hover .preview-confirm-btn-inner{filter:brightness(1.25);}
+  .preview-confirm-btn-inner svg{width:19px;height:19px;flex-shrink:0;}
+  @keyframes pvBorderSpin{to{transform:rotate(360deg);}}
   .preview-cancel-btn{
     width:100%;padding:15px;border-radius:14px;cursor:pointer;
-    background:transparent;color:var(--muted);border:1px solid var(--line);
+    background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.18);
     font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;
     transition:border-color .15s ease, color .15s ease;
   }
-  .preview-cancel-btn:hover{border-color:var(--muted);color:var(--text);}
+  .preview-cancel-btn:hover{border-color:rgba(255,255,255,0.4);color:#fff;}
   .preview-cancel-btn:active{transform:scale(0.97);}
 
   .order-info-banner{
@@ -1788,20 +1801,15 @@
   <div class="preview-modal">
     <div class="modal-handle"></div>
     <div class="preview-card">
-      <div class="preview-top-row">
-        <span class="preview-op-badge" id="previewOpBadge"></span>
-        <span class="preview-discount-badge" id="previewDiscountBadge" style="display:none;"></span>
-      </div>
+      <span class="preview-op-badge" id="previewOpBadge"></span>
       <div class="preview-number" id="previewNumber"></div>
-      <div class="preview-price-row">
-        <span class="preview-price" id="previewPrice"></span>
-        <span class="preview-oldprice" id="previewOldPrice" style="display:none;"></span>
-      </div>
     </div>
     <p class="preview-hint">Raqamni rasmiylashtirish uchun ma'lumotlaringizni to'ldiring</p>
     <button type="button" class="preview-confirm-btn" id="previewConfirmBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-      Rasmiylashtirish
+      <span class="preview-confirm-btn-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+        Rasmiylashtirish
+      </span>
     </button>
     <button type="button" class="preview-cancel-btn" id="previewCancelBtn">Bekor qilish</button>
   </div>
@@ -2641,8 +2649,6 @@ let pendingPreviewArgs = null;
 
 function openModal(number, id){
   const item = NUMBERS.find(n => n.id === id);
-  const hasDiscount = item && item.oldPrice && item.oldPrice > item.price;
-  const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
 
   const opBadge = document.getElementById('previewOpBadge');
   if(item && item.operator){
@@ -2653,23 +2659,7 @@ function openModal(number, id){
     opBadge.style.display = 'none';
   }
 
-  const discBadge = document.getElementById('previewDiscountBadge');
-  if(hasDiscount){
-    discBadge.textContent = '-' + discountPct + '%';
-    discBadge.style.display = 'inline-block';
-  }else{
-    discBadge.style.display = 'none';
-  }
-
   document.getElementById('previewNumber').textContent = '+998 ' + displayNumber(number);
-  document.getElementById('previewPrice').textContent = formatPrice(item ? item.price : 0);
-  const oldPriceEl = document.getElementById('previewOldPrice');
-  if(hasDiscount){
-    oldPriceEl.textContent = formatPrice(item.oldPrice);
-    oldPriceEl.style.display = 'inline';
-  }else{
-    oldPriceEl.style.display = 'none';
-  }
 
   pendingPreviewArgs = { number, id };
   previewOverlay.classList.add('open');
