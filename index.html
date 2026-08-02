@@ -337,18 +337,6 @@
   }
   @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 
-  .stats-row{
-    display:flex;justify-content:center;gap:12px;margin-top:10px;
-    opacity:0;animation:fadeUp .6s ease .3s forwards;
-  }
-  .stat{
-    flex:1;max-width:110px;background:var(--panel);border:1px solid var(--line);
-    border-radius:10px;padding:12px 8px;
-  }
-  .stat-icon{width:17px;height:17px;color:var(--brand-red);margin:0 auto 6px;display:block;}
-  .stat b{display:block;font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--text);}
-  .stat span{font-size:9.5px;color:var(--muted);}
-
   .search-wrap{
     background:var(--bg);
     padding:10px 0 14px;
@@ -1333,9 +1321,6 @@
     .hero{max-width:960px;padding:44px 20px 30px;}
     .hero h1{font-size:clamp(40px,4.5vw,58px);}
     .hero .tagline{font-size:17px;margin:12px 0 26px;}
-    .stats-row{gap:16px;}
-    .stat{max-width:130px;padding:16px 10px;}
-    .stat b{font-size:17px;}
     .number-builder{max-width:600px;gap:8px;}
     .digit-box{width:46px;height:58px;font-size:23px;}
     .op-select{height:58px;}
@@ -1438,6 +1423,11 @@
     </button>
   </div>
 </header>
+
+<section class="hero">
+  <h1><span class="brand-white">VIP -</span> <span id="heroWordSwap" class="brand-red">RAQAMLAR</span></h1>
+  <p class="tagline" data-i18n="tagline">O'zbekiston bo'ylab yetkazib berish</p>
+</section>
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <aside class="side-drawer" id="sideDrawer">

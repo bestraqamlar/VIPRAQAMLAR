@@ -14,11 +14,15 @@ exports.handler = async function () {
     `Kun yakunlanmoqda — ertangi kuningizni rejalashtiring. ` +
     `Nima qilish kerakligini menga oddiy so'z bilan yozing, men rejalaringizga qo'shib qo'yaman.`;
 
-  await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: OWNER_CHAT_ID, text, parse_mode: 'HTML' })
-  });
+  try {
+    await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: OWNER_CHAT_ID, text, parse_mode: 'HTML' })
+    });
+  } catch (e) {
+    console.error('Kechki eslatma yuborishda xato:', e);
+  }
 
   return { statusCode: 200, body: 'ok' };
 };
