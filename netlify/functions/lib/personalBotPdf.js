@@ -70,9 +70,9 @@ function buildPlansPdfBuffer(todayPlans, allPlans, ownerName) {
 
       drawHeader(doc, `${ownerName || ''} — Rejalarim`.trim(), fmtDateTime(Date.now()));
 
-      drawPlanTable(doc, todayPlans, '📅  Bugungi rejalar');
+      drawPlanTable(doc, todayPlans, 'Bugungi rejalar');
       doc.y += 18;
-      drawPlanTable(doc, allPlans, '📋  Umumiy rejalarim (barcha kutilayotgan)');
+      drawPlanTable(doc, allPlans, "Umumiy rejalarim (barcha kutilayotgan)");
 
       drawFooter(doc);
       doc.end();
@@ -118,7 +118,7 @@ function drawPlanTable(doc, plans, title) {
     const bg = rowIdx % 2 === 0 ? ROW_ALT : '#FFFFFF';
     doc.rect(startX, rowY, CONTENT_WIDTH, rowHeight).fill(bg);
 
-    const label = p.planType === 'long' ? '🎯 Uzoq' : '⏱ Yaqin';
+    const label = p.planType === 'long' ? 'Uzoq' : 'Yaqin';
     doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9.5);
     doc.text(label, startX + 10, rowY + 7, { width: colType - 10 });
     doc.fillColor(TEXT_MUTED).text(fmtDateTime(p.reminderAt), startX + colType + 10, rowY + 7, { width: colDate - 10 });
