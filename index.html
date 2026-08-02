@@ -416,7 +416,7 @@
 
   .catalog{
     max-width:1100px;margin:0 auto;padding:16px 16px 24px;
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;
+    display:grid;grid-template-columns:repeat(2,1fr);gap:18px;
     align-items:start;
     transition:opacity .18s ease;
   }
@@ -1316,7 +1316,7 @@
     .number-builder{max-width:560px;}
     .catalog{
       max-width:900px;
-      grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+      grid-template-columns:repeat(2,1fr);
       gap:20px;padding:18px 24px 32px;
     }
     .featured-section, .pagination{max-width:900px;}
@@ -1342,8 +1342,8 @@
     .op-select{height:58px;}
 
     .catalog{
-      max-width:1360px;
-      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      max-width:940px;
+      grid-template-columns:repeat(2,1fr);
       gap:24px;padding:24px 40px 40px;
     }
     .card{transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
@@ -1852,6 +1852,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -1889,6 +1890,45 @@ async function getAppCheckHeaders(){
     const t = await firebase.appCheck().getToken();
     return { 'X-Firebase-AppCheck': t.token };
   }catch(e){ return {}; }
+}
+
+/* ===========================================================
+   PUSH BILDIRISHNOMALAR (brauzer orqali) — mijoz buyurtma
+   yuborganda, ruxsat bersa, uning brauzeriga "push token" biriktirib
+   qo'yiladi. Admin keyinchalik buyurtma holatini o'zgartirganda,
+   Telegram bilan bir qatorda shu tokenga ham xabar yuboriladi —
+   shunda Telegram botsiz, to'g'ridan-to'g'ri saytdan buyurtma bergan
+   mijozlar ham holat o'zgarishidan xabardor bo'ladi.
+
+   VAPID kalit Firebase Console → Project Settings → Cloud Messaging →
+   "Web configuration" bo'limidan olib, quyida sozlab qo'yilgan. ---- */
+const VAPID_PUBLIC_KEY = 'BIcutL9TjLlhQhU5Drso_WHAuowYNkUR0_IrNlobijw1VvZcaVrVI2IRBts7JB4ySM6t_Cb6meKR0BqGIIDqvDI';
+let messaging = null;
+try{ if(firebase.messaging.isSupported()) messaging = firebase.messaging(); }catch(e){ /* brauzer qo'llamasa ham, sayt ishlayveradi */ }
+
+async function requestPushToken(){
+  if(!messaging || !VAPID_PUBLIC_KEY) return null;
+  if(!('serviceWorker' in navigator) || !('Notification' in window)) return null;
+  try{
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted') return null;
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: reg });
+    return token || null;
+  }catch(e){
+    console.error('Push token olishda xato:', e);
+    return null;
+  }
+}
+// Sayt ochiq turgan payt (foreground) push kelsa — tizim bildirishnomasi
+// o'rniga saytdagi mavjud "toast" orqali ko'rsatamiz.
+if(messaging){
+  try{
+    messaging.onMessage((payload)=>{
+      const body = (payload.notification && payload.notification.body) || '';
+      if(body) showToast(body, 4000);
+    });
+  }catch(e){}
 }
 
 let NUMBERS = [];
@@ -2668,6 +2708,12 @@ ${paymentLine}
       body: JSON.stringify({ text, orderId })
     });
   }catch(err){ console.error('Telegramga yuborishda xato:', err); }
+
+  fetch('/.netlify/functions/notify-admin-push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: '🔔 Yangi buyurtma', body: `${payload.number} — ${payload.name}` })
+  }).catch(()=>{ /* push ishlamasa ham, Telegram xabari baribir boradi */ });
 }
 
 /* Buyurtma muvaffaqiyatli bo'lganda — yashil "✓" belgisi atrofida
@@ -2770,6 +2816,16 @@ confirmBtn.addEventListener('click', async ()=>{
     source: 'Sayt',
     paymentType: selectedPaymentType
   };
+  // Mijozga buyurtma holati o'zgarganda push bildirishnoma yuborish uchun —
+  // ruxsat so'raymiz va tokenni buyurtmaga biriktiramiz. 3s dan ortiq
+  // kutmaymiz (ruxsat so'rovi "osilib qolsa" ham, buyurtma to'xtab qolmasin).
+  try{
+    const fcmToken = await Promise.race([
+      requestPushToken(),
+      new Promise(resolve => setTimeout(()=>resolve(null), 3000))
+    ]);
+    if(fcmToken) payload.fcmToken = fcmToken;
+  }catch(e){}
   if(selectedPaymentType === 'installment'){
     payload.installmentMonths = selectedInstallmentMonths;
     payload.monthlyPayment = selectedMonthlyPayment;
@@ -3375,16 +3431,30 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
   btn.disabled = true;
   btn.textContent = t('Yuborilmoqda...');
 
+  let coFcmToken = null;
+  try{
+    coFcmToken = await Promise.race([
+      requestPushToken(),
+      new Promise(resolve => setTimeout(()=>resolve(null), 3000))
+    ]);
+  }catch(e){}
+
   try{
     await db.collection('custom_orders').add({
       pattern: coDraftPattern,
       name, region, phone,
       status: 'Yangi',
       createdAt: new Date().toLocaleString('uz-UZ'),
-      createdAtSort: Date.now()
+      createdAtSort: Date.now(),
+      ...(coFcmToken ? { fcmToken: coFcmToken } : {})
     });
     coStep2.style.display = 'none';
     coSuccessView.style.display = 'block';
+    fetch('/.netlify/functions/notify-admin-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: '🔔 Yangi "Zakaz" so\'rovi', body: `••••${coDraftPattern} — ${name}` })
+    }).catch(()=>{});
   }catch(err){
     errEl.textContent = 'Xato: ' + err.message;
     errEl.style.display = 'block';

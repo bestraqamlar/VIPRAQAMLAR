@@ -1,10 +1,13 @@
 // Admin panelidan "Zakaz" (Raqam buyurtma berish) so'rovi holati
-// o'zgartirilganda, mijozga Telegram orqali avtomatik xabar yuborish uchun.
-//
-// Mijoz bu so'rovni SAYTDAN (Telegram botsiz) yuborgan bo'lishi mumkin —
-// shu sababli avval uning chat ID'sini telefon raqami orqali "orders"
-// kolleksiyasidan (agar u bot orqali biror narsa buyurtma qilgan bo'lsa)
-// topishga harakat qilamiz. Topilmasa, xabar yuborilmaydi (boshqa yo'l yo'q).
+// o'zgartirilganda, mijozga xabar yuborish uchun. Ikki kanal orqali,
+// bir-biriga bog'liq bo'lmagan holda ishlaydi:
+//   1) Brauzer PUSH — agar mijoz so'rov yuborganda push'ga ruxsat bergan
+//      bo'lsa, uning fcmToken'i shu hujjatning o'zida saqlangan bo'ladi.
+//   2) Telegram — mijoz bu so'rovni SAYTDAN (Telegram botsiz) yuborgan
+//      bo'lishi mumkin, shu sababli avval uning chat ID'sini telefon
+//      raqami orqali "orders" kolleksiyasidan (agar u bot orqali biror
+//      narsa buyurtma qilgan bo'lsa) topishga harakat qilamiz.
+// Ikkalasi ham topilmasa/ishlamasa — muammo emas, status baribir yangilangan.
 //
 // XAVFSIZLIK: faqat tizimga kirgan ADMIN chaqira oladi.
 
@@ -50,9 +53,27 @@ exports.handler = async function (event) {
     if(!doc.exists) return { statusCode: 200, body: JSON.stringify({ ok: false, error: "So'rov topilmadi" }) };
     const data = doc.data();
 
+    let pushSent = false;
+    if(data.fcmToken){
+      try{
+        await admin.messaging().send({
+          token: data.fcmToken,
+          notification: {
+            title: 'VIP RAQAMLAR — so\'rov holati',
+            body: `${STATUS_MESSAGES[status] || `📌 So'rovingiz holati: ${status}`}\n🔢 ••••${data.pattern || ''}`
+          },
+          webpush: {
+            fcmOptions: { link: 'https://vipraqamlar.uz/' },
+            notification: { icon: 'https://vipraqamlar.uz/assets/logo-circle.png' }
+          }
+        });
+        pushSent = true;
+      }catch(e){ /* token eskirgan bo'lishi mumkin — Telegram bilan davom etamiz */ }
+    }
+
     const phoneDigits = (data.phone || '').replace(/\D/g, '').slice(-9);
     if(!phoneDigits){
-      return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true, error: "Telefon raqami yo'q" }) };
+      return { statusCode: 200, body: JSON.stringify({ ok: true, pushSent, telegramSkipped: true, error: "Telefon raqami yo'q" }) };
     }
 
     const ordersSnap = await db.collection('orders').orderBy('createdAtSort', 'desc').limit(500).get();
@@ -61,11 +82,11 @@ exports.handler = async function (event) {
       .find(o => o.customerChatId && (o.phone || '').replace(/\D/g, '').slice(-9) === phoneDigits);
 
     if(!match){
-      return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true, error: 'Mijozning Telegram ID topilmadi' }) };
+      return { statusCode: 200, body: JSON.stringify({ ok: true, pushSent, telegramSkipped: true, error: 'Mijozning Telegram ID topilmadi' }) };
     }
 
     const token = process.env.CUSTOMER_BOT_TOKEN;
-    if(!token) return { statusCode: 200, body: JSON.stringify({ ok: false, error: 'CUSTOMER_BOT_TOKEN sozlanmagan' }) };
+    if(!token) return { statusCode: 200, body: JSON.stringify({ ok: true, pushSent, error: 'CUSTOMER_BOT_TOKEN sozlanmagan' }) };
 
     const text = `${STATUS_MESSAGES[status] || `📌 So'rovingiz holati: ${status}`}\n\n🔢 Raqam naqshi: ••••${data.pattern || ''}`;
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -74,7 +95,7 @@ exports.handler = async function (event) {
       body: JSON.stringify({ chat_id: match.customerChatId, text })
     });
 
-    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    return { statusCode: 200, body: JSON.stringify({ ok: true, pushSent, telegramSent: true }) };
   }catch(err){
     return { statusCode: 500, body: JSON.stringify({ ok: false, error: err.message }) };
   }

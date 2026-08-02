@@ -992,6 +992,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -1012,6 +1013,45 @@ const db = firebase.firestore();
 let storage = null;
 try{ storage = firebase.storage(); }
 catch(e){ console.error('Firebase Storage ishga tushmadi:', e); }
+
+/* ===========================================================
+   ADMIN PUSH BILDIRISHNOMALARI — mijozdagi bilan bir xil tizim.
+   Admin tizimga kirganda ruxsat so'raladi, keyin har safar yangi
+   buyurtma kelganda (yoki mijozga xabar borganda) shu qurilmaga ham
+   push xabar keladi — SAYTDAN CHIQIB KETGAN/YOPGAN bo'lsa ham.
+   Bir nechta qurilma/brauzerdan kirish mumkin bo'lgani uchun,
+   tokenlar RO'YXAT (array) sifatida saqlanadi — barchasiga yuboriladi. ---- */
+const VAPID_PUBLIC_KEY = 'BIcutL9TjLlhQhU5Drso_WHAuowYNkUR0_IrNlobijw1VvZcaVrVI2IRBts7JB4ySM6t_Cb6meKR0BqGIIDqvDI';
+let adminMessaging = null;
+try{ if(firebase.messaging.isSupported()) adminMessaging = firebase.messaging(); }catch(e){}
+
+async function registerAdminPushToken(){
+  if(!adminMessaging || !VAPID_PUBLIC_KEY) return;
+  if(!('serviceWorker' in navigator) || !('Notification' in window)) return;
+  try{
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const token = await adminMessaging.getToken({ vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: reg });
+    if(!token) return;
+    await db.collection('admin_meta').doc('pushTokens').set({
+      tokens: firebase.firestore.FieldValue.arrayUnion(token)
+    }, { merge: true });
+  }catch(e){ console.error('Admin push tokenini saqlashda xato:', e); }
+}
+// Sayt OCHIQ turgan payt push kelsa — tizim bildirishnomasi sifatida ko'rsatamiz
+// (chunki admin.html'da alohida "toast" tizimi yo'q).
+if(adminMessaging){
+  try{
+    adminMessaging.onMessage((payload)=>{
+      const title = (payload.notification && payload.notification.title) || 'VIP RAQAMLAR — Admin';
+      const body = (payload.notification && payload.notification.body) || '';
+      if('Notification' in window && Notification.permission === 'granted'){
+        new Notification(title, { body, icon: 'assets/logo-circle.png' });
+      }
+    });
+  }catch(e){}
+}
 
 let lastSeenOrders = 0;
 let currentOrdersCache = [];
@@ -1289,6 +1329,7 @@ async function doLogin(){
     refreshOrders();
     startSessionTimer();
     startVisitorTracking();
+    registerAdminPushToken();
   }catch(err){
     loginError.textContent = "Email yoki parol noto'g'ri";
     loginError.style.display = 'block';
@@ -3231,6 +3272,17 @@ function renderAdminOrders(orders){
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
             body: JSON.stringify({ chatId: cached.customerChatId, number: cached.number, status: newStatus })
           }).catch(()=>{ /* mijoz bildirishnomasi ishlamasa ham, status baribir yangilangan */ });
+        }
+
+        // Agar mijoz saytdan buyurtma berganda brauzer push'ga ruxsat bergan
+        // bo'lsa (Telegram botsiz ham) — unga ham bildirishnoma boradi.
+        if(cached && cached.fcmToken){
+          const idTokenPush = await firebase.auth().currentUser.getIdToken();
+          fetch('/.netlify/functions/notify-customer-push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idTokenPush },
+            body: JSON.stringify({ fcmToken: cached.fcmToken, number: cached.number, status: newStatus })
+          }).catch(()=>{ /* push ishlamasa ham, status baribir yangilangan */ });
         }
 
         // Admin Telegram xabaridagi tugmalarni ham "tasdiqlangan" holatga o'tkazamiz
