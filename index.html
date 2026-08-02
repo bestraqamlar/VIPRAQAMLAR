@@ -84,9 +84,11 @@
   try{
     var raw = localStorage.getItem('raqamuz_theme_v1');
     if(!raw){
-      // Kesh yo'q — xavfsizlik uchun 1.5s dan keyin baribir ko'rsatamiz
-      // (Firebase juda sekin bo'lib qolsa ham, sahifa abadiy bo'sh qolmasin)
-      setTimeout(reveal, 1500);
+      // Kesh yo'q — bu birinchi tashrif. Firebase'dan haqiqiy rang-dizayn
+      // kelishini ko'proq kutamiz (4s) — aks holda juda tez "standart"
+      // ko'rinishga o'tib, keyin haqiqiy ranglarga sakrab qolar edi.
+      // Baribir abadiy kutib qolmasligi uchun xavfsizlik chegarasi bor.
+      setTimeout(reveal, 4000);
       return;
     }
     var t = JSON.parse(raw);
@@ -634,13 +636,15 @@
   .skeleton{
     background:var(--panel);border-radius:14px;height:168px;
     position:relative;overflow:hidden;
+    animation:skeletonPulse 1.6s ease-in-out infinite;
   }
   .skeleton::after{
     content:"";position:absolute;inset:0;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
     animation:shimmer 1.3s infinite;
   }
   @keyframes shimmer{from{transform:translateX(-100%);}to{transform:translateX(100%);}}
+  @keyframes skeletonPulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
 
   .empty-state{
     grid-column:1/-1;text-align:center;color:var(--muted);
@@ -1987,8 +1991,10 @@ async function loadNumbers(retryDelay){
     renderCatalog();
     renderFeatured();
     renderDailyDeal();
+    try{ if(window.showToast) showToast('📦 Raqamlar yuklandi: ' + NUMBERS.length + ' ta', 3500); }catch(e){}
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
+    try{ if(window.showToast) showToast('❌ Raqamlarni yuklashda xato: ' + (err.code || err.message || String(err)), 5000); }catch(e){}
     if(NUMBERS.length === 0){
       // Hali hech qanday ma'lumot yo'q — yuklanish animatsiyasini ko'rsatamiz va qayta urinamiz
       renderCatalog();
@@ -4522,13 +4528,26 @@ function takeWarmedVideo(url){
 
 showSkeletons();
 (async function init(){
-  await loadNumbers();
-  renderCatalog();
-  renderFeatured();
-  renderDailyDeal();
-  if(window.__loadVideoTestimonials) window.__loadVideoTestimonials();
-  if(window.__loadPremiumVideos) window.__loadPremiumVideos();
+  try{ await loadNumbers(); }catch(e){ console.error('init: loadNumbers xato:', e); }
+  try{ renderCatalog(); }catch(e){ console.error('init: renderCatalog xato:', e); }
+  try{ renderFeatured(); }catch(e){ console.error('init: renderFeatured xato:', e); }
+  try{ renderDailyDeal(); }catch(e){ console.error('init: renderDailyDeal xato:', e); }
+  try{ if(window.__loadVideoTestimonials) window.__loadVideoTestimonials(); }catch(e){ console.error('init: video testimonials xato:', e); }
+  try{ if(window.__loadPremiumVideos) window.__loadPremiumVideos(); }catch(e){ console.error('init: premium videos xato:', e); }
 })();
+
+// XAVFSIZLIK TO'RI: yuqoridagi jarayonda kutilmagan xato bo'lib, katalog
+// abadiy "yuklanmoqda" (skeleton) holatida qotib qolmasligi uchun — 5
+// soniyadan keyin ham hali skeleton ko'rinib tursa, majburan qayta chizamiz.
+setTimeout(()=>{
+  try{
+    if(catalogEl && catalogEl.querySelector('.skeleton')){
+      console.warn('Watchdog: katalog hali ham skeleton holatida — majburan qayta chizilmoqda.');
+      renderCatalog();
+      if(!numbersLoaded) loadNumbers();
+    }
+  }catch(e){ console.error('Watchdog xato:', e); }
+}, 5000);
 </script>
 </body>
 </html>
