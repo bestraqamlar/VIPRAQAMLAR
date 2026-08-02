@@ -1023,7 +1023,7 @@ catch(e){ console.error('Firebase Storage ishga tushmadi:', e); }
    tokenlar RO'YXAT (array) sifatida saqlanadi — barchasiga yuboriladi. ---- */
 const VAPID_PUBLIC_KEY = 'BIcutL9TjLlhQhU5Drso_WHAuowYNkUR0_IrNlobijw1VvZcaVrVI2IRBts7JB4ySM6t_Cb6meKR0BqGIIDqvDI';
 let adminMessaging = null;
-try{ if(firebase.messaging.isSupported()) adminMessaging = firebase.messaging(); }catch(e){}
+try{ adminMessaging = firebase.messaging(); }catch(e){ console.error('Firebase Messaging ishga tushmadi:', e); }
 
 async function registerAdminPushToken(){
   if(!adminMessaging || !VAPID_PUBLIC_KEY) return;
