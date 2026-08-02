@@ -7,13 +7,13 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
   :root{
-    --bg:#160b52; --panel:#4633ea; --panel-2:#3a28c4; --line:rgba(255,255,255,0.14);
-    --amber:#FFB000; --amber-soft:rgba(255,176,0,0.18); --green:#33E28C;
-    --red:#FF5C5C; --text:#FFFFFF; --muted:rgba(255,255,255,0.68);
+    --bg:#0B1220; --panel:#121B2E; --panel-2:#17223A; --line:#263450;
+    --amber:#FFB000; --amber-soft:rgba(255,176,0,0.15); --green:#33E28C;
+    --red:#FF5C5C; --text:#EDEFF3; --muted:#8494B0;
   }
   *{box-sizing:border-box;}
   body{
-    margin:0;background:linear-gradient(160deg,#2c1aa0,#160b52);background-attachment:fixed;
+    margin:0;background:var(--bg);
     color:var(--text);font-family:'Inter',sans-serif;
     -webkit-user-select:none;-moz-user-select:none;user-select:none;
     -webkit-touch-callout:none;
@@ -112,18 +112,6 @@
   @keyframes loginCardIn{
     from{opacity:0;transform:translateY(24px) scale(0.96);}
     to{opacity:1;transform:translateY(0) scale(1);}
-  }
-  .login-badge{
-    width:56px;height:56px;margin:0 auto 16px;border-radius:16px;
-    background:linear-gradient(135deg, var(--amber), #FF8A3D);
-    display:flex;align-items:center;justify-content:center;color:var(--bg);
-    box-shadow:0 0 0 rgba(255,176,0,0.5);
-    animation:badgeGlow 2.6s ease-in-out infinite;
-  }
-  .login-badge svg{width:26px;height:26px;}
-  @keyframes badgeGlow{
-    0%,100%{box-shadow:0 0 0 0 rgba(255,176,0,0.35);transform:scale(1);}
-    50%{box-shadow:0 0 0 10px rgba(255,176,0,0);transform:scale(1.04);}
   }
   .login-screen h1{font-family:'Space Mono',monospace;color:var(--amber);font-size:18px;margin:0 0 6px;}
   .login-screen p{color:var(--muted);font-size:13px;margin:0 0 22px;}
@@ -644,9 +632,6 @@
   <div class="login-orb login-orb-2"></div>
   <div class="login-orb login-orb-3"></div>
   <div class="login-screen" id="loginScreen">
-    <div class="login-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5L12 2z"/></svg>
-    </div>
     <h1>VIP RAQAMLAR (070.uz)</h1>
     <p>Admin panelga kirish uchun email va parolni kiriting</p>
     <div class="login-field">
