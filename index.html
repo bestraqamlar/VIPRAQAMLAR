@@ -1991,10 +1991,8 @@ async function loadNumbers(retryDelay){
     renderCatalog();
     renderFeatured();
     renderDailyDeal();
-    try{ if(window.showToast) showToast('📦 Raqamlar yuklandi: ' + NUMBERS.length + ' ta', 3500); }catch(e){}
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
-    try{ if(window.showToast) showToast('❌ Raqamlarni yuklashda xato: ' + (err.code || err.message || String(err)), 5000); }catch(e){}
     if(NUMBERS.length === 0){
       // Hali hech qanday ma'lumot yo'q — yuklanish animatsiyasini ko'rsatamiz va qayta urinamiz
       renderCatalog();
