@@ -2,6 +2,10 @@
 // Xarajat/daromad hisoblagichi + rejalar (eslatma bilan) + erkin gaplashib
 // buyruq beriladigan AI yordamchi.
 //
+// Barcha tugmalar — pastda DOIM TURADIGAN menyu ko'rinishida (inline emas).
+// Har bir bosqichda "Orqaga" (bitta qadam ortga) va "Bekor qilish" (asosiy
+// sahifaga) tugmalari bor.
+//
 // Kerakli Environment variables (Netlify):
 //   PERSONAL_BOT_TOKEN, PERSONAL_BOT_CHAT_ID, ANTHROPIC_API_KEY,
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
@@ -28,11 +32,16 @@ const OWNER_NAME = 'Asadbek';
 const EXPENSE_CATEGORIES = ['Taksi', 'Ovqatlanish', "Ofis uchun", "O'zim uchun", 'Investitsiya Raqam'];
 const INCOME_CATEGORIES = ['Vip raqamlar', 'Oylik xazna', 'Boshqalar'];
 
+const BACK = '🔙 Orqaga';
+const CANCEL = '❌ Bekor qilish';
+
 // ---------- Telegram yordamchi funksiyalar ----------
 
-async function sendMessage(chatId, text, replyMarkup) {
+async function sendMessage(chatId, text, keyboardRows) {
   const body = { chat_id: chatId, text, parse_mode: 'HTML' };
-  if (replyMarkup) body.reply_markup = replyMarkup;
+  body.reply_markup = keyboardRows
+    ? { keyboard: keyboardRows, resize_keyboard: true }
+    : { keyboard: mainMenuRows(), resize_keyboard: true };
   await fetch(`${API}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -58,37 +67,96 @@ async function answerCallback(callbackId, text) {
   });
 }
 
-// Sodda, tekis asosiy menyu — hech narsa ichma-ich yashiringan emas
-function mainMenuKeyboard() {
-  return {
-    inline_keyboard: [
-      [{ text: '➖ Xarajat', callback_data: 'menu_expense' }, { text: '➕ Daromad', callback_data: 'menu_income' }],
-      [{ text: '📊 Statistika', callback_data: 'menu_stats' }, { text: '📝 Rejalarim', callback_data: 'menu_plans' }]
-    ]
-  };
+// Asosiy menyu — doim pastda turadi
+function mainMenuRows() {
+  return [
+    ['➖ Xarajat', '➕ Daromad'],
+    ['📊 Statistika', '📝 Rejalarim']
+  ];
 }
-
-function categoryKeyboard(categories, prefix) {
-  const rows = categories.map(c => [{ text: c, callback_data: `${prefix}:${c}` }]);
-  rows.push([{ text: '⬅️ Orqaga', callback_data: 'menu_main' }]);
-  return { inline_keyboard: rows };
+// Har bir ichki bosqichda — tanlov tugmalari + Orqaga/Bekor qilish
+function stepRows(optionRows) {
+  const rows = optionRows.map(r => Array.isArray(r) ? r : [r]);
+  rows.push([BACK, CANCEL]);
+  return rows;
+}
+function categoryRows(categories) {
+  const rows = [];
+  for (let i = 0; i < categories.length; i += 2) rows.push(categories.slice(i, i + 2));
+  return stepRows(rows);
 }
 
 function formatSom(n) {
   return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
 }
 
-// ---------- Holatni saqlash (bosqichma-bosqich suhbat uchun) ----------
+// ---------- Holat va "orqaga" tarixi ----------
+// state.step — hozirgi bosqich nomi
+// state.history — o'tilgan bosqichlar ro'yxati (Orqaga bosilsa oxirgisiga qaytamiz)
+// state.data — shu bosqichlar davomida yig'ilgan vaqtinchalik ma'lumot
 
 async function getState() {
   const doc = await db.collection('personal_bot_state').doc('main').get();
-  return doc.exists ? doc.data() : {};
+  return doc.exists ? doc.data() : { step: 'MAIN', history: [], data: {} };
 }
-async function setState(data) {
-  await db.collection('personal_bot_state').doc('main').set(data, { merge: false });
+async function saveState(state) {
+  await db.collection('personal_bot_state').doc('main').set(state);
 }
-async function clearState() {
-  await db.collection('personal_bot_state').doc('main').set({});
+async function goToStep(chatId, newStep, data) {
+  const state = await getState();
+  state.history = state.history || [];
+  state.history.push(state.step || 'MAIN');
+  state.step = newStep;
+  state.data = Object.assign({}, state.data, data || {});
+  await saveState(state);
+  await renderStep(chatId, state);
+}
+async function goBack(chatId) {
+  const state = await getState();
+  const prevStep = (state.history && state.history.pop()) || 'MAIN';
+  state.step = prevStep;
+  await saveState(state);
+  await renderStep(chatId, state);
+}
+async function goCancel(chatId) {
+  await saveState({ step: 'MAIN', history: [], data: {} });
+  await sendMessage(chatId, "Asosiy menyu:");
+}
+
+// Har bir bosqichga kirganda, mos xabar+tugmalarni ko'rsatish
+async function renderStep(chatId, state) {
+  switch (state.step) {
+    case 'MAIN':
+      await sendMessage(chatId, "Tanlang:");
+      break;
+    case 'EXPENSE_AMOUNT':
+      await sendMessage(chatId, "➖ Xarajat summasini kiriting:", stepRows([]));
+      break;
+    case 'EXPENSE_CATEGORY':
+      await sendMessage(chatId, `💸 ${formatSom(state.data.pendingAmount)} — qaysi toifaga?`, categoryRows(EXPENSE_CATEGORIES));
+      break;
+    case 'INCOME_AMOUNT':
+      await sendMessage(chatId, "➕ Daromad summasini kiriting:", stepRows([]));
+      break;
+    case 'INCOME_CATEGORY':
+      await sendMessage(chatId, `💰 ${formatSom(state.data.pendingAmount)} — qaysi toifaga?`, categoryRows(INCOME_CATEGORIES));
+      break;
+    case 'STATS_PERIOD':
+      await sendMessage(chatId, "📊 Davrni yozing:\nOy: <b>08.2026</b>\nOraliq: <b>01.08.2026-31.08.2026</b>", stepRows([]));
+      break;
+    case 'PLANS_LIST':
+      await renderPlansList(chatId, state);
+      break;
+    case 'PLAN_TYPE':
+      await sendMessage(chatId, "Qaysi turdagi reja?", stepRows([['🎯 Uzoq muddat', '⏱ Yaqin muddat']]));
+      break;
+    case 'PLAN_TEXT':
+      await sendMessage(chatId, "✍️ Rejangizni yozing:", stepRows([]));
+      break;
+    case 'PLAN_DATETIME':
+      await sendMessage(chatId, "📅 Qachon eslatib turay?\n(Masalan: <b>25.08.2026 14:00</b>)", stepRows([]));
+      break;
+  }
 }
 
 // ---------- Asosiy handler ----------
@@ -114,7 +182,7 @@ exports.handler = async function (event) {
   return { statusCode: 200, body: 'ok' };
 };
 
-// ---------- Xabar (matn) kelganda ----------
+// ---------- Xabar (matn/tugma) kelganda ----------
 
 async function handleMessage(msg) {
   const chatId = String(msg.chat.id);
@@ -123,73 +191,101 @@ async function handleMessage(msg) {
   if (!text) return;
 
   if (text === '/start' || text === '/menu') {
-    await clearState();
+    await saveState({ step: 'MAIN', history: [], data: {} });
     await sendMessage(chatId,
-      `👋 Salom, <b>${OWNER_NAME}</b>!\n\nTugmalardan foydalaning, YOKI menga oddiy so'z bilan yozing — masalan:\n«bugun taksiga 30 ming ishlatdim»\n«shu hafta hisobot topshirishim kerak, seshanba kuni eslat»\n«umumiy xarajatim qancha?»\n\nMen tushunaman va o'zim bajaraman.`,
-      mainMenuKeyboard());
+      `👋 Salom, <b>${OWNER_NAME}</b>!\n\nTugmalardan foydalaning, YOKI menga oddiy so'z bilan yozing — masalan:\n«bugun taksiga 30 ming ishlatdim»\n«shu hafta hisobot topshirishim kerak, seshanba eslat»\n«umumiy xarajatim qancha?»`);
     return;
   }
+
+  // ---- Universal: Orqaga / Bekor qilish — istalgan bosqichda ishlaydi ----
+  if (text === BACK) { await goBack(chatId); return; }
+  if (text === CANCEL) { await goCancel(chatId); return; }
+
+  // ---- Asosiy menyu tugmalari ----
+  if (text === '➖ Xarajat') { await goToStep(chatId, 'EXPENSE_AMOUNT'); return; }
+  if (text === '➕ Daromad') { await goToStep(chatId, 'INCOME_AMOUNT'); return; }
+  if (text === '📊 Statistika') { await goToStep(chatId, 'STATS_PERIOD'); return; }
+  if (text === '📝 Rejalarim') { await goToStep(chatId, 'PLANS_LIST'); return; }
 
   const state = await getState();
 
-  // ---- Xarajat/Daromad summasi kutilmoqda ----
-  if (state.awaiting === 'expense_amount' || state.awaiting === 'income_amount') {
+  // ---- Xarajat summasi ----
+  if (state.step === 'EXPENSE_AMOUNT') {
     const amount = parseFloat(text.replace(/[^\d.]/g, ''));
-    if (!amount || amount <= 0) {
-      await sendMessage(chatId, "❗️ Summani raqamda kiriting (masalan: 50000)");
-      return;
-    }
-    if (state.awaiting === 'expense_amount') {
-      await setState({ awaiting: 'expense_category', pendingAmount: amount });
-      await sendMessage(chatId, `💸 ${formatSom(amount)} — qaysi toifaga?`, categoryKeyboard(EXPENSE_CATEGORIES, 'exp_cat'));
-    } else {
-      await setState({ awaiting: 'income_category', pendingAmount: amount });
-      await sendMessage(chatId, `💰 ${formatSom(amount)} — qaysi toifaga?`, categoryKeyboard(INCOME_CATEGORIES, 'inc_cat'));
-    }
+    if (!amount || amount <= 0) { await sendMessage(chatId, "❗️ Summani raqamda kiriting.", stepRows([])); return; }
+    await goToStep(chatId, 'EXPENSE_CATEGORY', { pendingAmount: amount });
+    return;
+  }
+  if (state.step === 'EXPENSE_CATEGORY' && EXPENSE_CATEGORIES.includes(text)) {
+    await db.collection('personal_bot_tx').add({ type: 'expense', amount: state.data.pendingAmount, category: text, ts: Date.now() });
+    await saveState({ step: 'MAIN', history: [], data: {} });
+    await sendMessage(chatId, `✅ -${formatSom(state.data.pendingAmount)} (${text})`);
     return;
   }
 
-  // ---- Statistika uchun sana kutilmoqda ----
-  if (state.awaiting === 'stats_period') {
-    await sendStatistics(chatId, text);
-    await clearState();
+  // ---- Daromad summasi ----
+  if (state.step === 'INCOME_AMOUNT') {
+    const amount = parseFloat(text.replace(/[^\d.]/g, ''));
+    if (!amount || amount <= 0) { await sendMessage(chatId, "❗️ Summani raqamda kiriting.", stepRows([])); return; }
+    await goToStep(chatId, 'INCOME_CATEGORY', { pendingAmount: amount });
+    return;
+  }
+  if (state.step === 'INCOME_CATEGORY' && INCOME_CATEGORIES.includes(text)) {
+    await db.collection('personal_bot_tx').add({ type: 'income', amount: state.data.pendingAmount, category: text, ts: Date.now() });
+    await saveState({ step: 'MAIN', history: [], data: {} });
+    await sendMessage(chatId, `✅ +${formatSom(state.data.pendingAmount)} (${text})`);
     return;
   }
 
-  // ---- Reja matni kutilmoqda (tugma orqali kiritilayotgan bo'lsa) ----
-  if (state.awaiting === 'plan_text') {
-    await setState({ awaiting: 'plan_datetime', planType: state.planType, planText: text });
-    await sendMessage(chatId, "📅 Qachon eslatib turay?\n(Masalan: <b>25.08.2026 14:00</b>)");
+  // ---- Statistika davri ----
+  if (state.step === 'STATS_PERIOD') {
+    const ok = await sendStatistics(chatId, text);
+    if (ok) await saveState({ step: 'MAIN', history: [], data: {} });
     return;
   }
 
-  // ---- Reja uchun sana/vaqt kutilmoqda ----
-  if (state.awaiting === 'plan_datetime') {
+  // ---- Rejalar ro'yxati ekranida — "Yangi reja" tugmasi ----
+  if (state.step === 'PLANS_LIST' && text === '➕ Yangi reja') {
+    await goToStep(chatId, 'PLAN_TYPE');
+    return;
+  }
+
+  // ---- Reja turi ----
+  if (state.step === 'PLAN_TYPE' && (text === '🎯 Uzoq muddat' || text === '⏱ Yaqin muddat')) {
+    await goToStep(chatId, 'PLAN_TEXT', { planType: text === '🎯 Uzoq muddat' ? 'long' : 'short' });
+    return;
+  }
+
+  // ---- Reja matni ----
+  if (state.step === 'PLAN_TEXT') {
+    await goToStep(chatId, 'PLAN_DATETIME', { planText: text });
+    return;
+  }
+
+  // ---- Reja sana/vaqti ----
+  if (state.step === 'PLAN_DATETIME') {
     const reminderAt = parseUzDateTime(text);
-    if (!reminderAt) {
-      await sendMessage(chatId, "❗️ Format: <b>25.08.2026 14:00</b> ko'rinishida yozing.");
-      return;
-    }
-    if (state.replanId) {
-      await db.collection('personal_bot_plans').doc(state.replanId).update({ status: 'pending', reminderAt });
-      await clearState();
-      await sendMessage(chatId, "✅ Yangi vaqt belgilandi.", mainMenuKeyboard());
+    if (!reminderAt) { await sendMessage(chatId, "❗️ Format: <b>25.08.2026 14:00</b>", stepRows([])); return; }
+    if (state.data.replanId) {
+      await db.collection('personal_bot_plans').doc(state.data.replanId).update({ status: 'pending', reminderAt });
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      await sendMessage(chatId, "✅ Yangi vaqt belgilandi.");
     } else {
       await db.collection('personal_bot_plans').add({
-        planType: state.planType, text: state.planText, reminderAt, status: 'pending', createdAt: Date.now()
+        planType: state.data.planType, text: state.data.planText, reminderAt, status: 'pending', createdAt: Date.now()
       });
-      await clearState();
-      await sendMessage(chatId, `✅ Reja saqlandi: «${state.planText}»`, mainMenuKeyboard());
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      await sendMessage(chatId, `✅ Reja saqlandi: «${state.data.planText}»`);
     }
     return;
   }
 
-  // ---- Hech qanday kutilayotgan holat yo'q — ERKIN MATN, AI qabul qiladi ----
+  // ---- Hech biriga mos kelmadi — ERKIN MATN, AI qabul qiladi ----
   await sendTyping(chatId);
   await handleFreeTextWithAI(chatId, text);
 }
 
-// ---------- Tugma bosilganda ----------
+// ---------- Inline tugma bosilganda (faqat eslatma Ha/Yo'q uchun) ----------
 
 async function handleCallback(cq) {
   const chatId = String(cq.message.chat.id);
@@ -197,85 +293,22 @@ async function handleCallback(cq) {
   const data = cq.data || '';
   await answerCallback(cq.id);
 
-  if (data === 'menu_main') {
-    await clearState();
-    await sendMessage(chatId, "Tanlang:", mainMenuKeyboard());
-    return;
-  }
-
-  if (data === 'menu_expense') {
-    await setState({ awaiting: 'expense_amount' });
-    await sendMessage(chatId, "➖ Summani kiriting:");
-    return;
-  }
-
-  if (data === 'menu_income') {
-    await setState({ awaiting: 'income_amount' });
-    await sendMessage(chatId, "➕ Summani kiriting:");
-    return;
-  }
-
-  if (data.startsWith('exp_cat:') || data.startsWith('inc_cat:')) {
-    const isExpense = data.startsWith('exp_cat:');
-    const category = data.split(':')[1];
-    const state = await getState();
-    const amount = state.pendingAmount;
-    if (!amount) { await sendMessage(chatId, "Xatolik, qaytadan urinib ko'ring.", mainMenuKeyboard()); return; }
-
-    await db.collection('personal_bot_tx').add({
-      type: isExpense ? 'expense' : 'income', amount, category, ts: Date.now()
-    });
-    await clearState();
-    const sign = isExpense ? '-' : '+';
-    await sendMessage(chatId, `✅ ${sign}${formatSom(amount)} (${category})`, mainMenuKeyboard());
-    return;
-  }
-
-  if (data === 'menu_stats') {
-    await setState({ awaiting: 'stats_period' });
-    await sendMessage(chatId, "📊 Davrni yozing:\nOy: <b>08.2026</b>\nOraliq: <b>01.08.2026-31.08.2026</b>");
-    return;
-  }
-
-  if (data === 'menu_plans') {
-    await showPlansList(chatId);
-    return;
-  }
-
-  if (data === 'plan_new') {
-    await sendMessage(chatId, "Qaysi turdagi reja?", {
-      inline_keyboard: [
-        [{ text: '🎯 Uzoq muddat', callback_data: 'plan_long' }, { text: '⏱ Yaqin muddat', callback_data: 'plan_short' }],
-        [{ text: '⬅️ Orqaga', callback_data: 'menu_main' }]
-      ]
-    });
-    return;
-  }
-
-  if (data === 'plan_long' || data === 'plan_short') {
-    await setState({ awaiting: 'plan_text', planType: data === 'plan_long' ? 'long' : 'short' });
-    await sendMessage(chatId, "✍️ Rejangizni yozing:");
-    return;
-  }
-
   if (data.startsWith('plan_done:')) {
     const planId = data.split(':')[1];
     await db.collection('personal_bot_plans').doc(planId).update({ status: 'done', completedAt: Date.now() });
-    await sendMessage(chatId, "✅ Bajarildi deb belgilandi.", mainMenuKeyboard());
+    await sendMessage(chatId, "✅ Bajarildi deb belgilandi.");
     return;
   }
-
   if (data.startsWith('plan_notdone:')) {
     const planId = data.split(':')[1];
-    await setState({ awaiting: 'plan_datetime', replanId: planId });
-    await sendMessage(chatId, "📅 Yangi sana va vaqt (masalan: 25.08.2026 14:00):");
+    await goToStep(chatId, 'PLAN_DATETIME', { replanId: planId });
     return;
   }
 }
 
 // ---------- Rejalar ro'yxati (alohida, mustaqil bo'lim) ----------
 
-async function showPlansList(chatId) {
+async function renderPlansList(chatId, state) {
   const snap = await db.collection('personal_bot_plans').where('status', '==', 'pending').get();
   const plans = [];
   snap.forEach(doc => plans.push({ id: doc.id, ...doc.data() }));
@@ -292,12 +325,7 @@ async function showPlansList(chatId) {
       text += `${label} «${p.text}» — ${dateStr}\n`;
     }
   }
-  await sendMessage(chatId, text, {
-    inline_keyboard: [
-      [{ text: '➕ Yangi reja', callback_data: 'plan_new' }],
-      [{ text: '⬅️ Bosh menyu', callback_data: 'menu_main' }]
-    ]
-  });
+  await sendMessage(chatId, text, stepRows([['➕ Yangi reja']]));
 }
 
 // ---------- Sana/vaqt tahlili ----------
@@ -327,8 +355,8 @@ async function sendStatistics(chatId, periodText) {
     startTs = new Date(yr, mo - 1, 1, 0, 0, 0).getTime();
     endTs = new Date(yr, mo, 0, 23, 59, 59).getTime();
   } else {
-    await sendMessage(chatId, "❗️ Masalan: <b>08.2026</b> yoki <b>01.08.2026-31.08.2026</b>");
-    return;
+    await sendMessage(chatId, "❗️ Masalan: <b>08.2026</b> yoki <b>01.08.2026-31.08.2026</b>", stepRows([]));
+    return false;
   }
 
   const summary = await computeSummary(startTs, endTs);
@@ -344,7 +372,8 @@ async function sendStatistics(chatId, periodText) {
   text += `\n💸 Xarajat: <b>${formatSom(summary.totalExpense)}</b>`;
   text += `\n📈 Sof: <b>${formatSom(summary.totalIncome - summary.totalExpense)}</b>`;
 
-  await sendMessage(chatId, text, mainMenuKeyboard());
+  await sendMessage(chatId, text);
+  return true;
 }
 
 async function computeSummary(startTs, endTs) {
@@ -361,27 +390,19 @@ async function computeSummary(startTs, endTs) {
 }
 
 // ================================================================
-// ERKIN MATN — AI orqali tushunish va harakat qilish (asosiy yangilik)
+// ERKIN MATN — AI orqali tushunish va harakat qilish
 // ================================================================
-//
-// Foydalanuvchi oddiy so'z bilan yozganda ("shu hafta hisobot topshirishim
-// kerak, seshanba eslat", "umumiy xarajatim qancha?", "palov yeb 30 ming
-// ishlatdim"), AI xabarni tushunadi va quyidagilardan birini bajaradi:
-//  - reja qo'shish (add_plan)
-//  - rejani bekor qilish/o'chirish (remove_plan)
-//  - xarajat/daromad qo'shish (add_transaction)
-//  - savolga (masalan umumiy xarajat) qisqa javob berish (just_reply)
 
 const TOOLS = [
   {
     name: 'add_plan',
-    description: "Foydalanuvchi biror ish/vazifani rejaga qo'shishni so'raganda ishlatiladi. Masalan: 'shu hafta hisobot topshirishim kerak'.",
+    description: "Foydalanuvchi biror ish/vazifani rejaga qo'shishni so'raganda ishlatiladi.",
     input_schema: {
       type: 'object',
       properties: {
-        plan_type: { type: 'string', enum: ['long', 'short'], description: "'long' = uzoq muddat (oy/yildan keyin), 'short' = yaqin muddat (kun/hafta ichida)" },
-        text: { type: 'string', description: 'Reja matni, qisqa va aniq' },
-        reminder_datetime: { type: 'string', description: "Eslatma sanasi va vaqti 'YYYY-MM-DD HH:MM' formatida. Agar aniq vaqt aytilmagan bo'lsa, mos vaqtni o'zing tanla (masalan 'seshanba' desa, eng yaqin seshanba kuni, soat 10:00)." }
+        plan_type: { type: 'string', enum: ['long', 'short'] },
+        text: { type: 'string' },
+        reminder_datetime: { type: 'string', description: "'YYYY-MM-DD HH:MM' formatida. Aniq vaqt aytilmagan bo'lsa, o'zing mos vaqt tanla." }
       },
       required: ['plan_type', 'text', 'reminder_datetime']
     }
@@ -391,19 +412,19 @@ const TOOLS = [
     description: "Foydalanuvchi mavjud rejani bekor qilish/o'chirishni so'raganda ishlatiladi.",
     input_schema: {
       type: 'object',
-      properties: { plan_id: { type: 'string', description: "O'chiriladigan rejaning ID'si (berilgan ro'yxatdan)" } },
+      properties: { plan_id: { type: 'string' } },
       required: ['plan_id']
     }
   },
   {
     name: 'add_transaction',
-    description: "Foydalanuvchi xarajat yoki daromad haqida gapirsa (masalan 'taksiga 30 ming ishlatdim') ishlatiladi.",
+    description: "Foydalanuvchi xarajat yoki daromad haqida gapirsa ishlatiladi.",
     input_schema: {
       type: 'object',
       properties: {
         type: { type: 'string', enum: ['expense', 'income'] },
         amount: { type: 'number' },
-        category: { type: 'string', description: "Eng mos toifa: xarajat uchun (Taksi, Ovqatlanish, Ofis uchun, O'zim uchun, Investitsiya Raqam), daromad uchun (Vip raqamlar, Oylik xazna, Boshqalar)" }
+        category: { type: 'string', description: "Xarajat: Taksi, Ovqatlanish, Ofis uchun, O'zim uchun, Investitsiya Raqam. Daromad: Vip raqamlar, Oylik xazna, Boshqalar." }
       },
       required: ['type', 'amount', 'category']
     }
@@ -436,7 +457,7 @@ Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 500,
-        system: `Sen ${OWNER_NAME}ning shaxsiy yordamchisisan — moliya va rejalarni boshqarasan. Xabarni tushunib, mos vositani (tool) chaqir. Agar bu shunchaki savol yoki suhbat bo'lsa (masalan "umumiy xarajatim qancha"), hech qanday tool chaqirmasdan, TO'G'RIDAN-TO'G'RI, JUDA QISQA (maksimal 20 so'z), aniq javob ber — o'zbek tilida, do'stona, lekin lo'nda. Hech qachon uzun tushuntirish yozma.`,
+        system: `Sen ${OWNER_NAME}ning shaxsiy yordamchisisan. Xabarni tushunib, mos vositani (tool) chaqir. Agar shunchaki savol/suhbat bo'lsa, hech qanday tool chaqirmasdan, JUDA QISQA (maksimal 20 so'z), aniq javob ber — o'zbek tilida, lo'nda.`,
         tools: TOOLS,
         messages: [{ role: 'user', content: context + `\n\n${OWNER_NAME} yozdi: "${userText}"` }]
       })
@@ -452,13 +473,13 @@ Kutilayotgan rejalar: ${plans.map(p => `[${p.id}] ${p.text}`).join('; ') || "yo'
       await executeTool(chatId, toolUse);
     } else if (textBlock) {
       const words = textBlock.text.trim().split(/\s+/).slice(0, 25).join(' ');
-      await sendMessage(chatId, words, mainMenuKeyboard());
+      await sendMessage(chatId, words);
     } else {
-      await sendMessage(chatId, "Tushunmadim, qaytadan yozing.", mainMenuKeyboard());
+      await sendMessage(chatId, "Tushunmadim, qaytadan yozing.");
     }
   } catch (err) {
     console.error('AI erkin matn xatosi:', err);
-    await sendMessage(chatId, "❗️ Xatolik yuz berdi, qayta urinib ko'ring.", mainMenuKeyboard());
+    await sendMessage(chatId, "❗️ Xatolik yuz berdi, qayta urinib ko'ring.");
   }
 }
 
@@ -473,13 +494,13 @@ async function executeTool(chatId, toolUse) {
     });
     const d = new Date(reminderAt);
     const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    await sendMessage(chatId, `✅ Rejaga qo'shildi: «${input.text}» — ${dateStr}`, mainMenuKeyboard());
+    await sendMessage(chatId, `✅ Rejaga qo'shildi: «${input.text}» — ${dateStr}`);
     return;
   }
 
   if (toolUse.name === 'remove_plan') {
     await db.collection('personal_bot_plans').doc(input.plan_id).delete();
-    await sendMessage(chatId, "✅ Reja o'chirildi.", mainMenuKeyboard());
+    await sendMessage(chatId, "✅ Reja o'chirildi.");
     return;
   }
 
@@ -488,7 +509,7 @@ async function executeTool(chatId, toolUse) {
       type: input.type, amount: input.amount, category: input.category, ts: Date.now()
     });
     const sign = input.type === 'expense' ? '-' : '+';
-    await sendMessage(chatId, `✅ ${sign}${formatSom(input.amount)} (${input.category})`, mainMenuKeyboard());
+    await sendMessage(chatId, `✅ ${sign}${formatSom(input.amount)} (${input.category})`);
     return;
   }
 }
