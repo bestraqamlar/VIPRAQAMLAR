@@ -1907,19 +1907,27 @@ async function getAppCheckHeaders(){
    "Web configuration" bo'limidan olib, quyida sozlab qo'yilgan. ---- */
 const VAPID_PUBLIC_KEY = 'BIcutL9TjLlhQhU5Drso_WHAuowYNkUR0_IrNlobijw1VvZcaVrVI2IRBts7JB4ySM6t_Cb6meKR0BqGIIDqvDI';
 let messaging = null;
-try{ messaging = firebase.messaging(); }catch(e){ console.error('Firebase Messaging ishga tushmadi:', e); }
+try{ messaging = firebase.messaging(); console.log('[PUSH] Firebase Messaging ishga tushdi.'); }
+catch(e){ console.error('[PUSH] Firebase Messaging ishga tushmadi:', e); }
 
 async function requestPushToken(){
-  if(!messaging || !VAPID_PUBLIC_KEY) return null;
-  if(!('serviceWorker' in navigator) || !('Notification' in window)) return null;
+  if(!messaging){ console.warn('[PUSH] messaging ishga tushmagan — brauzer qo\'llamasligi yoki Firebase Messaging SDK yuklanmagan bo\'lishi mumkin.'); return null; }
+  if(!VAPID_PUBLIC_KEY){ console.warn('[PUSH] VAPID_PUBLIC_KEY bo\'sh.'); return null; }
+  if(!('serviceWorker' in navigator)){ console.warn('[PUSH] Bu brauzer serviceWorker\'ni qo\'llamaydi.'); return null; }
+  if(!('Notification' in window)){ console.warn('[PUSH] Bu brauzer Notification API\'ni qo\'llamaydi.'); return null; }
   try{
+    console.log('[PUSH] Ruxsat so\'ralmoqda... Joriy holat:', Notification.permission);
     const permission = await Notification.requestPermission();
+    console.log('[PUSH] Ruxsat natijasi:', permission);
     if(permission !== 'granted') return null;
+    console.log('[PUSH] Service worker ro\'yxatdan o\'tkazilmoqda...');
     const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    console.log('[PUSH] Service worker OK, token so\'ralmoqda...');
     const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: reg });
+    console.log('[PUSH] Token olindi:', token ? (token.slice(0,20) + '...') : null);
     return token || null;
   }catch(e){
-    console.error('Push token olishda xato:', e);
+    console.error('[PUSH] Xato:', e);
     return null;
   }
 }
