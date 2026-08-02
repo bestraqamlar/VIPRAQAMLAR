@@ -4,8 +4,8 @@
    uchun esa index.html ichidagi messaging.onMessage() ishlatiladi (fon
    bildirishnomasi ikki marta chiqib ketmasligi uchun). */
 
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
 
 /* MUHIM: bu sozlamalar index.html va admin.html dagi firebaseConfig bilan
    AYNAN BIR XIL bo'lishi kerak. Service worker alohida ishlaydi va sahifa
