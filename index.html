@@ -682,7 +682,7 @@
     font-family:'Space Mono',monospace;color:var(--muted);font-size:12.5px;min-width:52px;text-align:center;
   }
 
-  .featured-section{max-width:1100px;margin:0 auto;padding:8px 16px 26px;}
+  .featured-section{max-width:1100px;margin:0 auto;padding:8px 16px 8px;}
   .featured-header{
     display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
   }
@@ -703,7 +703,7 @@
   .daily-deal-section{max-width:1100px;margin:0 auto;padding:14px 16px 0;}
 
   /* ---- Mijozlar fikri ---- */
-  .testimonials-section{max-width:1100px;margin:14px auto 8px;padding:0 16px;}
+  .testimonials-section{max-width:1100px;margin:0 auto 8px;padding:0 16px;}
   .testimonials-header{text-align:center;margin-bottom:16px;}
   .testimonials-title{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);}
   .testimonials-sub{color:var(--muted);font-size:12.5px;margin-top:4px;}
@@ -2357,12 +2357,12 @@ function renderPagination(page, totalPages){
   document.getElementById('pagPrev').addEventListener('click', ()=>{
     currentPage--;
     renderCatalog();
-    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
   document.getElementById('pagNext').addEventListener('click', ()=>{
     currentPage++;
     renderCatalog();
-    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
 
