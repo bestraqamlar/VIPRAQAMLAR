@@ -295,7 +295,7 @@
      ramka sariq/ko'k orasida mayin almashib turadi, ichida orqa fon yo'q ---- */
   .header-reels-btn-wrap{
     display:flex;align-items:center;gap:6px;cursor:pointer;
-    background:none;padding:4px 12px 4px 4px;border-radius:20px;
+    background:none;padding:4px 12px 4px 4px;border-radius:10px;
     border:2px solid #FFB000;
     animation:hrbBorderShift 6s ease-in-out infinite;
   }
@@ -985,11 +985,12 @@
 
   .modal{
     background:var(--panel);border:1px solid var(--line);
-    border-radius:18px 18px 0 0;
-    padding:24px 22px 28px;max-width:420px;width:100%;
+    border-radius:18px;
+    padding:24px 22px calc(28px + env(safe-area-inset-bottom, 0px));max-width:420px;width:100%;
+    margin-bottom:10px;
     position:relative;
     transform:translateY(30px);animation:slideUp .28s ease forwards;
-    max-height:90vh;overflow-y:auto;
+    max-height:88vh;overflow-y:auto;
   }
   @media (min-width:600px){ .modal{border-radius:18px;} }
   @keyframes slideUp{to{transform:translateY(0);}}
@@ -1238,7 +1239,7 @@
     font-size:10px;font-weight:700;
   }
 
-  .modal-actions{display:flex;gap:10px;margin-top:22px;}
+  .modal-actions{display:flex;gap:10px;margin-top:22px;margin-bottom:4px;}
   .modal-actions button{
     flex:1;border:none;border-radius:9px;padding:13px;font-weight:700;cursor:pointer;font-size:14.5px;
     transition:transform .12s ease, opacity .12s ease;
