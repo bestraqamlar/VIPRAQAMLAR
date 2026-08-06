@@ -679,6 +679,8 @@
     <button class="tab" data-tab="telegramai">💬 Telegram AI</button>
     <button class="tab" data-tab="videos">🎥 Video sharhlar</button>
     <button class="tab" data-tab="premiumvideo">🎬 Premium video</button>
+    <button class="tab" data-tab="promocards">🔥 Aksiya kartochkalari</button>
+    <button class="tab" data-tab="storytopics">📱 Story mavzulari</button>
     <button class="tab" data-tab="orders">Buyurtmalar</button>
     <button class="tab" data-tab="zakaz">📥 Zakaz</button>
     <button class="tab" data-tab="credit">Kredit</button>
@@ -860,6 +862,57 @@
     </div>
 
     <div class="video-list" id="pvVideoList"></div>
+  </div>
+
+  <div class="pane" id="panePromocards">
+    <div class="ai-hint">
+      🔥 Bu yerda saytning "Asosiy sahifa" bo'limida chapga qarab uzluksiz
+      aylanadigan (marquee) aksiya-plastik kartochkalarni boshqarasiz.
+      Bu — mavjud raqamlar bazasidan mustaqil, alohida ro'yxat.
+    </div>
+
+    <div class="settings-form" style="margin-bottom:18px;">
+      <label>Raqam <span class="ig-field-hint">(masalan: 90-123-45-67)</span></label>
+      <input type="text" id="pcNumberInput" placeholder="90-123-45-67">
+      <label style="margin-top:10px;">Narxi (so'm)</label>
+      <input type="number" id="pcPriceInput" placeholder="2500000">
+      <label style="margin-top:10px;">Eski narxi (ixtiyoriy, chegirma ko'rsatish uchun)</label>
+      <input type="number" id="pcOldPriceInput" placeholder="4000000">
+      <button id="pcAddBtn" style="margin-top:14px;background:var(--amber);color:var(--bg);border:none;border-radius:9px;padding:12px;font-weight:700;font-size:14px;cursor:pointer;width:100%;">+ Kartochka qo'shish</button>
+      <div class="ig-save-msg" id="pcAddMsg"></div>
+    </div>
+
+    <div id="promoCardsAdminList"></div>
+  </div>
+
+  <div class="pane" id="paneStorytopics">
+    <div class="ai-hint">
+      📱 Bu yerda saytning "Asosiy sahifa" tepasidagi Instagram uslubidagi
+      "Story" aylanalarini boshqarasiz. Avval MAVZU yarating (masalan
+      "Manzilimiz"), keyin o'sha mavzuga bir yoki bir nechta video
+      qo'shishingiz mumkin — istalgan vaqt yana video qo'shib turish mumkin.
+    </div>
+
+    <div class="settings-form" style="margin-bottom:16px;">
+      <label>Yangi mavzu nomi</label>
+      <input type="text" id="stNewTopicInput" placeholder="Masalan: Manzilimiz">
+      <button id="stAddTopicBtn" style="margin-top:12px;background:var(--amber);color:var(--bg);border:none;border-radius:9px;padding:12px;font-weight:700;font-size:14px;cursor:pointer;width:100%;">+ Mavzu yaratish</button>
+      <div class="ig-save-msg" id="stAddTopicMsg"></div>
+    </div>
+
+    <div class="settings-form" style="margin-bottom:18px;">
+      <label>Qaysi mavzuga video qo'shamiz?</label>
+      <select id="stTopicSelect"><option value="">— mavzuni tanlang —</option></select>
+      <label style="margin-top:10px;">Video fayl <span class="ig-field-hint">(vertikal video eng yaxshi ko'rinadi)</span></label>
+      <input type="file" id="stVideoFileInput" accept="video/*">
+      <div class="video-progress-wrap" id="stVideoProgressWrap" style="display:none;">
+        <div class="video-progress-bar" id="stVideoProgressBar"></div>
+      </div>
+      <button id="stVideoUploadBtn" class="ig-save-btn" onclick="if(window.handleStoryVideoUpload){window.handleStoryVideoUpload();}else{alert('Sahifa to\'liq yuklanmagan. Iltimos, sahifani yangilang va qayta urinib ko\'ring.');}">⬆️ Video qo'shish</button>
+      <div class="ig-save-msg" id="stVideoUploadMsg"></div>
+    </div>
+
+    <div id="storyTopicsAdminList"></div>
   </div>
 
   <div class="pane" id="paneOrders">
@@ -1396,7 +1449,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', promocards:'Promocards', storytopics:'Storytopics', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1411,6 +1464,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
     if(tab.dataset.tab === 'premiumvideo'){ loadPremiumVideoList(); }
+    if(tab.dataset.tab === 'promocards'){ loadPromoCardsAdmin(); }
+    if(tab.dataset.tab === 'storytopics'){ loadStoryTopicsAdmin(); }
     if(tab.dataset.tab === 'credit'){
       loadCreditContracts();
       const dateEl = document.getElementById('crStartDate');
@@ -2814,6 +2869,232 @@ async function loadPremiumVideoList(){
         try{
           await db.collection('premium_number_videos').doc(btn.dataset.id).update({ likes: val });
           vibrate(60);
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    list.innerHTML = 'Xato: ' + err.message;
+  }
+}
+
+/* ---- "Asosiy sahifa"dagi aksiya-plastik kartochkalarini boshqarish ---- */
+async function loadPromoCardsAdmin(){
+  const list = document.getElementById('promoCardsAdminList');
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const snap = await db.collection('promo_cards').orderBy('createdAtSort', 'desc').get();
+    const cards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if(cards.length === 0){ list.innerHTML = `<div class="empty-admin">Hali aksiya kartochkasi qo'shilmagan.</div>`; return; }
+
+    list.innerHTML = cards.map(c => {
+      const hasDiscount = c.oldPrice && c.oldPrice > c.price;
+      return `
+        <div class="video-item" data-id="${c.id}" style="padding:14px;">
+          <button class="vi-delete" data-id="${c.id}">✕</button>
+          <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px;">
+            +998 ${(c.number || '').replace(/</g,'&lt;')}
+          </div>
+          <div style="color:var(--amber);font-weight:700;font-size:14px;">
+            ${formatPrice(c.price || 0)}
+            ${hasDiscount ? `<span style="color:var(--muted);font-size:11px;text-decoration:line-through;margin-left:6px;">${formatPrice(c.oldPrice)}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.vi-delete').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu aksiya kartochkasini o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          await db.collection('promo_cards').doc(btn.dataset.id).delete();
+          loadPromoCardsAdmin();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    list.innerHTML = 'Xato: ' + err.message;
+  }
+}
+
+document.getElementById('pcAddBtn').addEventListener('click', async ()=>{
+  const numberInput = document.getElementById('pcNumberInput');
+  const priceInput = document.getElementById('pcPriceInput');
+  const oldPriceInput = document.getElementById('pcOldPriceInput');
+  const msg = document.getElementById('pcAddMsg');
+
+  const number = numberInput.value.trim();
+  const price = parseInt(priceInput.value, 10);
+  const oldPrice = oldPriceInput.value.trim() ? parseInt(oldPriceInput.value, 10) : null;
+
+  if(!number){ msg.textContent = "Raqamni kiriting"; msg.style.color = 'var(--red)'; return; }
+  if(!price || price <= 0){ msg.textContent = "To'g'ri narx kiriting"; msg.style.color = 'var(--red)'; return; }
+
+  const btn = document.getElementById('pcAddBtn');
+  btn.disabled = true;
+  msg.textContent = '';
+  try{
+    const data = { number, price, createdAtSort: Date.now() };
+    if(oldPrice && oldPrice > price) data.oldPrice = oldPrice;
+    await db.collection('promo_cards').add(data);
+    numberInput.value = '';
+    priceInput.value = '';
+    oldPriceInput.value = '';
+    msg.textContent = "✅ Qo'shildi";
+    msg.style.color = 'var(--green)';
+    loadPromoCardsAdmin();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.style.color = 'var(--red)';
+  }
+  btn.disabled = false;
+});
+
+/* ---- "Asosiy sahifa"dagi Story mavzulari va ularning videolarini boshqarish ---- */
+document.getElementById('stAddTopicBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('stNewTopicInput');
+  const msg = document.getElementById('stAddTopicMsg');
+  const title = input.value.trim();
+  if(!title){ msg.textContent = "Mavzu nomini kiriting"; msg.style.color = 'var(--red)'; return; }
+
+  const btn = document.getElementById('stAddTopicBtn');
+  btn.disabled = true;
+  msg.textContent = '';
+  try{
+    await db.collection('story_topics').add({ title, createdAtSort: Date.now() });
+    input.value = '';
+    msg.textContent = "✅ Mavzu yaratildi";
+    msg.style.color = 'var(--green)';
+    loadStoryTopicsAdmin();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.style.color = 'var(--red)';
+  }
+  btn.disabled = false;
+});
+
+window.handleStoryVideoUpload = async function(){
+  const topicSelect = document.getElementById('stTopicSelect');
+  const fileInput = document.getElementById('stVideoFileInput');
+  const msg = document.getElementById('stVideoUploadMsg');
+  const progressWrap = document.getElementById('stVideoProgressWrap');
+  const progressBar = document.getElementById('stVideoProgressBar');
+  const btn = document.getElementById('stVideoUploadBtn');
+
+  function showError(text){
+    msg.textContent = '❌ ' + text;
+    msg.style.cssText = 'color:#fff;background:var(--red);padding:10px 12px;border-radius:8px;font-weight:700;font-size:13px;text-align:center;';
+    progressWrap.style.display = 'none';
+    btn.disabled = false;
+  }
+
+  try{
+    const topicId = topicSelect.value;
+    if(!topicId){ showError('Avval mavzuni tanlang.'); return; }
+    const file = fileInput.files[0];
+    if(!file){ showError('Iltimos, video fayl tanlang.'); return; }
+    const looksLikeVideo = file.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|webm|3gp|mkv)$/i.test(file.name || '');
+    if(!looksLikeVideo){ showError("Bu video fayl emas. Fayl turi: " + (file.type || "noma'lum")); return; }
+    if(!storage){ showError("Video xizmati (Firebase Storage) sozlanmagan."); return; }
+
+    btn.disabled = true;
+    msg.textContent = '';
+    msg.style.cssText = '';
+    progressWrap.style.display = 'block';
+    progressBar.style.width = '0%';
+
+    const path = `story_videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const ref = storage.ref().child(path);
+    const uploadTask = ref.put(file);
+
+    await new Promise((resolve, reject)=>{
+      uploadTask.on('state_changed',
+        (snap)=>{ progressBar.style.width = Math.round((snap.bytesTransferred / snap.totalBytes) * 100) + '%'; },
+        (err)=> reject(err),
+        ()=> resolve()
+      );
+    });
+
+    const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
+
+    await db.collection('story_videos').add({
+      videoUrl,
+      topicId,
+      createdAtSort: Date.now()
+    });
+
+    msg.textContent = "✓ Video qo'shildi";
+    msg.style.cssText = 'color:var(--green);text-align:center;font-weight:700;';
+    vibrate(80);
+    fileInput.value = '';
+    progressWrap.style.display = 'none';
+    loadStoryTopicsAdmin();
+  }catch(err){
+    showError(err && err.message ? err.message : "Noma'lum xato yuz berdi");
+    return;
+  }
+  btn.disabled = false;
+};
+
+async function loadStoryTopicsAdmin(){
+  const list = document.getElementById('storyTopicsAdminList');
+  const select = document.getElementById('stTopicSelect');
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const topicsSnap = await db.collection('story_topics').orderBy('createdAtSort', 'desc').get();
+    const topics = topicsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    select.innerHTML = '<option value="">— mavzuni tanlang —</option>' +
+      topics.map(t => `<option value="${t.id}">${(t.title || '').replace(/</g,'&lt;')}</option>`).join('');
+
+    if(topics.length === 0){
+      list.innerHTML = `<div class="empty-admin">Hali mavzu yaratilmagan. Avval yuqorida mavzu yarating.</div>`;
+      return;
+    }
+
+    const videosSnap = await db.collection('story_videos').orderBy('createdAtSort', 'desc').get();
+    const allVideos = videosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    list.innerHTML = topics.map(t => {
+      const videos = allVideos.filter(v => v.topicId === t.id);
+      return `
+        <div class="video-item" style="padding:14px;margin-bottom:10px;">
+          <button class="vi-delete" data-topic-id="${t.id}" title="Mavzuni o'chirish">✕</button>
+          <div style="font-weight:800;font-size:14px;color:var(--text);margin-bottom:8px;">
+            📱 ${(t.title || '').replace(/</g,'&lt;')} <span style="color:var(--muted);font-weight:500;font-size:12px;">(${videos.length} ta video)</span>
+          </div>
+          ${videos.length === 0 ? `<div style="color:var(--muted);font-size:12px;">Hali video qo'shilmagan</div>` : `
+            <div style="display:flex;gap:8px;overflow-x:auto;">
+              ${videos.map(v => `
+                <div style="position:relative;flex:0 0 auto;">
+                  <video src="${v.videoUrl}" muted preload="metadata" style="width:70px;height:110px;border-radius:8px;object-fit:cover;background:var(--panel-2);"></video>
+                  <button class="vi-delete" data-video-id="${v.id}" style="position:absolute;top:2px;right:2px;width:20px;height:20px;font-size:11px;">✕</button>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.vi-delete[data-topic-id]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu mavzuni VA uning barcha videolarini o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          const topicId = btn.dataset.topicId;
+          const videosToDelete = allVideos.filter(v => v.topicId === topicId);
+          await Promise.all(videosToDelete.map(v => db.collection('story_videos').doc(v.id).delete()));
+          await db.collection('story_topics').doc(topicId).delete();
+          loadStoryTopicsAdmin();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+    list.querySelectorAll('.vi-delete[data-video-id]').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        if(!confirm("Bu videoni o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          await db.collection('story_videos').doc(btn.dataset.videoId).delete();
+          loadStoryTopicsAdmin();
         }catch(err){ alert('Xato: ' + err.message); }
       });
     });
