@@ -423,13 +423,19 @@
     transition:opacity .18s ease;
   }
   .card{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--card-radius, 14px);
+    background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
+    box-shadow:0 10px 24px rgba(8,20,55,0.55);
+    transition:border-color .3s ease, box-shadow .35s ease, transform .25s cubic-bezier(.22,1,.36,1);
   }
-  .card:hover{border-color:var(--amber);}
-  .card:active{transform:scale(0.98);}
+  .card:hover, .card:focus-within{
+    border-color:rgba(255,176,0,0.4);
+    box-shadow:0 18px 38px rgba(8,20,55,0.7), 0 0 0 1px rgba(255,176,0,0.1);
+    transform:translateY(-4px);
+  }
+  .card:active{transform:scale(0.98);transition:transform .12s ease;}
   .card.clickable-card{cursor:pointer;}
-  .card.clickable-card:hover{box-shadow:0 0 0 1px var(--amber);}
   .reserved-note{
     color:var(--muted);font-size:12px;text-align:center;padding:11px;
     background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
@@ -2542,7 +2548,7 @@ let selectedNumberId = null;
 let selectedPrice = 0;
 let appliedDiscount = 0;
 
-function openModal(number, id){
+function openModal(number, id, priceOverride){
   if(navigator.vibrate) navigator.vibrate(35);
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){ recapEl.style.display = 'none'; recapEl.innerHTML = ''; }
@@ -2555,7 +2561,7 @@ function openModal(number, id){
   pendingOrderPayload = null;
   selectedNumberId = id || null;
   const item = NUMBERS.find(n => n.id === id);
-  selectedPrice = item ? item.price : 0;
+  selectedPrice = item ? item.price : (priceOverride || 0);
   appliedDiscount = 0;
   modalNumber.textContent = displayNumber(number);
 
@@ -4558,6 +4564,7 @@ setTimeout(()=>{
     }
   }catch(e){ console.error('Watchdog xato:', e); }
 }, 5000);
+
 </script>
 </body>
 </html>
