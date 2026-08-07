@@ -426,12 +426,12 @@
     background:var(--panel);
     border:1px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
-    box-shadow:0 10px 24px rgba(8,20,55,0.55);
+    box-shadow:0 8px 30px rgba(8,20,55,0.22);
     transition:border-color .3s ease, box-shadow .35s ease, transform .25s cubic-bezier(.22,1,.36,1);
   }
   .card:hover, .card:focus-within{
     border-color:rgba(255,176,0,0.4);
-    box-shadow:0 18px 38px rgba(8,20,55,0.7), 0 0 0 1px rgba(255,176,0,0.1);
+    box-shadow:0 14px 40px rgba(8,20,55,0.32), 0 0 0 1px rgba(255,176,0,0.1);
     transform:translateY(-4px);
   }
   .card:active{transform:scale(0.98);transition:transform .12s ease;}
@@ -689,6 +689,15 @@
   }
 
   .featured-section{max-width:1100px;margin:0 auto;padding:8px 16px 8px;}
+  @media (max-width:768px){
+    .featured-section.fc-mode{
+      position:relative;padding-top:6px;padding-bottom:6px;
+    }
+    .featured-section.fc-mode::before{
+      content:'';position:absolute;inset:-4px 0 4px;z-index:-1;
+      background:radial-gradient(65% 100% at 50% 45%, rgba(15,25,55,0.55), transparent 72%);
+    }
+  }
   .featured-header{
     display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
   }
@@ -702,6 +711,20 @@
     -webkit-mask-image:linear-gradient(to right, black 97%, transparent 100%);
   }
   .featured-scroll::-webkit-scrollbar{display:none;}
+
+  /* ---- "Mashhur raqamlar" 3D karusel — faqat telefon ekranida:
+     markazdagi kartochka kattalashadi, chetdagilar orqaga qiyalashib
+     kichrayadi (coverflow uslubi). ---- */
+  @media (max-width:768px){
+    .featured-scroll.fc-active{
+      scroll-snap-type:x mandatory;padding:20px 42vw 14px;gap:14px;
+    }
+    .featured-scroll.fc-active .featured-card{
+      scroll-snap-align:center;flex:0 0 200px;
+      transition:transform .35s cubic-bezier(.22,1,.36,1), opacity .35s ease, box-shadow .35s ease;
+      will-change:transform;
+    }
+  }
   .daily-deal-scroll{
     display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
@@ -718,6 +741,214 @@
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
   }
   .testimonials-scroll::-webkit-scrollbar{display:none;}
+
+  /* ==================================================================
+     "QO'NG'IROQ VIZUALI" — mijoz raqamni kiritib, iPhone qo'ng'iroq
+     ekranida qanday ko'rinishini (kiruvchi qo'ng'iroq + javob berilgan
+     holat) haqiqiy animatsiya bilan ko'radi.
+     ================================================================== */
+  .call-preview-section{max-width:1100px;margin:22px auto 0;padding:0 16px;}
+  .cp-teaser{
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(185,48,96,0.14), transparent 60%),
+      linear-gradient(135deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);border-radius:20px;padding:26px 20px 24px;
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;
+    position:relative;overflow:hidden;
+  }
+
+  /* ---- Kichik telefon oldindan ko'rish — haqiqiy skrinshot, iPhone
+     ramkasi ichida ---- */
+  .cp-mini-phone{position:relative;margin-bottom:16px;}
+  .cp-mini-glow{
+    position:absolute;inset:-20px;z-index:-1;border-radius:50%;
+    background:radial-gradient(circle, rgba(185,48,96,0.25), transparent 65%);
+    filter:blur(10px);
+  }
+  .cp-mini-frame{
+    position:relative;width:148px;border-radius:24px;overflow:hidden;
+    background:#0a0a0a;padding:5px;
+    box-shadow:0 18px 40px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.08);
+    animation:cpMiniFloat 3.4s ease-in-out infinite;
+  }
+  @keyframes cpMiniFloat{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-6px) rotate(1.5deg);}}
+  .cp-mini-notch{
+    position:absolute;top:9px;left:50%;transform:translateX(-50%);
+    width:40px;height:13px;background:#000;border-radius:9px;z-index:2;
+  }
+  .cp-mini-img{display:block;width:100%;height:auto;border-radius:19px;}
+
+  .cp-teaser-title{font-family:'Sora',sans-serif;font-weight:800;font-size:17px;color:var(--text);}
+  .cp-teaser-sub{font-size:12.5px;color:var(--muted);max-width:300px;line-height:1.55;margin-bottom:6px;}
+  .cp-open-btn{
+    margin-top:4px;background:var(--amber);color:var(--bg);border:none;border-radius:12px;
+    padding:15px 28px;font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 10px 26px rgba(255,176,0,0.25);
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .cp-open-btn svg{width:17px;height:17px;}
+  .cp-open-btn:hover{filter:brightness(1.08);}
+  .cp-open-btn:active{transform:scale(0.96);}
+
+  .cp-input-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:600;
+    display:none;align-items:flex-end;justify-content:center;
+    backdrop-filter:blur(2px);
+  }
+  .cp-input-overlay.open{display:flex;animation:fadeIn .2s ease;}
+  @media (min-width:600px){ .cp-input-overlay{align-items:center;} }
+  .cp-input-modal{
+    background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;
+    max-width:400px;width:100%;padding:26px 22px calc(24px + env(safe-area-inset-bottom,0px));
+    position:relative;transform:translateY(30px);animation:slideUp .28s ease forwards;
+  }
+  @media (min-width:600px){ .cp-input-modal{border-radius:20px;} }
+  .cp-input-close{
+    position:absolute;top:14px;right:14px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:9px;width:32px;height:32px;color:var(--text);cursor:pointer;font-size:15px;
+  }
+  .cp-input-modal h3{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin:0 0 8px;}
+  .cp-input-modal p{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 18px;}
+  .cp-number-field{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:11px;
+    padding:14px;color:var(--text);font-family:'Space Mono',monospace;font-size:17px;font-weight:700;
+    text-align:center;outline:none;letter-spacing:0.5px;transition:border-color .15s ease;
+  }
+  .cp-number-field:focus{border-color:var(--amber);}
+  .cp-input-hint{
+    font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;
+    transition:color .2s ease;
+  }
+  .cp-input-hint.cp-hint-ready{color:var(--green);font-weight:600;}
+  .cp-view-btn{
+    width:100%;margin-top:14px;background:var(--amber);color:var(--bg);border:none;border-radius:11px;
+    padding:14px;font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:opacity .2s ease, transform .15s ease;
+  }
+  .cp-view-btn svg{width:17px;height:17px;}
+  .cp-view-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .cp-view-btn:not(:disabled):active{transform:scale(0.97);}
+
+  /* ---- To'liq ekranli qo'ng'iroq simulyatsiyasi ---- */
+  .cp-call-screen{
+    position:fixed;inset:0;z-index:700;display:none;
+    background:
+      radial-gradient(120% 90% at 15% 0%, rgba(90,95,110,0.9), transparent 55%),
+      radial-gradient(140% 100% at 85% 100%, rgba(200,40,110,0.85), transparent 60%),
+      linear-gradient(165deg, #34363f 0%, #5d3f34 32%, #9c3c3c 58%, #b93060 78%, #7a2560 100%);
+    color:#fff;font-family:-apple-system, BlinkMacSystemFont, 'Sora', sans-serif;
+    opacity:0;transform:scale(1.04);
+    transition:opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
+    overflow:hidden;
+  }
+  .cp-call-screen.open{display:block;opacity:1;transform:scale(1);}
+  .cp-call-screen::after{
+    /* nozik vinyetka — chetlari biroz qorayadi, chuqurlik hissi beradi */
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,0.28) 100%);
+  }
+  .cp-dynamic-island{
+    position:absolute;top:calc(env(safe-area-inset-top,0px) + 11px);left:50%;transform:translateX(-50%);
+    width:120px;height:36px;background:#000;border-radius:20px;z-index:6;
+    display:none;align-items:center;justify-content:flex-end;padding:0 12px;gap:6px;
+  }
+  .cp-dynamic-island.show{display:flex;}
+  .cp-island-dot{width:8px;height:8px;border-radius:50%;background:#FF9500;animation:cpDotPulse 1.6s ease-in-out infinite;}
+  @keyframes cpDotPulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+  .cp-home-indicator{
+    position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);left:50%;transform:translateX(-50%);
+    width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,0.9);z-index:6;
+  }
+  .cp-exit-btn{
+    position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:7;
+    background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:34px;height:34px;
+    color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(6px);
+  }
+  .cp-view{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    padding:calc(env(safe-area-inset-top,0px) + 22px) 24px calc(env(safe-area-inset-bottom,0px) + 44px);
+    z-index:2;
+  }
+  .cp-status-row{
+    width:100%;display:flex;justify-content:space-between;align-items:center;
+    font-size:15px;font-weight:600;margin-bottom:64px;letter-spacing:0.2px;
+  }
+  .cp-status-icons{display:flex;align-items:center;gap:6px;}
+  .cp-caller-label{
+    font-size:13px;font-weight:600;color:rgba(255,255,255,0.65);letter-spacing:0.3px;
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .cp-number-display{
+    font-family:-apple-system, BlinkMacSystemFont, 'Sora', sans-serif;font-weight:600;font-size:32px;text-align:center;
+    letter-spacing:0.2px;margin-bottom:auto;
+    background:linear-gradient(90deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 35%, #fff 50%, rgba(255,255,255,0.75) 65%, rgba(255,255,255,0.75) 100%);
+    background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:cpShimmer 3s linear infinite;
+    filter:drop-shadow(0 1px 8px rgba(0,0,0,0.25));
+  }
+  .cp-number-display-sm{font-size:21px;font-weight:600;margin-top:4px;margin-bottom:0;}
+  .cp-incoming-actions{
+    display:flex;gap:70px;margin:0 0 36px;
+  }
+  .cp-round-action{display:flex;flex-direction:column;align-items:center;gap:9px;}
+  .cp-round-icon{
+    width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.2);
+    backdrop-filter:blur(10px);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .cp-round-action:active .cp-round-icon{transform:scale(0.9);background:rgba(255,255,255,0.3);}
+  .cp-round-icon svg{width:23px;height:23px;}
+  .cp-round-action span{font-size:12.5px;color:rgba(255,255,255,0.9);font-weight:500;}
+  .cp-slide-answer{
+    width:100%;max-width:320px;height:64px;border-radius:32px;
+    background:rgba(255,255,255,0.16);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,0.12);
+    position:relative;display:flex;align-items:center;padding:4px;
+    overflow:hidden;
+  }
+  .cp-slide-label{
+    width:100%;text-align:center;font-size:14.5px;font-weight:500;
+    background:linear-gradient(90deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.5) 35%, #fff 50%, rgba(255,255,255,0.5) 65%, rgba(255,255,255,0.5) 100%);
+    background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:cpShimmer 2.6s linear infinite;
+  }
+  @keyframes cpShimmer{0%{background-position:200% 0;}100%{background-position:-50% 0;}}
+  .cp-slide-thumb{
+    position:absolute;left:4px;top:4px;width:56px;height:56px;border-radius:50%;
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px rgba(0,0,0,0.4);cursor:grab;touch-action:none;z-index:2;
+    transition:left .35s cubic-bezier(.22,1,.36,1);
+    animation:cpThumbHint 2.4s ease-in-out infinite;
+  }
+  @keyframes cpThumbHint{0%,80%,100%{left:4px;}90%{left:22px;}}
+  .cp-slide-thumb.dragging{transition:none;animation:none;}
+  .cp-slide-thumb svg{width:23px;height:23px;}
+
+  .cp-active-timer{
+    font-size:16px;color:rgba(255,255,255,0.7);margin-bottom:6px;font-variant-numeric:tabular-nums;font-weight:500;
+  }
+  .cp-active-grid{
+    margin-top:auto;width:100%;max-width:320px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:24px 18px;
+  }
+  .cp-square-action{display:flex;flex-direction:column;align-items:center;gap:9px;}
+  .cp-square-icon{
+    width:100%;aspect-ratio:1;border-radius:18px;background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(10px);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    transition:background .15s ease, transform .12s ease;
+  }
+  .cp-square-icon svg{width:25px;height:25px;}
+  .cp-square-action span{font-size:11.5px;color:rgba(255,255,255,0.9);font-weight:500;}
+  .cp-square-action:active .cp-square-icon{transform:scale(0.92);}
+  .cp-end-call .cp-square-icon{background:#FF3B30;}
+  .cp-square-action.cp-toggled .cp-square-icon{
+    background:#fff;color:#B93060;
+    box-shadow:0 0 0 4px rgba(255,255,255,0.18);
+  }
 
   /* ---- Video sharh kartochkasi (yonma-yon, Reels'ga o'xshab) ---- */
   .video-testi-card{
@@ -1573,6 +1804,89 @@
   <div class="testimonials-scroll" id="testimonialsScroll"></div>
 </section>
 
+<section class="call-preview-section" id="callPreviewSection">
+  <div class="cp-teaser">
+    <div class="cp-mini-phone">
+      <div class="cp-mini-frame">
+        <div class="cp-mini-notch"></div>
+        <img class="cp-mini-img" src="assets/call-preview-example.jpg" alt="Qo'ng'iroq ekrani namunasi" onerror="this.closest('.cp-mini-phone').style.display='none';">
+      </div>
+      <div class="cp-mini-glow"></div>
+    </div>
+
+    <div class="cp-teaser-title">Raqamingiz qo'ng'iroqda qanday ko'rinadi?</div>
+    <div class="cp-teaser-sub">Raqamni kiriting — real iPhone ekranida aynan qanday chiqishini hoziroq ko'ring</div>
+    <button type="button" class="cp-open-btn" id="cpOpenBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      Hoziroq ko'rib chiqish
+    </button>
+  </div>
+</section>
+
+<!-- ---- Raqam kiritish oynasi ---- -->
+<div class="cp-input-overlay" id="cpInputOverlay">
+  <div class="cp-input-modal">
+    <button type="button" class="cp-input-close" id="cpInputClose" aria-label="Yopish">✕</button>
+    <h3>Istalgan raqamni sinab ko'ring</h3>
+    <p>9 ta raqamni kiriting — o'zingiz tanlamoqchi bo'lgan yoki bizdan sotib olmoqchi bo'lgan raqamingiz bo'lishi mumkin</p>
+    <input type="tel" id="cpNumberInput" class="cp-number-field" inputmode="numeric" maxlength="17" value="+998 " autocomplete="off">
+    <div class="cp-input-hint" id="cpInputHint">90 123 45 67 — shu tartibda kiriting</div>
+    <button type="button" class="cp-view-btn" id="cpViewBtn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Ko'rish
+    </button>
+  </div>
+</div>
+
+<!-- ---- To'liq ekranli qo'ng'iroq simulyatsiyasi (iPhone uslubida) ---- -->
+<div class="cp-call-screen" id="cpCallScreen">
+  <button type="button" class="cp-exit-btn" id="cpExitBtn" aria-label="Yopish">✕</button>
+  <div class="cp-dynamic-island" id="cpDynamicIsland"><span class="cp-island-dot"></span></div>
+  <div class="cp-home-indicator"></div>
+
+  <div class="cp-view cp-incoming" id="cpIncoming">
+    <div class="cp-status-row">
+      <span id="cpClock">15:42</span>
+      <span class="cp-status-icons">
+        <svg viewBox="0 0 20 12" width="16" height="10"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="#fff"/><rect x="5" y="5" width="3" height="7" rx="0.5" fill="#fff"/><rect x="10" y="3" width="3" height="9" rx="0.5" fill="#fff"/><rect x="15" y="0" width="3" height="12" rx="0.5" fill="#fff" opacity="0.4"/></svg>
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff"><path d="M12 20a1.6 1.6 0 100-3.2 1.6 1.6 0 000 3.2zM7.8 13.8a6 6 0 018.4 0l-2 2a3.2 3.2 0 00-4.4 0zM4.4 10.4a11 11 0 0115.2 0l-2 2a8.2 8.2 0 00-11.2 0z"/></svg>
+        <svg viewBox="0 0 25 12" width="22" height="11"><rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="#fff" fill="none"/><rect x="2" y="2" width="15" height="8" rx="1.2" fill="#fff"/><rect x="22.5" y="4" width="1.5" height="4" rx="0.7" fill="#fff"/></svg>
+      </span>
+    </div>
+    <div class="cp-caller-label">Qo'ng'iroq</div>
+    <div class="cp-number-display" id="cpNumberDisplay1">+998 90 123 45 67</div>
+    <div class="cp-incoming-actions">
+      <div class="cp-round-action">
+        <div class="cp-round-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg></div>
+        <span>Xabar</span>
+      </div>
+      <div class="cp-round-action">
+        <div class="cp-round-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <span>Eslatish</span>
+      </div>
+    </div>
+    <div class="cp-slide-answer" id="cpSlideAnswer">
+      <span class="cp-slide-label">Javob berish uchun suring</span>
+      <div class="cp-slide-thumb" id="cpSlideThumb">
+        <svg viewBox="0 0 24 24" fill="#25D366"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="cp-view cp-active" id="cpActive" style="display:none;">
+    <div class="cp-active-timer" id="cpTimer">00:00</div>
+    <div class="cp-number-display cp-number-display-sm" id="cpNumberDisplay2">+998 90 123 45 67</div>
+    <div class="cp-active-grid">
+      <div class="cp-square-action" id="cpAudioBtn"><div class="cp-square-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg></div><span>Audio</span></div>
+      <div class="cp-square-action"><div class="cp-square-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg></div><span>FaceTime</span></div>
+      <div class="cp-square-action" id="cpMuteBtn"><div class="cp-square-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 00-3 3v6a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1M12 18v4M8 22h8"/><line x1="2" y1="2" x2="22" y2="22"/></svg></div><span>Ovozsiz</span></div>
+      <div class="cp-square-action"><div class="cp-square-icon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></div><span>Ko'proq</span></div>
+      <div class="cp-square-action cp-end-call" id="cpEndCall"><div class="cp-square-icon"><svg viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(135deg);"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.3 0 .7-.2 1L6.6 10.8z"/></svg></div><span>Tugatish</span></div>
+      <div class="cp-square-action"><div class="cp-square-icon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="6" r="1.6"/><circle cx="12" cy="6" r="1.6"/><circle cx="17" cy="6" r="1.6"/><circle cx="7" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="7" cy="18" r="1.6"/><circle cx="12" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg></div><span>Klaviatura</span></div>
+    </div>
+  </div>
+</div>
+
 <div class="reels-overlay" id="reelsOverlay">
   <button class="reels-close" id="reelsClose">✕</button>
   <div class="reels-track" id="reelsTrack"></div>
@@ -2416,7 +2730,114 @@ function renderFeatured(){
   featuredScroll.querySelectorAll('.featured-btn:not(.reserved-btn)').forEach(btn=>{
     btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
   });
+
+  initFeaturedCoverflow();
 }
+
+/* ==================================================================
+   "MASHHUR RAQAMLAR" 3D KARUSEL — FAQAT TELEFON EKRANIDA.
+   Markazdagi kartochka kattalashib, aniq ko'rinadi; chetdagilari
+   orqaga qiyalashib (3D), kichrayib, xiralashadi — "coverflow" uslubi.
+   Avtomatik, bir necha soniyada o'zi keyingisiga o'tadi; mijoz qo'li
+   bilan ham (svayp/tortish) erkin boshqarishi mumkin.
+   ================================================================== */
+let featuredCoverflowInited = false;
+function initFeaturedCoverflow(){
+  const isMobile = window.matchMedia('(max-width:768px)').matches;
+  const scroll = featuredScroll;
+  const section = featuredSection;
+
+  if(!isMobile){
+    scroll.classList.remove('fc-active');
+    section.classList.remove('fc-mode');
+    return;
+  }
+  scroll.classList.add('fc-active');
+  section.classList.add('fc-mode');
+
+  function getCards(){ return Array.from(scroll.querySelectorAll('.featured-card')); }
+
+  function updateTransforms(){
+    const cards = getCards();
+    if(cards.length === 0) return;
+    const scrollCenter = scroll.scrollLeft + scroll.clientWidth / 2;
+    cards.forEach(card=>{
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const dist = cardCenter - scrollCenter;
+      const norm = Math.max(-1, Math.min(1, dist / (scroll.clientWidth / 2)));
+      const scale = 1 - Math.abs(norm) * 0.32;
+      const rotateY = norm * -22;
+      const translateZ = -Math.abs(norm) * 55;
+      card.style.transform = `perspective(900px) scale(${scale}) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
+      card.style.opacity = String(1 - Math.abs(norm) * 0.4);
+      card.style.zIndex = String(Math.round((1 - Math.abs(norm)) * 10));
+      const glowStrength = Math.max(0, 1 - Math.abs(norm) * 2.2);
+      card.style.boxShadow = glowStrength > 0
+        ? `0 ${10 + glowStrength * 10}px ${24 + glowStrength * 20}px rgba(255,176,0,${(glowStrength * 0.18).toFixed(2)})`
+        : 'none';
+    });
+  }
+
+  function findCenterIdx(){
+    const cards = getCards();
+    const scrollCenter = scroll.scrollLeft + scroll.clientWidth / 2;
+    let best = 0, bestDist = Infinity;
+    cards.forEach((card, i)=>{
+      const d = Math.abs((card.offsetLeft + card.offsetWidth / 2) - scrollCenter);
+      if(d < bestDist){ bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function scrollToIdx(idx){
+    const cards = getCards();
+    const card = cards[idx];
+    if(!card) return;
+    const target = card.offsetLeft + card.offsetWidth / 2 - scroll.clientWidth / 2;
+    scroll.scrollTo({ left: target, behavior: 'smooth' });
+  }
+
+  let ticking = false;
+  scroll.addEventListener('scroll', ()=>{
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(()=>{ updateTransforms(); ticking = false; });
+  }, { passive: true });
+
+  let userInteracting = false;
+  let resumeTimer = null;
+  function pauseAuto(){
+    userInteracting = true;
+    if(resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(()=>{ userInteracting = false; }, 3500);
+  }
+  scroll.addEventListener('touchstart', pauseAuto, { passive: true });
+  scroll.addEventListener('mousedown', pauseAuto);
+
+  if(featuredCoverflowTimer) clearInterval(featuredCoverflowTimer);
+  featuredCoverflowTimer = setInterval(()=>{
+    if(userInteracting) return;
+    const cards = getCards();
+    if(cards.length < 2) return;
+    const next = (findCenterIdx() + 1) % cards.length;
+    scrollToIdx(next);
+  }, 2800);
+
+  // Dastlabki holatni chizamiz, keyin birinchi kartochkani markazga
+  // tekislaymiz (bosh sahifa ochilganda chiroyli boshlanishi uchun).
+  requestAnimationFrame(()=>{
+    updateTransforms();
+    scrollToIdx(0);
+  });
+
+  featuredCoverflowInited = true;
+}
+
+let featuredCoverflowTimer = null;
+window.addEventListener('resize', ()=>{
+  if(!featuredSection || featuredSection.style.display === 'none') return;
+  initFeaturedCoverflow();
+});
 
 const dailyDealSection = document.getElementById('dailyDealSection');
 const dailyDealScroll  = document.getElementById('dailyDealScroll');
@@ -4565,6 +4986,200 @@ setTimeout(()=>{
   }catch(e){ console.error('Watchdog xato:', e); }
 }, 5000);
 
+/* ==================================================================
+   "QO'NG'IROQ VIZUALI" — mijoz raqam kiritadi, iPhone qo'ng'iroq
+   ekranini (kiruvchi + javob berilgan holat) haqiqiy animatsiya
+   bilan ko'radi. To'liq mustaqil, saytning boshqa qismlariga
+   bog'liq emas.
+   ================================================================== */
+(function(){
+  const openBtn = document.getElementById('cpOpenBtn');
+  const inputOverlay = document.getElementById('cpInputOverlay');
+  const inputClose = document.getElementById('cpInputClose');
+  const numberInput = document.getElementById('cpNumberInput');
+  const viewBtn = document.getElementById('cpViewBtn');
+  const callScreen = document.getElementById('cpCallScreen');
+  const exitBtn = document.getElementById('cpExitBtn');
+  const incomingView = document.getElementById('cpIncoming');
+  const activeView = document.getElementById('cpActive');
+  const numberDisplay1 = document.getElementById('cpNumberDisplay1');
+  const numberDisplay2 = document.getElementById('cpNumberDisplay2');
+  const clockEl = document.getElementById('cpClock');
+  const slideAnswer = document.getElementById('cpSlideAnswer');
+  const slideThumb = document.getElementById('cpSlideThumb');
+  const timerEl = document.getElementById('cpTimer');
+  const endCallBtn = document.getElementById('cpEndCall');
+  const audioBtn = document.getElementById('cpAudioBtn');
+  const muteBtn = document.getElementById('cpMuteBtn');
+
+  [audioBtn, muteBtn].forEach(btn=>{
+    if(!btn) return;
+    btn.addEventListener('click', ()=>{
+      btn.classList.toggle('cp-toggled');
+      if(navigator.vibrate) navigator.vibrate(20);
+    });
+  });
+
+  function openInputModal(){
+    inputOverlay.classList.add('open');
+    numberInput.value = '+998 ';
+    viewBtn.disabled = true;
+    const hint = document.getElementById('cpInputHint');
+    if(hint){ hint.textContent = '90 123 45 67 — shu tartibda kiriting'; hint.classList.remove('cp-hint-ready'); }
+    setTimeout(()=> numberInput.focus(), 150);
+  }
+  function closeInputModal(){ inputOverlay.classList.remove('open'); }
+
+  openBtn.addEventListener('click', openInputModal);
+  inputClose.addEventListener('click', closeInputModal);
+  inputOverlay.addEventListener('click', (e)=>{ if(e.target === inputOverlay) closeInputModal(); });
+
+  // Raqamni "+998 XX XXX XX XX" ko'rinishida formatlab boradi.
+  const inputHint = document.getElementById('cpInputHint');
+  numberInput.addEventListener('input', ()=>{
+    let digits = numberInput.value.replace(/\D/g, '');
+    if(digits.startsWith('998')) digits = digits.slice(3);
+    digits = digits.slice(0, 9);
+    let formatted = '+998';
+    if(digits.length > 0) formatted += ' ' + digits.slice(0, 2);
+    if(digits.length > 2) formatted += ' ' + digits.slice(2, 5);
+    if(digits.length > 5) formatted += ' ' + digits.slice(5, 7);
+    if(digits.length > 7) formatted += ' ' + digits.slice(7, 9);
+    numberInput.value = formatted;
+    numberInput.setSelectionRange(formatted.length, formatted.length);
+    const isReady = digits.length === 9;
+    viewBtn.disabled = !isReady;
+    if(isReady){
+      inputHint.textContent = "✓ Tayyor — endi \"Ko'rish\"ni bosing";
+      inputHint.classList.add('cp-hint-ready');
+    }else{
+      inputHint.textContent = `Yana ${9 - digits.length} ta raqam qoldi`;
+      inputHint.classList.remove('cp-hint-ready');
+    }
+  });
+  numberInput.addEventListener('keydown', (e)=>{
+    // Kursor "+998 " prefiksidan oldinga o'tib ketmasin
+    if((e.key === 'Backspace' || e.key === 'Delete') && numberInput.selectionStart <= 5 && numberInput.selectionEnd <= 5){
+      e.preventDefault();
+    }
+  });
+  // Bosilganda, tanlanganda yoki strelka bilan harakatlanganda ham kursor
+  // "+998 " oldiga o'tib ketmasligi uchun — doim oxiriga qaytaramiz.
+  function keepCursorAfterPrefix(){
+    if(numberInput.selectionStart < 5 || numberInput.selectionEnd < 5){
+      const end = numberInput.value.length;
+      numberInput.setSelectionRange(end, end);
+    }
+  }
+  numberInput.addEventListener('click', keepCursorAfterPrefix);
+  numberInput.addEventListener('keyup', keepCursorAfterPrefix);
+  numberInput.addEventListener('focus', keepCursorAfterPrefix);
+
+  function updateClock(){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    clockEl.textContent = `${hh}:${mm}`;
+  }
+
+  let callTimerInterval = null;
+  function startCallTimer(){
+    let seconds = 0;
+    timerEl.textContent = '00:00';
+    callTimerInterval = setInterval(()=>{
+      seconds++;
+      const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const ss = String(seconds % 60).padStart(2, '0');
+      timerEl.textContent = `${mm}:${ss}`;
+    }, 1000);
+  }
+  function stopCallTimer(){
+    if(callTimerInterval){ clearInterval(callTimerInterval); callTimerInterval = null; }
+  }
+
+  function resetSlideThumb(){
+    slideThumb.style.left = '4px';
+    slideThumb.classList.remove('dragging');
+  }
+
+  const dynamicIsland = document.getElementById('cpDynamicIsland');
+
+  function showIncomingState(){
+    incomingView.style.display = 'flex';
+    activeView.style.display = 'none';
+    resetSlideThumb();
+    stopCallTimer();
+    dynamicIsland.classList.remove('show');
+    if(audioBtn) audioBtn.classList.remove('cp-toggled');
+    if(muteBtn) muteBtn.classList.remove('cp-toggled');
+  }
+
+  function answerCall(){
+    incomingView.style.display = 'none';
+    activeView.style.display = 'flex';
+    startCallTimer();
+    dynamicIsland.classList.add('show');
+    if(navigator.vibrate) navigator.vibrate(40);
+  }
+
+  viewBtn.addEventListener('click', ()=>{
+    if(viewBtn.disabled) return;
+    const formattedNumber = numberInput.value;
+    numberDisplay1.textContent = formattedNumber;
+    numberDisplay2.textContent = formattedNumber;
+    closeInputModal();
+    updateClock();
+    showIncomingState();
+    callScreen.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+
+  function closeCallScreen(){
+    callScreen.classList.remove('open');
+    document.body.style.overflow = '';
+    stopCallTimer();
+    setTimeout(showIncomingState, 300);
+  }
+  exitBtn.addEventListener('click', closeCallScreen);
+  endCallBtn.addEventListener('click', closeCallScreen);
+
+  // ---- Yashil tugmani suring — iPhone'dagi kabi "slide to answer" ----
+  let dragStartX = 0, dragging = false, maxDrag = 0;
+
+  function pointX(e){ return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  function onDragStart(e){
+    dragging = true;
+    dragStartX = pointX(e);
+    maxDrag = slideAnswer.clientWidth - slideThumb.clientWidth - 8;
+    slideThumb.classList.add('dragging');
+  }
+  function onDragMove(e){
+    if(!dragging) return;
+    const delta = pointX(e) - dragStartX;
+    const newLeft = Math.max(4, Math.min(4 + delta, 4 + maxDrag));
+    slideThumb.style.left = newLeft + 'px';
+  }
+  function onDragEnd(){
+    if(!dragging) return;
+    dragging = false;
+    slideThumb.classList.remove('dragging');
+    const currentLeft = parseFloat(slideThumb.style.left || '4');
+    if(currentLeft >= 4 + maxDrag * 0.82){
+      slideThumb.style.left = (4 + maxDrag) + 'px';
+      setTimeout(answerCall, 150);
+    }else{
+      resetSlideThumb();
+    }
+  }
+
+  slideThumb.addEventListener('touchstart', onDragStart, { passive: true });
+  slideThumb.addEventListener('touchmove', onDragMove, { passive: true });
+  slideThumb.addEventListener('touchend', onDragEnd);
+  slideThumb.addEventListener('mousedown', onDragStart);
+  window.addEventListener('mousemove', onDragMove);
+  window.addEventListener('mouseup', onDragEnd);
+})();
 </script>
 </body>
 </html>
