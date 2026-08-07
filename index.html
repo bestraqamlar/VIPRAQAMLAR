@@ -829,22 +829,29 @@
 
   .cp-phone-body{
     position:relative;width:min(300px, 82vw);aspect-ratio:9/19.5;
-    background:#0a0a0c;border-radius:48px;padding:12px;
+    background:linear-gradient(155deg, #3a3a3d 0%, #232326 12%, #18181a 50%, #232326 88%, #3a3a3d 100%);
+    border-radius:52px;padding:9px;
     box-shadow:
-      0 40px 90px rgba(80,40,60,0.28),
-      0 12px 30px rgba(30,20,60,0.18),
-      inset 0 0 0 2px rgba(255,255,255,0.07);
+      0 50px 100px rgba(80,40,60,0.3),
+      0 16px 36px rgba(30,20,60,0.2),
+      inset 0 0 0 1px rgba(255,255,255,0.12),
+      inset 0 1px 2px rgba(255,255,255,0.2);
     transform:scale(0.9) translateY(14px);
     transition:transform .4s cubic-bezier(.22,1,.36,1);
   }
   .cp-call-overlay.open .cp-phone-body{transform:scale(1) translateY(0);}
   .cp-phone-body::before{
     /* nozik metall qirra — chetlarida yorug'lik aksi */
-    content:'';position:absolute;inset:0;border-radius:48px;pointer-events:none;z-index:1;
-    background:linear-gradient(135deg, rgba(255,255,255,0.18), transparent 25%, transparent 75%, rgba(255,255,255,0.1));
+    content:'';position:absolute;inset:0;border-radius:52px;pointer-events:none;z-index:1;
+    background:linear-gradient(135deg, rgba(255,255,255,0.16), transparent 22%, transparent 78%, rgba(255,255,255,0.1));
   }
+  .cp-phone-side-btn{position:absolute;background:linear-gradient(90deg,#0c0c0e,#2a2a2d);z-index:2;}
+  .cp-phone-side-btn.mute{left:-2.5px;top:19%;width:2.5px;height:26px;border-radius:2px 0 0 2px;}
+  .cp-phone-side-btn.vol-up{left:-2.5px;top:26%;width:2.5px;height:44px;border-radius:2px 0 0 2px;}
+  .cp-phone-side-btn.vol-down{left:-2.5px;top:33%;width:2.5px;height:44px;border-radius:2px 0 0 2px;}
+  .cp-phone-side-btn.power{right:-2.5px;top:24%;width:2.5px;height:64px;border-radius:0 2px 2px 0;}
   .cp-phone-screen{
-    position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;
+    position:relative;width:100%;height:100%;border-radius:44px;overflow:hidden;
     background:
       radial-gradient(120% 90% at 15% 0%, rgba(90,95,110,0.9), transparent 55%),
       radial-gradient(140% 100% at 85% 100%, rgba(200,40,110,0.85), transparent 60%),
@@ -857,12 +864,13 @@
     background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,0.28) 100%);
   }
   .cp-device-notch{
-    position:absolute;top:12px;left:50%;transform:translateX(-50%);
-    width:34%;height:20px;background:#000;border-radius:16px;z-index:10;
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    width:31%;height:19px;background:#000;border-radius:20px;z-index:10;
     display:flex;align-items:center;justify-content:flex-end;padding:0 8px;gap:4px;
     transition:width .3s ease;
+    box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.06);
   }
-  .cp-device-notch.show-dot{width:44%;}
+  .cp-device-notch.show-dot{width:41%;}
   .cp-island-dot{
     width:0;height:0;border-radius:50%;background:#FF9500;opacity:0;
     transition:width .25s ease .1s, height .25s ease .1s, opacity .2s ease .1s;
@@ -952,7 +960,7 @@
   }
   .cp-square-action{display:flex;flex-direction:column;align-items:center;gap:5px;}
   .cp-square-icon{
-    width:100%;aspect-ratio:1;border-radius:13px;background:rgba(255,255,255,0.18);
+    width:100%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,0.18);
     backdrop-filter:blur(10px);
     display:flex;align-items:center;justify-content:center;color:#fff;
     transition:background .15s ease, transform .12s ease;
@@ -1858,6 +1866,10 @@
 <div class="cp-call-overlay" id="cpCallOverlay">
   <button type="button" class="cp-exit-btn" id="cpExitBtn" aria-label="Yopish">✕</button>
   <div class="cp-phone-body">
+    <div class="cp-phone-side-btn mute"></div>
+    <div class="cp-phone-side-btn vol-up"></div>
+    <div class="cp-phone-side-btn vol-down"></div>
+    <div class="cp-phone-side-btn power"></div>
     <div class="cp-phone-screen">
     <div class="cp-device-notch" id="cpDynamicIsland"><span class="cp-island-dot"></span></div>
     <div class="cp-home-indicator"></div>
