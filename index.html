@@ -689,24 +689,6 @@
   }
 
   .featured-section{max-width:1100px;margin:0 auto;padding:8px 16px 8px;}
-  @media (max-width:768px){
-    .featured-section.fc-mode{
-      position:relative;padding-top:10px;padding-bottom:10px;
-    }
-    .featured-section.fc-mode::before{
-      content:'';position:absolute;inset:-10px 0 4px;z-index:-1;
-      background:
-        radial-gradient(50% 90% at 30% 40%, rgba(255,176,0,0.08), transparent 70%),
-        radial-gradient(50% 90% at 70% 55%, rgba(59,110,235,0.10), transparent 70%),
-        radial-gradient(70% 100% at 50% 45%, rgba(15,25,55,0.6), transparent 75%);
-      background-size:180% 180%, 180% 180%, 100% 100%;
-      animation:fcBgDrift 9s ease-in-out infinite;
-    }
-    @keyframes fcBgDrift{
-      0%,100%{background-position:0% 0%, 100% 100%, center;}
-      50%{background-position:30% 20%, 70% 80%, center;}
-    }
-  }
   .featured-header{
     display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
   }
@@ -721,18 +703,6 @@
   }
   .featured-scroll::-webkit-scrollbar{display:none;}
 
-  /* ---- "Mashhur raqamlar" 3D karusel — faqat telefon ekranida:
-     markazdagi kartochka kattalashadi, chetdagilar orqaga qiyalashib
-     kichrayadi (coverflow uslubi). ---- */
-  @media (max-width:768px){
-    .featured-scroll.fc-active{
-      padding:20px 0 14px;gap:14px;
-    }
-    .featured-scroll.fc-active .featured-card{
-      width:200px;flex-shrink:0;
-      will-change:transform;
-    }
-  }
   .daily-deal-scroll{
     display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
     scrollbar-width:none;-webkit-overflow-scrolling:touch;
@@ -2780,133 +2750,7 @@ function renderFeatured(){
   featuredScroll.querySelectorAll('.featured-btn:not(.reserved-btn)').forEach(btn=>{
     btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
   });
-
-  initFeaturedCoverflow();
 }
-
-/* ==================================================================
-   "MASHHUR RAQAMLAR" 3D KARUSEL — FAQAT TELEFON EKRANIDA.
-   Markazdagi kartochka kattalashib, aniq ko'rinadi; chetdagilari
-   orqaga qiyalashib (3D), kichrayib, xiralashadi — "coverflow" uslubi.
-   Avtomatik, bir necha soniyada o'zi keyingisiga o'tadi; mijoz qo'li
-   bilan ham (svayp/tortish) erkin boshqarishi mumkin.
-   ================================================================== */
-let featuredCoverflowInited = false;
-function initFeaturedCoverflow(){
-  const isMobile = window.matchMedia('(max-width:768px)').matches;
-  const scroll = featuredScroll;
-  const section = featuredSection;
-
-  if(!isMobile){
-    scroll.classList.remove('fc-active');
-    section.classList.remove('fc-mode');
-    scroll.style.overflow = '';
-    return;
-  }
-  scroll.classList.add('fc-active');
-  section.classList.add('fc-mode');
-  scroll.style.overflow = 'hidden'; // haqiqiy scroll o'chiriladi — hammasini o'zimiz boshqaramiz
-
-  function getCards(){ return Array.from(scroll.querySelectorAll('.featured-card')); }
-  const cards = getCards();
-  if(cards.length === 0) return;
-
-  const step = cards[0].offsetWidth + 14; // kartochka kengligi + oraliq
-  let fcIdx = 0;
-  let dragOffset = 0;
-
-  function layoutCards(withTransition){
-    cards.forEach((card, i)=>{
-      const dist = (i - fcIdx) * step - dragOffset;
-      const norm = Math.max(-1, Math.min(1, dist / (scroll.clientWidth / 2)));
-      const scale = 1 - Math.abs(norm) * 0.32;
-      const rotateY = norm * -24;
-      const translateZ = -Math.abs(norm) * 60;
-      card.style.transition = withTransition
-        ? 'transform .42s cubic-bezier(.22,1,.36,1), opacity .42s ease, box-shadow .42s ease'
-        : 'none';
-      card.style.transform = `translateX(${dist}px) perspective(900px) scale(${scale}) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
-      card.style.opacity = String(Math.max(0.15, 1 - Math.abs(dist / (scroll.clientWidth / 2 + step)) * 0.65));
-      card.style.zIndex = String(Math.round((1 - Math.abs(norm)) * 10));
-      const glowStrength = Math.max(0, 1 - Math.abs(norm) * 2.1);
-      card.style.boxShadow = glowStrength > 0
-        ? `0 ${14 + glowStrength * 14}px ${30 + glowStrength * 26}px rgba(255,176,0,${(glowStrength * 0.28).toFixed(2)})`
-        : 'none';
-    });
-  }
-
-  cards.forEach(card=>{
-    card.style.position = 'absolute';
-    card.style.left = '50%';
-    card.style.marginLeft = -(card.offsetWidth / 2) + 'px';
-    card.style.top = '0';
-  });
-  scroll.style.position = 'relative';
-  // Eng baland kartochkaga qarab o'lchaymiz — matn uzunligi turlicha
-  // bo'lsa ham, hech qaysi karta pastdan kesilib qolmasligi uchun.
-  const maxCardHeight = Math.max(...cards.map(c => c.offsetHeight));
-  scroll.style.height = maxCardHeight + 'px';
-
-  function goToIdx(newIdx){
-    fcIdx = Math.max(0, Math.min(cards.length - 1, newIdx));
-    dragOffset = 0;
-    layoutCards(true);
-    if(navigator.vibrate) navigator.vibrate(15);
-  }
-
-  // ---- Sudrash — QANCHA TEZ SURILMASIN, doim FAQAT BITTADAN o'tadi ----
-  let dragging = false, startX = 0;
-  function pointX(e){ return e.touches ? e.touches[0].clientX : e.clientX; }
-  function onDown(e){
-    dragging = true;
-    startX = pointX(e);
-    layoutCards(false);
-  }
-  function onMove(e){
-    if(!dragging) return;
-    dragOffset = -(pointX(e) - startX);
-    layoutCards(false);
-  }
-  function onUp(){
-    if(!dragging) return;
-    dragging = false;
-    const THRESHOLD = 40;
-    if(dragOffset > THRESHOLD) goToIdx(fcIdx + 1);
-    else if(dragOffset < -THRESHOLD) goToIdx(fcIdx - 1);
-    else{ dragOffset = 0; layoutCards(true); }
-  }
-  scroll.addEventListener('touchstart', onDown, { passive: true });
-  scroll.addEventListener('touchmove', onMove, { passive: true });
-  scroll.addEventListener('touchend', onUp);
-  scroll.addEventListener('mousedown', onDown);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onUp);
-
-  let userInteracting = false;
-  let resumeTimer = null;
-  function pauseAuto(){
-    userInteracting = true;
-    if(resumeTimer) clearTimeout(resumeTimer);
-    resumeTimer = setTimeout(()=>{ userInteracting = false; }, 3500);
-  }
-  scroll.addEventListener('touchstart', pauseAuto, { passive: true });
-  scroll.addEventListener('mousedown', pauseAuto);
-
-  if(featuredCoverflowTimer) clearInterval(featuredCoverflowTimer);
-  featuredCoverflowTimer = setInterval(()=>{
-    if(userInteracting) return;
-    goToIdx((fcIdx + 1) % cards.length);
-  }, 2800);
-
-  layoutCards(false);
-  featuredCoverflowInited = true;
-}
-
-let featuredCoverflowTimer = null;
-window.addEventListener('resize', ()=>{
-  if(!featuredSection || featuredSection.style.display === 'none') return;
-  initFeaturedCoverflow();
-});
 
 const dailyDealSection = document.getElementById('dailyDealSection');
 const dailyDealScroll  = document.getElementById('dailyDealScroll');
@@ -5034,12 +4878,16 @@ function takeWarmedVideo(url){
 
 showSkeletons();
 (async function init(){
+  // "Mijozlar fikri" va "Premium video" raqamlar bazasiga bog'liq emas —
+  // shu sabab ularni DARHOL, katalog bilan BIR VAQTDA (parallel) ishga
+  // tushiramiz, ketma-ket kutib o'tirmaydi.
+  try{ if(window.__loadVideoTestimonials) window.__loadVideoTestimonials(); }catch(e){ console.error('init: video testimonials xato:', e); }
+  try{ if(window.__loadPremiumVideos) window.__loadPremiumVideos(); }catch(e){ console.error('init: premium videos xato:', e); }
+
   try{ await loadNumbers(); }catch(e){ console.error('init: loadNumbers xato:', e); }
   try{ renderCatalog(); }catch(e){ console.error('init: renderCatalog xato:', e); }
   try{ renderFeatured(); }catch(e){ console.error('init: renderFeatured xato:', e); }
   try{ renderDailyDeal(); }catch(e){ console.error('init: renderDailyDeal xato:', e); }
-  try{ if(window.__loadVideoTestimonials) window.__loadVideoTestimonials(); }catch(e){ console.error('init: video testimonials xato:', e); }
-  try{ if(window.__loadPremiumVideos) window.__loadPremiumVideos(); }catch(e){ console.error('init: premium videos xato:', e); }
 })();
 
 // XAVFSIZLIK TO'RI: yuqoridagi jarayonda kutilmagan xato bo'lib, katalog
