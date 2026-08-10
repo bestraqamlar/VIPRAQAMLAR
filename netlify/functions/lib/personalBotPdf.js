@@ -197,4 +197,98 @@ function buildStatsPdfBuffer(summary, periodLabel, ownerName) {
   });
 }
 
-module.exports = { buildPlansPdfBuffer, buildStatsPdfBuffer, fmtMoney, fmtDateTime };
+// ---------------- KREDIT SHARTNOMALAR — UMUMIY PDF ----------------
+function buildCreditPdfBuffer(contracts, ownerName) {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ size: 'A4', margin: PAGE_MARGIN, bufferPages: true });
+      const chunks = [];
+      doc.on('data', c => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      drawHeader(doc, `${ownerName || ''} — Kredit shartnomalar`.trim(), `Jami: ${contracts.length} ta shartnoma — ${fmtDateTime(Date.now())}`);
+
+      // ---- Umumiy ko'rsatkich kartalari ----
+      const activeContracts = contracts.filter(c => c.contractStatus !== 'completed' && c.contractStatus !== 'cancelled');
+      const totalMonthly = activeContracts.reduce((sum, c) => sum + (Number(c.monthlyPayment) || 0), 0);
+      const cardW = (CONTENT_WIDTH - 20) / 3;
+      const cards = [
+        { label: 'JAMI SHARTNOMA', value: String(contracts.length), color: BRAND },
+        { label: 'FAOL SHARTNOMA', value: String(activeContracts.length), color: GREEN },
+        { label: 'OYLIK TUSHUM (FAOL)', value: fmtMoney(totalMonthly), color: BRAND_DARK }
+      ];
+      cards.forEach((c, i) => {
+        const x = PAGE_MARGIN + i * (cardW + 10);
+        doc.roundedRect(x, doc.y, cardW, 60, 6).fillAndStroke('#F7F9FC', '#E5E9F2');
+        doc.font('Helvetica').fontSize(8.5).fillColor(TEXT_MUTED).text(c.label, x + 12, doc.y + 10);
+        doc.font('Helvetica-Bold').fontSize(11.5).fillColor(c.color).text(c.value, x + 12, doc.y + 27, { width: cardW - 22 });
+      });
+      doc.y += 76;
+
+      drawCreditTable(doc, contracts);
+
+      drawFooter(doc);
+      doc.end();
+    } catch (err) { reject(err); }
+  });
+}
+
+function drawCreditTable(doc, contracts) {
+  ensureSpace(doc, 40);
+  doc.font('Helvetica-Bold').fontSize(13).fillColor(BRAND).text('Barcha shartnomalar', PAGE_MARGIN, doc.y);
+  doc.y += 20;
+
+  if (!contracts || contracts.length === 0) {
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor(TEXT_MUTED).text('Shartnoma topilmadi.', PAGE_MARGIN, doc.y);
+    doc.y += 18;
+    doc.fillColor('#000');
+    return;
+  }
+
+  const startX = PAGE_MARGIN;
+  const colName = 110, colNumber = 105, colMonthly = 90, colMonths = 55, colStatus = CONTENT_WIDTH - colName - colNumber - colMonthly - colMonths;
+
+  ensureSpace(doc, 26);
+  const headerH = 24;
+  doc.rect(startX, doc.y, CONTENT_WIDTH, headerH).fill(BRAND_DARK);
+  doc.fillColor('#fff').font('Helvetica-Bold').fontSize(8.5);
+  doc.text('MIJOZ', startX + 8, doc.y + 8, { width: colName - 8 });
+  doc.text('RAQAM', startX + colName + 6, doc.y + 8, { width: colNumber - 6 });
+  doc.text('OYLIK TO\'LOV', startX + colName + colNumber + 6, doc.y + 8, { width: colMonthly - 6 });
+  doc.text('MUDDAT', startX + colName + colNumber + colMonthly + 6, doc.y + 8, { width: colMonths - 6 });
+  doc.text('HOLATI', startX + colName + colNumber + colMonthly + colMonths + 6, doc.y + 8, { width: colStatus - 10 });
+  doc.y += headerH;
+
+  const STATUS_LABELS = { active: 'Faol', completed: 'Yakunlangan', cancelled: 'Bekor qilingan', overdue: "Qarzdor" };
+  const STATUS_COLORS = { active: GREEN, completed: TEXT_MUTED, cancelled: RED, overdue: RED };
+
+  let rowIdx = 0;
+  for (const c of contracts) {
+    const nameText = c.customerName || '—';
+    const textOptions = { width: colName - 8 };
+    const textHeight = doc.font('Helvetica').fontSize(9).heightOfString(nameText, textOptions);
+    const rowHeight = Math.max(22, textHeight + 12);
+
+    ensureSpace(doc, rowHeight);
+    const rowY = doc.y;
+    const bg = rowIdx % 2 === 0 ? ROW_ALT : '#FFFFFF';
+    doc.rect(startX, rowY, CONTENT_WIDTH, rowHeight).fill(bg);
+
+    doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9);
+    doc.text(nameText, startX + 8, rowY + 6, textOptions);
+    doc.fillColor(TEXT_MUTED).text(c.number || '—', startX + colName + 6, rowY + 6, { width: colNumber - 6 });
+    doc.fillColor(TEXT_DARK).text(fmtMoney(c.monthlyPayment), startX + colName + colNumber + 6, rowY + 6, { width: colMonthly - 6 });
+    doc.fillColor(TEXT_MUTED).text(`${c.totalMonths || '—'} oy`, startX + colName + colNumber + colMonthly + 6, rowY + 6, { width: colMonths - 6 });
+    const statusKey = c.contractStatus || 'active';
+    doc.fillColor(STATUS_COLORS[statusKey] || TEXT_MUTED).font('Helvetica-Bold')
+      .text(STATUS_LABELS[statusKey] || statusKey, startX + colName + colNumber + colMonthly + colMonths + 6, rowY + 6, { width: colStatus - 10 });
+
+    doc.y = rowY + rowHeight;
+    rowIdx++;
+  }
+  doc.fillColor('#000');
+  doc.y += 6;
+}
+
+module.exports = { buildPlansPdfBuffer, buildStatsPdfBuffer, buildCreditPdfBuffer, fmtMoney, fmtDateTime };

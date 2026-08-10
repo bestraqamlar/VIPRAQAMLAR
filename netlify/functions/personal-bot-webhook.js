@@ -11,7 +11,7 @@
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 const admin = require('firebase-admin');
-const { buildPlansPdfBuffer, buildStatsPdfBuffer } = require('./lib/personalBotPdf');
+const { buildPlansPdfBuffer, buildStatsPdfBuffer, buildCreditPdfBuffer } = require('./lib/personalBotPdf');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -109,7 +109,8 @@ async function answerCallback(callbackId, text) {
 function mainMenuRows() {
   return [
     ['➖ Xarajat', '➕ Daromad'],
-    ['📊 Statistika', '📝 Rejalarim']
+    ['📊 Statistika', '📝 Rejalarim'],
+    ['💳 Kredit shartnomalar']
   ];
 }
 // Har bir ichki bosqichda — tanlov tugmalari + Orqaga/Bekor qilish
@@ -209,7 +210,41 @@ async function renderStep(chatId, state) {
     case 'STATS_FORMAT':
       await sendMessage(chatId, "Qanday ko'rinishda ko'rsataylik?", stepRows([['📝 Matn orqali', '📄 PDF orqali']]));
       break;
+    case 'CREDIT_MENU':
+      await sendMessage(chatId, "💳 Kredit shartnomalar:", stepRows([['📋 Ro\'yxatni ko\'rish'], ['➕ Yangi shartnoma'], ['📄 Umumiy PDF']]));
+      break;
+    case 'CREDIT_NAME':
+      await sendMessage(chatId, "👤 Mijozning ism-familiyasini kiriting:", stepRows([]));
+      break;
+    case 'CREDIT_PHONE':
+      await sendMessage(chatId, "📱 Mijoz telefon raqamini kiriting:\n(masalan: 998901234567)", stepRows([]));
+      break;
+    case 'CREDIT_REGION':
+      await sendMessage(chatId, "📍 Viloyatni kiriting:", stepRows([]));
+      break;
+    case 'CREDIT_NUMBER':
+      await sendMessage(chatId, "📞 Kredit bilan olingan raqamni kiriting:", stepRows([]));
+      break;
+    case 'CREDIT_MONTHS':
+      await sendMessage(chatId, "🗓 Necha oyga bo'lib to'lash? (raqam kiriting)", stepRows([]));
+      break;
+    case 'CREDIT_MONTHLY':
+      await sendMessage(chatId, "💰 Har oylik to'lov summasini kiriting:", stepRows([]));
+      break;
+    case 'CREDIT_PAYDAY':
+      await sendMessage(chatId, "📆 Har oyning nechanchi kunida to'lanadi? (1-31)", stepRows([]));
+      break;
+    case 'CREDIT_INFO':
+      await sendMessage(chatId, "📝 Qo'shimcha izoh (bo'lmasa \"yo'q\" deb yozing):", stepRows([]));
+      break;
+    case 'CREDIT_CONFIRM':
+      await sendMessage(chatId, buildCreditConfirmText(state.data), stepRows([['✅ Saqlash']]));
+      break;
   }
+}
+
+function buildCreditConfirmText(d) {
+  return `Tekshiring:\n\n👤 ${escapeHtml(d.crName)}\n📱 ${escapeHtml(d.crPhone)}\n📍 ${escapeHtml(d.crRegion)}\n📞 ${escapeHtml(d.crNumber)}\n🗓 ${d.crMonths} oy\n💰 ${formatSom(d.crMonthly)} / oyiga\n📆 Har oyning ${d.crPayDay}-kuni\n📝 ${escapeHtml(d.crInfo)}\n\nHammasi to'g'rimi?`;
 }
 
 // ---------- Asosiy handler ----------
@@ -260,6 +295,7 @@ async function handleMessage(msg) {
   if (text === '➕ Daromad') { await goToStep(chatId, 'INCOME_AMOUNT'); return; }
   if (text === '📊 Statistika') { await goToStep(chatId, 'STATS_PERIOD'); return; }
   if (text === '📝 Rejalarim') { await goToStep(chatId, 'PLANS_FORMAT'); return; }
+  if (text === '💳 Kredit shartnomalar') { await goToStep(chatId, 'CREDIT_MENU'); return; }
 
   const state = await getState();
 
@@ -395,6 +431,89 @@ async function handleMessage(msg) {
     return;
   }
 
+  // ---- Kredit shartnomalar menyusi ----
+  if (state.step === 'CREDIT_MENU') {
+    if (text === "📋 Ro'yxatni ko'rish") {
+      await sendTyping(chatId);
+      await renderCreditList(chatId);
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      return;
+    }
+    if (text === '➕ Yangi shartnoma') { await goToStep(chatId, 'CREDIT_NAME'); return; }
+    if (text === '📄 Umumiy PDF') {
+      await sendTyping(chatId);
+      await sendCreditPdf(chatId);
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      return;
+    }
+  }
+
+  // ---- Yangi kredit shartnoma — bosqichma-bosqich ----
+  if (state.step === 'CREDIT_NAME') {
+    await goToStep(chatId, 'CREDIT_PHONE', { crName: text });
+    return;
+  }
+  if (state.step === 'CREDIT_PHONE') {
+    await goToStep(chatId, 'CREDIT_REGION', { crPhone: text });
+    return;
+  }
+  if (state.step === 'CREDIT_REGION') {
+    await goToStep(chatId, 'CREDIT_NUMBER', { crRegion: text });
+    return;
+  }
+  if (state.step === 'CREDIT_NUMBER') {
+    await goToStep(chatId, 'CREDIT_MONTHS', { crNumber: text });
+    return;
+  }
+  if (state.step === 'CREDIT_MONTHS') {
+    const months = parseInt(text.replace(/\D/g, ''), 10);
+    if (!months || months <= 0) { await sendMessage(chatId, "❗️ Oy sonini raqamda kiriting.", stepRows([])); return; }
+    await goToStep(chatId, 'CREDIT_MONTHLY', { crMonths: months });
+    return;
+  }
+  if (state.step === 'CREDIT_MONTHLY') {
+    const monthly = parseFloat(text.replace(/[^\d.]/g, ''));
+    if (!monthly || monthly <= 0) { await sendMessage(chatId, "❗️ Summani raqamda kiriting.", stepRows([])); return; }
+    await goToStep(chatId, 'CREDIT_PAYDAY', { crMonthly: monthly });
+    return;
+  }
+  if (state.step === 'CREDIT_PAYDAY') {
+    const payDay = parseInt(text.replace(/\D/g, ''), 10);
+    if (!payDay || payDay < 1 || payDay > 31) { await sendMessage(chatId, "❗️ 1 dan 31 gacha bo'lgan kunni kiriting.", stepRows([])); return; }
+    await goToStep(chatId, 'CREDIT_INFO', { crPayDay: payDay });
+    return;
+  }
+  if (state.step === 'CREDIT_INFO') {
+    await goToStep(chatId, 'CREDIT_CONFIRM', { crInfo: text });
+    return;
+  }
+  if (state.step === 'CREDIT_CONFIRM' && text === '✅ Saqlash') {
+    await sendTyping(chatId);
+    try {
+      const d = state.data;
+      const contractId = 'C' + Date.now();
+      const startTs = Date.now();
+      const payments = Array.from({ length: d.crMonths }, (_, i) => ({
+        month: i + 1,
+        dueAt: startTs + (i + 1) * 30 * 24 * 60 * 60 * 1000,
+        amount: d.crMonthly,
+        paid: false
+      }));
+      await db.collection('credit_contracts').doc(contractId).set({
+        contractId, customerName: d.crName, customerPhone: d.crPhone, region: d.crRegion,
+        number: d.crNumber, totalMonths: d.crMonths, monthlyPayment: d.crMonthly,
+        paymentDay: d.crPayDay, additionalInfo: d.crInfo === "yo'q" ? '' : d.crInfo,
+        createdAt: startTs, payments, contractStatus: 'active', customerChatId: null
+      });
+      await saveState({ step: 'MAIN', history: [], data: {} });
+      await sendMessage(chatId, `✅ Shartnoma saqlandi.\nID: ${contractId}`);
+    } catch (err) {
+      console.error('Kredit shartnoma saqlashda xato:', err);
+      await sendMessage(chatId, `❌ Xato: ${err.message}`, stepRows([['✅ Saqlash']]));
+    }
+    return;
+  }
+
   // ---- Hech biriga mos kelmadi — ERKIN MATN, AI qabul qiladi ----
   await sendTyping(chatId);
   await handleFreeTextWithAI(chatId, text);
@@ -513,6 +632,42 @@ async function sendCompletedPlans(chatId) {
     }
   }
   await sendMessage(chatId, text);
+}
+
+async function fetchCreditContracts() {
+  const snap = await db.collection('credit_contracts').orderBy('createdAt', 'desc').get();
+  const contracts = [];
+  snap.forEach(doc => contracts.push(doc.data()));
+  return contracts;
+}
+
+const CREDIT_STATUS_LABELS = { active: '🟢 Faol', completed: '⚪️ Yakunlangan', cancelled: '🔴 Bekor qilingan', overdue: '🟠 Qarzdor' };
+
+async function renderCreditList(chatId) {
+  const contracts = await fetchCreditContracts();
+  if (contracts.length === 0) {
+    await sendMessage(chatId, "Hozircha kredit shartnoma yo'q.");
+    return;
+  }
+  const active = contracts.filter(c => (c.contractStatus || 'active') === 'active');
+  const totalMonthly = active.reduce((s, c) => s + (Number(c.monthlyPayment) || 0), 0);
+
+  let text = `💳 <b>Kredit shartnomalar</b>\nJami: ${contracts.length} ta (${active.length} ta faol)\nOylik tushum (faol): ${formatSom(totalMonthly)}\n\n`;
+  const shown = contracts.slice(0, 20);
+  shown.forEach(c => {
+    const statusLabel = CREDIT_STATUS_LABELS[c.contractStatus || 'active'] || c.contractStatus;
+    text += `${statusLabel} <b>${escapeHtml(c.customerName)}</b>\n📞 ${escapeHtml(c.number)} — ${formatSom(c.monthlyPayment)}/oy, ${c.totalMonths} oy\n\n`;
+  });
+  if (contracts.length > shown.length) {
+    text += `... va yana ${contracts.length - shown.length} ta. To'liq ro'yxat uchun "📄 Umumiy PDF"ni tanlang.`;
+  }
+  await sendMessage(chatId, text);
+}
+
+async function sendCreditPdf(chatId) {
+  const contracts = await fetchCreditContracts();
+  const buffer = await buildCreditPdfBuffer(contracts, OWNER_NAME);
+  await sendDocument(chatId, buffer, `kredit_shartnomalar_${Date.now()}.pdf`, '📄 Barcha kredit shartnomalar');
 }
 
 async function sendPlansPdf(chatId) {
