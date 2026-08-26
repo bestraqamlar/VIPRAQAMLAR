@@ -253,6 +253,18 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 200, body: 'ok' };
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
 
+  // XAVFSIZLIK: bu bot faqat egasi (Asadbek) uchun — moliyaviy ma'lumotlar
+  // bilan ishlaydi. Telegram'ning o'zidan kelayotganini QAT'IY tasdiqlaymiz:
+  // PERSONAL_BOT_WEBHOOK_SECRET sozlanmagan bo'lsa ham so'rov RAD ETILADI
+  // (fail-closed) — buni ishlashi uchun Netlify'da shu o'zgaruvchini
+  // sozlab, Telegram'ga setWebhook chaqirganda secret_token sifatida
+  // xuddi shu qiymatni yuborish kerak.
+  const expectedSecret = process.env.PERSONAL_BOT_WEBHOOK_SECRET;
+  const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
+  if (!expectedSecret || gotSecret !== expectedSecret) {
+    return { statusCode: 401, body: 'unauthorized' };
+  }
+
   let update;
   try { update = JSON.parse(event.body || '{}'); }
   catch (e) { return { statusCode: 200, body: 'ok' }; }

@@ -1348,7 +1348,7 @@ async function loadPriceCategories(){
         <div class="zk-cat-row">
           <span class="zk-cat-pattern">••${escapeHtml(d.id)}</span>
           <span class="zk-cat-price">${formatPrice(data.startPrice)}</span>
-          <button data-id="${d.id}" class="zk-del-btn" aria-label="O'chirish">✕</button>
+          <button data-id="${escapeHtml(d.id)}" class="zk-del-btn" aria-label="O'chirish">✕</button>
         </div>`;
     }).join('');
     listEl.querySelectorAll('.zk-del-btn').forEach(btn=>{
@@ -1522,6 +1522,7 @@ async function doLogin(){
     refreshOrders();
     startSessionTimer();
     startVisitorTracking();
+    checkAdminClaimStatus();
   }catch(err){
     // Firebase'ning haqiqiy sababini ko'rsatamiz — "noto'g'ri" degan umumiy
     // matn bilan nima bo'lganini aniqlab bo'lmas edi (parolmi, emailmi,
@@ -1542,6 +1543,29 @@ async function doLogin(){
     console.error('Login xatosi:', err.code, err.message);
   }
   btn.disabled = false;
+}
+
+/* XAVFSIZLIK TEKSHIRUVI: tizimga kirgan hisobda HAQIQIY admin huquqi
+   (custom claim) bor-yo'qligini tekshiradi. Agar yo'q bo'lsa — bu hisob
+   Firestore'dagi hech qanday admin ma'lumotini (buyurtmalar, raqamlar
+   qo'shish/o'chirish va h.k.) ko'ra/o'zgartira olmaydi, chunki
+   firestore.rules endi shu huquqni talab qiladi. Ekranda katta,
+   ko'zga tashlanadigan ogohlantirish ko'rsatamiz — aks holda admin
+   nega hech narsa yuklanmayotganini tushunmay qolishi mumkin edi. */
+async function checkAdminClaimStatus(){
+  try{
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/admin-whoami', {
+      headers: { 'Authorization': 'Bearer ' + idToken }
+    });
+    const data = await res.json();
+    if(!data.admin){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;padding:14px 16px;text-align:center;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3);';
+      banner.textContent = "⚠️ Diqqat: bu hisobda hali ADMIN huquqi (custom claim) yo'q — buyurtmalar, raqamlar va boshqa ma'lumotlar YUKLANMAYDI. admin-grant-role.js orqali huquq bering, so'ng qayta tizimga kiring.";
+      document.body.appendChild(banner);
+    }
+  }catch(e){ console.error('Admin huquqi tekshirilmadi:', e); }
 }
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   stopSessionTimer();
@@ -1875,21 +1899,21 @@ function renderCreditList(contracts){
     return `
     <div class="admin-row-collapsed" data-id="${d.id}">
       <div class="an-summary" data-id="${d.id}">
-        <span class="an-summary-num">${d.customerName}</span>
-        <span class="an-summary-op">${d.contractId}</span>
+        <span class="an-summary-num">${escapeHtml(d.customerName)}</span>
+        <span class="an-summary-op">${escapeHtml(d.contractId)}</span>
         <span class="an-summary-price">${paidCount}/${d.totalMonths} oy</span>
         <span class="an-summary-arrow">▾</span>
       </div>
       <div class="an-body" style="display:none;">
         <div class="credit-card" data-id="${d.id}" style="border:none;border-radius:0;margin:0;">
           <label class="cr-edit-label">Ism</label>
-          <input type="text" class="cr-edit-name" value="${d.customerName}">
+          <input type="text" class="cr-edit-name" value="${escapeHtml(d.customerName)}">
           <label class="cr-edit-label">Ishlab turgan raqami</label>
-          <input type="text" class="cr-edit-phone" value="${d.customerPhone}">
+          <input type="text" class="cr-edit-phone" value="${escapeHtml(d.customerPhone)}">
           <label class="cr-edit-label">Manzil</label>
-          <input type="text" class="cr-edit-region" value="${d.region}">
+          <input type="text" class="cr-edit-region" value="${escapeHtml(d.region)}">
           <label class="cr-edit-label">Kreditga olingan raqam</label>
-          <input type="text" class="cr-edit-number" value="${d.number}">
+          <input type="text" class="cr-edit-number" value="${escapeHtml(d.number)}">
           <label class="cr-edit-label">Oylik to'lov (so'm)</label>
           <input type="number" class="cr-edit-monthly" value="${d.monthlyPayment}">
           <label class="cr-edit-label">Shartnoma sanasi</label>
@@ -1899,7 +1923,7 @@ function renderCreditList(contracts){
           <label class="cr-edit-label">Necha oyga (jami muddat)</label>
           <input type="number" class="cr-edit-months" min="1" value="${d.totalMonths}">
           <label class="cr-edit-label">Qo'shimcha ma'lumot</label>
-          <input type="text" class="cr-edit-info" value="${d.additionalInfo || ''}">
+          <input type="text" class="cr-edit-info" value="${escapeHtml(d.additionalInfo || '')}">
           <button class="cr-save-btn" data-id="${d.id}">Saqlash</button>
           <p style="color:var(--muted);font-size:11px;margin:6px 0 0;">Sana, oy soni yoki to'lov kunini o'zgartirsangiz, oylik to'lov jadvali shu bo'yicha avtomatik qayta hisoblanadi.</p>
 
@@ -2102,7 +2126,7 @@ async function loadPromoCodes(){
       const d = doc.data();
       return `
         <div style="display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;">
-          <div style="font-size:12.5px;"><b>${d.code}</b> — ${formatPrice(d.discount || 0)} chegirma</div>
+          <div style="font-size:12.5px;"><b>${escapeHtml(d.code)}</b> — ${formatPrice(d.discount || 0)} chegirma</div>
           <button class="promo-delete" data-id="${doc.id}" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">O'chirish</button>
         </div>`;
     }).join('');
@@ -2302,8 +2326,8 @@ async function refreshSessions(){
     sessionsList.innerHTML = sessions.map((s, i) => `
       <div class="session-row">
         <span class="sr-index">${i + 1}</span>
-        <span class="sr-device">${s.device}</span>
-        <span class="sr-time">${s.loginAt}</span>
+        <span class="sr-device">${escapeHtml(s.device)}</span>
+        <span class="sr-time">${escapeHtml(s.loginAt)}</span>
       </div>
     `).join('');
   }catch(err){
@@ -2372,7 +2396,11 @@ function aiAddResultsList(title, items, total){
   items.forEach(it=>{
     const row = document.createElement('div');
     row.className = 'ai-results-row';
-    row.innerHTML = `<span class="ai-results-num">${it.number || ''} ${it.label ? '· ' + it.label : ''}</span><span class="ai-results-price">${formatPrice(it.price||0)}</span>`;
+    // XAVFSIZLIK: it.number/it.label bazadan (masalan anonim mijoz
+    // yozgan 'orders' hujjatidan) kelishi mumkin — shu sabab escapeHtml
+    // orqali tozalanadi (aks holda mijoz nomi ichiga yozilgan <script>
+    // kabi kod admin brauzerida ishga tushib qolishi mumkin edi).
+    row.innerHTML = `<span class="ai-results-num">${escapeHtml(it.number || '')} ${it.label ? '· ' + escapeHtml(it.label) : ''}</span><span class="ai-results-price">${formatPrice(it.price||0)}</span>`;
     box.appendChild(row);
   });
   aiChatBox.appendChild(box);
@@ -2382,13 +2410,17 @@ function aiAddResultsList(title, items, total){
 function aiAddConfirmBox(summary, details, isPriceUpdate, onDecision){
   const box = document.createElement('div');
   box.className = 'ai-confirm-box';
+  // XAVFSIZLIK: number/price bazadan (masalan tasdiqlanayotgan
+  // add_numbers amali ichida, AI kontekstiga anonim mijoz yozuvidan
+  // "sizib kirgan" bo'lishi mumkin bo'lgan matn) kelishi mumkin — shu
+  // sabab escapeHtml orqali tozalanadi.
   const list = details.slice(0, 20).map(d => {
-    if(isPriceUpdate) return `${d.number}: ${formatPrice(d.oldPrice||0)} → ${formatPrice(d.price||0)}`;
-    return `${d.number}${d.price ? ' — ' + formatPrice(d.price) : ''}`;
+    if(isPriceUpdate) return `${escapeHtml(d.number)}: ${formatPrice(d.oldPrice||0)} → ${formatPrice(d.price||0)}`;
+    return `${escapeHtml(d.number)}${d.price ? ' — ' + formatPrice(d.price) : ''}`;
   }).join('\n');
   const extra = details.length > 20 ? `\n... va yana ${details.length - 20} ta` : '';
   box.innerHTML = `
-    <div class="ai-confirm-title">⚠️ ${summary}</div>
+    <div class="ai-confirm-title">⚠️ ${escapeHtml(summary)}</div>
     <div style="white-space:pre-wrap;font-size:12px;color:var(--muted);max-height:140px;overflow-y:auto;">${list}${extra}</div>
     <div class="ai-confirm-actions">
       <button class="ai-confirm-yes">${isPriceUpdate ? '✓ Ha, o\'zgartirish' : '🗑 Ha, o\'chirish'}</button>
@@ -2538,11 +2570,11 @@ function igRenderRules(){
     row.innerHTML = `
       <div>
         <div class="ig-rule-label">Mijoz shunga o'xshash yozsa:</div>
-        <input type="text" class="ig-rule-trigger" placeholder="masalan: dostavka qancha turadi" value="${(rule.trigger||'').replace(/"/g,'&quot;')}">
+        <input type="text" class="ig-rule-trigger" placeholder="masalan: dostavka qancha turadi" value="${escapeHtml(rule.trigger||'')}">
       </div>
       <div>
         <div class="ig-rule-label">Bot shunday javob beradi:</div>
-        <textarea class="ig-rule-response" rows="2" placeholder="masalan: Yetkazib berish bepul, 1-2 kun ichida yetkazamiz 🚗">${rule.response||''}</textarea>
+        <textarea class="ig-rule-response" rows="2" placeholder="masalan: Yetkazib berish bepul, 1-2 kun ichida yetkazamiz 🚗">${escapeHtml(rule.response||'')}</textarea>
       </div>
       <button type="button" class="ig-rule-remove">O'chirish</button>
     `;
@@ -2675,7 +2707,7 @@ function opRow(name, item, idx){
   if(name === 'Beeline'){
     tr.innerHTML =
       '<td><input type="number" data-f="id" value="' + (item.id ?? '') + '"></td>' +
-      '<td><input type="text" data-f="name" value="' + (item.name || '').replace(/"/g,'&quot;') + '"></td>' +
+      '<td><input type="text" data-f="name" value="' + escapeHtml(item.name || '') + '"></td>' +
       '<td><input type="number" data-f="operatorPrice" value="' + (item.operatorPrice ?? 0) + '"></td>' +
       '<td><input type="number" data-f="salePrice" value="' + (item.salePrice ?? 0) + '"></td>' +
       '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
@@ -2803,7 +2835,10 @@ document.getElementById('opBeelineTest').addEventListener('click', async ()=>{
     await opSave();
     // Kesh eskirishi uchun biroz kutamiz (funksiyada sozlama keshi 60 soniya),
     // shu sabab tasodifiy mask bilan chaqiramiz — kesh unga tegmaydi.
-    const res = await fetch('/.netlify/functions/api-live-search?action=test-beeline');
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/api-live-search?action=test-beeline', {
+      headers: { 'Authorization': 'Bearer ' + idToken }
+    });
     const data = await res.json();
     if(data.ok){
       out.style.color = 'var(--green)';
@@ -2835,11 +2870,11 @@ function tgRenderRules(){
     row.innerHTML = `
       <div>
         <div class="ig-rule-label">Mijoz shunga o'xshash yozsa:</div>
-        <input type="text" class="tg-rule-trigger" placeholder="masalan: dostavka qancha turadi" value="${(rule.trigger||'').replace(/"/g,'&quot;')}">
+        <input type="text" class="tg-rule-trigger" placeholder="masalan: dostavka qancha turadi" value="${escapeHtml(rule.trigger||'')}">
       </div>
       <div>
         <div class="ig-rule-label">Bot shunday javob beradi:</div>
-        <textarea class="tg-rule-response" rows="2" placeholder="masalan: Yetkazib berish bepul, 1-2 kun ichida yetkazamiz 🚗">${rule.response||''}</textarea>
+        <textarea class="tg-rule-response" rows="2" placeholder="masalan: Yetkazib berish bepul, 1-2 kun ichida yetkazamiz 🚗">${escapeHtml(rule.response||'')}</textarea>
       </div>
       <button type="button" class="ig-rule-remove">O'chirish</button>
     `;
@@ -2993,8 +3028,8 @@ async function loadVideoTestimonials(){
     list.innerHTML = videos.map(v => `
       <div class="video-item" data-id="${v.id}">
         <button class="vi-delete" data-id="${v.id}">✕</button>
-        <video src="${v.videoUrl}" muted preload="metadata"></video>
-        <div class="vi-caption">${(v.caption || '').replace(/</g,'&lt;')}</div>
+        <video src="${escapeHtml(v.videoUrl)}" muted preload="metadata"></video>
+        <div class="vi-caption">${escapeHtml(v.caption || '')}</div>
         <div class="vi-likes-row">
           <span class="vi-likes-icon">❤️</span>
           <input type="number" class="vi-likes-input" data-id="${v.id}" value="${v.likes || 0}" min="0">
@@ -3056,8 +3091,8 @@ pvNumberSearch.addEventListener('input', debounce(()=>{
     pvNumberResults.innerHTML = `<div class="pv-number-row" style="cursor:default;color:var(--muted);">Topilmadi</div>`;
   }else{
     pvNumberResults.innerHTML = matches.map(n => `
-      <div class="pv-number-row" data-id="${n.id}" data-number="${n.number}" data-price="${n.price||0}">
-        <span>${n.number}</span>
+      <div class="pv-number-row" data-id="${n.id}" data-number="${escapeHtml(n.number)}" data-price="${n.price||0}">
+        <span>${escapeHtml(n.number)}</span>
         <span class="pvn-price">${formatPrice(n.price||0)}</span>
       </div>
     `).join('');
@@ -3065,7 +3100,7 @@ pvNumberSearch.addEventListener('input', debounce(()=>{
       row.addEventListener('click', ()=>{
         pvSelectedNumberData = { id: row.dataset.id, number: row.dataset.number, price: Number(row.dataset.price) };
         pvSelectedNumberEl.style.display = 'flex';
-        pvSelectedNumberEl.innerHTML = `<span>✓ Tanlandi: <b>${row.dataset.number}</b> — ${formatPrice(Number(row.dataset.price))}</span><button class="pvsel-clear" id="pvSelClear">✕</button>`;
+        pvSelectedNumberEl.innerHTML = `<span>✓ Tanlandi: <b>${escapeHtml(row.dataset.number)}</b> — ${formatPrice(Number(row.dataset.price))}</span><button class="pvsel-clear" id="pvSelClear">✕</button>`;
         document.getElementById('pvSelClear').addEventListener('click', ()=>{
           pvSelectedNumberData = null;
           pvSelectedNumberEl.style.display = 'none';
@@ -3154,8 +3189,8 @@ async function loadPremiumVideoList(){
     list.innerHTML = videos.map(v => `
       <div class="video-item" data-id="${v.id}">
         <button class="vi-delete" data-id="${v.id}">✕</button>
-        <video src="${v.videoUrl}" muted preload="metadata"></video>
-        <div class="vi-caption">${(v.number || '').replace(/</g,'&lt;')}</div>
+        <video src="${escapeHtml(v.videoUrl)}" muted preload="metadata"></video>
+        <div class="vi-caption">${escapeHtml(v.number || '')}</div>
         <div class="vi-likes-row">
           <span class="vi-likes-icon">❤️</span>
           <input type="number" class="vi-likes-input" data-id="${v.id}" value="${v.likes || 0}" min="0">
@@ -3214,7 +3249,8 @@ function startVisitorTracking(){
 async function updateVisitorStats(){
   try{
     // Ayni vaqtda saytda: oxirgi 40 soniya ichida "men shu yerdaman" deb signal bergan seanslar
-    const cutoff = Date.now() - 40000;
+    // (lastSeen endi Firestore serverTimestamp — solishtirish uchun ham Timestamp kerak)
+    const cutoff = firebase.firestore.Timestamp.fromMillis(Date.now() - 40000);
     const activeSnap = await db.collection('active_sessions').where('lastSeen', '>', cutoff).get();
     document.getElementById('liveVisitors').textContent = activeSnap.size;
   }catch(e){ console.error('Onlayn foydalanuvchilarni hisoblashda xato:', e); }
@@ -3253,16 +3289,16 @@ function renderAdminNumbers(numbers){
   adminNumbersList.innerHTML = shown.map(item => `
     <div class="admin-row-collapsed" data-id="${item.id}">
       <div class="an-summary" data-id="${item.id}">
-        <span class="an-summary-num">${item.number}</span>
-        <span class="an-summary-op">${item.operator}${item.tag==='vip' ? ' · VIP' : ''}</span>
+        <span class="an-summary-num">${escapeHtml(item.number)}</span>
+        <span class="an-summary-op">${escapeHtml(item.operator)}${item.tag==='vip' ? ' · VIP' : ''}</span>
         <span class="an-summary-price">${formatPrice(item.price)}</span>
         <span class="an-summary-arrow">▾</span>
       </div>
       <div class="an-body" style="display:none;">
         <div class="admin-row" data-id="${item.id}">
-          <input class="an-number" value="${item.number}">
+          <input class="an-number" value="${escapeHtml(item.number)}">
           <select class="an-operator">${operatorOptionsHtml(item.operator)}</select>
-          <input class="an-price" type="number" value="${item.price}">
+          <input class="an-price" type="number" value="${escapeHtml(item.price)}">
           <select class="an-tag">
             <option value="oddiy" ${item.tag==='oddiy'?'selected':''}>Oddiy</option>
             <option value="vip" ${item.tag==='vip'?'selected':''}>VIP</option>
@@ -3270,7 +3306,7 @@ function renderAdminNumbers(numbers){
           <button class="an-save">Saqlash</button>
           <button class="an-delete">O'chirish</button>
           <div class="an-extra">
-            <input class="an-oldprice" type="number" placeholder="Eski narx (aksiya)" value="${item.oldPrice || ''}">
+            <input class="an-oldprice" type="number" placeholder="Eski narx (aksiya)" value="${escapeHtml(item.oldPrice || '')}">
             <label class="an-installment-label">
               <input type="checkbox" class="an-installment" ${item.installment ? 'checked' : ''}>
               Bo'lib to'lash
@@ -3680,7 +3716,10 @@ function renderAdminOrders(orders){
         if(numberId){
           if(newStatus === 'Bekor qilindi'){
             // Buyurtma bekor qilindi — raqam yana sotuvga qaytadi
-            await db.collection('numbers').doc(numberId).update({ reserved: false });
+            await db.collection('numbers').doc(numberId).update({
+              reserved: false,
+              reservedAt: firebase.firestore.FieldValue.delete()
+            });
           }else if(newStatus === 'Yakunlandi'){
             // Sotib bo'lindi — raqam bazadan butunlay olib tashlanadi
             await db.collection('numbers').doc(numberId).delete();

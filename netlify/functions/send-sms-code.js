@@ -76,19 +76,33 @@ exports.handler = async function (event) {
 
     // XAVFSIZLIK: bitta raqamga daqiqasiga faqat 1 marta kod yuboriladi —
     // suiiste'mol (ko'p SMS so'rab, xarajatni oshirish)ning oldini olish uchun.
+    // QO'SHIMCHA: kuniga bitta raqamga yuboriladigan SMS soni ham
+    // cheklandi — aks holda kimdir boshqa odamning raqamiga har daqiqada
+    // (kuniga ~1440 marta) pullik SMS yuborib, ham uni bezovta qilishi,
+    // ham Eskiz balansini sarflab yuborishi mumkin edi.
+    const DAILY_LIMIT = 8;
+    const todayKey = new Date().toISOString().slice(0, 10);
     const rateLimitRef = db.collection('sms_verifications').doc(fullPhone);
     const existing = await rateLimitRef.get();
+    let dayCount = 0;
     if (existing.exists) {
       const data = existing.data();
       if (data.sentAt && (Date.now() - data.sentAt) < 60000) {
         return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: '1 daqiqada faqat 1 marta so\'rash mumkin. Biroz kuting.' }) };
+      }
+      if (data.dayKey === todayKey) dayCount = data.dayCount || 0;
+      if (dayCount >= DAILY_LIMIT) {
+        return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Bu raqamga bugun ruxsat etilgan SMS soni tugadi. Ertaga qayta urinib ko'ring yoki qo'llab-quvvatlash xizmatiga murojaat qiling." }) };
       }
     }
 
     const code = String(Math.floor(1000 + Math.random() * 9000));
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 daqiqa
 
-    await rateLimitRef.set({ code, expiresAt, sentAt: Date.now(), attempts: 0 });
+    await rateLimitRef.set({
+      code, expiresAt, sentAt: Date.now(), attempts: 0,
+      dayKey: todayKey, dayCount: dayCount + 1
+    });
 
     const token = await getEskizToken();
     const smsRes = await fetch('https://notify.eskiz.uz/api/message/sms/send', {

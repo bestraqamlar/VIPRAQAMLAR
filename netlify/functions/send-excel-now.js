@@ -7,6 +7,7 @@
 // credit-excel-report.js (kunlik avtomatik) ham aynan shu mantiqni chaqiradi.
 
 const admin = require('firebase-admin');
+const { requireAdmin } = require('./lib/adminAuth');
 const ExcelJS = require('exceljs');
 
 if (!admin.apps.length) {
@@ -255,12 +256,9 @@ async function handler(event){
   // XAVFSIZLIK: bu hisobotda BARCHA mijozlarning ismi, telefoni, manzili
   // va shartnoma ma'lumotlari bor — faqat tizimga kirgan admin chaqira olishi shart.
   try {
-    const authHeader = event.headers.authorization || event.headers.Authorization || '';
-    const idToken = authHeader.replace(/^Bearer\s+/i, '');
-    if (!idToken) throw new Error("Token yo'q");
-    await admin.auth().verifyIdToken(idToken);
+    await requireAdmin(event);
   } catch (err) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Ruxsat yo'q. Iltimos, qaytadan tizimga kiring." }) };
+    return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };
   }
   try{
     const result = await buildAndSendReport();

@@ -2,6 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // XAVFSIZLIK: "tizimga kirgan" (request.auth != null) va "ADMIN"
+    // bir xil narsa EMAS. Agar Firebase Authentication konsolida
+    // Email/Parol provayderida o'z-o'zini ro'yxatdan o'tkazish yoqilgan
+    // bo'lsa (odatiy standart holat), HAR KIM ochiq Firebase Web API
+    // kalitidan foydalanib o'ziga hisob ochib, keyin shu "tizimga
+    // kirgan" holatdan foydalanib admin ma'lumotlariga (mijozlar
+    // ro'yxati, operator login-parollari va h.k.) kira olar edi.
+    //
+    // Shu sababli haqiqiy admin ekanini "custom claim" (server tomonidan,
+    // faqat netlify/functions/admin-grant-role.js orqali beriladigan
+    // maxsus belgi `admin: true`) bo'yicha tekshiramiz — oddiy
+    // autentifikatsiya emas.
+    function isAdmin(){
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
     function isValidLikeToggle(resourceBefore, dataAfter){
       return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['likes'])
         && dataAfter.likes is number;
@@ -9,11 +25,19 @@ service cloud.firestore {
 
     match /numbers/{doc} {
       allow read: if true;
-      allow create, delete: if request.auth != null;
-      allow update: if request.auth != null
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserved'])
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        // Anonim mijoz raqamni "band" qila oladi, LEKIN faqat 'reserved' va
+        // 'reservedAt' ikkalasini birga, va reservedAt aynan server vaqtiga
+        // teng bo'lishi shart (soxtalashtirib bo'lmaydi). Bu yozuv bilan
+        // birga netlify/functions/release-stale-reservations.js muntazam
+        // ishlab, orqasida haqiqiy buyurtma bo'lmagan "band"larni avtomatik
+        // bo'shatadi — shu bilan anonim spam orqali butun katalogni
+        // "band qilib qo'yish" hujumi zararsizlantiriladi.
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserved', 'reservedAt'])
             && resource.data.reserved == false
-            && request.resource.data.reserved == true)
+            && request.resource.data.reserved == true
+            && request.resource.data.reservedAt == request.time)
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
             && request.resource.data.views is number
             && (
@@ -31,54 +55,67 @@ service cloud.firestore {
         && request.resource.data.name is string && request.resource.data.name.size() < 200
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300;
-      allow read, update, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
 
     match /admin_meta/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
 
     match /admin_sessions/{doc} {
-      allow create, read: if request.auth != null;
+      allow create, read: if isAdmin();
     }
 
     match /site_settings/{doc} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /active_sessions/{doc} {
-      allow create: if request.resource.data.keys().hasOnly(['lastSeen']);
-      allow update: if request.auth != null
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen']);
-      allow read: if request.auth != null;
-      allow delete: if request.auth != null;
+      // lastSeen soxtalashtirib bo'lmasin (masalan kelajakka yoki
+      // o'tmishga sanalangan qiymat yozilmasin) deb aynan server
+      // vaqtiga tenglashtirilishi shart qilindi.
+      allow create: if request.resource.data.keys().hasOnly(['lastSeen'])
+        && request.resource.data.lastSeen == request.time;
+      allow update: if isAdmin()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen'])
+            && request.resource.data.lastSeen == request.time);
+      allow read: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /site_stats/{doc} {
       allow read: if true;
-      allow create: if request.auth != null
-        || (doc == 'counter' && request.resource.data.keys().hasOnly(['totalVisitors']));
-      allow update: if request.auth != null
-        || (doc == 'counter' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalVisitors']));
-      allow delete: if request.auth != null;
+      // "counter" hujjati faqat +1 qadam bilan o'sishi mumkin — shu bilan
+      // anonim tomondan ixtiyoriy/manfiy qiymat yozib qo'yish oldi olinadi
+      // (xuddi 'numbers.views' uchun qilingani kabi).
+      allow create: if isAdmin()
+        || (doc == 'counter' && request.resource.data.keys().hasOnly(['totalVisitors'])
+            && request.resource.data.totalVisitors == 1);
+      allow update: if isAdmin()
+        || (doc == 'counter'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalVisitors'])
+            && request.resource.data.totalVisitors is number
+            && resource.data.totalVisitors is number
+            && request.resource.data.totalVisitors == resource.data.totalVisitors + 1);
+      allow delete: if isAdmin();
     }
 
     match /promo_codes/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
 
     // Operator API sozlamalari — ichida Beeline LOGIN/PAROLI bor, shu sabab
-    // ommaga OCHIQ EMAS. Faqat tizimga kirgan admin o'qiy/yoza oladi.
+    // ommaga OCHIQ EMAS. Faqat HAQIQIY admin o'qiy/yoza oladi.
     // Netlify funksiyasi (api-live-search) buni Admin SDK orqali o'qiydi —
     // u bu qoidalardan o'tmaydi, shuning uchun read'ni ochish shart emas.
     match /operator_config/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
 
     match /number_price_categories/{doc} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /custom_orders/{doc} {
@@ -87,37 +124,51 @@ service cloud.firestore {
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300
         && request.resource.data.pattern is string && request.resource.data.pattern.size() == 4;
-      allow read, update, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
 
     match /credit_contracts/{doc} {
-      allow get, list: if request.auth != null;
-      allow write: if request.auth != null;
+      allow get, list: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /promo_usage/{doc} {
-      allow get, create: if true;
-      allow list: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      // usedAt aynan server vaqtiga teng bo'lishi shart — shu bilan
+      // hech bo'lmasa soxta/eski-sanalangan yozuvlar oldini olamiz.
+      // ESLATMA: bu yerda hujjat ID'si (numberId) 'numbers' to'plamidan
+      // ochiq o'qilishi mumkinligi sabab, chetdan har bir raqam uchun
+      // oldindan "ishlatilgan" belgisi qo'yib, promo-kodlarni butunlay
+      // ishlatib bo'lmas holga keltirish nazariy jihatdan hamon mumkin.
+      // Buni to'liq yopish uchun bu yozuvni Netlify funksiyasiga
+      // (server-tarafga) ko'chirish kerak bo'ladi — hozircha past xavf
+      // deb baholanib, kelajakdagi ishga qoldirilmoqda.
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['usedAt'])
+        && request.resource.data.usedAt == request.time;
+      allow list: if isAdmin();
+      allow update, delete: if isAdmin();
     }
 
     match /video_testimonials/{doc} {
       allow read: if true;
-      allow create, delete: if request.auth != null;
-      allow update: if request.auth != null
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
         || isValidLikeToggle(resource, request.resource.data);
     }
 
     match /premium_number_videos/{doc} {
       allow read: if true;
-      allow create, delete: if request.auth != null;
-      allow update: if request.auth != null
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
         || isValidLikeToggle(resource, request.resource.data);
     }
 
     // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram
-    // botlar) orqali, Firebase Admin SDK bilan ishlatiladi — brauzerdan
-    // kirish mutlaqo kerak emas: bot_sessions, known_customers_tgmenu,
-    // known_customers, admin_list.
+    // botlar, admin AI yordamchisi) orqali, Firebase Admin SDK bilan
+    // ishlatiladi — brauzerdan (Firestore Client SDK orqali) kirish
+    // mutlaqo kerak emas, shu sabab match bloki yo'q (Firestore standart
+    // bo'yicha ro'yxatga olinmagan yo'llarni to'liq YOPIQ qiladi):
+    // bot_sessions, known_customers_tgmenu, known_customers, admin_list,
+    // admin_ai_pending_actions.
   }
 }

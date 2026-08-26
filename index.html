@@ -368,6 +368,30 @@
   .stat b{display:block;font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--text);}
   .stat span{font-size:9.5px;color:var(--muted);}
 
+  .catalog-mode-tabs{
+    max-width:480px;margin:0 auto;padding:6px 16px 0;
+    display:flex;gap:8px;
+  }
+  .cm-tab{
+    flex:1 1 0;box-sizing:border-box;
+    padding:10px 6px;border-radius:10px;border:1.5px solid var(--line);
+    background:var(--panel);color:var(--muted);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(10.5px,3vw,13px);
+    letter-spacing:.3px;cursor:pointer;transition:all .18s ease;text-align:center;
+  }
+  .cm-tab.active{
+    background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
+    border-color:transparent;
+  }
+  .standard-search-btn{
+    display:block;width:100%;max-width:480px;margin:10px auto 0;box-sizing:border-box;
+    padding:12px 10px;border:none;border-radius:10px;
+    background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;cursor:pointer;
+  }
+  .standard-search-btn:active{transform:scale(0.98);}
+  .standard-search-btn:disabled{opacity:.6;cursor:not-allowed;}
+
   .search-wrap{
     background:var(--bg);
     padding:10px 0 14px;
@@ -1840,6 +1864,11 @@
   <div class="brand-banner"><span class="bb-dot"></span>VIP <span class="bb-accent">RAQAMLAR</span></div>
 </div>
 
+<div class="catalog-mode-tabs" id="catalogModeTabs">
+  <button type="button" class="cm-tab active" id="modeVipBtn" data-mode="vip">VIP TOIFA</button>
+  <button type="button" class="cm-tab" id="modeStandardBtn" data-mode="standard">STANDART TOIFA</button>
+</div>
+
 <div class="search-wrap">
   <div class="number-builder" id="numberBuilder">
     <select id="operatorSelect" class="op-select">
@@ -1861,6 +1890,7 @@
     <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
     <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
   </div>
+  <button type="button" class="standard-search-btn" id="standardSearchBtn" style="display:none;">🔍 <span data-i18n="standardSearchBtn">Qidirish</span></button>
   <div class="hint-text" id="hintText" data-i18n="searchHint">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
   <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
 </div>
@@ -2365,12 +2395,21 @@ function escapeHtml(s){
 let numbersLoaded = false;
 
 /* Operator API'laridan jonli kelgan raqamlar. Katalogdan (Firestore) FARQLI —
-   bu raqamlar bazada yo'q, faqat qidiruv paytida ko'rsatiladi va ularda
-   buyurtma tugmasi bo'lmaydi. */
+   bu raqamlar bazada yo'q. VIP toifada qidiruv paytida faqat ma'lumot
+   uchun ("Operatorda bor") ko'rsatiladi; STANDART toifada esa aynan shu
+   ro'yxat — to'liq buyurtma berish mumkin bo'lgan asosiy katalog. */
 let LIVE_NUMBERS = [];
 let liveLoading = false;
 let liveRequestId = 0;
 let liveMask = '';          // LIVE_NUMBERS qaysi maska uchun olingani
+let LIVE_SEARCH_ERROR = null; // oxirgi jonli qidiruv nima uchun bo'sh/xato bo'lgani (Standart toifa uchun ko'rsatiladi)
+
+/* VIP TOIFA / STANDART TOIFA almashtirgichi.
+   'vip'      — odatdagi, qo'lda kiritilgan Firestore katalogi.
+   'standard' — operatorlardan jonli qidiriladigan raqamlar; faqat
+                "Qidirish" tugmasi bosilgandan keyin natija ko'rsatiladi. */
+let catalogMode = 'vip';
+let standardSearchTriggered = false;
 
 /* Mijoz saytga kirganda katalog "eng qimmat -> eng arzon -> ..." tarzida
    almashib chiqadi (birinchi eng qimmat, keyin eng arzon, va h.k.), lekin
@@ -2450,15 +2489,25 @@ function getFilteredNumbers(ignoreOperator){
   const pattern = currentPattern();
   const selectedOp = ignoreOperator ? '' : operatorSelect.value;
   const searching = isSearchActive();
-  // Qidiruv ketayotganda katalog + operatorlardan kelgan jonli raqamlar birga
-  // ko'rsatiladi. Katalogdagi raqam ustunroq — bir xil raqam ikki marta
-  // chiqmasligi uchun jonlisi tashlab yuboriladi.
-  let source = searching ? NUMBERS : ZIGZAG_ORDER;
-  if(searching && LIVE_NUMBERS.length){
-    const inCatalog = new Set(NUMBERS.map(x => String(x.number).replace(/\D/g,'')));
-    source = source.concat(
-      LIVE_NUMBERS.filter(x => !inCatalog.has(String(x.number).replace(/\D/g,'')))
-    );
+
+  let source;
+  if(catalogMode === 'standard'){
+    // STANDART TOIFA: faqat operatorlardan jonli qidirilgan raqamlar,
+    // va faqat "Qidirish" tugmasi bosilgandan keyin ko'rsatiladi.
+    if(!standardSearchTriggered) return [];
+    source = LIVE_NUMBERS;
+  }else{
+    // Qidiruv ketayotganda katalog + operatorlardan kelgan jonli raqamlar
+    // birga ko'rsatiladi (faqat ma'lumot uchun). Katalogdagi raqam
+    // ustunroq — bir xil raqam ikki marta chiqmasligi uchun jonlisi
+    // tashlab yuboriladi.
+    source = searching ? NUMBERS : ZIGZAG_ORDER;
+    if(searching && LIVE_NUMBERS.length){
+      const inCatalog = new Set(NUMBERS.map(x => String(x.number).replace(/\D/g,'')));
+      source = source.concat(
+        LIVE_NUMBERS.filter(x => !inCatalog.has(String(x.number).replace(/\D/g,'')))
+      );
+    }
   }
 
   return source.filter(item=>{
@@ -2505,15 +2554,17 @@ const NO_BUTTON_STYLES = ['list_minimal', 'bold_price'];
 const CART_ICON_SVG = '<svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>';
 
 function orderButtonHtml(item, label, extraClass){
-  // Jonli (operatordan kelgan) raqam bazada yo'q — unga buyurtma berib
-  // bo'lmaydi, shuning uchun tugma o'rniga belgi ko'rsatiladi.
-  if(item.live) return `<span class="live-tag">${t('Operatorda bor')}</span>`;
+  // Jonli (operatordan kelgan) raqam — VIP toifada faqat ma'lumot uchun
+  // ko'rsatiladi ("Operatorda bor", buyurtma yo'q), LEKIN Standart
+  // toifada xuddi VIP raqam kabi to'liq buyurtma berish tugmasi bilan
+  // chiqadi (chunki Standart toifaning o'zi shu raqamlarni sotish uchun).
+  if(item.live && catalogMode !== 'standard') return `<span class="live-tag">${t('Operatorda bor')}</span>`;
   if(item.reserved) return `<button class="order-btn reserved-btn ${extraClass}" disabled>${t('Band qilingan')}</button>`;
   return `<button class="order-btn ${extraClass}" data-number="${item.number}" data-id="${item.id}">${label}</button>`;
 }
 
 function iconOrderBtnHtml(item, cls){
-  if(item.live) return `<span class="live-tag">${t('Operatorda bor')}</span>`;
+  if(item.live && catalogMode !== 'standard') return `<span class="live-tag">${t('Operatorda bor')}</span>`;
   if(item.reserved) return `<span class="${cls} disabled-icon-btn">🔒</span>`;
   return `<button class="order-btn ${cls}" data-number="${item.number}" data-id="${item.id}">${CART_ICON_SVG}</button>`;
 }
@@ -2655,8 +2706,10 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
    yozilmaydi), lekin baribir brauzer konsolidan qo'lda o'zgartirilgan
    yoki buzilgan bo'lishi mumkin — shu sabab har bir o'qishda qat'iy
    tekshiriladi: faqat massiv, faqat haqiqiy Firestore ID shakliga mos
-   qatorlar, va cheksiz o'sib ketmasligi uchun maksimal chegara bilan. */
-const FAV_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+   qatorlar (yoki Standart toifadagi jonli raqamlar uchun "live:..."
+   shaklidagi ID — shuning uchun ':' ham ruxsat etilgan), va cheksiz
+   o'sib ketmasligi uchun maksimal chegara bilan. */
+const FAV_ID_PATTERN = /^[A-Za-z0-9_:-]{1,80}$/;
 const FAV_MAX_ITEMS = 20;
 
 function getFavorites(){
@@ -2801,12 +2854,25 @@ function renderCatalog(){
   catalogEl.className = 'catalog' + (LIST_ROW_STYLES.includes(style) ? ' catalog-list' : '');
   catalogEl.innerHTML = '';
   if(filtered.length === 0){
-    if(!numbersLoaded){
+    if(catalogMode === 'standard' && !standardSearchTriggered){
+      catalogEl.innerHTML = `<div class="empty-state">${t('Raqamni katakchalarga kiriting va "Qidirish" tugmasini bosing — operatorlarda hozir bo\'sh turgan raqamlar shu yerda chiqadi.')}</div>`;
+    }else if(catalogMode === 'standard' && liveLoading){
+      catalogEl.innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>${t('Operatorlardan qidirilmoqda...')}</p>
+        </div>`;
+    }else if(!numbersLoaded && catalogMode === 'vip'){
       catalogEl.innerHTML = `
         <div class="loading-state">
           <div class="spinner"></div>
           <p>${t('Raqamlar yuklanmoqda...')}</p>
         </div>`;
+    }else if(catalogMode === 'standard' && LIVE_SEARCH_ERROR){
+      // Jimgina "topilmadi" demay, ANIQ SABABNI ko'rsatamiz — aks holda
+      // mijoz (va biz) operator xatosimi, tarmoq muammosimi, sozlama
+      // muammosimi ekanini bila olmaymiz.
+      catalogEl.innerHTML = `<div class="empty-state">⚠️ ${escapeHtml(LIVE_SEARCH_ERROR)}<br><br>${t("Iltimos, qayta urinib ko'ring yoki boshqa raqam kiriting.")}</div>`;
     }else{
       catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
     }
@@ -2837,7 +2903,7 @@ function renderCatalog(){
     }
 
     const isRowClickStyle = NO_BUTTON_STYLES.includes(style) || (style === 'classic' && hideOrderButtonSetting);
-    if(isRowClickStyle && !item.reserved && !item.live){
+    if(isRowClickStyle && !item.reserved && (!item.live || catalogMode === 'standard')){
       card.classList.add('clickable-card');
       card.addEventListener('click', ()=> openModal(item.number, item.id));
     }
@@ -3008,28 +3074,56 @@ async function fetchLiveNumbers(){
 
   const myId = ++liveRequestId;
   liveLoading = true;
+  LIVE_SEARCH_ERROR = null;
   renderLiveStatus();
+
+  // XAVFSIZLIK/UX: operator serverlari (ayniqsa Beeline) ba'zan sekin yoki
+  // umuman javob bermaydi. Timeout bo'lmasa, mijoz cheksiz "yuklanmoqda"
+  // holatida qolib ketishi mumkin edi — shu sabab 25 soniyadan keyin
+  // so'rov o'zi bekor qilinadi va aniq xato ko'rsatiladi.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=> controller.abort(), 25000);
 
   try{
     // ATAYLAB operator ko'rsatilmaydi — barcha operatorlardan bir marta
     // olinadi, keyin brauzerda filtrlanadi.
     const url = '/.netlify/functions/api-live-search?limit=40&mask=' + encodeURIComponent(mask);
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
+    if(!res.ok){
+      throw new Error('Server ' + res.status + ' xato qaytardi');
+    }
     const data = await res.json();
 
     // Mijoz shu orada boshqa raqam terib yuborgan bo'lsa — eski javobni
     // tashlab yuboramiz, aks holda ekranda noto'g'ri natija qolib ketadi.
     if(myId !== liveRequestId) return;
 
-    LIVE_NUMBERS = (data && data.ok && Array.isArray(data.items)) ? data.items : [];
-    liveMask = mask;
-    if(data && data.errors && data.errors.length) console.warn('Operator xatolari:', data.errors);
+    if(!data || data.ok !== true){
+      LIVE_NUMBERS = [];
+      LIVE_SEARCH_ERROR = (data && data.error) || "Operatorlardan javob olinmadi";
+      console.error('api-live-search xato javob berdi:', data);
+    }else{
+      LIVE_NUMBERS = Array.isArray(data.items) ? data.items : [];
+      liveMask = mask;
+      if(data.errors && data.errors.length){
+        console.warn('Operator xatolari:', data.errors);
+        // Barcha operatorlar xato bergan bo'lsa (natija bo'sh), mijozga
+        // ham sababini ko'rsatamiz — jimgina "topilmadi" deb qo'ymaymiz.
+        if(LIVE_NUMBERS.length === 0){
+          LIVE_SEARCH_ERROR = data.errors.join('; ');
+        }
+      }
+    }
   }catch(err){
     if(myId !== liveRequestId) return;
     LIVE_NUMBERS = [];
     liveMask = '';
-    console.warn('Jonli qidiruv ishlamadi:', err.message);
+    LIVE_SEARCH_ERROR = (err && err.name === 'AbortError')
+      ? "Operatorlar javob berishga juda ko'p vaqt oldi (25 soniyadan ko'p). Qayta urinib ko'ring."
+      : ("Tarmoq xatosi: " + (err && err.message ? err.message : 'nomalum'));
+    console.error('Jonli qidiruv ishlamadi:', err);
   }finally{
+    clearTimeout(timeoutId);
     if(myId === liveRequestId){
       liveLoading = false;
       renderCatalog();
@@ -3057,7 +3151,10 @@ operatorSelect.addEventListener('change', ()=>{
   // Natija allaqachon barcha operatorlar uchun olingan — shunchaki
   // qayta chizamiz. Agar hali olinmagan bo'lsa, so'rov yuboriladi.
   currentPage = 0; updateSearchUI(); renderCatalog();
-  debouncedLiveSearch();
+  // Standart toifada operator tanlash faqat ALLAQACHON olingan natijani
+  // filtrlaydi — yangi tashqi so'rov yubormaymiz (mijoz "Qidirish"ni
+  // bosgandagina operatorlarga murojaat qilinadi).
+  if(catalogMode === 'vip') debouncedLiveSearch();
 });
 digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
@@ -3072,13 +3169,63 @@ digitBoxes.forEach((box, idx)=>{
     }
     if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus({ preventScroll: true }); }
     currentPage = 0;
-    catalogEl.style.opacity = '0.35';
-    debouncedRenderCatalog();
-    debouncedLiveSearch();
+    if(catalogMode === 'vip'){
+      catalogEl.style.opacity = '0.35';
+      debouncedRenderCatalog();
+      debouncedLiveSearch();
+    }else{
+      // STANDART TOIFA: raqam terish hali qidiruvni boshlamaydi — mijoz
+      // "Qidirish" tugmasini bosgandagina operatorlarga so'rov ketadi.
+      updateSearchUI();
+    }
   });
   box.addEventListener('keydown', (e)=>{
     if(e.key === 'Backspace' && box.value === '' && idx > 0){ digitBoxes[idx-1].focus({ preventScroll: true }); }
   });
+});
+
+/* ---- VIP TOIFA / STANDART TOIFA almashtirgichi ---- */
+const modeVipBtn = document.getElementById('modeVipBtn');
+const modeStandardBtn = document.getElementById('modeStandardBtn');
+const standardSearchBtn = document.getElementById('standardSearchBtn');
+const hintTextEl = document.getElementById('hintText');
+const HINT_VIP = hintTextEl ? hintTextEl.textContent : '';
+const HINT_STANDARD = "Raqamni katakchalarga kiriting va \"Qidirish\" tugmasini bosing";
+
+function setCatalogMode(mode){
+  if(catalogMode === mode) return;
+  catalogMode = mode;
+  modeVipBtn.classList.toggle('active', mode === 'vip');
+  modeStandardBtn.classList.toggle('active', mode === 'standard');
+  standardSearchBtn.style.display = mode === 'standard' ? 'block' : 'none';
+  if(hintTextEl) hintTextEl.textContent = mode === 'standard' ? HINT_STANDARD : HINT_VIP;
+
+  // Toifa almashganda eski jonli natijalar chalkashtirmasin deb tozalanadi —
+  // har bir toifada qidiruv yangidan boshlanadi.
+  LIVE_NUMBERS = [];
+  liveMask = '';
+  liveLoading = false;
+  liveRequestId++;
+  standardSearchTriggered = false;
+  LIVE_SEARCH_ERROR = null;
+
+  currentPage = 0;
+  updateSearchUI();
+  renderCatalog();
+}
+modeVipBtn.addEventListener('click', ()=> setCatalogMode('vip'));
+modeStandardBtn.addEventListener('click', ()=> setCatalogMode('standard'));
+
+standardSearchBtn.addEventListener('click', ()=>{
+  if(!currentPattern().some(d => d !== '')){
+    showToast("Avval kamida bitta raqam kiriting", 2200);
+    return;
+  }
+  standardSearchTriggered = true;
+  liveMask = ''; // qayta so'ralishi uchun (bosilganda har doim yangi natija)
+  standardSearchBtn.disabled = true;
+  catalogEl.style.opacity = '0.35';
+  fetchLiveNumbers().finally(()=>{ standardSearchBtn.disabled = false; });
 });
 clearSearchBtn.addEventListener('click', ()=>{
   operatorSelect.value = '';
@@ -3088,6 +3235,8 @@ clearSearchBtn.addEventListener('click', ()=>{
   liveMask = '';
   liveLoading = false;
   liveRequestId++;              // ketayotgan so'rov javobi endi hisobga olinmaydi
+  standardSearchTriggered = false;
+  LIVE_SEARCH_ERROR = null;
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
 });
 
@@ -3146,6 +3295,14 @@ const confirmSpinner = document.getElementById('confirmSpinner');
 let selectedNumberId = null;
 let selectedPrice = 0;
 let appliedDiscount = 0;
+// STANDART TOIFA: operatordan jonli qidirilgan raqamning haqiqiy Firestore
+// hujjati yo'q — shu sabab uni "band qilish" (numbers.doc().update()) va
+// promo-kod ishlatilgan deb belgilash amallarini finalizeOrder ichida
+// o'tkazib yuboramiz (aks holda mavjud bo'lmagan hujjatni yangilashga
+// urinib xatoga uchraydi, va shu xato ostida qolgan kod — Telegramga
+// xabar yuborish — umuman ishlamay qoladi).
+let selectedIsLive = false;
+let selectedOperator = '';
 
 function openModal(number, id, priceOverride){
   if(navigator.vibrate) navigator.vibrate(35);
@@ -3159,7 +3316,11 @@ function openModal(number, id, priceOverride){
   });
   pendingOrderPayload = null;
   selectedNumberId = id || null;
-  const item = NUMBERS.find(n => n.id === id);
+  // Avval VIP katalogdan (NUMBERS), topilmasa jonli qidiruv natijalaridan
+  // (LIVE_NUMBERS — Standart toifa) qidiramiz.
+  const item = NUMBERS.find(n => n.id === id) || LIVE_NUMBERS.find(n => n.id === id);
+  selectedIsLive = !!(item && item.live);
+  selectedOperator = item ? (item.operator || '') : '';
   selectedPrice = item ? item.price : (priceOverride || 0);
   appliedDiscount = 0;
   modalNumber.textContent = displayNumber(number);
@@ -3333,24 +3494,37 @@ async function finalizeOrder(payload, smsVerified){
   payload.smsVerified = !!smsVerified;
   const orderTime = new Date().toLocaleString('uz-UZ');
 
+  // STANDART TOIFA (operatordan jonli qidirilgan raqam)da Firestore'da
+  // haqiqiy 'numbers' hujjati yo'q — shu sababli "band qilish" va promo
+  // ishlatilganini belgilash bosqichlari faqat VIP (haqiqiy hujjatga ega)
+  // raqamlar uchun bajariladi.
+  const isLiveOrder = selectedIsLive;
+
   try{
     const orderRef = await db.collection('orders').add({
       ...payload,
-      numberId: selectedNumberId,
+      numberId: isLiveOrder ? null : selectedNumberId,
       status: 'Yangi',
       createdAt: orderTime,
       createdAtSort: Date.now()
     });
 
-    if(selectedNumberId){
-      await db.collection('numbers').doc(selectedNumberId).update({ reserved: true });
-      const localItem = NUMBERS.find(n => n.id === selectedNumberId);
-      if(localItem) localItem.reserved = true;
+    if(!isLiveOrder && selectedNumberId){
+      try{
+        await db.collection('numbers').doc(selectedNumberId).update({
+          reserved: true,
+          reservedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        const localItem = NUMBERS.find(n => n.id === selectedNumberId);
+        if(localItem) localItem.reserved = true;
+      }catch(e){ console.error('Raqamni band qilishda xato:', e); }
     }
 
-    if(appliedDiscount > 0 && selectedNumberId){
+    if(!isLiveOrder && appliedDiscount > 0 && selectedNumberId){
       try{
-        await db.collection('promo_usage').doc(selectedNumberId).set({ usedAt: Date.now() });
+        await db.collection('promo_usage').doc(selectedNumberId).set({
+          usedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
       }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
     }
 
@@ -3399,7 +3573,10 @@ confirmBtn.addEventListener('click', async ()=>{
     region: custRegion.value,
     phone: custPhone.value.trim(),
     source: 'Sayt',
-    paymentType: selectedPaymentType
+    paymentType: selectedPaymentType,
+    operator: selectedOperator || '',
+    // Admin panelida VIP va Standart buyurtmalarni ajratib ko'rish uchun.
+    catalogType: selectedIsLive ? 'Standart' : 'VIP'
   };
   if(selectedPaymentType === 'installment'){
     payload.installmentMonths = selectedInstallmentMonths;
@@ -3633,9 +3810,21 @@ const favoritesOverlay = document.getElementById('favoritesOverlay');
 function renderFavoritesList(){
   const view = document.getElementById('favoritesListView');
   const favIds = getFavorites();
-  const items = favIds.map(id => NUMBERS.find(n => n.id === id)).filter(Boolean);
+  // Standart toifadagi (operatordan jonli qidirilgan) saqlangan raqamlar
+  // uchun doimiy Firestore hujjati yo'q — shu sabab ular faqat hozirgi
+  // seansda LIVE_NUMBERS ichida topilgan bo'lsa ko'rsatiladi. Topilmasa
+  // (masalan sahifa qayta yuklangan, hali qidirilmagan), buni "topilmadi"
+  // deb ko'rsatamiz — jimgina g'oyib qilib yubormaymiz, mijoz nega
+  // ko'rinmayotganini tushunsin.
+  const items = [];
+  const staleLiveIds = [];
+  favIds.forEach(id=>{
+    const found = NUMBERS.find(n => n.id === id) || LIVE_NUMBERS.find(n => n.id === id);
+    if(found) items.push(found);
+    else if(String(id).startsWith('live:')) staleLiveIds.push(id);
+  });
 
-  if(items.length === 0){
+  if(items.length === 0 && staleLiveIds.length === 0){
     view.innerHTML = `<div class="fav-empty">
       <div class="fav-empty-icon">🤍</div>
       <div class="fav-empty-title">Hali raqam saqlanmagan</div>
@@ -3661,6 +3850,21 @@ function renderFavoritesList(){
         <button class="fav-item-order-btn" data-number="${item.number}" data-id="${item.id}">
           ${CART_ICON_SVG}${t('Buyurtma berish')}
         </button>
+      </div>`;
+  }).join('') + staleLiveIds.map(id=>{
+    // Standart toifadan saqlangan, lekin hozir qidiruv natijasida yo'q raqam.
+    const numGuess = String(id).slice(5);
+    return `
+      <div class="fav-item" data-id="${id}" style="opacity:.75;">
+        <div class="fav-item-top">
+          <span class="fav-item-number">${displayNumber(numGuess)}</span>
+          <button class="fav-item-remove" data-id="${id}" aria-label="O'chirish">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+          </button>
+        </div>
+        <div class="fav-item-price" style="font-size:12px;color:var(--muted);">
+          Standart toifada saqlangan — hozir ro'yxatda ko'rinmayapti. "STANDART TOIFA"da shu raqamni qayta qidiring.
+        </div>
       </div>`;
   }).join('') + `</div>`;
 
@@ -4346,7 +4550,9 @@ const raqamuzSessionId = 'sess_' + Math.random().toString(36).slice(2) + '_' + D
 
 async function raqamuzHeartbeat(){
   try{
-    await db.collection('active_sessions').doc(raqamuzSessionId).set({ lastSeen: Date.now() });
+    await db.collection('active_sessions').doc(raqamuzSessionId).set({
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    });
   }catch(e){ /* muhim emas — sayt ishlashiga ta'sir qilmaydi */ }
 }
 raqamuzHeartbeat();

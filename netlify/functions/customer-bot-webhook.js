@@ -15,6 +15,10 @@ const { getBotControl } = require('./lib/botControl');
 const { checkAndMarkKnown } = require('./lib/knownCustomers');
 const { updateAdminList } = require('./lib/adminList');
 const { buildContractPdfBuffer } = require('./lib/contractPdf');
+// "STANDART TOIFA" — operator API'laridan JONLI qidiruv (saytdagi bilan bir xil).
+// Bu bir xil Node jarayoni, shuning uchun HTTP orqali emas, to'g'ridan-to'g'ri
+// chaqiramiz (api-live-search.js ham shu funksiyani ishlatadi).
+const { searchAll } = require('./lib/operators');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -129,6 +133,7 @@ function regionDisplayName(region){
 const BTN = {
   CHOOSE: '🔢 Raqam tanlash',
   PREMIUM: '💎 VIP raqamlar',
+  STANDARD: '🌐 Standart raqamlar',
   SALE: '🔥 Aksiya raqamlar',
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
@@ -197,6 +202,7 @@ function mainMenuKeyboard(){
   return replyKb([
     [BTN.CHOOSE, BTN.MYORDERS],
     [BTN.PREMIUM, BTN.SALE],
+    [BTN.STANDARD],
     [BTN.CONTACT, BTN.CONTRACTS]
   ]);
 }
@@ -334,6 +340,14 @@ async function notifyAdmin(orderId, payload){
 📍 Manzil: ${payload.region}
 🕐 Vaqti: ${payload.time}
 🌐 Qayerdan: Telegram bot`;
+  // Standart (jonli) buyurtmani darhol ajratib ko'rsatamiz — bu raqam
+  // katalogda yo'q, admin uni operatordan band qilishi kerak.
+  if(payload.catalogType === 'Standart'){
+    text += `\n📚 Toifa: Standart (jonli baza)`;
+  }
+  if(payload.operator){
+    text += `\n📶 Operator: ${payload.operator}`;
+  }
   if(payload.installmentMonths){
     text += `\n💳 To'lov turi: ${payload.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(payload.installmentMonthly)})`;
   }
@@ -374,6 +388,58 @@ function docToItem(doc){
     featured: !!d.featured,
     onSale: !!d.onSale,
     reserved: !!d.reserved
+  };
+}
+
+/* ================================================================
+   STANDART TOIFA — operatorlardan jonli qidiruv (Firestore'da yo'q)
+   ----------------------------------------------------------------
+   Bu raqamlarning 'numbers' kolleksiyasida HUJJATI YO'Q — ular faqat
+   operator API'sida yashaydi. Shu sabab buyurtma yozilganda numberId
+   null bo'ladi va 'numbers' hujjati YANGILANMAYDI (aks holda Firestore
+   "NOT_FOUND" xatosi beradi). Saytdagi (index.html) mantiq bilan bir xil.
+   ================================================================ */
+
+/* Mijoz yozgan matndan 7 katakli maska yasaydi (lib/operators.js kutgan
+   format: ['','','','0','7','0','7']). Ikki xil yozuvni tushunadi:
+   - faqat raqam ("0707") → oxirgi raqamlar deb qabul qilinadi;
+   - 7 belgili shablon ("__1_777") → noma'lum joylar "_" yoki "*". */
+function parseStandardMask(raw){
+  const s = String(raw || '').trim().replace(/[\s-]/g, '');
+  if(s.length === 7 && /^[0-9_*xX]+$/.test(s)){
+    const boxes = Array.from(s).map(ch => (ch >= '0' && ch <= '9') ? ch : '');
+    return boxes.some(b => b !== '') ? boxes : null;
+  }
+  const digits = s.replace(/\D/g, '');
+  if(digits.length < 3 || digits.length > 7) return null;
+  return new Array(7 - digits.length).fill('').concat(Array.from(digits));
+}
+
+/* Operator sozlamalari adminkadan (Firestore) o'qiladi. Hujjat bo'lmasa
+   ham qidiruv to'xtamasin — lib/operators.js standart qiymatlar bilan
+   ishlayveradi. */
+async function loadOperatorConfig(){
+  try{
+    const doc = await withRetry(() => db.collection('operator_config').doc('main').get());
+    return (doc.exists && doc.data()) || {};
+  }catch(e){ return {}; }
+}
+
+/* Jonli natijani showNumberList/showNumberDetail kutgan ko'rinishga keltiradi.
+   ID "live:" bilan boshlanadi — katalog hujjat ID'lari bilan hech qachon
+   chalkashmaydi, shu belgi bo'yicha "jonli" ekanini bilamiz. */
+function liveToItem(x){
+  return {
+    id: 'live:' + x.number,
+    number: x.number,
+    operator: x.operator || '',
+    price: x.price || 0,
+    oldPrice: 0,
+    onSale: false,
+    installment: false,   // jonli raqamlarga bo'lib to'lash taklif qilinmaydi
+    featured: false,
+    reserved: false,
+    live: true
   };
 }
 
@@ -595,16 +661,14 @@ async function handleFreeTextReply(chatId, text, from, control){
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  // XAVFSIZLIK: agar CUSTOMER_BOT_WEBHOOK_SECRET sozlangan bo'lsa, faqat
-  // Telegram'ning o'zi (setWebhook'da shu maxfiy so'z bilan ro'yxatdan
-  // o'tgan) yubora oladigan so'rovlarni qabul qilamiz — soxta so'rovlar
-  // (masalan, kimdir bu havolani topib, o'zi buyurtma/xabar "yasab"
-  // yuborishga urinishi) rad etiladi. Sozlanmagan bo'lsa, eskicha ishlayveradi.
+  // XAVFSIZLIK: faqat Telegram'ning o'zi (setWebhook'da shu maxfiy so'z
+  // bilan ro'yxatdan o'tgan) yubora oladigan so'rovlarni qabul qilamiz —
+  // soxta so'rovlar (masalan, kimdir bu havolani topib, o'zi buyurtma/
+  // xabar "yasab" yuborishga urinishi) rad etiladi. QAT'IY (fail-closed):
+  // CUSTOMER_BOT_WEBHOOK_SECRET sozlanmagan bo'lsa ham so'rov rad etiladi.
   const expectedSecret = process.env.CUSTOMER_BOT_WEBHOOK_SECRET;
-  if(expectedSecret){
-    const got = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-    if(got !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
-  }
+  const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
+  if(!expectedSecret || gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
 
   let update;
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
@@ -700,7 +764,21 @@ exports.handler = async function (event) {
     }
 
     if(data.startsWith('buy|')){
-      const numberId = data.split('|')[1];
+      const numberId = data.slice(4); // "live:+998..." ichida ham "|" yo'q
+      if(numberId.startsWith('live:')){
+        // STANDART TOIFA: Firestore hujjati yo'q — raqam ma'lumotini
+        // seansdagi qidiruv natijasidan olamiz.
+        const live = (session.liveItems || {})[numberId];
+        if(!live){
+          await tg('answerCallbackQuery', { callback_query_id: cq.id, text: "Ma'lumot eskirdi, qaytadan qidiring" });
+          return { statusCode: 200, body: 'ok' };
+        }
+        session = { step: 'awaiting_name', numberId: null, isLiveOrder: true, liveNumber: live, liveItems: session.liveItems, candidates: session.candidates };
+        await saveSession(chatId, session);
+        await tg('answerCallbackQuery', { callback_query_id: cq.id });
+        await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+        return { statusCode: 200, body: 'ok' };
+      }
       session = { step: 'awaiting_name', numberId };
       await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
@@ -710,10 +788,21 @@ exports.handler = async function (event) {
 
     if(data === 'confirmorder'){
       await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Yuborilmoqda...' });
-      const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
-      const nd = numberDoc.exists ? numberDoc.data() : {};
-      const numberStr = displayNumber(nd.number || '');
-      const price = nd.price || 0;
+      // STANDART TOIFA: 'numbers' hujjati yo'q — hech narsa o'qimaymiz,
+      // ma'lumot seansdagi jonli natijadan olinadi.
+      const isLive = !!(session.isLiveOrder && session.liveNumber);
+      let numberStr, price, operatorStr;
+      if(isLive){
+        numberStr = displayNumber(session.liveNumber.number || '');
+        price = session.liveNumber.price || 0;
+        operatorStr = session.liveNumber.operator || '';
+      }else{
+        const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
+        const nd = numberDoc.exists ? numberDoc.data() : {};
+        numberStr = displayNumber(nd.number || '');
+        price = nd.price || 0;
+        operatorStr = nd.operator || '';
+      }
       const time = new Date().toLocaleString('uz-UZ');
       const manzil = session.draftDistrict
         ? `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`
@@ -725,7 +814,10 @@ exports.handler = async function (event) {
         name: session.draftName || '',
         region: manzil,
         phone: session.draftPhone || '',
-        numberId: session.numberId,
+        // Jonli raqamda haqiqiy hujjat yo'q — soxta ID yozmaymiz, null qo'yamiz
+        numberId: isLive ? null : (session.numberId || null),
+        catalogType: isLive ? 'Standart' : 'VIP',
+        operator: operatorStr,
         customerChatId: String(chatId),
         status: 'Yangi',
         source: 'Telegram bot',
@@ -735,13 +827,20 @@ exports.handler = async function (event) {
         createdAtSort: Date.now()
       }));
 
-      if(session.numberId){
-        await withRetry(() => db.collection('numbers').doc(session.numberId).update({ reserved: true }));
+      // Faqat katalogdagi (VIP) raqam band qilinadi. Jonli raqamda
+      // yangilaydigan hujjat yo'q — bu qadam butunlay tashlab ketiladi.
+      if(!isLive && session.numberId){
+        await withRetry(() => db.collection('numbers').doc(session.numberId).update({
+          reserved: true,
+          reservedAt: admin.firestore.FieldValue.serverTimestamp()
+        }));
       }
 
       await notifyAdmin(orderRef.id, {
         number: numberStr, name: session.draftName, phone: session.draftPhone,
         region: manzil, time,
+        catalogType: isLive ? 'Standart' : 'VIP',
+        operator: operatorStr,
         installmentMonths: session.installmentMonths || null,
         installmentMonthly: session.installmentMonthly || null
       });
@@ -819,10 +918,21 @@ exports.handler = async function (event) {
       // Ism so'ralayotgan bosqichdan orqaga — o'sha raqamning tafsilotiga qaytaramiz,
       // shunda mijoz "Naqt to'lov" / "Bo'lib to'lash"ni qayta tanlashi mumkin.
       const numberId = session.numberId;
-      const numberDoc = numberId ? await withRetry(() => db.collection('numbers').doc(numberId).get()) : null;
-      session = { step: 'list_shown' };
+      // Jonli (standart) raqamda o'qiydigan hujjat yo'q — tafsilotni
+      // seansda saqlangan ma'lumotdan qayta ko'rsatamiz.
+      const live = session.isLiveOrder ? session.liveNumber : null;
+      const numberDoc = (!live && numberId) ? await withRetry(() => db.collection('numbers').doc(numberId).get()) : null;
+      if(live){
+        // Ro'yxat/jonli natijalarni saqlab qolamiz, aks holda mijoz
+        // "Naqt to'lov"ni qayta bosa raqam ma'lumoti topilmay qoladi.
+        session = { step: 'list_shown', liveItems: session.liveItems, candidates: session.candidates, listAll: session.listAll, listPage: session.listPage, listEmptyText: session.listEmptyText };
+      }else{
+        session = { step: 'list_shown' };
+      }
       await saveSession(chatId, session);
-      if(numberDoc && numberDoc.exists){
+      if(live){
+        await showNumberDetail(chatId, liveToItem(live));
+      }else if(numberDoc && numberDoc.exists){
         await showNumberDetail(chatId, docToItem(numberDoc));
       }else{
         await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
@@ -857,6 +967,17 @@ exports.handler = async function (event) {
       session = { step: 'awaiting_digits' };
       await saveSession(chatId, session);
       await send(chatId, 'Raqamning oxirgi 4 ta raqamini kiriting.\nMisol: 0707', backKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    if(text === BTN.STANDARD){
+      session = { step: 'awaiting_standard_digits' };
+      await saveSession(chatId, session);
+      await send(chatId,
+        "🌐 Standart baza — operatorlarda hozir bo'sh turgan raqamlar.\n\n" +
+        "Qidirmoqchi bo'lgan raqamlaringizni kiriting (oxirgi 3–7 ta).\nMisol: 0707\n\n" +
+        "Yoki 7 belgili shablon yozing (noma'lum joyga \"_\"):\nMisol: __7_777",
+        backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -964,9 +1085,65 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
 
+  /* ---- STANDART TOIFA: operatorlardan jonli qidiruv ---- */
+  if(session.step === 'awaiting_standard_digits'){
+    const boxes = parseStandardMask(text);
+    if(!boxes){
+      await send(chatId, "Iltimos, 3–7 ta raqam kiriting (misol: 0707) yoki 7 belgili shablon yozing (misol: __7_777).", backKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    // Operatorlarga ~20 ta so'rov ketadi — bir necha soniya. Mijoz jim
+    // kutib qolmasligi uchun darhol xabar beramiz.
+    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+    const searchingMsg = await send(chatId, "🔍 Operatorlardan qidirilmoqda...");
+
+    let items = [];
+    let searchFailed = false;
+    try{
+      const config = await loadOperatorConfig();
+      const result = await searchAll(boxes, config, { limit: 40 });
+      items = (result.items || []).map(liveToItem);
+    }catch(err){
+      console.error('Standart qidiruv xatosi:', err);
+      searchFailed = true;
+    }
+
+    if(searchingMsg && searchingMsg.result && searchingMsg.result.message_id){
+      await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
+    }
+
+    if(searchFailed){
+      session = { step: 'menu' };
+      await saveSession(chatId, session);
+      await send(chatId, "Operatorlar hozir javob bermayapti. Birozdan keyin qayta urinib ko'ring.", mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    // Jonli raqamlarning Firestore'da hujjati yo'q — narx/operatorni
+    // seansda saqlaymiz, keyin buyurtma shundan yoziladi.
+    session.liveItems = {};
+    items.forEach(it => { session.liveItems[it.id] = { number: it.number, price: it.price, operator: it.operator }; });
+
+    await showNumberList(chatId, session, items,
+      "Bu shablon bo'yicha operatorlarda bo'sh raqam topilmadi. Boshqa raqamlarni sinab ko'ring.",
+      inlineKb([[{ text: '📋 Raqam ro\'yxati', url: 'https://t.me/vip_raqamlar_uz' }]]));
+    return { statusCode: 200, body: 'ok' };
+  }
+
   /* ---- Ro'yxatdan bittasini tanlash (tugma matni = raqam) ---- */
   if(session.candidates && session.candidates[text]){
     const numberId = session.candidates[text];
+    // "live:" — standart toifadagi raqam, Firestore'dan o'qiladigan hujjat yo'q
+    if(numberId.startsWith('live:')){
+      const live = (session.liveItems || {})[numberId];
+      if(live){
+        await showNumberDetail(chatId, liveToItem(live));
+      }else{
+        await send(chatId, "Ma'lumot eskirdi, iltimos qaytadan qidiring.", mainMenuKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
     const numberDoc = await withRetry(() => db.collection('numbers').doc(numberId).get());
     if(numberDoc.exists){
       await showNumberDetail(chatId, docToItem(numberDoc));
@@ -1116,10 +1293,17 @@ ${monthsLines}
     session.step = 'confirm';
     await saveSession(chatId, session);
 
-    const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
-    const nd = numberDoc.exists ? numberDoc.data() : {};
-    const numberStr = displayNumber(nd.number || '');
-    const priceStr = formatPrice(nd.price || 0);
+    // Jonli (standart) raqamda o'qiydigan hujjat yo'q — seansdagi ma'lumot
+    let numberStr, priceStr;
+    if(session.isLiveOrder && session.liveNumber){
+      numberStr = displayNumber(session.liveNumber.number || '');
+      priceStr = formatPrice(session.liveNumber.price || 0);
+    }else{
+      const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
+      const nd = numberDoc.exists ? numberDoc.data() : {};
+      numberStr = displayNumber(nd.number || '');
+      priceStr = formatPrice(nd.price || 0);
+    }
     const manzil = `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`;
 
     let summary =

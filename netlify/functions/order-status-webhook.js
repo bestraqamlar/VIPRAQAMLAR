@@ -399,15 +399,13 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   // XAVFSIZLIK: bu ADMIN boti — buyurtmalarni boshqaradi, hammaga xabar
-  // yuboradi. Shu sababli maxfiy token tekshiruvi ayniqsa muhim: agar
-  // ADMIN_BOT_WEBHOOK_SECRET sozlangan bo'lsa, faqat Telegram'ning o'zidan
-  // kelgan (setWebhook'da shu so'z bilan ro'yxatdan o'tgan) so'rovlar
-  // qabul qilinadi. Sozlanmagan bo'lsa, eskicha ishlayveradi.
+  // yuboradi. Maxfiy token tekshiruvi QAT'IY (fail-closed): faqat
+  // Telegram'ning o'zidan kelgan (setWebhook'da shu so'z bilan ro'yxatdan
+  // o'tgan) so'rovlar qabul qilinadi — ADMIN_BOT_WEBHOOK_SECRET
+  // sozlanmagan bo'lsa ham so'rov rad etiladi.
   const expectedSecret = process.env.ADMIN_BOT_WEBHOOK_SECRET;
-  if(expectedSecret){
-    const got = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-    if(got !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
-  }
+  const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
+  if(!expectedSecret || gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
 
   let update;
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
@@ -480,7 +478,10 @@ exports.handler = async function (event) {
 
     if(numberId){
       if(statusCode === 'C'){
-        await withRetry(() => db.collection('numbers').doc(numberId).update({ reserved: false }));
+        await withRetry(() => db.collection('numbers').doc(numberId).update({
+          reserved: false,
+          reservedAt: admin.firestore.FieldValue.delete()
+        }));
       }else if(statusCode === 'Y'){
         await withRetry(() => db.collection('numbers').doc(numberId).delete());
       }

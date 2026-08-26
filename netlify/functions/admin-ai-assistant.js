@@ -30,6 +30,7 @@
 //   (bular boshqa funksiyalarda ham ishlatiladi, allaqachon sozlangan bo'lishi kerak)
 
 const admin = require('firebase-admin');
+const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -43,6 +44,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true });
 
+// XAVFSIZLIK: xavfli amal (o'chirish / narx o'zgartirish) taklif
+// qilinganda, aynan NIMA taklif qilinganini (vosita nomi + parametrlar)
+// biz SERVERDA, shu kolleksiyada saqlaymiz. Admin "Tasdiqlash" bosganda,
+// mijoz (brauzer) yuborgan `pendingToolName`/`pendingToolInput`ga
+// ISHONMAYMIZ — aks holda kimdir shu maydonlarni o'zgartirib, masalan
+// "add_numbers" o'rniga "delete_numbers"ni "tasdiqlatib" yuborishi mumkin
+// edi. Buning o'rniga faqat `toolUseId` bo'yicha serverda saqlangan
+// haqiqiy amalni topib, O'SHANI bajaramiz.
+const PENDING_ACTIONS_COLLECTION = 'admin_ai_pending_actions';
+const PENDING_ACTION_TTL_MS = 10 * 60 * 1000; // 10 daqiqa
+
 // Anthropic docs'dan eng so'nggi model nomini tekshirib turing:
 // https://docs.claude.com/en/docs/about-claude/models
 const CLAUDE_MODEL = 'claude-sonnet-5';
@@ -50,7 +62,14 @@ const MAX_TOOL_ROUNDS = 6;
 
 // Bu vositalar hech qachon avtomatik bajarilmaydi — frontendda admin
 // tasdiqlashi shart.
-const DANGEROUS_TOOLS = ['delete_numbers', 'update_numbers_price'];
+// XAVFSIZLIK: 'add_numbers' ham shu ro'yxatga qo'shildi. Sabab: bu
+// vositaga beriladigan ma'lumot ("qidiruv/statistika natijasi" orqali
+// AI kontekstiga tushishi mumkin bo'lgan mijoz nomi/raqami kabi maydonlar)
+// nazariy jihatdan promt-in'eksiya orqali ta'sirlanishi mumkin — masalan,
+// kimdir "orders" hujjatining 'name' maydoniga maxsus matn yozib, AI'ni
+// soxta raqam(lar)ni katalogga qo'shishga "ko'ndirishga" urinishi mumkin.
+// Endi bunday amal ham avval admin tomonidan "Tasdiqlash" bosilishini talab qiladi.
+const DANGEROUS_TOOLS = ['delete_numbers', 'update_numbers_price', 'add_numbers'];
 
 // admin.html'dagi bilan bir xil operator ro'yxati va kod jadvali
 // (index.html / admin.html o'zgarsa, shu yerni ham moslang).
@@ -495,12 +514,20 @@ async function buildConfirmationPreview(toolUse) {
       details: updates.map(u => ({ id: u.id, number: u.number, oldPrice: u.oldPrice, price: u.newPrice }))
     };
   }
+  if (toolUse.name === 'add_numbers') {
+    const numbers = (toolUse.input && toolUse.input.numbers) || [];
+    return {
+      summary: `${numbers.length} ta yangi raqamni katalogga qo'shishni tasdiqlaysizmi?`,
+      details: numbers.map(n => ({ number: n.number, price: n.price }))
+    };
+  }
   return { summary: 'Amalni tasdiqlaysizmi?', details: [] };
 }
 
 async function executeConfirmedTool(toolName, toolInput) {
   if (toolName === 'delete_numbers') return execDelete(toolInput.ids || []);
   if (toolName === 'update_numbers_price') return execUpdatePrice(toolInput || {});
+  if (toolName === 'add_numbers') return execAdd(toolInput || {});
   return { error: "Noma'lum vosita: " + toolName };
 }
 
@@ -512,14 +539,14 @@ exports.handler = async function (event) {
     return { statusCode: 500, body: JSON.stringify({ error: 'ANTHROPIC_API_KEY sozlanmagan (Netlify environment variables bo\'limida qo\'shing).' }) };
   }
 
-  // --- Autentifikatsiya: faqat tizimga kirgan admin foydalana oladi ---
+  // --- Autentifikatsiya: faqat HAQIQIY admin huquqiga (custom claim)
+  // ega hisob foydalana oladi — oddiy ro'yxatdan o'tgan hisob emas. ---
+  let adminUid;
   try {
-    const authHeader = event.headers.authorization || event.headers.Authorization || '';
-    const idToken = authHeader.replace(/^Bearer\s+/i, '');
-    if (!idToken) throw new Error('Token yo\'q');
-    await admin.auth().verifyIdToken(idToken);
+    const decoded = await requireAdmin(event);
+    adminUid = decoded.uid;
   } catch (err) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Ruxsat yo\'q. Iltimos, qaytadan tizimga kiring.' }) };
+    return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };
   }
 
   try {
@@ -531,11 +558,26 @@ exports.handler = async function (event) {
     }
 
     // Admin oldin taklif qilingan xavfli amalni (o'chirish / narx o'zgartirish)
-    // tasdiqladi yoki bekor qildi.
-    if (body.decision && body.pendingToolUseId && body.pendingToolName) {
-      const toolResultContent = body.decision === 'confirm'
-        ? JSON.stringify(await executeConfirmedTool(body.pendingToolName, body.pendingToolInput || {}))
-        : JSON.stringify({ cancelled: true, note: 'Admin amalni bekor qildi.' });
+    // tasdiqladi yoki bekor qildi. MUHIM: qaysi amal va qanday parametrlar
+    // ekanini mijoz (brauzer)dan emas, SERVERDA saqlangan yozuvdan olamiz —
+    // shu bilan "tasdiqlash" so'rovini o'zgartirib, boshqa (xavfliroq) amalni
+    // bajartirib yuborish imkoniyati yopiladi.
+    if (body.decision && body.pendingToolUseId) {
+      let toolResultContent;
+      const pendingRef = db.collection(PENDING_ACTIONS_COLLECTION).doc(String(body.pendingToolUseId));
+      const pendingSnap = await pendingRef.get();
+      const pending = pendingSnap.exists ? pendingSnap.data() : null;
+      const isFresh = pending && pending.createdAtMs && (Date.now() - pending.createdAtMs) < PENDING_ACTION_TTL_MS;
+
+      if (!pending || pending.adminUid !== adminUid || !isFresh) {
+        toolResultContent = JSON.stringify({ error: 'Bu amal muddati tugagan yoki topilmadi. Iltimos, so\'rovni qaytadan yuboring.' });
+      } else if (body.decision === 'confirm') {
+        toolResultContent = JSON.stringify(await executeConfirmedTool(pending.toolName, pending.toolInput || {}));
+      } else {
+        toolResultContent = JSON.stringify({ cancelled: true, note: 'Admin amalni bekor qildi.' });
+      }
+
+      if (pendingSnap.exists) await pendingRef.delete();
 
       messages = [...messages, {
         role: 'user',
@@ -560,6 +602,15 @@ exports.handler = async function (event) {
 
       if (DANGEROUS_TOOLS.includes(toolUse.name)) {
         const preview = await buildConfirmationPreview(toolUse);
+        // Taklif qilingan xavfli amalni SERVERDA saqlab qo'yamiz — admin
+        // "Tasdiqlash" bosganda, aynan shu yozuv bo'yicha bajariladi
+        // (yuqoridagi izohga qarang).
+        await db.collection(PENDING_ACTIONS_COLLECTION).doc(toolUse.id).set({
+          toolName: toolUse.name,
+          toolInput: toolUse.input || {},
+          adminUid,
+          createdAtMs: Date.now()
+        });
         return {
           statusCode: 200,
           body: JSON.stringify({

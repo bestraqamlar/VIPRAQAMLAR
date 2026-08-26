@@ -98,7 +98,7 @@ exports.handler = async function (event) {
       createdAtSort: Date.now()
     });
 
-    await numRef.update({ reserved: true });
+    await numRef.update({ reserved: true, reservedAt: admin.firestore.FieldValue.serverTimestamp() });
 
     // Admin Telegram botiga darhol xabar — sayt orqali kelgan
     // buyurtmalar bilan bir xil tarzda.

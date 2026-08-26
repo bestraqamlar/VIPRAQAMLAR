@@ -9,6 +9,7 @@
 // XAVFSIZLIK: faqat tizimga kirgan ADMIN chaqira oladi.
 
 const admin = require('firebase-admin');
+const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -32,12 +33,9 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
-    const authHeader = event.headers.authorization || event.headers.Authorization || '';
-    const idToken = authHeader.replace(/^Bearer\s+/i, '');
-    if (!idToken) throw new Error("Token yo'q");
-    await admin.auth().verifyIdToken(idToken);
+    await requireAdmin(event);
   } catch (err) {
-    return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q. Iltimos, qaytadan tizimga kiring." }) };
+    return { statusCode: err.statusCode || 401, body: JSON.stringify({ ok: false, error: err.message }) };
   }
 
   try{

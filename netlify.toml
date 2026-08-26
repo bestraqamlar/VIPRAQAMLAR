@@ -36,6 +36,11 @@
 [functions."personal-bot-anomaly-check"]
   schedule = "0 16 * * *"
 
+# XAVFSIZLIK: buyurtmasiz, soxta "band qilingan" raqamlarni har 10
+# daqiqada avtomatik bo'shatadi (batafsili izoh funksiya faylida).
+[functions."release-stale-reservations"]
+  schedule = "*/10 * * * *"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga

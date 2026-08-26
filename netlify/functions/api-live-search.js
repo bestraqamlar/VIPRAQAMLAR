@@ -17,6 +17,7 @@
 
 const admin = require('firebase-admin');
 const { searchAll, testBeelineLogin } = require('./lib/operators');
+const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -127,7 +128,17 @@ exports.handler = async function (event) {
 
   // Adminkadagi "Login/parolni tekshirish" tugmasi — faqat Beeline login'ini
   // sinaydi, qidiruvga tegmaydi.
+  // XAVFSIZLIK: bu amal saqlangan Beeline login/parolidan foydalanib
+  // operatorga ulanadi — agar ochiq qolsa, har kim shu URL'ni takroran
+  // chaqirib, Beeline hisobini bloklanishiga (ko'p noto'g'ri urinish/
+  // haddan tashqari so'rov) sabab bo'lishi mumkin edi. Shu sabab faqat
+  // HAQIQIY admin (custom claim) chaqira oladi.
   if (params.action === 'test-beeline') {
+    try {
+      await requireAdmin(event);
+    } catch (err) {
+      return { statusCode: err.statusCode || 401, headers, body: JSON.stringify({ ok: false, error: err.message }) };
+    }
     const cfg = (await loadConfig(true)).Beeline || {};
     const out = await testBeelineLogin((cfg.username || '').trim(), cfg.password || '');
     return { statusCode: 200, headers, body: JSON.stringify(out) };
@@ -178,7 +189,10 @@ exports.handler = async function (event) {
 
     const items = result.items.map(x => ({
       // Katalogdagi hujjatlar bilan chalkashmasligi uchun ID "live:" bilan
-      // boshlanadi. Bu raqamlar Firestore'da yo'q — faqat ko'rsatiladi.
+      // boshlanadi. Bu raqamlar Firestore'da yo'q. "STANDART TOIFA"da
+      // (index.html) bularga ham to'liq buyurtma berish mumkin — lekin
+      // buyurtma yozilganda 'numbers' hujjati YANGILANMAYDI (chunki u
+      // mavjud emas), faqat 'orders' bazasiga yoziladi.
       id: 'live:' + x.number,
       number: x.number,
       operator: x.operator,
