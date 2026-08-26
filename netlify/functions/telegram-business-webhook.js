@@ -355,12 +355,17 @@ async function generateReply(userText, senderId, isFirstTime){
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  // XAVFSIZLIK: QAT'IY (fail-closed) — BUSINESS_BOT_WEBHOOK_SECRET
-  // sozlanmagan bo'lsa ham so'rov rad etiladi (Telegram setWebhook'da
-  // secret_token sifatida shu qiymat ro'yxatdan o'tkazilishi kerak).
+  // XAVFSIZLIK: BUSINESS_BOT_WEBHOOK_SECRET sozlangan bo'lsa, Telegram
+  // setWebhook'da ro'yxatdan o'tgan secret_token bilan tekshiriladi.
+  // HALI SOZLANMAGAN bo'lsa — bot eskicha ishlayveradi. To'liq "qat'iy"
+  // qilish uchun: Netlify'da shu o'zgaruvchini sozlang VA Telegram'ga
+  // setWebhook chaqirganda secret_token sifatida xuddi shu qiymatni
+  // yuboring.
   const expectedSecret = process.env.BUSINESS_BOT_WEBHOOK_SECRET;
-  const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-  if(!expectedSecret || gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  if(expectedSecret){
+    const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
+    if(gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  }
 
   let update;
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }

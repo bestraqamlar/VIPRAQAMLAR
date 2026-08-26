@@ -93,13 +93,19 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   // XAVFSIZLIK: bu bot bazaga to'g'ridan-to'g'ri raqam qo'shadi — shu sababli
-  // maxfiy token tekshiruvi QAT'IY (fail-closed): ADMIN_BOT_WEBHOOK_SECRET
-  // sozlanmagan bo'lsa ham so'rov rad etiladi — Netlify'da shu o'zgaruvchini
-  // sozlab, Telegram'ga setWebhook chaqirganda secret_token sifatida xuddi
-  // shu qiymatni yuboring (aks holda bot xabarga javob bermay qoladi).
+  // maxfiy token tekshiruvi muhim. ADMIN_BOT_WEBHOOK_SECRET sozlangan
+  // bo'lsa, faqat Telegram'ning o'zidan (setWebhook'da shu so'z bilan
+  // ro'yxatdan o'tgan) kelgan so'rovlar qabul qilinadi. HALI SOZLANMAGAN
+  // bo'lsa — bot ishlashda davom etadi (pastdagi chat_id tekshiruvi
+  // ikkinchi himoya qatlami sifatida qoladi). Buni to'liq "qat'iy"
+  // (sozlanmasa rad etadigan) qilish uchun: Netlify'da shu o'zgaruvchini
+  // sozlang VA Telegram'ga setWebhook chaqirganda secret_token sifatida
+  // xuddi shu qiymatni yuboring — ikkalasi ham bo'lmasa bot to'xtab qoladi.
   const expectedSecret = process.env.ADMIN_BOT_WEBHOOK_SECRET;
-  const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-  if(!expectedSecret || gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  if(expectedSecret){
+    const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
+    if(gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  }
 
   let update;
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }

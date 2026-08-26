@@ -648,6 +648,38 @@
 .op-test-out{font-size:12px;margin-top:8px;line-height:1.6;white-space:pre-wrap;}
 .op-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;margin-left:auto;}
 @media(max-width:640px){ .op-cred{grid-template-columns:1fr;} }
+
+/* ---- "Baza raqam" kuzatuvi bo'limi ---- */
+.wt-form{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:16px;}
+.wt-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.wt-row label{font-size:12px;color:var(--muted);white-space:nowrap;}
+.wt-row select{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);color:inherit;font-size:13px;}
+.wt-boxes{display:flex;gap:6px;flex-wrap:wrap;}
+.wt-box{width:38px;height:44px;text-align:center;font-size:16px;font-weight:700;
+  border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);
+  color:inherit;font-family:'Space Mono',monospace,inherit;}
+.wt-box:focus{border-color:var(--amber,#FFB000);outline:none;}
+.wt-intervals{display:flex;gap:8px;flex-wrap:wrap;}
+.wt-interval-btn{padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.04);color:inherit;font-size:12.5px;cursor:pointer;}
+.wt-interval-btn.active{background:var(--amber,#FFB000);border-color:transparent;color:#0a1a12;font-weight:700;}
+.wt-confirm{background:var(--amber,#FFB000);color:#0a1a12;border:none;border-radius:9px;
+  padding:11px 20px;font-weight:800;font-size:13.5px;cursor:pointer;}
+.wt-confirm:disabled{opacity:.5;cursor:not-allowed;}
+.wt-hint{color:var(--muted);font-size:11.5px;line-height:1.5;margin:0 0 12px;}
+.wt-list{display:flex;flex-direction:column;gap:8px;}
+.wt-item{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:10px;
+  padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.wt-item.paused{opacity:.55;}
+.wt-item-main{display:flex;flex-direction:column;gap:3px;}
+.wt-item-num{font-family:'Space Mono',monospace,inherit;font-weight:700;font-size:14.5px;}
+.wt-item-meta{font-size:11.5px;color:var(--muted);}
+.wt-item-actions{display:flex;gap:6px;}
+.wt-item-actions button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:inherit;
+  border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;}
+.wt-item-actions button.wt-del{color:#c0392b;}
+.wt-empty{color:var(--muted);font-size:13px;padding:16px;text-align:center;}
 </style>
 </head>
 <body>
@@ -711,6 +743,7 @@
     <button class="tab" data-tab="sessions">Seanslar</button>
     <button class="tab" data-tab="styles">Uslublar</button>
     <button class="tab" data-tab="operators">🔌 Operatorlar</button>
+    <button class="tab" data-tab="watch">🎯 Baza raqam</button>
     <button class="tab" data-tab="settings">Sozlamalar</button>
   </div>
 
@@ -1087,6 +1120,56 @@
 
     <button id="opSaveBtn" class="ig-save-btn">💾 Saqlash</button>
     <div class="ig-save-msg" id="opSaveMsg"></div>
+  </div>
+
+  <div class="pane" id="paneWatch">
+    <div class="wt-hint">
+      🎯 Kerakli raqamni tanlangan operatorda vaqti-vaqti bilan avtomatik qidirib turadi. Sotuvga chiqishi bilan
+      SHU ZAHOTIYOQ Telegram'ga xabar keladi — boshqa hech kimga ko'rinmaydi, faqat shu admin panelida turadi.
+      Bitta katak = bitta raqam; bo'sh qoldirilgan katak "istalgan raqam" degani (naqsh sifatida ham ishlatsa bo'ladi).
+    </div>
+
+    <div class="wt-form">
+      <div class="wt-row">
+        <label for="wtOperator">Kompaniya:</label>
+        <select id="wtOperator">
+          <option value="Beeline">Beeline</option>
+          <option value="Ucell">Ucell</option>
+          <option value="Humans">Humans</option>
+          <option value="Mobiuz">Mobiuz</option>
+          <option value="Perfektum">Perfektum</option>
+        </select>
+      </div>
+      <div class="wt-row">
+        <label>Raqam:</label>
+        <div class="wt-boxes" id="wtBoxes">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="wt-box" maxlength="1" inputmode="numeric">
+        </div>
+      </div>
+      <div class="wt-row">
+        <label>Necha daqiqada bir qidirsin:</label>
+        <div class="wt-intervals" id="wtIntervals">
+          <button type="button" class="wt-interval-btn" data-min="1">1 daqiqa</button>
+          <button type="button" class="wt-interval-btn" data-min="3">3 daqiqa</button>
+          <button type="button" class="wt-interval-btn active" data-min="5">5 daqiqa</button>
+          <button type="button" class="wt-interval-btn" data-min="30">30 daqiqa</button>
+          <button type="button" class="wt-interval-btn" data-min="60">1 soat</button>
+          <button type="button" class="wt-interval-btn" data-min="120">2 soat</button>
+        </div>
+      </div>
+      <button type="button" class="wt-confirm" id="wtConfirmBtn">✅ Tasdiqlash va kuzatishni boshlash</button>
+      <div class="ig-save-msg" id="wtSaveMsg"></div>
+    </div>
+
+    <div class="wt-list" id="wtList">
+      <div class="wt-empty">Hozircha kuzatuv yo'q</div>
+    </div>
   </div>
 
   <div class="pane" id="paneSettings">
@@ -1582,7 +1665,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', operators:'Operators', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1595,6 +1678,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
+    if(tab.dataset.tab === 'watch'){ loadWatchList(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
     if(tab.dataset.tab === 'premiumvideo'){ loadPremiumVideoList(); }
@@ -2777,6 +2861,130 @@ async function loadOperatorSettings(){
     const hw = document.getElementById('opHumansWarn'); if(hw) hw.textContent = OP_GAPS.Humans;
   }catch(err){
     console.error('Operator sozlamalarini yuklashda xato:', err);
+  }
+}
+
+/* ---- "Baza raqam" kuzatuvi ---- */
+const wtBoxInputs = Array.from(document.querySelectorAll('#wtBoxes .wt-box'));
+wtBoxInputs.forEach((inp, i)=>{
+  inp.addEventListener('input', ()=>{
+    inp.value = inp.value.replace(/[^0-9]/g, '').slice(0,1);
+    if(inp.value && wtBoxInputs[i+1]) wtBoxInputs[i+1].focus();
+  });
+  inp.addEventListener('keydown', (e)=>{
+    if(e.key === 'Backspace' && !inp.value && wtBoxInputs[i-1]) wtBoxInputs[i-1].focus();
+  });
+});
+
+let wtSelectedInterval = 5;
+document.querySelectorAll('#wtIntervals .wt-interval-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#wtIntervals .wt-interval-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    wtSelectedInterval = Number(btn.dataset.min);
+  });
+});
+
+async function wtCall(action, extra){
+  const idToken = await firebase.auth().currentUser.getIdToken();
+  const res = await fetch('/.netlify/functions/admin-number-watch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+    body: JSON.stringify(Object.assign({ action }, extra || {}))
+  });
+  const data = await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+document.getElementById('wtConfirmBtn').addEventListener('click', async ()=>{
+  const boxes = wtBoxInputs.map(inp => inp.value || '');
+  const msg = document.getElementById('wtSaveMsg');
+  if(!boxes.some(b => b !== '')){
+    msg.textContent = "Kamida bitta katakka raqam kiriting.";
+    msg.style.color = '#c0392b';
+    return;
+  }
+  const operator = document.getElementById('wtOperator').value;
+  const btn = document.getElementById('wtConfirmBtn');
+  btn.disabled = true;
+  msg.textContent = 'Saqlanmoqda...';
+  msg.style.color = '';
+  try{
+    await wtCall('create', { boxes, operator, intervalMinutes: wtSelectedInterval });
+    msg.textContent = "✅ Kuzatuv boshlandi — natija chiqishi bilan Telegram'ga xabar keladi.";
+    msg.style.color = '#33E28C';
+    wtBoxInputs.forEach(inp => inp.value = '');
+    loadWatchList();
+  }catch(err){
+    msg.textContent = "Xato: " + err.message;
+    msg.style.color = '#c0392b';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+function wtFormatBoxes(boxes){
+  return (boxes || []).map(b => b || '•').join(' ');
+}
+function wtFormatTime(ms){
+  if(!ms) return '—';
+  const d = new Date(ms);
+  const pad = n => String(n).padStart(2,'0');
+  return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+const WT_INTERVAL_LABELS = {1:'1 daqiqa', 3:'3 daqiqa', 5:'5 daqiqa', 30:'30 daqiqa', 60:'1 soat', 120:'2 soat'};
+
+async function loadWatchList(){
+  const list = document.getElementById('wtList');
+  list.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
+  try{
+    const data = await wtCall('list');
+    const watches = data.watches || [];
+    if(watches.length === 0){
+      list.innerHTML = '<div class="wt-empty">Hozircha kuzatuv yo\'q</div>';
+      return;
+    }
+    list.innerHTML = watches.map(w => `
+      <div class="wt-item ${w.active ? '' : 'paused'}" data-id="${escapeHtml(w.id)}">
+        <div class="wt-item-main">
+          <div class="wt-item-num">${escapeHtml(wtFormatBoxes(w.boxes))} <span style="color:var(--muted);font-weight:400;font-size:12px;">(${escapeHtml(w.operator)})</span></div>
+          <div class="wt-item-meta">
+            ⏱ ${escapeHtml(WT_INTERVAL_LABELS[w.intervalMinutes] || (w.intervalMinutes + ' daq'))}
+            · so'nggi tekshiruv: ${wtFormatTime(w.lastCheckedAt)}
+            · bugun xabar: ${w.notifyCountToday || 0}/7
+            ${w.lastFoundAt ? " · oxirgi topilgan: " + wtFormatTime(w.lastFoundAt) : ''}
+            ${!w.active ? " · <b style=\"color:#c0392b;\">to'xtatilgan</b>" : ''}
+          </div>
+        </div>
+        <div class="wt-item-actions">
+          <button type="button" class="wt-toggle" data-id="${escapeHtml(w.id)}" data-active="${w.active ? '0' : '1'}">${w.active ? "⏸ To'xtatish" : '▶ Davom ettirish'}</button>
+          <button type="button" class="wt-del" data-id="${escapeHtml(w.id)}">🗑</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.wt-toggle').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        btn.disabled = true;
+        try{
+          await wtCall('toggle', { id: btn.dataset.id, active: btn.dataset.active === '1' });
+          loadWatchList();
+        }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+      });
+    });
+    list.querySelectorAll('.wt-del').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu kuzatuvni butunlay o'chirasizmi?")) return;
+        btn.disabled = true;
+        try{
+          await wtCall('delete', { id: btn.dataset.id });
+          loadWatchList();
+        }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+      });
+    });
+  }catch(err){
+    list.innerHTML = '<div class="wt-empty">Xato: ' + escapeHtml(err.message) + '</div>';
   }
 }
 

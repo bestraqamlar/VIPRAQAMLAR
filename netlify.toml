@@ -41,6 +41,13 @@
 [functions."release-stale-reservations"]
   schedule = "*/10 * * * *"
 
+# "Baza raqam" kuzatuvi — admin bazadan tanlagan raqamni operatorda
+# muntazam qidirib turadi (batafsili izoh funksiya faylida). Har daqiqada
+# ishga tushadi, lekin har bir kuzatuv faqat O'ZINING vaqti kelganda
+# haqiqatan tekshiriladi (1 daqiqa / 3 daqiqa / ... / 2 soat).
+[functions."number-watch-check-background"]
+  schedule = "* * * * *"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga

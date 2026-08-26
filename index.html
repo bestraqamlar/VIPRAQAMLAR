@@ -139,6 +139,9 @@
     --text: #EDEFF3;
     --muted: #8494B0;
     --font-main: 'Sora', sans-serif;
+    --accent-grad-1: #8B5CF6;
+    --accent-grad-2: #EC4899;
+    --accent-gradient: linear-gradient(120deg, var(--accent-grad-1), var(--accent-grad-2));
   }
   html[data-custom-font] *{
     font-family: var(--font-main) !important;
@@ -373,23 +376,36 @@
     display:flex;gap:8px;
   }
   .cm-tab{
-    flex:1 1 0;box-sizing:border-box;
+    flex:1 1 0;box-sizing:border-box;min-width:0;
     padding:10px 6px;border-radius:10px;border:1.5px solid var(--line);
     background:var(--panel);color:var(--muted);
-    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(10.5px,3vw,13px);
-    letter-spacing:.3px;cursor:pointer;transition:all .18s ease;text-align:center;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(9.5px,2.6vw,13px);
+    letter-spacing:.2px;cursor:pointer;transition:all .18s ease;text-align:center;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
+  .cm-tab{transform:scale(1);}
+  .cm-tab:active{transform:scale(0.96);}
   .cm-tab.active{
     background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
     border-color:transparent;
+    box-shadow:0 6px 18px -6px rgba(139,92,246,0.45), 0 0 0 1px rgba(255,255,255,0.06) inset;
   }
   .standard-search-btn{
     display:block;width:100%;max-width:480px;margin:10px auto 0;box-sizing:border-box;
     padding:12px 10px;border:none;border-radius:10px;
     background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
     font-family:'Sora',sans-serif;font-weight:800;font-size:14px;cursor:pointer;
+    position:relative;overflow:hidden;
+    box-shadow:0 8px 22px -8px rgba(139,92,246,0.5);
+    transition:transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
   }
-  .standard-search-btn:active{transform:scale(0.98);}
+  .standard-search-btn::after{
+    content:'';position:absolute;top:0;left:-75%;width:45%;height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform:skewX(-20deg);transition:left .6s ease;
+  }
+  .standard-search-btn:hover::after{left:130%;}
+  .standard-search-btn:active{transform:scale(0.97);}
   .standard-search-btn:disabled{opacity:.6;cursor:not-allowed;}
 
   .search-wrap{
@@ -460,15 +476,32 @@
     border:1px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
     box-shadow:0 8px 30px rgba(8,20,55,0.22);
-    transition:border-color .3s ease, box-shadow .35s ease, transform .25s cubic-bezier(.22,1,.36,1);
+    transition:border-color .3s ease, box-shadow .35s ease, transform .3s cubic-bezier(.22,1,.36,1);
+    opacity:0;animation:cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards;
   }
+  .card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:var(--accent-gradient);transform:scaleX(0);transform-origin:left;
+    transition:transform .35s ease;border-radius:var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
+  }
+  .card:hover::before, .card:focus-within::before{transform:scaleX(1);}
   .card:hover, .card:focus-within{
     border-color:rgba(255,176,0,0.4);
-    box-shadow:0 14px 40px rgba(8,20,55,0.32), 0 0 0 1px rgba(255,176,0,0.1);
-    transform:translateY(-4px);
+    box-shadow:0 16px 44px rgba(8,20,55,0.34), 0 0 0 1px rgba(255,176,0,0.1), 0 10px 30px -12px rgba(139,92,246,0.35);
+    transform:translateY(-5px);
   }
   .card:active{transform:scale(0.98);transition:transform .12s ease;}
   .card.clickable-card{cursor:pointer;}
+  @keyframes cardPopIn{from{opacity:0;transform:translateY(16px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .catalog .card:nth-child(1){animation-delay:.02s;}
+  .catalog .card:nth-child(2){animation-delay:.06s;}
+  .catalog .card:nth-child(3){animation-delay:.10s;}
+  .catalog .card:nth-child(4){animation-delay:.14s;}
+  .catalog .card:nth-child(5){animation-delay:.18s;}
+  .catalog .card:nth-child(6){animation-delay:.22s;}
+  .catalog .card:nth-child(n+7){animation-delay:.24s;}
+  .catalog-list .card{animation:none !important;opacity:1 !important;transform:none !important;}
+  .catalog-list .card::before{display:none;}
   .reserved-note{
     color:var(--muted);font-size:12px;text-align:center;padding:11px;
     background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
@@ -658,9 +691,16 @@
     border-radius:var(--btn-radius, 9px);
     padding:11px;font-weight:600;font-size:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:8px;
-    transition:transform .12s ease, opacity .12s ease, background .15s ease;
+    position:relative;overflow:hidden;
+    transition:transform .16s cubic-bezier(.34,1.56,.64,1), opacity .12s ease, background .15s ease, box-shadow .2s ease;
   }
-  .card button.order-btn:hover{filter:brightness(1.15);}
+  .card button.order-btn::after{
+    content:'';position:absolute;top:0;left:-75%;width:45%;height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+    transform:skewX(-20deg);transition:left .55s ease;
+  }
+  .card button.order-btn:hover{filter:brightness(1.15);box-shadow:0 6px 18px -4px rgba(139,92,246,0.4);}
+  .card button.order-btn:hover::after{left:130%;}
   .card button.order-btn:active{transform:scale(0.96);}
   .reserved-btn{
     background:var(--panel-2) !important;
@@ -1279,15 +1319,20 @@
 
   .modal{
     background:var(--panel);border:1px solid var(--line);
-    border-radius:18px;
-    padding:24px 22px calc(28px + env(safe-area-inset-bottom, 0px));max-width:420px;width:100%;
+    border-radius:20px;
+    padding:26px 22px calc(28px + env(safe-area-inset-bottom, 0px));max-width:420px;width:100%;
     margin-bottom:10px;
-    position:relative;
-    transform:translateY(30px);animation:slideUp .28s ease forwards;
+    position:relative;overflow:hidden;
+    transform:translateY(30px) scale(.98);opacity:0;animation:slideUp .32s cubic-bezier(.22,1,.36,1) forwards;
     max-height:88vh;overflow-y:auto;
+    box-shadow:0 20px 60px -12px rgba(139,92,246,0.25);
   }
-  @media (min-width:600px){ .modal{border-radius:18px;} }
-  @keyframes slideUp{to{transform:translateY(0);}}
+  .modal::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:4px;
+    background:var(--accent-gradient);
+  }
+  @media (min-width:600px){ .modal{border-radius:20px;} }
+  @keyframes slideUp{from{transform:translateY(30px) scale(.98);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
 
   .modal-handle{width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;}
   .modal h2{font-family:'Space Mono',monospace;color:var(--amber);font-size:17px;margin:0 0 4px;}
@@ -2497,17 +2542,11 @@ function getFilteredNumbers(ignoreOperator){
     if(!standardSearchTriggered) return [];
     source = LIVE_NUMBERS;
   }else{
-    // Qidiruv ketayotganda katalog + operatorlardan kelgan jonli raqamlar
-    // birga ko'rsatiladi (faqat ma'lumot uchun). Katalogdagi raqam
-    // ustunroq — bir xil raqam ikki marta chiqmasligi uchun jonlisi
-    // tashlab yuboriladi.
+    // VIP TOIFA: FAQAT Firestore'dagi qo'lda kiritilgan katalog —
+    // operatorlardan jonli qidirilgan (Standart) raqamlar bu yerga
+    // hech qachon aralashmaydi (ilgari "Operatorda bor" belgisi bilan
+    // qo'shilardi, bu olib tashlandi — ikki toifa endi to'liq ajratilgan).
     source = searching ? NUMBERS : ZIGZAG_ORDER;
-    if(searching && LIVE_NUMBERS.length){
-      const inCatalog = new Set(NUMBERS.map(x => String(x.number).replace(/\D/g,'')));
-      source = source.concat(
-        LIVE_NUMBERS.filter(x => !inCatalog.has(String(x.number).replace(/\D/g,'')))
-      );
-    }
   }
 
   return source.filter(item=>{
@@ -3144,17 +3183,8 @@ function renderLiveStatus(){
   }
 }
 
-// Operator API'lari tashqi xizmat — har bosilgan tugmaga so'rov yubormaymiz.
-const debouncedLiveSearch = debounce(fetchLiveNumbers, 700);
-
 operatorSelect.addEventListener('change', ()=>{
-  // Natija allaqachon barcha operatorlar uchun olingan — shunchaki
-  // qayta chizamiz. Agar hali olinmagan bo'lsa, so'rov yuboriladi.
   currentPage = 0; updateSearchUI(); renderCatalog();
-  // Standart toifada operator tanlash faqat ALLAQACHON olingan natijani
-  // filtrlaydi — yangi tashqi so'rov yubormaymiz (mijoz "Qidirish"ni
-  // bosgandagina operatorlarga murojaat qilinadi).
-  if(catalogMode === 'vip') debouncedLiveSearch();
 });
 digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
@@ -3170,9 +3200,10 @@ digitBoxes.forEach((box, idx)=>{
     if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus({ preventScroll: true }); }
     currentPage = 0;
     if(catalogMode === 'vip'){
+      // VIP TOIFA: FAQAT mahalliy Firestore katalogi filtrlanadi —
+      // operatorlarga hech qanday so'rov yuborilmaydi.
       catalogEl.style.opacity = '0.35';
       debouncedRenderCatalog();
-      debouncedLiveSearch();
     }else{
       // STANDART TOIFA: raqam terish hali qidiruvni boshlamaydi — mijoz
       // "Qidirish" tugmasini bosgandagina operatorlarga so'rov ketadi.
