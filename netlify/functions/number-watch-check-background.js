@@ -34,13 +34,13 @@ const db = admin.firestore();
 db.settings({ preferRest: true });
 
 const COLLECTION = 'number_watches';
-const DAILY_NOTIFY_LIMIT = 7;      // bitta kuzatuv uchun kuniga eng ko'p nechta xabar
+// Har bir ANIQ topilgan raqam (masalan +998901234567) uchun: xabar berilgach,
+// shu XUDDI SHU raqam qayta 12 soat ichida qayta xabar qilinmaydi — lekin
+// naqshga mos boshqa (yangi) raqam chiqsa, kutmasdan darhol xabar beriladi.
+// Qidiruv esa bu vaqt ichida ham to'xtamasdan, belgilangan intervalda davom etadi.
+const NOTIFY_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 const CONCURRENCY = 4;             // bir vaqtda nechta operator so'rovi parallel yuborilsin
 const MAX_RUN_MS = 12 * 60 * 1000; // bitta yurish shu vaqtdan oshsa, qolganini keyingi yurishga qoldiradi
-
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function formatNumber(raw) {
   const digits = String(raw).replace(/\D/g, '');
@@ -49,8 +49,13 @@ function formatNumber(raw) {
 }
 
 async function notifyAdmin(text) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  // Alohida "kuzatuv" boti — asosiy admin botidan AJRATILGAN, shu bilan
+  // bu xabarlar boshqa xabarlar orasida yo'qolib qolmaydi. Agar
+  // WATCH_BOT_TOKEN/WATCH_CHAT_ID hali sozlanmagan bo'lsa, asosiy admin
+  // botiga (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) tushib qoladi — shu bilan
+  // sozlash tugallanmagan bo'lsa ham xabar butunlay yo'qolib ketmaydi.
+  const token = process.env.WATCH_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.WATCH_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return;
   try {
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -75,7 +80,10 @@ async function processWatch(doc, config) {
 
   let items = [];
   try {
-    const out = await searchAll(watch.boxes, config, { operator: watch.operator, limit: 5, deadline: 8000 });
+    // limit oshirildi: bitta naqsh (masalan "___0000") bazada bir nechta
+    // turli raqamga mos kelishi mumkin — hammasini ko'rib, ulardan qaysi
+    // biri YANGI (hali 12 soat ichida xabar qilinmagan) ekanini aniqlaymiz.
+    const out = await searchAll(watch.boxes, config, { operator: watch.operator, limit: 20, deadline: 8000 });
     items = out.items || [];
   } catch (e) {
     // Bitta operator vaqtincha ishlamasa ham, boshqa kuzatuvlar davom etadi —
@@ -88,29 +96,35 @@ async function processWatch(doc, config) {
     checkCount: (watch.checkCount || 0) + 1
   };
 
-  if (items.length > 0) {
-    const today = todayKey();
-    let notifyCountToday = (watch.notifyDate === today) ? (watch.notifyCountToday || 0) : 0;
-    const remaining = Math.max(0, DAILY_NOTIFY_LIMIT - notifyCountToday);
+  // Avval xabar qilingan raqamlar ro'yxatidan muddati (12 soat) o'tganlarini
+  // tozalab boramiz — shunda ular yana "yangidek" xabar qilinishi mumkin
+  // bo'ladi, va hujjat vaqt o'tishi bilan cheksiz kattalashib ketmaydi.
+  const prevNotified = watch.notifiedNumbers || {};
+  const keptNotified = {};
+  for (const num in prevNotified) {
+    const ts = prevNotified[num];
+    if (typeof ts === 'number' && (now - ts) < NOTIFY_COOLDOWN_MS) keptNotified[num] = ts;
+  }
 
+  if (items.length > 0) {
     update.lastFoundAt = admin.firestore.Timestamp.now();
     update.lastFoundNumbers = items.slice(0, 5).map(x => x.number);
 
-    if (remaining > 0) {
-      const toSend = items.slice(0, remaining);
-      for (const item of toSend) {
-        const priceLine = item.price ? `\n💰 Narx: ${Number(item.price).toLocaleString('ru-RU')} so'm` : '';
-        await notifyAdmin(
-          `🎯 ${formatNumber(item.number)} - raqami sotuvga chiqdi!\n` +
-          `📶 Operator: ${watch.operator}${priceLine}`
-        );
-      }
-      notifyCountToday += toSend.length;
+    // Faqat hali "sovish" muddati tugamagan ro'yxatda YO'Q raqamlarga xabar
+    // yuboramiz — xuddi shu raqam qayta-qayta tashlanmaydi, lekin naqshga
+    // mos boshqa (hali xabar qilinmagan) raqam chiqsa, darhol xabar ketadi.
+    const freshItems = items.filter(it => !keptNotified[it.number]);
+    for (const item of freshItems) {
+      const priceLine = item.price ? `\n💰 Narx: ${Number(item.price).toLocaleString('ru-RU')} so'm` : '';
+      await notifyAdmin(
+        `🎯 ${formatNumber(item.number)} - raqami sotuvga chiqdi!\n` +
+        `📶 Operator: ${watch.operator}${priceLine}`
+      );
+      keptNotified[item.number] = now;
     }
-
-    update.notifyDate = today;
-    update.notifyCountToday = notifyCountToday;
   }
+
+  update.notifiedNumbers = keptNotified;
 
   await ref.update(update);
 }

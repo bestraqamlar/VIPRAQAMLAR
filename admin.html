@@ -1722,7 +1722,7 @@ document.getElementById('saveCredentialsBtn').addEventListener('click', async ()
 /* ---- Rang mavzusi tanlash (10 ta tayyor variant) ---- */
 const SITE_THEMES = {
   premium_navy:   { name:'Premium Navy Executive', bg:'#0A1628', panel:'#101F38', accent:'#D4AF37' },
-  clean_white:    { name:'Clean Corporate White',  bg:'#E7EBF3', panel:'#FFFFFF', accent:'#1D4ED8' },
+  clean_white:    { name:'Clean Corporate White',  bg:'#190833', panel:'#FFFFFF', accent:'#1D4ED8' },
   modern_saas:    { name:'Modern SaaS Blue',       bg:'#0D1B33', panel:'#132A4D', accent:'#4A90D9' },
   bold_editorial: { name:'Bold Editorial Navy',    bg:'#0A1220', panel:'#111A2C', accent:'#FFFFFF' },
   soft_glass:     { name:'Soft Glass Navy',        bg:'#0B1220', panel:'#16233E', accent:'#7FA8E0' },
@@ -1754,7 +1754,8 @@ const SITE_THEMES = {
   black_red:      { name:'Qora + Qizil',   bg:'#0A0A0A', panel:'#1A1A1A', accent:'#FF3B3B' },
   white_gold:     { name:'Oq + To\'q sariq', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#CA8A04' },
   white_maroon:   { name:'Oq + To\'q qizil', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#7F1D1D' },
-  lyuks_premium:  { name:'💎 Lyuks Premium', bg:'#0A0806', panel:'#15120D', accent:'#D4AF37' }
+  lyuks_premium:  { name:'💎 Lyuks Premium', bg:'#0A0806', panel:'#15120D', accent:'#D4AF37' },
+  premium_purple: { name:'🟣 Premium Binafsha (animatsiyali)', bg:'#1A0B36', panel:'#3A2E78', accent:'#FFFFFF' }
 };
 let currentTheme = 'premium_navy';
 
@@ -2952,7 +2953,7 @@ async function loadWatchList(){
           <div class="wt-item-meta">
             ⏱ ${escapeHtml(WT_INTERVAL_LABELS[w.intervalMinutes] || (w.intervalMinutes + ' daq'))}
             · so'nggi tekshiruv: ${wtFormatTime(w.lastCheckedAt)}
-            · bugun xabar: ${w.notifyCountToday || 0}/7
+            ${w.notifiedCount ? " · xabar qilingan (hozircha kutilmoqda): " + w.notifiedCount + " ta" : ''}
             ${w.lastFoundAt ? " · oxirgi topilgan: " + wtFormatTime(w.lastFoundAt) : ''}
             ${!w.active ? " · <b style=\"color:#c0392b;\">to'xtatilgan</b>" : ''}
           </div>

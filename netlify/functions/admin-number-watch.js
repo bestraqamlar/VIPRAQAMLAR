@@ -40,10 +40,6 @@ function validateBoxes(boxes) {
   return filled > 0;
 }
 
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 async function createWatch(body, adminUid) {
   const boxes = (body.boxes || []).map(b => (b === undefined || b === null) ? '' : String(b));
   if (!validateBoxes(boxes)) {
@@ -78,8 +74,12 @@ async function createWatch(body, adminUid) {
     lastCheckedAt: null,
     lastFoundAt: null,
     lastFoundNumbers: [],
-    notifyDate: todayKey(),
-    notifyCountToday: 0,
+    // Har bir aniq topilgan raqam (masalan +998901234567) uchun oxirgi marta
+    // qachon xabar yuborilgani — shu bilan bitta raqam qayta-qayta emas,
+    // faqat 12 soatda bir marta xabar qilinadi (pastda NOTIFY_COOLDOWN_MS,
+    // number-watch-check-background.js). Boshqa (yangi) raqam chiqsa esa
+    // darhol, kutmasdan xabar beriladi.
+    notifiedNumbers: {},
     checkCount: 0
   };
   const ref = await db.collection(COLLECTION).add(doc);
@@ -100,7 +100,9 @@ async function listWatches() {
       nextCheckAt: data.nextCheckAt ? data.nextCheckAt.toMillis() : null,
       lastFoundAt: data.lastFoundAt ? data.lastFoundAt.toMillis() : null,
       lastFoundNumbers: data.lastFoundNumbers || [],
-      notifyCountToday: (data.notifyDate === todayKey()) ? (data.notifyCountToday || 0) : 0,
+      // Hozircha "sovish" (12 soat) muddati tugamagan, ya'ni yaqinda xabar
+      // qilingan va shu sabab hozircha qayta yuborilmaydigan raqamlar soni.
+      notifiedCount: Object.keys(data.notifiedNumbers || {}).length,
       checkCount: data.checkCount || 0
     };
   });

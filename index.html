@@ -111,6 +111,7 @@
     };
     Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
     if(t.themeKey === 'lyuks_premium') document.documentElement.classList.add('lyuks-mode');
+    if(t.themeKey === 'premium_purple') document.documentElement.classList.add('theme-purple-premium');
     if(t.font){
       root.setProperty('--font-main', "'" + t.font + "', 'Sora', sans-serif");
       document.documentElement.setAttribute('data-custom-font', '1');
@@ -149,10 +150,25 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
   body{
-    margin:0;background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;
+    margin:0;color:var(--text);font-family:'Sora',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;
+    /* Butun sayt bo'ylab bir xil, sekin "suzib yuruvchi" binafsha-pushti
+       nurlar — fon o'zi hech qachon diqqatni tortmaydi (past shaffoflik),
+       lekin butun sahifa bo'ylab bir xil zamonaviy, jonli tuyg'u beradi. */
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(ellipse 70vw 50vh at 12% -8%, rgba(139,92,246,0.09), transparent 60%),
+      radial-gradient(ellipse 60vw 45vh at 100% 10%, rgba(236,72,153,0.07), transparent 55%);
+    background-repeat:no-repeat;
+    background-size:140% 140%, 140% 140%;
+    background-position:0% 0%, 0% 0%;
+    animation:bodyGlowDrift 26s ease-in-out infinite;
     -webkit-user-select:none;-moz-user-select:none;user-select:none;
     -webkit-touch-callout:none;
     touch-action:pan-y;
+  }
+  @keyframes bodyGlowDrift{
+    0%,100%{ background-position:0% 0%, 0% 0%; }
+    50%{ background-position:-6% 5%, -8% -4%; }
   }
   input, select, textarea{-webkit-user-select:text;user-select:text;}
   a{color:inherit;text-decoration:none;}
@@ -391,7 +407,12 @@
     box-shadow:0 6px 18px -6px rgba(139,92,246,0.45), 0 0 0 1px rgba(255,255,255,0.06) inset;
   }
   .standard-search-btn{
-    display:block;width:100%;max-width:480px;margin:10px auto 0;box-sizing:border-box;
+    /* .catalog-mode-tabs 480px kenglikda, ikki tarafdan 16px padding bilan —
+       demak tugmalar aynan joylashgan ichki maydon 480-32=448px. Qidirish
+       tugmasi ham AYNAN shu 448px kenglikda bo'lishi kerak, aks holda
+       (avvalgidek to'liq 480px bo'lsa) ikki chetdan chiqib ketib, tablardan
+       "kattaroq" ko'rinardi. */
+    display:block;width:100%;max-width:448px;margin:10px auto 0;box-sizing:border-box;
     padding:12px 10px;border:none;border-radius:10px;
     background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
     font-family:'Sora',sans-serif;font-weight:800;font-size:14px;cursor:pointer;
@@ -407,6 +428,18 @@
   .standard-search-btn:hover::after{left:130%;}
   .standard-search-btn:active{transform:scale(0.97);}
   .standard-search-btn:disabled{opacity:.6;cursor:not-allowed;}
+  .live-searching-indicator{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    max-width:448px;margin:10px auto 0;padding:9px 10px;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:var(--muted);
+  }
+  .lsi-dot{
+    width:6px;height:6px;border-radius:50%;background:var(--amber, #FFB000);
+    animation:lsiBounce 1s ease-in-out infinite;
+  }
+  .lsi-dot:nth-child(2){animation-delay:.15s;}
+  .lsi-dot:nth-child(3){animation-delay:.3s;}
+  @keyframes lsiBounce{0%,80%,100%{opacity:.25;transform:translateY(0);}40%{opacity:1;transform:translateY(-4px);}}
 
   .search-wrap{
     background:var(--bg);
@@ -414,7 +447,11 @@
     border-bottom:1px solid var(--line);
   }
   .number-builder{
-    max-width:480px;margin:0 auto;padding:0 8px;
+    /* Tablar (.catalog-mode-tabs) va qidirish tugmasi (.standard-search-btn)
+       bilan bir xil 448px ichki maydonda bo'lishi uchun — 480 - 2*16 = 448,
+       ya'ni AYNAN shu padding: shu bilan uchalasining chap/o'ng cheti
+       telefon ekranida ham bir vertikal chiziqda tekis turadi. */
+    max-width:480px;margin:0 auto;padding:0 16px;
     display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;
     gap:clamp(2px,1vw,6px);
     overflow-x:auto;-webkit-overflow-scrolling:touch;
@@ -467,27 +504,45 @@
 
   .catalog{
     margin:0 auto;padding:16px 16px 24px;
-    display:grid;grid-template-columns:repeat(2,1fr);gap:18px;
+    display:grid;grid-template-columns:repeat(2,1fr);
+    /* Qator orasi (row-gap) ustun orasidan (column-gap) kattaroq — har bir
+       kartaning KUCHLI soyasi pastdagi qatordagi kartalar tomonidan
+       "bosib" (paint order bo'yicha) yashirilib qolmasligi uchun. */
+    gap:30px 20px;
     align-items:start;
     transition:opacity .18s ease;
   }
   .card{
     background:var(--panel);
-    border:1px solid var(--line);border-radius:var(--card-radius, 14px);
+    border:1.5px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
-    box-shadow:0 8px 30px rgba(8,20,55,0.22);
+    box-shadow:0 12px 34px rgba(8,4,30,0.48);
     transition:border-color .3s ease, box-shadow .35s ease, transform .3s cubic-bezier(.22,1,.36,1);
     opacity:0;animation:cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards;
   }
   .card::before{
+    /* Ramka (kartaning tepasidagi chiziq) doim ko'rinadi va sekin, uzluksiz
+       oqib turadi — "chekkalari animatsiya bo'lib turadi" degan talab. */
     content:'';position:absolute;top:0;left:0;right:0;height:3px;
-    background:var(--accent-gradient);transform:scaleX(0);transform-origin:left;
-    transition:transform .35s ease;border-radius:var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
+    background:linear-gradient(90deg, var(--accent-grad-1), var(--accent-grad-2), var(--accent-grad-1));
+    background-size:200% 100%;
+    animation:cardBorderFlow 7s linear infinite;
+    border-radius:var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
   }
-  .card:hover::before, .card:focus-within::before{transform:scaleX(1);}
+  @keyframes cardBorderFlow{ from{background-position:0% 50%;} to{background-position:200% 50%;} }
+  /* Kartaning tinch (hover qilinmagan) holatidagi soyasi sekin
+     "nafas oladi" — to'qroq/ochroq bo'lib turadi (o'z box-shadow'i,
+     hover qilinganda pastdagi kuchliroq soyaga yumshoq o'tadi). */
+  .card:not(:hover):not(:focus-within){
+    animation: cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards, cardShadowBreathe 5s ease-in-out infinite;
+  }
+  @keyframes cardShadowBreathe{
+    0%,100%{ box-shadow:0 12px 32px rgba(8,4,30,0.5), 0 6px 16px rgba(139,92,246,0.3); }
+    50%{ box-shadow:0 17px 42px rgba(8,4,30,0.66), 0 9px 22px rgba(139,92,246,0.48); }
+  }
   .card:hover, .card:focus-within{
     border-color:rgba(255,176,0,0.4);
-    box-shadow:0 16px 44px rgba(8,20,55,0.34), 0 0 0 1px rgba(255,176,0,0.1), 0 10px 30px -12px rgba(139,92,246,0.35);
+    box-shadow:0 22px 50px rgba(8,4,30,0.62), 0 0 0 1px rgba(255,176,0,0.12), 0 12px 30px -6px rgba(139,92,246,0.55);
     transform:translateY(-5px);
   }
   .card:active{transform:scale(0.98);transition:transform .12s ease;}
@@ -695,12 +750,19 @@
     transition:transform .16s cubic-bezier(.34,1.56,.64,1), opacity .12s ease, background .15s ease, box-shadow .2s ease;
   }
   .card button.order-btn::after{
-    content:'';position:absolute;top:0;left:-75%;width:45%;height:100%;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
-    transform:skewX(-20deg);transition:left .55s ease;
+    /* Ingichka oq nur — hover kutmasdan, o'zi vaqti-vaqti bilan
+       tugma ustidan sekin o'tib turadi (juda ko'p emas, 4 soniyada bir marta). */
+    content:'';position:absolute;top:0;left:-40%;width:20%;height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    transform:skewX(-20deg);
+    animation:btnShineLoop 4s ease-in-out infinite;
+  }
+  @keyframes btnShineLoop{
+    0%{ left:-40%; }
+    35%{ left:130%; }
+    100%{ left:130%; }
   }
   .card button.order-btn:hover{filter:brightness(1.15);box-shadow:0 6px 18px -4px rgba(139,92,246,0.4);}
-  .card button.order-btn:hover::after{left:130%;}
   .card button.order-btn:active{transform:scale(0.96);}
   .reserved-btn{
     background:var(--panel-2) !important;
@@ -752,10 +814,11 @@
     flex:1;
     background:var(--panel);border:1px solid var(--line);color:var(--text);
     border-radius:9px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;
-    text-align:center;
-    transition:border-color .15s ease, opacity .15s ease;
+    text-align:center;box-shadow:0 6px 16px rgba(8,4,30,0.18);
+    transition:border-color .15s ease, opacity .15s ease, transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
   }
-  .page-btn:hover:not(:disabled){border-color:var(--amber);}
+  .page-btn:hover:not(:disabled){border-color:var(--amber);transform:translateY(-2px);box-shadow:0 10px 22px rgba(8,4,30,0.26);}
+  .page-btn:active:not(:disabled){transform:scale(0.97);}
   .page-btn:disabled{opacity:.35;cursor:not-allowed;}
   .page-info{
     font-family:'Space Mono',monospace;color:var(--muted);font-size:12.5px;min-width:52px;text-align:center;
@@ -1805,6 +1868,87 @@
 .op-tab .op-count{font-weight:600;opacity:.65;font-size:11.5px;}
 .op-tab.active{border-color:currentColor;background:rgba(128,128,128,.09);}
 @media(max-width:560px){ .op-tabs{gap:6px;padding-bottom:11px;} .op-tab{padding:7px 11px;font-size:12px;} }
+
+/* ============ "Premium Binafsha" mavzusi ============
+   Animatsiyali binafsha gradient fon + o'ng tomonda sekin "suzib
+   yuruvchi" yumshoq nur (jonli, lekin ko'zga tashlanmaydigan darajada
+   sekin) + raqamlar oq "plastinka" belgisida (qora yozuv bilan)
+   ko'rsatiladi. Faqat admin panelda shu mavzu tanlanganda yoqiladi
+   (applyTheme() → html.theme-purple-premium klassi). */
+html.theme-purple-premium body{
+  background:
+    radial-gradient(ellipse 900px 700px at 15% -10%, rgba(255,255,255,0.10), transparent 60%),
+    linear-gradient(135deg, #150829 0%, #241049 42%, #3B1668 78%, #241049 100%);
+  background-attachment:fixed;
+}
+html.theme-purple-premium body::before{
+  content:'';position:fixed;top:-10%;right:-15%;width:60vw;height:60vw;max-width:640px;max-height:640px;
+  border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle, rgba(255,255,255,0.16), rgba(255,143,214,0.10) 45%, transparent 72%);
+  filter:blur(10px);
+  animation:premiumGlowDrift 22s ease-in-out infinite;
+}
+@keyframes premiumGlowDrift{
+  0%,100%{ transform:translate(0,0) scale(1); }
+  50%{ transform:translate(-6%, 8%) scale(1.12); }
+}
+html.theme-purple-premium header,
+html.theme-purple-premium .search-wrap,
+html.theme-purple-premium .hero,
+html.theme-purple-premium .catalog{ position:relative; z-index:1; }
+
+html.theme-purple-premium .card{
+  /* Muvozanat: quti fondan YETARLICHA ajralib tursin (juda tekis/oddiy
+     ko'rinmasin), lekin haddan tashqari yorqin bo'lib "oddiy sayt"
+     taassurotini bermasin — shisha (glass) tuyg'usi saqlanadi. */
+  background:linear-gradient(160deg, var(--panel-2), var(--panel));
+  border:1px solid rgba(255,255,255,0.22);
+  box-shadow:0 10px 28px rgba(8,3,26,0.5), inset 0 1px 0 rgba(255,255,255,0.14);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+html.theme-purple-premium .card-header,
+html.theme-purple-premium .op-select,
+html.theme-purple-premium .digit-box{
+  border-color:rgba(255,255,255,0.14);
+}
+
+/* Raqam — oq "plastinka" belgisi, ustida qora yozuv (barcha kartochka
+   uslublari uchun bitta qoida bilan — style o'zgarsa ham buzilmaydi) */
+html.theme-purple-premium .num-label,
+html.theme-purple-premium .lm-num,
+html.theme-purple-premium .db-num,
+html.theme-purple-premium .li-num,
+html.theme-purple-premium .gc-num,
+html.theme-purple-premium .ol-num,
+html.theme-purple-premium .gl-num,
+html.theme-purple-premium .rb-num,
+html.theme-purple-premium .tk-num,
+html.theme-purple-premium .bp-num,
+html.theme-purple-premium .hz-num{
+  display:inline-block;background:#FFFFFF;color:#160A2E;
+  font-weight:800;padding:5px 12px;border-radius:8px;letter-spacing:.4px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.28);
+}
+
+/* Narxlar oq (--amber tokeni shu mavzuda allaqachon oq, bu yerda faqat
+   qorong'i fonda o'qilishi osonroq bo'lishi uchun yengil soya qo'shiladi) */
+html.theme-purple-premium .price-row .new-price,
+html.theme-purple-premium .gc-price, html.theme-purple-premium .ol-price,
+html.theme-purple-premium .gl-price, html.theme-purple-premium .rb-price,
+html.theme-purple-premium .tk-price, html.theme-purple-premium .bp-price,
+html.theme-purple-premium .lm-price, html.theme-purple-premium .li-price,
+html.theme-purple-premium .hz-price, html.theme-purple-premium .db-price{
+  text-shadow:0 1px 6px rgba(0,0,0,0.25);
+}
+
+html.theme-purple-premium .card button.order-btn{
+  box-shadow:0 8px 22px -8px rgba(0,0,0,0.4);
+}
+
+@media(prefers-reduced-motion:reduce){
+  html.theme-purple-premium body::before{ animation:none; }
+}
 </style>
 </head>
 <body>
@@ -1936,6 +2080,10 @@
     <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
   </div>
   <button type="button" class="standard-search-btn" id="standardSearchBtn" style="display:none;">🔍 <span data-i18n="standardSearchBtn">Qidirish</span></button>
+  <div class="live-searching-indicator" id="liveSearchingIndicator" style="display:none;">
+    <span class="lsi-dot"></span><span class="lsi-dot"></span><span class="lsi-dot"></span>
+    <span data-i18n="searching">Qidirilmoqda</span>
+  </div>
   <div class="hint-text" id="hintText" data-i18n="searchHint">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
   <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
 </div>
@@ -2410,8 +2558,16 @@ function withClientTimeout(promise, ms){
 function getLocalDigits(numberStr){ return numberStr.replace(/\D/g,'').slice(5); }
 
 /* Mijozga ko'rsatilganda chiziqchalarni bo'shliqqa almashtiradi (faqat ko'rinish uchun) */
+/* Har qanday manbadan kelgan raqamni (VIP katalogda chiziqcha bilan
+   saqlangan "+998 90-777-77-77", yoki Standart/jonli qidiruvdan kelgan
+   faqat raqamli "+998901234567") BITTA standart ko'rinishga keltiradi:
+   "+998 XX XXX XX XX" — shu bilan VIP va Standart toifadagi kartochkalar
+   bir xil zamonaviy formatda ko'rinadi. */
 function displayNumber(numberStr){
-  return numberStr.replace(/-/g, ' ');
+  const digits = String(numberStr || '').replace(/\D/g, '');
+  const local9 = digits.slice(-9);
+  if(local9.length !== 9) return String(numberStr || '').replace(/-/g, ' ');
+  return `+998 ${local9.slice(0,2)} ${local9.slice(2,5)} ${local9.slice(5,7)} ${local9.slice(7,9)}`;
 }
 
 /* Mijoz "hozirgi raqami" maydoniga +998 va chiziqchalarni avtomatik qo'shadi */
@@ -3096,13 +3252,24 @@ const debouncedRenderCatalog = debounce(()=>{ updateSearchUI(); renderCatalog();
 // ulanmagan, tanlanganda faqat katalog ko'rsatiladi.
 const LIVE_OPERATORS = ['Beeline', 'Ucell', 'Humans', 'Mobiuz', 'Perfektum'];
 
-async function fetchLiveNumbers(){
-  const pattern = currentPattern();
+async function fetchLiveNumbers(opts){
+  const allowEmpty = !!(opts && opts.allowEmpty);
+  let pattern = currentPattern();
 
-  // Hech qanday raqam kiritilmagan bo'lsa operatorga so'rov yubormaymiz.
   if(!pattern.some(d => d !== '')){
-    if(LIVE_NUMBERS.length){ LIVE_NUMBERS = []; liveMask = ''; renderCatalog(); }
-    return;
+    if(!allowEmpty){
+      if(LIVE_NUMBERS.length){ LIVE_NUMBERS = []; liveMask = ''; renderCatalog(); }
+      return;
+    }
+    // Standart toifaga birinchi marta kirilganda mijoz hali hech narsa
+    // yozmagan bo'ladi — lekin server tomoni TO'LIQ bo'sh maskani
+    // ataylab rad etadi ("butun bazani so'rash" bilan barobar bo'lgani
+    // uchun — api-live-search.js:154). Shu sabab NAMUNA sifatida faqat
+    // bitta xonaga (oxirgi raqamga) tasodifiy bitta raqam qo'yib, tor va
+    // haqiqiy natija beradigan so'rov yuboramiz. DIQQAT: bu faqat shu
+    // so'rovning o'zi uchun — mijoz ko'rgan katakchalar (digitBoxes)
+    // TEGILMAYDI, mijoz hech narsa yozmagandek ko'rinishda qoladi.
+    pattern = ['','','','','','', String(Math.floor(Math.random()*10))];
   }
 
   const mask = pattern.map(d => d || '_').join('');
@@ -3219,6 +3386,7 @@ digitBoxes.forEach((box, idx)=>{
 const modeVipBtn = document.getElementById('modeVipBtn');
 const modeStandardBtn = document.getElementById('modeStandardBtn');
 const standardSearchBtn = document.getElementById('standardSearchBtn');
+const liveSearchingIndicator = document.getElementById('liveSearchingIndicator');
 const hintTextEl = document.getElementById('hintText');
 const HINT_VIP = hintTextEl ? hintTextEl.textContent : '';
 const HINT_STANDARD = "Raqamni katakchalarga kiriting va \"Qidirish\" tugmasini bosing";
@@ -3235,14 +3403,27 @@ function setCatalogMode(mode){
   // har bir toifada qidiruv yangidan boshlanadi.
   LIVE_NUMBERS = [];
   liveMask = '';
-  liveLoading = false;
   liveRequestId++;
-  standardSearchTriggered = false;
   LIVE_SEARCH_ERROR = null;
+
+  // STANDART TOIFA: mijoz hali hech narsa qidirmagan bo'lsa ham, bo'sh
+  // ro'yxat bilan qarshi olinmasin — darhol (hech qanday filtrsiz)
+  // operatorlardan ayrim bo'sh raqamlarni yuklab, "qidirilmoqda" holatini
+  // BITTA renderCatalog() chaqiruvida to'g'ri ko'rsatamiz (oraliqda
+  // noto'g'ri "topilmadi" ko'rinishi chaqmasligi uchun).
+  standardSearchTriggered = (mode === 'standard');
+  liveLoading = (mode === 'standard');
 
   currentPage = 0;
   updateSearchUI();
   renderCatalog();
+
+  if(mode === 'standard'){
+    liveSearchingIndicator.style.display = 'flex';
+    fetchLiveNumbers({ allowEmpty: true }).finally(()=>{
+      liveSearchingIndicator.style.display = 'none';
+    });
+  }
 }
 modeVipBtn.addEventListener('click', ()=> setCatalogMode('vip'));
 modeStandardBtn.addEventListener('click', ()=> setCatalogMode('standard'));
@@ -3256,7 +3437,11 @@ standardSearchBtn.addEventListener('click', ()=>{
   liveMask = ''; // qayta so'ralishi uchun (bosilganda har doim yangi natija)
   standardSearchBtn.disabled = true;
   catalogEl.style.opacity = '0.35';
-  fetchLiveNumbers().finally(()=>{ standardSearchBtn.disabled = false; });
+  liveSearchingIndicator.style.display = 'flex';
+  fetchLiveNumbers().finally(()=>{
+    standardSearchBtn.disabled = false;
+    liveSearchingIndicator.style.display = 'none';
+  });
 });
 clearSearchBtn.addEventListener('click', ()=>{
   operatorSelect.value = '';
@@ -4281,7 +4466,7 @@ document.getElementById('coCloseSuccess').addEventListener('click', ()=> customO
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {
   premium_navy:   { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#1C2E4A', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#33E28C', red:'#D4AF37', brandRed:'#D4AF37', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'8px', cardRadius:'12px' },
-  clean_white:    { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
+  clean_white:    { bg:'#190833', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#D5DEEE', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'18px' },
   modern_saas:    { bg:'#0D1B33', panel:'#132A4D', panel2:'#183A63', line:'#1C3050', amber:'#4A90D9', amberSoft:'rgba(74,144,217,0.15)', green:'#7FE7C4', red:'#4A90D9', brandRed:'#4A90D9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4A90D9', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   bold_editorial: { bg:'#0A1220', panel:'#0A1220', panel2:'#111A2C', line:'#FFFFFF', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.12)', green:'#7FE7C4', red:'#FFFFFF', brandRed:'#FFFFFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#FFFFFF', btnText:'#0A1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'0px', cardRadius:'0px' },
   soft_glass:     { bg:'#0B1220', panel:'rgba(255,255,255,0.06)', panel2:'rgba(255,255,255,0.09)', line:'rgba(255,255,255,0.15)', amber:'#7FA8E0', amberSoft:'rgba(127,168,224,0.15)', green:'#7FE7C4', red:'#7FA8E0', brandRed:'#7FA8E0', text:'#FFFFFF', muted:'#B8CBE8', btnBg:'#FFFFFF', btnText:'#0B1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
@@ -4313,7 +4498,11 @@ const SITE_THEMES = {
   black_red:      { bg:'#0A0A0A', panel:'#1A1A1A', panel2:'#1A1A1A', line:'#3A1414', amber:'#FF3B3B', amberSoft:'rgba(255,59,59,0.2)', green:'#33E28C', red:'#FF3B3B', brandRed:'#FF3B3B', text:'#FFFFFF', muted:'#B08A8A', btnBg:'#FF3B3B', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   white_gold:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#EDE4CC', amber:'#CA8A04', amberSoft:'rgba(202,138,4,0.12)', green:'#1FA97F', red:'#CA8A04', brandRed:'#CA8A04', text:'#0B1F3A', muted:'#6B7688', btnBg:'#CA8A04', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
   white_maroon:   { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F0DCDC', amber:'#7F1D1D', amberSoft:'rgba(127,29,29,0.10)', green:'#1FA97F', red:'#7F1D1D', brandRed:'#7F1D1D', text:'#0B1F3A', muted:'#6B7688', btnBg:'#7F1D1D', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  lyuks_premium:  { bg:'#0A0806', panel:'#15120D', panel2:'#1C1811', line:'#3A3123', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.14)', green:'#B8935A', red:'#D4AF37', brandRed:'#D4AF37', text:'#F3EEE3', muted:'#9C9280', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'2px', cardRadius:'2px' }
+  lyuks_premium:  { bg:'#0A0806', panel:'#15120D', panel2:'#1C1811', line:'#3A3123', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.14)', green:'#B8935A', red:'#D4AF37', brandRed:'#D4AF37', text:'#F3EEE3', muted:'#9C9280', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'2px', cardRadius:'2px' },
+  // "Premium Binafsha" — animatsiyali gradient fon + oq "plastinka" uslubidagi
+  // raqam belgisi (applyTheme() pastda 'theme-purple-premium' klassini
+  // qo'shadi, maxsus CSS shu klass ostida ishlaydi).
+  premium_purple: { bg:'#1A0B36', panel:'#3A2E78', panel2:'#463890', line:'rgba(255,255,255,0.22)', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.14)', green:'#7FE7C4', red:'#FF8FD6', brandRed:'#FF8FD6', text:'#FFFFFF', muted:'#DCD3F5', btnBg:'#FFFFFF', btnText:'#1A0B36', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'12px', cardRadius:'18px' }
 };
 
 function applyTheme(themeKey){
@@ -4341,6 +4530,10 @@ function applyTheme(themeKey){
   // "Lyuks Premium" mavzusi tanlanganda — butun sayt bo'ylab sekinroq,
   // nafisroq animatsiya rejimiga o'tamiz (oddiy "sakraydigan" his emas).
   document.documentElement.classList.toggle('lyuks-mode', themeKey === 'lyuks_premium');
+
+  // "Premium Binafsha" mavzusi — animatsiyali gradient fon va oq
+  // "plastinka" uslubidagi raqam belgisini yoqadi (CSS'da shu klass ostida).
+  document.documentElement.classList.toggle('theme-purple-premium', themeKey === 'premium_purple');
 }
 
 /* ---- Sayt bo'ylab yozuvlar shirftini (font) o'zgartirish ---- */
