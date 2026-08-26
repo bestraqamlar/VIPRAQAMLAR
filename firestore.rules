@@ -68,6 +68,14 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Operator API sozlamalari — ichida Beeline LOGIN/PAROLI bor, shu sabab
+    // ommaga OCHIQ EMAS. Faqat tizimga kirgan admin o'qiy/yoza oladi.
+    // Netlify funksiyasi (api-live-search) buni Admin SDK orqali o'qiydi —
+    // u bu qoidalardan o'tmaydi, shuning uchun read'ni ochish shart emas.
+    match /operator_config/{doc} {
+      allow read, write: if request.auth != null;
+    }
+
     match /number_price_categories/{doc} {
       allow read: if true;
       allow write: if request.auth != null;

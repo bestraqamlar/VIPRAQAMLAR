@@ -624,6 +624,30 @@
     .session-row{flex-wrap:wrap;}
   }
 
+
+/* ---- Operatorlar (jonli API) bo'limi ---- */
+.op-block{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:14px;}
+.op-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.op-name{font-weight:700;font-size:14.5px;}
+.op-note{color:var(--muted);font-size:11.5px;line-height:1.5;margin:0 0 10px;}
+.op-warn{color:#e8b339;font-size:11.5px;line-height:1.5;margin:0 0 10px;}
+.op-cred{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.op-cred label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+.op-cred input{width:100%;padding:9px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);color:inherit;font-size:13px;}
+.op-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.op-table th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;padding:4px 6px;}
+.op-table td{padding:3px 6px;}
+.op-table input{width:100%;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);color:inherit;font-size:12.5px;}
+.op-del{background:none;border:none;color:#c0392b;cursor:pointer;font-size:15px;padding:0 4px;}
+.op-add{background:none;border:1px dashed rgba(255,255,255,.2);color:var(--muted);border-radius:8px;
+  padding:6px 12px;cursor:pointer;font-size:12px;margin-top:8px;}
+.op-test{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:inherit;
+  border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12.5px;}
+.op-test-out{font-size:12px;margin-top:8px;line-height:1.6;white-space:pre-wrap;}
+.op-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;margin-left:auto;}
+@media(max-width:640px){ .op-cred{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -634,15 +658,16 @@
   <div class="login-orb login-orb-3"></div>
   <div class="login-screen" id="loginScreen">
     <h1>VIP RAQAMLAR (070.uz)</h1>
-    <p>Admin panelga kirish uchun email va parolni kiriting</p>
+    <p>Admin panelga kirish uchun telefon raqam va parolni kiriting</p>
     <div class="login-field">
-      <input type="email" id="usernameInput" placeholder="Email" autocomplete="username">
+      <input type="tel" id="usernameInput" placeholder="998 90 123 45 67"
+             inputmode="numeric" autocomplete="username">
     </div>
     <div class="login-field">
       <input type="password" id="passwordInput" placeholder="Parol" autocomplete="current-password">
     </div>
     <button id="loginBtn"><span>Kirish</span></button>
-    <div class="login-error" id="loginError">Email yoki parol noto'g'ri</div>
+    <div class="login-error" id="loginError">Telefon raqam yoki parol noto'g'ri</div>
   </div>
 </div>
 
@@ -685,6 +710,7 @@
     <button class="tab" data-tab="credit">Kredit</button>
     <button class="tab" data-tab="sessions">Seanslar</button>
     <button class="tab" data-tab="styles">Uslublar</button>
+    <button class="tab" data-tab="operators">🔌 Operatorlar</button>
     <button class="tab" data-tab="settings">Sozlamalar</button>
   </div>
 
@@ -961,6 +987,106 @@
       <div id="stylePicker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"></div>
       <div class="settings-msg" id="styleMsg"></div>
     </div>
+  </div>
+
+  <div class="pane" id="paneOperators">
+    <div class="ai-hint">
+      🔌 Bu yerda saytdagi qidiruvga ulanadigan operator API'lari boshqariladi. Mijoz 7 katakli qidiruvda
+      raqam terganda, katalogdagi raqamlar bilan birga operatorlarda HOZIR bo'sh turgan raqamlar ham
+      ko'rsatiladi. Jonli raqamlarda buyurtma tugmasi bo'lmaydi — mijoz ularni ko'radi, xolos.
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Beeline</span>
+        <label class="op-toggle"><input type="checkbox" id="opBeelineEnabled"> yoqilgan</label>
+      </div>
+      <p class="op-note">
+        Beeline yagona operator — u login/parol talab qiladi. Boshqalari kalitsiz ishlaydi.
+        Beeline javobida narx YO'Q: narx pastdagi ombor (warehouse) jadvalidan olinadi.
+      </p>
+      <div class="op-cred">
+        <div>
+          <label for="opBeelineUser">Login</label>
+          <input type="text" id="opBeelineUser" placeholder="998901234567" autocomplete="off">
+        </div>
+        <div>
+          <label for="opBeelinePass">Parol</label>
+          <input type="password" id="opBeelinePass" placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+      <table class="op-table">
+        <thead><tr><th style="width:80px;">Ombor ID</th><th>Nomi</th><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="opBeelineRows"></tbody>
+      </table>
+      <button type="button" class="op-add" data-add="Beeline">+ Qator</button>
+      <div style="margin-top:12px;">
+        <button type="button" class="op-test" id="opBeelineTest">🔑 Login/parolni tekshirish</button>
+        <div class="op-test-out" id="opBeelineTestOut"></div>
+      </div>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Ucell</span>
+        <label class="op-toggle"><input type="checkbox" id="opUcellEnabled"> yoqilgan</label>
+      </div>
+      <p class="op-note">Chap ustun — operator so'ragan narx, o'ng ustun — saytda ko'rsatiladigan narx.
+        Jadvalda yo'q narx kelsa, operator narxi o'zgarishsiz qo'yiladi.</p>
+      <p class="op-warn" id="opUcellWarn"></p>
+      <table class="op-table">
+        <thead><tr><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="opUcellRows"></tbody>
+      </table>
+      <button type="button" class="op-add" data-add="Ucell">+ Qator</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Humans</span>
+        <label class="op-toggle"><input type="checkbox" id="opHumansEnabled"> yoqilgan</label>
+      </div>
+      <p class="op-note">Humans narxni tiyinda qaytaradi — tizim uni avtomatik 100 ga bo'ladi,
+        ya'ni bu yerga SO'MDA yozing.</p>
+      <p class="op-warn" id="opHumansWarn"></p>
+      <table class="op-table">
+        <thead><tr><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="opHumansRows"></tbody>
+      </table>
+      <button type="button" class="op-add" data-add="Humans">+ Qator</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Mobiuz</span>
+        <label class="op-toggle"><input type="checkbox" id="opMobiuzEnabled"> yoqilgan</label>
+      </div>
+      <p class="op-note">Mobiuz API'si aksiya (SCN) belgisini bermaydi — shu sabab faqat oddiy narxlar.</p>
+      <table class="op-table">
+        <thead><tr><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="opMobiuzRows"></tbody>
+      </table>
+      <button type="button" class="op-add" data-add="Mobiuz">+ Qator</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Perfektum</span>
+        <label class="op-toggle"><input type="checkbox" id="opPerfektumEnabled"> yoqilgan</label>
+      </div>
+      <p class="op-note">API ulangan va sinalgan, lekin narx jadvali hali yo'q —
+        shu sabab standart holatda <b>o'chirilgan</b>. Quyidagi jadvalni to'ldiring,
+        keyin "yoqilgan" katagini belgilang.</p>
+      <p class="op-warn" id="opPerfektumWarn"></p>
+      <table class="op-table">
+        <thead><tr><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="opPerfektumRows"></tbody>
+      </table>
+      <button type="button" class="op-add" data-add="Perfektum">+ Qator</button>
+    </div>
+
+    <button id="opSaveBtn" class="ig-save-btn">💾 Saqlash</button>
+    <div class="ig-save-msg" id="opSaveMsg"></div>
   </div>
 
   <div class="pane" id="paneSettings">
@@ -1362,11 +1488,31 @@ function stopSessionTimer(){
   if(sessionTimer){ clearTimeout(sessionTimer); sessionTimer = null; }
 }
 
+/* Firebase Auth faqat EMAIL bilan ishlaydi (Email/Password usuli).
+   Shu sabab admin kiritgan telefon raqam ichkarida doimiy email manzilga
+   aylantiriladi: 998901234567 -> 998901234567@070.uz
+   Ya'ni Firebase Console'da foydalanuvchi AYNAN shu ko'rinishda yaratiladi.
+   SMS yuborilmaydi, hech qanday qo'shimcha xarajat yo'q.
+   Eskicha to'g'ridan-to'g'ri email kiritish ham ishlayveradi — "@" bo'lsa
+   o'zgartirilmaydi (avvaldan yaratilgan adminlar buzilmasin). */
+const ADMIN_EMAIL_DOMAIN = '@070.uz';
+
+function loginToEmail(raw){
+  const v = (raw || '').trim();
+  if(v.includes('@')) return v;                 // email kiritildi — tegmaymiz
+
+  let digits = v.replace(/\D/g, '');
+  if(digits.length === 9) digits = '998' + digits;        // 901234567
+  else if(digits.length === 12 && digits.startsWith('998')) { /* to'g'ri */ }
+  else if(digits.length === 13 && digits.startsWith('9998')) digits = digits.slice(1);
+  return digits ? digits + ADMIN_EMAIL_DOMAIN : v;
+}
+
 async function doLogin(){
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
   try{
-    await firebase.auth().signInWithEmailAndPassword(usernameInput.value.trim(), passwordInput.value);
+    await firebase.auth().signInWithEmailAndPassword(loginToEmail(usernameInput.value), passwordInput.value);
     loginError.style.display = 'none';
     loginScreen.style.display = 'none';
     dashboard.style.display = 'block';
@@ -1377,8 +1523,23 @@ async function doLogin(){
     startSessionTimer();
     startVisitorTracking();
   }catch(err){
-    loginError.textContent = "Email yoki parol noto'g'ri";
+    // Firebase'ning haqiqiy sababini ko'rsatamiz — "noto'g'ri" degan umumiy
+    // matn bilan nima bo'lganini aniqlab bo'lmas edi (parolmi, emailmi,
+    // tarmoqmi, App Check bloklaganmi).
+    const CODES = {
+      'auth/invalid-email':        "Telefon raqam formati noto'g'ri — masalan: 998901234567",
+      'auth/user-not-found':       'Bunday raqam bilan admin topilmadi',
+      'auth/wrong-password':       "Parol noto'g'ri",
+      'auth/invalid-credential':   "Email yoki parol noto'g'ri",
+      'auth/invalid-login-credentials': "Email yoki parol noto'g'ri",
+      'auth/too-many-requests':    'Juda ko\'p urinish — biroz kuting',
+      'auth/network-request-failed': 'Tarmoq xatosi — internet yoki Firebase bloklangan',
+      'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)'
+    };
+    loginError.textContent = (CODES[err.code] || err.message || "Telefon raqam yoki parol noto'g'ri")
+                             + (err.code ? '  [' + err.code + ']' : '');
     loginError.style.display = 'block';
+    console.error('Login xatosi:', err.code, err.message);
   }
   btn.disabled = false;
 }
@@ -1397,7 +1558,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', settings:'Settings' };
+const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', operators:'Operators', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1409,6 +1570,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
+    if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
     if(tab.dataset.tab === 'premiumvideo'){ loadPremiumVideoList(); }
@@ -2436,6 +2598,223 @@ document.getElementById('igSaveBtn').addEventListener('click', async ()=>{
   }catch(err){
     msg.style.color = 'var(--red)';
     msg.textContent = 'Xato: ' + err.message;
+  }
+  btn.disabled = false;
+});
+
+/* ---- Operatorlar (jonli API qidiruvi) ---- */
+//
+// Sozlamalar operator_config/main hujjatida saqlanadi. Netlify funksiyasi
+// (api-live-search) shu hujjatni o'qiydi. Hujjat bo'lmasa — funksiya o'zining
+// standart qiymatlari bilan ishlaydi, ya'ni sayt baribir buzilmaydi.
+
+const OP_DEFAULTS = {
+  Beeline: {
+    enabled: true, username: '', password: '',
+    warehouses: [
+      { id: 393, name: 'Oddiy',     operatorPrice: 0,        salePrice: 50000 },
+      { id: 394, name: 'Bronze',    operatorPrice: 100000,   salePrice: 150000 },
+      { id: 395, name: 'Silver',    operatorPrice: 250000,   salePrice: 190000 },
+      { id: 396, name: 'Gold',      operatorPrice: 500000,   salePrice: 400000 },
+      { id: 397, name: 'Platinum',  operatorPrice: 1500000,  salePrice: 890000 },
+      { id: 413, name: 'Platinum+', operatorPrice: 10000000, salePrice: 5000000 },
+      { id: 409, name: '20 mln',    operatorPrice: 20000000, salePrice: 10000000 }
+    ]
+  },
+  Ucell: { enabled: true, prices: [
+    { operatorPrice: 0, salePrice: 50000 }, { operatorPrice: 100000, salePrice: 150000 },
+    { operatorPrice: 250000, salePrice: 270000 }, { operatorPrice: 500000, salePrice: 300000 },
+    { operatorPrice: 1000000, salePrice: 350000 }, { operatorPrice: 3000000, salePrice: 400000 },
+    { operatorPrice: 5000000, salePrice: 5000000 }, { operatorPrice: 10000000, salePrice: 10000000 },
+    { operatorPrice: 20000000, salePrice: 20000000 }, { operatorPrice: 30000000, salePrice: 30000000 }
+  ]},
+  Humans: { enabled: true, prices: [
+    { operatorPrice: 0, salePrice: 50000 }, { operatorPrice: 54000, salePrice: 180000 },
+    { operatorPrice: 144000, salePrice: 344000 }, { operatorPrice: 288000, salePrice: 488000 },
+    { operatorPrice: 576000, salePrice: 776000 }, { operatorPrice: 1440000, salePrice: 1800000 },
+    { operatorPrice: 3600000, salePrice: 3900000 }, { operatorPrice: 8600000, salePrice: 9000000 },
+    { operatorPrice: 18000000, salePrice: 18000000 }
+  ]},
+  // Perfektum narxlari operatordan olingan (perfectum.uz/numbers/data javobi).
+  // Sotuv narxi hozircha operator narxiga TENG — siz jadval berganingizdan
+  // keyin o'ng ustunni to'ldirasiz.
+  Perfektum: { enabled: false, prices: [
+    { operatorPrice: 0, salePrice: 0 }, { operatorPrice: 200000, salePrice: 200000 },
+    { operatorPrice: 600000, salePrice: 600000 }, { operatorPrice: 1000000, salePrice: 1000000 },
+    { operatorPrice: 3000000, salePrice: 3000000 }, { operatorPrice: 6000000, salePrice: 6000000 },
+    { operatorPrice: 10000000, salePrice: 10000000 }, { operatorPrice: 20000000, salePrice: 20000000 },
+    { operatorPrice: 30000000, salePrice: 30000000 }, { operatorPrice: 60000000, salePrice: 60000000 },
+    { operatorPrice: 100000000, salePrice: 100000000 }
+  ]},
+  Mobiuz: { enabled: true, prices: [
+    { operatorPrice: 0, salePrice: 50000 }, { operatorPrice: 300000, salePrice: 450000 },
+    { operatorPrice: 630000, salePrice: 830000 }, { operatorPrice: 840000, salePrice: 950000 },
+    { operatorPrice: 2000000, salePrice: 2200000 }, { operatorPrice: 5000000, salePrice: 5100000 },
+    { operatorPrice: 10000000, salePrice: 10000000 }, { operatorPrice: 25000000, salePrice: 25000000 }
+  ]}
+};
+
+// Operatorlarda ROSTDAN uchragan, lekin jadvalda yo'q narxlar (tekshirilgan).
+// Bularsiz o'sha raqamlar operator narxida sotiladi — ya'ni ustama qo'shilmaydi.
+const OP_GAPS = {
+  Ucell:  'Diqqat: operatorda 10 000 (Steel) va 50 000 (Bronze) darajalari ham bor — jadvalda yo\'q. ' +
+          'Ular ayni operator narxida ko\'rsatiladi (ustamasiz).',
+  Humans: 'Diqqat: operatorda 108 000 (Kategoriya 2) darajasi bor — jadvalda yo\'q. ' +
+          'Yana: Kategoriya 8 ning haqiqiy narxi 8 640 000, jadvalda esa 8 600 000 — ' +
+          'shu holda hech qachon mos kelmaydi, tuzatish kerak.',
+  Perfektum: 'Chap ustundagi narxlar operatorning o\'zidan olingan (Free 0, First 200 000, ' +
+             'Second 600 000, Third 1 mln, Fourth 3 mln, Fifth 6 mln, Sixth 10 mln, ' +
+             'Seventh 20 mln, Eighth 30 mln, Ninth 60 mln, Tenth 100 mln). ' +
+             'O\'ng ustun hozir ular bilan bir xil — ustama yo\'q.'
+};
+
+let opData = null;
+
+function opRow(name, item, idx){
+  const tr = document.createElement('tr');
+  if(name === 'Beeline'){
+    tr.innerHTML =
+      '<td><input type="number" data-f="id" value="' + (item.id ?? '') + '"></td>' +
+      '<td><input type="text" data-f="name" value="' + (item.name || '').replace(/"/g,'&quot;') + '"></td>' +
+      '<td><input type="number" data-f="operatorPrice" value="' + (item.operatorPrice ?? 0) + '"></td>' +
+      '<td><input type="number" data-f="salePrice" value="' + (item.salePrice ?? 0) + '"></td>' +
+      '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
+  }else{
+    tr.innerHTML =
+      '<td><input type="number" data-f="operatorPrice" value="' + (item.operatorPrice ?? 0) + '"></td>' +
+      '<td><input type="number" data-f="salePrice" value="' + (item.salePrice ?? 0) + '"></td>' +
+      '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
+  }
+  tr.querySelector('.op-del').addEventListener('click', ()=>{
+    const list = name === 'Beeline' ? opData.Beeline.warehouses : opData[name].prices;
+    list.splice(idx, 1);
+    opRenderRows(name);
+  });
+  return tr;
+}
+
+function opRenderRows(name){
+  const tbody = document.getElementById('op' + name + 'Rows');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  const list = name === 'Beeline' ? opData.Beeline.warehouses : opData[name].prices;
+  list.forEach((item, i)=> tbody.appendChild(opRow(name, item, i)));
+}
+
+// Ekrandagi qiymatlarni obyektga qaytarib yozish (saqlashdan oldin)
+function opCollect(name){
+  const tbody = document.getElementById('op' + name + 'Rows');
+  const rows = [];
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const o = {};
+    tr.querySelectorAll('input').forEach(inp=>{
+      o[inp.dataset.f] = inp.dataset.f === 'name' ? inp.value.trim() : (Number(inp.value) || 0);
+    });
+    if(name === 'Beeline'){ if(o.id) rows.push(o); }
+    else rows.push({ operatorPrice: o.operatorPrice, salePrice: o.salePrice });
+  });
+  return rows;
+}
+
+async function loadOperatorSettings(){
+  try{
+    const doc = await db.collection('operator_config').doc('main').get();
+    const saved = doc.exists ? (doc.data() || {}) : {};
+    opData = JSON.parse(JSON.stringify(OP_DEFAULTS));
+    ['Beeline','Ucell','Humans','Mobiuz','Perfektum'].forEach(n=>{
+      const sv = saved[n];
+      if(!sv) return;
+      if(typeof sv.enabled === 'boolean') opData[n].enabled = sv.enabled;
+      if(n === 'Beeline'){
+        opData.Beeline.username = sv.username || '';
+        opData.Beeline.password = sv.password || '';
+        if(Array.isArray(sv.warehouses) && sv.warehouses.length) opData.Beeline.warehouses = sv.warehouses;
+      }else if(Array.isArray(sv.prices) && sv.prices.length){
+        opData[n].prices = sv.prices;
+      }
+    });
+
+    document.getElementById('opBeelineUser').value = opData.Beeline.username;
+    document.getElementById('opBeelinePass').value = opData.Beeline.password;
+    ['Beeline','Ucell','Humans','Mobiuz','Perfektum'].forEach(n=>{
+      document.getElementById('op' + n + 'Enabled').checked = opData[n].enabled !== false;
+      opRenderRows(n);
+    });
+    const uw = document.getElementById('opUcellWarn');  if(uw) uw.textContent = OP_GAPS.Ucell;
+    const pw = document.getElementById('opPerfektumWarn'); if(pw) pw.textContent = OP_GAPS.Perfektum;
+    const hw = document.getElementById('opHumansWarn'); if(hw) hw.textContent = OP_GAPS.Humans;
+  }catch(err){
+    console.error('Operator sozlamalarini yuklashda xato:', err);
+  }
+}
+
+document.querySelectorAll('.op-add').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const name = btn.dataset.add;
+    if(name === 'Beeline') opData.Beeline.warehouses.push({ id:'', name:'', operatorPrice:0, salePrice:0 });
+    else opData[name].prices.push({ operatorPrice:0, salePrice:0 });
+    opRenderRows(name);
+  });
+});
+
+async function opSave(){
+  ['Beeline','Ucell','Humans','Mobiuz','Perfektum'].forEach(n=>{
+    opData[n].enabled = document.getElementById('op' + n + 'Enabled').checked;
+    if(n === 'Beeline') opData.Beeline.warehouses = opCollect('Beeline');
+    else opData[n].prices = opCollect(n);
+  });
+  opData.Beeline.username = document.getElementById('opBeelineUser').value.trim();
+  opData.Beeline.password = document.getElementById('opBeelinePass').value;
+
+  await db.collection('operator_config').doc('main').set({
+    Beeline: opData.Beeline, Ucell: opData.Ucell,
+    Humans: opData.Humans, Mobiuz: opData.Mobiuz,
+    Perfektum: opData.Perfektum,
+    updatedAt: Date.now()
+  }, { merge: true });
+}
+
+document.getElementById('opSaveBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('opSaveBtn');
+  const msg = document.getElementById('opSaveMsg');
+  btn.disabled = true;
+  msg.style.color = '';
+  try{
+    await opSave();
+    msg.textContent = "✓ Saqlandi. Yangi sozlama 1 daqiqagacha ichida kuchga kiradi (funksiya keshi).";
+    vibrate(80);
+    setTimeout(()=>{ msg.textContent = ''; }, 4000);
+  }catch(err){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Xato: ' + err.message;
+  }
+  btn.disabled = false;
+});
+
+// Login/parolni tekshirish: avval saqlaydi, keyin funksiyani chaqiradi.
+// Saqlamasdan tekshirib bo'lmaydi — funksiya kalitni Firestore'dan oladi.
+document.getElementById('opBeelineTest').addEventListener('click', async ()=>{
+  const btn = document.getElementById('opBeelineTest');
+  const out = document.getElementById('opBeelineTestOut');
+  btn.disabled = true;
+  out.style.color = '';
+  out.textContent = 'Saqlanmoqda va tekshirilmoqda...';
+  try{
+    await opSave();
+    // Kesh eskirishi uchun biroz kutamiz (funksiyada sozlama keshi 60 soniya),
+    // shu sabab tasodifiy mask bilan chaqiramiz — kesh unga tegmaydi.
+    const res = await fetch('/.netlify/functions/api-live-search?action=test-beeline');
+    const data = await res.json();
+    if(data.ok){
+      out.style.color = 'var(--green)';
+      out.textContent = '✓ Login ishladi — token olindi (' + data.token + ')';
+    }else{
+      out.style.color = 'var(--red)';
+      out.textContent = '✗ ' + (data.error || 'Noma\'lum xato');
+    }
+  }catch(err){
+    out.style.color = 'var(--red)';
+    out.textContent = '✗ ' + err.message;
   }
   btn.disabled = false;
 });
