@@ -103,13 +103,19 @@
     var t = JSON.parse(raw);
     var root = document.documentElement.style;
     var map = {
-      bg:'--bg', panel:'--panel', panel2:'--panel-2', line:'--line',
+      bg:'--bg', pageBg:'--page-bg', panel:'--panel', panel2:'--panel-2', line:'--line',
       amber:'--amber', amberSoft:'--amber-soft', green:'--green', red:'--red',
       brandRed:'--brand-red', text:'--text', muted:'--muted',
       btnBg:'--btn-bg', btnText:'--btn-text', btnBorderWidth:'--btn-border-width',
       btnBorderColor:'--btn-border-color', btnRadius:'--btn-radius', cardRadius:'--card-radius'
     };
     Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
+    // Kartochka/modal tepasidagi oqib turuvchi chiziq ham (applyTheme()
+    // bilan bir xil mantiq) mavzuning o'z amber/green rangidan olinadi —
+    // shu bilan sahifa ochilishi bilanoq (Firestore javobini kutmasdan)
+    // to'g'ri, mavzuga mos rangda ko'rinadi.
+    if(t.amber) root.setProperty('--accent-grad-1', t.amber);
+    if(t.green) root.setProperty('--accent-grad-2', t.green);
     if(t.themeKey === 'lyuks_premium') document.documentElement.classList.add('lyuks-mode');
     if(t.themeKey === 'premium_purple') document.documentElement.classList.add('theme-purple-premium');
     if(t.font){
@@ -129,6 +135,14 @@
 
   :root{
     --bg: #0B1220;
+    /* --page-bg — FAQAT sahifaning umumiy fon rangi (kartochkalar ORQASIDA
+       turgan bo'sh joy). --bg'dan ATAYLAB ajratilgan: --bg tugmalar/nishonlar
+       ustidagi YOZUV rangi sifatida ham ishlatiladi (masalan amber tugma
+       ustidagi matn), shu sabab admin panelda orqa fon rangini o'zgartirsa,
+       o'sha yozuvlar KO'RINMAY qolmasligi kerak. Standart holatda --bg bilan
+       bir xil (pastda applyTheme() da ham shunday sinxronlanadi), lekin
+       admin "Sayt orqa foni" dan alohida rang tanlasa, FAQAT shu o'zgaradi. */
+    --page-bg: var(--bg);
     --panel: #121B2E;
     --panel-2: #17223A;
     --line: #263450;
@@ -143,6 +157,12 @@
     --accent-grad-1: #8B5CF6;
     --accent-grad-2: #EC4899;
     --accent-gradient: linear-gradient(120deg, var(--accent-grad-1), var(--accent-grad-2));
+    /* VIP/STANDART tugmalari, "Barchasi" tanlagichi va 7 ta raqam
+       katakchasi — HAMMASI shu BITTA qiymatdan balandlik oladi, shu
+       sabab har qanday ekran o'lchamida ANIQ bir xil (piksel-piksel teng)
+       bo'lib qoladi, alohida-alohida hisoblanadigan qiymatlar
+       (masalan padding orqali) hech qachon "sal-pal" farq qilib qolmaydi. */
+    --search-row-h: clamp(32px, 9.3vw, 38px);
   }
   html[data-custom-font] *{
     font-family: var(--font-main) !important;
@@ -154,10 +174,14 @@
     /* Butun sayt bo'ylab bir xil, sekin "suzib yuruvchi" binafsha-pushti
        nurlar — fon o'zi hech qachon diqqatni tortmaydi (past shaffoflik),
        lekin butun sahifa bo'ylab bir xil zamonaviy, jonli tuyg'u beradi. */
-    background-color:var(--bg);
+    background-color:var(--page-bg);
+    /* Bu ikkita "suzib yuruvchi" nur ham endi TANLANGAN mavzuning o'z
+       rangidan (amber/green) oladi — shu bilan har bir premium mavzu
+       nafaqat fon/tugma rangi bilan, balki shu orqa fondagi nafis
+       nur-animatsiya bilan ham bir-biridan farqlanadi. */
     background-image:
-      radial-gradient(ellipse 70vw 50vh at 12% -8%, rgba(139,92,246,0.09), transparent 60%),
-      radial-gradient(ellipse 60vw 45vh at 100% 10%, rgba(236,72,153,0.07), transparent 55%);
+      radial-gradient(ellipse 70vw 50vh at 12% -8%, color-mix(in srgb, var(--amber) 14%, transparent), transparent 60%),
+      radial-gradient(ellipse 60vw 45vh at 100% 10%, color-mix(in srgb, var(--green) 12%, transparent), transparent 55%);
     background-repeat:no-repeat;
     background-size:140% 140%, 140% 140%;
     background-position:0% 0%, 0% 0%;
@@ -392,11 +416,15 @@
     display:flex;gap:8px;
   }
   .cm-tab{
+    /* Ikkalasi ham chapdan o'ngga, chekkagacha teng bo'lib cho'ziladi.
+       Balandligi --search-row-h orqali pastdagi katakchalar bilan
+       ANIQ teng ushlab turiladi (padding emas, aniq height). */
     flex:1 1 0;box-sizing:border-box;min-width:0;
-    padding:10px 6px;border-radius:10px;border:1.5px solid var(--line);
+    height:var(--search-row-h);display:flex;align-items:center;justify-content:center;
+    padding:0 6px;border-radius:9px;border:1.5px solid var(--line);
     background:var(--panel);color:var(--muted);
-    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(9.5px,2.6vw,13px);
-    letter-spacing:.2px;cursor:pointer;transition:all .18s ease;text-align:center;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(10.5px,2.8vw,12.5px);
+    letter-spacing:.3px;cursor:pointer;transition:all .18s ease;text-align:center;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .cm-tab{transform:scale(1);}
@@ -404,20 +432,23 @@
   .cm-tab.active{
     background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
     border-color:transparent;
-    box-shadow:0 6px 18px -6px rgba(139,92,246,0.45), 0 0 0 1px rgba(255,255,255,0.06) inset;
+    box-shadow:0 6px 18px -6px color-mix(in srgb, var(--amber) 55%, transparent), 0 0 0 1px rgba(255,255,255,0.06) inset;
   }
   .standard-search-btn{
     /* .catalog-mode-tabs 480px kenglikda, ikki tarafdan 16px padding bilan —
        demak tugmalar aynan joylashgan ichki maydon 480-32=448px. Qidirish
        tugmasi ham AYNAN shu 448px kenglikda bo'lishi kerak, aks holda
        (avvalgidek to'liq 480px bo'lsa) ikki chetdan chiqib ketib, tablardan
-       "kattaroq" ko'rinardi. */
-    display:block;width:100%;max-width:448px;margin:10px auto 0;box-sizing:border-box;
-    padding:12px 10px;border:none;border-radius:10px;
+       "kattaroq" ko'rinardi. Balandligi ham --search-row-h dan olinadi —
+       shunda VIP/STANDART tugmalari, raqam katakchalari VA "Qidirish"
+       tugmasi hammasi ANIQ bir xil balandlikda bo'ladi. */
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    width:100%;max-width:448px;height:var(--search-row-h);margin:10px auto 0;box-sizing:border-box;
+    padding:0 10px;border:none;border-radius:10px;
     background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);
-    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;cursor:pointer;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;cursor:pointer;
     position:relative;overflow:hidden;
-    box-shadow:0 8px 22px -8px rgba(139,92,246,0.5);
+    box-shadow:0 8px 22px -8px color-mix(in srgb, var(--amber) 60%, transparent);
     transition:transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
   }
   .standard-search-btn::after{
@@ -442,7 +473,7 @@
   @keyframes lsiBounce{0%,80%,100%{opacity:.25;transform:translateY(0);}40%{opacity:1;transform:translateY(-4px);}}
 
   .search-wrap{
-    background:var(--bg);
+    background:var(--page-bg);
     padding:10px 0 14px;
     border-bottom:1px solid var(--line);
   }
@@ -453,7 +484,7 @@
        telefon ekranida ham bir vertikal chiziqda tekis turadi. */
     max-width:480px;margin:0 auto;padding:0 16px;
     display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;
-    gap:clamp(2px,1vw,6px);
+    gap:clamp(4px,1.7vw,9px);
     overflow-x:auto;-webkit-overflow-scrolling:touch;
     scrollbar-width:none;
   }
@@ -465,14 +496,16 @@
     font-weight:700;letter-spacing:0.5px;white-space:nowrap;
   }
   .op-select{
+    /* Tepadagi VIP/STANDART tugmalari bilan BALANDLIGI ANIQ TENG —
+       ikkalasi ham --search-row-h dan oladi. */
     flex:0 0 auto;box-sizing:border-box;
-    height:clamp(38px,13vw,52px);display:flex;align-items:center;
+    height:var(--search-row-h);display:flex;align-items:center;
     background:var(--panel);border:1px solid var(--line);border-radius:8px;
     color:var(--amber);font-family:'Space Mono',monospace;font-weight:700;
-    font-size:clamp(9px,2.8vw,13px);
+    font-size:clamp(8.5px,2.5vw,11.5px);
     text-align:center;text-align-last:center;
-    padding:0 16px 0 clamp(5px,1.6vw,9px);
-    width:clamp(62px,19vw,96px);outline:none;cursor:pointer;transition:border-color .2s;
+    padding:0 15px 0 clamp(6px,1.9vw,9px);
+    width:clamp(66px,18.5vw,90px);outline:none;cursor:pointer;transition:border-color .2s;
     -webkit-appearance:none;appearance:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238494B0'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 6px center;
@@ -480,11 +513,13 @@
   .op-select:focus{border-color:var(--amber);}
   .op-select.filtered{color:var(--amber);border-color:var(--amber);}
   .digit-box{
+    /* Eni va bo'yi TENG (kvadrat), va tepadagi VIP/STANDART tugmalari
+       bilan BALANDLIGI ANIQ TENG — --search-row-h dan oladi. */
     flex:0 0 auto;box-sizing:border-box;
-    width:clamp(24px,7.8vw,40px);height:clamp(38px,13vw,52px);
+    width:var(--search-row-h);height:var(--search-row-h);
     background:var(--panel);border:1px solid var(--line);border-radius:8px;
     color:var(--text);font-family:'Sora',sans-serif;
-    font-size:clamp(15px,4.2vw,21px);font-weight:800;
+    font-size:clamp(14px,3.8vw,18px);font-weight:800;
     text-align:center;outline:none;transition:border-color .15s ease, background .15s ease;
     padding:0;
   }
@@ -516,14 +551,13 @@
     background:var(--panel);
     border:1.5px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
-    box-shadow:0 12px 34px rgba(8,4,30,0.48);
+    box-shadow:0 12px 34px rgba(8,4,30,0.48), 0 0 0 1px color-mix(in srgb, var(--amber) 10%, transparent);
     transition:border-color .3s ease, box-shadow .35s ease, transform .3s cubic-bezier(.22,1,.36,1);
     opacity:0;animation:cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards;
   }
   .card::before{
-    /* Ramka (kartaning tepasidagi chiziq) doim ko'rinadi va sekin, uzluksiz
-       oqib turadi — "chekkalari animatsiya bo'lib turadi" degan talab. */
-    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    /* Faqat TEPADA, ingichka chiziq — avvalgi (oddiy) ko'rinishga qaytarildi. */
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
     background:linear-gradient(90deg, var(--accent-grad-1), var(--accent-grad-2), var(--accent-grad-1));
     background-size:200% 100%;
     animation:cardBorderFlow 7s linear infinite;
@@ -537,12 +571,12 @@
     animation: cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards, cardShadowBreathe 5s ease-in-out infinite;
   }
   @keyframes cardShadowBreathe{
-    0%,100%{ box-shadow:0 12px 32px rgba(8,4,30,0.5), 0 6px 16px rgba(139,92,246,0.3); }
-    50%{ box-shadow:0 17px 42px rgba(8,4,30,0.66), 0 9px 22px rgba(139,92,246,0.48); }
+    0%,100%{ box-shadow:0 12px 32px rgba(8,4,30,0.5), 0 6px 16px color-mix(in srgb, var(--amber) 30%, transparent); }
+    50%{ box-shadow:0 17px 42px rgba(8,4,30,0.66), 0 9px 22px color-mix(in srgb, var(--amber) 46%, transparent); }
   }
   .card:hover, .card:focus-within{
-    border-color:rgba(255,176,0,0.4);
-    box-shadow:0 22px 50px rgba(8,4,30,0.62), 0 0 0 1px rgba(255,176,0,0.12), 0 12px 30px -6px rgba(139,92,246,0.55);
+    border-color:color-mix(in srgb, var(--amber) 40%, transparent);
+    box-shadow:0 22px 50px rgba(8,4,30,0.62), 0 0 0 1px color-mix(in srgb, var(--amber) 12%, transparent), 0 12px 30px -6px color-mix(in srgb, var(--amber) 52%, transparent);
     transform:translateY(-5px);
   }
   .card:active{transform:scale(0.98);transition:transform .12s ease;}
@@ -697,7 +731,11 @@
 
 
   .card-header{
-    display:flex;align-items:center;gap:9px;padding:16px 16px;
+    display:flex;align-items:center;flex-wrap:wrap;row-gap:6px;gap:9px;
+    /* O'ng tomonda saqlab-turish (.fav-btn) uchun joy — aks holda
+       uzunroq raqam + operator belgisi shu yerga "kirib" qolib,
+       ikkalasi bir-birining ustiga chiqib ketardi. */
+    padding:16px 44px 16px 16px;
     border-bottom:1px solid var(--line);
   }
   .card-header .op-label{
@@ -762,7 +800,7 @@
     35%{ left:130%; }
     100%{ left:130%; }
   }
-  .card button.order-btn:hover{filter:brightness(1.15);box-shadow:0 6px 18px -4px rgba(139,92,246,0.4);}
+  .card button.order-btn:hover{filter:brightness(1.15);box-shadow:0 6px 18px -4px color-mix(in srgb, var(--amber) 50%, transparent);}
   .card button.order-btn:active{transform:scale(0.96);}
   .reserved-btn{
     background:var(--panel-2) !important;
@@ -792,6 +830,14 @@
     grid-column:1/-1;text-align:center;color:var(--muted);
     padding:60px 20px;font-family:'Space Mono',monospace;font-size:14px;
   }
+  .retry-search-btn{
+    margin-top:16px;padding:11px 22px;border:none;border-radius:10px;
+    background:var(--amber);color:var(--bg);font-family:'Sora',sans-serif;
+    font-weight:800;font-size:13px;cursor:pointer;
+    transition:transform .12s ease, filter .15s ease;
+  }
+  .retry-search-btn:hover{filter:brightness(1.08);}
+  .retry-search-btn:active{transform:scale(0.96);}
 
   .loading-state{
     grid-column:1/-1;text-align:center;color:var(--muted);
@@ -1388,7 +1434,7 @@
     position:relative;overflow:hidden;
     transform:translateY(30px) scale(.98);opacity:0;animation:slideUp .32s cubic-bezier(.22,1,.36,1) forwards;
     max-height:88vh;overflow-y:auto;
-    box-shadow:0 20px 60px -12px rgba(139,92,246,0.25);
+    box-shadow:0 20px 60px -12px color-mix(in srgb, var(--amber) 30%, transparent);
   }
   .modal::before{
     content:'';position:absolute;top:0;left:0;right:0;height:4px;
@@ -1763,8 +1809,8 @@
     .stat{max-width:130px;padding:16px 10px;}
     .stat b{font-size:17px;}
     .number-builder{max-width:600px;gap:8px;}
-    .digit-box{width:46px;height:58px;font-size:23px;}
-    .op-select{height:58px;}
+    .digit-box{width:var(--search-row-h);height:var(--search-row-h);font-size:18px;}
+    .op-select{height:var(--search-row-h);width:96px;}
 
     .catalog{
       grid-template-columns:repeat(2,1fr);
@@ -1776,7 +1822,7 @@
       box-shadow:0 14px 28px rgba(0,0,0,0.22);
     }
     .card-header .num-label{font-size:23px;}
-    .card-header{padding:20px 20px;}
+    .card-header{padding:20px 48px 20px 20px;}
     .card-body{padding:20px;}
     .price-row .new-price{font-size:16px;}
     .card button.order-btn{padding:13px;font-size:14.5px;}
@@ -2054,8 +2100,8 @@ html.theme-purple-premium .card button.order-btn{
 </div>
 
 <div class="catalog-mode-tabs" id="catalogModeTabs">
-  <button type="button" class="cm-tab active" id="modeVipBtn" data-mode="vip">VIP TOIFA</button>
-  <button type="button" class="cm-tab" id="modeStandardBtn" data-mode="standard">STANDART TOIFA</button>
+  <button type="button" class="cm-tab active" id="modeVipBtn" data-mode="vip">VIP</button>
+  <button type="button" class="cm-tab" id="modeStandardBtn" data-mode="standard">STANDART</button>
 </div>
 
 <div class="search-wrap">
@@ -2961,6 +3007,35 @@ document.addEventListener('DOMContentLoaded', ()=>{
     toggleFavorite(favBtn.dataset.id, favBtn);
   });
 
+  // "Buyurtma berish" tugmasi — BITTA doimiy (delegatsiya qilingan)
+  // tinglovchi orqali ishlaydi. ESLATMA: avval bu har renderCatalog()
+  // chaqirilganda document.querySelectorAll('.order-btn') orqali QAYTA-
+  // QAYTA yangi tinglovchi qo'shardi (eski kartalar DOM'dan o'chsa ham,
+  // ba'zan bir xil elementga bir nechta tinglovchi qalashib qolar, bu esa
+  // ikkinchi marta "Buyurtma berish" bosilganda modal bir necha marta
+  // ochilib-yopilib, katalog "bo'sh/oq ekran" holatida qolib ketishiga olib
+  // kelardi). Endi faqat SHU YERDA, bitta marta ulanadi.
+  catalogEl.addEventListener('click', (e)=>{
+    const orderBtn = e.target.closest('.order-btn:not(.reserved-btn)');
+    if(orderBtn){
+      e.preventDefault();
+      e.stopPropagation();
+      openModal(orderBtn.dataset.number, orderBtn.dataset.id);
+      return;
+    }
+    // Operatorlardan javob kelmagan/xato bo'lgan holatda chiqadigan
+    // "Qayta urinish" tugmasi — mijoz sahifani yangilamasdan, bitta
+    // bosish bilan aynan shu maskani qayta so'raydi.
+    const retryBtn = e.target.closest('.retry-search-btn');
+    if(retryBtn){
+      e.preventDefault();
+      e.stopPropagation();
+      LIVE_SEARCH_ERROR = null;
+      liveMask = '__retry__'; // hozirgi mask bilan bir xil bo'lsa ham qayta so'ralsin
+      fetchLiveNumbers({ allowEmpty: !currentPattern().some(d => d !== '') });
+    }
+  });
+
   // Kartaning o'ziga ikki marta ketma-ket bosilganda — xuddi shunday
   let lastTapId = null, lastTapTime = 0;
   catalogEl.addEventListener('click', (e)=>{
@@ -2980,8 +3055,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
 /* Qidiruv natijasi qaysi kompaniyalardan iboratligini tepada tugmalar
-   ko'rinishida ko'rsatadi. Tugma bosilganda YANGI SO'ROV YUBORILMAYDI —
-   allaqachon olingan natija joyida filtrlanadi, ya'ni darhol ishlaydi. */
+   ko'rinishida ko'rsatadi.
+   Tugma bosilganda YANGI SO'ROV YUBORILMAYDI — allaqachon olingan natija
+   joyida filtrlanadi, ya'ni darhol ishlaydi. */
 function renderOperatorTabs(){
   let box = document.getElementById('opTabs');
 
@@ -3066,8 +3142,15 @@ function renderCatalog(){
     }else if(catalogMode === 'standard' && LIVE_SEARCH_ERROR){
       // Jimgina "topilmadi" demay, ANIQ SABABNI ko'rsatamiz — aks holda
       // mijoz (va biz) operator xatosimi, tarmoq muammosimi, sozlama
-      // muammosimi ekanini bila olmaymiz.
-      catalogEl.innerHTML = `<div class="empty-state">⚠️ ${escapeHtml(LIVE_SEARCH_ERROR)}<br><br>${t("Iltimos, qayta urinib ko'ring yoki boshqa raqam kiriting.")}</div>`;
+      // muammosimi ekanini bila olmaymiz. Qo'shimcha: sahifani yangilashga
+      // majburlamasdan, bitta tugma bilan darhol qayta urinish imkonini
+      // beramiz — server sekin/vaqtincha javob bermagan holatlar uchun.
+      catalogEl.innerHTML = `<div class="empty-state">
+        ⚠️ ${escapeHtml(LIVE_SEARCH_ERROR)}<br><br>
+        ${t("Server hozir sekinroq javob berayotgan bo'lishi mumkin.")}
+        <br>
+        <button type="button" class="retry-search-btn">🔄 ${t("Qayta urinish")}</button>
+      </div>`;
     }else{
       catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
     }
@@ -3077,6 +3160,10 @@ function renderCatalog(){
   }
 
   pageItems.forEach((item, idx)=>{
+   // MUHIM: bitta raqamning ma'lumotida kutilmagan xato (masalan yo'q maydon)
+   // bo'lib qolsa ham, BUTUN katalog "bo'sh/oq ekran"ga aylanib qolmasin —
+   // shu bitta kartani o'tkazib yuboramiz, qolganlari normal chiziladi.
+   try{
     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
     const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
     const rank = currentPage * PAGE_SIZE + idx + 1;
@@ -3103,14 +3190,16 @@ function renderCatalog(){
       card.addEventListener('click', ()=> openModal(item.number, item.id));
     }
     catalogEl.appendChild(card);
+   }catch(cardErr){
+    console.error('Karta chizishda xato (o\'tkazib yuborildi):', item && item.id, cardErr);
+   }
   });
 
-  document.querySelectorAll('.order-btn:not(.reserved-btn)').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      openModal(btn.dataset.number, btn.dataset.id);
-    });
-  });
+  // ESLATMA: "Buyurtma berish" tugmalari uchun tinglovchi endi bu yerda
+  // QO'SHILMAYDI — yuqorida DOMContentLoaded ichida catalogEl'ga bitta marta
+  // ulangan delegatsiya qilingan tinglovchi orqali ishlaydi (qarang: bu fayl
+  // boshidagi izoh). Bu yerda qayta qo'shish ikki barobar (ikki marta modal
+  // ochilish) xatosiga olib kelardi.
 
   renderPagination(currentPage, totalPages);
   renderLiveStatus();
@@ -3325,7 +3414,7 @@ async function fetchLiveNumbers(opts){
     LIVE_NUMBERS = [];
     liveMask = '';
     LIVE_SEARCH_ERROR = (err && err.name === 'AbortError')
-      ? "Operatorlar javob berishga juda ko'p vaqt oldi (25 soniyadan ko'p). Qayta urinib ko'ring."
+      ? "Operatorlar javob berishga juda ko'p vaqt oldi (25 soniyadan ko'p)."
       : ("Tarmoq xatosi: " + (err && err.message ? err.message : 'nomalum'));
     console.error('Jonli qidiruv ishlamadi:', err);
   }finally{
@@ -4466,7 +4555,7 @@ document.getElementById('coCloseSuccess').addEventListener('click', ()=> customO
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {
   premium_navy:   { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#1C2E4A', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#33E28C', red:'#D4AF37', brandRed:'#D4AF37', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'8px', cardRadius:'12px' },
-  clean_white:    { bg:'#190833', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#D5DEEE', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'18px' },
+  clean_white:    { bg:'#04010E', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#D5DEEE', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'18px' },
   modern_saas:    { bg:'#0D1B33', panel:'#132A4D', panel2:'#183A63', line:'#1C3050', amber:'#4A90D9', amberSoft:'rgba(74,144,217,0.15)', green:'#7FE7C4', red:'#4A90D9', brandRed:'#4A90D9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4A90D9', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
   bold_editorial: { bg:'#0A1220', panel:'#0A1220', panel2:'#111A2C', line:'#FFFFFF', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.12)', green:'#7FE7C4', red:'#FFFFFF', brandRed:'#FFFFFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#FFFFFF', btnText:'#0A1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'0px', cardRadius:'0px' },
   soft_glass:     { bg:'#0B1220', panel:'rgba(255,255,255,0.06)', panel2:'rgba(255,255,255,0.09)', line:'rgba(255,255,255,0.15)', amber:'#7FA8E0', amberSoft:'rgba(127,168,224,0.15)', green:'#7FE7C4', red:'#7FA8E0', brandRed:'#7FA8E0', text:'#FFFFFF', muted:'#B8CBE8', btnBg:'#FFFFFF', btnText:'#0B1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
@@ -4510,6 +4599,11 @@ function applyTheme(themeKey){
   if(!t) return;
   const root = document.documentElement.style;
   root.setProperty('--bg', t.bg);
+  // Mavzu almashganda sahifa foni ham mavzuning o'z rangiga qaytadi —
+  // agar admin alohida "Sayt orqa foni" tanlagan bo'lsa, pastda
+  // loadSiteSettings() bu qiymatni ustiga bosib qo'yadi (applyTheme'dan
+  // KEYIN chaqiriladi), shu bilan tanlangan orqa fon ustunlik saqlaydi.
+  root.setProperty('--page-bg', t.bg);
   root.setProperty('--panel', t.panel);
   root.setProperty('--panel-2', t.panel2);
   root.setProperty('--line', t.line);
@@ -4526,6 +4620,13 @@ function applyTheme(themeKey){
   root.setProperty('--btn-border-color', t.btnBorderColor);
   root.setProperty('--btn-radius', t.btnRadius);
   root.setProperty('--card-radius', t.cardRadius);
+  // Kartochka va modal tepasidagi oqib turuvchi rangli chiziq ham endi
+  // TANLANGAN mavzuning o'z ikki asosiy rangidan (amber + green) foydalanadi
+  // — avval har doim binafsha-pushti bo'lib qolardi, mavzu qanday
+  // o'zgarmasin. Shu bilan har bir premium mavzu chindan ham o'ziga xos
+  // "animatsiya" olib, birbiridan farqlanadi.
+  root.setProperty('--accent-grad-1', t.amber);
+  root.setProperty('--accent-grad-2', t.green);
 
   // "Lyuks Premium" mavzusi tanlanganda — butun sayt bo'ylab sekinroq,
   // nafisroq animatsiya rejimiga o'tamiz (oddiy "sakraydigan" his emas).
@@ -4574,6 +4675,16 @@ async function loadSiteSettings(){
       };
     }
     if(s.theme) applyTheme(s.theme);
+    // Sayt orqa foni — mavzudan MUSTAQIL, admin panelda 30 tayyor rangdan
+    // birini tanlashi mumkin. MUHIM: bu FAQAT --page-bg'ni o'zgartiradi,
+    // --bg'ga TEGMAYDI — --bg amber tugmalar/nishonlar ustidagi YOZUV
+    // rangi sifatida ham ishlatiladi, agar shuni ham o'zgartirsak, o'sha
+    // yozuvlar (masalan tugma ichidagi harflar) ko'rinmay qolar edi.
+    // applyTheme()'dan KEYIN qo'yiladi — shunda mavzuning o'z bg qiymatini
+    // ustiga bosib, doim ustunlik qiladi.
+    if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){
+      document.documentElement.style.setProperty('--page-bg', s.siteBgColor);
+    }
     if(s.font !== undefined) applyFont(s.font);
     hideOrderButtonSetting = !!s.hideOrderButton;
     if(s.catalogStyle) currentCatalogStyle = s.catalogStyle;
@@ -4598,6 +4709,16 @@ async function loadSiteSettings(){
           catalogStyle: s.catalogStyle || 'classic',
           hideOrderButton: !!s.hideOrderButton
         });
+        // Agar admin alohida orqa fon rangini tanlagan bo'lsa — keshga
+        // ALOHIDA "pageBg" qiymati sifatida yozamiz (cache.bg'ga TEGMAYMIZ,
+        // chunki --bg amber tugmalar ustidagi yozuv rangi ham bo'lib
+        // xizmat qiladi), shunda keyingi tashrifda sahifa ochilishi
+        // bilanoq (Firestore javobini kutmasdan) to'g'ri fon ko'rinadi,
+        // "oq fon chaqib, keyin to'q fonga o'tish" holati bo'lmaydi —
+        // va tugma ichidagi yozuvlar ham hech qachon ko'rinmay qolmaydi.
+        if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){
+          cache.pageBg = s.siteBgColor;
+        }
         localStorage.setItem('raqamuz_theme_v1', JSON.stringify(cache));
       }
     }catch(e){}
