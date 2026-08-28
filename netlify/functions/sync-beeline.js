@@ -52,7 +52,12 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true });
 
-const SYNC_LIMIT_PER_CALL = 300;
+// MUHIM: Beeline'ning o'zi bu qiymatni 100 dan oshirishga UMUMAN ruxsat
+// bermaydi ("Лимит не может превышать 100" — aynan shu sabab BARCHA
+// so'rovlar 400 xatosi bilan qaytib turgan edi, chunki bu yerda avval
+// 300 turgan edi). Har bir ombor + har bir oxirgi raqam (0-9) kombinatsiyasi
+// bo'yicha eng ko'pi bilan 100 tagacha raqam olinadi.
+const SYNC_LIMIT_PER_CALL = 100;
 // Firestore hujjati 1MB dan oshmasligi kerak — bu ehtiyot uchun qo'yilgan
 // yuqori chegara, amaliyotda hech qachon bunchalik ko'p raqamga yetmaydi.
 const MAX_STORED_ITEMS = 3000;

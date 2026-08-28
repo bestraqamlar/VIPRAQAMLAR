@@ -132,6 +132,22 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // STANDART (jonli, operatordan qidirilgan) raqamlar uchun Firestore'da
+    // haqiqiy 'numbers' hujjati yo'q — shu sabab ular uchun "band qilish"
+    // (numbers.reserved kabi) qo'llanilmaydi. IKKI mijoz AYNAN BIR XIL
+    // jonli raqamga bir vaqtda buyurtma bermasin deb, shu yerda YENGIL
+    // "qulf" hujjati ishlatiladi: raqam bo'yicha hujjat FAQAT BIR MARTA
+    // (hali mavjud bo'lmasa) yaratilishi mumkin — ikkinchi mijozning
+    // urinishi (hujjat allaqachon bor bo'lgani uchun) rad etiladi.
+    // Buni index.html'dagi finalizeOrder() Firestore TRANZAKSIYASI
+    // orqali ishlatadi.
+    match /live_reservations/{doc} {
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['reservedAt'])
+        && request.resource.data.reservedAt == request.time;
+      allow list, update, delete: if isAdmin();
+    }
+
     match /promo_usage/{doc} {
       // usedAt aynan server vaqtiga teng bo'lishi shart — shu bilan
       // hech bo'lmasa soxta/eski-sanalangan yozuvlar oldini olamiz.
