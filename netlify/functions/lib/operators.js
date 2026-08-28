@@ -226,6 +226,20 @@ async function searchBeeline(boxes, cfg, limit) {
 let beelineTokenCache = null;
 const BEELINE_TOKEN_TTL = 5 * 60 * 1000;
 
+// MUHIM (401/400 xatolarining haqiqiy sababi shu edi): sync-beeline.js 10 ta
+// raqamni (0..9) BIR VAQTDA, parallel qidiradi. Agar token hali yo'q yoki
+// endigina eskirgan bo'lsa, ESKI kodda HAR BIR parallel so'rov o'zicha
+// alohida login qilishga urinardi — ya'ni bitta dilerlik hisobiga bir necha
+// login so'rovi BIR VAQTDA ketardi. Beeline (ko'p operator API'lari kabi)
+// "faqat bitta faol sessiya" siyosatini tutadi: yangi login eskisini
+// BEKOR qiladi. Natijada bir-birini ketma-ket bekor qilib turgan
+// tokenlar bilan ishlagan boshqa so'rovlar 401 yoki hatto 400 (noto'g'ri/
+// bekor qilingan sessiya bilan yuborilgan so'rov) bilan qulab tushardi.
+// YECHIM: bir vaqtning o'zida FAQAT BITTA login so'rovi "parvozda" bo'lishi
+// mumkin — token kerak bo'lgan barcha parallel chaqiruvlar SHU BITTA
+// natijani kutib oladi, o'zlaridan alohida login yubormaydi.
+let beelineLoginInFlight = null;
+
 async function getBeelineToken(username, password) {
   const now = Date.now();
   if (beelineTokenCache
@@ -233,9 +247,17 @@ async function getBeelineToken(username, password) {
       && beelineTokenCache.expiresAt > now) {
     return beelineTokenCache.token;
   }
-  const token = await beelineLogin(username, password);
-  beelineTokenCache = { token, username, expiresAt: now + BEELINE_TOKEN_TTL };
-  return token;
+  if (beelineLoginInFlight) return beelineLoginInFlight;
+  beelineLoginInFlight = (async () => {
+    try {
+      const token = await beelineLogin(username, password);
+      beelineTokenCache = { token, username, expiresAt: Date.now() + BEELINE_TOKEN_TTL };
+      return token;
+    } finally {
+      beelineLoginInFlight = null;
+    }
+  })();
+  return beelineLoginInFlight;
 }
 
 /* ---------- UCELL ---------- */
