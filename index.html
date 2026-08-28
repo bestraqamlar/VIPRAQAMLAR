@@ -233,43 +233,60 @@
   .main-nav{
     position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:80;
     display:flex;
-    /* Endi tepadagi qidiruv kartochkasiga o'xshab, ekran chetiga yopishmagan,
-       hamma burchagi yumaloq, alohida suzib turgan (floating) karta —
-       oldin faqat tepasi yumaloq, pastki cheti ekranga yopishgan edi. Foni
-       ozroq to'qroq/ko'kroq, o'z ramkasi va soyasi bilan aniq ajralib
-       turadi. */
-    background:linear-gradient(180deg, #E7EEFC 0%, #D9E5F8 100%);
-    border:1px solid rgba(20,45,110,0.18);
-    border-radius:20px;
-    box-shadow:0 -10px 12px -6px rgba(20,45,110,0.12), 0 14px 34px rgba(20,45,110,0.28);
+    /* Mijoz iltimosiga ko'ra: endi qidirish tugmasi bilan BIR XIL
+       yashil->ko'k gradient fonda, yozuv/belgi OQ. Avvalgi och-ko'k/oq fon
+       o'rniga keldi. Balandligi ham (padding/margin pastda, .mn-tab'da)
+       ATAYLAB kichraytirildi — bar kamroq joy egallasin deb. */
+    background:linear-gradient(120deg, #1E8449, #2F5FE0);
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:16px;
+    box-shadow:0 -8px 10px -6px rgba(20,45,110,0.16), 0 12px 28px rgba(20,45,110,0.34);
+    overflow:hidden;isolation:isolate;
+  }
+  /* "Zamonaviy" tuyg'u uchun: barning orqa fonida XIRA (shaffof), asta-sekin
+     chapga suzib o'tayotgan raqamlar qatori — "o'tayotgan raqamlar soyasi".
+     pointer-events yo'q (bosishga xalaqit bermaydi), tugmalardan pastda
+     (z-index orqali) turadi. */
+  .main-nav::before{
+    content:'0  1  2  3  4  5  6  7  8  9      0  1  2  3  4  5  6  7  8  9      0  1  2  3  4  5  6  7  8  9      ';
+    position:absolute;top:0;bottom:0;left:0;
+    display:flex;align-items:center;white-space:nowrap;
+    font-family:'Space Mono',monospace;font-weight:700;font-size:24px;letter-spacing:4px;
+    color:rgba(255,255,255,0.14);
+    animation:navDigitsDrift 26s linear infinite;
+    pointer-events:none;z-index:0;
+  }
+  @keyframes navDigitsDrift{
+    from{transform:translateX(0);}
+    to{transform:translateX(-33.3333%);}
   }
   .mn-tab{
     flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:2px;padding:9px 4px 8px;margin:6px 4px;background:none;border:none;cursor:pointer;
-    border-radius:14px;
-    color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:10px;
-    letter-spacing:.2px;position:relative;
+    gap:1px;padding:6px 4px 5px;margin:4px 3px;background:none;border:none;cursor:pointer;
+    border-radius:11px;
+    color:rgba(255,255,255,0.72);font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;
+    letter-spacing:.2px;position:relative;z-index:1;
     transition:color .2s ease, background .2s ease, box-shadow .2s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
   }
   .mn-tab svg{
-    width:21px;height:21px;transition:transform .22s cubic-bezier(.34,1.56,.64,1), filter .2s ease;
+    width:18px;height:18px;transition:transform .22s cubic-bezier(.34,1.56,.64,1), filter .2s ease;
   }
   .mn-tab .mn-dot{
-    width:4px;height:4px;border-radius:50%;background:#2E6BE0;
+    width:4px;height:4px;border-radius:50%;background:#FFFFFF;
     margin-top:1px;opacity:0;transform:scale(0);
     transition:opacity .2s ease, transform .2s ease;
   }
-  /* "Qaysi bo'limda ekanini bilish" — tanlangan tugma ORQASIGA chiroyli
-     ko'k (amber emas) pastel "tanlandi" foni chizilib, biroz KATTA
-     (svg+matn scale) bo'lib ajralib turadi. */
+  /* "Qaysi bo'limda ekanini bilish" — tanlangan tugma ORQASIGA yarim
+     shaffof OQ "tanlandi" foni chizilib, biroz KATTA (svg+matn scale)
+     bo'lib ajralib turadi (rang endi doim OQ, faqat shaffoflik farqlanadi). */
   .mn-tab.active{
-    color:#1D4ED8;
-    background:linear-gradient(160deg, rgba(59,110,240,0.20), rgba(59,110,240,0.10));
-    box-shadow:0 4px 14px -6px rgba(37,84,207,0.45), inset 0 0 0 1px rgba(59,110,240,0.35);
-    transform:translateY(-3px) scale(1.06);
+    color:#FFFFFF;
+    background:rgba(255,255,255,0.20);
+    box-shadow:0 4px 12px -6px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.4);
+    transform:translateY(-2px) scale(1.05);
   }
   .mn-tab.active svg{
-    filter:drop-shadow(0 0 6px rgba(37,84,207,0.5));
+    filter:drop-shadow(0 0 6px rgba(255,255,255,0.55));
   }
   .mn-tab.active .mn-dot{opacity:1;transform:scale(1);}
   .mn-tab:active{transform:translateY(-1px) scale(0.96);}
@@ -290,19 +307,24 @@
       padding:5px;gap:10px;width:min(640px, 46vw);
       display:flex;justify-content:space-between;
     }
+    /* Kompyuterda bar header ichiga, oddiy (yashil-ko'k gradientsiz)
+       ko'rinishga qaytadi — "o'tayotgan raqamlar" foni faqat mobil
+       (pastda suzib turuvchi) barga tegishli, shu sabab shu yerda o'chiriladi. */
+    .main-nav::before{ display:none; }
     .mn-tab{
       flex:1 1 0;flex-direction:row;gap:8px;justify-content:center;
       padding:11px 20px;border-radius:10px;font-size:13px;
-      background:none;
+      background:none;color:var(--muted);
     }
     .mn-tab svg{width:17px;height:17px;}
     .mn-tab .mn-dot{display:none;}
     .mn-tab.active{
+      color:#1D4ED8;
       background:color-mix(in srgb, var(--amber) 18%, transparent);
       box-shadow:0 4px 14px -6px color-mix(in srgb, var(--amber) 55%, transparent);
       transform:none;
     }
-    .mn-tab.active svg{transform:none;}
+    .mn-tab.active svg{transform:none;filter:none;}
     .mn-tab:active{transform:none;}
     .mn-tab:hover:not(.active){
       color:var(--text);
@@ -582,13 +604,13 @@
     display:flex;align-items:center;justify-content:center;gap:6px;
     width:100%;max-width:448px;height:var(--search-row-h);margin:10px auto 0;box-sizing:border-box;
     padding:0 10px;border:none;border-radius:10px;
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--btn-bg, var(--amber)) 100%, white 16%),
-      var(--btn-bg, var(--amber)) 70%);
-    color:var(--btn-text, #0a1a12);
+    /* Mijoz iltimosiga ko'ra: endi doim yashil->ko'k gradient (admin
+       rangidan — var(--btn-bg)/var(--amber) — MUSTAQIL), yozuv/belgi OQ. */
+    background:linear-gradient(120deg, #1E8449, #2F5FE0);
+    color:#FFFFFF;
     font-family:'Sora',sans-serif;font-weight:800;font-size:13px;cursor:pointer;
     position:relative;overflow:hidden;
-    box-shadow:0 8px 22px -8px color-mix(in srgb, var(--amber) 60%, transparent), inset 0 1px 0 rgba(255,255,255,0.28);
+    box-shadow:0 8px 22px -8px rgba(47,95,224,0.55), inset 0 1px 0 rgba(255,255,255,0.28);
     transition:transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
   }
   .standard-search-btn::after{
@@ -694,9 +716,10 @@
   .digit-box::placeholder{color:rgba(10,20,40,0.38);font-size:1.2em;font-weight:800;}
   .digit-box:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 18%, transparent);}
   .digit-box.filled{
-    /* Avval deyarli qora ko'rinardi — endi aniq YASHIL fon (qora emas). */
-    border-color:var(--green);background:#0E6B3A;color:#FFFFFF;
-    box-shadow:0 3px 8px -3px rgba(14,107,58,0.55);
+    /* Avval to'q (deyarli qora) yashil edi — mijoz iltimosiga ko'ra endi
+       OCH yashil fon, yozuv esa to'q yashil (fon toq emas, o'zi och). */
+    border-color:var(--green);background:#D3F5E1;color:#0E6B3A;
+    box-shadow:0 3px 8px -3px rgba(14,107,58,0.25);
   }
   .dash{flex:0 0 auto;color:var(--muted);font-family:'Sora',sans-serif;font-size:clamp(11px,3vw,14px);}
 
@@ -779,6 +802,11 @@
   .std-op-card.selected .soc-radio{background:var(--amber);border-color:var(--amber);}
   .std-op-card.selected .soc-radio::after{opacity:1;transform:scale(1);}
   .hint-text{
+    /* Mijoz iltimosiga ko'ra bu tushuntirish matni (VIP'da ham,
+       STANDART'da ham) endi umuman ko'rsatilmaydi — JS uni hamon
+       to'ldirib turadi (boshqa joyda ishlatilishi mumkin ehtimoliga
+       qarab), shu sabab shu yerda oddiygina yashiramiz. */
+    display:none;
     text-align:center;font-size:12px;color:var(--muted);margin-top:8px;
     font-family:'Space Mono',monospace;
   }
@@ -1228,13 +1256,28 @@
   .asosiy-recommend{max-width:1100px;margin:28px auto 0;padding:0 16px;}
   .asosiy-recommend-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
   .asosiy-recommend-icon{font-size:16px;}
-  .asosiy-recommend-title{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);}
+  /* MUHIM: rang ATAYLAB var(--text) EMAS, qattiq OCH rang — chunki bu
+     sarlavha joylashgan ASOSIY bo'limining foni (yuqoridagi izohga
+     qarang: ".asosiy-hero-card") mavzudan mustaqil ravishda HAR DOIM
+     to'q (ko'kroq). Agar admin panelda OCH mavzu tanlansa, var(--text)
+     to'q rangga aylanadi va bu sarlavha to'q fon ustida ko'rinmay
+     qolar edi — shu sabab mustaqil, doim OCH rang ishlatiladi. */
+  .asosiy-recommend-title{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#EDEFF3;}
+  .asosiy-premium-title{letter-spacing:.4px;}
   .asosiy-recommend-scroll{
     display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;
     scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
   }
   .asosiy-recommend-scroll::-webkit-scrollbar{display:none;}
   .asosiy-recommend-scroll .featured-card{scroll-snap-align:start;}
+
+  /* ASOSIY bo'limi: "PREMIUM RAQAMLAR" — VIP bazadagi eng qimmat 20 ta
+     raqam, xuddi VIP TOIFA katalogidagi kartochkalar bilan bir xil
+     ko'rinishda (grid), faqat shu yerda ASOSIY bo'limining pastida,
+     "Tavsiya etiladi"dan keyin. Konteyner o'lchamlari .asosiy-recommend
+     bilan bir xil — ikkalasi bir chiziqda tursin deb. */
+  .asosiy-premium{max-width:1100px;margin:28px auto 0;padding:0 16px;}
+  .asosiy-premium .catalog{margin-top:0;padding:0;}
 
   /* ---- Kompyuterda: bitta o'rtada turgan karta atrofida katta bo'sh joy
      qolmasin, deb so'ralgan — endi 3 ta karta bir vaqtda ko'rinadi
@@ -2396,6 +2439,11 @@
   border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;
   animation:spin .7s linear infinite;
 }
+/* Lupa belgisi endi emoji emas (platformadan platformaga turlicha,
+   hech qachon OQ chiqmaydigan) — o'zimizning SVG, shu bilan doim aniq
+   OQ rangda chiqadi. */
+.ssb-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;}
+.ssb-icon svg{width:15px;height:15px;flex:none;}
 
 /* ---- Operator (kompaniya) belgisi kartada ---- */
 .op-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
@@ -2635,6 +2683,15 @@ html.theme-purple-premium .card button.order-btn{
     </div>
     <div class="asosiy-recommend-scroll" id="asosiyRecommendScroll"></div>
   </div>
+  <!-- VIP bazadagi eng qimmat 20 ta raqam — VIP TOIFA katalogidagi
+       kartochkalar bilan bir xil ko'rinishda, ASOSIY bo'limining pastida. -->
+  <div class="asosiy-premium" id="asosiyPremium" style="display:none;">
+    <div class="asosiy-recommend-header">
+      <span class="asosiy-recommend-icon">💎</span>
+      <span class="asosiy-recommend-title asosiy-premium-title">PREMIUM RAQAMLAR</span>
+    </div>
+    <div class="catalog" id="asosiyPremiumGrid"></div>
+  </div>
 </section>
 
 <section class="daily-deal-section" id="dailyDealSection" style="display:none;">
@@ -2675,7 +2732,9 @@ html.theme-purple-premium .card button.order-btn{
     <div class="vip-op-toggles" id="vipOpToggles"></div>
     <div class="standard-op-toggles" id="standardOpToggles" style="display:none;"></div>
     <button type="button" class="standard-search-btn" id="standardSearchBtn" style="display:none;">
-      <span class="ssb-icon" id="standardSearchIcon">🔍</span>
+      <span class="ssb-icon" id="standardSearchIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </span>
       <span class="ssb-spinner" id="standardSearchSpinner" style="display:none;"></span>
       <span data-i18n="standardSearchBtn">Qidirish</span>
     </button>
@@ -3256,6 +3315,7 @@ async function loadNumbers(retryDelay){
       renderFeatured();
       renderDailyDeal();
       renderRecommended();
+      renderAsosiyPremium();
       renderAsosiyHero();
     }
   }catch(e){ /* kesh yo'q yoki buzilgan — muammo emas, pastda yangisi yuklanadi */ }
@@ -3271,6 +3331,7 @@ async function loadNumbers(retryDelay){
     renderFeatured();
     renderDailyDeal();
     renderRecommended();
+    renderAsosiyPremium();
     renderAsosiyHero();
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
@@ -4001,6 +4062,72 @@ function renderRecommended(){
   });
 }
 
+/* ============ ASOSIY bo'limi: "PREMIUM RAQAMLAR" ============
+   VIP bazadagi eng QIMMAT 20 ta raqam — VIP TOIFA katalogidagi bilan
+   AYNAN bir xil kartochka (buildCardInnerHtml, joriy tanlangan uslub)
+   va grid ko'rinishida, ASOSIY bo'limining pastida chiqadi. */
+const asosiyPremiumEl   = document.getElementById('asosiyPremium');
+const asosiyPremiumGrid = document.getElementById('asosiyPremiumGrid');
+
+// "Buyurtma berish"/sevimlilar tugmalari — #catalog uchun ishlatilgan
+// delegatsiya usuli bilan bir xil, lekin ALOHIDA (bu konteyner #catalog
+// EMAS) — shu sabab bu yerga o'zining doimiy tinglovchisi qo'yiladi.
+if(asosiyPremiumGrid){
+  asosiyPremiumGrid.addEventListener('click', (e)=>{
+    const favBtn = e.target.closest('.fav-btn');
+    if(favBtn){
+      e.preventDefault(); e.stopPropagation();
+      toggleFavorite(favBtn.dataset.id, favBtn);
+      return;
+    }
+    const orderBtn = e.target.closest('.order-btn:not(.reserved-btn)');
+    if(orderBtn){
+      e.preventDefault(); e.stopPropagation();
+      openModal(orderBtn.dataset.number, orderBtn.dataset.id);
+    }
+  });
+}
+
+function renderAsosiyPremium(){
+  if(!asosiyPremiumEl || !asosiyPremiumGrid) return;
+  const picks = NUMBERS.filter(item => !item.reserved).slice().sort((a, b) => b.price - a.price).slice(0, 20);
+  if(picks.length === 0){
+    asosiyPremiumEl.style.display = 'none';
+    return;
+  }
+  asosiyPremiumEl.style.display = 'block';
+  const style = currentCatalogStyle || 'classic';
+  asosiyPremiumGrid.className = 'catalog' + (LIST_ROW_STYLES.includes(style) ? ' catalog-list' : '');
+  asosiyPremiumGrid.innerHTML = '';
+  picks.forEach((item, idx)=>{
+    try{
+      const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+      const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+      const card = document.createElement('div');
+      card.className = `card cs-${style}`;
+      card.dataset.id = item.id;
+      card.style.animationDelay = Math.min(idx * 0.04, 0.24) + 's';
+      card.innerHTML = buildCardInnerHtml(style, item, hasDiscount, discountPct, idx + 1);
+
+      const badge = operatorBadgeHtml(item);
+      if(badge){
+        const header = card.querySelector('.card-header');
+        if(header) header.insertAdjacentHTML('beforeend', badge);
+        else card.insertAdjacentHTML('afterbegin', badge);
+      }
+
+      const isRowClickStyle = NO_BUTTON_STYLES.includes(style) || (style === 'classic' && hideOrderButtonSetting);
+      if(isRowClickStyle && !item.reserved){
+        card.classList.add('clickable-card');
+        card.addEventListener('click', ()=> openModal(item.number, item.id));
+      }
+      asosiyPremiumGrid.appendChild(card);
+    }catch(cardErr){
+      console.error('PREMIUM RAQAMLAR kartasi chizishda xato (o\'tkazib yuborildi):', item && item.id, cardErr);
+    }
+  });
+}
+
 /* ============ ASOSIY bo'limi: premium "plastik kartochka" karuseli ============
    Mashhur (featured) raqamlardan bir nechtasi tanlanadi va navbat-ma-navbat,
    bank kartasiga o'xshab, silliq animatsiya bilan almashib turadi. Mijoz
@@ -4655,6 +4782,7 @@ function showAppSection(name){
     // Har safar ASOSIY ochilganda yangilanadi — chunki NUMBERS o'zgargan
     // (masalan raqam sotilgan) bo'lishi mumkin.
     renderRecommended();
+    renderAsosiyPremium();
     renderAsosiyHero();
     if(asosiyHeroItems.length > 1) startAsosiyHeroAutoplay();
   }else{
@@ -4705,6 +4833,7 @@ showAppSection('vip');
 // joriy bo'limni policyz qaytadan chizamiz.
 window.addEventListener('pageshow', function(e){
   if(!e.persisted) return;
+  document.documentElement.style.overflow = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.left = '';
@@ -4770,6 +4899,14 @@ function lockBodyScroll(){
   __scrollLockCount++;
   if(__scrollLockCount > 1) return;
   __scrollLockY = window.scrollY || window.pageYOffset || 0;
+  // MUHIM (iPhone "oppoq ekran" xatosining yana bir sababi): avval faqat
+  // <body> qulflanardi (position:fixed). Lekin iOS Safari'da ba'zan skroll
+  // aslida <html> (documentElement) ustida ham davom etishi mumkin — shu
+  // sabab faqat body'ni qulflash YETARLI EMAS edi: mijoz ekranni ozgina
+  // "qimirlatsa" (tegib ko'rsa), body ko'rinmas joyga siljib, ostida esa
+  // <html>ning bo'sh (oq) foni ochilib qolardi. Endi <html> ham birga
+  // qulflanadi (overflow:hidden) — bu klassik, keng qo'llaniladigan usul.
+  document.documentElement.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
   document.body.style.top = (-__scrollLockY) + 'px';
   document.body.style.left = '0';
@@ -4779,6 +4916,7 @@ function lockBodyScroll(){
 function unlockBodyScroll(){
   __scrollLockCount = Math.max(0, __scrollLockCount - 1);
   if(__scrollLockCount > 0) return;
+  document.documentElement.style.overflow = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.left = '';
@@ -4925,8 +5063,11 @@ function closeModal(){
   unlockBodyScroll();
   // Qo'shimcha ehtiyot chorasi: ba'zi mobil brauzerlarda body'ning
   // position:fixed'dan chiqarilishi darhol qayta chizilmasligi mumkin —
-  // keyingi kadrda (requestAnimationFrame) majburiy "reflow" so'raymiz,
-  // shu bilan eski oyna/fon hech qachon "muzlab" qolmaydi.
+  // DARHOL (sinxron) va keyingi kadrda (requestAnimationFrame) IKKALASIDA
+  // ham majburiy "reflow" so'raymiz, shu bilan eski oyna/fon hech qachon
+  // "muzlab" qolmaydi (iPhone'da ikkinchi marta buyurtma berishga
+  // urinilganda kuzatilgan holat).
+  void document.body.offsetHeight;
   requestAnimationFrame(()=>{ void document.body.offsetHeight; });
   // Agar bu buyurtma oynasi "Premium raqamlar" video-reels ichidan
   // ochilgan bo'lsa — yopilganda ortga, video-reels'ga qaytamiz.
@@ -5203,7 +5344,7 @@ async function finalizeOrder(payload, smsVerified){
   // yoki boshqa raqam tanlashi mumkin.
   if(blockedReason === 'ALREADY_RESERVED'){
     showToast(t("Kechirasiz, bu raqamni ayni damda boshqa mijoz band qilib ulgurdi. Iltimos, boshqa raqamni tanlang."), 4000);
-    renderCatalog(); renderFeatured(); renderDailyDeal(); renderRecommended(); renderAsosiyHero();
+    renderCatalog(); renderFeatured(); renderDailyDeal(); renderRecommended(); renderAsosiyPremium(); renderAsosiyHero();
     closeModal();
     return;
   }
@@ -5228,6 +5369,7 @@ async function finalizeOrder(payload, smsVerified){
   renderFeatured();
   renderDailyDeal();
   renderRecommended();
+  renderAsosiyPremium();
   renderAsosiyHero();
 }
 
@@ -7267,6 +7409,7 @@ function takeWarmedVideo(url){
   try{ renderFeatured(); }catch(e){ console.error('init: renderFeatured xato:', e); }
   try{ renderDailyDeal(); }catch(e){ console.error('init: renderDailyDeal xato:', e); }
   try{ renderRecommended(); }catch(e){ console.error('init: renderRecommended xato:', e); }
+  try{ renderAsosiyPremium(); }catch(e){ console.error('init: renderAsosiyPremium xato:', e); }
   try{ renderAsosiyHero(); }catch(e){ console.error('init: renderAsosiyHero xato:', e); }
 })();
 
