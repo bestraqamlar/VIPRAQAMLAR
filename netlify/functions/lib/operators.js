@@ -201,7 +201,16 @@ async function searchBeeline(boxes, cfg, limit) {
       return fetchWarehouse(wh, fresh, true);
     }
     if (res.status === 429) throw new Error('Beeline: so\'rovlar chegarasi (429) — biroz kuting');
-    if (!res.ok) throw new Error('Beeline warehouse ' + wh.id + ': HTTP ' + res.status);
+    if (!res.ok) {
+      // MUHIM: avval faqat "HTTP 400" deb yozardik — aynan NIMA sabab
+      // ko'rsatilganini (Beeline javobining o'zi) ko'rmasdan aniq
+      // tashxis qo'yib bo'lmasdi. Endi javob matnini ham (qisqartirib)
+      // xato xabariga qo'shamiz — konsol/Telegram xabarida sabab aniq
+      // ko'rinadi.
+      let detail = '';
+      try { detail = (await res.text()).slice(0, 200); } catch (_) {}
+      throw new Error('Beeline warehouse ' + wh.id + ': HTTP ' + res.status + (detail ? ' — ' + detail : ''));
+    }
 
     const data = await res.json();
     return (data.content || [])

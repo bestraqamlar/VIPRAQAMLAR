@@ -83,10 +83,31 @@ exports.handler = async function () {
 
     // Oxirgi raqam 0..9 — har biri o'zining 7 ombor bo'yicha ichki
     // so'rovini yuboradi (searchBeeline ichida, Promise.allSettled bilan).
+    //
+    // MUHIM: avval BARCHA 10 ta raqam BIR VAQTDA (= 10x7 = 70 ta so'rov
+    // bir zumda) yuborilardi. Login-navbat (yuqoridagi getBeelineToken
+    // qulfi) 401 xatosini bartaraf qildi, lekin baribir HAR BIR sinxron-
+    // izatsiyada "HTTP 400" xatosi bilan HAMMASI muvaffaqiyatsiz bo'lib
+    // qolyapti — bu shuni ko'rsatadiki, Beeline tomoni bunday katta
+    // "portlash" (burst) so'rovni umuman xush ko'rmaydi (ehtimol avvalgi
+    // xato tufayli hisobga vaqtinchalik cheklov qo'yilgan). Shu sabab endi
+    // 10 ta raqam KICHIK GURUHLARGA (har birida 2 tadan) bo'lib, guruhlar
+    // orasida qisqa pauza bilan YUBORILADI — bir vaqtning o'zida ko'pi
+    // bilan 2x7=14 ta so'rov ketadi, portlash yo'qoladi.
     const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    const settled = await Promise.allSettled(
-      digits.map(d => searchBeeline(['', '', '', '', '', '', d], beelineCfg, SYNC_LIMIT_PER_CALL))
-    );
+    const BATCH_SIZE = 2;
+    const BATCH_PAUSE_MS = 1500;
+    const settled = [];
+    for (let i = 0; i < digits.length; i += BATCH_SIZE) {
+      const batch = digits.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map(d => searchBeeline(['', '', '', '', '', '', d], beelineCfg, SYNC_LIMIT_PER_CALL))
+      );
+      settled.push(...batchResults);
+      if (i + BATCH_SIZE < digits.length) {
+        await new Promise(resolve => setTimeout(resolve, BATCH_PAUSE_MS));
+      }
+    }
 
     const merged = [];
     const seen = new Set();
@@ -107,10 +128,38 @@ exports.handler = async function () {
       // qolamiz, USTIDAN YOZMAYMIZ.
       const uniqErrors = [...new Set(errors)].slice(0, 5);
       console.error('sync-beeline: hech narsa olinmadi:', uniqErrors);
-      await notifyAdmin(
-        `⚠️ Beeline sinxronizatsiyasi muvaffaqiyatsiz bo'ldi (0 ta raqam olindi). ` +
-        `Mijozlarga eski (oldingi) ma'lumot ko'rsatilishda davom etadi.\n\nXatolar: ${uniqErrors.join('; ')}`
-      );
+
+      // MUHIM: bu funksiya har 5 daqiqada ishga tushadi — agar muammo
+      // uzoq davom etsa, ADMIN'GA HAR 5 DAQIQADA bitta xabar borib,
+      // Telegram'ni "spam" qilib yuborardi (aynan shu sodir bo'ldi).
+      // Endi xuddi shu (uzluksiz) muammo uchun FAQAT har 30 daqiqada bir
+      // marta xabar boradi — Firestore'da saqlangan "oxirgi xabar vaqti"
+      // shuni nazorat qiladi (bu maydon items/updatedAt'ga tegmaydi,
+      // eski ma'lumot baribir saqlanib qoladi).
+      const NOTIFY_COOLDOWN_MS = 30 * 60 * 1000;
+      let shouldNotify = true;
+      try {
+        const statusDoc = await db.collection('live_cache').doc('Beeline').get();
+        const lastNotifyAt = statusDoc.exists && statusDoc.data().lastFailNotifyAt
+          ? statusDoc.data().lastFailNotifyAt.toMillis() : 0;
+        shouldNotify = (Date.now() - lastNotifyAt) > NOTIFY_COOLDOWN_MS;
+      } catch (_) { /* holatni bilmasak ham — xavfsizlik uchun xabar yuboraveramiz */ }
+
+      if (shouldNotify) {
+        await notifyAdmin(
+          `⚠️ Beeline sinxronizatsiyasi muvaffaqiyatsiz bo'ldi (0 ta raqam olindi). ` +
+          `Mijozlarga eski (oldingi) ma'lumot ko'rsatilishda davom etadi. ` +
+          `(Muammo davom etsa, keyingi xabar 30 daqiqadan keyin boradi.)\n\nXatolar: ${uniqErrors.join('; ')}`
+        );
+        try {
+          await db.collection('live_cache').doc('Beeline').set(
+            { lastFailNotifyAt: admin.firestore.FieldValue.serverTimestamp() },
+            { merge: true }
+          );
+        } catch (_) {}
+      } else {
+        console.error('sync-beeline: xato davom etyapti, lekin so\'nggi 30 daqiqada xabar berilgan — Telegram\'ga qayta yuborilmadi.');
+      }
       return { statusCode: 200, body: 'fail: 0 items, old cache kept' };
     }
 
