@@ -18,6 +18,13 @@
 [functions."personal-bot-reminder-check"]
   schedule = "*/5 * * * *"
 
+# BEELINE — davriy to'liq sinxronizatsiya (har 5 daqiqada). Mijozlarning
+# STANDART qidiruvi endi Beeline'ga jonli so'rov yubormasdan, shu funksiya
+# oldindan yig'ib Firestore'ga (live_cache/Beeline) saqlagan ro'yxatdan
+# foydalanadi — batafsili izoh: netlify/functions/sync-beeline.js
+[functions."sync-beeline"]
+  schedule = "*/5 * * * *"
+
 [functions."personal-bot-evening-reminder"]
   schedule = "0 18 * * *"
 

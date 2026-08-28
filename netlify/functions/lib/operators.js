@@ -592,9 +592,18 @@ async function searchAll(boxes, config, options) {
   const limit = opts.limit || 40;
   const only = opts.operator;
   const deadline = opts.deadline || 7000;
+  // exclude — ba'zi operatorlarni bu YERDA (jonli) qidirmasdan, chetlab
+  // o'tish uchun. Beeline uchun ishlatiladi: u endi mijozning har bir
+  // so'rovida jonli so'ralmaydi, buning o'rniga davriy sinxronizatsiya
+  // (sync-beeline.js) orqali oldindan yig'ilgan Firestore keshidan
+  // o'qiladi (qarang: api-live-search.js) — operatorga haddan tashqari
+  // ko'p so'rov borib, "429" xatosiga yoki hisobning bloklanishiga sabab
+  // bo'lmasligi uchun.
+  const exclude = opts.exclude || [];
 
   const names = Object.keys(ADAPTERS).filter(name => {
     if (only && only !== name) return false;
+    if (exclude.includes(name)) return false;
     const cfg = (config && config[name]) || {};
     if (typeof cfg.enabled === 'boolean') return cfg.enabled;
     return DEFAULT_ENABLED[name] !== false;
@@ -657,6 +666,7 @@ async function testBeelineLogin(username, password) {
 
 module.exports = {
   searchAll,
+  searchBeeline,
   testBeelineLogin,
   DEFAULT_ENABLED,
   localDigits,

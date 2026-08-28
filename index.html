@@ -232,10 +232,14 @@
      gorizontal tab qatoriga aylantiradi — bitta HTML/JS, ikki ko'rinish. */
   .main-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:80;
-    display:flex;background:var(--panel);
-    border-top:1px solid var(--line);
+    display:flex;
+    /* Endi oq emas — ozgina ko'kroq, va o'zining aniq ramkasi/burchagi bilan
+       kontentdan chiroyli ajralib turadi (ilova uslubidagi pastki panel). */
+    background:linear-gradient(180deg, #EEF3FC 0%, #E4ECFA 100%);
+    border-top:1px solid rgba(20,45,110,0.14);
+    border-radius:18px 18px 0 0;
     padding-bottom:env(safe-area-inset-bottom, 0px);
-    box-shadow:0 -10px 26px rgba(0,0,0,0.28);
+    box-shadow:0 -14px 32px rgba(20,45,110,0.2);
   }
   .mn-tab{
     flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -619,9 +623,11 @@
     height:var(--search-row-h);width:var(--search-row-h);
     display:flex;align-items:center;justify-content:center;position:relative;
     /* Endi qidiruv qatori pastel-ko'k kartochka ichida bo'lgani uchun,
-       tugmaning o'zi TO'QROQ KO'K fon bilan ajralib tursin. */
-    background:#1E3F8F;border:1px solid rgba(8,18,55,0.4);border-radius:8px;
-    color:#FFFFFF;outline:none;cursor:pointer;transition:filter .15s ease, border-color .2s;
+       tugmaning o'zi TO'QROQ KO'K fon bilan ajralib tursin — aynan
+       "Buyurtma berish" tugmasidagi bilan BIR XIL ko'k rang (mavzuning
+       o'z --btn-bg o'zgaruvchisi), qorong'i tasodifiy ko'k emas. */
+    background:var(--btn-bg, #1D2A44);border:1px solid rgba(8,18,55,0.4);border-radius:8px;
+    color:var(--btn-text, #fff);outline:none;cursor:pointer;transition:filter .15s ease, border-color .2s;
     padding:0;
   }
   .op-select:hover{filter:brightness(1.1);}
@@ -642,7 +648,8 @@
   /* ---- Operator TANLASH OYNASI — har bir operator o'z kartochkasi
      bilan, bir nechtasini birdan tanlash mumkin (zamonaviy, animatsiyali) ---- */
   .op-picker-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(3px);
+    position:fixed;inset:0;background:rgba(0,0,0,0.65);
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
     display:none;align-items:flex-end;justify-content:center;z-index:230;
   }
   .op-picker-overlay.open{display:flex;animation:fadeIn .2s ease;}
@@ -651,7 +658,7 @@
     background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;
     max-width:440px;width:100%;box-sizing:border-box;
     padding:18px 18px calc(20px + env(safe-area-inset-bottom,0px));
-    max-height:82vh;overflow-y:auto;
+    max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
     transform:translateY(30px);opacity:0;animation:slideUp .32s cubic-bezier(.22,1,.36,1) forwards;
     box-shadow:0 24px 60px -14px rgba(0,0,0,0.55);
   }
@@ -697,6 +704,18 @@
   .op-picker-card.selected .opc-check{background:var(--amber);border-color:var(--amber);}
   .op-picker-card.selected .opc-check svg{opacity:1;transform:scale(1);}
   .op-picker-card.op-all{grid-column:1 / -1;}
+  /* STANDART toifada hozircha raqami yo'q operatorlar — kulrang, bosib
+     bo'lmaydi, ostida sababi ("Jarayonda...") yozilgan. */
+  .op-picker-card.disabled{
+    cursor:not-allowed;opacity:.55;filter:grayscale(0.4);
+  }
+  .op-picker-card.disabled:active{transform:none;}
+  .op-picker-card.disabled .opc-name{color:var(--muted) !important;}
+  .op-picker-card .opc-soon{
+    position:absolute;bottom:8px;right:12px;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;color:var(--muted);
+    letter-spacing:.2px;
+  }
   .op-picker-confirm{
     width:100%;padding:14px;border:none;border-radius:12px;
     background:var(--green);color:#06210F;font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;
@@ -727,7 +746,9 @@
     transition:border-color .15s ease, background .15s ease, color .15s ease;
     padding:0;
   }
-  .digit-box::placeholder{color:rgba(10,20,40,0.42);}
+  /* "X" belgisi endi asosiy son o'lchamidan kattaroq va qalinroq —
+     bo'sh katakcha uzoqdan ham aniq bilinsin. */
+  .digit-box::placeholder{color:rgba(10,20,40,0.45);font-size:1.2em;font-weight:800;}
   .digit-box:focus{border-color:var(--amber);}
   .digit-box.filled{
     /* Avval deyarli qora ko'rinardi — endi aniq YASHIL fon (qora emas). */
@@ -1746,7 +1767,7 @@
        navigatsiya bari (z-index:80) qo'shilgach, buyurtma oynasi undan
        pastda qolib, tugmasi bar ostida yashirinib qolmasligi uchun. */
     display:none;align-items:flex-end;justify-content:center;z-index:220;
-    backdrop-filter:blur(2px);
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
   }
   .overlay.open{display:flex;animation:fadeIn .2s ease;}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
@@ -1763,7 +1784,7 @@
     margin-bottom:22px;
     position:relative;overflow:hidden;
     transform:translateY(30px) scale(.98);opacity:0;animation:slideUp .32s cubic-bezier(.22,1,.36,1) forwards;
-    max-height:80vh;overflow-y:auto;
+    max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
     box-shadow:0 20px 60px -12px color-mix(in srgb, var(--amber) 30%, transparent);
   }
   .modal::before{
@@ -2282,6 +2303,35 @@
   border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ---- Qidirilmoqda... zamonaviy overlay ----
+   Avval qidiruv jarayonida faqat kichkina, deyarli sezilmaydigan yozuv
+   chiqardi (agar katalogda oldingi natijalar hali turgan bo'lsa) — mijoz
+   "haqiqatan qidiryaptimi" deb ishonchsizlanardi. Endi katalog ustiga
+   markazlashgan, aylanadigan yumaloq spinner + "Qidirilmoqda..." matni
+   bilan to'liq overlay chiqadi, orqadagi (eski) kartalar xira va xiralashgan
+   (blur) holda "nomiga" ko'rinib turadi — bu bilan qidiruv jarayoni ANIQ
+   his qilinadi. #catalogShell (katalogni o'rab turgan konteyner)ga
+   position:relative berilgan, shu ichida absolyut joylashadi. */
+.catalog-shell{position:relative;}
+.search-overlay{
+  position:absolute;inset:0;z-index:6;border-radius:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:color-mix(in srgb, var(--bg) 80%, transparent);
+  -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
+  animation:searchOverlayIn .2s ease;
+}
+@keyframes searchOverlayIn{from{opacity:0}to{opacity:1}}
+.search-overlay-spinner{
+  width:50px;height:50px;border-radius:50%;
+  border:4px solid rgba(255,255,255,0.12);
+  border-top-color:color-mix(in srgb, var(--amber) 70%, #fff 15%);
+  animation:spin .85s cubic-bezier(.45,.05,.55,.95) infinite;
+}
+.search-overlay-text{
+  font-family:'Space Mono',monospace;font-size:13px;font-weight:700;
+  color:var(--text);letter-spacing:.02em;
+}
+
 /* ---- Operator (kompaniya) belgisi kartada ---- */
 .op-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
   line-height:1;padding:4px 9px 4px 5px;border-radius:999px;white-space:nowrap;
@@ -2579,7 +2629,9 @@ html.theme-purple-premium .card button.order-btn{
   </div>
 </div>
 
+<div class="catalog-shell" id="catalogShell">
 <div class="catalog" id="catalog"></div>
+</div>
 
 <section class="featured-section" id="featuredSection" style="display:none;">
   <div class="featured-header">
@@ -3631,13 +3683,14 @@ function renderCatalog(){
           <p>${t('Raqamlar yuklanmoqda...')}</p>
         </div>`;
     }else if(catalogMode === 'standard' && LIVE_SEARCH_ERROR){
-      // Jimgina "topilmadi" demay, ANIQ SABABNI ko'rsatamiz — aks holda
-      // mijoz (va biz) operator xatosimi, tarmoq muammosimi, sozlama
-      // muammosimi ekanini bila olmaymiz. Qo'shimcha: sahifani yangilashga
-      // majburlamasdan, bitta tugma bilan darhol qayta urinish imkonini
-      // beramiz — server sekin/vaqtincha javob bermagan holatlar uchun.
+      // MIJOZGA texnik sabab (operator nomi, "429", "fetch failed",
+      // "timeout" va h.k.) HECH QACHON ko'rsatilmaydi — bu ichki muammo,
+      // mijozga aloqasi yo'q va noqulay ko'rinadi. Konsolga (dasturchi
+      // uchun) to'liq matn yozib qo'yamiz, mijozga esa faqat oddiy,
+      // umumiy xabar va "qayta urinish" tugmasi chiqadi.
+      console.warn('STANDART qidiruv xatosi (mijozga ko\'rsatilmaydi):', LIVE_SEARCH_ERROR);
       catalogEl.innerHTML = `<div class="empty-state">
-        ⚠️ ${escapeHtml(LIVE_SEARCH_ERROR)}<br><br>
+        ⚠️ ${t("Hozircha natija olinmadi, biroz kuting.")}<br><br>
         ${t("Server hozir sekinroq javob berayotgan bo'lishi mumkin.")}
         <br>
         <button type="button" class="retry-search-btn">🔄 ${t("Qayta urinish")}</button>
@@ -4054,6 +4107,13 @@ const LIVE_OPERATORS = ['Beeline', 'Ucell', 'Humans', 'Mobiuz', 'Perfektum'];
 // birinchi marta STANDART'ga kirganda ushbu tayyor natija DARHOL (spinnersiz)
 // ko'rsatiladi, faqat shundan keyin (fon rejimida, sezilmasdan) yangilanadi.
 let standardDefaultCache = null;
+// Oxirgi marta namuna qachon muvaffaqiyatli olingani — operator (ayniqsa
+// Beeline) so'rovlar sonini cheklaydi ("429 — so'rovlar chegarasi" xatosi
+// aynan shundan kelib chiqadi). Mijoz STANDART bo'limiga tez-tez qayta
+// kirib-chiqib tursa ham, HAR SAFAR yangi so'rov yubormaymiz — quyidagi
+// STANDARD_REFRESH_THROTTLE_MS ichida eskisidan foydalanamiz.
+let standardDefaultCacheTime = 0;
+const STANDARD_REFRESH_THROTTLE_MS = 45000;
 async function prefetchStandardDefault(){
   try{
     const digit = String(Math.floor(Math.random() * 10));
@@ -4064,6 +4124,7 @@ async function prefetchStandardDefault(){
     const data = await res.json();
     if(data && data.ok){
       standardDefaultCache = { items: Array.isArray(data.items) ? data.items : [], mask };
+      standardDefaultCacheTime = Date.now();
     }
   }catch(e){ /* orqa fonda urinish — muvaffaqiyatsiz bo'lsa jim, oddiy yo'l ishlab turadi */ }
 }
@@ -4138,6 +4199,11 @@ async function fetchLiveNumbers(opts){
     }else{
       LIVE_NUMBERS = Array.isArray(data.items) ? data.items : [];
       liveMask = mask;
+      // Bu ham NAMUNA so'rovi bo'lsa (bo'sh qidiruv) — keyingi tez-tez
+      // STANDART'ga qayta kirishlar uchun throttle vaqtini shu yerdan ham
+      // yangilaymiz (faqat sahifa yuklanishidagi prefetchStandardDefault()
+      // emas).
+      if(sampleOperator) standardDefaultCacheTime = Date.now();
       if(data.errors && data.errors.length){
         console.warn('Operator xatolari:', data.errors);
         // Barcha operatorlar xato bergan bo'lsa (natija bo'sh), mijozga
@@ -4171,15 +4237,24 @@ async function fetchLiveNumbers(opts){
 // BIRGALIKDA chiqmasligi uchun (avval ikkalasi ham chiqib, "ikki
 // zagruska" ko'rinardi) shu yerda aniq tekshiramiz.
 function renderLiveStatus(){
-  let el = document.getElementById('liveStatus');
+  // Katalogda oldingi natijalar hali ko'rinib turgan (fon rejimida
+  // yangilanayotgan) holatda — katalog ustiga markazlashgan, aylanadigan
+  // spinorli overlay chiqadi, orqadagi kartalar xiralashtirilib (blur)
+  // "nomiga" ko'rinib turadi. Katalog hozircha BO'SH bo'lsa,
+  // renderCatalog() o'zining katta, yagona spinnerini (.loading-state)
+  // ko'rsatadi — shu ikkisi hech qachon BIRGALIKDA chiqmasligi uchun
+  // (avval ikkalasi ham chiqib, "ikki zagruska" ko'rinardi) shu yerda
+  // aniq tekshiramiz.
+  let el = document.getElementById('searchOverlay');
   const hasResults = !!catalogEl.querySelector('.card');
   if(!liveLoading || !hasResults){ if(el) el.remove(); return; }
   if(!el){
+    const shell = document.getElementById('catalogShell') || catalogEl.parentElement;
     el = document.createElement('div');
-    el.id = 'liveStatus';
-    el.className = 'live-status';
-    el.innerHTML = '<span class="spinner-sm"></span><span>' + t('Operatorlardan qidirilmoqda...') + '</span>';
-    catalogEl.insertAdjacentElement('beforebegin', el);
+    el.id = 'searchOverlay';
+    el.className = 'search-overlay';
+    el.innerHTML = '<div class="search-overlay-spinner"></div><div class="search-overlay-text">' + t('Qidirilmoqda...') + '</div>';
+    shell.appendChild(el);
   }
 }
 
@@ -4190,6 +4265,11 @@ function renderLiveStatus(){
    avvalgidek). Pastdagi yashil "Tasdiqlash" bosilgandagina filtr
    qo'llanadi. */
 const OPERATOR_PICKER_LIST = ['Mobiuz', 'Beeline', 'Ucell', 'Humans', 'Uzmobile', 'Perfektum'];
+// STANDART (jonli) qidiruvda bu operatorlardan hozircha raqam kelmaydi —
+// shu sabab FAQAT Standart toifada tanlab bo'lmaydigan qilib, ostiga
+// "Jarayonda..." deb ko'rsatamiz. VIP katalogda esa bu operatorlarning
+// o'z raqamlari bo'lishi mumkin, shu sabab u yerda cheklanmaydi.
+const STANDARD_DISABLED_OPERATORS = ['Perfektum', 'Uzmobile'];
 const opPickerOverlay = document.getElementById('opPickerOverlay');
 const opPickerGrid = document.getElementById('opPickerGrid');
 const opPickerClose = document.getElementById('opPickerClose');
@@ -4208,9 +4288,20 @@ function renderOpPickerGrid(){
   const opsHtml = OPERATOR_PICKER_LIST.map(name=>{
     const meta = OPERATOR_META[name] || { color: '#6b7280', logo: null };
     const selected = selectedOperators.includes(name);
+    const isDisabled = catalogMode === 'standard' && STANDARD_DISABLED_OPERATORS.includes(name);
     const iconHtml = meta.logo
       ? `<img src="${meta.logo}" alt="">`
       : `<span class="opc-dot" style="background:${meta.color}"></span>`;
+    if(isDisabled){
+      // Kulrang, bosib bo'lmaydigan holat — ostida "Jarayonda..." deb
+      // aniq sabab ko'rsatiladi (mijoz nega tanlanmasligini tushunsin).
+      return `
+        <div class="op-picker-card disabled" data-op="${name}" aria-disabled="true">
+          ${iconHtml}
+          <span class="opc-name">${name}</span>
+          <span class="opc-soon">${t('Jarayonda...')}</span>
+        </div>`;
+    }
     return `
       <div class="op-picker-card${selected ? ' selected' : ''}" data-op="${name}">
         ${iconHtml}
@@ -4220,7 +4311,7 @@ function renderOpPickerGrid(){
   }).join('');
   opPickerGrid.innerHTML = allCardHtml + opsHtml;
 
-  opPickerGrid.querySelectorAll('.op-picker-card').forEach(card=>{
+  opPickerGrid.querySelectorAll('.op-picker-card:not(.disabled)').forEach(card=>{
     card.addEventListener('click', ()=>{
       const op = card.dataset.op;
       if(op === ''){
@@ -4248,14 +4339,16 @@ function updateOperatorLabel(){
 operatorSelectBtn.addEventListener('click', ()=>{
   renderOpPickerGrid();
   opPickerOverlay.classList.add('open');
+  lockBodyScroll();
 });
-opPickerClose.addEventListener('click', ()=> opPickerOverlay.classList.remove('open'));
-opPickerOverlay.addEventListener('click', (e)=>{ if(e.target === opPickerOverlay) opPickerOverlay.classList.remove('open'); });
+opPickerClose.addEventListener('click', ()=>{ opPickerOverlay.classList.remove('open'); unlockBodyScroll(); });
+opPickerOverlay.addEventListener('click', (e)=>{ if(e.target === opPickerOverlay){ opPickerOverlay.classList.remove('open'); unlockBodyScroll(); } });
 opPickerConfirm.addEventListener('click', ()=>{
   // "Barchasi" tanlangan bo'lsa — avvalgidek, hammasi bo'yicha AVTOMATIK
   // qidiriladi. Bir nechta operator tanlangan bo'lsa — faqat o'shalar
   // bo'yicha.
   opPickerOverlay.classList.remove('open');
+  unlockBodyScroll();
   updateOperatorLabel();
   currentPage = 0;
   updateSearchUI();
@@ -4313,6 +4406,13 @@ function setCatalogMode(mode){
   liveRequestId++;
   LIVE_SEARCH_ERROR = null;
   standardSearchTriggered = (mode === 'standard');
+  // STANDART'da hozircha raqami yo'q operatorlar (Perfektum/Uzmobile) —
+  // agar VIP'da avval tanlangan bo'lsa ham, STANDART'ga o'tganda filtrdan
+  // olib tashlanadi (aks holda ko'rinmas holda natijani cheklab qo'yardi).
+  if(mode === 'standard' && selectedOperators.some(op => STANDARD_DISABLED_OPERATORS.includes(op))){
+    selectedOperators = selectedOperators.filter(op => !STANDARD_DISABLED_OPERATORS.includes(op));
+    updateOperatorLabel();
+  }
 
   const patternNow = currentPattern();
   const patternEmpty = !patternNow.some(d => d !== '');
@@ -4326,8 +4426,13 @@ function setCatalogMode(mode){
     currentPage = 0;
     updateSearchUI();
     renderCatalog();
-    // Fon rejimida (ko'rinmasdan) yangi namuna bilan yangilab qo'yamiz.
-    fetchLiveNumbers({ allowEmpty: true });
+    // Fon rejimida (ko'rinmasdan) yangi namuna bilan yangilab qo'yamiz —
+    // LEKIN faqat oxirgi so'rovdan yetarli vaqt o'tgan bo'lsa (throttle),
+    // aks holda mijoz tez-tez STANDART'ga qayta kirib-chiqsa operatorlar
+    // (ayniqsa Beeline) so'rovlar chegarasiga (429) tez yetib qolardi.
+    if(Date.now() - standardDefaultCacheTime > STANDARD_REFRESH_THROTTLE_MS){
+      fetchLiveNumbers({ allowEmpty: true });
+    }
     return;
   }
 
@@ -4506,6 +4611,41 @@ clearSearchBtn.addEventListener('click', ()=>{
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
 });
 
+// iOS Safari'da body{overflow:hidden} qo'yish orqa fon skrollini TO'LIQ
+// to'xtatolmaydi (elastik "rubber-band" effekt davom etadi) va oyna
+// yopilganda ekran birdaniga "sakrab" qoladi yoki ba'zan butunlay oq/bo'sh
+// bo'lib qolib ketadi (iPhone'da xabar berilgan xatolik — order oynasi,
+// operator tanlash oynasi va reels'da). Buning o'rniga body'ni FIKSATSIYA
+// qilib (position:fixed + saqlangan scroll pozitsiyasi) qulflash iOS'da
+// ancha barqaror ishlaydi. Bir nechta oyna ustma-ust ochilishi mumkin
+// bo'lgani uchun (masalan reels ichidan buyurtma oynasi) — sanoq bilan
+// (__scrollLockCount) faqat ENG OXIRGISI yopilganda haqiqatan qulfdan
+// chiqariladi.
+let __scrollLockY = 0;
+let __scrollLockCount = 0;
+function lockBodyScroll(){
+  __scrollLockCount++;
+  if(__scrollLockCount > 1) return;
+  __scrollLockY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = (-__scrollLockY) + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function unlockBodyScroll(){
+  __scrollLockCount = Math.max(0, __scrollLockCount - 1);
+  if(__scrollLockCount > 0) return;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, __scrollLockY);
+}
+window.lockBodyScroll = lockBodyScroll;
+window.unlockBodyScroll = unlockBodyScroll;
+
 const overlay       = document.getElementById('overlay');
 const modalNumber    = document.getElementById('modalNumber');
 const custName       = document.getElementById('custName');
@@ -4625,7 +4765,7 @@ function openModal(number, id, priceOverride){
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.add('modal-preview');
   overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
 }
 
 // "Rasmiylashtirish" bosilganda — oldindan ko'rishdan to'liq formaga o'tadi.
@@ -4639,7 +4779,7 @@ function showOrderForm(){
 
 function closeModal(){
   overlay.classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   // Agar bu buyurtma oynasi "Premium raqamlar" video-reels ichidan
   // ochilgan bo'lsa — yopilganda ortga, video-reels'ga qaytamiz.
   if(window.__returnToPremiumReels){
@@ -6327,7 +6467,7 @@ function takeWarmedVideo(url){
     if(window.closeAiWidget) closeAiWidget();
     currentIdx = startIdx;
     overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
 
     track.innerHTML = '';
     syncSlidesDOM();
@@ -6357,7 +6497,7 @@ function takeWarmedVideo(url){
 
   function closeReels(){
     overlay.classList.remove('open');
-    document.body.style.overflow = '';
+    unlockBodyScroll();
     track.querySelectorAll('video').forEach(v => v.pause());
     track.innerHTML = '';
   }
@@ -6725,7 +6865,7 @@ function takeWarmedVideo(url){
     currentIdx = (typeof startIdx === 'number' && startIdx >= 0 && startIdx < items.length) ? startIdx : 0;
 
     overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     track.innerHTML = '';
     syncSlidesDOM();
     positionSlides(0);
@@ -6748,7 +6888,7 @@ function takeWarmedVideo(url){
 
   function closePremiumReels(){
     overlay.classList.remove('open');
-    document.body.style.overflow = '';
+    unlockBodyScroll();
     track.querySelectorAll('video').forEach(v => v.pause());
     track.innerHTML = '';
   }
@@ -7046,12 +7186,12 @@ setTimeout(()=>{
     updateClock();
     showIncomingState();
     callScreen.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
   });
 
   function closeCallScreen(){
     callScreen.classList.remove('open');
-    document.body.style.overflow = '';
+    unlockBodyScroll();
     stopCallTimer();
     setTimeout(showIncomingState, 300);
   }

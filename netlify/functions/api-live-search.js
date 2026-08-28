@@ -16,7 +16,7 @@
 // qiymatlar ishlatiladi — ya'ni sozlamasdan ham ishlayveradi.
 
 const admin = require('firebase-admin');
-const { searchAll, testBeelineLogin } = require('./lib/operators');
+const { searchAll, testBeelineLogin, matchesBoxes } = require('./lib/operators');
 const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
@@ -95,6 +95,53 @@ async function loadConfig(force) {
   return value;
 }
 
+// BEELINE endi bu yerda JONLI so'ralmaydi — buning o'rniga sync-beeline.js
+// (har 5 daqiqada, netlify.toml jadvali bo'yicha) oldindan to'liq yig'ib
+// Firestore'ga (live_cache/Beeline) saqlagan ro'yxatdan o'qiladi. Bu
+// mijozlar sonidan qat'i nazar Beeline'ga so'rovlar sonini doim bir xil,
+// kam va nazorat ostida ushlab turadi — ko'p mijoz bir vaqtda qidirsa ham
+// "429" xatosi yoki dilerlik hisobining bloklanishi xavfi bo'lmaydi.
+// Bu keshning o'zi ham qisqa vaqt (CACHE_TTL) xotirada saqlanadi — bir
+// nechta mijoz orqma-ket so'rasa, har birida Firestore'ga alohida
+// o'qish qilinmasin deb.
+let beelineLiveCache = null;
+const BEELINE_LIVE_CACHE_TTL = 20 * 1000;
+// Agar sinxronizatsiya jarayoni uzoq vaqt (masalan 20 daqiqadan ortiq)
+// ishlamay qolgan bo'lsa — bu haqda ICHKI xato sifatida belgilaymiz
+// (mijozga ko'rsatilmaydi, lekin adminka konsolida ko'rinadi).
+const BEELINE_CACHE_STALE_MS = 20 * 60 * 1000;
+
+async function loadBeelineCacheDoc() {
+  if (beelineLiveCache && beelineLiveCache.expiresAt > Date.now()) return beelineLiveCache.value;
+  let value = { items: [], updatedAt: null };
+  try {
+    const doc = await db.collection('live_cache').doc('Beeline').get();
+    if (doc.exists) {
+      const data = doc.data() || {};
+      value = {
+        items: Array.isArray(data.items) ? data.items : [],
+        updatedAt: data.updatedAt && data.updatedAt.toMillis ? data.updatedAt.toMillis() : null
+      };
+    }
+  } catch (err) {
+    console.error('live_cache/Beeline o\'qilmadi:', err.message);
+  }
+  beelineLiveCache = { value, expiresAt: Date.now() + BEELINE_LIVE_CACHE_TTL };
+  return value;
+}
+
+async function getCachedBeeline(boxes, limit) {
+  const cacheDoc = await loadBeelineCacheDoc();
+  if (!cacheDoc.updatedAt) {
+    return { items: [], errors: ['Beeline: hali sinxronlanmagan'] };
+  }
+  const items = cacheDoc.items.filter(x => matchesBoxes(x.number, boxes)).slice(0, limit);
+  const errors = (Date.now() - cacheDoc.updatedAt > BEELINE_CACHE_STALE_MS)
+    ? ['Beeline: keshdagi ma\'lumot eskirgan (sinxronizatsiya to\'xtab qolgan bo\'lishi mumkin)']
+    : [];
+  return { items, errors };
+}
+
 // "___1222" yoki "***1222" -> ['','','','1','2','2','2']
 function parseMask(raw) {
   const s = String(raw || '').trim();
@@ -167,7 +214,18 @@ exports.handler = async function (event) {
 
   try {
     const config = await loadConfig();
-    const result = await searchAll(boxes, config, { limit, operator });
+    const result = await searchAll(boxes, config, { limit, operator, exclude: ['Beeline'] });
+
+    // Beeline endi jonli so'ralmaydi — sync-beeline.js har 5 daqiqada
+    // to'liq yig'ib Firestore'ga saqlagan ro'yxatdan (mask bo'yicha
+    // filtrlab) o'qiymiz. Faqat "hammasi" yoki aynan Beeline so'ralganda.
+    if (!operator || operator === 'Beeline') {
+      const beelineResult = await getCachedBeeline(boxes, limit);
+      result.items = result.items.concat(beelineResult.items);
+      result.errors = (result.errors || []).concat(beelineResult.errors);
+      result.byOperator = result.byOperator || {};
+      result.byOperator.Beeline = { items: beelineResult.items, errors: beelineResult.errors };
+    }
 
     // Xato qaytargan operatorlar uchun oxirgi yaxshi natijani qo'shamiz,
     // muvaffaqiyatlilarining natijasini esa keyingi safar uchun saqlaymiz.
