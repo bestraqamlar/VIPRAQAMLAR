@@ -776,6 +776,10 @@
         <input type="checkbox" id="newDailyDeal">
         🔥 Bugungi aksiyaga qo'shish
       </label>
+      <label class="checkbox-field">
+        <input type="checkbox" id="newRecommended">
+        ⭐ ASOSIY'da "Tavsiya etiladi"ga qo'shish
+      </label>
       <button id="addNumberBtn">+ Raqam qo'shish</button>
       <div class="code-hint" id="codeHint"></div>
     </div>
@@ -3638,6 +3642,10 @@ function renderAdminNumbers(numbers){
               <input type="checkbox" class="an-dailydeal" ${item.dailyDeal ? 'checked' : ''}>
               🔥 Bugungi aksiyada
             </label>
+            <label class="an-installment-label">
+              <input type="checkbox" class="an-recommended" ${item.recommended ? 'checked' : ''}>
+              ⭐ ASOSIY'da "Tavsiya etiladi"da
+            </label>
           </div>
         </div>
       </div>
@@ -3676,6 +3684,7 @@ function renderAdminNumbers(numbers){
           installment: row.querySelector('.an-installment').checked,
           featured: row.querySelector('.an-featured').checked,
           dailyDeal: row.querySelector('.an-dailydeal').checked,
+          recommended: row.querySelector('.an-recommended').checked,
           tag: row.querySelector('.an-tag').value
         });
         btn.textContent = '✓ Saqlandi';
@@ -3762,6 +3771,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       installment: document.getElementById('newInstallment').checked,
       featured: document.getElementById('newFeatured').checked,
       dailyDeal: document.getElementById('newDailyDeal').checked,
+      recommended: document.getElementById('newRecommended').checked,
       tag: document.getElementById('newTag').value,
       last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
       addedAt: Date.now(),
@@ -3774,6 +3784,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
     document.getElementById('newDailyDeal').checked = false;
+    document.getElementById('newRecommended').checked = false;
     codeHint.textContent = '';
     codeHint.className = 'code-hint';
     refreshNumbers();
