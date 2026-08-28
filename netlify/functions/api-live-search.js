@@ -16,7 +16,7 @@
 // qiymatlar ishlatiladi — ya'ni sozlamasdan ham ishlayveradi.
 
 const admin = require('firebase-admin');
-const { searchAll, testBeelineLogin, matchesBoxes } = require('./lib/operators');
+const { searchAll, searchBeeline, testBeelineLogin, matchesBoxes } = require('./lib/operators');
 const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
@@ -130,8 +130,31 @@ async function loadBeelineCacheDoc() {
   return value;
 }
 
-async function getCachedBeeline(boxes, limit) {
+async function getCachedBeeline(boxes, limit, beelineCfg) {
   const cacheDoc = await loadBeelineCacheDoc();
+  // Kesh hali BIRON MARTA ham to'lmagan (masalan yangi deploy qilingandan
+  // keyin, birinchi 5 daqiqalik sinxronizatsiya hali ishga tushmagan) YOKI
+  // juda uzoq vaqt yangilanmagan (fon jarayoni to'xtab qolgan) bo'lsa —
+  // mijozga "hech narsa yo'q" ko'rsatib qo'ymasdan, BIR MARTALIK jonli
+  // so'rov bilan orqaga qaytamiz. Doimiy og'irlik baribir kesh orqali
+  // ko'tariladi — bu faqat kesh hali tayyor bo'lmagan qisqa oraliqda
+  // ishlaydigan zaxira yo'l.
+  const cacheMissing = !cacheDoc.updatedAt;
+  const cacheStale = cacheDoc.updatedAt && (Date.now() - cacheDoc.updatedAt > BEELINE_CACHE_STALE_MS);
+  if ((cacheMissing || cacheStale) && beelineCfg && (beelineCfg.username || '').trim() && beelineCfg.password) {
+    try {
+      const live = await searchBeeline(boxes, beelineCfg, limit);
+      return {
+        items: live.items,
+        errors: cacheMissing ? [] : ['Beeline: kesh eskirgan, jonli natija ko\'rsatildi']
+      };
+    } catch (err) {
+      // Jonli urinish ham muvaffaqiyatsiz — eski kesh bo'lsa hech bo'lmasa
+      // shuni ko'rsatamiz (butunlay bo'sh qoldirmaslik uchun).
+      const items = cacheDoc.items.filter(x => matchesBoxes(x.number, boxes)).slice(0, limit);
+      return { items, errors: [items.length ? 'Beeline: kesh eskirgan' : ('Beeline: ' + err.message)] };
+    }
+  }
   if (!cacheDoc.updatedAt) {
     return { items: [], errors: ['Beeline: hali sinxronlanmagan'] };
   }
@@ -220,7 +243,7 @@ exports.handler = async function (event) {
     // to'liq yig'ib Firestore'ga saqlagan ro'yxatdan (mask bo'yicha
     // filtrlab) o'qiymiz. Faqat "hammasi" yoki aynan Beeline so'ralganda.
     if (!operator || operator === 'Beeline') {
-      const beelineResult = await getCachedBeeline(boxes, limit);
+      const beelineResult = await getCachedBeeline(boxes, limit, config.Beeline);
       result.items = result.items.concat(beelineResult.items);
       result.errors = (result.errors || []).concat(beelineResult.errors);
       result.byOperator = result.byOperator || {};

@@ -204,7 +204,7 @@
        shu bar ostida yashirinib qolardi. iPhone'larning pastki "home
        indicator" chizig'i ustiga tugma tushib qolmasligi uchun safe-area
        ham qo'shiladi (desktopda pastki bar yo'q — pastda olib tashlanadi). */
-    padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px));
   }
   @keyframes bodyGlowDrift{
     0%,100%{ background-position:0% 0%, 0% 0%; }
@@ -231,40 +231,45 @@
      Kompyuterda (1024px+): pastdagi @media qoidasi bu barni header ichiga,
      gorizontal tab qatoriga aylantiradi — bitta HTML/JS, ikki ko'rinish. */
   .main-nav{
-    position:fixed;left:0;right:0;bottom:0;z-index:80;
+    position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:80;
     display:flex;
-    /* Endi oq emas — ozgina ko'kroq, va o'zining aniq ramkasi/burchagi bilan
-       kontentdan chiroyli ajralib turadi (ilova uslubidagi pastki panel). */
-    background:linear-gradient(180deg, #EEF3FC 0%, #E4ECFA 100%);
-    border-top:1px solid rgba(20,45,110,0.14);
-    border-radius:18px 18px 0 0;
-    padding-bottom:env(safe-area-inset-bottom, 0px);
-    box-shadow:0 -14px 32px rgba(20,45,110,0.2);
+    /* Endi tepadagi qidiruv kartochkasiga o'xshab, ekran chetiga yopishmagan,
+       hamma burchagi yumaloq, alohida suzib turgan (floating) karta —
+       oldin faqat tepasi yumaloq, pastki cheti ekranga yopishgan edi. Foni
+       ozroq to'qroq/ko'kroq, o'z ramkasi va soyasi bilan aniq ajralib
+       turadi. */
+    background:linear-gradient(180deg, #E7EEFC 0%, #D9E5F8 100%);
+    border:1px solid rgba(20,45,110,0.18);
+    border-radius:20px;
+    box-shadow:0 -10px 12px -6px rgba(20,45,110,0.12), 0 14px 34px rgba(20,45,110,0.28);
   }
   .mn-tab{
     flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:2px;padding:9px 4px 8px;background:none;border:none;cursor:pointer;
+    gap:2px;padding:9px 4px 8px;margin:6px 4px;background:none;border:none;cursor:pointer;
+    border-radius:14px;
     color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:10px;
     letter-spacing:.2px;position:relative;
-    transition:color .2s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
+    transition:color .2s ease, background .2s ease, box-shadow .2s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
   }
   .mn-tab svg{
     width:21px;height:21px;transition:transform .22s cubic-bezier(.34,1.56,.64,1), filter .2s ease;
   }
   .mn-tab .mn-dot{
-    width:4px;height:4px;border-radius:50%;background:var(--amber);
+    width:4px;height:4px;border-radius:50%;background:#2E6BE0;
     margin-top:1px;opacity:0;transform:scale(0);
     transition:opacity .2s ease, transform .2s ease;
   }
-  /* "Qaysi bo'limda ekanini bilish" — tanlangan tugma bir oz KATTA
-     (svg+matn scale) va TO'QROQ (rangi mavzuning o'z amber rangiga
-     to'liq to'yinadi, atrofida yumshoq nur) bo'lib ajralib turadi. */
+  /* "Qaysi bo'limda ekanini bilish" — tanlangan tugma ORQASIGA chiroyli
+     ko'k (amber emas) pastel "tanlandi" foni chizilib, biroz KATTA
+     (svg+matn scale) bo'lib ajralib turadi. */
   .mn-tab.active{
-    color:var(--amber);
+    color:#1D4ED8;
+    background:linear-gradient(160deg, rgba(59,110,240,0.20), rgba(59,110,240,0.10));
+    box-shadow:0 4px 14px -6px rgba(37,84,207,0.45), inset 0 0 0 1px rgba(59,110,240,0.35);
     transform:translateY(-3px) scale(1.06);
   }
   .mn-tab.active svg{
-    filter:drop-shadow(0 0 6px color-mix(in srgb, var(--amber) 55%, transparent));
+    filter:drop-shadow(0 0 6px rgba(37,84,207,0.5));
   }
   .mn-tab.active .mn-dot{opacity:1;transform:scale(1);}
   .mn-tab:active{transform:translateY(-1px) scale(0.96);}
@@ -1686,18 +1691,6 @@
   .ic-monthly{color:var(--text);}
   .ic-monthly b{color:var(--amber);font-size:15px;font-family:'Sora',sans-serif;font-weight:800;}
 
-  /* ---- Telegram FAB (suzib yuruvchi Telegram tugmasi) ---- */
-  .fab{
-    position:fixed;bottom:18px;right:18px;z-index:400;
-    background:linear-gradient(135deg,#2AABEE,#229ED9);
-    width:48px;height:48px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 6px 18px rgba(34,158,217,0.5);
-    animation:floatPulse 2.6s ease-in-out infinite;
-  }
-  @keyframes floatPulse{0%,100%{box-shadow:0 6px 18px rgba(34,158,217,0.5);}50%{box-shadow:0 6px 24px rgba(34,158,217,0.75);}}
-  .fab svg{width:23px;height:23px;fill:#fff;}
-
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     flex:0 0 150px;border-radius:12px;padding:10px;
@@ -3051,10 +3044,6 @@ html.theme-purple-premium .card button.order-btn{
     </div>
   </div>
 </div>
-
-<a class="fab" href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener" aria-label="Telegram orqali murojaat">
-  <svg viewBox="0 0 24 24"><path d="M9.036 15.803l-.396 5.57c.568 0 .814-.244 1.11-.537l2.663-2.545 5.522 4.03c1.012.564 1.73.267 1.997-.938L23.94 3.61c.36-1.474-.532-2.05-1.517-1.693L1.116 9.79c-1.446.564-1.424 1.373-.247 1.735l5.517 1.72L18.98 5.13c.582-.38 1.113-.17.677.21L9.036 15.803z"/></svg>
-</a>
 
 <footer>&copy; 2026 VIP RAQAMLAR (vipraqamlar.uz). Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
 
