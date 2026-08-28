@@ -233,60 +233,47 @@
   .main-nav{
     position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:80;
     display:flex;
-    /* Mijoz iltimosiga ko'ra: endi qidirish tugmasi bilan BIR XIL
-       yashil->ko'k gradient fonda, yozuv/belgi OQ. Avvalgi och-ko'k/oq fon
-       o'rniga keldi. Balandligi ham (padding/margin pastda, .mn-tab'da)
-       ATAYLAB kichraytirildi — bar kamroq joy egallasin deb. */
-    background:linear-gradient(120deg, #1E8449, #2F5FE0);
-    border:1px solid rgba(255,255,255,0.18);
-    border-radius:16px;
-    box-shadow:0 -8px 10px -6px rgba(20,45,110,0.16), 0 12px 28px rgba(20,45,110,0.34);
-    overflow:hidden;isolation:isolate;
-  }
-  /* "Zamonaviy" tuyg'u uchun: barning orqa fonida XIRA (shaffof), asta-sekin
-     chapga suzib o'tayotgan raqamlar qatori — "o'tayotgan raqamlar soyasi".
-     pointer-events yo'q (bosishga xalaqit bermaydi), tugmalardan pastda
-     (z-index orqali) turadi. */
-  .main-nav::before{
-    content:'0  1  2  3  4  5  6  7  8  9      0  1  2  3  4  5  6  7  8  9      0  1  2  3  4  5  6  7  8  9      ';
-    position:absolute;top:0;bottom:0;left:0;
-    display:flex;align-items:center;white-space:nowrap;
-    font-family:'Space Mono',monospace;font-weight:700;font-size:24px;letter-spacing:4px;
-    color:rgba(255,255,255,0.14);
-    animation:navDigitsDrift 26s linear infinite;
-    pointer-events:none;z-index:0;
-  }
-  @keyframes navDigitsDrift{
-    from{transform:translateX(0);}
-    to{transform:translateX(-33.3333%);}
+    /* Mijoz "yashil-ko'k gradient + o'tayotgan raqamlar" ko'rinishini
+       yoqtirmadi — AVVALGI joyiga (och-ko'k/oq fon) qaytarildi. Faqat
+       balandligi (pastdagi .mn-tab'dagi kichikroq padding/shrift) va
+       tanlangan bo'lim rangi (kuchliroq, aniqroq) o'zgartirilgan holda
+       qoladi — bular yoqqan edi. */
+    background:linear-gradient(180deg, #E7EEFC 0%, #D9E5F8 100%);
+    border:1px solid rgba(20,45,110,0.18);
+    border-radius:17px;
+    box-shadow:0 -10px 12px -6px rgba(20,45,110,0.12), 0 14px 34px rgba(20,45,110,0.28);
   }
   .mn-tab{
     flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:1px;padding:6px 4px 5px;margin:4px 3px;background:none;border:none;cursor:pointer;
-    border-radius:11px;
-    color:rgba(255,255,255,0.72);font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;
-    letter-spacing:.2px;position:relative;z-index:1;
-    transition:color .2s ease, background .2s ease, box-shadow .2s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
+    gap:1px;padding:6px 4px 5px;margin:4px 3px;background:none;border:1px solid transparent;cursor:pointer;
+    /* Har bir tugma o'zining aniq (lekin haddan tashqari yumaloq emas)
+       chegarasi bilan ALOHIDA kartochkadek ajralib tursin deb radius
+       pasaytirildi (14 -> 9). */
+    border-radius:9px;
+    color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;
+    letter-spacing:.2px;position:relative;
+    transition:color .2s ease, background .2s ease, box-shadow .2s ease, border-color .2s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
   }
   .mn-tab svg{
     width:18px;height:18px;transition:transform .22s cubic-bezier(.34,1.56,.64,1), filter .2s ease;
   }
   .mn-tab .mn-dot{
-    width:4px;height:4px;border-radius:50%;background:#FFFFFF;
+    width:4px;height:4px;border-radius:50%;background:#1D4ED8;
     margin-top:1px;opacity:0;transform:scale(0);
     transition:opacity .2s ease, transform .2s ease;
   }
-  /* "Qaysi bo'limda ekanini bilish" — tanlangan tugma ORQASIGA yarim
-     shaffof OQ "tanlandi" foni chizilib, biroz KATTA (svg+matn scale)
-     bo'lib ajralib turadi (rang endi doim OQ, faqat shaffoflik farqlanadi). */
+  /* "Qaysi bo'limda ekanini bilish" — AVVALGIDAN KUCHLIROQ, aniqroq ko'k
+     fon + o'z chegarasi bilan, boshqalardan ALOHIDA kartochka bo'lib
+     ajralib turadi (ortiqcha kattalashtirish/yumaloqlashtirish yo'q). */
   .mn-tab.active{
-    color:#FFFFFF;
-    background:rgba(255,255,255,0.20);
-    box-shadow:0 4px 12px -6px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.4);
-    transform:translateY(-2px) scale(1.05);
+    color:#1741C4;
+    background:linear-gradient(160deg, rgba(46,107,240,0.34), rgba(46,107,240,0.18));
+    border-color:rgba(46,107,240,0.5);
+    box-shadow:0 5px 14px -6px rgba(29,78,216,0.55), inset 0 0 0 1px rgba(46,107,240,0.22);
+    transform:translateY(-2px) scale(1.04);
   }
   .mn-tab.active svg{
-    filter:drop-shadow(0 0 6px rgba(255,255,255,0.55));
+    filter:drop-shadow(0 0 5px rgba(29,78,216,0.5));
   }
   .mn-tab.active .mn-dot{opacity:1;transform:scale(1);}
   .mn-tab:active{transform:translateY(-1px) scale(0.96);}
@@ -307,10 +294,6 @@
       padding:5px;gap:10px;width:min(640px, 46vw);
       display:flex;justify-content:space-between;
     }
-    /* Kompyuterda bar header ichiga, oddiy (yashil-ko'k gradientsiz)
-       ko'rinishga qaytadi — "o'tayotgan raqamlar" foni faqat mobil
-       (pastda suzib turuvchi) barga tegishli, shu sabab shu yerda o'chiriladi. */
-    .main-nav::before{ display:none; }
     .mn-tab{
       flex:1 1 0;flex-direction:row;gap:8px;justify-content:center;
       padding:11px 20px;border-radius:10px;font-size:13px;
