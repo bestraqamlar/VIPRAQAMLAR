@@ -99,6 +99,22 @@ function formatNumber(raw) {
   return `+${digits.slice(0,3)} ${digits.slice(3,5)} ${digits.slice(5,8)} ${digits.slice(8,10)} ${digits.slice(10,12)}`;
 }
 
+// "Sozlamalar" bo'limida qo'shilgan qo'shimcha Telegram ID'lar (qarang:
+// admin-number-watch.js -> listNotifyIds/addNotifyId) — asosiy botdan
+// TASHQARI, shu ID'larning HAR BIRIGA ham xabar yuboriladi. Bir nechta
+// admin/bot qo'shilsa, hammasi bir vaqtda xabardor bo'ladi.
+const NOTIFY_COLLECTION = 'watch_notify_recipients';
+
+async function sendTelegramMessage(token, chatId, text) {
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text })
+    });
+  } catch (e) { /* xabar yubormasa ham, tekshiruv davom etadi */ }
+}
+
 async function notifyAdmin(text) {
   // Alohida "kuzatuv" boti — asosiy admin botidan AJRATILGAN, shu bilan
   // bu xabarlar boshqa xabarlar orasida yo'qolib qolmaydi. Agar
@@ -107,14 +123,19 @@ async function notifyAdmin(text) {
   // sozlash tugallanmagan bo'lsa ham xabar butunlay yo'qolib ketmaydi.
   const token = process.env.WATCH_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.WATCH_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  if (token && chatId) await sendTelegramMessage(token, chatId, text);
+
+  // Qo'shimcha, Sozlamalardan qo'shilgan ID'lar — xuddi shu bot tokeni
+  // bilan, lekin HAR BIR ID'ga alohida xabar sifatida.
+  if (!token) return;
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text })
-    });
-  } catch (e) { /* xabar yubormasa ham, tekshiruv davom etadi */ }
+    const snap = await db.collection(NOTIFY_COLLECTION).get();
+    await Promise.all(snap.docs.map(d => {
+      const extraChatId = d.data().chatId;
+      if (!extraChatId) return null;
+      return sendTelegramMessage(token, extraChatId, text);
+    }));
+  } catch (e) { /* qo'shimcha ro'yxat o'qilmasa ham, asosiy xabar allaqachon ketgan */ }
 }
 
 async function loadOperatorConfig() {

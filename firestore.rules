@@ -268,7 +268,9 @@ service cloud.firestore {
     // olinmagan yo'llarni to'liq YOPIQ qiladi — "request.auth != null"
     // kabi umumiy qoida bilan OCHIB QO'YISH XATO bo'lardi):
     // bot_sessions, known_customers_tgmenu, known_customers, admin_list,
-    // admin_ai_pending_actions, number_watches (— "Baza raqam" kuzatuvi:
+    // admin_ai_pending_actions, watch_notify_recipients (— "Baza raqam"
+    // uchun qo'shimcha Telegram bildirishnoma ID'lari — qarang:
+    // admin-number-watch.js), number_watches (— "Baza raqam" kuzatuvi:
     // qaysi raqamlar kuzatilayotgani tijorat siri, shu sabab hatto admin
     // ham brauzerdan to'g'ridan-to'g'ri emas, faqat requireAdmin() bilan
     // himoyalangan admin-number-watch.js funksiyasi orqali kira oladi),

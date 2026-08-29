@@ -1895,6 +1895,24 @@
       <button id="saveInstallmentRatesBtn">Saqlash</button>
       <div class="settings-msg" id="installmentRatesMsg"></div>
     </div>
+
+    <div class="settings-form">
+      <h3>📨 Baza raqam — qo'shimcha Telegram bildirishnomalar</h3>
+      <p style="color:var(--muted);font-size:11.5px;margin:0 0 12px;">
+        "Baza raqam" bo'limida kuzatilayotgan naqshga mos raqam topilganda, xabar
+        asosiy botdan tashqari, shu yerda qo'shilgan HAR BIR Telegram ID'ga ham
+        yuboriladi. ID'ni bilish uchun Telegramda shaxsiy ID beruvchi botga (masalan
+        @userinfobot) yozing — u sizga sonlardan iborat ID'ni beradi (masalan
+        <code>1141202069</code>). Necha kishi kerak bo'lsa, shuncha ID qo'shishingiz mumkin.
+      </p>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input type="text" id="newWatchNotifyId" inputmode="numeric" placeholder="Telegram ID (masalan 1141202069)" style="flex:1;">
+        <input type="text" id="newWatchNotifyLabel" placeholder="Izoh (ixtiyoriy, masalan ism)" style="width:150px;">
+      </div>
+      <button id="addWatchNotifyIdBtn">+ ID qo'shish</button>
+      <div class="settings-msg" id="watchNotifyIdMsg"></div>
+      <div id="watchNotifyIdList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
     </div>
   </div>
 
@@ -2302,6 +2320,7 @@ async function doLogin(){
     recordSession();
     if(hasFeaturePerm('numbers')) refreshNumbers();
     if(hasFeaturePerm('orders')) refreshOrders();
+    if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
     // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
     // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
     // avtomatik chiqarilmaydi.
@@ -4251,6 +4270,60 @@ async function loadWatchList(){
   }catch(err){
     list.innerHTML = '<div class="wt-empty">Xato: ' + escapeHtml(err.message) + '</div>';
   }
+}
+
+/* ---- "Baza raqam" — qo'shimcha Telegram bildirishnoma ID'lari (Sozlamalar) ---- */
+async function loadWatchNotifyIds(){
+  const list = document.getElementById('watchNotifyIdList');
+  if(!list) return;
+  list.innerHTML = 'Yuklanmoqda...';
+  try{
+    const data = await wtCall('listNotifyIds');
+    const recipients = data.recipients || [];
+    if(recipients.length === 0){ list.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali qo\'shimcha ID qo\'shilmagan.</div>'; return; }
+    list.innerHTML = recipients.map(r => `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;">
+        <div style="font-size:12.5px;"><b>${escapeHtml(r.chatId)}</b>${r.label ? ' — ' + escapeHtml(r.label) : ''}</div>
+        <button class="watch-notify-delete" data-id="${r.id}" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">O'chirish</button>
+      </div>`).join('');
+    list.querySelectorAll('.watch-notify-delete').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Bu Telegram ID'ni o'chirasizmi? Endi bu odamga bildirishnoma kelmaydi.")) return;
+        try{
+          await wtCall('deleteNotifyId', { id: btn.dataset.id });
+          loadWatchNotifyIds();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){ list.innerHTML = 'Xato: ' + escapeHtml(err.message); }
+}
+if(document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
+
+const addWatchNotifyIdBtn = document.getElementById('addWatchNotifyIdBtn');
+if(addWatchNotifyIdBtn){
+  addWatchNotifyIdBtn.addEventListener('click', async ()=>{
+    const idInput = document.getElementById('newWatchNotifyId');
+    const labelInput = document.getElementById('newWatchNotifyLabel');
+    const msg = document.getElementById('watchNotifyIdMsg');
+    const chatId = idInput.value.trim();
+    const label = labelInput.value.trim();
+    if(!/^-?\d{5,15}$/.test(chatId)){
+      msg.textContent = "Telegram ID noto'g'ri — faqat raqamlardan iborat bo'lishi kerak";
+      msg.className = 'settings-msg bad';
+      return;
+    }
+    try{
+      await wtCall('addNotifyId', { chatId, label });
+      idInput.value = ''; labelInput.value = '';
+      msg.textContent = '✓ ID qo\'shildi';
+      msg.className = 'settings-msg ok';
+      vibrate(80);
+      loadWatchNotifyIds();
+    }catch(err){
+      msg.textContent = 'Xato: ' + err.message;
+      msg.className = 'settings-msg bad';
+    }
+  });
 }
 
 /* ---- "Boshqaruv" — adminlarni qo'shish/boshqarish (faqat bosh admin) ---- */
