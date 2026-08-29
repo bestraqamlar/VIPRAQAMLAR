@@ -70,6 +70,15 @@ function sanitizeCategory(category) {
   return c;
 }
 
+// Kredit shartnomalarini "Jarayonda" hisoblashda izolyatsiya qilish uchun.
+// Diqqat: bu yerda eski (addedByUid'siz) shartnomalar HECH KIMGA (hatto
+// bosh adminning ANIQ bir sub-adminni ko'rish rejimida ham) qo'shilmaydi —
+// ular faqat bosh adminning o'z standart (hech kim ko'rsatilmagan)
+// ko'rinishida, alohida (yuqorida, to'g'ridan-to'g'ri) hisoblanadi.
+function filterCreditContracts(docs, targetUid) {
+  return docs.filter(d => d.data().addedByUid === targetUid);
+}
+
 async function getSummary(decoded, body) {
   const { start, end } = monthRange();
   const isSuper = decoded.superAdmin === true;
@@ -107,14 +116,20 @@ async function getSummary(decoded, body) {
     else if (t.type === 'expense') expenseThisMonth += Number(t.amount) || 0;
   });
 
-  // "Jarayonda" — Kredit bo'limidagi BARCHA shartnomalardan, shu oy ichida
+  // "Jarayonda" — Kredit bo'limidagi shartnomalardan, shu oy ichida
   // to'lanishi kutilayotgan (hali "to'landi" deb belgilanmagan) oylik
-  // to'lovlar yig'indisi. Bu — umumiy biznes ko'rsatkichi (shaxsiy
-  // daromad/xarajat emas), shu sabab izolyatsiyaga uchramaydi, hamma
-  // "finance" ruxsatiga ega admin buni ko'radi.
+  // to'lovlar yig'indisi. AVVAL bu — BARCHA shartnomalardan hisoblanadigan
+  // umumiy ko'rsatkich edi. ENDI Kredit bo'limi ham izolyatsiyalangani
+  // sabab (qarang: admin-credit.js), bu yerda ham AYNAN O'SHA qoida
+  // qo'llaniladi: oddiy admin FAQAT o'zi qo'shgan shartnomalaridan kelib
+  // chiqadigan to'lovlarni ko'radi (yangi admin uchun — 0 dan boshlab),
+  // bosh admin esa (o'z, standart ko'rinishida) HAMMASINI ko'radi.
   const creditSnap = await db.collection('credit_contracts').get();
+  const relevantCreditDocs = (isSuper && !viewUid)
+    ? creditSnap.docs
+    : filterCreditContracts(creditSnap.docs, targetUid);
   let dueThisMonth = 0;
-  creditSnap.docs.forEach(d => {
+  relevantCreditDocs.forEach(d => {
     const c = d.data();
     if (!Array.isArray(c.payments)) return;
     c.payments.forEach(p => {

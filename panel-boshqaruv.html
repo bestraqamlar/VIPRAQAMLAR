@@ -85,7 +85,14 @@
 
   /* ---- Login ekrani ---- */
   .login-bg{
-    position:fixed;inset:0;overflow:hidden;
+    /* MUHIM: avval "position:fixed;inset:0" edi — mobil brauzerlarda
+       klaviatura ochilib-yopilganda yoki manzil satri (address bar)
+       kichrayib-kattalashganda, "fixed" elementlar balandligi qayta
+       hisoblanib, karta "yuqoriga sakrab" ketishi mumkin edi. Endi oddiy
+       (statik oqim) blok, min-height orqali butun ekranni egallaydi —
+       shu bilan karta doim vertikal MARKAZDA turadi.
+    */
+    min-height:100vh;min-height:100dvh;overflow:hidden;position:relative;
     background:radial-gradient(ellipse at top, var(--panel), var(--bg) 65%);
     display:flex;align-items:center;justify-content:center;padding:20px;
   }
@@ -254,6 +261,14 @@
   .sidebar-toggle svg{width:18px;height:18px;}
   .topbar-title{font-weight:800;font-size:15px;flex:1;min-width:0;}
   .topbar-title small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:1px;}
+  .topbar-clock{
+    font-family:'Space Mono',monospace;font-weight:700;font-size:13.5px;color:var(--amber);
+    background:rgba(255,176,0,.08);border:1px solid rgba(255,176,0,.2);border-radius:8px;
+    padding:6px 11px;letter-spacing:.5px;white-space:nowrap;flex:none;
+  }
+  @media (max-width:560px){
+    .topbar-clock{font-size:11.5px;padding:5px 8px;}
+  }
 
   .content-inner{padding:22px 24px 60px;max-width:1060px;}
 
@@ -646,6 +661,11 @@
   @media (min-width:820px){ .settings-grid{grid-template-columns:repeat(2,1fr);} }
   @media (min-width:1300px){ .settings-grid{grid-template-columns:repeat(3,1fr);} }
   .settings-grid .settings-form{max-width:none;margin:0;height:100%;}
+  /* Kredit ostidagi 2 ta kartochka (Excel hisobot / Eski shartnomalar) —
+     faqat 2 ta bo'lgani uchun 3-ustunli katta ekranlarda chekkaga
+     "yopishib" qolmasin, ikkalasi ham GURUH bo'lib o'rtada tursin. */
+  .cr-tools-grid{grid-template-columns:1fr !important;max-width:760px;margin:0 auto 16px;}
+  @media (min-width:680px){ .cr-tools-grid{grid-template-columns:repeat(2,1fr) !important;} }
 
   /* ---- Kredit formasi: kompyuterda ikki ustunli, zamonaviy grid ---- */
   .cr-form-2col{max-width:760px;}
@@ -855,12 +875,21 @@
   font-weight:800;transform:scale(1.05);box-shadow:0 8px 20px -8px rgba(255,138,0,.6);
 }
 
-.wt-boxes{display:flex;gap:7px;flex-wrap:wrap;}
-.wt-box{width:42px;height:50px;text-align:center;font-size:18px;font-weight:800;
+/* 7 ta katak endi GRID orqali — konteyner tor bo'lsa ham (mobil), doim
+   7 ta TENG ustunga bo'linib, chiroyli bitta qatorda turadi (avvalgi
+   flex+wrap'da tor ekranlarda oxirgi katak yakka o'zi tashlanib qolib,
+   ko'rinishi buzilgan edi). */
+.wt-boxes{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:380px;}
+.wt-box{width:100%;height:50px;text-align:center;font-size:18px;font-weight:800;
   border-radius:10px;border:1px solid rgba(255,255,255,.14);
   background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
   color:inherit;font-family:'Space Mono',monospace,inherit;
+  box-sizing:border-box;padding:0;min-width:0;
   transition:border-color .15s ease,box-shadow .15s ease,transform .12s ease;}
+@media (max-width:380px){
+  .wt-boxes{gap:4px;}
+  .wt-box{height:44px;font-size:15px;}
+}
 .wt-box:focus{border-color:var(--amber,#FFB000);outline:none;box-shadow:0 0 0 3px rgba(255,176,0,.18);transform:scale(1.06);}
 .wt-intervals{display:flex;gap:8px;flex-wrap:wrap;}
 .wt-interval-btn{padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.14);
@@ -1121,6 +1150,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="topbar-title">Boshqaruv paneli<small>VIP RAQAMLAR — Admin</small></div>
+      <div class="topbar-clock" id="topbarClock">--:--:--</div>
       <div class="header-actions">
         <button class="bell-btn" id="bellBtn" aria-label="Yangi buyurtmalar" title="Yangi buyurtmalar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
@@ -1471,7 +1501,7 @@
       <div class="settings-msg" id="creditAddMsg"></div>
     </div>
 
-    <div class="settings-grid cr-tools-grid" style="margin-bottom:16px;">
+    <div class="settings-grid cr-tools-grid">
       <div class="settings-form">
         <h3>📊 Excel hisobot</h3>
         <p style="color:var(--muted);font-size:12px;margin:0 0 10px;">Barcha kredit shartnomalari va bazadagi raqamlar (narxi bilan) Excel faylda Telegram botingizga yuboriladi. Har kuni ertalab ~09:00 da avtomatik ham keladi.</p>
@@ -2174,7 +2204,18 @@ document.getElementById('loginBtn').addEventListener('click', doLogin);
 usernameInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') passwordInput.focus(); });
 passwordInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doLogin(); });
 
-const SESSION_DURATION = 10 * 60 * 1000; // 10 daqiqa
+/* ---- Boshqaruv paneli yonidagi jonli soat (soniyagacha) ---- */
+function updateTopbarClock(){
+  const el = document.getElementById('topbarClock');
+  if(!el) return;
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+updateTopbarClock();
+setInterval(updateTopbarClock, 1000);
+
+const SESSION_DURATION = 10 * 60 * 1000; // 10 daqiqa (endi ISHLATILMAYDI — pastga qarang)
 let sessionTimer = null;
 
 function startSessionTimer(){
@@ -2261,7 +2302,9 @@ async function doLogin(){
     recordSession();
     if(hasFeaturePerm('numbers')) refreshNumbers();
     if(hasFeaturePerm('orders')) refreshOrders();
-    startSessionTimer();
+    // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
+    // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
+    // avtomatik chiqarilmaydi.
     startVisitorTracking();
   }catch(err){
     // Firebase'ning haqiqiy sababini ko'rsatamiz — "noto'g'ri" degan umumiy
