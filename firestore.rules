@@ -198,12 +198,15 @@ service cloud.firestore {
       allow read, update, delete: if hasPerm('zakaz');
     }
 
-    match /credit_contracts/{doc} {
-      allow get, list: if hasPerm('credit');
-      allow write: if hasPerm('credit');
-    }
+    // credit_contracts — ILGARI shu yerda "hasPerm('credit')" bilan
+    // to'g'ridan-to'g'ri (Client SDK) ochiq edi. ENDI bu — admin-credit.js
+    // orqali, faqat requireAdmin() bilan himoyalangan holda ishlaydi, chunki
+    // endi har bir admin FAQAT o'zi qo'shgan shartnomalarni ko'rishi kerak
+    // ("izolyatsiya") — buni Firestore Client SDK darajasida (list so'rovi)
+    // ishonchli ta'minlab bo'lmaydi, shu sabab match bloki ATAYLAB olib
+    // tashlangan (standart bo'yicha to'liq yopiq — pastdagi izohga qarang).
 
-    // STANDART (jonli, operatordan qidirilgan) raqamlar uchun Firestore'da
+// STANDART (jonli, operatordan qidirilgan) raqamlar uchun Firestore'da
     // haqiqiy 'numbers' hujjati yo'q — shu sabab ular uchun "band qilish"
     // (numbers.reserved kabi) qo'llanilmaydi. IKKI mijoz AYNAN BIR XIL
     // jonli raqamga bir vaqtda buyurtma bermasin deb, shu yerda YENGIL
@@ -271,7 +274,10 @@ service cloud.firestore {
     // himoyalangan admin-number-watch.js funksiyasi orqali kira oladi),
     // admins (— "Boshqaruv": qaysi sub-adminlar borligi, ularning
     // ruxsatlari — faqat admin-manage-admins.js orqali,
-    // requireSuperAdmin() bilan himoyalangan; brauzerdan to'g'ridan-
+    // requireSuperAdmin() bilan himoyalangan), credit_contracts (— "Kredit":
+    // har bir admin faqat o'zi qo'shgan shartnomani ko'rishi kerak —
+    // izolyatsiya faqat admin-credit.js'da, requireAdmin() bilan
+    // ta'minlanadi; brauzerdan to'g'ridan-
     // to'g'ri o'qib bo'lmaydi).
   }
 }

@@ -1,6 +1,13 @@
 [build]
   command = "npm install"
 
+# QO'SHIMCHA HIMOYA QATLAMI (2-eshik): admin panelga (panel-boshqaruv.html)
+# kirishdan OLDIN, HTTP darajasida alohida login/parol so'raladi — batafsili
+# izoh va sozlash yo'riqnomasi: netlify/edge-functions/admin-gate.js
+[[edge_functions]]
+  path = "/panel-boshqaruv.html"
+  function = "admin-gate"
+
 [functions]
   directory = "netlify/functions"
   # pdfkit shrift fayllari (.afm) — bular bo'lmasa PDF generatsiya funksiyalari
@@ -84,6 +91,6 @@
 # (Google va h.k.) uni HECH QACHON indekslamasligi/ko'rsatmasligi uchun
 # maxsus sarlavha qo'shildi.
 [[headers]]
-  for = "/panel-xn3vbivfp72a33.html"
+  for = "/panel-boshqaruv.html"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow, noarchive"

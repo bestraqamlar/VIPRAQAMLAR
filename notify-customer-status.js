@@ -1,8 +1,15 @@
-// HAR KUNI AVTOMATIK ISHLAYDI — kredit shartnomalaridagi muddati o'tgan
-// to'lovlarni tekshirib, admin Telegram botiga xabar yuboradi.
-// Netlify Scheduled Function (netlify.toml'da "schedule" bilan sozlangan).
+// Admin panelidan (brauzerdan) buyurtma statusi o'zgartirilganda, mijozga
+// Telegram orqali xabar yuborish uchun. CUSTOMER_BOT_TOKEN shu yerda,
+// serverda ishlatiladi — brauzerga hech qachon chiqmaydi.
+//
+// XAVFSIZLIK: bu funksiya sizning botingiz nomidan Telegram xabar
+// yuboradi — shu sababli faqat tizimga kirgan ADMIN chaqira olishi shart.
+// Aks holda har kim istalgan odamga (chatId'ni bilsa) sizning bot nomingiz
+// bilan soxta xabar yubora olardi. Shuning uchun har bir so'rovda Firebase
+// ID token tekshiriladi.
 
 const admin = require('firebase-admin');
+const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -13,51 +20,42 @@ if (!admin.apps.length) {
     })
   });
 }
-const db = admin.firestore();
-db.settings({ preferRest: true });
 
-async function notifyAdmin(text){
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if(!token || !chatId) return;
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text })
-  });
-}
+exports.handler = async function (event) {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
 
-exports.handler = async function () {
-  try{
-    const snap = await db.collection('credit_contracts').get();
-    const now = Date.now();
+  // --- Autentifikatsiya: faqat HAQIQIY admin huquqiga ega hisob foydalana oladi ---
+  try {
+    await requireAdmin(event, { feature: 'orders' });
+  } catch (err) {
+    return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };
+  }
 
-    for(const doc of snap.docs){
-      const data = doc.data();
-      if(data.contractStatus === 'cancelled' || data.contractStatus === 'completed') continue;
+  try {
+    const { chatId, number, status } = JSON.parse(event.body || '{}');
+    const token = process.env.CUSTOMER_BOT_TOKEN;
 
-      let changed = false;
-      const payments = [];
-      for(const p of data.payments){
-        if(p.status === 'pending' && p.dueDate < now && !p.overdueNotified){
-          changed = true;
-          await notifyAdmin(
-            `⏰ To'lov vaqti keldi!\n\n👤 ${data.customerName}\n📱 ${data.number}\n🗓 ${p.month}-oy to'lovi\n💰 ${data.monthlyPayment.toLocaleString('ru-RU')} so'm`
-          );
-          payments.push({ ...p, overdueNotified: true });
-        }else{
-          payments.push(p);
-        }
-      }
-
-      if(changed){
-        await db.collection('credit_contracts').doc(doc.id).update({ payments });
-      }
+    if (!token || !chatId) {
+      return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true }) };
     }
 
-    return { statusCode: 200, body: 'ok' };
-  }catch(err){
-    console.error('CHECK-CREDIT-PAYMENTS XATOSI:', err);
-    return { statusCode: 500, body: err.message };
+    const STATUS_MESSAGES = {
+      "Bog'lanildi": "📞 Operatorlarimiz siz bilan bog'landi.",
+      'Yakunlandi': "✅ Haridingiz uchun rahmat! Tez orada raqamingiz yetib boradi.",
+      'Bekor qilindi': "❌ Sizning buyurtmangiz bekor qilindi."
+    };
+    const text = `${STATUS_MESSAGES[status] || `📌 Buyurtmangiz holati: ${status}`}\n\n📱 ${number}`;
+
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text })
+    });
+
+    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
