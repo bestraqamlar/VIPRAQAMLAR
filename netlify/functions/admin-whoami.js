@@ -22,12 +22,17 @@ exports.handler = async function (event) {
     if (!idToken) {
       return { statusCode: 200, body: JSON.stringify({ ok: false, admin: false, error: "Token yo'q" }) };
     }
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    const decoded = await admin.auth().verifyIdToken(idToken, true);
     return {
       statusCode: 200,
       body: JSON.stringify({
         ok: true,
         admin: decoded.admin === true,
+        superAdmin: decoded.superAdmin === true,
+        // perms umuman yo'q (undefined) — eski/tizimdan oldingi, TO'LIQ
+        // huquqli admin degani (qarang: lib/adminAuth.js). null qilib
+        // yuboramiz, front-end shu holatni "hammasiga ruxsat" deb o'qiydi.
+        perms: decoded.perms || null,
         uid: decoded.uid,
         email: decoded.email || null
       })

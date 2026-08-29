@@ -28,7 +28,7 @@ exports.handler = async function (event) {
 
   // --- Autentifikatsiya: faqat HAQIQIY admin huquqiga ega hisob foydalana oladi ---
   try {
-    await requireAdmin(event);
+    await requireAdmin(event, { feature: 'orders' });
   } catch (err) {
     return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };
   }

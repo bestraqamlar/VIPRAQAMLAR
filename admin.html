@@ -152,21 +152,87 @@
     80%{transform:translateX(4px);}
   }
 
-  /* ---- Dashboard ---- */
-  #dashboard{display:none;animation:fadeSlideUp .4s ease both;}
-  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;}
-  .tab{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
-    padding:11px 6px;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:600;
-    transition:background-color .18s ease, border-color .18s ease, color .18s ease, transform .15s cubic-bezier(.34,1.56,.64,1);
+  /* ---- Dashboard shell: chap tomonda sidebar, yuqorida topbar ---- */
+  #dashboard{display:none;animation:fadeIn .3s ease both;}
+  .admin-shell{display:flex;align-items:stretch;min-height:100vh;position:relative;}
+
+  .sidebar{
+    width:234px;flex:none;display:flex;flex-direction:column;
+    background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border-right:1px solid var(--line);
+    position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;
+    z-index:40;transition:transform .3s cubic-bezier(.4,0,.2,1);
+    scrollbar-width:thin;
   }
-  .tab:hover{border-color:var(--amber);color:var(--text);}
-  .tab.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);transform:translateY(-1px);}
+  .sidebar::-webkit-scrollbar{width:5px;}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  .sidebar-logo{
+    display:flex;align-items:center;gap:9px;padding:20px 18px 16px;flex:none;
+    border-bottom:1px solid var(--line);margin-bottom:6px;
+  }
+  .sidebar-logo-dot{
+    width:8px;height:8px;border-radius:50%;background:var(--green);flex:none;
+    box-shadow:0 0 6px var(--green);animation:vpulse 1.6s ease-in-out infinite;
+  }
+  .sidebar-logo-text{font-family:'Space Mono',monospace;font-weight:700;font-size:13.5px;color:var(--amber);line-height:1.3;}
+  .sidebar-logo-text small{display:block;color:var(--muted);font-family:'Inter',sans-serif;font-weight:500;font-size:10.5px;margin-top:2px;}
+
+  .sidebar-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35;
+    opacity:0;transition:opacity .25s ease;
+  }
+
+  .tabs{display:flex;flex-direction:column;gap:2px;padding:6px 12px 20px;flex:1;overflow-x:hidden;}
+  .tab{
+    display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+    background:none;border:1px solid transparent;color:var(--muted);
+    padding:10px 12px;border-radius:10px;cursor:pointer;font-size:12.8px;font-weight:600;
+    position:relative;white-space:nowrap;
+    transition:background-color .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+  .tab-ico{width:18px;height:18px;flex:none;display:flex;align-items:center;justify-content:center;opacity:.8;transition:opacity .18s ease,filter .18s ease;}
+  .tab-ico svg{width:100%;height:100%;}
+  .tab-label{overflow:hidden;text-overflow:ellipsis;}
+  .tab:hover{background:rgba(255,255,255,.05);color:var(--text);}
+  .tab:hover .tab-ico{opacity:1;}
+  .tab.active{
+    background:linear-gradient(90deg, var(--amber-soft), rgba(255,176,0,.03));
+    color:var(--amber);box-shadow:inset 3px 0 0 var(--amber);
+  }
+  .tab.active .tab-ico{opacity:1;filter:drop-shadow(0 0 4px rgba(255,176,0,.45));}
+
+  .main-content{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{
+    display:flex;align-items:center;gap:12px;padding:15px 24px;
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;
+    background:rgba(11,18,32,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    animation:fadeSlideUp .3s ease both;
+  }
+  .sidebar-toggle{
+    display:none;flex:none;align-items:center;justify-content:center;
+    width:36px;height:36px;border-radius:9px;cursor:pointer;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    transition:border-color .18s ease, transform .15s ease;
+  }
+  .sidebar-toggle:hover{border-color:var(--amber);}
+  .sidebar-toggle:active{transform:scale(.92);}
+  .sidebar-toggle svg{width:18px;height:18px;}
+  .topbar-title{font-weight:800;font-size:15px;flex:1;min-width:0;}
+  .topbar-title small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:1px;}
+
+  .content-inner{padding:22px 24px 60px;max-width:1060px;}
+
   .pane{display:none;}
   .pane.active{display:block;}
 
-  @media (max-width:600px){
-    .tabs{grid-template-columns:repeat(2,1fr);}
+  @media (max-width:900px){
+    .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.4);}
+    .sidebar-toggle{display:flex;}
+    .admin-shell.sidebar-open .sidebar{transform:translateX(0);}
+    .admin-shell.sidebar-open .sidebar-overlay{display:block;opacity:1;}
+    .content-inner{padding:18px 16px 60px;}
+    .topbar{padding:13px 16px;}
   }
 
   .add-form{
@@ -573,7 +639,7 @@
   .settings-msg.ok{color:var(--green);}
   .settings-msg.bad{color:var(--red);}
 
-  .overview-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .overview-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
   .visitors-box{
     background:var(--panel);border:1px solid var(--line);border-radius:12px;
     padding:12px 16px;margin-bottom:18px;display:flex;flex-direction:column;gap:6px;
@@ -590,29 +656,30 @@
   .visitors-total b{color:var(--amber);font-size:13px;}
 
   .ov-card{
-    position:relative;overflow:hidden;
-    background:var(--panel);border:1px solid var(--line);border-radius:12px;
-    padding:14px 10px;text-align:center;
-    transition:transform .18s cubic-bezier(.34,1.56,.64,1), border-color .18s ease, box-shadow .2s ease;
+    position:relative;overflow:hidden;border-radius:16px;
+    padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px;
+    border:1px solid transparent;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
     opacity:0;animation:fadeSlideUp .4s ease forwards;
   }
-  .ov-card::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:2px;
-    background:linear-gradient(90deg, var(--amber), transparent);
-    opacity:0;transition:opacity .2s ease;
+  .ov-card:nth-child(1){animation-delay:.03s;background:linear-gradient(135deg,#3B78EE,#1E4FB8);}
+  .ov-card:nth-child(2){animation-delay:.09s;background:linear-gradient(135deg,#22C58B,#149368);}
+  .ov-card:nth-child(3){animation-delay:.15s;background:linear-gradient(135deg,#4A5B7C,#28324A);}
+  .ov-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.3);}
+  .ov-card-icon{
+    width:32px;height:32px;border-radius:9px;flex:none;
+    background:rgba(255,255,255,.18);color:#fff;
+    display:flex;align-items:center;justify-content:center;
   }
-  .ov-card:nth-child(1){animation-delay:.03s;}
-  .ov-card:nth-child(2){animation-delay:.09s;}
-  .ov-card:nth-child(3){animation-delay:.15s;}
-  .ov-card:hover{border-color:var(--amber);transform:translateY(-3px);box-shadow:0 8px 20px rgba(255,176,0,0.1);}
-  .ov-card:hover::before{opacity:1;}
+  .ov-card-icon svg{width:17px;height:17px;}
   .ov-card b{
-    display:block;font-family:'Space Mono',monospace;font-size:22px;color:var(--green);
-    margin-bottom:2px;
+    display:block;font-family:'Space Mono',monospace;font-size:23px;color:#fff;
+    margin-bottom:2px;line-height:1;
   }
-  .ov-card.ov-vip b{color:var(--amber);}
-  .ov-card span{font-size:11px;color:var(--muted);}
+  .ov-card span{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:600;}
   @media (max-width:480px){
+    .ov-card{padding:13px 12px 12px;gap:9px;}
+    .ov-card-icon{width:28px;height:28px;}
     .ov-card b{font-size:18px;}
     .ov-card span{font-size:9.5px;}
   }
@@ -650,7 +717,7 @@
 @media(max-width:640px){ .op-cred{grid-template-columns:1fr;} }
 
 /* ---- "Baza raqam" kuzatuvi bo'limi ---- */
-.wt-form{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:16px;}
+.wt-form{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;margin-bottom:16px;}
 .wt-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
 .wt-row label{font-size:12px;color:var(--muted);white-space:nowrap;}
 .wt-row select{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
@@ -658,28 +725,120 @@
 .wt-boxes{display:flex;gap:6px;flex-wrap:wrap;}
 .wt-box{width:38px;height:44px;text-align:center;font-size:16px;font-weight:700;
   border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);
-  color:inherit;font-family:'Space Mono',monospace,inherit;}
-.wt-box:focus{border-color:var(--amber,#FFB000);outline:none;}
+  color:inherit;font-family:'Space Mono',monospace,inherit;transition:border-color .15s ease,box-shadow .15s ease;}
+.wt-box:focus{border-color:var(--amber,#FFB000);outline:none;box-shadow:0 0 0 3px rgba(255,176,0,.18);}
 .wt-intervals{display:flex;gap:8px;flex-wrap:wrap;}
 .wt-interval-btn{padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.04);color:inherit;font-size:12.5px;cursor:pointer;}
-.wt-interval-btn.active{background:var(--amber,#FFB000);border-color:transparent;color:#0a1a12;font-weight:700;}
-.wt-confirm{background:var(--amber,#FFB000);color:#0a1a12;border:none;border-radius:9px;
-  padding:11px 20px;font-weight:800;font-size:13.5px;cursor:pointer;}
-.wt-confirm:disabled{opacity:.5;cursor:not-allowed;}
+  background:rgba(255,255,255,.04);color:inherit;font-size:12.5px;cursor:pointer;transition:transform .15s ease,background .15s ease,color .15s ease;}
+.wt-interval-btn.active{background:var(--amber,#FFB000);border-color:transparent;color:#0a1a12;font-weight:700;transform:scale(1.05);}
+.wt-confirm{background:linear-gradient(135deg,#FFC130,#FF8A00);color:#1a1200;border:none;border-radius:10px;
+  padding:12px 22px;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 10px 22px -10px rgba(255,138,0,.65);
+  transition:transform .15s ease,box-shadow .15s ease;}
+.wt-confirm:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 26px -8px rgba(255,138,0,.8);}
+.wt-confirm:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .wt-hint{color:var(--muted);font-size:11.5px;line-height:1.5;margin:0 0 12px;}
-.wt-list{display:flex;flex-direction:column;gap:8px;}
-.wt-item{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:10px;
-  padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-.wt-item.paused{opacity:.55;}
-.wt-item-main{display:flex;flex-direction:column;gap:3px;}
-.wt-item-num{font-family:'Space Mono',monospace,inherit;font-weight:700;font-size:14.5px;}
+
+/* Statistika kartalari */
+.wt-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px;}
+.wt-stat{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:12px;
+  padding:12px 14px;display:flex;flex-direction:column;gap:2px;animation:wtFadeIn .35s ease both;}
+.wt-stat b{font-size:21px;font-weight:800;line-height:1.15;}
+.wt-stat span{font-size:11px;color:var(--muted);}
+.wt-stat-active b{color:#33E28C;}
+.wt-stat-found b{color:#FFB000;}
+
+/* Ommaviy amallar paneli */
+.wt-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;
+  padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);}
+.wt-toolbar label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer;}
+.wt-toolbar input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber,#FFB000);cursor:pointer;}
+.wt-bulk-del{margin-left:auto;background:linear-gradient(135deg,#F0594B,#C0392B);color:#fff;border:none;
+  border-radius:9px;padding:8px 16px;font-weight:700;font-size:12.5px;cursor:pointer;
+  opacity:0;pointer-events:none;transform:scale(.9);transition:opacity .18s ease,transform .18s ease;}
+.wt-bulk-del.show{opacity:1;pointer-events:auto;transform:scale(1);}
+
+.wt-list{display:flex;flex-direction:column;gap:12px;}
+
+/* Kompaniya bo'yicha guruh (yig'ilgan holatda, bosilsa ochiladi) */
+.wt-group{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);
+  background:var(--card,#161a20);animation:wtFadeIn .35s ease both;}
+.wt-group-header{display:flex;align-items:center;gap:11px;padding:13px 16px;cursor:pointer;
+  user-select:none;transition:filter .15s ease;}
+.wt-group-header:hover{filter:brightness(1.1);}
+.wt-group-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);}
+.wt-group-name{font-weight:800;font-size:14px;flex:1;}
+.wt-group-count{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;
+  background:rgba(255,255,255,.12);white-space:nowrap;}
+.wt-group-chevron{width:18px;height:18px;flex:none;opacity:.7;transition:transform .25s ease;}
+.wt-group.open .wt-group-chevron{transform:rotate(180deg);}
+.wt-group-body{max-height:0;overflow:hidden;transition:max-height .32s ease;}
+.wt-group.open .wt-group-body{max-height:3000px;}
+.wt-group-body-inner{display:flex;flex-direction:column;gap:8px;padding:2px 14px 14px;}
+
+.wt-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;
+  padding:11px 13px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+  transition:background .15s ease,border-color .15s ease;}
+.wt-item:hover{background:rgba(255,255,255,.055);}
+.wt-item.selected{border-color:var(--amber,#FFB000);background:rgba(255,176,0,.09);}
+.wt-item.paused{opacity:.5;}
+.wt-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--amber,#FFB000);cursor:pointer;flex:none;}
+.wt-item-main{display:flex;flex-direction:column;gap:3px;flex:1;min-width:140px;}
+.wt-item-num{font-family:'Space Mono',monospace,inherit;font-weight:700;font-size:14.5px;
+  display:flex;align-items:center;gap:7px;}
+.wt-live-dot{width:7px;height:7px;border-radius:50%;background:#33E28C;flex:none;animation:wtPulse 1.7s ease-in-out infinite;}
+.wt-item.paused .wt-live-dot{background:#666;animation:none;}
 .wt-item-meta{font-size:11.5px;color:var(--muted);}
 .wt-item-actions{display:flex;gap:6px;}
 .wt-item-actions button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:inherit;
-  border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;}
-.wt-item-actions button.wt-del{color:#c0392b;}
+  border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;transition:transform .12s ease,background .12s ease;}
+.wt-item-actions button:hover{transform:translateY(-1px);background:rgba(255,255,255,.1);}
+.wt-item-actions button.wt-del{color:#e74c3c;}
 .wt-empty{color:var(--muted);font-size:13px;padding:16px;text-align:center;}
+
+@keyframes wtFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+@keyframes wtPulse{0%,100%{box-shadow:0 0 0 0 rgba(51,226,140,.5);}50%{box-shadow:0 0 0 5px rgba(51,226,140,0);}}
+
+/* ---- "Boshqaruv" (adminlarni boshqarish) bo'limi ---- */
+.mgmt-hint{color:var(--muted);font-size:11.5px;line-height:1.6;margin:0 0 14px;
+  background:linear-gradient(135deg, rgba(255,176,0,.09), rgba(255,176,0,.02));
+  border:1px solid rgba(255,176,0,.22);border-radius:12px;padding:12px 14px;}
+.mgmt-form{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  padding:16px;margin:12px 0 16px;animation:wtFadeIn .3s ease both;}
+.mgmt-note{color:var(--muted);font-size:11px;margin:2px 0 14px;}
+.mgmt-perms-label{font-size:12.5px;color:var(--text);font-weight:700;margin-bottom:8px;}
+.mgmt-perms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.mgmt-perm-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:9px 11px;cursor:pointer;
+  transition:border-color .15s ease,background .15s ease;font-size:12px;}
+.mgmt-perm-item:hover{border-color:var(--amber);}
+.mgmt-perm-item input{width:15px;height:15px;accent-color:var(--amber,#FFB000);cursor:pointer;flex:none;}
+.mgmt-perm-item.checked{border-color:var(--amber);background:rgba(255,176,0,.08);}
+.mgmt-result{margin-top:14px;padding:14px;border-radius:12px;background:rgba(51,226,140,.09);
+  border:1px solid rgba(51,226,140,.3);font-size:12.5px;line-height:1.7;animation:wtFadeIn .3s ease both;}
+.mgmt-result b{font-family:'Space Mono',monospace;color:var(--green);}
+
+.mgmt-list{display:flex;flex-direction:column;gap:10px;}
+.mgmt-admin-card{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:13px;
+  padding:14px 16px;animation:wtFadeIn .3s ease both;}
+.mgmt-admin-card.paused{opacity:.55;}
+.mgmt-admin-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.mgmt-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#FF7A00);
+  display:flex;align-items:center;justify-content:center;color:#1a1200;font-weight:800;font-size:13px;flex:none;}
+.mgmt-admin-name{font-weight:800;font-size:14px;flex:1;min-width:100px;}
+.mgmt-admin-handle{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+.mgmt-badge{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.mgmt-badge.on{background:rgba(51,226,140,.15);color:var(--green);}
+.mgmt-badge.off{background:rgba(231,76,60,.15);color:#e74c3c;}
+.mgmt-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.mgmt-chip{font-size:10.5px;padding:3px 9px;border-radius:20px;background:rgba(255,176,0,.12);color:var(--amber);}
+.mgmt-chip.mgmt-chip-empty{background:rgba(255,255,255,.06);color:var(--muted);}
+.mgmt-admin-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.mgmt-admin-actions button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:inherit;
+  border-radius:8px;padding:7px 11px;cursor:pointer;font-size:11.5px;transition:transform .12s ease,background .12s ease;}
+.mgmt-admin-actions button:hover{transform:translateY(-1px);background:rgba(255,255,255,.1);}
+.mgmt-admin-actions button.mgmt-danger{color:#e74c3c;}
+.mgmt-admin-actions button.mgmt-primary{border-color:var(--amber);color:var(--amber);}
 </style>
 </head>
 <body>
@@ -690,10 +849,10 @@
   <div class="login-orb login-orb-3"></div>
   <div class="login-screen" id="loginScreen">
     <h1>VIP RAQAMLAR (070.uz)</h1>
-    <p>Admin panelga kirish uchun email va parolni kiriting</p>
+    <p>Admin panelga kirish uchun login (ism/email/telefon) va parolni kiriting</p>
     <div class="login-field">
-      <input type="email" id="usernameInput" placeholder="email@070.uz"
-             inputmode="email" autocomplete="username">
+      <input type="text" id="usernameInput" placeholder="Login (ism, email yoki telefon)"
+             autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="login-field">
       <input type="password" id="passwordInput" placeholder="Parol" autocomplete="current-password">
@@ -703,21 +862,63 @@
   </div>
 </div>
 
-<div class="wrap" id="dashboard">
-  <header>
-    <div class="logo">VIP RAQAMLAR<span> — Admin</span></div>
-    <div class="header-actions">
-      <button class="bell-btn" id="bellBtn" aria-label="Yangi buyurtmalar" title="Yangi buyurtmalar">
-        🔔<span class="bell-badge" id="bellBadge">0</span>
-      </button>
-      <button id="logoutBtn">Chiqish</button>
+<div id="dashboard">
+<div class="admin-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-dot"></span>
+      <span class="sidebar-logo-text">VIP RAQAMLAR<small>Admin panel</small></span>
     </div>
-  </header>
+    <nav class="tabs">
+      <button class="tab" data-tab="management" id="mgmtTabBtn" style="display:none;"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M15.8 13.8c2.3.2 4.2 2.1 4.2 5.2"/></svg></span><span class="tab-label">Boshqaruv</span></button>
+      <button class="tab active" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
+      <button class="tab" data-tab="ai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="10" rx="3"/><path d="M12 5v4M9 14h.01M15 14h.01"/><circle cx="12" cy="4" r="1"/></svg></span><span class="tab-label">AI Yordamchi</span></button>
+      <button class="tab" data-tab="instagram"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8 6l1.4-2h5.2L16 6"/></svg></span><span class="tab-label">Instagram AI</span></button>
+      <button class="tab" data-tab="telegramai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></span><span class="tab-label">Telegram AI</span></button>
+      <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
+      <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
+      <button class="tab" data-tab="orders"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="tab-label">Buyurtmalar</span></button>
+      <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
+      <button class="tab" data-tab="credit"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><span class="tab-label">Kredit</span></button>
+      <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
+      <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
+      <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
+      <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
+      <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
+    </nav>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Menyu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="topbar-title">Boshqaruv paneli<small>VIP RAQAMLAR — Admin</small></div>
+      <div class="header-actions">
+        <button class="bell-btn" id="bellBtn" aria-label="Yangi buyurtmalar" title="Yangi buyurtmalar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+          <span class="bell-badge" id="bellBadge">0</span>
+        </button>
+        <button id="logoutBtn">Chiqish</button>
+      </div>
+    </div>
+
+    <div class="content-inner">
 
   <div class="overview-row" id="overviewRow">
-    <div class="ov-card"><b id="ovTotalNumbers">0</b><span>jami raqam</span></div>
-    <div class="ov-card ov-vip"><b id="ovVipNumbers">0</b><span>VIP raqam</span></div>
-    <div class="ov-card"><b id="ovTotalOrders">0</b><span>jami buyurtma</span></div>
+    <div class="ov-card">
+      <div class="ov-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></div>
+      <b id="ovTotalNumbers">0</b><span>jami raqam</span>
+    </div>
+    <div class="ov-card ov-vip">
+      <div class="ov-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></div>
+      <b id="ovVipNumbers">0</b><span>VIP raqam</span>
+    </div>
+    <div class="ov-card">
+      <div class="ov-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></div>
+      <b id="ovTotalOrders">0</b><span>jami buyurtma</span>
+    </div>
   </div>
 
   <div class="visitors-box">
@@ -730,21 +931,38 @@
     </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="numbers">Raqamlar</button>
-    <button class="tab" data-tab="ai">🤖 AI Yordamchi</button>
-    <button class="tab" data-tab="instagram">📸 Instagram AI</button>
-    <button class="tab" data-tab="telegramai">💬 Telegram AI</button>
-    <button class="tab" data-tab="videos">🎥 Video sharhlar</button>
-    <button class="tab" data-tab="premiumvideo">🎬 Premium video</button>
-    <button class="tab" data-tab="orders">Buyurtmalar</button>
-    <button class="tab" data-tab="zakaz">📥 Zakaz</button>
-    <button class="tab" data-tab="credit">Kredit</button>
-    <button class="tab" data-tab="sessions">Seanslar</button>
-    <button class="tab" data-tab="styles">Uslublar</button>
-    <button class="tab" data-tab="operators">🔌 Operatorlar</button>
-    <button class="tab" data-tab="watch">🎯 Baza raqam</button>
-    <button class="tab" data-tab="settings">Sozlamalar</button>
+  <div class="pane" id="paneManagement">
+    <div class="mgmt-hint">
+      👑 Bu bo'lim faqat ENG KATTA (bosh) adminga ko'rinadi. Bu yerda yangi adminlar
+      qo'sha olasiz — ular email emas, faqat O'ZIGA BERGAN ISM va PAROL bilan kiradi.
+      Har bir yangi adminga qaysi bo'limlar kerak bo'lsa, faqat o'shalarni yoqib bering —
+      qolganlari unga umuman ko'rinmaydi va serverda ham berkitilgan bo'ladi.
+    </div>
+
+    <button type="button" class="wt-confirm" id="mgmtAddToggleBtn">+ Yangi admin qo'shish</button>
+
+    <div class="mgmt-form" id="mgmtAddForm" style="display:none;">
+      <div class="wt-row">
+        <label for="mgmtName">Ismi:</label>
+        <input type="text" id="mgmtName" placeholder="Masalan: Aziz Karimov" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:13px;">
+      </div>
+      <div class="wt-row">
+        <label for="mgmtPassword">Paroli:</label>
+        <input type="text" id="mgmtPassword" placeholder="Kamida 8 belgi, harf + raqam" autocomplete="off" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:13px;font-family:'Space Mono',monospace;">
+      </div>
+      <p class="mgmt-note">Bu parolni o'zingiz o'ylab kiriting va yangi adminga siz aytasiz — biz uni hech qayerda ko'rsatmaymiz.</p>
+
+      <div class="mgmt-perms-label">Qaysi bo'limlarga ruxsat berilsin:</div>
+      <div class="mgmt-perms-grid" id="mgmtPermsGrid"></div>
+
+      <button type="button" class="wt-confirm" id="mgmtCreateBtn" style="margin-top:12px;">✅ Adminni yaratish</button>
+      <div class="ig-save-msg" id="mgmtCreateMsg"></div>
+      <div class="mgmt-result" id="mgmtResultBox" style="display:none;"></div>
+    </div>
+
+    <div class="mgmt-list" id="mgmtAdminsList">
+      <div class="wt-empty">Yuklanmoqda...</div>
+    </div>
   </div>
 
   <div class="pane active" id="paneNumbers">
@@ -960,7 +1178,6 @@
         <div class="orders-list" id="customOrdersList"></div>
       </div>
     </div>
-    </div>
   </div>
 
   <div class="pane" id="paneCredit">
@@ -1014,6 +1231,7 @@
   </div>
 
   <div class="pane" id="paneSessions">
+    <div class="mgmt-hint" id="sessionsFilterBanner" style="display:none;"></div>
     <div class="sessions-list" id="sessionsList"></div>
   </div>
 
@@ -1171,6 +1389,13 @@
       <div class="ig-save-msg" id="wtSaveMsg"></div>
     </div>
 
+    <div class="wt-stats" id="wtStats"></div>
+
+    <div class="wt-toolbar">
+      <label><input type="checkbox" id="wtSelectAll"> Hammasini belgilash</label>
+      <button type="button" class="wt-bulk-del" id="wtBulkDelBtn">🗑 Belgilanganlarni o'chirish (<span id="wtBulkCount">0</span>)</button>
+    </div>
+
     <div class="wt-list" id="wtList">
       <div class="wt-empty">Hozircha kuzatuv yo'q</div>
     </div>
@@ -1296,7 +1521,11 @@
       <div class="settings-msg" id="installmentRatesMsg"></div>
     </div>
   </div>
-</div>
+
+    </div><!-- /content-inner -->
+  </div><!-- /main-content -->
+</div><!-- /admin-shell -->
+</div><!-- /dashboard -->
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
@@ -1545,15 +1774,26 @@ function detectDevice(ua){
 
   return `${os} — ${browser}`;
 }
-async function recordSession(){
+// Har bir kirish/chiqish ALOHIDA yozuv sifatida saqlanadi (type: 'login'
+// yoki 'logout') — shu bilan "Seanslar" bo'limida qaysi admin qachon
+// kirib, qachon chiqqani ko'rinadi. uid — o'sha adminning O'ZI (Firestore
+// qoidasi buni tekshiradi, boshqa admin nomidan yozib bo'lmaydi).
+async function recordSessionEvent(type){
   try{
+    const user = firebase.auth().currentUser;
+    if(!user) return;
     await db.collection('admin_sessions').add({
+      uid: user.uid,
+      name: (window.CURRENT_ADMIN_NAME || user.email || ''),
+      type,
       device: detectDevice(navigator.userAgent),
       loginAt: new Date().toLocaleString('uz-UZ'),
       loginAtSort: Date.now()
     });
   }catch(e){ console.error('Seansni yozishda xato:', e); }
 }
+function recordSession(){ return recordSessionEvent('login'); }
+function recordLogout(){ return recordSessionEvent('logout'); }
 
 /* ---- Login ---- */
 const loginScreen  = document.getElementById('loginBg');
@@ -1571,7 +1811,8 @@ let sessionTimer = null;
 
 function startSessionTimer(){
   if(sessionTimer) clearTimeout(sessionTimer);
-  sessionTimer = setTimeout(()=>{
+  sessionTimer = setTimeout(async ()=>{
+    await recordLogout(); // hali tizimga kirgan holatda — signOut()dan OLDIN yozilishi shart
     firebase.auth().signOut();
     if(ordersUnsubscribe){ ordersUnsubscribe(); ordersUnsubscribe = null; }
     dashboard.style.display = 'none';
@@ -1595,6 +1836,23 @@ function stopSessionTimer(){
    o'zgartirilmaydi (avvaldan yaratilgan adminlar buzilmasin). */
 const ADMIN_EMAIL_DOMAIN = '@070.uz';
 
+// "Boshqaruv" orqali yaratilgan sub-adminlar EMAIL emas, faqat ISM
+// (login) bilan kiradi. Bu ism orqa fonda AYNAN shu ko'rinishda ichki
+// email'ga aylantiriladi — netlify/functions/admin-manage-admins.js
+// dagi slugify() bilan BIR XIL mantiq (aks holda login topilmaydi).
+const SUBADMIN_EMAIL_DOMAIN = '@ichki.vipraqamlar-admin.uz';
+const CYRILLIC_MAP_LOGIN = {
+  'ў':'u','қ':'q','ғ':'g','ҳ':'h','ш':'sh','ч':'ch','ё':'yo','я':'ya',
+  'ю':'yu','ц':'ts','й':'y','х':'x','ж':'j','э':'e'
+};
+function slugifyLoginName(name){
+  let s = String(name || '').trim().toLowerCase();
+  s = s.replace(/[ўқғҳшчёяюцйхжэ]/g, ch => CYRILLIC_MAP_LOGIN[ch] || ch);
+  s = s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+  s = s.replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').replace(/\.{2,}/g, '.');
+  return s || 'admin';
+}
+
 function loginToEmail(raw){
   const v = (raw || '').trim();
   if(v.includes('@')) return v;                 // email kiritildi — tegmaymiz
@@ -1603,6 +1861,14 @@ function loginToEmail(raw){
   if(digits.length === 9) digits = '998' + digits;        // 901234567
   else if(digits.length === 12 && digits.startsWith('998')) { /* to'g'ri */ }
   else if(digits.length === 13 && digits.startsWith('9998')) digits = digits.slice(1);
+
+  // Kiritilgan matnda harflar bor (faqat raqam emas) — demak bu telefon
+  // emas, "Boshqaruv"da berilgan ISM (login). Sub-admin ichki email'iga
+  // aylantiramiz.
+  if(/[a-zA-Zа-яА-ЯёЁўқғҳЎҚҒҲ]/.test(v)){
+    return slugifyLoginName(v) + SUBADMIN_EMAIL_DOMAIN;
+  }
+
   return digits ? digits + ADMIN_EMAIL_DOMAIN : v;
 }
 
@@ -1615,22 +1881,23 @@ async function doLogin(){
     loginScreen.style.display = 'none';
     dashboard.style.display = 'block';
     await loadLastSeen();
+    await checkAdminClaimStatus(); // ism va ruxsatlarni birinchi o'rnatamiz — Seanslar yozuvi to'g'ri ism bilan yozilsin
     recordSession();
     refreshNumbers();
     refreshOrders();
     startSessionTimer();
     startVisitorTracking();
-    checkAdminClaimStatus();
   }catch(err){
     // Firebase'ning haqiqiy sababini ko'rsatamiz — "noto'g'ri" degan umumiy
     // matn bilan nima bo'lganini aniqlab bo'lmas edi (parolmi, emailmi,
     // tarmoqmi, App Check bloklaganmi).
     const CODES = {
       'auth/invalid-email':        "Email formati noto'g'ri — masalan: admin@070.uz",
-      'auth/user-not-found':       'Bunday email bilan admin topilmadi',
+      'auth/user-not-found':       "Bunday login bilan admin topilmadi — ismni to'g'ri yozganingizni tekshiring",
       'auth/wrong-password':       "Parol noto'g'ri",
-      'auth/invalid-credential':   "Email yoki parol noto'g'ri",
-      'auth/invalid-login-credentials': "Email yoki parol noto'g'ri",
+      'auth/invalid-credential':   "Login yoki parol noto'g'ri",
+      'auth/invalid-login-credentials': "Login yoki parol noto'g'ri",
+      'auth/user-disabled':        "Bu admin hisobi to'xtatilgan — bosh admin bilan bog'laning",
       'auth/too-many-requests':    'Juda ko\'p urinish — biroz kuting',
       'auth/network-request-failed': 'Tarmoq xatosi — internet yoki Firebase bloklangan',
       'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)'
@@ -1650,6 +1917,60 @@ async function doLogin(){
    firestore.rules endi shu huquqni talab qiladi. Ekranda katta,
    ko'zga tashlanadigan ogohlantirish ko'rsatamiz — aks holda admin
    nega hech narsa yuklanmayotganini tushunmay qolishi mumkin edi. */
+// Joriy tizimga kirgan admin haqida ma'lumot — boshqa joylarda (masalan
+// seans yozuvlarida ism ko'rsatish uchun) ishlatiladi.
+window.CURRENT_ADMIN_NAME = '';
+
+/* Sidebar'dagi bo'limlarni joriy adminning HAQIQIY (server tomonidan
+   tasdiqlangan) ruxsatlariga qarab ko'rsatadi/yashiradi. Bu — shunchaki
+   "chiroyli" UI emas: haqiqiy himoya firestore.rules va Netlify
+   funksiyalarida (requireAdmin feature tekshiruvi) bo'ladi, bu yerda esa
+   ruxsati yo'q admin uchun tugmalarni umuman ko'rsatmay, chalkashlikni
+   oldini olamiz. */
+function applyAccessControl(whoami){
+  const isSuper = whoami.superAdmin === true;
+  const perms = whoami.perms; // null = eski/cheklovsiz admin
+
+  const mgmtBtn = document.getElementById('mgmtTabBtn');
+  if(mgmtBtn) mgmtBtn.style.display = isSuper ? 'flex' : 'none';
+
+  if(!isSuper && perms){
+    document.querySelectorAll('.tab[data-tab]').forEach(tab => {
+      const key = tab.dataset.tab;
+      if(key === 'management') return; // allaqachon yashirilgan
+      const allowed = perms[key] === 1 || perms[key] === true;
+      tab.style.display = allowed ? '' : 'none';
+    });
+    // Agar hozir faol bo'lim (odatda "Raqamlar") shu adminga yopiq bo'lsa —
+    // ko'rinadigan birinchi bo'limga avtomatik o'tkazamiz. MUHIM: faqat
+    // tugmani yashirish YETARLI EMAS — pane (bo'lim tarkibi) alohida
+    // "active" bo'lib qoladi va tugma yashirilgan bo'lsa ham ko'rinib
+    // qolishi mumkin edi, shu sabab bu yerda ANIQ boshqaramiz.
+    const activeTab = document.querySelector('.tab.active');
+    if(activeTab && activeTab.style.display === 'none'){
+      const firstVisible = Array.from(document.querySelectorAll('.tab[data-tab]')).find(t => t.style.display !== 'none');
+      if(firstVisible){
+        firstVisible.click();
+      } else {
+        // Hech qanday bo'limga ruxsat yo'q — barcha panellarni yashirib,
+        // tushunarli xabar ko'rsatamiz (aks holda "Raqamlar" bo'limi
+        // tugmasi yashirin bo'lsa ham tarkibi ko'rinib qolar edi).
+        document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+        const contentInner = document.querySelector('.content-inner');
+        let noAccessBox = document.getElementById('noAccessBox');
+        if(!noAccessBox && contentInner){
+          noAccessBox = document.createElement('div');
+          noAccessBox.id = 'noAccessBox';
+          noAccessBox.className = 'wt-empty';
+          noAccessBox.style.cssText = 'margin-top:20px;padding:30px;';
+          noAccessBox.textContent = "Hozircha sizga hech qanday bo'limga ruxsat berilmagan. Bosh admin bilan bog'laning.";
+          contentInner.appendChild(noAccessBox);
+        }
+      }
+    }
+  }
+}
+
 async function checkAdminClaimStatus(){
   try{
     const idToken = await firebase.auth().currentUser.getIdToken();
@@ -1662,11 +1983,15 @@ async function checkAdminClaimStatus(){
       banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;padding:14px 16px;text-align:center;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3);';
       banner.textContent = "⚠️ Diqqat: bu hisobda hali ADMIN huquqi (custom claim) yo'q — buyurtmalar, raqamlar va boshqa ma'lumotlar YUKLANMAYDI. admin-grant-role.js orqali huquq bering, so'ng qayta tizimga kiring.";
       document.body.appendChild(banner);
+      return;
     }
+    window.CURRENT_ADMIN_NAME = (firebase.auth().currentUser && firebase.auth().currentUser.displayName) || data.email || '';
+    applyAccessControl(data);
   }catch(e){ console.error('Admin huquqi tekshirilmadi:', e); }
 }
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   stopSessionTimer();
+  await recordLogout(); // hali tizimga kirgan holatda — signOut()dan OLDIN yozilishi shart
   if(ordersUnsubscribe){ ordersUnsubscribe(); ordersUnsubscribe = null; }
   if(visitorTrackingTimer){ clearInterval(visitorTrackingTimer); visitorTrackingTimer = null; }
   await firebase.auth().signOut();
@@ -1680,7 +2005,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1688,6 +2013,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     tab.classList.add('active');
     document.getElementById('pane' + TAB_PANE_MAP[tab.dataset.tab]).classList.add('active');
 
+    if(tab.dataset.tab === 'management'){ loadAdminsList(); }
     if(tab.dataset.tab === 'orders'){ markOrdersSeen(); }
     if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
@@ -1702,8 +2028,22 @@ document.querySelectorAll('.tab').forEach(tab=>{
       const dateEl = document.getElementById('crStartDate');
       if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
     }
+
+    // Mobil ekranda menyudan bo'lim tanlansa, sidebar avtomatik yopiladi
+    const shellEl = document.querySelector('.admin-shell');
+    if(shellEl) shellEl.classList.remove('sidebar-open');
   });
 });
+
+/* ---- Sidebar (chap menyu) — mobil ekranda ochish/yopish ---- */
+(function(){
+  const toggleBtn = document.getElementById('sidebarToggleBtn');
+  const overlay = document.getElementById('sidebarOverlay');
+  const shellEl = document.querySelector('.admin-shell');
+  if(!toggleBtn || !shellEl) return;
+  toggleBtn.addEventListener('click', () => shellEl.classList.toggle('sidebar-open'));
+  if(overlay) overlay.addEventListener('click', () => shellEl.classList.remove('sidebar-open'));
+})();
 
 /* ---- Login/parolni almashtirish ---- */
 document.getElementById('saveCredentialsBtn').addEventListener('click', async ()=>{
@@ -2501,22 +2841,46 @@ document.getElementById('siteFontSelect').addEventListener('change', async (e)=>
 
 /* ---- Seanslar ro'yxati ---- */
 const sessionsList = document.getElementById('sessionsList');
+// "Boshqaruv"dan biror adminning "Seanslari" tugmasi bosilsa, shu ikkalasi
+// o'rnatiladi va faqat o'sha adminning kirish/chiqish tarixi ko'rsatiladi.
+let sessionsFilterUid = null;
+let sessionsFilterName = null;
+
 async function refreshSessions(){
   sessionsList.innerHTML = `<div class="empty-admin">Yuklanmoqda...</div>`;
+  const banner = document.getElementById('sessionsFilterBanner');
+  if(sessionsFilterUid){
+    banner.style.display = 'block';
+    banner.innerHTML = `🔎 Faqat <b>${escapeHtml(sessionsFilterName || '')}</b> ning kirish/chiqish tarixi ko'rsatilmoqda. <a href="#" id="sessionsClearFilter" style="color:var(--amber);">Hammasini ko'rsatish</a>`;
+    const clearLink = document.getElementById('sessionsClearFilter');
+    if(clearLink) clearLink.addEventListener('click', (e)=>{ e.preventDefault(); sessionsFilterUid = null; sessionsFilterName = null; refreshSessions(); });
+  } else {
+    banner.style.display = 'none';
+  }
+
   try{
-    const snap = await db.collection('admin_sessions').orderBy('loginAtSort','desc').limit(50).get();
-    const sessions = snap.docs.map(doc => doc.data());
+    const snap = await db.collection('admin_sessions').orderBy('loginAtSort','desc').limit(100).get();
+    let sessions = snap.docs.map(doc => doc.data());
+    if(sessionsFilterUid) sessions = sessions.filter(s => s.uid === sessionsFilterUid);
+    sessions = sessions.slice(0, 50);
     if(sessions.length === 0){
       sessionsList.innerHTML = `<div class="empty-admin">Hali kirish qayd etilmagan.</div>`;
       return;
     }
-    sessionsList.innerHTML = sessions.map((s, i) => `
+    sessionsList.innerHTML = sessions.map((s, i) => {
+      const isLogout = s.type === 'logout';
+      const tag = isLogout
+        ? '<span class="mgmt-badge off" style="margin-right:6px;">Chiqdi</span>'
+        : '<span class="mgmt-badge on" style="margin-right:6px;">Kirdi</span>';
+      const who = s.name ? `<b style="color:var(--text);">${escapeHtml(s.name)}</b> — ` : '';
+      return `
       <div class="session-row">
         <span class="sr-index">${i + 1}</span>
-        <span class="sr-device">${escapeHtml(s.device)}</span>
+        <span class="sr-device">${tag}${who}${escapeHtml(s.device)}</span>
         <span class="sr-time">${escapeHtml(s.loginAt)}</span>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }catch(err){
     sessionsList.innerHTML = `<div class="empty-admin">Bazaga ulanishda xato.</div>`;
     console.error(err);
@@ -3037,6 +3401,157 @@ function wtFormatTime(ms){
   return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 const WT_INTERVAL_LABELS = {1:'1 daqiqa', 3:'3 daqiqa', 5:'5 daqiqa', 30:'30 daqiqa', 60:'1 soat', 120:'2 soat'};
+// Har bir kompaniya uchun rang va belgi — guruh sarlavhalarini ajratib turadi
+const WT_OPERATOR_META = {
+  Beeline:   { color: '#F2A93B', icon: '🟡' },
+  Ucell:     { color: '#9B59B6', icon: '🟣' },
+  Humans:    { color: '#E67E22', icon: '🟠' },
+  Mobiuz:    { color: '#E24C4C', icon: '🔴' },
+  Perfektum: { color: '#16A085', icon: '🟢' }
+};
+function wtOpMeta(op){ return WT_OPERATOR_META[op] || { color: '#8892A6', icon: '📶' }; }
+
+let wtWatchesCache = [];
+const wtSelected = new Set();
+const wtOpenGroups = new Set();
+
+function wtUpdateBulkBar(){
+  document.getElementById('wtBulkCount').textContent = wtSelected.size;
+  document.getElementById('wtBulkDelBtn').classList.toggle('show', wtSelected.size > 0);
+  const selectAll = document.getElementById('wtSelectAll');
+  selectAll.checked = wtWatchesCache.length > 0 && wtSelected.size === wtWatchesCache.length;
+}
+
+function wtRenderStats(watches){
+  const stats = document.getElementById('wtStats');
+  const total = watches.length;
+  const active = watches.filter(w => w.active).length;
+  const paused = total - active;
+  const found = watches.filter(w => w.lastFoundAt).length;
+  stats.innerHTML = `
+    <div class="wt-stat"><b>${total}</b><span>jami kuzatuv</span></div>
+    <div class="wt-stat wt-stat-active"><b>${active}</b><span>faol</span></div>
+    <div class="wt-stat"><b>${paused}</b><span>to'xtatilgan</span></div>
+    <div class="wt-stat wt-stat-found"><b>${found}</b><span>topilgan</span></div>
+  `;
+}
+
+function wtRenderGroups(watches){
+  const list = document.getElementById('wtList');
+  if(watches.length === 0){
+    list.innerHTML = '<div class="wt-empty">Hozircha kuzatuv yo\'q</div>';
+    return;
+  }
+  const byOp = {};
+  watches.forEach(w => {
+    if(!byOp[w.operator]) byOp[w.operator] = [];
+    byOp[w.operator].push(w);
+  });
+  const opNames = Object.keys(byOp).sort((a,b) => byOp[b].length - byOp[a].length);
+
+  list.innerHTML = opNames.map(op => {
+    const items = byOp[op];
+    const meta = wtOpMeta(op);
+    const isOpen = wtOpenGroups.has(op);
+    const activeCount = items.filter(w => w.active).length;
+    return `
+      <div class="wt-group ${isOpen ? 'open' : ''}">
+        <div class="wt-group-header" data-op="${escapeHtml(op)}" style="background:linear-gradient(90deg, ${meta.color}26, transparent);">
+          <div class="wt-group-icon" style="background:${meta.color}30;color:${meta.color};">${meta.icon}</div>
+          <div class="wt-group-name" style="color:${meta.color};">${escapeHtml(op)}</div>
+          <div class="wt-group-count"><b>${activeCount}</b>/${items.length} faol</div>
+          <svg class="wt-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="wt-group-body">
+          <div class="wt-group-body-inner">
+            ${items.map(w => `
+              <div class="wt-item ${w.active ? '' : 'paused'} ${wtSelected.has(w.id) ? 'selected' : ''}" data-id="${escapeHtml(w.id)}">
+                <input type="checkbox" class="wt-item-check" data-id="${escapeHtml(w.id)}" ${wtSelected.has(w.id) ? 'checked' : ''}>
+                <div class="wt-item-main">
+                  <div class="wt-item-num"><span class="wt-live-dot"></span>${escapeHtml(wtFormatBoxes(w.boxes))}</div>
+                  <div class="wt-item-meta">
+                    ⏱ ${escapeHtml(WT_INTERVAL_LABELS[w.intervalMinutes] || (w.intervalMinutes + ' daq'))}
+                    · so'nggi tekshiruv: ${wtFormatTime(w.lastCheckedAt)}
+                    ${w.notifiedCount ? " · xabar qilingan: " + w.notifiedCount + " ta" : ''}
+                    ${w.lastFoundAt ? " · oxirgi topilgan: " + wtFormatTime(w.lastFoundAt) : ''}
+                    ${!w.active ? " · <b style=\"color:#e74c3c;\">to'xtatilgan</b>" : ''}
+                  </div>
+                </div>
+                <div class="wt-item-actions">
+                  <button type="button" class="wt-toggle" data-id="${escapeHtml(w.id)}" data-active="${w.active ? '0' : '1'}" title="${w.active ? "To'xtatish" : 'Davom ettirish'}">${w.active ? '⏸' : '▶'}</button>
+                  <button type="button" class="wt-del" data-id="${escapeHtml(w.id)}" title="O'chirish">🗑</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('.wt-group-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const op = hdr.dataset.op;
+      const group = hdr.closest('.wt-group');
+      if(wtOpenGroups.has(op)){ wtOpenGroups.delete(op); group.classList.remove('open'); }
+      else { wtOpenGroups.add(op); group.classList.add('open'); }
+    });
+  });
+
+  list.querySelectorAll('.wt-item-check').forEach(chk => {
+    chk.addEventListener('click', (e) => e.stopPropagation());
+    chk.addEventListener('change', () => {
+      const id = chk.dataset.id;
+      if(chk.checked) wtSelected.add(id); else wtSelected.delete(id);
+      chk.closest('.wt-item').classList.toggle('selected', chk.checked);
+      wtUpdateBulkBar();
+    });
+  });
+
+  list.querySelectorAll('.wt-toggle').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      btn.disabled = true;
+      try{
+        await wtCall('toggle', { id: btn.dataset.id, active: btn.dataset.active === '1' });
+        loadWatchList();
+      }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+    });
+  });
+  list.querySelectorAll('.wt-del').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      if(!confirm("Bu kuzatuvni butunlay o'chirasizmi?")) return;
+      btn.disabled = true;
+      try{
+        await wtCall('delete', { id: btn.dataset.id });
+        wtSelected.delete(btn.dataset.id);
+        loadWatchList();
+      }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+    });
+  });
+}
+
+document.getElementById('wtSelectAll').addEventListener('change', (e)=>{
+  if(e.target.checked){ wtWatchesCache.forEach(w => wtSelected.add(w.id)); }
+  else { wtSelected.clear(); }
+  wtRenderGroups(wtWatchesCache);
+  wtUpdateBulkBar();
+});
+
+document.getElementById('wtBulkDelBtn').addEventListener('click', async ()=>{
+  const ids = Array.from(wtSelected);
+  if(ids.length === 0) return;
+  if(!confirm(`${ids.length} ta kuzatuvni butunlay o'chirasizmi?`)) return;
+  const btn = document.getElementById('wtBulkDelBtn');
+  btn.disabled = true;
+  try{
+    await wtCall('deleteMany', { ids });
+    wtSelected.clear();
+    loadWatchList();
+  }catch(err){ alert('Xato: ' + err.message); }
+  finally{ btn.disabled = false; }
+});
 
 async function loadWatchList(){
   const list = document.getElementById('wtList');
@@ -3044,46 +3559,206 @@ async function loadWatchList(){
   try{
     const data = await wtCall('list');
     const watches = data.watches || [];
-    if(watches.length === 0){
-      list.innerHTML = '<div class="wt-empty">Hozircha kuzatuv yo\'q</div>';
+    wtWatchesCache = watches;
+    const validIds = new Set(watches.map(w => w.id));
+    Array.from(wtSelected).forEach(id => { if(!validIds.has(id)) wtSelected.delete(id); });
+    wtRenderStats(watches);
+    wtRenderGroups(watches);
+    wtUpdateBulkBar();
+  }catch(err){
+    list.innerHTML = '<div class="wt-empty">Xato: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+/* ---- "Boshqaruv" — adminlarni qo'shish/boshqarish (faqat bosh admin) ---- */
+const MGMT_FEATURE_LABELS = {
+  numbers:'📱 Raqamlar', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit',
+  watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
+  instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
+  premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar'
+};
+const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
+
+async function mgmtCall(action, extra){
+  const idToken = await firebase.auth().currentUser.getIdToken();
+  const res = await fetch('/.netlify/functions/admin-manage-admins', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+    body: JSON.stringify(Object.assign({ action }, extra || {}))
+  });
+  const data = await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+function mgmtPermsGridHtml(idPrefix, checkedKeys){
+  const checked = new Set(checkedKeys || []);
+  return MGMT_FEATURE_ORDER.map(key => `
+    <label class="mgmt-perm-item ${checked.has(key) ? 'checked' : ''}" data-key="${key}">
+      <input type="checkbox" data-perm="${key}" id="${idPrefix}-${key}" ${checked.has(key) ? 'checked' : ''}>
+      ${MGMT_FEATURE_LABELS[key]}
+    </label>
+  `).join('');
+}
+function mgmtWirePermsGrid(container){
+  container.querySelectorAll('.mgmt-perm-item').forEach(label => {
+    const chk = label.querySelector('input');
+    chk.addEventListener('change', () => label.classList.toggle('checked', chk.checked));
+  });
+}
+function mgmtReadPermsGrid(container){
+  const out = {};
+  container.querySelectorAll('input[data-perm]').forEach(chk => { if(chk.checked) out[chk.dataset.perm] = true; });
+  return out;
+}
+
+// Yaratish formasidagi ruxsatlar to'ri — bir marta chiziladi
+const mgmtPermsGridEl = document.getElementById('mgmtPermsGrid');
+if(mgmtPermsGridEl){
+  mgmtPermsGridEl.innerHTML = mgmtPermsGridHtml('mgmtperm', []);
+  mgmtWirePermsGrid(mgmtPermsGridEl);
+}
+
+document.getElementById('mgmtAddToggleBtn').addEventListener('click', ()=>{
+  const form = document.getElementById('mgmtAddForm');
+  form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+});
+
+document.getElementById('mgmtCreateBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('mgmtCreateMsg');
+  const resultBox = document.getElementById('mgmtResultBox');
+  resultBox.style.display = 'none';
+  const name = document.getElementById('mgmtName').value.trim();
+  const password = document.getElementById('mgmtPassword').value;
+  const permissions = mgmtReadPermsGrid(mgmtPermsGridEl);
+  if(!name){ msg.textContent = 'Ism kiriting'; msg.style.color = '#e74c3c'; return; }
+  if(!password || password.length < 8){ msg.textContent = "Parol kamida 8 belgi bo'lishi kerak"; msg.style.color = '#e74c3c'; return; }
+
+  const btn = document.getElementById('mgmtCreateBtn');
+  btn.disabled = true;
+  msg.textContent = 'Yaratilmoqda...'; msg.style.color = '';
+  try{
+    const data = await mgmtCall('create', { name, password, permissions });
+    msg.textContent = '✅ Admin yaratildi';
+    msg.style.color = '#33E28C';
+    resultBox.style.display = 'block';
+    resultBox.innerHTML = `Login: <b>${escapeHtml(data.loginHandle)}</b><br>
+      Parol: <b>${escapeHtml(password)}</b><br>
+      <span style="color:var(--muted);">Shu ikkalasini yangi adminga bering — u tizimga aynan shu login va parol bilan kiradi.
+      Bu parolni biz hech qayerda saqlamaymiz, shuning uchun hozir nusxa oling.</span>`;
+    document.getElementById('mgmtName').value = '';
+    document.getElementById('mgmtPassword').value = '';
+    mgmtPermsGridEl.querySelectorAll('input[data-perm]').forEach(chk => { chk.checked = false; chk.closest('.mgmt-perm-item').classList.remove('checked'); });
+    loadAdminsList();
+  }catch(err){
+    msg.textContent = 'Xato: ' + err.message;
+    msg.style.color = '#e74c3c';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+function mgmtFormatTime(ms){
+  if(!ms) return '—';
+  const d = new Date(ms);
+  const pad = n => String(n).padStart(2,'0');
+  return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+async function loadAdminsList(){
+  const list = document.getElementById('mgmtAdminsList');
+  list.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
+  try{
+    const data = await mgmtCall('list');
+    const admins = data.admins || [];
+    if(admins.length === 0){
+      list.innerHTML = '<div class="wt-empty">Hali qo\'shimcha admin yo\'q. Yuqoridan birinchisini qo\'shing.</div>';
       return;
     }
-    list.innerHTML = watches.map(w => `
-      <div class="wt-item ${w.active ? '' : 'paused'}" data-id="${escapeHtml(w.id)}">
-        <div class="wt-item-main">
-          <div class="wt-item-num">${escapeHtml(wtFormatBoxes(w.boxes))} <span style="color:var(--muted);font-weight:400;font-size:12px;">(${escapeHtml(w.operator)})</span></div>
-          <div class="wt-item-meta">
-            ⏱ ${escapeHtml(WT_INTERVAL_LABELS[w.intervalMinutes] || (w.intervalMinutes + ' daq'))}
-            · so'nggi tekshiruv: ${wtFormatTime(w.lastCheckedAt)}
-            ${w.notifiedCount ? " · xabar qilingan (hozircha kutilmoqda): " + w.notifiedCount + " ta" : ''}
-            ${w.lastFoundAt ? " · oxirgi topilgan: " + wtFormatTime(w.lastFoundAt) : ''}
-            ${!w.active ? " · <b style=\"color:#c0392b;\">to'xtatilgan</b>" : ''}
+    list.innerHTML = admins.map(a => {
+      const chips = MGMT_FEATURE_ORDER.filter(k => a.permissions[k]).map(k => `<span class="mgmt-chip">${MGMT_FEATURE_LABELS[k]}</span>`).join('');
+      const initial = (a.name || '?').trim().charAt(0).toUpperCase();
+      return `
+      <div class="mgmt-admin-card ${a.active ? '' : 'paused'}" data-uid="${escapeHtml(a.uid)}">
+        <div class="mgmt-admin-top">
+          <div class="mgmt-avatar">${escapeHtml(initial)}</div>
+          <div>
+            <div class="mgmt-admin-name">${escapeHtml(a.name)}</div>
+            <div class="mgmt-admin-handle">login: ${escapeHtml(a.loginHandle)} · qo'shilgan: ${mgmtFormatTime(a.createdAt)}</div>
           </div>
+          <span class="mgmt-badge ${a.active ? 'on' : 'off'}">${a.active ? 'Faol' : "To'xtatilgan"}</span>
         </div>
-        <div class="wt-item-actions">
-          <button type="button" class="wt-toggle" data-id="${escapeHtml(w.id)}" data-active="${w.active ? '0' : '1'}">${w.active ? "⏸ To'xtatish" : '▶ Davom ettirish'}</button>
-          <button type="button" class="wt-del" data-id="${escapeHtml(w.id)}">🗑</button>
+        <div class="mgmt-chips">${chips || '<span class="mgmt-chip mgmt-chip-empty">Hech qanday bo\'limga ruxsat yo\'q</span>'}</div>
+        <div class="mgmt-admin-actions">
+          <button type="button" class="mgmt-perms-btn">🔧 Ruxsatlar</button>
+          <button type="button" class="mgmt-pass-btn">🔑 Parolni yangilash</button>
+          <button type="button" class="mgmt-toggle-btn">${a.active ? "⏸ To'xtatish" : '▶ Faollashtirish'}</button>
+          <button type="button" class="mgmt-sessions-btn mgmt-primary">📊 Seanslari</button>
+          <button type="button" class="mgmt-del-btn mgmt-danger">🗑 O'chirish</button>
         </div>
-      </div>
-    `).join('');
+        <div class="mgmt-form mgmt-edit-perms" style="display:none;">
+          <div class="mgmt-perms-grid mgmt-edit-perms-grid"></div>
+          <button type="button" class="wt-confirm mgmt-save-perms-btn" style="margin-top:10px;">Saqlash</button>
+        </div>
+      </div>`;
+    }).join('');
 
-    list.querySelectorAll('.wt-toggle').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        btn.disabled = true;
-        try{
-          await wtCall('toggle', { id: btn.dataset.id, active: btn.dataset.active === '1' });
-          loadWatchList();
-        }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+    list.querySelectorAll('.mgmt-admin-card').forEach(card => {
+      const uid = card.dataset.uid;
+      const adminData = admins.find(a => a.uid === uid);
+
+      card.querySelector('.mgmt-perms-btn').addEventListener('click', () => {
+        const box = card.querySelector('.mgmt-edit-perms');
+        const grid = card.querySelector('.mgmt-edit-perms-grid');
+        if(box.style.display === 'none'){
+          grid.innerHTML = mgmtPermsGridHtml('mgmtedit-' + uid, Object.keys(adminData.permissions || {}));
+          mgmtWirePermsGrid(grid);
+          box.style.display = 'block';
+        } else {
+          box.style.display = 'none';
+        }
       });
-    });
-    list.querySelectorAll('.wt-del').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        if(!confirm("Bu kuzatuvni butunlay o'chirasizmi?")) return;
-        btn.disabled = true;
+
+      card.querySelector('.mgmt-save-perms-btn').addEventListener('click', async (e)=>{
+        const grid = card.querySelector('.mgmt-edit-perms-grid');
+        const permissions = mgmtReadPermsGrid(grid);
+        e.target.disabled = true;
         try{
-          await wtCall('delete', { id: btn.dataset.id });
-          loadWatchList();
-        }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+          await mgmtCall('updatePermissions', { uid, permissions });
+          loadAdminsList();
+        }catch(err){ alert('Xato: ' + err.message); e.target.disabled = false; }
+      });
+
+      card.querySelector('.mgmt-pass-btn').addEventListener('click', async ()=>{
+        const newPassword = prompt("Yangi parol kiriting (kamida 8 belgi, harf + raqam):");
+        if(!newPassword) return;
+        try{
+          await mgmtCall('resetPassword', { uid, newPassword });
+          alert(`Yangi parol o'rnatildi: ${newPassword}\n\nBuni adminga bering — bu parolni biz saqlamaymiz.`);
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+
+      card.querySelector('.mgmt-toggle-btn').addEventListener('click', async (e)=>{
+        e.target.disabled = true;
+        try{
+          await mgmtCall('toggleActive', { uid, active: !adminData.active });
+          loadAdminsList();
+        }catch(err){ alert('Xato: ' + err.message); e.target.disabled = false; }
+      });
+
+      card.querySelector('.mgmt-sessions-btn').addEventListener('click', ()=>{
+        sessionsFilterUid = uid;
+        sessionsFilterName = adminData.name;
+        document.querySelector('.tab[data-tab="sessions"]').click();
+      });
+
+      card.querySelector('.mgmt-del-btn').addEventListener('click', async (e)=>{
+        if(!confirm(`"${adminData.name}" adminini butunlay o'chirasizmi? Bu amalni ortga qaytarib bo'lmaydi.`)) return;
+        e.target.disabled = true;
+        try{
+          await mgmtCall('delete', { uid });
+          loadAdminsList();
+        }catch(err){ alert('Xato: ' + err.message); e.target.disabled = false; }
       });
     });
   }catch(err){

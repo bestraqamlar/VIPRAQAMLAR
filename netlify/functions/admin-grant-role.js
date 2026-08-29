@@ -25,6 +25,19 @@
 //        -H "x-bootstrap-secret: <1-qadamda qo'ygan parolingiz>" \
 //        -d '{"email":"admin-hisobingiz-emaili@070.uz"}'
 //
+//   "BOSHQARUV" bo'limi (admin qo'shish, ruxsatlar) faqat ENG KATTA
+//   (bosh/super) adminga ochiq. O'zingizning asosiy hisobingizni bosh
+//   admin qilish uchun so'rovga qo'shimcha "superAdmin":true yuboring:
+//
+//      curl -X POST https://SIZNING-SAYTINGIZ.netlify.app/.netlify/functions/admin-grant-role \
+//        -H "Content-Type: application/json" \
+//        -H "x-bootstrap-secret: <1-qadamda qo'ygan parolingiz>" \
+//        -d '{"email":"admin-hisobingiz-emaili@070.uz","superAdmin":true}'
+//
+//   Bu huquqni FAQAT shu yo'l bilan (qo'lda, maxfiy kalit orqali) berish
+//   mumkin — "Boshqaruv" bo'limi orqali yaratilgan hech qanday sub-admin
+//   bu huquqqa hech qachon ega bo'lolmaydi.
+//
 //      (admin.html'da login "070xxxxxxx@070.uz" ko'rinishida email
 //      sifatida ishlatilishini unutmang — admin.html:1498-1508 qarang.)
 //
@@ -79,13 +92,35 @@ exports.handler = async function (event) {
   }
 
   try {
-    const { email, uid, revoke } = JSON.parse(event.body || '{}');
+    const { email, uid, revoke, superAdmin } = JSON.parse(event.body || '{}');
     if (!email && !uid) {
       return { statusCode: 400, body: JSON.stringify({ ok: false, error: "email yoki uid ko'rsatilishi shart" }) };
     }
 
     const userRecord = uid ? await admin.auth().getUser(uid) : await admin.auth().getUserByEmail(email);
-    await admin.auth().setCustomUserClaims(userRecord.uid, { admin: revoke ? false : true });
+
+    // Mavjud claim'larni (masalan "Boshqaruv" orqali berilgan `perms`)
+    // saqlab qolamiz — setCustomUserClaims BUTUN obyektni ALMASHTIRADI,
+    // shu sabab uni o'qib, ustiga qo'shib yozamiz.
+    const existingClaims = userRecord.customClaims || {};
+    const newClaims = revoke
+      ? { ...existingClaims, admin: false, superAdmin: false }
+      : {
+          ...existingClaims,
+          admin: true,
+          // ENG KATTA (bosh) admin huquqi — FAQAT shu maxfiy-kalit-bilan
+          // himoyalangan yo'ldan, aniq so'ralganda beriladi. Ilova ichidan
+          // (Boshqaruv bo'limidan) bu huquqni HECH KIMGA berib bo'lmaydi.
+          superAdmin: superAdmin === true ? true : (existingClaims.superAdmin === true)
+        };
+    await admin.auth().setCustomUserClaims(userRecord.uid, newClaims);
+
+    // Huquq bekor qilinganda (revoke) — eski, hali muddati o'tmagan
+    // tokenlarni ham DARHOL bekor qilamiz, aks holda hisob 10 daqiqagacha
+    // ishlashda davom etishi mumkin edi.
+    if (revoke) {
+      await admin.auth().revokeRefreshTokens(userRecord.uid);
+    }
 
     return {
       statusCode: 200,
@@ -94,7 +129,10 @@ exports.handler = async function (event) {
         uid: userRecord.uid,
         email: userRecord.email,
         admin: !revoke,
-        note: 'Bu hisob keyingi safar tizimga kirganda (yoki tokenni yangilaganda) admin huquqiga ega bo\'ladi.'
+        superAdmin: newClaims.superAdmin === true,
+        note: revoke
+          ? 'Bu hisobning huquqi darhol bekor qilindi.'
+          : 'Bu hisob keyingi safar tizimga kirganda (yoki tokenni yangilaganda) admin huquqiga ega bo\'ladi.'
       })
     };
   } catch (err) {

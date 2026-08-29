@@ -256,7 +256,7 @@ async function handler(event){
   // XAVFSIZLIK: bu hisobotda BARCHA mijozlarning ismi, telefoni, manzili
   // va shartnoma ma'lumotlari bor — faqat tizimga kirgan admin chaqira olishi shart.
   try {
-    await requireAdmin(event);
+    await requireAdmin(event, { feature: 'settings' });
   } catch (err) {
     return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };
   }

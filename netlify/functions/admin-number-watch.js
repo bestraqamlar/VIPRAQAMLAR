@@ -122,6 +122,23 @@ async function deleteWatch(body) {
   return { ok: true };
 }
 
+// Bir nechta kuzatuvni bittada o'chirish — admin panelda "belgilanganlarni
+// o'chirish" tugmasi uchun. Firestore batch bitta yozuvda 500 tagacha
+// amalni qo'llab-quvvatlaydi, shuning uchun ehtiyot shart 400 tadan bo'lib
+// yuboramiz (amalda kuzatuvlar soni bundan ancha kam bo'ladi).
+async function deleteManyWatches(body) {
+  const ids = Array.isArray(body.ids) ? body.ids.map(String).filter(Boolean) : [];
+  if (!ids.length) { const err = new Error('ids kerak'); err.statusCode = 400; throw err; }
+  const CHUNK = 400;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const chunk = ids.slice(i, i + CHUNK);
+    const batch = db.batch();
+    chunk.forEach(id => batch.delete(db.collection(COLLECTION).doc(id)));
+    await batch.commit();
+  }
+  return { ok: true, deleted: ids.length };
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -129,7 +146,7 @@ exports.handler = async function (event) {
 
   let decoded;
   try {
-    decoded = await requireAdmin(event);
+    decoded = await requireAdmin(event, { feature: 'watch' });
   } catch (err) {
     return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };
   }
@@ -144,6 +161,7 @@ exports.handler = async function (event) {
       case 'list':   result = { watches: await listWatches() }; break;
       case 'toggle': result = await toggleWatch(body); break;
       case 'delete': result = await deleteWatch(body); break;
+      case 'deleteMany': result = await deleteManyWatches(body); break;
       default: {
         const err = new Error("Noma'lum amal");
         err.statusCode = 400;

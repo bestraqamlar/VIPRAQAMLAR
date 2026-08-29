@@ -27,7 +27,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
-    await requireAdmin(event);
+    await requireAdmin(event, { feature: 'credit' });
   } catch (err) {
     return { statusCode: err.statusCode || 401, body: JSON.stringify({ ok: false, error: err.message }) };
   }

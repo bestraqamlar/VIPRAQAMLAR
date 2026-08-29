@@ -144,7 +144,7 @@ exports.handler = async function (event) {
   // HAQIQIY admin (custom claim) chaqira oladi.
   if (params.action === 'test-beeline') {
     try {
-      await requireAdmin(event);
+      await requireAdmin(event, { feature: 'operators' });
     } catch (err) {
       return { statusCode: err.statusCode || 401, headers, body: JSON.stringify({ ok: false, error: err.message }) };
     }

@@ -543,7 +543,7 @@ exports.handler = async function (event) {
   // ega hisob foydalana oladi — oddiy ro'yxatdan o'tgan hisob emas. ---
   let adminUid;
   try {
-    const decoded = await requireAdmin(event);
+    const decoded = await requireAdmin(event, { feature: 'ai' });
     adminUid = decoded.uid;
   } catch (err) {
     return { statusCode: err.statusCode || 401, body: JSON.stringify({ error: err.message }) };

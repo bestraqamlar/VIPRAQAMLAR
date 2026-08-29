@@ -18,6 +18,34 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
+    // BOSH ADMIN (superAdmin) — bu huquq FAQAT qo'lda, maxfiy kalit
+    // (ADMIN_BOOTSTRAP_SECRET) orqali admin-grant-role.js funksiyasi
+    // bilan beriladi. Ilova ichidan (Boshqaruv bo'limidan) HECH QACHON
+    // bu huquqni hech kimga berib bo'lmaydi — shu bilan "kimdir ilova
+    // orqali o'zini bosh admin qilib olishi" mumkin emas.
+    function isSuperAdmin(){
+      return isAdmin() && request.auth.token.superAdmin == true;
+    }
+
+    // BO'LIM DARAJASIDAGI RUXSAT (permissions).
+    // - Bosh admin — hammasiga ruxsat.
+    // - "perms" claim'i UMUMAN yo'q hisoblar — bular ESKI (yangi
+    //   "Boshqaruv" tizimidan OLDIN yaratilgan) adminlar; ular
+    //   avvalgidek TO'LIQ huquqli qoladi (hech narsa buzilmasin deb).
+    // - "perms" claim'i BOR hisoblar — bular "Boshqaruv" orqali
+    //   yaratilgan sub-adminlar; faqat aniq yoqilgan bo'limlarga kira
+    //   oladi. Bu — Firestore darajasida MAJBURIY tekshiruv, faqat
+    //   ekranda tugmani "yashirish" emas — token soxtalashtirib
+    //   bo'lmaydi, shu sabab hatto to'g'ridan-to'g'ri so'rov yuborishga
+    //   urinilsa ham (masalan brauzer konsolidan) ishlamaydi.
+    function hasPerm(key){
+      return isAdmin() && (
+        isSuperAdmin()
+        || !('perms' in request.auth.token)
+        || (key in request.auth.token.perms && request.auth.token.perms[key] == 1)
+      );
+    }
+
     function isValidLikeToggle(resourceBefore, dataAfter){
       return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['likes'])
         && dataAfter.likes is number;
@@ -25,8 +53,8 @@ service cloud.firestore {
 
     match /numbers/{doc} {
       allow read: if true;
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin()
+      allow create, delete: if hasPerm('numbers');
+      allow update: if hasPerm('numbers')
         // Anonim mijoz raqamni "band" qila oladi, LEKIN faqat 'reserved' va
         // 'reservedAt' ikkalasini birga, va reservedAt aynan server vaqtiga
         // teng bo'lishi shart (soxtalashtirib bo'lmaydi). Bu yozuv bilan
@@ -55,7 +83,7 @@ service cloud.firestore {
         && request.resource.data.name is string && request.resource.data.name.size() < 200
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300;
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if hasPerm('orders');
     }
 
     match /admin_meta/{doc} {
@@ -63,12 +91,29 @@ service cloud.firestore {
     }
 
     match /admin_sessions/{doc} {
-      allow create, read: if isAdmin();
+      // Har bir admin O'ZINING kirish/chiqish yozuvini qo'sha oladi (audit
+      // uchun — "Seanslar" ruxsati bo'lmasa ham, o'z tarixi yozilaveradi).
+      // uid maydoni albatta so'rov yuborayotgan hisobning O'ZINIKI bo'lishi
+      // shart — aks holda kimdir boshqa admin nomidan soxta yozuv qo'sha
+      // olar edi.
+      allow create: if isAdmin() && request.resource.data.uid == request.auth.uid;
+      // Ro'yxatni FAQAT "Seanslar" bo'limiga ruxsati borlar (yoki bosh
+      // admin) ko'ra oladi — boshqa adminlarning kirish tarixi tijorat
+      // siri kabi qaraladi.
+      allow read: if hasPerm('sessions');
     }
 
     match /site_settings/{doc} {
       allow read: if true;
-      allow write: if isAdmin();
+      // "instagram_bot" va "telegram_bot" hujjatlari mos ravishda
+      // Instagram AI / Telegram AI bo'limlariga tegishli — faqat o'sha
+      // bo'limga ruxsati borlar o'zgartira oladi. "general" hujjati esa
+      // "Uslublar" VA "Sozlamalar" ikkala bo'lim tomonidan ham
+      // ishlatiladi, shu sabab ikkalasidan biriga ruxsat bo'lsa yetarli.
+      allow write: if
+        (doc == 'instagram_bot' && hasPerm('instagram'))
+        || (doc == 'telegram_bot' && hasPerm('telegramai'))
+        || (doc != 'instagram_bot' && doc != 'telegram_bot' && (hasPerm('styles') || hasPerm('settings')));
     }
 
     match /active_sessions/{doc} {
@@ -102,20 +147,21 @@ service cloud.firestore {
     }
 
     match /promo_codes/{doc} {
-      allow read, write: if isAdmin();
+      allow read, write: if hasPerm('settings');
     }
 
     // Operator API sozlamalari — ichida Beeline LOGIN/PAROLI bor, shu sabab
-    // ommaga OCHIQ EMAS. Faqat HAQIQIY admin o'qiy/yoza oladi.
-    // Netlify funksiyasi (api-live-search) buni Admin SDK orqali o'qiydi —
-    // u bu qoidalardan o'tmaydi, shuning uchun read'ni ochish shart emas.
+    // ommaga OCHIQ EMAS. Faqat "Operatorlar" bo'limiga ruxsati bor admin
+    // o'qiy/yoza oladi. Netlify funksiyasi (api-live-search) buni Admin
+    // SDK orqali o'qiydi — u bu qoidalardan o'tmaydi, shuning uchun
+    // read'ni ochish shart emas.
     match /operator_config/{doc} {
-      allow read, write: if isAdmin();
+      allow read, write: if hasPerm('operators');
     }
 
     match /number_price_categories/{doc} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if hasPerm('zakaz');
     }
 
     match /custom_orders/{doc} {
@@ -124,12 +170,12 @@ service cloud.firestore {
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300
         && request.resource.data.pattern is string && request.resource.data.pattern.size() == 4;
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if hasPerm('zakaz');
     }
 
     match /credit_contracts/{doc} {
-      allow get, list: if isAdmin();
-      allow write: if isAdmin();
+      allow get, list: if hasPerm('credit');
+      allow write: if hasPerm('credit');
     }
 
     // STANDART (jonli, operatordan qidirilgan) raqamlar uchun Firestore'da
@@ -167,27 +213,31 @@ service cloud.firestore {
 
     match /video_testimonials/{doc} {
       allow read: if true;
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin()
+      allow create, delete: if hasPerm('videos');
+      allow update: if hasPerm('videos')
         || isValidLikeToggle(resource, request.resource.data);
     }
 
     match /premium_number_videos/{doc} {
       allow read: if true;
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin()
+      allow create, delete: if hasPerm('premiumvideo');
+      allow update: if hasPerm('premiumvideo')
         || isValidLikeToggle(resource, request.resource.data);
     }
 
     // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram
-    // botlar, admin AI yordamchisi) orqali, Firebase Admin SDK bilan
-    // ishlatiladi — brauzerdan (Firestore Client SDK orqali) kirish
-    // mutlaqo kerak emas, shu sabab match bloki yo'q (Firestore standart
-    // bo'yicha ro'yxatga olinmagan yo'llarni to'liq YOPIQ qiladi):
-    // bot_sessions, known_customers_tgmenu, known_customers, admin_list,
-    // admin_ai_pending_actions, number_watches (— "Baza raqam" kuzatuvi:
-    // qaysi raqamlar kuzatilayotgani tijorat siri, shu sabab hatto admin
-    // ham brauzerdan to'g'ridan-to'g'ri emas, faqat requireAdmin() bilan
-    // himoyalangan admin-number-watch.js funksiyasi orqali kira oladi).
+    // botlar, admin AI yordamchisi, admin-manage-admins.js) orqali,
+    // Firebase Admin SDK bilan ishlatiladi — brauzerdan (Firestore Client
+    // SDK orqali) kirish mutlaqo kerak emas, shu sabab match bloki yo'q
+    // (Firestore standart bo'yicha ro'yxatga olinmagan yo'llarni to'liq
+    // YOPIQ qiladi): bot_sessions, known_customers_tgmenu,
+    // known_customers, admin_list, admin_ai_pending_actions,
+    // number_watches (— "Baza raqam" kuzatuvi: qaysi raqamlar
+    // kuzatilayotgani tijorat siri, shu sabab hatto admin ham brauzerdan
+    // to'g'ridan-to'g'ri emas, faqat requireAdmin() bilan himoyalangan
+    // admin-number-watch.js funksiyasi orqali kira oladi), admins (—
+    // "Boshqaruv": qaysi sub-adminlar borligi, ularning ruxsatlari —
+    // faqat admin-manage-admins.js orqali, requireSuperAdmin() bilan
+    // himoyalangan; brauzerdan to'g'ridan-to'g'ri o'qib bo'lmaydi).
   }
 }
