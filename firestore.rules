@@ -10,10 +10,13 @@ service cloud.firestore {
     // kirgan" holatdan foydalanib admin ma'lumotlariga (mijozlar
     // ro'yxati, operator login-parollari va h.k.) kira olar edi.
     //
-    // Shu sababli haqiqiy admin ekanini "custom claim" (server tomonidan,
-    // faqat netlify/functions/admin-grant-role.js orqali beriladigan
-    // maxsus belgi `admin: true`) bo'yicha tekshiramiz — oddiy
-    // autentifikatsiya emas.
+    // DIQQAT: agar qayerdadir `isAdmin(){ return request.auth != null; }`
+    // ko'rinishidagi qoida ko'rsangiz — bu XATO, JUDA XAVFLI qoida.
+    // U "tizimga kirgan" bilan "ADMIN"ni farqlamaydi va yuqoridagi
+    // hujum yo'lini ochib qo'yadi. To'g'ri qoida har doim quyidagicha —
+    // haqiqiy admin ekanini "custom claim" (server tomonidan, faqat
+    // netlify/functions/admin-grant-role.js yoki admin-manage-admins.js
+    // orqali beriladigan maxsus belgi `admin: true`) bo'yicha tekshiradi:
     function isAdmin(){
       return request.auth != null && request.auth.token.admin == true;
     }
@@ -46,9 +49,23 @@ service cloud.firestore {
       );
     }
 
+    // Faqat ko'rsatilgan maydonlar o'zgarganini tekshiradi — takrorlanadigan
+    // ".diff(resource.data).affectedKeys().hasOnly([...])" o'rniga.
+    function changedOnly(keys){
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // Like qiymatini faqat 1 taga oshirish yoki kamaytirish (like/unlike).
     function isValidLikeToggle(resourceBefore, dataAfter){
       return dataAfter.diff(resourceBefore.data).affectedKeys().hasOnly(['likes'])
-        && dataAfter.likes is number;
+        && dataAfter.likes is number
+        && dataAfter.likes >= 0
+        && (
+          (!resourceBefore.data.keys().hasAll(['likes']) && dataAfter.likes == 1)
+          || (resourceBefore.data.likes is number
+              && (dataAfter.likes == resourceBefore.data.likes + 1
+                  || dataAfter.likes == resourceBefore.data.likes - 1))
+        );
     }
 
     match /numbers/{doc} {
@@ -62,11 +79,11 @@ service cloud.firestore {
         // ishlab, orqasida haqiqiy buyurtma bo'lmagan "band"larni avtomatik
         // bo'shatadi — shu bilan anonim spam orqali butun katalogni
         // "band qilib qo'yish" hujumi zararsizlantiriladi.
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserved', 'reservedAt'])
+        || (changedOnly(['reserved', 'reservedAt'])
             && resource.data.reserved == false
             && request.resource.data.reserved == true
             && request.resource.data.reservedAt == request.time)
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+        || (changedOnly(['views'])
             && request.resource.data.views is number
             && (
               (!(resource.data.views is number)
@@ -79,7 +96,11 @@ service cloud.firestore {
     }
 
     match /orders/{doc} {
-      allow create: if request.resource.data.status == 'Yangi'
+      // Hujjat hajmi cheklangan (spam/keraksiz katta yozuvlarning oldini
+      // olish uchun) — public foydalanuvchi FAQAT yangi buyurtma yarata
+      // oladi, boshqa hech narsa qila olmaydi.
+      allow create: if request.resource.data.keys().size() <= 20
+        && request.resource.data.status == 'Yangi'
         && request.resource.data.name is string && request.resource.data.name.size() < 200
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300;
@@ -119,12 +140,13 @@ service cloud.firestore {
     match /active_sessions/{doc} {
       // lastSeen soxtalashtirib bo'lmasin (masalan kelajakka yoki
       // o'tmishga sanalangan qiymat yozilmasin) deb aynan server
-      // vaqtiga tenglashtirilishi shart qilindi.
+      // vaqtiga tenglashtirilishi shart qilindi — shunchaki "timestamp
+      // turi bo'lsa bas" emas, chunki mijoz o'z brauzeri soatini
+      // o'zgartirib, soxta vaqt yubora olardi.
       allow create: if request.resource.data.keys().hasOnly(['lastSeen'])
         && request.resource.data.lastSeen == request.time;
       allow update: if isAdmin()
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen'])
-            && request.resource.data.lastSeen == request.time);
+        || (changedOnly(['lastSeen']) && request.resource.data.lastSeen == request.time);
       allow read: if isAdmin();
       allow delete: if isAdmin();
     }
@@ -139,7 +161,7 @@ service cloud.firestore {
             && request.resource.data.totalVisitors == 1);
       allow update: if isAdmin()
         || (doc == 'counter'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalVisitors'])
+            && changedOnly(['totalVisitors'])
             && request.resource.data.totalVisitors is number
             && resource.data.totalVisitors is number
             && request.resource.data.totalVisitors == resource.data.totalVisitors + 1);
@@ -152,9 +174,11 @@ service cloud.firestore {
 
     // Operator API sozlamalari — ichida Beeline LOGIN/PAROLI bor, shu sabab
     // ommaga OCHIQ EMAS. Faqat "Operatorlar" bo'limiga ruxsati bor admin
-    // o'qiy/yoza oladi. Netlify funksiyasi (api-live-search) buni Admin
-    // SDK orqali o'qiydi — u bu qoidalardan o'tmaydi, shuning uchun
-    // read'ni ochish shart emas.
+    // o'qiy/yoza oladi — HECH QACHON oddiy "request.auth != null"ga
+    // ochilmaydi, chunki bu Beeline va boshqa operator hisoblarini butun
+    // internet oldida ochiq qilib qo'yardi. Netlify funksiyasi
+    // (api-live-search) buni Admin SDK orqali o'qiydi — u bu qoidalardan
+    // o'tmaydi, shuning uchun read'ni ochish shart emas.
     match /operator_config/{doc} {
       allow read, write: if hasPerm('operators');
     }
@@ -165,7 +189,8 @@ service cloud.firestore {
     }
 
     match /custom_orders/{doc} {
-      allow create: if request.resource.data.status == 'Yangi'
+      allow create: if request.resource.data.keys().size() <= 20
+        && request.resource.data.status == 'Yangi'
         && request.resource.data.name is string && request.resource.data.name.size() < 200
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300
@@ -186,7 +211,10 @@ service cloud.firestore {
     // (hali mavjud bo'lmasa) yaratilishi mumkin — ikkinchi mijozning
     // urinishi (hujjat allaqachon bor bo'lgani uchun) rad etiladi.
     // Buni index.html'dagi finalizeOrder() Firestore TRANZAKSIYASI
-    // orqali ishlatadi.
+    // orqali ishlatadi. MUHIM: bu kolleksiyani qoidalardan butunlay olib
+    // tashlamang — shunday qilinsa jonli raqam qidirish/buyurtma berish
+    // butunlay ishlamay qoladi (Firestore ro'yxatga olinmagan yo'llarni
+    // avtomatik YOPIQ qiladi).
     match /live_reservations/{doc} {
       allow get: if true;
       allow create: if request.resource.data.keys().hasOnly(['reservedAt'])
@@ -197,6 +225,10 @@ service cloud.firestore {
     match /promo_usage/{doc} {
       // usedAt aynan server vaqtiga teng bo'lishi shart — shu bilan
       // hech bo'lmasa soxta/eski-sanalangan yozuvlar oldini olamiz.
+      // Hujjatda BOSHQA hech qanday maydon bo'lishi mumkin emas (faqat
+      // "biror narsa yozilgan bormi" tekshiriladi, shu sabab qat'iy sxema
+      // — "keys().size() <= 10" kabi bo'sh chegaraga qaraganda ancha
+      // xavfsizroq).
       // ESLATMA: bu yerda hujjat ID'si (numberId) 'numbers' to'plamidan
       // ochiq o'qilishi mumkinligi sabab, chetdan har bir raqam uchun
       // oldindan "ishlatilgan" belgisi qo'yib, promo-kodlarni butunlay
@@ -228,16 +260,18 @@ service cloud.firestore {
     // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram
     // botlar, admin AI yordamchisi, admin-manage-admins.js) orqali,
     // Firebase Admin SDK bilan ishlatiladi — brauzerdan (Firestore Client
-    // SDK orqali) kirish mutlaqo kerak emas, shu sabab match bloki yo'q
-    // (Firestore standart bo'yicha ro'yxatga olinmagan yo'llarni to'liq
-    // YOPIQ qiladi): bot_sessions, known_customers_tgmenu,
-    // known_customers, admin_list, admin_ai_pending_actions,
-    // number_watches (— "Baza raqam" kuzatuvi: qaysi raqamlar
-    // kuzatilayotgani tijorat siri, shu sabab hatto admin ham brauzerdan
-    // to'g'ridan-to'g'ri emas, faqat requireAdmin() bilan himoyalangan
-    // admin-number-watch.js funksiyasi orqali kira oladi), admins (—
-    // "Boshqaruv": qaysi sub-adminlar borligi, ularning ruxsatlari —
-    // faqat admin-manage-admins.js orqali, requireSuperAdmin() bilan
-    // himoyalangan; brauzerdan to'g'ridan-to'g'ri o'qib bo'lmaydi).
+    // SDK orqali) kirish mutlaqo kerak emas, shu sabab ularga match bloki
+    // ATAYLAB YOZILMAGAN (Firestore standart bo'yicha ro'yxatga
+    // olinmagan yo'llarni to'liq YOPIQ qiladi — "request.auth != null"
+    // kabi umumiy qoida bilan OCHIB QO'YISH XATO bo'lardi):
+    // bot_sessions, known_customers_tgmenu, known_customers, admin_list,
+    // admin_ai_pending_actions, number_watches (— "Baza raqam" kuzatuvi:
+    // qaysi raqamlar kuzatilayotgani tijorat siri, shu sabab hatto admin
+    // ham brauzerdan to'g'ridan-to'g'ri emas, faqat requireAdmin() bilan
+    // himoyalangan admin-number-watch.js funksiyasi orqali kira oladi),
+    // admins (— "Boshqaruv": qaysi sub-adminlar borligi, ularning
+    // ruxsatlari — faqat admin-manage-admins.js orqali,
+    // requireSuperAdmin() bilan himoyalangan; brauzerdan to'g'ridan-
+    // to'g'ri o'qib bo'lmaydi).
   }
 }

@@ -77,3 +77,13 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=3600"
+
+# XAVFSIZLIK: admin panel manzili endi taxmin qilib bo'lmaydigan, tasodifiy
+# nomda joylashgan (index.html yoki boshqa hech qanday sahifada unga
+# havola YO'Q). Qo'shimcha ehtiyot chorasi sifatida qidiruv tizimlari
+# (Google va h.k.) uni HECH QACHON indekslamasligi/ko'rsatmasligi uchun
+# maxsus sarlavha qo'shildi.
+[[headers]]
+  for = "/panel-xn3vbivfp72a33.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
