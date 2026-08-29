@@ -71,8 +71,8 @@ const MAX_TOOL_ROUNDS = 6;
 // Endi bunday amal ham avval admin tomonidan "Tasdiqlash" bosilishini talab qiladi.
 const DANGEROUS_TOOLS = ['delete_numbers', 'update_numbers_price', 'add_numbers'];
 
-// panel-xn3vbivfp72a33.html'dagi bilan bir xil operator ro'yxati va kod jadvali
-// (index.html / panel-xn3vbivfp72a33.html o'zgarsa, shu yerni ham moslang).
+// panel-boshqaruv.html'dagi bilan bir xil operator ro'yxati va kod jadvali
+// (index.html / panel-boshqaruv.html o'zgarsa, shu yerni ham moslang).
 const OPERATORS = ['Beeline', 'Ucell', 'Uzmobile', 'Mobiuz', 'Humans', 'Perfektum'];
 const CODE_TO_OPERATOR = {
   '91': 'Beeline', '90': 'Beeline', '92': 'Beeline',

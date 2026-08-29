@@ -1,6 +1,6 @@
 // DIAGNOSTIKA: joriy tizimga kirgan hisobda HAQIQIY admin huquqi
 // (custom claim: admin=true) bor-yo'qligini tekshirish uchun.
-// panel-xn3vbivfp72a33.html sahifasi kirishda shuni avtomatik chaqiradi va agar
+// panel-boshqaruv.html sahifasi kirishda shuni avtomatik chaqiradi va agar
 // admin huquqi yo'q bo'lsa, ogohlantirish ko'rsatadi.
 
 const admin = require('firebase-admin');

@@ -15,7 +15,7 @@
 //                                    parol, masalan 40+ belgili>
 //      Buni hech kimga aytmang, kodga yozmang — faqat Netlify
 //      muhitida saqlanadi.
-//   2. panel-xn3vbivfp72a33.html orqali (yoki Firebase konsolida) admin bo'lishi kerak
+//   2. panel-boshqaruv.html orqali (yoki Firebase konsolida) admin bo'lishi kerak
 //      bo'lgan hisobni oddiy foydalanuvchi sifatida ro'yxatdan o'tkazing
 //      (agar hali yo'q bo'lsa).
 //   3. Terminal yoki Postman orqali quyidagi so'rovni yuboring:
@@ -38,8 +38,8 @@
 //   mumkin — "Boshqaruv" bo'limi orqali yaratilgan hech qanday sub-admin
 //   bu huquqqa hech qachon ega bo'lolmaydi.
 //
-//      (panel-xn3vbivfp72a33.html'da login "070xxxxxxx@070.uz" ko'rinishida email
-//      sifatida ishlatilishini unutmang — panel-xn3vbivfp72a33.html:1498-1508 qarang.)
+//      (panel-boshqaruv.html'da login "070xxxxxxx@070.uz" ko'rinishida email
+//      sifatida ishlatilishini unutmang — panel-boshqaruv.html:1498-1508 qarang.)
 //
 //   4. Javobda "ok": true kelsa — tayyor. LEKIN: agar bu hisob allaqachon
 //      brauzerda tizimga kirgan bo'lsa, u chiqib qayta kirishi (yoki
