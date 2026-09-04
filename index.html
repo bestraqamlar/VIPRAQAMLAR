@@ -107,7 +107,8 @@
       amber:'--amber', amberSoft:'--amber-soft', green:'--green', red:'--red',
       brandRed:'--brand-red', text:'--text', muted:'--muted',
       btnBg:'--btn-bg', btnText:'--btn-text', btnBorderWidth:'--btn-border-width',
-      btnBorderColor:'--btn-border-color', btnRadius:'--btn-radius', cardRadius:'--card-radius'
+      btnBorderColor:'--btn-border-color', btnRadius:'--btn-radius', cardRadius:'--card-radius',
+      scmBg:'--scm-bg', scmDigitBorder:'--scm-digit-border'
     };
     Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
     // Kartochka/modal tepasidagi oqib turuvchi chiziq ham (applyTheme()
@@ -169,6 +170,13 @@
        balandlik oshsa ham eni avvalgidek qoladi. */
     --search-row-h: clamp(38px, 10.8vw, 46px);
     --digit-box-w: clamp(32px, 9.3vw, 38px);
+    /* Qidiruv kartochkasining o'ng (oq) maydoni foni — mijoz iltimosiga
+       ko'ra admin panelda 10 xil zamonaviy TO'Q rangdan birini tanlashi
+       mumkin (qarang: SEARCH_CARD_BG_PRESETS, panel-boshqaruv.html'dagi
+       "Qidiruv kartochkasi foni" bo'limi). Standart holatda avvalgi
+       och/pastel gradient. */
+    --scm-bg: linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);
+    --scm-digit-border: rgba(20,45,110,0.22);
   }
   /* Planshet/kompyuterda katakchalar avvalgidek 46px'da "qotib" qolmasin
      deb (kichkina telefon o'lchamida "muzlab" qolgandek ko'rinardi) —
@@ -495,10 +503,15 @@
      logotipi doim shu yerda, qidiruv kartasining doimiy, ажralib turuvchi
      qismi sifatida (mavzudan mustaqil, doim shu ko'k rangda). Mijoz
      iltimosiga ko'ra VIP/STANDART bitta umumiy qidiruvga birlashtirilgani
-     sabab bu panel endi shunchaki statik belgi (bosilmaydi). ---- */
+     sabab bu panel endi shunchaki statik belgi (bosilmaydi).
+     YANA BIR mijoz iltimosiga ko'ra: telefon va kichik qurilmalarda bu
+     panel butunlay OLIB TASHLANADI (qidiruv maydoni to'liq kenglikka
+     cho'ziladi) — planshet va kompyuterda esa, aksincha, avvalgidan
+     KATTAROQ bo'lib ko'rsatiladi (pastdagi @media qoidalariga qarang). */
   .sc-side{
+    display:none;
     flex:0 0 auto;width:clamp(64px, 20vw, 96px);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    flex-direction:column;align-items:center;justify-content:center;gap:8px;
     padding:16px 6px;
     background:linear-gradient(165deg, #173B7A 0%, #2F6BE0 100%);
     text-align:center;
@@ -552,14 +565,14 @@
     white-space:normal;word-break:keep-all;overflow-wrap:normal;hyphens:none;
   }
   .sc-side-title span{display:block;color:#FFD37A;white-space:nowrap;}
-  /* ---- O'ng tomondagi oq maydon — barcha qidiruv elementlari shu yerda. ---- */
+  /* ---- O'ng tomondagi maydon — barcha qidiruv elementlari shu yerda. ---- */
   .sc-main{
     flex:1 1 0;min-width:0;padding:14px 14px 12px;
-    /* Mijoz iltimosiga ko'ra: soya o'rniga endi kartaning O'ZI sezilarli,
-       lekin baribir yumshoq to'q-ko'kish pastel fonda — chap paneldagi
-       ko'k rang bilan uyg'un, ammo hech qachon diqqatni bosib ketmaydigan
-       darajada. */
-    background:linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);
+    /* Mijoz iltimosiga ko'ra: fon endi admin panelda 10 xil zamonaviy
+       TO'Q rangdan (yoki standart och pastel) tanlanadi — qarang:
+       --scm-bg (:root'da standart qiymati bilan), loadSiteSettings(). */
+    background:var(--scm-bg);
+    transition:background .3s ease;
   }
   .hero h1{
     font-family:'Sora',sans-serif;
@@ -729,7 +742,7 @@
        farqli, chegara toza va tushunarli). */
     flex:0 0 auto;box-sizing:border-box;
     width:var(--digit-box-w);height:var(--search-row-h);
-    background:#F5F8FE;border:1.5px solid rgba(20,45,110,0.22);border-radius:12px;
+    background:#F5F8FE;border:1.5px solid var(--scm-digit-border);border-radius:12px;
     color:#0B1220;font-family:'Sora',sans-serif;
     font-size:clamp(14px,3.8vw,18px);font-weight:800;
     text-align:center;outline:none;box-shadow:none;
@@ -2318,6 +2331,12 @@
     }
     .featured-section, .pagination{max-width:900px;}
     .featured-card{flex:0 0 240px;}
+    /* Mijoz iltimosiga ko'ra: telefonda olib tashlangan chap "VIP
+       RAQAMLAR" panel planshetda qaytadan ko'rinadi va avvalgidan
+       KATTAROQ bo'ladi. */
+    .sc-side{display:flex;width:128px;gap:10px;padding:22px 10px;}
+    .sc-side-logo{width:46px;height:46px;font-size:20px;}
+    .sc-side-title{font-size:13px;}
   }
 
   /* ============================================================
@@ -2345,10 +2364,12 @@
        bo'lib qolar edi. */
     .search-card{max-width:none;margin:20px 40px 0;}
     /* Kompyuterda chap panel va o'ng maydon ham kattaroq, hashamatliroq
-       bo'lsin — mijoz "oddiy ko'rinyapti" deb ta'kidlagani uchun. */
-    .sc-side{width:120px;gap:12px;padding:24px 10px;}
-    .sc-side-logo{width:48px;height:48px;font-size:21px;}
-    .sc-side-title{font-size:14px;}
+       bo'lsin — mijoz "oddiy ko'rinyapti" deb ta'kidlagani uchun. Telefonda
+       bu panel butunlay yo'q (yuqoridagi bazaviy .sc-side{display:none}
+       qarang) — o'rniga kompyuterda YANADA kattaroq qilib beriladi. */
+    .sc-side{display:flex;width:150px;gap:14px;padding:28px 12px;}
+    .sc-side-logo{width:56px;height:56px;font-size:24px;}
+    .sc-side-title{font-size:16px;}
     .sc-main{padding:26px 32px 24px;}
     /* Katakchalar kattalashgani uchun 480px'lik eski chegara torlik
        qiladi (svayp qilishga majbur qilardi) — kattaroq qiymatga
@@ -6143,6 +6164,25 @@ document.getElementById('coCloseSuccess').addEventListener('click', ()=> customO
 
 
 
+/* Qidiruv kartochkasining (.sc-main, raqam katakchalari turgan o'ng
+   maydon) o'zining FONI uchun 10 ta tayyor, ZAMONAVIY TO'Q rang —
+   admin panelning "Mavzu" bo'limida, umumiy sayt mavzusidan MUSTAQIL
+   ravishda tanlanadi (qarang: panel-boshqaruv.html'dagi bir xil nomdagi
+   ro'yxat — ikkalasi HAR DOIM bir xil bo'lishi kerak). digitBorder —
+   shu fonda 7 ta raqam katakchasi chegarasi yaxshi ko'rinishi uchun. */
+const SEARCH_CARD_BG_PRESETS = {
+  midnight_navy:  { name: 'Tungi ko\'k',       grad: 'linear-gradient(160deg, #0B1830 0%, #16294A 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  deep_slate:     { name: 'Grafit kulrang',     grad: 'linear-gradient(160deg, #12181F 0%, #232C38 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  royal_indigo:   { name: 'Qirollik binafsha',  grad: 'linear-gradient(160deg, #150F35 0%, #2C1F63 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  emerald_dusk:   { name: 'Zumrad yashil',      grad: 'linear-gradient(160deg, #08211B 0%, #123B2E 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  wine_dark:      { name: 'Vino qizil',         grad: 'linear-gradient(160deg, #250B18 0%, #421530 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  charcoal_gold:  { name: 'Ko\'mir-oltin',      grad: 'linear-gradient(160deg, #171410 0%, #2B2419 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  metal_graphite: { name: 'Metall kulrang',     grad: 'linear-gradient(160deg, #14171C 0%, #262C35 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  deep_teal:      { name: 'Chuqur dengiz',      grad: 'linear-gradient(160deg, #06201F 0%, #0E3A38 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  plum_night:     { name: 'Shafaq binafsha',    grad: 'linear-gradient(160deg, #1B0E2A 0%, #3A1E52 100%)', digitBorder: 'rgba(255,255,255,0.28)' },
+  obsidian_blue:  { name: 'Qora zangori',       grad: 'linear-gradient(160deg, #0A0F1C 0%, #1B2740 100%)', digitBorder: 'rgba(255,255,255,0.28)' }
+};
+
 /* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
 const SITE_THEMES = {
   premium_navy:   { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#1C2E4A', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#33E28C', red:'#D4AF37', brandRed:'#D4AF37', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'8px', cardRadius:'12px' },
@@ -6300,6 +6340,14 @@ async function loadSiteSettings(){
         document.documentElement.style.setProperty('--page-text', window.__readableOn(s.siteBgColor));
       }
     }
+    // Qidiruv kartochkasi (.sc-main) foni — sayt mavzusidan MUSTAQIL,
+    // admin panelning "Mavzu" bo'limida 10 ta zamonaviy to'q rangdan
+    // birini tanlaydi (yoki bo'sh qoldirsa avvalgi och/pastel fon qoladi).
+    if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){
+      const scp = SEARCH_CARD_BG_PRESETS[s.searchCardBg];
+      document.documentElement.style.setProperty('--scm-bg', scp.grad);
+      document.documentElement.style.setProperty('--scm-digit-border', scp.digitBorder);
+    }
     if(s.font !== undefined) applyFont(s.font);
     hideOrderButtonSetting = !!s.hideOrderButton;
     if(s.catalogStyle) currentCatalogStyle = s.catalogStyle;
@@ -6333,6 +6381,13 @@ async function loadSiteSettings(){
         // va tugma ichidagi yozuvlar ham hech qachon ko'rinmay qolmaydi.
         if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){
           cache.pageBg = s.siteBgColor;
+        }
+        // Qidiruv kartochkasi foni ham xuddi shunday keshlanadi — keyingi
+        // tashrifda sahifa ochilishi bilanoq (Firestore javobini
+        // kutmasdan) to'g'ri (tanlangan) fon ko'rinadi.
+        if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){
+          cache.scmBg = SEARCH_CARD_BG_PRESETS[s.searchCardBg].grad;
+          cache.scmDigitBorder = SEARCH_CARD_BG_PRESETS[s.searchCardBg].digitBorder;
         }
         localStorage.setItem('raqamuz_theme_v1', JSON.stringify(cache));
       }

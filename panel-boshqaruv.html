@@ -1828,6 +1828,17 @@
     </div>
 
     <div class="settings-form">
+      <h3>Qidiruv kartochkasi foni</h3>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">
+        Bosh sahifadagi raqam qidiruv kartochkasining (7 ta katakcha, operator tugmalari
+        turgan maydon) foni — sayt mavzusidan MUSTAQIL. 10 xil zamonaviy TO'Q rangdan birini
+        tanlang, yoki "Standart" bilan avvalgi och/pastel fonga qayting.
+      </p>
+      <div id="searchCardBgPicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+      <div class="settings-msg" id="searchCardBgMsg"></div>
+    </div>
+
+    <div class="settings-form">
       <h3>Buyurtma tugmasi</h3>
       <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Yoqilsa, raqam qidiruv natijalaridagi kartochkalarda "Buyurtma berish" tugmasi olib tashlanadi — mijoz kartaning istalgan joyiga bossa, buyurtma shu zahoti qabul qilinadi.</p>
       <label class="checkbox-field">
@@ -2623,6 +2634,24 @@ const BG_COLOR_PRESETS = [
   '#0F1115', '#1E2129', '#2F3541'    // Grafit
 ];
 let currentBgColor = '';
+
+/* ---- Qidiruv kartochkasi (.sc-main) foni ----
+   index.html'dagi SEARCH_CARD_BG_PRESETS bilan AYNAN bir xil bo'lishi
+   shart (gradient qiymatlari shu yerda faqat OLDINDAN KO'RISH uchun
+   ishlatiladi — haqiqiy qo'llash index.html'da bo'ladi). */
+const SEARCH_CARD_BG_PRESETS = {
+  midnight_navy:  { name: 'Tungi ko\'k',      grad: 'linear-gradient(160deg, #0B1830 0%, #16294A 100%)' },
+  deep_slate:     { name: 'Grafit kulrang',    grad: 'linear-gradient(160deg, #12181F 0%, #232C38 100%)' },
+  royal_indigo:   { name: 'Qirollik binafsha', grad: 'linear-gradient(160deg, #150F35 0%, #2C1F63 100%)' },
+  emerald_dusk:   { name: 'Zumrad yashil',     grad: 'linear-gradient(160deg, #08211B 0%, #123B2E 100%)' },
+  wine_dark:      { name: 'Vino qizil',        grad: 'linear-gradient(160deg, #250B18 0%, #421530 100%)' },
+  charcoal_gold:  { name: 'Ko\'mir-oltin',     grad: 'linear-gradient(160deg, #171410 0%, #2B2419 100%)' },
+  metal_graphite: { name: 'Metall kulrang',    grad: 'linear-gradient(160deg, #14171C 0%, #262C35 100%)' },
+  deep_teal:      { name: 'Chuqur dengiz',     grad: 'linear-gradient(160deg, #06201F 0%, #0E3A38 100%)' },
+  plum_night:     { name: 'Shafaq binafsha',   grad: 'linear-gradient(160deg, #1B0E2A 0%, #3A1E52 100%)' },
+  obsidian_blue:  { name: 'Qora zangori',      grad: 'linear-gradient(160deg, #0A0F1C 0%, #1B2740 100%)' }
+};
+let currentSearchCardBg = '';
 
 /* ---- Raqamlar ro'yxati uslubi (Uslublar bo'limi) ---- */
 const CATALOG_STYLES = [
@@ -3421,6 +3450,74 @@ function renderBgColorPicker(){
   });
 }
 
+// Bitta "qidiruv kartochkasi foni" namunasi — o'zining gradientida,
+// ichida kichik oq katakcha + tugma namunasi bilan (haqiqiy ko'rinishga
+// yaqinroq bo'lsin deb).
+function searchCardBgSwatchHtml(key, t){
+  const selected = key === currentSearchCardBg;
+  return `
+    <div class="scb-swatch" data-key="${key}" style="
+      background:${t.grad};border-radius:12px;padding:10px;cursor:pointer;
+      border:2px solid ${selected ? '#FFFFFF' : 'transparent'};
+      box-shadow:0 0 0 1px var(--line)${selected ? ', 0 0 0 2px #1D4ED8' : ''};
+      display:flex;flex-direction:column;gap:8px;min-height:64px;justify-content:space-between;">
+      <div style="display:flex;gap:4px;">
+        <div style="width:16px;height:20px;border-radius:5px;background:rgba(255,255,255,0.85);"></div>
+        <div style="width:16px;height:20px;border-radius:5px;background:rgba(255,255,255,0.85);"></div>
+        <div style="width:16px;height:20px;border-radius:5px;background:rgba(255,255,255,0.85);"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;color:#fff;font-weight:700;">${t.name}</span>
+        ${selected ? '<span style="color:#fff;font-size:14px;">✓</span>' : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderSearchCardBgPicker(){
+  const picker = document.getElementById('searchCardBgPicker');
+  if(!picker) return;
+  const defaultSelected = !currentSearchCardBg;
+  picker.innerHTML = `
+    <div class="scb-swatch" data-key="" style="
+      background:linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);border-radius:12px;padding:10px;cursor:pointer;
+      border:2px solid ${defaultSelected ? '#1D4ED8' : 'transparent'};
+      box-shadow:0 0 0 1px var(--line)${defaultSelected ? ', 0 0 0 2px #1D4ED8' : ''};
+      display:flex;flex-direction:column;gap:8px;min-height:64px;justify-content:space-between;grid-column:1/-1;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;color:#0B1F3A;font-weight:700;">⚪ Standart (och/pastel)</span>
+        ${defaultSelected ? '<span style="color:#1D4ED8;font-size:14px;">✓</span>' : ''}
+      </div>
+    </div>
+    ${Object.entries(SEARCH_CARD_BG_PRESETS).map(([key, t]) => searchCardBgSwatchHtml(key, t)).join('')}
+  `;
+
+  picker.querySelectorAll('.scb-swatch').forEach(el => {
+    el.addEventListener('click', async () => {
+      const key = el.dataset.key;
+      currentSearchCardBg = key;
+      renderSearchCardBgPicker();
+      const msg = document.getElementById('searchCardBgMsg');
+      try{
+        // Bo'sh key ('') = "Standart" tanlandi — Firestore'da maydonni
+        // o'chirib qo'yamiz, shunda index.html standart (och) fonga qaytadi.
+        await db.collection('site_settings').doc('general').set(
+          { searchCardBg: key ? key : firebase.firestore.FieldValue.delete() },
+          { merge: true }
+        );
+        msg.textContent = key
+          ? `✓ "${SEARCH_CARD_BG_PRESETS[key].name}" foni saqlandi — mijoz saytida darhol qo'llanadi.`
+          : `✓ Standart fonga qaytarildi — mijoz saytida darhol qo'llanadi.`;
+        msg.className = 'settings-msg ok';
+        vibrate(80);
+      }catch(err){
+        msg.textContent = 'Xato: ' + err.message;
+        msg.className = 'settings-msg bad';
+      }
+    });
+  });
+}
+
 document.getElementById('vipWhiteThemeBtn').addEventListener('click', async () => {
   currentTheme = 'clean_white';
   renderThemePicker();
@@ -3440,6 +3537,7 @@ async function loadSiteSettingsForm(){
   renderThemePicker();
   renderStylePicker();
   renderBgColorPicker();
+  renderSearchCardBgPicker();
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists) return;
@@ -3447,6 +3545,7 @@ async function loadSiteSettingsForm(){
     if(s.theme && SITE_THEMES[s.theme]){ currentTheme = s.theme; renderThemePicker(); }
     if(s.catalogStyle && CATALOG_STYLES.some(cs => cs.key === s.catalogStyle)){ currentCatalogStyle = s.catalogStyle; renderStylePicker(); }
     if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){ currentBgColor = s.siteBgColor; renderBgColorPicker(); }
+    if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){ currentSearchCardBg = s.searchCardBg; renderSearchCardBgPicker(); }
     document.getElementById('hideOrderBtnCheckbox').checked = !!s.hideOrderButton;
     document.getElementById('siteFontSelect').value = s.font || 'Sora';
     document.getElementById('siteTelegramLink').value = s.telegramLink || '';
