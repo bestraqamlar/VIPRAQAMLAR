@@ -216,7 +216,11 @@
        shu bar ostida yashirinib qolardi. iPhone'larning pastki "home
        indicator" chizig'i ustiga tugma tushib qolmasligi uchun safe-area
        ham qo'shiladi (desktopda pastki bar yo'q — pastda olib tashlanadi). */
-    padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px));
+    /* Mijoz iltimosiga ko'ra pastki ASOSIY/VIP/STANDART/RELS bar butunlay
+       OLIB TASHLANDI (RELS endi tepada, chap tarafda; VIP/STANDART esa
+       qidiruv kartochkasining chap panelidan almashtiriladi) — shu sabab
+       katta pastki bo'sh joy endi kerak emas, faqat kichik "nafas" joyi. */
+    padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
   }
   @keyframes bodyGlowDrift{
     0%,100%{ background-position:0% 0%, 0% 0%; }
@@ -243,6 +247,12 @@
      Kompyuterda (1024px+): pastdagi @media qoidasi bu barni header ichiga,
      gorizontal tab qatoriga aylantiradi — bitta HTML/JS, ikki ko'rinish. */
   .main-nav{
+    /* Mijoz iltimosiga ko'ra pastki ASOSIY/VIP/STANDART/RELS bar butunlay
+       OLIB TASHLANDI — VIP/STANDART endi qidiruv kartochkasining chap
+       (.sc-side) panelidan, RELS esa tepadan, chap tarafdan ochiladi.
+       HTML/JS xavfsizlik uchun DOMda qoldirilgan (hech narsaga bog'liq
+       emas), lekin shu !important bilan har doim yashirin turadi. */
+    display:none !important;
     position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:80;
     display:flex;
     /* Mijoz "yashil-ko'k gradient + o'tayotgan raqamlar" ko'rinishini
@@ -292,41 +302,11 @@
 
   @media (min-width:1024px){
     body{padding-bottom:0;}
-    /* Header endi 3 ustunli: [bo'sh joy] [nav — ANIQ O'RTADA] [til/menyu].
-       Shu bilan 4 ta tugma header'ning haqiqiy o'rtasida turadi (chapga
-       "yopishib" qolmaydi), o'zi ichida esa 4 ta tugma chekkadan-chekkaga
-       TENG masofada yoyiladi. */
-    header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:16px;}
-    .main-nav{
-      grid-column:2;justify-self:center;
-      position:static;order:0;
-      background:color-mix(in srgb, var(--panel-2) 55%, transparent);
-      border:1px solid var(--line);border-radius:14px;
-      box-shadow:0 6px 20px -10px rgba(0,0,0,0.4);
-      padding:5px;gap:10px;width:min(640px, 46vw);
-      display:flex;justify-content:space-between;
-    }
-    .mn-tab{
-      flex:1 1 0;flex-direction:row;gap:8px;justify-content:center;
-      padding:11px 20px;border-radius:10px;font-size:13px;
-      background:none;color:var(--muted);
-    }
-    .mn-tab svg{width:17px;height:17px;}
-    .mn-tab .mn-dot{display:none;}
-    .mn-tab.active{
-      color:#1D4ED8;
-      background:color-mix(in srgb, var(--amber) 18%, transparent);
-      box-shadow:0 4px 14px -6px color-mix(in srgb, var(--amber) 55%, transparent);
-      transform:none;
-    }
-    .mn-tab.active svg{transform:none;filter:none;}
-    .mn-tab:active{transform:none;}
-    .mn-tab:hover:not(.active){
-      color:var(--text);
-      background:color-mix(in srgb, var(--panel-2) 90%, transparent);
-      transform:translateY(-1px);
-    }
-    .header-right-group{grid-column:3;justify-self:end;margin-left:0;}
+    /* Pastki bar olib tashlangani sabab header endi ODDIY flex qatorda
+       qoladi (grid trikka endi ehtiyoj yo'q) — RELS tugmasi (.header-
+       reels-btn-wrap) chap chekkada, til/menyu tugmalari esa
+       .header-right-group'ning margin-left:auto'i orqali o'ng chekkada
+       turadi, hech qanday markazlashtirish kerak emas. */
   }
   .logo{
     font-family:'Sora',sans-serif;
@@ -513,7 +493,9 @@
   }
   /* ---- Chap tomondagi tor, ko'k gradientli brend panel — "VIP RAQAMLAR"
      logotipi doim shu yerda, qidiruv kartasining doimiy, ажralib turuvchi
-     qismi sifatida (mavzudan mustaqil, doim shu ko'k rangda). ---- */
+     qismi sifatida (mavzudan mustaqil, doim shu ko'k rangda). Mijoz
+     iltimosiga ko'ra VIP/STANDART bitta umumiy qidiruvga birlashtirilgani
+     sabab bu panel endi shunchaki statik belgi (bosilmaydi). ---- */
   .sc-side{
     flex:0 0 auto;width:clamp(64px, 20vw, 96px);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
@@ -803,12 +785,13 @@
   }
   .standard-op-toggles::-webkit-scrollbar, .vip-op-toggles::-webkit-scrollbar{display:none;}
   .std-op-card{
-    /* Pill (dumaloq chekka) tugma — oq/juda ochroq fon, ingichka
-       chegara. Tanlanganda chegara va yozuv ko'k brend rangiga o'tadi
-       (chap paneldagi #173B7A/#2F6BE0 gradienti bilan bir xil til).
-       flex:none — qator hech qachon torayib, matn kesilib qolmasin,
-       buning o'rniga butun qator svayp qilinadi. */
-    display:flex;align-items:center;gap:6px;padding:6px 11px 6px 8px;border-radius:30px;
+    /* Mijoz iltimosiga ko'ra endi dumaloq PILL emas, TO'RTBURCHAKKA
+       tortilgan (kichik burchaklar bilan) kartochka shakli — oq/juda
+       ochroq fon, ingichka chegara. Tanlanganda chegara va yozuv ko'k
+       brend rangiga o'tadi (chap paneldagi #173B7A/#2F6BE0 gradienti
+       bilan bir xil til). flex:none — qator hech qachon torayib, matn
+       kesilib qolmasin, buning o'rniga butun qator svayp qilinadi. */
+    display:flex;align-items:center;gap:6px;padding:6px 11px 6px 8px;border-radius:9px;
     border:1.5px solid #E4E9F3;background:#FBFCFF;cursor:pointer;flex:none;
     transition:transform .15s cubic-bezier(.34,1.56,.64,1), border-color .18s ease,
       background .18s ease, box-shadow .18s ease;
@@ -2639,7 +2622,7 @@ html.theme-purple-premium .card button.order-btn{
       <span class="mn-dot"></span>
     </button>
   </nav>
-  <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:none;" aria-label="Video reels">
+  <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:flex;" aria-label="Video reels">
     <span class="hrb-ring">
       <svg class="hrb-play" viewBox="0 0 24 24" width="12" height="12">
         <defs>
@@ -2763,6 +2746,9 @@ html.theme-purple-premium .card button.order-btn{
        chunki bu endi shunchaki "banner" emas, butun kartaning doimiy
        qismi), o'ngda esa oq fonda barcha qidiruv elementlari. -->
   <div class="sc-side" id="brandBannerWrap">
+    <!-- Mijoz iltimosiga ko'ra VIP/STANDART endi bitta umumiy qidiruvga
+         birlashtirilgani sabab bu panel qaytadan oddiy, bosilmaydigan
+         brend belgisi — almashtirish tugmasi endi kerak emas. -->
     <div class="sc-side-logo"><span class="sc-diamond">💎</span></div>
     <div class="sc-side-title">VIP<br><span>RAQAMLAR</span></div>
   </div>
@@ -2785,24 +2771,24 @@ html.theme-purple-premium .card button.order-btn{
         <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
         <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
       </div>
-    <!-- Operator tanlash endi alohida oyna (modal) ochadigan strelka orqali
-         emas — HAR IKKALA (VIP va STANDART) bo'limda to'g'ridan-to'g'ri
-         raqam katakchalari ostida, ularning kengligi bilan teng, kichik
-         bosiladigan kartochkalar orqali amalga oshiriladi. VIP'da barcha 6
-         operator + "Barchasi" (#vipOpToggles) ko'rinadi, STANDART'da esa
-         faqat jonli qidiruvda ishlaydigan 4 tasi (#standardOpToggles, va u
-         yerda KAMIDA BITTASI doim tanlangan turishi shart). Ikkalasidan
-         faqat biri, joriy bo'limga qarab, bir vaqtning o'zida ko'rinadi. -->
+    <!-- Mijoz iltimosiga ko'ra VIP va STANDART endi ALOHIDA bo'lim emas —
+         bitta umumiy qidiruv: "Qidirish" tugmasi bosilganda AVVAL
+         operatorlardan jonli (STANDART) natija, KEYIN VIP (Firestore)
+         katalogidan mos raqamlar bitta ro'yxatga BIRLASHTIRILADI (qarang:
+         getFilteredNumbers()). Operator tanlash shu sabab endi bitta
+         qatorda — barcha 6 operator + "Barchasi" (#vipOpToggles). Admin
+         panelida VIP va STANDART hamon ALOHIDA boshqariladi — bu faqat
+         mijozga ko'rinadigan (customer-facing) qidiruvga tegishli. -->
     <div class="vip-op-toggles" id="vipOpToggles"></div>
     <div class="standard-op-toggles" id="standardOpToggles" style="display:none;"></div>
-    <button type="button" class="standard-search-btn" id="standardSearchBtn" style="display:none;">
+    <button type="button" class="standard-search-btn" id="standardSearchBtn">
       <span class="ssb-icon" id="standardSearchIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       </span>
       <span class="ssb-spinner" id="standardSearchSpinner" style="display:none;"></span>
       <span data-i18n="standardSearchBtn">Qidirish</span>
     </button>
-    <div class="hint-text" id="hintText" data-i18n="searchHint">O'zingizga yoqqan raqamlarni istalgan katakka yozib qidiring</div>
+    <div class="hint-text" id="hintText" data-i18n="searchHint">Raqamni katakchalarga kiriting va "Qidirish"ni bosing — VIP va oddiy raqamlar birga chiqadi</div>
     <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
     </div>
   </div>
@@ -3364,8 +3350,12 @@ function shuffleArray(a){
   return arr;
 }
 function buildZigzagOrder(list){
+  // Mijoz iltimosiga ko'ra saytga kirganda (yoki har yangilanganda) doim
+  // ENG QIMMAT 70 ta raqam ko'rsatiladi — lekin ular orasidagi TARTIB har
+  // safar TASODIFIY (bir xil "qotib qolgan" ro'yxat emas).
   const arr = list.filter(item => !item.reserved && item.dailyDeal !== true);
-  return shuffleArray(arr);
+  const top70 = arr.slice().sort((a, b) => b.price - a.price).slice(0, 70);
+  return shuffleArray(top70);
 }
 let ZIGZAG_ORDER = [];
 
@@ -3444,25 +3434,25 @@ function cheapestVipSample(n){
 function getFilteredNumbers(ignoreOperator){
   const pattern = currentPattern();
   const selectedOps = ignoreOperator ? [] : selectedOperators;
-  const searching = isSearchActive();
 
-  let source;
-  if(catalogMode === 'standard'){
-    // STANDART TOIFA: mijoz hali "Qidirish"ni bosmagan bo'lsa, ekran
-    // BO'SH turmasin deb — operatorlardan jonli so'ramasdan (bu avval
-    // "namuna" sifatida Beeline'dan so'rab olinardi, endi kerak emas) —
-    // VIP bazadagi ENG ARZON ~20 ta raqamni ko'rsatamiz. Bular haqiqiy
-    // STANDART (jonli) natija emas, shu sabab "Qidirish" bosilishi bilan
-    // (standardSearchTriggered=true) darhol haqiqiy operator natijasiga
-    // (LIVE_NUMBERS) almashtiriladi.
-    source = standardSearchTriggered ? LIVE_NUMBERS : cheapestVipSample(20);
-  }else{
-    // VIP TOIFA: FAQAT Firestore'dagi qo'lda kiritilgan katalog —
-    // operatorlardan jonli qidirilgan (Standart) raqamlar bu yerga
-    // hech qachon aralashmaydi (ilgari "Operatorda bor" belgisi bilan
-    // qo'shilardi, bu olib tashlandi — ikki toifa endi to'liq ajratilgan).
-    source = searching ? NUMBERS : ZIGZAG_ORDER;
+  if(!standardSearchTriggered){
+    // Mijoz iltimosiga ko'ra: "Qidirish" bosilmaguncha pastdagi
+    // kartochkalar (eng qimmat 70 ta, tasodifiy tartibda) O'ZGARMASDAN
+    // tursin — raqam terish yoki operator tanlash ekranni DARHOL
+    // "yo'qotib qo'ymaydi"/o'zgartirmaydi. Faqat "Qidirish" bosilgandan
+    // keyin (pastdagi else) natija almashadi.
+    return ZIGZAG_ORDER;
   }
+
+  // "Qidirish" bosilgan — AVVAL operatorlardan jonli (STANDART) natija,
+  // KEYIN VIP (Firestore) katalogidan mos raqamlar — BITTA umumiy
+  // ro'yxatga birlashtiriladi. Bir xil raqam ikkalasida ham chiqib
+  // qolmasligi uchun (ehtiyot shart, odatda kesishmaydi) raqam bo'yicha
+  // takrorlar olib tashlanadi.
+  const seen = new Set();
+  const source = [];
+  LIVE_NUMBERS.forEach(item=>{ if(!seen.has(item.number)){ seen.add(item.number); source.push(item); } });
+  NUMBERS.forEach(item=>{ if(!seen.has(item.number)){ seen.add(item.number); source.push(item); } });
 
   return source.filter(item=>{
     // "Bugungi aksiya"da ko'rsatilgan raqamlar asosiy katalogda (qidiruvda)
@@ -3534,17 +3524,15 @@ const NO_BUTTON_STYLES = ['list_minimal', 'bold_price'];
 const CART_ICON_SVG = '<svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>';
 
 function orderButtonHtml(item, label, extraClass){
-  // Jonli (operatordan kelgan) raqam — VIP toifada faqat ma'lumot uchun
-  // ko'rsatiladi ("Operatorda bor", buyurtma yo'q), LEKIN Standart
-  // toifada xuddi VIP raqam kabi to'liq buyurtma berish tugmasi bilan
-  // chiqadi (chunki Standart toifaning o'zi shu raqamlarni sotish uchun).
-  if(item.live && catalogMode !== 'standard') return `<span class="live-tag">${t('Operatorda bor')}</span>`;
+  // Mijoz iltimosiga ko'ra VIP va STANDART bitta umumiy qidiruvga
+  // birlashtirilgan — jonli (operatordan kelgan) raqamlar ham endi
+  // to'liq buyurtma berish tugmasi bilan chiqadi (avval bu yerda
+  // "Operatorda bor" deb faqat ma'lumot sifatida ko'rsatilardi).
   if(item.reserved) return `<button class="order-btn reserved-btn ${extraClass}" disabled>${t('Band qilingan')}</button>`;
   return `<button class="order-btn ${extraClass}" data-number="${item.number}" data-id="${item.id}">${label}</button>`;
 }
 
 function iconOrderBtnHtml(item, cls){
-  if(item.live && catalogMode !== 'standard') return `<span class="live-tag">${t('Operatorda bor')}</span>`;
   if(item.reserved) return `<span class="${cls} disabled-icon-btn">🔒</span>`;
   return `<button class="order-btn ${cls}" data-number="${item.number}" data-id="${item.id}">${CART_ICON_SVG}</button>`;
 }
@@ -3887,21 +3875,21 @@ function renderCatalog(){
   catalogEl.className = 'catalog' + (LIST_ROW_STYLES.includes(style) ? ' catalog-list' : '');
   catalogEl.innerHTML = '';
   if(filtered.length === 0){
-    if(catalogMode === 'standard' && !standardSearchTriggered){
-      catalogEl.innerHTML = `<div class="empty-state">${t('Raqamni katakchalarga kiriting va "Qidirish" tugmasini bosing — operatorlarda hozir bo\'sh turgan raqamlar shu yerda chiqadi.')}</div>`;
-    }else if(catalogMode === 'standard' && liveLoading){
+    if(isSearchActive() && !standardSearchTriggered){
+      catalogEl.innerHTML = `<div class="empty-state">${t('Raqamni katakchalarga kiriting va "Qidirish" tugmasini bosing — VIP va oddiy raqamlar birga shu yerda chiqadi.')}</div>`;
+    }else if(isSearchActive() && standardSearchTriggered && liveLoading){
       catalogEl.innerHTML = `
         <div class="loading-state">
           <div class="spinner"></div>
           <p>${t('Operatorlardan qidirilmoqda...')}</p>
         </div>`;
-    }else if(!numbersLoaded && catalogMode === 'vip'){
+    }else if(!numbersLoaded && !isSearchActive()){
       catalogEl.innerHTML = `
         <div class="loading-state">
           <div class="spinner"></div>
           <p>${t('Raqamlar yuklanmoqda...')}</p>
         </div>`;
-    }else if(catalogMode === 'standard' && LIVE_SEARCH_ERROR){
+    }else if(isSearchActive() && standardSearchTriggered && LIVE_SEARCH_ERROR){
       // MIJOZGA texnik sabab (operator nomi, "429", "fetch failed",
       // "timeout" va h.k.) HECH QACHON ko'rsatilmaydi — bu ichki muammo,
       // mijozga aloqasi yo'q va noqulay ko'rinadi. Konsolga (dasturchi
@@ -3948,7 +3936,10 @@ function renderCatalog(){
     }
 
     const isRowClickStyle = NO_BUTTON_STYLES.includes(style) || (style === 'classic' && hideOrderButtonSetting);
-    if(isRowClickStyle && !item.reserved && (!item.live || catalogMode === 'standard')){
+    // Mijoz iltimosiga ko'ra jonli (operatordan kelgan) raqamlar ham endi
+    // to'liq buyurtma beriladigan bo'lgani sabab, qator-bosiladigan
+    // uslublarda ham ular boshqalar kabi bosiladigan bo'lishi kerak.
+    if(isRowClickStyle && !item.reserved){
       card.classList.add('clickable-card');
       card.addEventListener('click', ()=> openModal(item.number, item.id));
     }
@@ -4459,7 +4450,9 @@ async function fetchLiveNumbers(){
     if(myId === liveRequestId){
       liveLoading = false;
       renderCatalog();
-      if(catalogMode === 'standard') renderStandardOpToggles();
+      // Natija (STANDART + VIP birlashtirilgan) kelgandan keyin operator
+      // kartochkalaridagi sonlar (badge) ham yangilanishi kerak.
+      renderVipOpToggles();
     }
   }
 }
@@ -4617,12 +4610,13 @@ const vipOpTogglesEl = document.getElementById('vipOpToggles');
 function renderVipOpToggles(){
   if(!vipOpTogglesEl) return;
   const allSelected = selectedOperators.length === 0;
-  // Mijoz katakchalarga RAQAM YOZGANDAGINA (operatorni shunchaki bosib
-  // tanlashning o'zi YETARLI EMAS) har bir operator yonida O'SHA
-  // operatordan hozir nechta raqam mos kelayotgani ko'rsatiladi — operator
-  // TANLOVIDAN mustaqil hisoblanadi (ignoreOperator=true), shu sabab
-  // bosishdan oldin qaysi birida ko'proq borligini ko'rish mumkin.
-  const showCounts = currentPattern().some(d => d !== '');
+  // Mijoz iltimosiga ko'ra endi son ("nechta raqam bor") FAQAT "Qidirish"
+  // bosilib, ikkala baza (STANDART + VIP) qidirilgandan KEYIN ko'rinadi —
+  // terish paytida yoki operator tanlashning o'zida hech qanday son
+  // ko'rsatilmaydi (operator TANLOVIDAN mustaqil hisoblanadi,
+  // ignoreOperator=true, shu sabab qaysi birida ko'proq borligini ko'rish
+  // mumkin).
+  const showCounts = standardSearchTriggered && currentPattern().some(d => d !== '');
   const matches = showCounts ? getFilteredNumbers(true) : null;
   const allCount = showCounts ? matches.length : null;
   const allChipHtml = `
@@ -4687,16 +4681,11 @@ digitBoxes.forEach((box, idx)=>{
     }
     if(box.value !== '' && idx < digitBoxes.length - 1){ digitBoxes[idx+1].focus({ preventScroll: true }); }
     currentPage = 0;
-    if(catalogMode === 'vip'){
-      // VIP TOIFA: FAQAT mahalliy Firestore katalogi filtrlanadi —
-      // operatorlarga hech qanday so'rov yuborilmaydi.
-      catalogEl.style.opacity = '0.35';
-      debouncedRenderCatalog();
-    }else{
-      // STANDART TOIFA: raqam terish hali qidiruvni boshlamaydi — mijoz
-      // "Qidirish" tugmasini bosgandagina operatorlarga so'rov ketadi.
-      updateSearchUI();
-    }
+    // Mijoz iltimosiga ko'ra: raqam terish hali pastdagi kartochkalarni
+    // O'ZGARTIRMAYDI/YO'QOTMAYDI — ular joyida turadi. Mijoz "Qidirish"
+    // tugmasini bosgandagina (standardSearchBtn) ikkala baza qidirilib,
+    // natija almashadi.
+    updateSearchUI();
   });
   box.addEventListener('keydown', (e)=>{
     if(e.key === 'Backspace' && box.value === '' && idx > 0){ digitBoxes[idx-1].focus({ preventScroll: true }); }
@@ -4716,7 +4705,9 @@ function setCatalogMode(mode){
   catalogMode = mode;
   modeVipBtn.classList.toggle('active', mode === 'vip');
   modeStandardBtn.classList.toggle('active', mode === 'standard');
-  standardSearchBtn.style.display = mode === 'standard' ? 'block' : 'none';
+  // Mijoz iltimosiga ko'ra "Qidirish" tugmasi endi DOIM ko'rinadi (VIP va
+  // STANDART bitta umumiy qidiruvga birlashtirilgani sabab) — mode'ga
+  // qarab yashirilmaydi.
   if(hintTextEl) hintTextEl.textContent = mode === 'standard' ? HINT_STANDARD : HINT_VIP;
 
   // Operator tanlash ikkala bo'limda ham raqam katakchalari ostidagi
@@ -7125,11 +7116,12 @@ function takeWarmedVideo(url){
     // belgilanadi — shunda "birinchi" video har doim aniq bo'ladi va
     // uni oldindan (fon rejimida) tayyorlab qo'yish mumkin.
     items = shuffle(items);
-    // MUHIM: bu banner ENDI tepada ko'rsatilmaydi — pastdagi/kompyuterdagi
-    // asosiy navigatsiyaning RELS tugmasi endi shu videolarni ochadi
-    // (window.__openPremiumReels orqali), shu sabab banner doim yashirin
-    // qoladi. Funksiyaning o'zi (openPremiumReels) hali ham ishlatiladi.
-    banner.style.display = 'none';
+    // Mijoz iltimosiga ko'ra RELS tugmasi endi tepada, chap tarafda DOIM
+    // ko'rinadi (pastki navigatsiya olib tashlangan, bu endi RELS'ga
+    // yagona kirish yo'li) — video hali yo'q/yuklanmagan bo'lsa ham
+    // tugma joyida turadi (bosilsa hech narsa qilmaydi, openPremiumReels
+    // ichida items.length tekshiriladi).
+    banner.style.display = 'flex';
     if(items.length) warmVideoCache(items[0].videoUrl);
 
     // Ulashilgan havola orqali kirilgan bo'lsa (?pv=videoId) — o'sha videoni darhol ochamiz
