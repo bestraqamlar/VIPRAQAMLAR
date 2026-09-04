@@ -25,7 +25,7 @@
      shrift, keyin almashadi" holatiga sabab bo'lgan. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&family=Nunito:wght@400;700;800&display=swap">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VIP RAQAMLAR">
@@ -572,11 +572,22 @@
   /* ---- O'ng tomondagi maydon — barcha qidiruv elementlari shu yerda. ---- */
   .sc-main{
     flex:1 1 0;min-width:0;padding:14px 14px 12px;
-    /* Mijoz iltimosiga ko'ra: fon endi admin panelda 10 xil zamonaviy
-       TO'Q rangdan (yoki standart och pastel) tanlanadi — qarang:
+    /* Mijoz iltimosiga ko'ra: fon endi admin panelda 20 xil zamonaviy
+       rangdan (yoki standart och pastel) tanlanadi — qarang:
        --scm-bg (:root'da standart qiymati bilan), loadSiteSettings(). */
     background:var(--scm-bg);
-    transition:background .3s ease;
+    /* Mijoz iltimosiga ko'ra: fon endi TINCH TURMAYDI — gradientning ikki
+       rangi bir-biriga "yetolmay" (hech qachon to'liq almashmay), juda
+       SEKIN, mayin oldinga-orqaga suzib turadi. Gradient o'zi qaysi
+       mavzu tanlangan bo'lsa o'sha ikki rangdan iborat (--scm-bg), shu
+       sabab bu animatsiya HAR QANDAY mavzuda avtomatik ishlaydi. */
+    background-size:220% 220%;
+    animation:scmBgDrift 14s ease-in-out infinite;
+    transition:background-image .3s ease;
+  }
+  @keyframes scmBgDrift{
+    0%, 100%{ background-position:0% 0%; }
+    50%{ background-position:100% 100%; }
   }
   .hero h1{
     font-family:'Sora',sans-serif;
@@ -749,16 +760,32 @@
     background:var(--scm-digit-bg);border:1.5px solid var(--scm-digit-border);border-radius:12px;
     color:var(--scm-digit-text);font-family:'Sora',sans-serif;
     font-size:clamp(14px,3.8vw,18px);font-weight:800;
+    /* Turli shriftlar (masalan "X" belgisi uchun Nunito) balandlik
+       o'lchamlari har xil bo'lgani sababli, faqat line-height orqali
+       markazlash ANIQ ishlamaydi (shrift metrikasiga qarab tepaga
+       "surilib" qolishi mumkin). Shu sababli input o'zi flex konteyner
+       qilinib, ichidagi matn/placeholder HAR DOIM aniq VERTIKAL VA
+       GORIZONTAL MARKAZDA turadi (Chrome/Firefox buni input matni uchun
+       ham qo'llab-quvvatlaydi). */
+    display:flex;align-items:center;justify-content:center;
+    line-height:normal;
     text-align:center;outline:none;box-shadow:none;
     transition:background .15s ease, color .15s ease, border-color .18s ease;
-    padding:0;
+    /* Mijoz iltimosiga ko'ra "X" (va raqam) ozgina PASTGA suriladi —
+       toza markazdan ko'ra biroz pastroqda tabiiyroq ko'rinadi. */
+    padding:3px 0 0;
   }
-  /* "X" belgisi endi asosiy son o'lchamidan kattaroq va qalinroq —
-     bo'sh katakcha uzoqdan ham aniq bilinsin. Mijoz iltimosiga ko'ra:
-     katakcha foni endi kartaning O'ZI bilan bir xil (fon "ko'rinib"
-     turadi), shu sabab "X" va raqam rangi TANLANGAN fonga qarab
-     o'qiladigan (to'q fonda oq, och fonda to'q) bo'lishi kerak. */
-  .digit-box::placeholder{color:var(--scm-digit-placeholder);font-size:1.2em;font-weight:800;}
+  /* Mijoz iltimosiga ko'ra: "X" belgisi QALIN (bold) EMAS, oddiy
+     (normal) shriftda, asosiy son o'lchamidan kattaroq (lekin avvalgidan
+     ozgina kichikroq) va aniq MARKAZDA joylashgan bo'lishi kerak.
+     Katakcha foni kartaning O'ZI bilan bir xil (fon "ko'rinib" turadi),
+     shu sabab "X" rangi TANLANGAN fonga qarab o'qiladigan (to'q fonda
+     oq, och fonda to'q) bo'lishi kerak. */
+  .digit-box::placeholder{
+    color:var(--scm-digit-placeholder);font-size:1.55em;font-weight:700;
+    font-family:'Nunito',sans-serif;
+    text-align:center;
+  }
   .digit-box:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);}
   .digit-box.filled{
     /* To'ldirilgan katakcha — mijoz iltimosiga ko'ra rang biroz TO'QROQ
