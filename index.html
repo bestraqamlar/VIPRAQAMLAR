@@ -759,7 +759,7 @@
     width:var(--digit-box-w);height:var(--search-row-h);
     background:var(--scm-digit-bg);border:1.5px solid var(--scm-digit-border);border-radius:12px;
     color:var(--scm-digit-text);font-family:'Sora',sans-serif;
-    font-size:clamp(14px,3.8vw,18px);font-weight:800;
+    font-size:clamp(18px,5vw,23px);font-weight:800;
     /* Turli shriftlar (masalan "X" belgisi uchun Nunito) balandlik
        o'lchamlari har xil bo'lgani sababli, faqat line-height orqali
        markazlash ANIQ ishlamaydi (shrift metrikasiga qarab tepaga
@@ -788,10 +788,13 @@
   }
   .digit-box:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);}
   .digit-box.filled{
-    /* To'ldirilgan katakcha — mijoz iltimosiga ko'ra rang biroz TO'QROQ
-       (avvalgi juda ochiq/xira yashildan farqli), ramka ham yashil
-       tusga o'tadi — soya YO'Q, faqat aniq chegara. */
-    background:#B9EDD1;color:#0A5C34;border-color:#0E6B3A;
+    /* Mijoz iltimosiga ko'ra: to'ldirilgan katakchada HECH QANDAY fon
+       rangi yo'q, faqat ramka yashil tusga o'tadi. Raqamning O'ZI esa
+       kartochka foniga QARAB o'zgaradi — agar fon OCH bo'lsa raqam
+       QORA, agar fon TO'Q bo'lsa raqam OQ (xuddi --scm-digit-text
+       o'zgaruvchisi kabi, "X" belgisi rangi bilan bir xil mantiqda). */
+    background:transparent;color:var(--scm-digit-text);border-color:#0E6B3A;
+    font-weight:900;
   }
   .dash{flex:0 0 auto;color:var(--muted);font-family:'Sora',sans-serif;font-size:clamp(11px,3vw,14px);}
 
@@ -2390,7 +2393,7 @@
     /* Bu yerda ham xuddi shu sabab (yuqoridagi planshet izohiga qarang) —
        .number-builder max-width'i endi O'ZGARTIRILMAYDI, doim 448px'da,
        operator kartochkalari va "Qidirish" tugmasi bilan bir xil qoladi. */
-    .digit-box{width:var(--digit-box-w);height:var(--search-row-h);font-size:20px;border-radius:14px;}
+    .digit-box{width:var(--digit-box-w);height:var(--search-row-h);font-size:26px;border-radius:14px;}
     .op-select{height:var(--search-row-h);width:var(--search-row-h);}
     /* Qidiruv kartochkasi endi pastdagi 2 qatorli raqam katalogi bilan
        AYNAN bir xil chekkalarda (40px) to'liq ekranga cho'zilsin — avval
