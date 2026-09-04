@@ -125,7 +125,13 @@
   .login-field{position:relative;margin-bottom:12px;}
   .login-screen input{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
-    padding:13px 14px;color:var(--text);font-size:15px;outline:none;text-align:center;
+    /* IPHONE TEZLIK TUZATISHI: font-size 16px'dan kichik bo'lsa, iOS
+       Safari maydon fokus olganda SAHIFANI AVTOMATIK KATTALASHTIRADI
+       (zoom animatsiyasi) — aynan shu holat "harflar keyin ko'rinadi,
+       qotib ishlaydi" tuyg'usini beradi (klaviatura bosilgan-bosilmagan,
+       lekin ekran hali zoom animatsiyasi bilan band). 16px va undan
+       katta bo'lsa, iOS bu zoom'ni umuman qilmaydi. */
+    padding:13px 14px;color:var(--text);font-size:16px;outline:none;text-align:center;
     transition:border-color .2s ease, box-shadow .2s ease, transform .15s ease;
   }
   .login-screen input:focus{border-color:var(--amber);box-shadow:0 0 0 4px rgba(255,176,0,0.12);transform:translateY(-1px);}
@@ -291,7 +297,10 @@
   }
   .add-form input, .add-form select{
     background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
-    padding:10px;color:var(--text);font-size:13.5px;outline:none;
+    /* IPHONE TEZLIK: 16px — iOS'ning fokusda avtomatik zoom qilishining
+       (va shu bilan bog'liq "yozish qotib qoladi" tuyg'usining) oldini
+       oladi (qarang: .login-screen input yonidagi batafsil izoh). */
+    padding:10px;color:var(--text);font-size:16px;outline:none;
   }
   #newNumber{font-family:'Sora',sans-serif;font-weight:700;}
   .add-form input:focus, .add-form select:focus{border-color:var(--amber);}
@@ -320,7 +329,7 @@
   .bulk-hint{color:var(--muted);font-size:12px;line-height:1.6;margin:0 0 10px;}
   .bulk-box textarea{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
-    padding:10px;color:var(--text);font-family:'Space Mono',monospace;font-size:12.5px;
+    padding:10px;color:var(--text);font-family:'Space Mono',monospace;font-size:16px;
     outline:none;resize:vertical;margin-bottom:10px;
   }
   .bulk-box textarea:focus{border-color:var(--amber);}
@@ -372,7 +381,7 @@
   }
   .admin-row input, .admin-row select{
     background:var(--panel-2);border:1px solid var(--line);border-radius:7px;
-    padding:8px 7px;color:var(--text);font-size:12.5px;outline:none;width:100%;
+    padding:8px 7px;color:var(--text);font-size:16px;outline:none;width:100%;
   }
   .an-number{font-family:'Sora',sans-serif;font-weight:700;}
   .admin-row input:focus, .admin-row select:focus{border-color:var(--amber);}
@@ -482,7 +491,7 @@
   .ig-field-hint{font-weight:400;color:var(--muted);font-size:11.5px;}
   .ig-field input[type="text"], .ig-field textarea{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
-    padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;
+    padding:10px 12px;color:var(--text);font-size:16px;font-family:inherit;resize:vertical;
   }
   .ig-field input[type="text"]:focus, .ig-field textarea:focus{border-color:var(--amber);}
   .ig-rules-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
@@ -492,7 +501,7 @@
   }
   .ig-rule-row input, .ig-rule-row textarea{
     width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;
-    padding:8px 10px;color:var(--text);font-size:12.5px;font-family:inherit;resize:vertical;
+    padding:8px 10px;color:var(--text);font-size:16px;font-family:inherit;resize:vertical;
   }
   .ig-rule-row .ig-rule-label{font-size:11px;color:var(--muted);margin-bottom:2px;}
   .ig-rule-remove{
@@ -565,7 +574,7 @@
   .video-item .vi-likes-icon{font-size:12px;}
   .video-item .vi-likes-input{
     flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
-    padding:5px 6px;color:var(--text);font-size:11.5px;
+    padding:5px 6px;color:var(--text);font-size:16px;
   }
   .video-item .vi-likes-save, .video-item .vi-likes-rand{
     background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
@@ -830,12 +839,12 @@
 .op-cred{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
 .op-cred label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
 .op-cred input{width:100%;padding:9px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.04);color:inherit;font-size:13px;}
+  background:rgba(255,255,255,.04);color:inherit;font-size:16px;}
 .op-table{width:100%;border-collapse:collapse;font-size:12.5px;}
 .op-table th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;padding:4px 6px;}
 .op-table td{padding:3px 6px;}
 .op-table input{width:100%;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.04);color:inherit;font-size:12.5px;}
+  background:rgba(255,255,255,.04);color:inherit;font-size:16px;}
 .op-del{background:none;border:none;color:#c0392b;cursor:pointer;font-size:15px;padding:0 4px;}
 .op-add{background:none;border:1px dashed rgba(255,255,255,.2);color:var(--muted);border-radius:8px;
   padding:6px 12px;cursor:pointer;font-size:12px;margin-top:8px;}
@@ -1200,11 +1209,11 @@
     <div class="mgmt-form" id="mgmtAddForm" style="display:none;">
       <div class="wt-row">
         <label for="mgmtName">Ismi:</label>
-        <input type="text" id="mgmtName" placeholder="Masalan: Aziz Karimov" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:13px;">
+        <input type="text" id="mgmtName" placeholder="Masalan: Aziz Karimov" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:16px;">
       </div>
       <div class="wt-row">
         <label for="mgmtPassword">Paroli:</label>
-        <input type="text" id="mgmtPassword" placeholder="Kamida 8 belgi, harf + raqam" autocomplete="off" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:13px;font-family:'Space Mono',monospace;">
+        <input type="text" id="mgmtPassword" placeholder="Kamida 8 belgi, harf + raqam" autocomplete="off" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:16px;font-family:'Space Mono',monospace;">
       </div>
       <p class="mgmt-note">Bu parolni o'zingiz o'ylab kiriting va yangi adminga siz aytasiz — biz uni hech qayerda ko'rsatmaymiz.</p>
 
