@@ -2637,34 +2637,35 @@ let currentBgColor = '';
 
 /* ---- Qidiruv kartochkasi (.sc-main) foni ----
    index.html'dagi SEARCH_CARD_BG_PRESETS bilan AYNAN bir xil bo'lishi
-   shart (gradient/digitBg qiymatlari shu yerda faqat OLDINDAN KO'RISH
-   uchun ishlatiladi — haqiqiy qo'llash index.html'da bo'ladi). digitBg —
-   7 ta raqam katakchasi ham shu rangga mos o'zgaradi (mijoz iltimosiga
-   ko'ra), shu sabab namunada ham shu rang ko'rsatiladi. */
+   shart (bu yerda faqat OLDINDAN KO'RISH uchun ishlatiladi — haqiqiy
+   qo'llash index.html'da bo'ladi). digitBg endi HAR DOIM 'transparent' —
+   mijoz iltimosiga ko'ra 7 ta raqam katakchasi FONI kartaning O'ZI bilan
+   bir xil (alohida quti YO'Q), faqat "X"/raqam matni farqlanadi
+   (light:true bo'lganlarda TO'Q, bo'lmasa OQ). */
 const SEARCH_CARD_BG_PRESETS = {
   // ---- 10 ta TO'Q variant ----
-  midnight_navy:  { name: 'Tungi ko\'k',       grad: 'linear-gradient(160deg, #0B1830 0%, #16294A 100%)', digitBg: '#E7EEFC' },
-  deep_slate:     { name: 'Grafit kulrang',     grad: 'linear-gradient(160deg, #12181F 0%, #232C38 100%)', digitBg: '#EDEFF2' },
-  royal_indigo:   { name: 'Qirollik binafsha',  grad: 'linear-gradient(160deg, #150F35 0%, #2C1F63 100%)', digitBg: '#EEE8FB' },
-  emerald_dusk:   { name: 'Zumrad yashil',      grad: 'linear-gradient(160deg, #08211B 0%, #123B2E 100%)', digitBg: '#E4F6EC' },
-  wine_dark:      { name: 'Vino qizil',         grad: 'linear-gradient(160deg, #250B18 0%, #421530 100%)', digitBg: '#FBE7ED' },
-  charcoal_gold:  { name: 'Ko\'mir-oltin',      grad: 'linear-gradient(160deg, #171410 0%, #2B2419 100%)', digitBg: '#FBF1DE' },
-  metal_graphite: { name: 'Metall kulrang',     grad: 'linear-gradient(160deg, #14171C 0%, #262C35 100%)', digitBg: '#ECEEF1' },
-  deep_teal:      { name: 'Chuqur dengiz',      grad: 'linear-gradient(160deg, #06201F 0%, #0E3A38 100%)', digitBg: '#E1F5F3' },
-  plum_night:     { name: 'Shafaq binafsha',    grad: 'linear-gradient(160deg, #1B0E2A 0%, #3A1E52 100%)', digitBg: '#F5E9F7' },
-  obsidian_blue:  { name: 'Qora zangori',       grad: 'linear-gradient(160deg, #0A0F1C 0%, #1B2740 100%)', digitBg: '#E6EBF7' },
+  midnight_navy:  { name: 'Tungi ko\'k',       grad: 'linear-gradient(160deg, #0B1830 0%, #16294A 100%)', digitBg: 'transparent' },
+  deep_slate:     { name: 'Grafit kulrang',     grad: 'linear-gradient(160deg, #12181F 0%, #232C38 100%)', digitBg: 'transparent' },
+  royal_indigo:   { name: 'Qirollik binafsha',  grad: 'linear-gradient(160deg, #150F35 0%, #2C1F63 100%)', digitBg: 'transparent' },
+  emerald_dusk:   { name: 'Zumrad yashil',      grad: 'linear-gradient(160deg, #08211B 0%, #123B2E 100%)', digitBg: 'transparent' },
+  wine_dark:      { name: 'Vino qizil',         grad: 'linear-gradient(160deg, #250B18 0%, #421530 100%)', digitBg: 'transparent' },
+  charcoal_gold:  { name: 'Ko\'mir-oltin',      grad: 'linear-gradient(160deg, #171410 0%, #2B2419 100%)', digitBg: 'transparent' },
+  metal_graphite: { name: 'Metall kulrang',     grad: 'linear-gradient(160deg, #14171C 0%, #262C35 100%)', digitBg: 'transparent' },
+  deep_teal:      { name: 'Chuqur dengiz',      grad: 'linear-gradient(160deg, #06201F 0%, #0E3A38 100%)', digitBg: 'transparent' },
+  plum_night:     { name: 'Shafaq binafsha',    grad: 'linear-gradient(160deg, #1B0E2A 0%, #3A1E52 100%)', digitBg: 'transparent' },
+  obsidian_blue:  { name: 'Qora zangori',       grad: 'linear-gradient(160deg, #0A0F1C 0%, #1B2740 100%)', digitBg: 'transparent' },
   // ---- YANA 5 ta TO'Q variant ----
-  ember_dark:     { name: 'Cho\'g\' (to\'q)',   grad: 'linear-gradient(160deg, #2A0F06 0%, #4A1B0A 100%)', digitBg: '#FBE6DC' },
-  forest_dark:    { name: 'O\'rmon (to\'q)',    grad: 'linear-gradient(160deg, #08210F 0%, #163A20 100%)', digitBg: '#E2F3E6' },
-  steel_dark:     { name: 'Po\'lat (to\'q)',    grad: 'linear-gradient(160deg, #101820 0%, #1F2E3D 100%)', digitBg: '#E8EEF3' },
-  rose_dark:      { name: 'Atirgul (to\'q)',    grad: 'linear-gradient(160deg, #240C1B 0%, #401530 100%)', digitBg: '#FAE6F0' },
-  amber_dark:     { name: 'Amber-bronza',       grad: 'linear-gradient(160deg, #1F1608 0%, #3A2A0E 100%)', digitBg: '#FBF0DC' },
+  ember_dark:     { name: 'Cho\'g\' (to\'q)',   grad: 'linear-gradient(160deg, #2A0F06 0%, #4A1B0A 100%)', digitBg: 'transparent' },
+  forest_dark:    { name: 'O\'rmon (to\'q)',    grad: 'linear-gradient(160deg, #08210F 0%, #163A20 100%)', digitBg: 'transparent' },
+  steel_dark:     { name: 'Po\'lat (to\'q)',    grad: 'linear-gradient(160deg, #101820 0%, #1F2E3D 100%)', digitBg: 'transparent' },
+  rose_dark:      { name: 'Atirgul (to\'q)',    grad: 'linear-gradient(160deg, #240C1B 0%, #401530 100%)', digitBg: 'transparent' },
+  amber_dark:     { name: 'Amber-bronza',       grad: 'linear-gradient(160deg, #1F1608 0%, #3A2A0E 100%)', digitBg: 'transparent' },
   // ---- 5 ta OCH (pastel) variant ----
-  soft_sky:       { name: 'Moviy osmon (och)',  grad: 'linear-gradient(160deg, #DCEAFE 0%, #B9D4FB 100%)', digitBg: '#FFFFFF', light: true },
-  soft_mint:      { name: 'Yalpiz (och)',       grad: 'linear-gradient(160deg, #DFF7EC 0%, #B9EDD1 100%)', digitBg: '#FFFFFF', light: true },
-  soft_lavender:  { name: 'Lavanda (och)',      grad: 'linear-gradient(160deg, #EDE7FB 0%, #D3C4F5 100%)', digitBg: '#FFFFFF', light: true },
-  soft_peach:     { name: 'Shaftoli (och)',     grad: 'linear-gradient(160deg, #FDEEE0 0%, #FBD3B0 100%)', digitBg: '#FFFFFF', light: true },
-  soft_rose:      { name: 'Atirgul (och)',      grad: 'linear-gradient(160deg, #FCE7EF 0%, #F7C0D3 100%)', digitBg: '#FFFFFF', light: true }
+  soft_sky:       { name: 'Moviy osmon (och)',  grad: 'linear-gradient(160deg, #DCEAFE 0%, #B9D4FB 100%)', digitBg: 'transparent', light: true },
+  soft_mint:      { name: 'Yalpiz (och)',       grad: 'linear-gradient(160deg, #DFF7EC 0%, #B9EDD1 100%)', digitBg: 'transparent', light: true },
+  soft_lavender:  { name: 'Lavanda (och)',      grad: 'linear-gradient(160deg, #EDE7FB 0%, #D3C4F5 100%)', digitBg: 'transparent', light: true },
+  soft_peach:     { name: 'Shaftoli (och)',     grad: 'linear-gradient(160deg, #FDEEE0 0%, #FBD3B0 100%)', digitBg: 'transparent', light: true },
+  soft_rose:      { name: 'Atirgul (och)',      grad: 'linear-gradient(160deg, #FCE7EF 0%, #F7C0D3 100%)', digitBg: 'transparent', light: true }
 };
 let currentSearchCardBg = '';
 
@@ -3473,7 +3474,12 @@ function searchCardBgSwatchHtml(key, t){
   // Ochroq (pastel) namunalarda yozuv/belgi TO'Q rangda bo'lishi kerak,
   // aks holda oq yozuv och fonda o'qilmay qoladi.
   const textColor = t.light ? '#0B1F3A' : '#fff';
-  const boxRect = t.digitBg || '#FFFFFF';
+  // Mijoz iltimosiga ko'ra katakcha foni endi kartaning O'ZI bilan bir
+  // xil (alohida quti YO'Q) — shu sabab namunada ham katakcha faqat
+  // CHEGARA (border) bilan, ICHI shaffof ko'rsatiladi, o'rtasida "X".
+  const boxBorder = t.light ? 'rgba(11,31,58,0.4)' : 'rgba(255,255,255,0.55)';
+  const xColor = t.light ? 'rgba(11,31,58,0.6)' : 'rgba(255,255,255,0.75)';
+  const digitBoxHtml = `<div style="width:16px;height:20px;border-radius:5px;background:transparent;border:1.5px solid ${boxBorder};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:${xColor};">X</div>`;
   return `
     <div class="scb-swatch" data-key="${key}" style="
       background:${t.grad};border-radius:12px;padding:10px;cursor:pointer;
@@ -3481,9 +3487,7 @@ function searchCardBgSwatchHtml(key, t){
       box-shadow:0 0 0 1px var(--line)${selected ? ', 0 0 0 2px #1D4ED8' : ''};
       display:flex;flex-direction:column;gap:8px;min-height:64px;justify-content:space-between;">
       <div style="display:flex;gap:4px;">
-        <div style="width:16px;height:20px;border-radius:5px;background:${boxRect};border:1px solid rgba(0,0,0,0.12);"></div>
-        <div style="width:16px;height:20px;border-radius:5px;background:${boxRect};border:1px solid rgba(0,0,0,0.12);"></div>
-        <div style="width:16px;height:20px;border-radius:5px;background:${boxRect};border:1px solid rgba(0,0,0,0.12);"></div>
+        ${digitBoxHtml}${digitBoxHtml}${digitBoxHtml}
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:11px;color:${textColor};font-weight:700;">${t.name}</span>
