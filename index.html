@@ -177,7 +177,7 @@
        "Qidiruv kartochkasi foni" bo'limi). Standart holatda avvalgi
        och/pastel gradient. */
     --scm-bg: linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);
-    --scm-digit-bg: #F5F8FE;
+    --scm-digit-bg: rgba(10,30,70,0.06);
     --scm-digit-border: rgba(20,45,110,0.22);
     --scm-digit-text: #0B1220;
     --scm-digit-placeholder: rgba(10,20,40,0.34);
@@ -774,17 +774,12 @@
     /* Mijoz iltimosiga ko'ra "X" (va raqam) ozgina PASTGA suriladi —
        toza markazdan ko'ra biroz pastroqda tabiiyroq ko'rinadi. */
     padding:3px 0 0;
-  }
-  /* Mijoz iltimosiga ko'ra: "X" belgisi QALIN (bold) EMAS, oddiy
-     (normal) shriftda, asosiy son o'lchamidan kattaroq (lekin avvalgidan
-     ozgina kichikroq) va aniq MARKAZDA joylashgan bo'lishi kerak.
-     Katakcha foni kartaning O'ZI bilan bir xil (fon "ko'rinib" turadi),
-     shu sabab "X" rangi TANLANGAN fonga qarab o'qiladigan (to'q fonda
-     oq, och fonda to'q) bo'lishi kerak. */
-  .digit-box::placeholder{
-    color:var(--scm-digit-placeholder);font-size:1.55em;font-weight:700;
-    font-family:'Nunito',sans-serif;
-    text-align:center;
+    /* Mijoz iltimosiga ko'ra: "X" belgisi ham, miltillovchi kursor
+       (caret) chizig'i ham KO'RINMAYDI — katakcha bo'sh holatda toza
+       turadi, faqat fokus (:focus) chegarasi orqali qaysi katakchada
+       ekanligi bilinib turadi. Fokus/avtomatik o'tish xatti-harakati
+       o'zgarmaydi — faqat vizual chiziqcha yashiriladi. */
+    caret-color:transparent;
   }
   .digit-box:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);}
   .digit-box.filled{
@@ -2819,15 +2814,15 @@ html.theme-purple-premium .card button.order-btn{
 
     <div class="search-wrap" id="searchWrap">
       <div class="number-builder nb-wide" id="numberBuilder">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="0">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="1">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="2">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="0">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="1">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="2">
         <span class="dash">-</span>
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="3">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="4">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="3">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="4">
         <span class="dash">-</span>
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="5">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="X" data-idx="6">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="5">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="6">
       </div>
     <!-- Mijoz iltimosiga ko'ra VIP va STANDART endi ALOHIDA bo'lim emas —
          bitta umumiy qidiruv: "Qidirish" tugmasi bosilganda AVVAL
@@ -6403,7 +6398,12 @@ async function loadSiteSettings(){
     if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){
       const scp = SEARCH_CARD_BG_PRESETS[s.searchCardBg];
       document.documentElement.style.setProperty('--scm-bg', scp.grad);
-      document.documentElement.style.setProperty('--scm-digit-bg', scp.digitBg);
+      // Katakcha foni endi TO'LIQ shaffof emas — kartaning o'z foniga
+      // nisbatan OZGINA farqli (kontrastli) tus beriladi: fon TO'Q bo'lsa
+      // katak ozgina OCHROQ (oq overlay), fon OCH bo'lsa katak ozgina
+      // TO'QROQ (qora overlay) — shu bilan har bir katak ko'zga alohida
+      // ko'rinadi, lekin hali ham kartaga mos, "yopishib" ketmaydi.
+      document.documentElement.style.setProperty('--scm-digit-bg', scp.light ? 'rgba(10,20,40,0.07)' : 'rgba(255,255,255,0.09)');
       document.documentElement.style.setProperty('--scm-digit-border', scp.digitBorder);
       // Katakcha foni endi kartaning o'zi bilan bir xil (yuqoriga qarang) —
       // shu sabab "X" va yozilgan raqam rangi TANLANGAN fonga qarab
@@ -6451,7 +6451,7 @@ async function loadSiteSettings(){
         if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){
           const scp2 = SEARCH_CARD_BG_PRESETS[s.searchCardBg];
           cache.scmBg = scp2.grad;
-          cache.scmDigitBg = scp2.digitBg;
+          cache.scmDigitBg = scp2.light ? 'rgba(10,20,40,0.07)' : 'rgba(255,255,255,0.09)';
           cache.scmDigitBorder = scp2.digitBorder;
           cache.scmDigitText = scp2.light ? '#0B1220' : '#FFFFFF';
           cache.scmDigitPlaceholder = scp2.light ? 'rgba(10,20,40,0.34)' : 'rgba(255,255,255,0.55)';
