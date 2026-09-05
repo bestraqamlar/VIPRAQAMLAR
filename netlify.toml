@@ -62,6 +62,13 @@
 [functions."number-watch-check-background"]
   schedule = "* * * * *"
 
+# "Vazifalar" (admin dedlayn) kuzatuvi — tugashiga 5 soatdan kam qolgan
+# va hali bajarilmagan har bir vazifa uchun Telegram orqali BIR MARTA
+# ogohlantirish yuboradi (panel yopiq bo'lsa ham). Har 5 daqiqada tekshi-
+# radi — bu darajadagi aniqlik yetarli (soatlik dedlaynlar uchun ham).
+[functions."admin-tasks-check-background"]
+  schedule = "*/5 * * * *"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga

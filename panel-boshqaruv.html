@@ -740,66 +740,61 @@
   .zk-cust-card-add{background:linear-gradient(135deg,#3B78EE,#1E4FB8);animation-delay:.02s;}
   .zk-cust-card-view{background:linear-gradient(135deg,#22C58B,#149368);animation-delay:.08s;}
   .zk-cust-card-ico{
-    width:42px;height:42px;border-radius:12px;flex:none;font-size:20px;
+    width:42px;height:42px;border-radius:12px;flex:none;
     background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
   }
+  .zk-cust-card-ico svg{width:21px;height:21px;}
   .zk-cust-card-body{display:flex;flex-direction:column;gap:3px;min-width:0;}
   .zk-cust-card-title{font-weight:800;font-size:14px;color:#fff;}
   .zk-cust-card-sub{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:600;}
   .zk-cust-card-sub b{font-family:'Space Mono',monospace;font-size:13px;color:#fff;}
 
-  /* ---- Modal oyna (Mijoz qo'shish / Mijozlarni ko'rish uchun umumiy) ---- */
-  .zk-cust-modal-overlay{
-    display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;
-    align-items:center;justify-content:center;padding:16px;
-    animation:fadeIn .2s ease;
+  /* ---- "Mijoz/Raqam qo'shish" va "...ko'rish" — YANGI OYNA OCHILMAYDI:
+     kartochka bosilganda shu bo'limning O'ZIDA (joyida) ochiladi, ikkala
+     kartochka esa vaqtincha yashiriladi — ortga qaytish strelkasi bilan. ---- */
+  .zk-inline-panel{
+    display:none;background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:18px;position:relative;margin-bottom:18px;max-width:420px;
+    animation:fadeSlideUp .3s ease;
   }
-  .zk-cust-modal-overlay.open{display:flex;}
-  .zk-cust-modal{
-    position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;
-    width:100%;max-width:420px;max-height:88vh;overflow-y:auto;
-    box-shadow:0 20px 50px rgba(0,0,0,.5);
-    animation:popIn .28s cubic-bezier(.34,1.56,.64,1);
-  }
-  .zk-cust-modal-wide{max-width:560px;}
-  .zk-cust-modal-head{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;
-    background:var(--panel);border-radius:18px 18px 0 0;z-index:1;
-  }
-  .zk-cust-modal-head h3{margin:0;font-size:15px;color:var(--text);}
-  .zk-cust-modal-close{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
-    width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:14px;flex:none;
+  .zk-inline-panel.open{display:block;}
+  .zk-inline-panel.zk-inline-wide{max-width:none;}
+  .zk-inline-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .zk-inline-head h3{margin:0;font-size:15px;color:var(--text);}
+  .zk-inline-back{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    width:34px;height:34px;border-radius:10px;cursor:pointer;flex:none;
     display:flex;align-items:center;justify-content:center;transition:.15s ease;
   }
-  .zk-cust-modal-close:hover{color:var(--red);border-color:var(--red);}
-  .zk-cust-modal-body{padding:18px;position:relative;}
-  .zk-cust-modal-body label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:12px 0 5px;}
-  .zk-cust-modal-body label:first-child{margin-top:0;}
-  .zk-cust-modal-body input{
+  .zk-inline-back svg{width:17px;height:17px;}
+  .zk-inline-back:hover{color:var(--amber);border-color:var(--amber);transform:translateX(-2px);}
+  .zk-inline-body{position:relative;}
+  .zk-inline-body label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:12px 0 5px;}
+  .zk-inline-body label:first-child{margin-top:0;}
+  .zk-inline-body input{
     width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
     background:var(--panel-2);color:var(--text);font-size:14px;box-sizing:border-box;
   }
-  .zk-cust-modal-body input:focus{outline:none;border-color:var(--amber);}
-  .zk-cust-modal-body button{
+  .zk-inline-body input:focus{outline:none;border-color:var(--amber);}
+  .zk-inline-body button{
     width:100%;margin-top:16px;background:var(--amber);color:var(--bg);border:none;border-radius:9px;
     padding:12px;font-weight:800;font-size:13.5px;cursor:pointer;transition:filter .15s ease;
   }
-  .zk-cust-modal-body button:hover{filter:brightness(1.08);}
+  .zk-inline-body button:hover{filter:brightness(1.08);}
 
   /* Muvaffaqiyatli qo'shilgandan keyingi animatsiya — forma ustidan bosib ko'rsatiladi */
   .zk-cust-success{
     display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;
-    gap:12px;background:var(--panel);border-radius:18px;z-index:2;
+    gap:12px;background:var(--panel);border-radius:16px;z-index:2;
   }
   .zk-cust-success.show{display:flex;}
   .zk-cust-success-check{
     width:64px;height:64px;border-radius:50%;background:rgba(34,197,139,.15);
-    color:var(--green);font-size:32px;display:flex;align-items:center;justify-content:center;
+    color:var(--green);display:flex;align-items:center;justify-content:center;
     animation:popIn .45s cubic-bezier(.34,1.56,.64,1);
     box-shadow:0 0 0 6px rgba(34,197,139,.08);
   }
+  .zk-cust-success-check svg{width:30px;height:30px;}
   .zk-cust-success-text{font-size:14px;font-weight:800;color:var(--green);animation:fadeSlideUp .3s ease .1s both;}
 
   /* ---- Mijozlar ro'yxati (yig'ma qatorlar, bosilganda to'liq ma'lumot ochiladi) ---- */
@@ -816,8 +811,9 @@
   }
   .zk-customer-summary-ico{
     width:30px;height:30px;border-radius:9px;flex:none;background:rgba(232,179,57,.15);color:var(--amber);
-    display:flex;align-items:center;justify-content:center;font-size:13px;
+    display:flex;align-items:center;justify-content:center;
   }
+  .zk-customer-summary-ico svg{width:15px;height:15px;}
   .zk-customer-row.status-done .zk-customer-summary-ico{background:rgba(34,197,139,.18);color:var(--green);}
   .zk-customer-row.status-cancelled .zk-customer-summary-ico{background:rgba(231,76,60,.18);color:var(--red);}
   .zk-customer-ordered-phone{
@@ -852,6 +848,11 @@
   .pb-stat-card:nth-child(3){animation-delay:.14s;}
   .pb-stat-card.good{background:linear-gradient(135deg,#22C58B,#149368);}
   .pb-stat-card.bad{background:linear-gradient(135deg,#8A3B3B,#5C2323);}
+  .pb-stat-ico{
+    width:34px;height:34px;border-radius:10px;flex:none;margin-bottom:8px;
+    background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;
+  }
+  .pb-stat-ico svg{width:18px;height:18px;}
   .pb-stat-card b{font-family:'Space Mono',monospace;font-size:25px;color:#fff;line-height:1;}
   .pb-stat-card span.pb-stat-label{font-size:11px;color:rgba(255,255,255,.85);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
   .pb-stat-card span.pb-stat-trend{font-size:11px;font-weight:800;margin-top:4px;display:flex;align-items:center;gap:4px;}
@@ -868,15 +869,73 @@
   .zk-cust-action-btn{
     flex:1;min-width:100px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);
     border-radius:9px;padding:9px 8px;font-size:12px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;
     transition:filter .15s ease, transform .15s ease;
   }
   .zk-cust-action-btn:hover{filter:brightness(1.15);}
   .zk-cust-action-btn:active{transform:scale(.97);}
   .zk-cust-action-btn.done-btn{border-color:var(--green);color:var(--green);}
   .zk-cust-action-btn.cancel-btn{border-color:var(--red);color:var(--red);}
+  .zk-cust-action-btn svg{width:15px;height:15px;flex:none;}
   .zk-cust-action-btn.delete-btn{border-color:var(--muted);color:var(--muted);flex:0 0 auto;min-width:0;padding:9px 12px;}
   .zk-cust-action-btn.delete-btn:hover{border-color:var(--red);color:var(--red);}
   .zk-cust-action-btn.active-status{background:currentColor;}
+
+  /* ---- "Vazifalar" bo'limi ---- */
+  .task-tab-badge{
+    background:var(--red);color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;
+    border-radius:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;
+    margin-left:4px;animation:softPulse 1.4s ease-in-out infinite;
+  }
+  .task-bell-btn{border-color:var(--red);color:var(--red);}
+  .task-bell-btn .bell-badge{background:var(--red);}
+  .vz-important-toggle{
+    width:100%;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);
+    border-radius:10px;padding:11px 10px;font-size:13px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;margin:4px 0 12px;
+    transition:all .18s ease;
+  }
+  .vz-important-toggle svg{width:16px;height:16px;transition:transform .2s ease;}
+  .vz-important-toggle:hover{border-color:var(--amber);color:var(--amber);}
+  .vz-important-toggle.active{
+    background:linear-gradient(135deg,#F4C244,#E8B339);border-color:#E8B339;color:#402C05;
+    box-shadow:0 6px 16px rgba(232,179,57,.35);
+  }
+  .vz-important-toggle.active svg{transform:scale(1.15) rotate(-8deg);fill:#402C05;}
+
+  .zk-customer-row.status-important{border-color:var(--amber);background:rgba(232,179,57,.07);}
+  .zk-customer-row.status-important .zk-customer-summary-ico{background:rgba(232,179,57,.2);color:var(--amber);}
+  .zk-customer-row.status-urgent{border-color:var(--red);background:rgba(231,76,60,.09);animation:taskUrgentGlow 1.6s ease-in-out infinite;}
+  .zk-customer-row.status-urgent .zk-customer-summary-ico{background:rgba(231,76,60,.2);color:var(--red);}
+  .zk-customer-row.status-taskdone{opacity:.55 !important;}
+  .zk-customer-row.status-taskdone .zk-customer-ordered-phone{text-decoration:line-through;}
+  @keyframes taskUrgentGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,.25);}
+    50%{box-shadow:0 0 0 5px rgba(231,76,60,0);}
+  }
+  .vz-countdown{font-family:'Space Mono',monospace;font-weight:800;font-size:11.5px;flex:none;white-space:nowrap;color:var(--muted);}
+  .vz-countdown.vz-urgent{color:var(--red);}
+  .vz-countdown.vz-overdue{color:var(--red);}
+  .vz-important-badge{
+    font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;flex:none;
+    background:rgba(232,179,57,.18);color:var(--amber);display:flex;align-items:center;gap:3px;
+  }
+  .vz-important-badge svg{width:10px;height:10px;}
+  .zk-cust-action-btn.done-toggle-btn{border-color:var(--green);color:var(--green);}
+
+  .vz-toast{
+    position:fixed;bottom:22px;right:22px;z-index:9999;background:linear-gradient(135deg,#E8534A,#C43A32);
+    color:#fff;padding:14px 18px;border-radius:14px;box-shadow:0 14px 32px rgba(0,0,0,.35);
+    display:flex;align-items:flex-start;gap:10px;max-width:320px;
+    animation:vzToastIn .35s cubic-bezier(.34,1.56,.64,1) both;
+    cursor:pointer;
+  }
+  .vz-toast svg{width:20px;height:20px;flex:none;margin-top:1px;}
+  .vz-toast b{display:block;font-size:13px;margin-bottom:2px;}
+  .vz-toast span{font-size:12px;opacity:.92;}
+  .vz-toast.vz-toast-out{animation:vzToastOut .3s ease both;}
+  @keyframes vzToastIn{from{opacity:0;transform:translateY(16px) scale(.94);}to{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes vzToastOut{from{opacity:1;}to{opacity:0;transform:translateY(10px);}}
   .zk-cust-action-btn.done-btn.active-status{background:var(--green);color:#06231a;}
   .zk-cust-action-btn.cancel-btn.active-status{background:var(--red);color:#fff;}
 
@@ -1296,6 +1355,7 @@
       <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
       <button class="tab" data-tab="credit"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><span class="tab-label">Kredit</span></button>
       <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
+      <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
       <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
       <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
@@ -1319,6 +1379,10 @@
         <button class="bell-btn" id="bellBtn" aria-label="Yangi buyurtmalar" title="Yangi buyurtmalar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
           <span class="bell-badge" id="bellBadge">0</span>
+        </button>
+        <button class="bell-btn task-bell-btn" id="taskBellBtn" aria-label="Vazifa muddati" title="Vazifa muddati yaqinlashmoqda" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
+          <span class="bell-badge" id="taskBellBadge">0</span>
         </button>
         <button id="logoutBtn">Chiqish</button>
       </div>
@@ -1575,21 +1639,54 @@
   </div>
 
   <div class="pane" id="paneZakaz">
-    <div class="zk-cust-cards">
+    <div class="zk-cust-cards" id="zkCustCardsRow">
       <button type="button" class="zk-cust-card zk-cust-card-add" id="zkAddCustomerCard">
-        <div class="zk-cust-card-ico">➕</div>
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
         <div class="zk-cust-card-body">
           <span class="zk-cust-card-title">Mijoz qo'shish</span>
           <span class="zk-cust-card-sub">Yangi mijoz ma'lumotini kiriting</span>
         </div>
       </button>
       <button type="button" class="zk-cust-card zk-cust-card-view" id="zkViewCustomersCard">
-        <div class="zk-cust-card-ico">👥</div>
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3-5.5 7-5.5s7 2.2 7 5.5"/><circle cx="17" cy="8.3" r="2.6"/><path d="M16 14.6c2.9.4 5 2.3 5 5.4"/></svg></div>
         <div class="zk-cust-card-body">
           <span class="zk-cust-card-title">Mijozlarni ko'rish</span>
           <span class="zk-cust-card-sub"><b id="zkCustomerCount">0</b> ta mijoz</span>
         </div>
       </button>
+    </div>
+
+    <!-- "Mijoz qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel" id="zkAddCustomerPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="zkAddCustomerBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3>Mijoz qo'shish</h3>
+      </div>
+      <div class="zk-inline-body" id="zkAddCustomerFormWrap">
+        <label for="zkCustName">Mijoz ismi</label>
+        <input type="text" id="zkCustName" placeholder="Ism Familiya">
+        <label for="zkCustWorkingPhone">Ishlab turgan raqami</label>
+        <input type="text" id="zkCustWorkingPhone" placeholder="+998 90 123-45-67" inputmode="tel">
+        <label for="zkCustOrderedPhone">Zakaz qilgan raqami</label>
+        <input type="text" id="zkCustOrderedPhone" placeholder="+998 90 777-77-77" inputmode="tel">
+        <button type="button" id="zkCustAddBtn">+ Qo'shish</button>
+        <div class="settings-msg" id="zkCustAddMsg"></div>
+      </div>
+      <div class="zk-cust-success" id="zkCustSuccess">
+        <div class="zk-cust-success-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+        <div class="zk-cust-success-text">Muvaffaqiyatli qo'shildi!</div>
+      </div>
+    </div>
+
+    <!-- "Mijozlarni ko'rish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel zk-inline-wide" id="zkViewCustomersPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="zkViewCustomersBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3>Mijozlar bazasi (<span id="zkViewCustomerCount">0</span>)</h3>
+      </div>
+      <div class="zk-inline-body">
+        <div id="zkCustomersList" class="zk-customers-list"></div>
+      </div>
     </div>
 
     <div class="zk-stats-row" id="zkStatsRow"></div>
@@ -1613,43 +1710,6 @@
       <div class="settings-form zk-orders-form" style="max-width:none;">
         <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
         <div class="orders-list" id="customOrdersList"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- "Mijoz qo'shish" oynasi -->
-  <div class="zk-cust-modal-overlay" id="zkAddCustomerOverlay">
-    <div class="zk-cust-modal">
-      <div class="zk-cust-modal-head">
-        <h3>➕ Mijoz qo'shish</h3>
-        <button type="button" class="zk-cust-modal-close" id="zkAddCustomerClose">✕</button>
-      </div>
-      <div class="zk-cust-modal-body" id="zkAddCustomerFormWrap">
-        <label for="zkCustName">Mijoz ismi</label>
-        <input type="text" id="zkCustName" placeholder="Ism Familiya">
-        <label for="zkCustWorkingPhone">Ishlab turgan raqami</label>
-        <input type="text" id="zkCustWorkingPhone" placeholder="+998 90 123-45-67">
-        <label for="zkCustOrderedPhone">Zakaz qilgan raqami</label>
-        <input type="text" id="zkCustOrderedPhone" placeholder="+998 90 777-77-77">
-        <button type="button" id="zkCustAddBtn">+ Qo'shish</button>
-        <div class="settings-msg" id="zkCustAddMsg"></div>
-      </div>
-      <div class="zk-cust-success" id="zkCustSuccess">
-        <div class="zk-cust-success-check">✓</div>
-        <div class="zk-cust-success-text">Muvaffaqiyatli qo'shildi!</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- "Mijozlarni ko'rish" oynasi -->
-  <div class="zk-cust-modal-overlay" id="zkViewCustomersOverlay">
-    <div class="zk-cust-modal zk-cust-modal-wide">
-      <div class="zk-cust-modal-head">
-        <h3>👥 Mijozlar bazasi (<span id="zkViewCustomerCount">0</span>)</h3>
-        <button type="button" class="zk-cust-modal-close" id="zkViewCustomersClose">✕</button>
-      </div>
-      <div class="zk-cust-modal-body">
-        <div id="zkCustomersList" class="zk-customers-list"></div>
       </div>
     </div>
   </div>
@@ -1748,34 +1808,32 @@
 
     <div class="pb-stats-row" id="pbStatsRow"></div>
 
-    <div class="zk-cust-cards">
+    <div class="zk-cust-cards" id="pbCustCardsRow">
       <button type="button" class="zk-cust-card zk-cust-card-add" id="pbAddNumberCard">
-        <div class="zk-cust-card-ico">➕</div>
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
         <div class="zk-cust-card-body">
           <span class="zk-cust-card-title">Raqam qo'shish</span>
           <span class="zk-cust-card-sub">Yangi raqam va narxlarini kiriting</span>
         </div>
       </button>
       <button type="button" class="zk-cust-card zk-cust-card-view" id="pbViewNumbersCard">
-        <div class="zk-cust-card-ico">📋</div>
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1z"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg></div>
         <div class="zk-cust-card-body">
           <span class="zk-cust-card-title">Raqamlarni ko'rish</span>
           <span class="zk-cust-card-sub"><b id="pbNumberCount">0</b> ta raqam</span>
         </div>
       </button>
     </div>
-  </div>
 
-  <!-- "Raqam qo'shish" (Shaxsiy baza) oynasi -->
-  <div class="zk-cust-modal-overlay" id="pbAddNumberOverlay">
-    <div class="zk-cust-modal">
-      <div class="zk-cust-modal-head">
-        <h3 id="pbAddNumberTitle">➕ Raqam qo'shish</h3>
-        <button type="button" class="zk-cust-modal-close" id="pbAddNumberClose">✕</button>
+    <!-- "Raqam qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel" id="pbAddNumberPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="pbAddNumberBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3 id="pbAddNumberTitle">Raqam qo'shish</h3>
       </div>
-      <div class="zk-cust-modal-body" id="pbAddNumberFormWrap">
+      <div class="zk-inline-body" id="pbAddNumberFormWrap">
         <label for="pbNumberInput">Raqam</label>
-        <input type="text" id="pbNumberInput" placeholder="+998 90 777-77-77">
+        <input type="text" id="pbNumberInput" placeholder="+998 90 777-77-77" inputmode="tel">
         <label for="pbMonthlyInput">24 oyga oylik to'lov (so'm)</label>
         <input type="number" id="pbMonthlyInput" placeholder="500000">
         <label for="pbCashInput">Naxt summasi (so'm)</label>
@@ -1784,21 +1842,81 @@
         <div class="settings-msg" id="pbAddNumberMsg"></div>
       </div>
       <div class="zk-cust-success" id="pbAddNumberSuccess">
-        <div class="zk-cust-success-check">✓</div>
+        <div class="zk-cust-success-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
         <div class="zk-cust-success-text">Muvaffaqiyatli qo'shildi!</div>
+      </div>
+    </div>
+
+    <!-- "Raqamlarni ko'rish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel zk-inline-wide" id="pbViewNumbersPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="pbViewNumbersBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3>Shaxsiy baza (<span id="pbViewNumberCount">0</span>)</h3>
+      </div>
+      <div class="zk-inline-body">
+        <div id="pbNumbersList" class="zk-customers-list"></div>
       </div>
     </div>
   </div>
 
-  <!-- "Raqamlarni ko'rish" (Shaxsiy baza) oynasi -->
-  <div class="zk-cust-modal-overlay" id="pbViewNumbersOverlay">
-    <div class="zk-cust-modal zk-cust-modal-wide">
-      <div class="zk-cust-modal-head">
-        <h3>📋 Shaxsiy baza (<span id="pbViewNumberCount">0</span>)</h3>
-        <button type="button" class="zk-cust-modal-close" id="pbViewNumbersClose">✕</button>
+  <div class="pane" id="paneVazifalar">
+    <p style="color:var(--muted);font-size:12px;margin:0 0 16px;">
+      Bu — o'zingizning shaxsiy ish/dedlayn ro'yxatingiz. "Muhim" deb belgilangan vazifalar ro'yxat boshida
+      turadi, har birining muddati real vaqtda hisoblanib boradi, va muddatga <b>5 soatdan kam</b> qolganda
+      shu yerda hamda Telegram orqali ogohlantirish (qo'ng'iroqcha) keladi.
+    </p>
+
+    <div class="pb-stats-row" id="vzStatsRow"></div>
+
+    <div class="zk-cust-cards" id="vzCustCardsRow">
+      <button type="button" class="zk-cust-card zk-cust-card-add" id="vzAddTaskCard">
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Vazifa qo'shish</span>
+          <span class="zk-cust-card-sub">Yangi vazifa va muddatini belgilang</span>
+        </div>
+      </button>
+      <button type="button" class="zk-cust-card zk-cust-card-view" id="vzViewTasksCard">
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14l1.5 1.5L13 12"/></svg></div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Vazifalarni ko'rish</span>
+          <span class="zk-cust-card-sub"><b id="vzTaskCount">0</b> ta faol vazifa</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- "Vazifa qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel" id="vzAddTaskPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="vzAddTaskBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3>Vazifa qo'shish</h3>
       </div>
-      <div class="zk-cust-modal-body">
-        <div id="pbNumbersList" class="zk-customers-list"></div>
+      <div class="zk-inline-body">
+        <label for="vzTaskText">Vazifa</label>
+        <textarea id="vzTaskText" rows="3" placeholder="Masalan: Mijoz X bilan shartnoma imzolash"></textarea>
+        <label for="vzTaskDue">Muddati (sana va vaqt)</label>
+        <input type="datetime-local" id="vzTaskDue">
+        <button type="button" class="vz-important-toggle" id="vzImportantToggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg>
+          <span>Muhim</span>
+        </button>
+        <button type="button" id="vzAddTaskBtn">+ Qo'shish</button>
+        <div class="settings-msg" id="vzAddTaskMsg"></div>
+      </div>
+      <div class="zk-cust-success" id="vzAddTaskSuccess">
+        <div class="zk-cust-success-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+        <div class="zk-cust-success-text">Muvaffaqiyatli qo'shildi!</div>
+      </div>
+    </div>
+
+    <!-- "Vazifalarni ko'rish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel zk-inline-wide" id="vzViewTasksPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="vzViewTasksBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3>Vazifalar (<span id="vzViewTaskCount">0</span>)</h3>
+      </div>
+      <div class="zk-inline-body">
+        <div id="vzTasksList" class="zk-customers-list"></div>
       </div>
     </div>
   </div>
@@ -2465,10 +2583,59 @@ async function loadCustomOrders(){
   }
 }
 
+/* ---- Zamonaviy chiziqli (line) ikonkalar — "Mijozlar bazasi" va
+   "Shaxsiy baza" bo'limlarida emoji o'rniga ishlatiladi (sayt bo'ylab
+   tab-ikonkalar bilan bir xil uslub: stroke="currentColor"). ---- */
+const ICONS = {
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h2.7l1.3 4-2 1.3a12 12 0 0 0 6.2 6.2l1.3-2 4 1.3v2.7a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>',
+  xCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/></svg>',
+  database: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
+  trendUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 6h6v6"/></svg>',
+  trendDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>',
+  tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3H5a2 2 0 0 0-2 2v7.6a2 2 0 0 0 .6 1.4l8.9 8.9a2 2 0 0 0 2.8 0l6.5-6.5a2 2 0 0 0 0-2.8l-8.9-8.9A2 2 0 0 0 12.6 3z"/><circle cx="8.5" cy="8.5" r="1.4"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>'
+};
+
+/* O'zbekiston raqamlarini avtomatik "+998 90 123-45-67" ko'rinishiga
+   keltiradi — mijoz/raqam qo'shish formalaridagi telefon maydonlariga
+   ulanadi, shu bilan admin qo'lda "+998" va chiziqchalarni yozib
+   o'tirishi shart emas. */
+function attachUzPhoneAutoFormat(el){
+  if(!el) return;
+  el.addEventListener('focus', ()=>{
+    if(!el.value) el.value = '+998 ';
+  });
+  el.addEventListener('input', ()=>{
+    let digits = el.value.replace(/\D/g, '');
+    if(digits.startsWith('998')) digits = digits.slice(3);
+    digits = digits.slice(0, 9);
+    let out = '+998';
+    if(digits.length > 0) out += ' ' + digits.slice(0, 2);
+    if(digits.length > 2) out += ' ' + digits.slice(2, 5);
+    if(digits.length > 5) out += '-' + digits.slice(5, 7);
+    if(digits.length > 7) out += '-' + digits.slice(7, 9);
+    el.value = out;
+  });
+  el.addEventListener('blur', ()=>{
+    if(el.value.replace(/\D/g, '') === '998' || el.value.trim() === '+998') el.value = '';
+  });
+}
+
 /* ---- "Mijoz qo'shish" / "Mijozlarni ko'rish" — Zakaz bo'limi ----
    Bu yerda admin qo'lda mijoz qo'shadi (ism, ishlab turgan raqami,
    zakaz qilgan raqami). Barcha qo'shilgan mijozlar 'manual_customers'
    Firestore kolleksiyasida saqlanadi. */
+attachUzPhoneAutoFormat(document.getElementById('zkCustWorkingPhone'));
+attachUzPhoneAutoFormat(document.getElementById('zkCustOrderedPhone'));
+attachUzPhoneAutoFormat(document.getElementById('pbNumberInput'));
+
 async function loadManualCustomersCount(){
   const countEl = document.getElementById('zkCustomerCount');
   try{
@@ -2477,8 +2644,12 @@ async function loadManualCustomersCount(){
   }catch(e){ /* xato bo'lsa ham interfeys ishlashda davom etadi */ }
 }
 
+// Kartochka bosilganda YANGI OYNA OCHILMAYDI — shu bo'limning o'zida
+// (joyida) tegishli panel ochiladi, ikkala kartochka vaqtincha
+// yashiriladi; "orqaga" strelkasi bosilsa kartochkalar qaytadi.
 function openAddCustomerModal(){
-  const overlay = document.getElementById('zkAddCustomerOverlay');
+  document.getElementById('zkCustCardsRow').style.display = 'none';
+  document.getElementById('zkViewCustomersPanel').classList.remove('open');
   document.getElementById('zkCustName').value = '';
   document.getElementById('zkCustWorkingPhone').value = '';
   document.getElementById('zkCustOrderedPhone').value = '';
@@ -2486,16 +2657,14 @@ function openAddCustomerModal(){
   document.getElementById('zkCustAddMsg').className = 'settings-msg';
   document.getElementById('zkCustSuccess').classList.remove('show');
   document.getElementById('zkAddCustomerFormWrap').style.display = '';
-  overlay.classList.add('open');
+  document.getElementById('zkAddCustomerPanel').classList.add('open');
 }
 function closeAddCustomerModal(){
-  document.getElementById('zkAddCustomerOverlay').classList.remove('open');
+  document.getElementById('zkAddCustomerPanel').classList.remove('open');
+  document.getElementById('zkCustCardsRow').style.display = '';
 }
 document.getElementById('zkAddCustomerCard').addEventListener('click', openAddCustomerModal);
-document.getElementById('zkAddCustomerClose').addEventListener('click', closeAddCustomerModal);
-document.getElementById('zkAddCustomerOverlay').addEventListener('click', (e)=>{
-  if(e.target.id === 'zkAddCustomerOverlay') closeAddCustomerModal();
-});
+document.getElementById('zkAddCustomerBack').addEventListener('click', closeAddCustomerModal);
 
 document.getElementById('zkCustAddBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('zkCustName').value.trim();
@@ -2548,7 +2717,7 @@ async function loadManualCustomersList(){
       return `
       <div class="zk-customer-row ${statusClass}" data-id="${c.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
         <div class="zk-customer-summary" data-id="${c.id}">
-          <span class="zk-customer-summary-ico">📱</span>
+          <span class="zk-customer-summary-ico">${ICONS.phone}</span>
           <span class="zk-customer-ordered-phone">${escapeHtml(c.orderedPhone || '')}</span>
           ${badgeHtml}
           <span class="zk-customer-arrow">▾</span>
@@ -2561,9 +2730,9 @@ async function loadManualCustomersList(){
             <span>Qo'shilgan sana</span><span>${escapeHtml(c.createdAt || '')}</span>
           </div>
           <div class="zk-customer-actions">
-            <button type="button" class="zk-cust-action-btn done-btn ${c.status === 'Yakunlandi' ? 'active-status' : ''}" data-action="done" data-id="${c.id}">✅ Yakunlandi</button>
-            <button type="button" class="zk-cust-action-btn cancel-btn ${c.status === 'Bekor qilindi' ? 'active-status' : ''}" data-action="cancel" data-id="${c.id}">❌ Bekor qilindi</button>
-            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${c.id}">🗑</button>
+            <button type="button" class="zk-cust-action-btn done-btn ${c.status === 'Yakunlandi' ? 'active-status' : ''}" data-action="done" data-id="${c.id}">${ICONS.check} Yakunlandi</button>
+            <button type="button" class="zk-cust-action-btn cancel-btn ${c.status === 'Bekor qilindi' ? 'active-status' : ''}" data-action="cancel" data-id="${c.id}">${ICONS.xCircle} Bekor qilindi</button>
+            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${c.id}">${ICONS.trash}</button>
           </div>
         </div>
       </div>`;
@@ -2619,14 +2788,14 @@ async function loadManualCustomersList(){
   }
 }
 document.getElementById('zkViewCustomersCard').addEventListener('click', ()=>{
-  document.getElementById('zkViewCustomersOverlay').classList.add('open');
+  document.getElementById('zkCustCardsRow').style.display = 'none';
+  document.getElementById('zkAddCustomerPanel').classList.remove('open');
+  document.getElementById('zkViewCustomersPanel').classList.add('open');
   loadManualCustomersList();
 });
-document.getElementById('zkViewCustomersClose').addEventListener('click', ()=>{
-  document.getElementById('zkViewCustomersOverlay').classList.remove('open');
-});
-document.getElementById('zkViewCustomersOverlay').addEventListener('click', (e)=>{
-  if(e.target.id === 'zkViewCustomersOverlay') document.getElementById('zkViewCustomersOverlay').classList.remove('open');
+document.getElementById('zkViewCustomersBack').addEventListener('click', ()=>{
+  document.getElementById('zkViewCustomersPanel').classList.remove('open');
+  document.getElementById('zkCustCardsRow').style.display = '';
 });
 
 /* ---- "Shaxsiy baza" bo'limi ----
@@ -2658,18 +2827,21 @@ async function loadPersonalBaseStats(){
 
     statsEl.innerHTML = `
       <div class="pb-stat-card">
+        <div class="pb-stat-ico">${ICONS.database}</div>
         <b>${numbers.length}</b>
         <span class="pb-stat-label">Jami raqamlar</span>
       </div>
       <div class="pb-stat-card ${addedGood ? 'good' : 'bad'}">
+        <div class="pb-stat-ico">${addedGood ? ICONS.trendUp : ICONS.trendDown}</div>
         <b>${addedThisMonth}</b>
         <span class="pb-stat-label">Shu oy qo'shilgan</span>
-        <span class="pb-stat-trend">${addedGood ? '▲ A\'lo, 10 tadan oshdi!' : '▼ Hali 10 tadan kam'}</span>
+        <span class="pb-stat-trend">${addedGood ? "A'lo, 10 tadan oshdi!" : 'Hali 10 tadan kam'}</span>
       </div>
       <div class="pb-stat-card ${soldGood ? 'good' : 'bad'}">
+        <div class="pb-stat-ico">${ICONS.tag}</div>
         <b>${soldThisMonth}</b>
         <span class="pb-stat-label">Shu oy sotilgan</span>
-        <span class="pb-stat-trend">${soldGood ? '▲ Zo\'r natija!' : '▼ Hali yomon'}</span>
+        <span class="pb-stat-trend">${soldGood ? "Zo'r natija!" : 'Hali yomon'}</span>
       </div>
     `;
   }catch(err){
@@ -2686,10 +2858,14 @@ async function loadPersonalNumbersCount(){
 }
 
 let pbEditingId = null;
+let pbReturnToList = false;
 
 function openAddNumberModal(editDoc){
   pbEditingId = editDoc ? editDoc.id : null;
-  document.getElementById('pbAddNumberTitle').textContent = editDoc ? "✏️ Raqamni tahrirlash" : "➕ Raqam qo'shish";
+  if(!editDoc) pbReturnToList = false;
+  document.getElementById('pbCustCardsRow').style.display = 'none';
+  document.getElementById('pbViewNumbersPanel').classList.remove('open');
+  document.getElementById('pbAddNumberTitle').textContent = editDoc ? "Raqamni tahrirlash" : "Raqam qo'shish";
   document.getElementById('pbAddNumberBtn').textContent = editDoc ? 'Saqlash' : "+ Qo'shish";
   document.getElementById('pbNumberInput').value = editDoc ? (editDoc.number || '') : '';
   document.getElementById('pbMonthlyInput').value = editDoc ? (editDoc.monthlyPayment || '') : '';
@@ -2698,17 +2874,21 @@ function openAddNumberModal(editDoc){
   document.getElementById('pbAddNumberMsg').className = 'settings-msg';
   document.getElementById('pbAddNumberSuccess').classList.remove('show');
   document.getElementById('pbAddNumberFormWrap').style.display = '';
-  document.getElementById('pbAddNumberOverlay').classList.add('open');
+  document.getElementById('pbAddNumberPanel').classList.add('open');
 }
 function closeAddNumberModal(){
-  document.getElementById('pbAddNumberOverlay').classList.remove('open');
+  document.getElementById('pbAddNumberPanel').classList.remove('open');
   pbEditingId = null;
+  if(pbReturnToList){
+    pbReturnToList = false;
+    document.getElementById('pbViewNumbersPanel').classList.add('open');
+    loadPersonalNumbersList();
+  }else{
+    document.getElementById('pbCustCardsRow').style.display = '';
+  }
 }
 document.getElementById('pbAddNumberCard').addEventListener('click', ()=> openAddNumberModal(null));
-document.getElementById('pbAddNumberClose').addEventListener('click', closeAddNumberModal);
-document.getElementById('pbAddNumberOverlay').addEventListener('click', (e)=>{
-  if(e.target.id === 'pbAddNumberOverlay') closeAddNumberModal();
-});
+document.getElementById('pbAddNumberBack').addEventListener('click', closeAddNumberModal);
 
 document.getElementById('pbAddNumberBtn').addEventListener('click', async ()=>{
   const number = document.getElementById('pbNumberInput').value.trim();
@@ -2728,7 +2908,6 @@ document.getElementById('pbAddNumberBtn').addEventListener('click', async ()=>{
     if(pbEditingId){
       await db.collection('personal_numbers').doc(pbEditingId).update({ number, monthlyPayment, cashPrice });
       closeAddNumberModal();
-      loadPersonalNumbersList();
       loadPersonalBaseStats();
     }else{
       await db.collection('personal_numbers').add({
@@ -2769,7 +2948,7 @@ async function loadPersonalNumbersList(){
       return `
       <div class="zk-customer-row ${statusClass}" data-id="${n.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
         <div class="zk-customer-summary" data-id="${n.id}">
-          <span class="zk-customer-summary-ico">📱</span>
+          <span class="zk-customer-summary-ico">${ICONS.phone}</span>
           <span class="zk-customer-ordered-phone">${escapeHtml(n.number || '')}</span>
           <span class="zk-customer-status-badge ${statusClass}">${statusLabel}</span>
           <span class="zk-customer-arrow">▾</span>
@@ -2783,9 +2962,9 @@ async function loadPersonalNumbersList(){
             <span>Qo'shilgan sana</span><span>${escapeHtml(n.createdAt || '')}</span>
           </div>
           <div class="zk-customer-actions">
-            <button type="button" class="zk-cust-action-btn toggle-btn" data-action="toggle" data-id="${n.id}">${isClosed ? '🔓 Ochish' : '🔒 Yopish'}</button>
-            <button type="button" class="zk-cust-action-btn edit-btn" data-action="edit" data-id="${n.id}">✏️ Tahrirlash</button>
-            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${n.id}">🗑</button>
+            <button type="button" class="zk-cust-action-btn toggle-btn" data-action="toggle" data-id="${n.id}">${isClosed ? ICONS.unlock + ' Ochish' : ICONS.lock + ' Yopish'}</button>
+            <button type="button" class="zk-cust-action-btn edit-btn" data-action="edit" data-id="${n.id}">${ICONS.pencil} Tahrirlash</button>
+            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${n.id}">${ICONS.trash}</button>
           </div>
         </div>
       </div>`;
@@ -2819,7 +2998,7 @@ async function loadPersonalNumbersList(){
           return;
         }
         if(action === 'edit'){
-          if(item) openAddNumberModal(item);
+          if(item){ pbReturnToList = true; openAddNumberModal(item); }
           return;
         }
         if(action === 'toggle'){
@@ -2837,7 +3016,7 @@ async function loadPersonalNumbersList(){
               badge.className = 'zk-customer-status-badge ' + (nowClosed ? 'status-cancelled' : 'status-open');
               badge.textContent = nowClosed ? 'Yopiq' : 'Ochiq';
             }
-            btn.textContent = nowClosed ? '🔓 Ochish' : '🔒 Yopish';
+            btn.innerHTML = nowClosed ? ICONS.unlock + ' Ochish' : ICONS.lock + ' Yopish';
             vibrate(60);
             loadPersonalBaseStats();
           }catch(err){ alert('Xato: ' + err.message); }
@@ -2849,14 +3028,348 @@ async function loadPersonalNumbersList(){
   }
 }
 document.getElementById('pbViewNumbersCard').addEventListener('click', ()=>{
-  document.getElementById('pbViewNumbersOverlay').classList.add('open');
+  document.getElementById('pbCustCardsRow').style.display = 'none';
+  document.getElementById('pbAddNumberPanel').classList.remove('open');
+  document.getElementById('pbViewNumbersPanel').classList.add('open');
   loadPersonalNumbersList();
 });
-document.getElementById('pbViewNumbersClose').addEventListener('click', ()=>{
-  document.getElementById('pbViewNumbersOverlay').classList.remove('open');
+document.getElementById('pbViewNumbersBack').addEventListener('click', ()=>{
+  document.getElementById('pbViewNumbersPanel').classList.remove('open');
+  document.getElementById('pbCustCardsRow').style.display = '';
 });
-document.getElementById('pbViewNumbersOverlay').addEventListener('click', (e)=>{
-  if(e.target.id === 'pbViewNumbersOverlay') document.getElementById('pbViewNumbersOverlay').classList.remove('open');
+
+/* ---- "Vazifalar" bo'limi ----
+   Adminning shaxsiy ish/dedlayn ro'yxati — 'admin_tasks' Firestore
+   kolleksiyasida saqlanadi. Har bir vazifa: matn, muddati (dueAt, ms),
+   "muhim" belgisi, bajarilgan holati. Muhim vazifalar ro'yxat boshida
+   turadi, qolganlari muddatiga qarab (yaqinrog'i birinchi) tartiblanadi.
+   Muddatga 5 soatdan kam qolganda: (1) shu sahifada (qaysi bo'limda
+   turgan bo'lsangiz ham) qo'ng'iroqcha va ovozli/vizual ogohlantirish
+   chiqadi, (2) netlify/functions/admin-tasks-check-background.js orqali
+   Telegram'ga ham bir marta xabar yuboriladi (panel yopiq bo'lsa ham). */
+const VZ_URGENT_MS = 5 * 60 * 60 * 1000; // 5 soat
+
+function vzMsToParts(ms){
+  const totalMin = Math.max(0, Math.floor(ms / 60000));
+  const days = Math.floor(totalMin / 1440);
+  const hours = Math.floor((totalMin % 1440) / 60);
+  const mins = totalMin % 60;
+  return { days, hours, mins };
+}
+function vzFormatCountdown(dueAt){
+  const diff = dueAt - Date.now();
+  if(diff <= 0) return { text: "Muddati o'tdi", cls: 'vz-overdue' };
+  const { days, hours, mins } = vzMsToParts(diff);
+  let text;
+  if(days > 0) text = `${days} kun ${hours} soat qoldi`;
+  else if(hours > 0) text = `${hours} soat ${mins} daq. qoldi`;
+  else text = `${mins} daqiqa qoldi`;
+  return { text, cls: diff <= VZ_URGENT_MS ? 'vz-urgent' : '' };
+}
+function vzFormatDue(dueAt){
+  const d = new Date(dueAt);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/* Har soniyada — sahifada ochiq turgan barcha countdown yozuvlarini
+   yangilab boradi (qaysi panel ochiq bo'lishidan qat'i nazar). */
+setInterval(()=>{
+  document.querySelectorAll('.vz-countdown[data-due]').forEach(el=>{
+    if(el.dataset.completed === '1') return;
+    const { text, cls } = vzFormatCountdown(Number(el.dataset.due));
+    el.textContent = text;
+    el.className = 'vz-countdown' + (cls ? ' ' + cls : '');
+  });
+}, 1000);
+
+function vzPlayAlertSound(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.18, 0.36].forEach((delay, i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = i === 2 ? 1040 : 880;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.15);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.16);
+    });
+  }catch(e){ /* audio ishlamasa ham, vizual ogohlantirish yetarli */ }
+}
+
+function vzShowToast(task){
+  const toast = document.createElement('div');
+  toast.className = 'vz-toast';
+  toast.innerHTML = `${ICONS.bell}<div><b>${task.important ? '⭐️ Muhim vazifa!' : "Vazifa muddati yaqin!"}</b><span>${escapeHtml(task.text || '')} — ${vzFormatCountdown(task.dueAt).text}</span></div>`;
+  toast.addEventListener('click', ()=>{
+    document.querySelector('.tab[data-tab="vazifalar"]').click();
+    toast.remove();
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>{
+    toast.classList.add('vz-toast-out');
+    setTimeout(()=> toast.remove(), 320);
+  }, 7000);
+}
+
+let vzAlertedIds = new Set();
+let vzWatchStarted = false;
+
+async function vzGlobalCheck(){
+  try{
+    const snap = await db.collection('admin_tasks').where('completed', '==', false).get();
+    const now = Date.now();
+    const tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const urgent = tasks.filter(t => t.dueAt - now <= VZ_URGENT_MS);
+
+    const tabBadge = document.getElementById('taskTabBadge');
+    const bellBtn = document.getElementById('taskBellBtn');
+    const bellBadge = document.getElementById('taskBellBadge');
+    if(urgent.length > 0){
+      if(tabBadge){ tabBadge.style.display = ''; tabBadge.textContent = urgent.length; }
+      if(bellBtn){ bellBtn.style.display = ''; }
+      if(bellBadge){ bellBadge.textContent = urgent.length; }
+    }else{
+      if(tabBadge) tabBadge.style.display = 'none';
+      if(bellBtn) bellBtn.style.display = 'none';
+    }
+
+    urgent.forEach(t=>{
+      if(vzAlertedIds.has(t.id)) return;
+      vzAlertedIds.add(t.id);
+      vzPlayAlertSound();
+      vzShowToast(t);
+      vibrate([80, 40, 80]);
+    });
+  }catch(e){ /* internet yo'q bo'lsa ham panel ishlashda davom etadi */ }
+}
+function startVazifalarWatch(){
+  if(vzWatchStarted) return;
+  vzWatchStarted = true;
+  vzGlobalCheck();
+  setInterval(vzGlobalCheck, 30000);
+}
+document.getElementById('taskBellBtn').addEventListener('click', ()=>{
+  document.querySelector('.tab[data-tab="vazifalar"]').click();
+});
+
+async function loadVazifalarStats(){
+  const statsEl = document.getElementById('vzStatsRow');
+  if(!statsEl) return;
+  statsEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('admin_tasks').where('completed', '==', false).get();
+    const tasks = snap.docs.map(d => d.data());
+    const now = Date.now();
+    const importantCount = tasks.filter(t => t.important).length;
+    const urgentCount = tasks.filter(t => t.dueAt - now <= VZ_URGENT_MS).length;
+    statsEl.innerHTML = `
+      <div class="pb-stat-card">
+        <div class="pb-stat-ico">${ICONS.clock}</div>
+        <b>${tasks.length}</b>
+        <span class="pb-stat-label">Faol vazifalar</span>
+      </div>
+      <div class="pb-stat-card" style="background:linear-gradient(135deg,#E8B339,#B8862A);">
+        <div class="pb-stat-ico">${ICONS.star}</div>
+        <b>${importantCount}</b>
+        <span class="pb-stat-label">Muhim vazifalar</span>
+      </div>
+      <div class="pb-stat-card ${urgentCount > 0 ? 'bad' : 'good'}">
+        <div class="pb-stat-ico">${ICONS.bell}</div>
+        <b>${urgentCount}</b>
+        <span class="pb-stat-label">Muddati yaqin (5 soat)</span>
+        <span class="pb-stat-trend">${urgentCount > 0 ? 'Diqqat, shoshiling!' : 'Hammasi tinch'}</span>
+      </div>
+    `;
+  }catch(err){
+    statsEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+async function loadVazifalarCount(){
+  const countEl = document.getElementById('vzTaskCount');
+  try{
+    const snap = await db.collection('admin_tasks').where('completed', '==', false).get();
+    if(countEl) countEl.textContent = snap.size;
+  }catch(e){ /* xato bo'lsa ham interfeys ishlashda davom etadi */ }
+}
+
+let vzImportantSelected = false;
+function vzResetAddForm(){
+  document.getElementById('vzTaskText').value = '';
+  document.getElementById('vzTaskDue').value = '';
+  vzImportantSelected = false;
+  document.getElementById('vzImportantToggle').classList.remove('active');
+  document.getElementById('vzAddTaskMsg').textContent = '';
+  document.getElementById('vzAddTaskMsg').className = 'settings-msg';
+}
+document.getElementById('vzAddTaskCard').addEventListener('click', ()=>{
+  document.getElementById('vzCustCardsRow').style.display = 'none';
+  document.getElementById('vzViewTasksPanel').classList.remove('open');
+  vzResetAddForm();
+  document.getElementById('vzAddTaskSuccess').classList.remove('show');
+  document.querySelector('#vzAddTaskPanel .zk-inline-body').style.display = '';
+  document.getElementById('vzAddTaskPanel').classList.add('open');
+});
+document.getElementById('vzAddTaskBack').addEventListener('click', ()=>{
+  document.getElementById('vzAddTaskPanel').classList.remove('open');
+  document.getElementById('vzCustCardsRow').style.display = '';
+});
+document.getElementById('vzImportantToggle').addEventListener('click', ()=>{
+  vzImportantSelected = !vzImportantSelected;
+  document.getElementById('vzImportantToggle').classList.toggle('active', vzImportantSelected);
+  vibrate(30);
+});
+document.getElementById('vzAddTaskBtn').addEventListener('click', async ()=>{
+  const text = document.getElementById('vzTaskText').value.trim();
+  const dueRaw = document.getElementById('vzTaskDue').value;
+  const msgEl = document.getElementById('vzAddTaskMsg');
+  if(!text || !dueRaw){
+    msgEl.textContent = "Vazifa matnini va muddatini kiriting";
+    msgEl.className = 'settings-msg bad';
+    return;
+  }
+  const dueAt = new Date(dueRaw).getTime();
+  if(!dueAt || isNaN(dueAt)){
+    msgEl.textContent = "Muddat sanasi noto'g'ri";
+    msgEl.className = 'settings-msg bad';
+    return;
+  }
+  const btn = document.getElementById('vzAddTaskBtn');
+  btn.disabled = true;
+  msgEl.textContent = '';
+  try{
+    await db.collection('admin_tasks').add({
+      text,
+      dueAt,
+      important: vzImportantSelected,
+      completed: false,
+      notified5h: false,
+      createdAt: new Date().toLocaleString('uz-UZ'),
+      createdAtSort: Date.now()
+    });
+    document.querySelector('#vzAddTaskPanel .zk-inline-body').style.display = 'none';
+    document.getElementById('vzAddTaskSuccess').classList.add('show');
+    vibrate(60);
+    loadVazifalarCount();
+    loadVazifalarStats();
+    vzGlobalCheck();
+    setTimeout(()=>{
+      document.getElementById('vzAddTaskPanel').classList.remove('open');
+      document.getElementById('vzCustCardsRow').style.display = '';
+    }, 1400);
+  }catch(err){
+    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.className = 'settings-msg bad';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+async function loadVazifalarList(){
+  const listEl = document.getElementById('vzTasksList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('admin_tasks').orderBy('dueAt', 'asc').get();
+    let tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Tartib: bajarilmagan avval, orasida MUHIM birinchi, keyin muddat yaqinligi bo'yicha.
+    tasks.sort((a, b)=>{
+      if(a.completed !== b.completed) return a.completed ? 1 : -1;
+      if(!!a.important !== !!b.important) return a.important ? -1 : 1;
+      return a.dueAt - b.dueAt;
+    });
+    document.getElementById('vzViewTaskCount').textContent = tasks.filter(t => !t.completed).length;
+    if(tasks.length === 0){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali vazifa qo\'shilmagan.</div>';
+      return;
+    }
+    const now = Date.now();
+    listEl.innerHTML = tasks.map((t, i)=>{
+      const isUrgent = !t.completed && (t.dueAt - now) <= VZ_URGENT_MS;
+      const statusClass = t.completed ? 'status-taskdone' : (isUrgent ? 'status-urgent' : (t.important ? 'status-important' : ''));
+      const ico = t.important ? ICONS.star : ICONS.clock;
+      const importantBadge = (t.important && !t.completed) ? `<span class="vz-important-badge">${ICONS.star} Muhim</span>` : '';
+      const { text: cdText, cls: cdCls } = vzFormatCountdown(t.dueAt);
+      const countdownHtml = t.completed
+        ? `<span class="vz-countdown">Bajarildi</span>`
+        : `<span class="vz-countdown ${cdCls}" data-due="${t.dueAt}">${cdText}</span>`;
+      return `
+      <div class="zk-customer-row ${statusClass}" data-id="${t.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
+        <div class="zk-customer-summary" data-id="${t.id}">
+          <span class="zk-customer-summary-ico">${ico}</span>
+          <span class="zk-customer-ordered-phone">${escapeHtml(t.text || '')}</span>
+          ${importantBadge}
+          ${countdownHtml}
+          <span class="zk-customer-arrow">▾</span>
+        </div>
+        <div class="zk-customer-body">
+          <div class="zk-customer-info">
+            <span>Vazifa</span><span>${escapeHtml(t.text || '')}</span>
+            <span>Muddati</span><span>${vzFormatDue(t.dueAt)}</span>
+            <span>Holati</span><span>${t.completed ? 'Bajarildi' : (isUrgent ? 'Muddati yaqinlashdi' : 'Jarayonda')}</span>
+            <span>Qo'shilgan sana</span><span>${escapeHtml(t.createdAt || '')}</span>
+          </div>
+          <div class="zk-customer-actions">
+            <button type="button" class="zk-cust-action-btn done-toggle-btn ${t.completed ? 'active-status' : ''}" data-action="toggle" data-id="${t.id}">${ICONS.check} ${t.completed ? 'Bajarilgan' : 'Bajarildi'}</button>
+            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${t.id}">${ICONS.trash}</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('.zk-customer-summary').forEach(summary=>{
+      summary.addEventListener('click', ()=>{
+        summary.closest('.zk-customer-row').classList.toggle('zk-open');
+      });
+    });
+    listEl.querySelectorAll('.zk-cust-action-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const row = btn.closest('.zk-customer-row');
+        if(action === 'delete'){
+          if(!confirm("Ushbu vazifani butunlay o'chirishni tasdiqlaysizmi?")) return;
+          try{
+            await db.collection('admin_tasks').doc(id).delete();
+            row.style.transition = 'opacity .2s ease, transform .2s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-8px)';
+            setTimeout(()=>{ row.remove(); }, 200);
+            vibrate(60);
+            loadVazifalarCount();
+            loadVazifalarStats();
+            vzGlobalCheck();
+          }catch(err){ alert('Xato: ' + err.message); }
+          return;
+        }
+        // action === 'toggle' — bajarildi / bajarilmagan
+        try{
+          const newCompleted = !row.classList.contains('status-taskdone');
+          await db.collection('admin_tasks').doc(id).update({ completed: newCompleted });
+          vibrate(60);
+          loadVazifalarCount();
+          loadVazifalarStats();
+          vzGlobalCheck();
+          loadVazifalarList();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+document.getElementById('vzViewTasksCard').addEventListener('click', ()=>{
+  document.getElementById('vzCustCardsRow').style.display = 'none';
+  document.getElementById('vzAddTaskPanel').classList.remove('open');
+  document.getElementById('vzViewTasksPanel').classList.add('open');
+  loadVazifalarList();
+});
+document.getElementById('vzViewTasksBack').addEventListener('click', ()=>{
+  document.getElementById('vzViewTasksPanel').classList.remove('open');
+  document.getElementById('vzCustCardsRow').style.display = '';
 });
 
 function detectDevice(ua){
@@ -3008,6 +3521,7 @@ async function doLogin(){
     if(hasFeaturePerm('numbers')) refreshNumbers();
     if(hasFeaturePerm('orders')) refreshOrders();
     if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
+    if(hasFeaturePerm('vazifalar')) startVazifalarWatch();
     // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
     // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
     // avtomatik chiqarilmaydi.
@@ -3151,8 +3665,11 @@ document.getElementById('logoutBtn').addEventListener('click', async ()=>{
 document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
+document.getElementById('taskBellBtn').addEventListener('click', ()=>{
+  document.querySelector('.tab[data-tab="vazifalar"]').click();
+});
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3187,6 +3704,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     }
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
     if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
+    if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
 
     // Mobil ekranda menyudan bo'lim tanlansa, sidebar avtomatik yopiladi
     const shellEl = document.querySelector('.admin-shell');
@@ -5128,6 +5646,7 @@ if(addWatchNotifyIdBtn){
 /* ---- "Boshqaruv" — adminlarni qo'shish/boshqarish (faqat bosh admin) ---- */
 const MGMT_FEATURE_LABELS = {
   numbers:'📱 Raqamlar', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit', personalbase:'🗄️ Shaxsiy baza',
+  vazifalar:'⏰ Vazifalar',
   watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
