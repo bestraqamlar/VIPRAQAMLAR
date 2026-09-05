@@ -753,14 +753,31 @@
      kartochka bosilganda shu bo'limning O'ZIDA (joyida) ochiladi, ikkala
      kartochka esa vaqtincha yashiriladi — ortga qaytish strelkasi bilan. ---- */
   .zk-inline-panel{
-    display:none;background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    padding:18px;position:relative;margin-bottom:18px;max-width:420px;
+    display:none;background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    padding:0 22px 22px;position:relative;margin:0 auto 18px;max-width:480px;
+    box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;
     animation:fadeSlideUp .3s ease;
   }
   .zk-inline-panel.open{display:block;}
-  .zk-inline-panel.zk-inline-wide{max-width:none;}
-  .zk-inline-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
-  .zk-inline-head h3{margin:0;font-size:15px;color:var(--text);}
+  .zk-inline-panel.zk-inline-wide{max-width:none;margin:0 0 18px;box-shadow:none;overflow:visible;border-radius:16px;padding:0 18px 18px;}
+  .zk-inline-head{
+    display:flex;align-items:center;gap:12px;margin:0 -22px 20px;padding:20px 22px;
+    background:var(--panel-2);border-bottom:1px solid var(--line);
+  }
+  .zk-inline-wide .zk-inline-head{margin:0 -18px 18px;padding:18px;}
+  .zk-inline-head h3{margin:0;font-size:15.5px;color:var(--text);font-weight:800;}
+  .zk-inline-head-ico{
+    width:36px;height:36px;border-radius:11px;flex:none;background:rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+  }
+  .zk-inline-head-ico svg{width:18px;height:18px;}
+  /* "Qo'shish" formalari — kartochka rangiga mos gradient header, mo'jaz "modal-simon" ko'rinish beradi */
+  .zk-panel-accent-add .zk-inline-head{
+    background:linear-gradient(135deg,#3B78EE,#1E4FB8);border-bottom:none;color:#fff;
+  }
+  .zk-panel-accent-add .zk-inline-head h3{color:#fff;}
+  .zk-panel-accent-add .zk-inline-back{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;}
+  .zk-panel-accent-add .zk-inline-back:hover{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;transform:translateX(-2px);}
   .zk-inline-back{
     background:var(--panel-2);border:1px solid var(--line);color:var(--text);
     width:34px;height:34px;border-radius:10px;cursor:pointer;flex:none;
@@ -769,18 +786,32 @@
   .zk-inline-back svg{width:17px;height:17px;}
   .zk-inline-back:hover{color:var(--amber);border-color:var(--amber);transform:translateX(-2px);}
   .zk-inline-body{position:relative;}
-  .zk-inline-body label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:12px 0 5px;}
+  .zk-inline-body label{display:block;font-size:12.5px;color:var(--muted);font-weight:700;margin:14px 0 6px;}
   .zk-inline-body label:first-child{margin-top:0;}
-  .zk-inline-body input{
-    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
-    background:var(--panel-2);color:var(--text);font-size:14px;box-sizing:border-box;
+  .zk-inline-body input, .zk-inline-body textarea, .zk-inline-body select{
+    width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);
+    background:var(--bg);color:var(--text);font-size:14px;box-sizing:border-box;
+    font-family:inherit;transition:border-color .15s ease, box-shadow .15s ease;
+    color-scheme:dark;
   }
-  .zk-inline-body input:focus{outline:none;border-color:var(--amber);}
+  .zk-inline-body textarea{resize:vertical;min-height:64px;line-height:1.45;}
+  .zk-inline-body input:focus, .zk-inline-body textarea:focus, .zk-inline-body select:focus{
+    outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,176,0,.18);
+  }
   .zk-inline-body button{
-    width:100%;margin-top:16px;background:var(--amber);color:var(--bg);border:none;border-radius:9px;
-    padding:12px;font-weight:800;font-size:13.5px;cursor:pointer;transition:filter .15s ease;
+    width:100%;margin-top:18px;background:var(--amber);color:var(--bg);border:none;border-radius:12px;
+    padding:13px;font-weight:800;font-size:13.5px;cursor:pointer;transition:filter .15s ease, transform .1s ease;
   }
   .zk-inline-body button:hover{filter:brightness(1.08);}
+  .zk-inline-body button:active{transform:scale(.98);}
+  /* Yirik summalar (so'm) uchun — input ichida "so'm" birligi ko'rinib turadi */
+  .zk-sum-field{position:relative;}
+  .zk-sum-field input{padding-right:46px;}
+  .zk-sum-field span{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);
+    font-size:12px;font-weight:700;pointer-events:none;
+  }
+  .zk-sum-field:has(input:focus) span{color:var(--amber);}
 
   /* Muvaffaqiyatli qo'shilgandan keyingi animatsiya — forma ustidan bosib ko'rsatiladi */
   .zk-cust-success{
@@ -936,6 +967,23 @@
   .vz-toast.vz-toast-out{animation:vzToastOut .3s ease both;}
   @keyframes vzToastIn{from{opacity:0;transform:translateY(16px) scale(.94);}to{opacity:1;transform:translateY(0) scale(1);}}
   @keyframes vzToastOut{from{opacity:1;}to{opacity:0;transform:translateY(10px);}}
+
+  /* ---- Vazifa qo'shish — tezkor muddat tanlash chip'lari + jonli oldindan ko'rish ---- */
+  .vz-quickdate-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+  .vz-quickdate-chip{
+    border:1.5px solid var(--line);background:var(--panel-2);color:var(--muted);
+    border-radius:20px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .vz-quickdate-chip:hover{border-color:var(--amber);color:var(--amber);}
+  .vz-quickdate-chip.active{background:var(--amber);border-color:var(--amber);color:var(--bg);}
+  .vz-due-preview{
+    display:none;align-items:center;gap:7px;margin-top:10px;padding:9px 12px;
+    background:rgba(255,176,0,.1);border:1px solid rgba(255,176,0,.3);border-radius:10px;
+    font-size:12px;font-weight:700;color:var(--amber);
+  }
+  .vz-due-preview.show{display:flex;}
+  .vz-due-preview svg{width:14px;height:14px;flex:none;}
   .zk-cust-action-btn.done-btn.active-status{background:var(--green);color:#06231a;}
   .zk-cust-action-btn.cancel-btn.active-status{background:var(--red);color:#fff;}
 
@@ -1657,9 +1705,10 @@
     </div>
 
     <!-- "Mijoz qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
-    <div class="zk-inline-panel" id="zkAddCustomerPanel">
+    <div class="zk-inline-panel zk-panel-accent-add" id="zkAddCustomerPanel">
       <div class="zk-inline-head">
         <button type="button" class="zk-inline-back" id="zkAddCustomerBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="zk-inline-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
         <h3>Mijoz qo'shish</h3>
       </div>
       <div class="zk-inline-body" id="zkAddCustomerFormWrap">
@@ -1826,18 +1875,19 @@
     </div>
 
     <!-- "Raqam qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
-    <div class="zk-inline-panel" id="pbAddNumberPanel">
+    <div class="zk-inline-panel zk-panel-accent-add" id="pbAddNumberPanel">
       <div class="zk-inline-head">
         <button type="button" class="zk-inline-back" id="pbAddNumberBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="zk-inline-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
         <h3 id="pbAddNumberTitle">Raqam qo'shish</h3>
       </div>
       <div class="zk-inline-body" id="pbAddNumberFormWrap">
         <label for="pbNumberInput">Raqam</label>
         <input type="text" id="pbNumberInput" placeholder="+998 90 777-77-77" inputmode="tel">
-        <label for="pbMonthlyInput">24 oyga oylik to'lov (so'm)</label>
-        <input type="number" id="pbMonthlyInput" placeholder="500000">
-        <label for="pbCashInput">Naxt summasi (so'm)</label>
-        <input type="number" id="pbCashInput" placeholder="10000000">
+        <label for="pbMonthlyInput">24 oyga oylik to'lov</label>
+        <div class="zk-sum-field"><input type="text" id="pbMonthlyInput" placeholder="500 000" inputmode="numeric"><span>so'm</span></div>
+        <label for="pbCashInput">Naxt summasi</label>
+        <div class="zk-sum-field"><input type="text" id="pbCashInput" placeholder="10 000 000" inputmode="numeric"><span>so'm</span></div>
         <button type="button" id="pbAddNumberBtn">+ Qo'shish</button>
         <div class="settings-msg" id="pbAddNumberMsg"></div>
       </div>
@@ -1886,9 +1936,10 @@
     </div>
 
     <!-- "Vazifa qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
-    <div class="zk-inline-panel" id="vzAddTaskPanel">
+    <div class="zk-inline-panel zk-panel-accent-add" id="vzAddTaskPanel">
       <div class="zk-inline-head">
         <button type="button" class="zk-inline-back" id="vzAddTaskBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="zk-inline-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
         <h3>Vazifa qo'shish</h3>
       </div>
       <div class="zk-inline-body">
@@ -1896,6 +1947,13 @@
         <textarea id="vzTaskText" rows="3" placeholder="Masalan: Mijoz X bilan shartnoma imzolash"></textarea>
         <label for="vzTaskDue">Muddati (sana va vaqt)</label>
         <input type="datetime-local" id="vzTaskDue">
+        <div class="vz-quickdate-row" id="vzQuickDateRow">
+          <button type="button" class="vz-quickdate-chip" data-hours="3">+3 soat</button>
+          <button type="button" class="vz-quickdate-chip" data-hours="24">Ertaga</button>
+          <button type="button" class="vz-quickdate-chip" data-hours="72">3 kundan keyin</button>
+          <button type="button" class="vz-quickdate-chip" data-hours="168">1 haftadan keyin</button>
+        </div>
+        <div class="vz-due-preview" id="vzDuePreview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg><span id="vzDuePreviewText"></span></div>
         <button type="button" class="vz-important-toggle" id="vzImportantToggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg>
           <span>Muhim</span>
@@ -2628,6 +2686,20 @@ function attachUzPhoneAutoFormat(el){
   });
 }
 
+/* Katta summalarni ("500000" -> "500 000") o'qish oson bo'lishi uchun
+   avtomatik bo'shliq bilan ajratadi — Shaxsiy baza narx maydonlariga
+   ulanadi. Haqiqiy sonni olish uchun vzParseSum() ishlatiladi. */
+function attachThousandsFormat(el){
+  if(!el) return;
+  el.addEventListener('input', ()=>{
+    const digits = el.value.replace(/\D/g, '');
+    el.value = digits ? Number(digits).toLocaleString('ru-RU').replace(/,/g, ' ') : '';
+  });
+}
+function parseSumInput(val){
+  return Number(String(val || '').replace(/\D/g, '')) || 0;
+}
+
 /* ---- "Mijoz qo'shish" / "Mijozlarni ko'rish" — Zakaz bo'limi ----
    Bu yerda admin qo'lda mijoz qo'shadi (ism, ishlab turgan raqami,
    zakaz qilgan raqami). Barcha qo'shilgan mijozlar 'manual_customers'
@@ -2635,6 +2707,8 @@ function attachUzPhoneAutoFormat(el){
 attachUzPhoneAutoFormat(document.getElementById('zkCustWorkingPhone'));
 attachUzPhoneAutoFormat(document.getElementById('zkCustOrderedPhone'));
 attachUzPhoneAutoFormat(document.getElementById('pbNumberInput'));
+attachThousandsFormat(document.getElementById('pbMonthlyInput'));
+attachThousandsFormat(document.getElementById('pbCashInput'));
 
 async function loadManualCustomersCount(){
   const countEl = document.getElementById('zkCustomerCount');
@@ -2868,8 +2942,8 @@ function openAddNumberModal(editDoc){
   document.getElementById('pbAddNumberTitle').textContent = editDoc ? "Raqamni tahrirlash" : "Raqam qo'shish";
   document.getElementById('pbAddNumberBtn').textContent = editDoc ? 'Saqlash' : "+ Qo'shish";
   document.getElementById('pbNumberInput').value = editDoc ? (editDoc.number || '') : '';
-  document.getElementById('pbMonthlyInput').value = editDoc ? (editDoc.monthlyPayment || '') : '';
-  document.getElementById('pbCashInput').value = editDoc ? (editDoc.cashPrice || '') : '';
+  document.getElementById('pbMonthlyInput').value = editDoc && editDoc.monthlyPayment ? editDoc.monthlyPayment.toLocaleString('ru-RU').replace(/,/g, ' ') : '';
+  document.getElementById('pbCashInput').value = editDoc && editDoc.cashPrice ? editDoc.cashPrice.toLocaleString('ru-RU').replace(/,/g, ' ') : '';
   document.getElementById('pbAddNumberMsg').textContent = '';
   document.getElementById('pbAddNumberMsg').className = 'settings-msg';
   document.getElementById('pbAddNumberSuccess').classList.remove('show');
@@ -2892,8 +2966,8 @@ document.getElementById('pbAddNumberBack').addEventListener('click', closeAddNum
 
 document.getElementById('pbAddNumberBtn').addEventListener('click', async ()=>{
   const number = document.getElementById('pbNumberInput').value.trim();
-  const monthlyPayment = Number(document.getElementById('pbMonthlyInput').value) || 0;
-  const cashPrice = Number(document.getElementById('pbCashInput').value) || 0;
+  const monthlyPayment = parseSumInput(document.getElementById('pbMonthlyInput').value);
+  const cashPrice = parseSumInput(document.getElementById('pbCashInput').value);
   const msgEl = document.getElementById('pbAddNumberMsg');
   if(!number || monthlyPayment <= 0 || cashPrice <= 0){
     msgEl.textContent = "Barcha maydonlarni to'g'ri to'ldiring";
@@ -3198,6 +3272,20 @@ async function loadVazifalarCount(){
 }
 
 let vzImportantSelected = false;
+function vzDateToLocalInputValue(d){
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function vzUpdateDuePreview(){
+  const raw = document.getElementById('vzTaskDue').value;
+  const preview = document.getElementById('vzDuePreview');
+  if(!raw){ preview.classList.remove('show'); return; }
+  const dueAt = new Date(raw).getTime();
+  if(!dueAt || isNaN(dueAt)){ preview.classList.remove('show'); return; }
+  const { text } = vzFormatCountdown(dueAt);
+  document.getElementById('vzDuePreviewText').textContent = `${vzFormatDue(dueAt)} — ${text}`;
+  preview.classList.add('show');
+}
 function vzResetAddForm(){
   document.getElementById('vzTaskText').value = '';
   document.getElementById('vzTaskDue').value = '';
@@ -3205,7 +3293,24 @@ function vzResetAddForm(){
   document.getElementById('vzImportantToggle').classList.remove('active');
   document.getElementById('vzAddTaskMsg').textContent = '';
   document.getElementById('vzAddTaskMsg').className = 'settings-msg';
+  document.querySelectorAll('.vz-quickdate-chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('vzDuePreview').classList.remove('show');
 }
+document.querySelectorAll('.vz-quickdate-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const hours = Number(chip.dataset.hours);
+    const target = new Date(Date.now() + hours * 3600000);
+    document.getElementById('vzTaskDue').value = vzDateToLocalInputValue(target);
+    document.querySelectorAll('.vz-quickdate-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    vzUpdateDuePreview();
+    vibrate(30);
+  });
+});
+document.getElementById('vzTaskDue').addEventListener('input', ()=>{
+  document.querySelectorAll('.vz-quickdate-chip').forEach(c => c.classList.remove('active'));
+  vzUpdateDuePreview();
+});
 document.getElementById('vzAddTaskCard').addEventListener('click', ()=>{
   document.getElementById('vzCustCardsRow').style.display = 'none';
   document.getElementById('vzViewTasksPanel').classList.remove('open');
