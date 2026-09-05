@@ -2839,7 +2839,7 @@ html.theme-purple-premium .card button.order-btn{
         <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       </span>
       <span class="ssb-spinner" id="standardSearchSpinner" style="display:none;"></span>
-      <span data-i18n="standardSearchBtn">Qidirish</span>
+      <span data-i18n="standardSearchBtn" id="standardSearchBtnLabel">Qidirish</span>
     </button>
     <div class="hint-text" id="hintText" data-i18n="searchHint">Raqamni katakchalarga kiriting va "Qidirish"ni bosing — VIP va oddiy raqamlar birga chiqadi</div>
     <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
@@ -4968,14 +4968,36 @@ window.addEventListener('pageshow', function(e){
 
 const standardSearchIconEl = document.getElementById('standardSearchIcon');
 const standardSearchSpinnerEl = document.getElementById('standardSearchSpinner');
+const standardSearchBtnLabelEl = document.getElementById('standardSearchBtnLabel');
 function setSearchBtnLoading(loading){
   standardSearchBtn.disabled = loading;
   if(standardSearchIconEl) standardSearchIconEl.style.display = loading ? 'none' : '';
   if(standardSearchSpinnerEl) standardSearchSpinnerEl.style.display = loading ? 'inline-block' : 'none';
+  // Mijoz iltimosiga ko'ra: "Qidirish" bosilgan zahoti tugma matni
+  // darhol "Qidirmoqda..." ga almashadi (joriy tilidan qat'iy nazar —
+  // asl matn dataset'da saqlanib, tugagach o'ziga qaytariladi).
+  if(standardSearchBtnLabelEl){
+    if(loading){
+      if(!standardSearchBtnLabelEl.dataset.orig) standardSearchBtnLabelEl.dataset.orig = standardSearchBtnLabelEl.textContent;
+      standardSearchBtnLabelEl.textContent = 'Qidirmoqda...';
+    }else if(standardSearchBtnLabelEl.dataset.orig){
+      standardSearchBtnLabelEl.textContent = standardSearchBtnLabelEl.dataset.orig;
+    }
+  }
 }
 standardSearchBtn.addEventListener('click', ()=>{
   if(!currentPattern().some(d => d !== '')){
-    showToast("Avval kamida bitta raqam kiriting", 2200);
+    // Mijoz iltimosiga ko'ra: raqam kiritilmagan bo'lsa ham endi
+    // "Avval kamida bitta raqam kiriting" degan xatolik KO'RSATILMAYDI —
+    // shunchaki avvalgidek eng qimmat 70 ta raqamni (yangi tasodifiy
+    // tartibda) qayta ko'rsatib beraveradi.
+    standardSearchTriggered = false;
+    setSearchBtnLoading(true);
+    setTimeout(()=>{
+      ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
+      renderCatalog();
+      setSearchBtnLoading(false);
+    }, 350);
     return;
   }
   standardSearchTriggered = true;

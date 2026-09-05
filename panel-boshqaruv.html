@@ -726,6 +726,160 @@
   .zk-del-btn svg{width:15px;height:15px;}
   .zk-del-btn:hover{opacity:1;color:var(--red);background:rgba(231,76,60,.12);}
 
+  /* ---- "Mijoz qo'shish" / "Mijozlarni ko'rish" kartochkalari ---- */
+  .zk-cust-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  @media (max-width:560px){ .zk-cust-cards{grid-template-columns:1fr;} }
+  .zk-cust-card{
+    display:flex;align-items:center;gap:13px;text-align:left;border:none;cursor:pointer;
+    border-radius:16px;padding:16px 17px;color:#fff;position:relative;overflow:hidden;
+    opacity:0;animation:fadeSlideUp .4s ease forwards;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
+  }
+  .zk-cust-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.3);}
+  .zk-cust-card:active{transform:translateY(-1px) scale(.99);}
+  .zk-cust-card-add{background:linear-gradient(135deg,#3B78EE,#1E4FB8);animation-delay:.02s;}
+  .zk-cust-card-view{background:linear-gradient(135deg,#22C58B,#149368);animation-delay:.08s;}
+  .zk-cust-card-ico{
+    width:42px;height:42px;border-radius:12px;flex:none;font-size:20px;
+    background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
+  }
+  .zk-cust-card-body{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .zk-cust-card-title{font-weight:800;font-size:14px;color:#fff;}
+  .zk-cust-card-sub{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:600;}
+  .zk-cust-card-sub b{font-family:'Space Mono',monospace;font-size:13px;color:#fff;}
+
+  /* ---- Modal oyna (Mijoz qo'shish / Mijozlarni ko'rish uchun umumiy) ---- */
+  .zk-cust-modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;
+    align-items:center;justify-content:center;padding:16px;
+    animation:fadeIn .2s ease;
+  }
+  .zk-cust-modal-overlay.open{display:flex;}
+  .zk-cust-modal{
+    position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    width:100%;max-width:420px;max-height:88vh;overflow-y:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,.5);
+    animation:popIn .28s cubic-bezier(.34,1.56,.64,1);
+  }
+  .zk-cust-modal-wide{max-width:560px;}
+  .zk-cust-modal-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:var(--panel);border-radius:18px 18px 0 0;z-index:1;
+  }
+  .zk-cust-modal-head h3{margin:0;font-size:15px;color:var(--text);}
+  .zk-cust-modal-close{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:14px;flex:none;
+    display:flex;align-items:center;justify-content:center;transition:.15s ease;
+  }
+  .zk-cust-modal-close:hover{color:var(--red);border-color:var(--red);}
+  .zk-cust-modal-body{padding:18px;position:relative;}
+  .zk-cust-modal-body label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:12px 0 5px;}
+  .zk-cust-modal-body label:first-child{margin-top:0;}
+  .zk-cust-modal-body input{
+    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:14px;box-sizing:border-box;
+  }
+  .zk-cust-modal-body input:focus{outline:none;border-color:var(--amber);}
+  .zk-cust-modal-body button{
+    width:100%;margin-top:16px;background:var(--amber);color:var(--bg);border:none;border-radius:9px;
+    padding:12px;font-weight:800;font-size:13.5px;cursor:pointer;transition:filter .15s ease;
+  }
+  .zk-cust-modal-body button:hover{filter:brightness(1.08);}
+
+  /* Muvaffaqiyatli qo'shilgandan keyingi animatsiya — forma ustidan bosib ko'rsatiladi */
+  .zk-cust-success{
+    display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;
+    gap:12px;background:var(--panel);border-radius:18px;z-index:2;
+  }
+  .zk-cust-success.show{display:flex;}
+  .zk-cust-success-check{
+    width:64px;height:64px;border-radius:50%;background:rgba(34,197,139,.15);
+    color:var(--green);font-size:32px;display:flex;align-items:center;justify-content:center;
+    animation:popIn .45s cubic-bezier(.34,1.56,.64,1);
+    box-shadow:0 0 0 6px rgba(34,197,139,.08);
+  }
+  .zk-cust-success-text{font-size:14px;font-weight:800;color:var(--green);animation:fadeSlideUp .3s ease .1s both;}
+
+  /* ---- Mijozlar ro'yxati (yig'ma qatorlar, bosilganda to'liq ma'lumot ochiladi) ---- */
+  .zk-customers-list{display:flex;flex-direction:column;gap:8px;}
+  .zk-customer-row{
+    background:var(--panel-2);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;
+    opacity:0;animation:fadeSlideUp .3s ease forwards;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .zk-customer-row.status-done{border-color:var(--green);background:rgba(34,197,139,.08);}
+  .zk-customer-row.status-cancelled{border-color:var(--red);background:rgba(231,76,60,.08);}
+  .zk-customer-summary{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;
+  }
+  .zk-customer-summary-ico{
+    width:30px;height:30px;border-radius:9px;flex:none;background:rgba(232,179,57,.15);color:var(--amber);
+    display:flex;align-items:center;justify-content:center;font-size:13px;
+  }
+  .zk-customer-row.status-done .zk-customer-summary-ico{background:rgba(34,197,139,.18);color:var(--green);}
+  .zk-customer-row.status-cancelled .zk-customer-summary-ico{background:rgba(231,76,60,.18);color:var(--red);}
+  .zk-customer-ordered-phone{
+    flex:1;font-family:'Space Mono',monospace;font-weight:800;font-size:13.5px;color:var(--text);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .zk-customer-status-badge{
+    font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;flex:none;
+  }
+  .zk-customer-status-badge.status-done{background:rgba(34,197,139,.15);color:var(--green);}
+  .zk-customer-status-badge.status-cancelled{background:rgba(231,76,60,.15);color:var(--red);}
+  .zk-customer-arrow{color:var(--muted);font-size:12px;flex:none;transition:transform .15s ease;}
+  .zk-customer-row.zk-open .zk-customer-arrow{transform:rotate(180deg);}
+  .zk-customer-body{display:none;padding:0 14px 14px;}
+  .zk-customer-row.zk-open .zk-customer-body{display:block;animation:fadeSlideUp .2s ease both;}
+  .zk-customer-info{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:12.5px;margin-bottom:12px;}
+  .zk-customer-info span:nth-child(odd){color:var(--muted);}
+  .zk-customer-info span:nth-child(even){color:var(--text);font-weight:700;}
+
+  /* ---- "Shaxsiy baza" bo'limi — statistika kartochkalari ---- */
+  .pb-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
+  .pb-stat-card{
+    position:relative;overflow:hidden;border-radius:16px;padding:16px 16px 14px;color:#fff;
+    display:flex;flex-direction:column;gap:4px;
+    background:linear-gradient(135deg,#4A5B7C,#28324A);
+    opacity:0;animation:fadeSlideUp .4s ease forwards;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
+  }
+  .pb-stat-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.3);}
+  .pb-stat-card:nth-child(1){animation-delay:.02s;background:linear-gradient(135deg,#3B78EE,#1E4FB8);}
+  .pb-stat-card:nth-child(2){animation-delay:.08s;}
+  .pb-stat-card:nth-child(3){animation-delay:.14s;}
+  .pb-stat-card.good{background:linear-gradient(135deg,#22C58B,#149368);}
+  .pb-stat-card.bad{background:linear-gradient(135deg,#8A3B3B,#5C2323);}
+  .pb-stat-card b{font-family:'Space Mono',monospace;font-size:25px;color:#fff;line-height:1;}
+  .pb-stat-card span.pb-stat-label{font-size:11px;color:rgba(255,255,255,.85);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  .pb-stat-card span.pb-stat-trend{font-size:11px;font-weight:800;margin-top:4px;display:flex;align-items:center;gap:4px;}
+  .pb-stat-card.good span.pb-stat-trend{color:#DFFCE9;}
+  .pb-stat-card.bad span.pb-stat-trend{color:#FCE4E4;}
+
+  /* ---- "Shaxsiy baza" raqamlar ro'yxati (ochiq/yopiq holat) ---- */
+  .zk-customer-row.status-open{border-color:#5C8DF6;background:rgba(92,141,246,.07);}
+  .zk-customer-row.status-open .zk-customer-summary-ico{background:rgba(92,141,246,.18);color:#5C8DF6;}
+  .zk-customer-status-badge.status-open{background:rgba(92,141,246,.15);color:#5C8DF6;}
+  .zk-cust-action-btn.toggle-btn{border-color:#5C8DF6;color:#5C8DF6;}
+  .zk-cust-action-btn.edit-btn{border-color:var(--amber);color:var(--amber);}
+  .zk-customer-actions{display:flex;flex-wrap:wrap;gap:8px;}
+  .zk-cust-action-btn{
+    flex:1;min-width:100px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);
+    border-radius:9px;padding:9px 8px;font-size:12px;font-weight:700;cursor:pointer;
+    transition:filter .15s ease, transform .15s ease;
+  }
+  .zk-cust-action-btn:hover{filter:brightness(1.15);}
+  .zk-cust-action-btn:active{transform:scale(.97);}
+  .zk-cust-action-btn.done-btn{border-color:var(--green);color:var(--green);}
+  .zk-cust-action-btn.cancel-btn{border-color:var(--red);color:var(--red);}
+  .zk-cust-action-btn.delete-btn{border-color:var(--muted);color:var(--muted);flex:0 0 auto;min-width:0;padding:9px 12px;}
+  .zk-cust-action-btn.delete-btn:hover{border-color:var(--red);color:var(--red);}
+  .zk-cust-action-btn.active-status{background:currentColor;}
+  .zk-cust-action-btn.done-btn.active-status{background:var(--green);color:#06231a;}
+  .zk-cust-action-btn.cancel-btn.active-status{background:var(--red);color:#fff;}
+
   /* Buyurtma kartalari endi bir xil "yig'ma" (collapsed) andozada — sayt
      bo'ylab admin ro'yxatlari (buyurtmalar, kredit) bilan bir xil ko'rinish,
      bosilganda ochiladi — ro'yxat toza va joy tejaladi. */
@@ -1141,6 +1295,7 @@
       <button class="tab" data-tab="orders"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="tab-label">Buyurtmalar</span></button>
       <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
       <button class="tab" data-tab="credit"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><span class="tab-label">Kredit</span></button>
+      <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
       <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
       <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
@@ -1420,6 +1575,23 @@
   </div>
 
   <div class="pane" id="paneZakaz">
+    <div class="zk-cust-cards">
+      <button type="button" class="zk-cust-card zk-cust-card-add" id="zkAddCustomerCard">
+        <div class="zk-cust-card-ico">➕</div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Mijoz qo'shish</span>
+          <span class="zk-cust-card-sub">Yangi mijoz ma'lumotini kiriting</span>
+        </div>
+      </button>
+      <button type="button" class="zk-cust-card zk-cust-card-view" id="zkViewCustomersCard">
+        <div class="zk-cust-card-ico">👥</div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Mijozlarni ko'rish</span>
+          <span class="zk-cust-card-sub"><b id="zkCustomerCount">0</b> ta mijoz</span>
+        </div>
+      </button>
+    </div>
+
     <div class="zk-stats-row" id="zkStatsRow"></div>
 
     <div class="zk-grid">
@@ -1441,6 +1613,43 @@
       <div class="settings-form zk-orders-form" style="max-width:none;">
         <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
         <div class="orders-list" id="customOrdersList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- "Mijoz qo'shish" oynasi -->
+  <div class="zk-cust-modal-overlay" id="zkAddCustomerOverlay">
+    <div class="zk-cust-modal">
+      <div class="zk-cust-modal-head">
+        <h3>➕ Mijoz qo'shish</h3>
+        <button type="button" class="zk-cust-modal-close" id="zkAddCustomerClose">✕</button>
+      </div>
+      <div class="zk-cust-modal-body" id="zkAddCustomerFormWrap">
+        <label for="zkCustName">Mijoz ismi</label>
+        <input type="text" id="zkCustName" placeholder="Ism Familiya">
+        <label for="zkCustWorkingPhone">Ishlab turgan raqami</label>
+        <input type="text" id="zkCustWorkingPhone" placeholder="+998 90 123-45-67">
+        <label for="zkCustOrderedPhone">Zakaz qilgan raqami</label>
+        <input type="text" id="zkCustOrderedPhone" placeholder="+998 90 777-77-77">
+        <button type="button" id="zkCustAddBtn">+ Qo'shish</button>
+        <div class="settings-msg" id="zkCustAddMsg"></div>
+      </div>
+      <div class="zk-cust-success" id="zkCustSuccess">
+        <div class="zk-cust-success-check">✓</div>
+        <div class="zk-cust-success-text">Muvaffaqiyatli qo'shildi!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- "Mijozlarni ko'rish" oynasi -->
+  <div class="zk-cust-modal-overlay" id="zkViewCustomersOverlay">
+    <div class="zk-cust-modal zk-cust-modal-wide">
+      <div class="zk-cust-modal-head">
+        <h3>👥 Mijozlar bazasi (<span id="zkViewCustomerCount">0</span>)</h3>
+        <button type="button" class="zk-cust-modal-close" id="zkViewCustomersClose">✕</button>
+      </div>
+      <div class="zk-cust-modal-body">
+        <div id="zkCustomersList" class="zk-customers-list"></div>
       </div>
     </div>
   </div>
@@ -1528,6 +1737,70 @@
 
     <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
     <div id="creditList"></div>
+  </div>
+
+  <div class="pane" id="panePersonalbase">
+    <p style="color:var(--muted);font-size:12px;margin:0 0 16px;">
+      Bu yerda o'zingizning qo'lingizdagi raqamlaringizni va sotilish narxini kiriting. Agar shu bazadagi
+      raqam "Kredit" bo'limida mijozga shartnoma sifatida qo'shilsa, u avtomatik <b>YOPIQ</b> deb belgilanadi
+      (chunki endi band). Xohlasangiz o'zingiz ham qo'lda ochib/yopib, tahrirlab turishingiz mumkin.
+    </p>
+
+    <div class="pb-stats-row" id="pbStatsRow"></div>
+
+    <div class="zk-cust-cards">
+      <button type="button" class="zk-cust-card zk-cust-card-add" id="pbAddNumberCard">
+        <div class="zk-cust-card-ico">➕</div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Raqam qo'shish</span>
+          <span class="zk-cust-card-sub">Yangi raqam va narxlarini kiriting</span>
+        </div>
+      </button>
+      <button type="button" class="zk-cust-card zk-cust-card-view" id="pbViewNumbersCard">
+        <div class="zk-cust-card-ico">📋</div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Raqamlarni ko'rish</span>
+          <span class="zk-cust-card-sub"><b id="pbNumberCount">0</b> ta raqam</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- "Raqam qo'shish" (Shaxsiy baza) oynasi -->
+  <div class="zk-cust-modal-overlay" id="pbAddNumberOverlay">
+    <div class="zk-cust-modal">
+      <div class="zk-cust-modal-head">
+        <h3 id="pbAddNumberTitle">➕ Raqam qo'shish</h3>
+        <button type="button" class="zk-cust-modal-close" id="pbAddNumberClose">✕</button>
+      </div>
+      <div class="zk-cust-modal-body" id="pbAddNumberFormWrap">
+        <label for="pbNumberInput">Raqam</label>
+        <input type="text" id="pbNumberInput" placeholder="+998 90 777-77-77">
+        <label for="pbMonthlyInput">24 oyga oylik to'lov (so'm)</label>
+        <input type="number" id="pbMonthlyInput" placeholder="500000">
+        <label for="pbCashInput">Naxt summasi (so'm)</label>
+        <input type="number" id="pbCashInput" placeholder="10000000">
+        <button type="button" id="pbAddNumberBtn">+ Qo'shish</button>
+        <div class="settings-msg" id="pbAddNumberMsg"></div>
+      </div>
+      <div class="zk-cust-success" id="pbAddNumberSuccess">
+        <div class="zk-cust-success-check">✓</div>
+        <div class="zk-cust-success-text">Muvaffaqiyatli qo'shildi!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- "Raqamlarni ko'rish" (Shaxsiy baza) oynasi -->
+  <div class="zk-cust-modal-overlay" id="pbViewNumbersOverlay">
+    <div class="zk-cust-modal zk-cust-modal-wide">
+      <div class="zk-cust-modal-head">
+        <h3>📋 Shaxsiy baza (<span id="pbViewNumberCount">0</span>)</h3>
+        <button type="button" class="zk-cust-modal-close" id="pbViewNumbersClose">✕</button>
+      </div>
+      <div class="zk-cust-modal-body">
+        <div id="pbNumbersList" class="zk-customers-list"></div>
+      </div>
+    </div>
   </div>
 
   <div class="pane" id="paneFinance">
@@ -2192,6 +2465,400 @@ async function loadCustomOrders(){
   }
 }
 
+/* ---- "Mijoz qo'shish" / "Mijozlarni ko'rish" — Zakaz bo'limi ----
+   Bu yerda admin qo'lda mijoz qo'shadi (ism, ishlab turgan raqami,
+   zakaz qilgan raqami). Barcha qo'shilgan mijozlar 'manual_customers'
+   Firestore kolleksiyasida saqlanadi. */
+async function loadManualCustomersCount(){
+  const countEl = document.getElementById('zkCustomerCount');
+  try{
+    const snap = await db.collection('manual_customers').get();
+    if(countEl) countEl.textContent = snap.size;
+  }catch(e){ /* xato bo'lsa ham interfeys ishlashda davom etadi */ }
+}
+
+function openAddCustomerModal(){
+  const overlay = document.getElementById('zkAddCustomerOverlay');
+  document.getElementById('zkCustName').value = '';
+  document.getElementById('zkCustWorkingPhone').value = '';
+  document.getElementById('zkCustOrderedPhone').value = '';
+  document.getElementById('zkCustAddMsg').textContent = '';
+  document.getElementById('zkCustAddMsg').className = 'settings-msg';
+  document.getElementById('zkCustSuccess').classList.remove('show');
+  document.getElementById('zkAddCustomerFormWrap').style.display = '';
+  overlay.classList.add('open');
+}
+function closeAddCustomerModal(){
+  document.getElementById('zkAddCustomerOverlay').classList.remove('open');
+}
+document.getElementById('zkAddCustomerCard').addEventListener('click', openAddCustomerModal);
+document.getElementById('zkAddCustomerClose').addEventListener('click', closeAddCustomerModal);
+document.getElementById('zkAddCustomerOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'zkAddCustomerOverlay') closeAddCustomerModal();
+});
+
+document.getElementById('zkCustAddBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('zkCustName').value.trim();
+  const workingPhone = document.getElementById('zkCustWorkingPhone').value.trim();
+  const orderedPhone = document.getElementById('zkCustOrderedPhone').value.trim();
+  const msgEl = document.getElementById('zkCustAddMsg');
+  if(!name || !workingPhone || !orderedPhone){
+    msgEl.textContent = 'Barcha maydonlarni to\'ldiring';
+    msgEl.className = 'settings-msg bad';
+    return;
+  }
+  const btn = document.getElementById('zkCustAddBtn');
+  btn.disabled = true;
+  msgEl.textContent = '';
+  msgEl.className = 'settings-msg';
+  try{
+    await db.collection('manual_customers').add({
+      name, workingPhone, orderedPhone,
+      createdAt: new Date().toLocaleString('uz-UZ'),
+      createdAtSort: Date.now()
+    });
+    // Muvaffaqiyatli qo'shilgandan keyin — zamonaviy animatsiya bilan xabar
+    document.getElementById('zkAddCustomerFormWrap').style.display = 'none';
+    document.getElementById('zkCustSuccess').classList.add('show');
+    vibrate(60);
+    loadManualCustomersCount();
+    setTimeout(()=>{ closeAddCustomerModal(); }, 1400);
+  }catch(err){
+    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.className = 'settings-msg bad';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+async function loadManualCustomersList(){
+  const listEl = document.getElementById('zkCustomersList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('manual_customers').orderBy('createdAtSort', 'desc').get();
+    const customers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('zkViewCustomerCount').textContent = customers.length;
+    if(customers.length === 0){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali mijoz qo\'shilmagan.</div>';
+      return;
+    }
+    listEl.innerHTML = customers.map((c, i)=>{
+      const statusClass = c.status === 'Yakunlandi' ? 'status-done' : (c.status === 'Bekor qilindi' ? 'status-cancelled' : '');
+      const badgeHtml = c.status ? `<span class="zk-customer-status-badge ${statusClass}">${escapeHtml(c.status)}</span>` : '';
+      return `
+      <div class="zk-customer-row ${statusClass}" data-id="${c.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
+        <div class="zk-customer-summary" data-id="${c.id}">
+          <span class="zk-customer-summary-ico">📱</span>
+          <span class="zk-customer-ordered-phone">${escapeHtml(c.orderedPhone || '')}</span>
+          ${badgeHtml}
+          <span class="zk-customer-arrow">▾</span>
+        </div>
+        <div class="zk-customer-body">
+          <div class="zk-customer-info">
+            <span>Ism</span><span>${escapeHtml(c.name || '')}</span>
+            <span>Ishlab turgan raqami</span><span>${escapeHtml(c.workingPhone || '')}</span>
+            <span>Zakaz qilgan raqami</span><span>${escapeHtml(c.orderedPhone || '')}</span>
+            <span>Qo'shilgan sana</span><span>${escapeHtml(c.createdAt || '')}</span>
+          </div>
+          <div class="zk-customer-actions">
+            <button type="button" class="zk-cust-action-btn done-btn ${c.status === 'Yakunlandi' ? 'active-status' : ''}" data-action="done" data-id="${c.id}">✅ Yakunlandi</button>
+            <button type="button" class="zk-cust-action-btn cancel-btn ${c.status === 'Bekor qilindi' ? 'active-status' : ''}" data-action="cancel" data-id="${c.id}">❌ Bekor qilindi</button>
+            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${c.id}">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('.zk-customer-summary').forEach(summary=>{
+      summary.addEventListener('click', ()=>{
+        summary.closest('.zk-customer-row').classList.toggle('zk-open');
+      });
+    });
+    listEl.querySelectorAll('.zk-cust-action-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const row = btn.closest('.zk-customer-row');
+        if(action === 'delete'){
+          if(!confirm('Ushbu mijozni bazadan butunlay o\'chirishni tasdiqlaysizmi?')) return;
+          try{
+            await db.collection('manual_customers').doc(id).delete();
+            row.style.transition = 'opacity .2s ease, transform .2s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-8px)';
+            setTimeout(()=>{ row.remove(); }, 200);
+            vibrate(60);
+            loadManualCustomersCount();
+            const countEl = document.getElementById('zkViewCustomerCount');
+            if(countEl) countEl.textContent = Math.max(0, Number(countEl.textContent) - 1);
+          }catch(err){ alert('Xato: ' + err.message); }
+          return;
+        }
+        const newStatus = action === 'done' ? 'Yakunlandi' : 'Bekor qilindi';
+        try{
+          await db.collection('manual_customers').doc(id).update({ status: newStatus });
+          const newClass = newStatus === 'Yakunlandi' ? 'status-done' : 'status-cancelled';
+          row.classList.remove('status-done', 'status-cancelled');
+          row.classList.add(newClass);
+          row.querySelectorAll('.zk-cust-action-btn').forEach(b => b.classList.remove('active-status'));
+          btn.classList.add('active-status');
+          let badge = row.querySelector('.zk-customer-status-badge');
+          if(!badge){
+            badge = document.createElement('span');
+            badge.className = 'zk-customer-status-badge';
+            row.querySelector('.zk-customer-arrow').insertAdjacentElement('beforebegin', badge);
+          }
+          badge.className = 'zk-customer-status-badge ' + newClass;
+          badge.textContent = newStatus;
+          vibrate(60);
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+document.getElementById('zkViewCustomersCard').addEventListener('click', ()=>{
+  document.getElementById('zkViewCustomersOverlay').classList.add('open');
+  loadManualCustomersList();
+});
+document.getElementById('zkViewCustomersClose').addEventListener('click', ()=>{
+  document.getElementById('zkViewCustomersOverlay').classList.remove('open');
+});
+document.getElementById('zkViewCustomersOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'zkViewCustomersOverlay') document.getElementById('zkViewCustomersOverlay').classList.remove('open');
+});
+
+/* ---- "Shaxsiy baza" bo'limi ----
+   Admin o'z qo'lidagi raqamlarini va narxlarini shu yerga kiritadi.
+   'personal_numbers' Firestore kolleksiyasida saqlanadi. Agar shu
+   bazadagi raqam "Kredit" bo'limida yangi shartnoma sifatida
+   qo'shilsa (netlify/functions/admin-credit.js -> addContract), server
+   avtomatik shu yerdagi holatni "yopiq" ga o'zgartiradi. */
+const PB_MONTHLY_GOAL = 10;
+
+async function loadPersonalBaseStats(){
+  const statsEl = document.getElementById('pbStatsRow');
+  if(!statsEl) return;
+  statsEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('personal_numbers').get();
+    const numbers = snap.docs.map(d => d.data());
+    const now = new Date();
+    const isThisMonth = (ts) => {
+      if(!ts) return false;
+      const d = new Date(ts);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    };
+    const addedThisMonth = numbers.filter(n => isThisMonth(n.createdAtSort)).length;
+    const soldThisMonth = numbers.filter(n => n.status === 'yopiq' && isThisMonth(n.closedAt)).length;
+
+    const addedGood = addedThisMonth >= PB_MONTHLY_GOAL;
+    const soldGood = soldThisMonth >= PB_MONTHLY_GOAL;
+
+    statsEl.innerHTML = `
+      <div class="pb-stat-card">
+        <b>${numbers.length}</b>
+        <span class="pb-stat-label">Jami raqamlar</span>
+      </div>
+      <div class="pb-stat-card ${addedGood ? 'good' : 'bad'}">
+        <b>${addedThisMonth}</b>
+        <span class="pb-stat-label">Shu oy qo'shilgan</span>
+        <span class="pb-stat-trend">${addedGood ? '▲ A\'lo, 10 tadan oshdi!' : '▼ Hali 10 tadan kam'}</span>
+      </div>
+      <div class="pb-stat-card ${soldGood ? 'good' : 'bad'}">
+        <b>${soldThisMonth}</b>
+        <span class="pb-stat-label">Shu oy sotilgan</span>
+        <span class="pb-stat-trend">${soldGood ? '▲ Zo\'r natija!' : '▼ Hali yomon'}</span>
+      </div>
+    `;
+  }catch(err){
+    statsEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+
+async function loadPersonalNumbersCount(){
+  const countEl = document.getElementById('pbNumberCount');
+  try{
+    const snap = await db.collection('personal_numbers').get();
+    if(countEl) countEl.textContent = snap.size;
+  }catch(e){ /* xato bo'lsa ham interfeys ishlashda davom etadi */ }
+}
+
+let pbEditingId = null;
+
+function openAddNumberModal(editDoc){
+  pbEditingId = editDoc ? editDoc.id : null;
+  document.getElementById('pbAddNumberTitle').textContent = editDoc ? "✏️ Raqamni tahrirlash" : "➕ Raqam qo'shish";
+  document.getElementById('pbAddNumberBtn').textContent = editDoc ? 'Saqlash' : "+ Qo'shish";
+  document.getElementById('pbNumberInput').value = editDoc ? (editDoc.number || '') : '';
+  document.getElementById('pbMonthlyInput').value = editDoc ? (editDoc.monthlyPayment || '') : '';
+  document.getElementById('pbCashInput').value = editDoc ? (editDoc.cashPrice || '') : '';
+  document.getElementById('pbAddNumberMsg').textContent = '';
+  document.getElementById('pbAddNumberMsg').className = 'settings-msg';
+  document.getElementById('pbAddNumberSuccess').classList.remove('show');
+  document.getElementById('pbAddNumberFormWrap').style.display = '';
+  document.getElementById('pbAddNumberOverlay').classList.add('open');
+}
+function closeAddNumberModal(){
+  document.getElementById('pbAddNumberOverlay').classList.remove('open');
+  pbEditingId = null;
+}
+document.getElementById('pbAddNumberCard').addEventListener('click', ()=> openAddNumberModal(null));
+document.getElementById('pbAddNumberClose').addEventListener('click', closeAddNumberModal);
+document.getElementById('pbAddNumberOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'pbAddNumberOverlay') closeAddNumberModal();
+});
+
+document.getElementById('pbAddNumberBtn').addEventListener('click', async ()=>{
+  const number = document.getElementById('pbNumberInput').value.trim();
+  const monthlyPayment = Number(document.getElementById('pbMonthlyInput').value) || 0;
+  const cashPrice = Number(document.getElementById('pbCashInput').value) || 0;
+  const msgEl = document.getElementById('pbAddNumberMsg');
+  if(!number || monthlyPayment <= 0 || cashPrice <= 0){
+    msgEl.textContent = "Barcha maydonlarni to'g'ri to'ldiring";
+    msgEl.className = 'settings-msg bad';
+    return;
+  }
+  const btn = document.getElementById('pbAddNumberBtn');
+  btn.disabled = true;
+  msgEl.textContent = '';
+  msgEl.className = 'settings-msg';
+  try{
+    if(pbEditingId){
+      await db.collection('personal_numbers').doc(pbEditingId).update({ number, monthlyPayment, cashPrice });
+      closeAddNumberModal();
+      loadPersonalNumbersList();
+      loadPersonalBaseStats();
+    }else{
+      await db.collection('personal_numbers').add({
+        number, monthlyPayment, cashPrice, status: 'ochiq',
+        createdAt: new Date().toLocaleString('uz-UZ'),
+        createdAtSort: Date.now()
+      });
+      document.getElementById('pbAddNumberFormWrap').style.display = 'none';
+      document.getElementById('pbAddNumberSuccess').classList.add('show');
+      vibrate(60);
+      loadPersonalNumbersCount();
+      loadPersonalBaseStats();
+      setTimeout(()=>{ closeAddNumberModal(); }, 1400);
+    }
+  }catch(err){
+    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.className = 'settings-msg bad';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+async function loadPersonalNumbersList(){
+  const listEl = document.getElementById('pbNumbersList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('personal_numbers').orderBy('createdAtSort', 'desc').get();
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('pbViewNumberCount').textContent = items.length;
+    if(items.length === 0){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali raqam qo\'shilmagan.</div>';
+      return;
+    }
+    listEl.innerHTML = items.map((n, i)=>{
+      const isClosed = n.status === 'yopiq';
+      const statusClass = isClosed ? 'status-cancelled' : 'status-open';
+      const statusLabel = isClosed ? 'Yopiq' : 'Ochiq';
+      return `
+      <div class="zk-customer-row ${statusClass}" data-id="${n.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
+        <div class="zk-customer-summary" data-id="${n.id}">
+          <span class="zk-customer-summary-ico">📱</span>
+          <span class="zk-customer-ordered-phone">${escapeHtml(n.number || '')}</span>
+          <span class="zk-customer-status-badge ${statusClass}">${statusLabel}</span>
+          <span class="zk-customer-arrow">▾</span>
+        </div>
+        <div class="zk-customer-body">
+          <div class="zk-customer-info">
+            <span>Raqam</span><span>${escapeHtml(n.number || '')}</span>
+            <span>24 oyga oylik to'lov</span><span>${Number(n.monthlyPayment || 0).toLocaleString('ru-RU')} so'm</span>
+            <span>Naxt summasi</span><span>${Number(n.cashPrice || 0).toLocaleString('ru-RU')} so'm</span>
+            <span>Holat</span><span>${statusLabel}${n.linkedContractId ? ' (Shartnoma: ' + escapeHtml(n.linkedContractId) + ')' : ''}</span>
+            <span>Qo'shilgan sana</span><span>${escapeHtml(n.createdAt || '')}</span>
+          </div>
+          <div class="zk-customer-actions">
+            <button type="button" class="zk-cust-action-btn toggle-btn" data-action="toggle" data-id="${n.id}">${isClosed ? '🔓 Ochish' : '🔒 Yopish'}</button>
+            <button type="button" class="zk-cust-action-btn edit-btn" data-action="edit" data-id="${n.id}">✏️ Tahrirlash</button>
+            <button type="button" class="zk-cust-action-btn delete-btn" data-action="delete" data-id="${n.id}">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('.zk-customer-summary').forEach(summary=>{
+      summary.addEventListener('click', ()=>{
+        summary.closest('.zk-customer-row').classList.toggle('zk-open');
+      });
+    });
+    listEl.querySelectorAll('.zk-cust-action-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const row = btn.closest('.zk-customer-row');
+        const item = items.find(x => x.id === id);
+        if(action === 'delete'){
+          if(!confirm("Ushbu raqamni shaxsiy bazadan butunlay o'chirishni tasdiqlaysizmi?")) return;
+          try{
+            await db.collection('personal_numbers').doc(id).delete();
+            row.style.transition = 'opacity .2s ease, transform .2s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-8px)';
+            setTimeout(()=>{ row.remove(); }, 200);
+            vibrate(60);
+            loadPersonalNumbersCount();
+            loadPersonalBaseStats();
+            const countEl = document.getElementById('pbViewNumberCount');
+            if(countEl) countEl.textContent = Math.max(0, Number(countEl.textContent) - 1);
+          }catch(err){ alert('Xato: ' + err.message); }
+          return;
+        }
+        if(action === 'edit'){
+          if(item) openAddNumberModal(item);
+          return;
+        }
+        if(action === 'toggle'){
+          const nowClosed = item.status !== 'yopiq';
+          try{
+            await db.collection('personal_numbers').doc(id).update({
+              status: nowClosed ? 'yopiq' : 'ochiq',
+              closedAt: nowClosed ? Date.now() : firebase.firestore.FieldValue.delete()
+            });
+            item.status = nowClosed ? 'yopiq' : 'ochiq';
+            row.classList.remove('status-open', 'status-cancelled');
+            row.classList.add(nowClosed ? 'status-cancelled' : 'status-open');
+            const badge = row.querySelector('.zk-customer-status-badge');
+            if(badge){
+              badge.className = 'zk-customer-status-badge ' + (nowClosed ? 'status-cancelled' : 'status-open');
+              badge.textContent = nowClosed ? 'Yopiq' : 'Ochiq';
+            }
+            btn.textContent = nowClosed ? '🔓 Ochish' : '🔒 Yopish';
+            vibrate(60);
+            loadPersonalBaseStats();
+          }catch(err){ alert('Xato: ' + err.message); }
+        }
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+document.getElementById('pbViewNumbersCard').addEventListener('click', ()=>{
+  document.getElementById('pbViewNumbersOverlay').classList.add('open');
+  loadPersonalNumbersList();
+});
+document.getElementById('pbViewNumbersClose').addEventListener('click', ()=>{
+  document.getElementById('pbViewNumbersOverlay').classList.remove('open');
+});
+document.getElementById('pbViewNumbersOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'pbViewNumbersOverlay') document.getElementById('pbViewNumbersOverlay').classList.remove('open');
+});
+
 function detectDevice(ua){
   let os = "Noma'lum qurilma";
   if(/iPhone/.test(ua)) os = 'iPhone';
@@ -2485,7 +3152,7 @@ document.getElementById('bellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="orders"]').click();
 });
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2505,7 +3172,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     } else {
       ordersPaneVisible = false;
     }
-    if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); }
+    if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); loadManualCustomersCount(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
@@ -2519,6 +3186,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
       if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
     }
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
+    if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
 
     // Mobil ekranda menyudan bo'lim tanlansa, sidebar avtomatik yopiladi
     const shellEl = document.querySelector('.admin-shell');
@@ -4459,7 +5127,7 @@ if(addWatchNotifyIdBtn){
 
 /* ---- "Boshqaruv" — adminlarni qo'shish/boshqarish (faqat bosh admin) ---- */
 const MGMT_FEATURE_LABELS = {
-  numbers:'📱 Raqamlar', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit',
+  numbers:'📱 Raqamlar', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit', personalbase:'🗄️ Shaxsiy baza',
   watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',

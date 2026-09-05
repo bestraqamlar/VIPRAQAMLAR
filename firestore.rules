@@ -198,6 +198,21 @@ service cloud.firestore {
       allow read, update, delete: if hasPerm('zakaz');
     }
 
+    // "Zakaz" bo'limida admin qo'lda qo'shadigan mijozlar bazasi (ism,
+    // ishlab turgan raqami, zakaz qilgan raqami + holat: Yakunlandi/Bekor
+    // qilindi) — faqat "Zakaz" bo'limiga ruxsati borlar ko'ra/yoza oladi.
+    match /manual_customers/{doc} {
+      allow read, write: if hasPerm('zakaz');
+    }
+
+    // "Shaxsiy baza" — admin o'z qo'lidagi raqamlarini va narxlarini
+    // saqlaydi. Netlify funksiyasi (admin-credit.js) bu yerga Admin SDK
+    // orqali yozadi (qoidalardan mustasno), shu bilan "Kredit"da yangi
+    // shartnoma qo'shilganda mos raqam avtomatik "yopiq" bo'ladi.
+    match /personal_numbers/{doc} {
+      allow read, write: if hasPerm('personalbase');
+    }
+
     // credit_contracts — ILGARI shu yerda "hasPerm('credit')" bilan
     // to'g'ridan-to'g'ri (Client SDK) ochiq edi. ENDI bu — admin-credit.js
     // orqali, faqat requireAdmin() bilan himoyalangan holda ishlaydi, chunki

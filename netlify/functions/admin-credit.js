@@ -138,6 +138,23 @@ async function addContract(body, decoded) {
     addedByUid: decoded.uid
   });
 
+  // Agar shu raqam "Shaxsiy baza"da (o'zimizning qo'limizdagi raqamlar
+  // ro'yxati) mavjud bo'lsa — endi mijozga kredit sifatida berilgani
+  // uchun avtomatik "yopiq" deb belgilaymiz (band bo'lib qoldi).
+  try {
+    const numDigits = number.replace(/\D/g, '');
+    if (numDigits) {
+      const personalSnap = await db.collection('personal_numbers').get();
+      const match = personalSnap.docs.find(d => {
+        const pd = String(d.data().number || '').replace(/\D/g, '');
+        return pd && (pd === numDigits || pd.slice(-9) === numDigits.slice(-9));
+      });
+      if (match && match.data().status !== 'yopiq') {
+        await match.ref.update({ status: 'yopiq', closedAt: Date.now(), linkedContractId: contractId });
+      }
+    }
+  } catch (e) { console.error('Shaxsiy bazani avtomatik yopishda xato:', e); }
+
   return { id: contractId, contractId, customerChatId };
 }
 
