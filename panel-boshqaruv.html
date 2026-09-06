@@ -937,6 +937,8 @@
   .zk-cat-row[data-op="Humans"]{border-left-color:#D98A2B;}
   .zk-cat-row[data-op="Beeline"]{border-left-color:#D4B106;}
   .zk-cat-row[data-op="Mobiuz"]{border-left-color:#C0392B;}
+  .zk-cat-row[data-op="Uzmobile"]{border-left-color:#2E86C1;}
+  .zk-cat-row[data-op="Perfektum"]{border-left-color:#27AE60;}
   .zk-cat-op-badge{
     font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;
     background:var(--panel);color:var(--text);border:1px solid var(--line);
@@ -945,6 +947,8 @@
   .zk-cat-op-badge[data-op="Humans"]{background:rgba(217,138,43,.18);color:#F2BE84;border-color:rgba(217,138,43,.45);}
   .zk-cat-op-badge[data-op="Beeline"]{background:rgba(212,177,6,.18);color:#EBD776;border-color:rgba(212,177,6,.45);}
   .zk-cat-op-badge[data-op="Mobiuz"]{background:rgba(192,57,43,.18);color:#ED8B80;border-color:rgba(192,57,43,.45);}
+  .zk-cat-op-badge[data-op="Uzmobile"]{background:rgba(46,134,193,.18);color:#8FC6EA;border-color:rgba(46,134,193,.45);}
+  .zk-cat-op-badge[data-op="Perfektum"]{background:rgba(39,174,96,.18);color:#8FE0B3;border-color:rgba(39,174,96,.45);}
   .zk-cat-sale-badge{
     font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;
     background:rgba(231,76,60,.15);color:var(--red);
@@ -1793,6 +1797,8 @@
           <button type="button" class="zk-op-btn" data-op="Humans">🟠 Humans</button>
           <button type="button" class="zk-op-btn" data-op="Beeline">🟡 Beeline</button>
           <button type="button" class="zk-op-btn" data-op="Mobiuz">🔴 Mobiuz</button>
+          <button type="button" class="zk-op-btn" data-op="Uzmobile">🔵 Uzmobile</button>
+          <button type="button" class="zk-op-btn" data-op="Perfektum">🟢 Perfektum</button>
         </div>
 
         <label for="zkPattern">Oxirgi 4 raqam (naqsh)</label>
@@ -2721,7 +2727,7 @@ async function loadPriceCategories(){
     }
     const docs = snap.docs.map(d => ({ id: d.id, data: d.data() }))
       .sort((a,b) => (a.data.operator||'').localeCompare(b.data.operator||'') || (a.data.pattern||'').localeCompare(b.data.pattern||''));
-    const OP_EMOJI = { Ucell: '🟣', Humans: '🟠', Beeline: '🟡', Mobiuz: '🔴' };
+    const OP_EMOJI = { Ucell: '🟣', Humans: '🟠', Beeline: '🟡', Mobiuz: '🔴', Uzmobile: '🔵', Perfektum: '🟢' };
     listEl.innerHTML = docs.map(({ id, data })=>{
       const extras = [];
       if(data.installmentAvailable) extras.push(`💳 ${data.installmentMonths} oyga, oyiga ${formatPrice(data.installmentMonthly)}`);

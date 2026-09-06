@@ -150,7 +150,7 @@ const BTN = {
 };
 /* "Zakaz qilish" bo'limida mijoz tanlaydigan kompaniyalar — admin panelda
    xuddi shu 4 ta operator uchun narx belgilanadi (number_price_categories). */
-const ZAKAZ_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz'];
+const ZAKAZ_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz', 'Uzmobile', 'Perfektum'];
 // "Raqam tanlash" — saytdagi kabi, mijoz aniq bitta kompaniyani tanlashi
 // (yoki "Barchasi") mumkin. Tartib saytdagi kartochkalar bilan bir xil.
 const RAQAM_BARCHASI = '🌐 Barchasi';
@@ -250,11 +250,12 @@ function raqamOperatorKeyboard(){
   return replyKb(rows);
 }
 function zakazOperatorKeyboard(){
-  return replyKb([
-    [ZAKAZ_OPERATORS[0], ZAKAZ_OPERATORS[1]],
-    [ZAKAZ_OPERATORS[2], ZAKAZ_OPERATORS[3]],
-    [BTN.CANCEL, BTN.STEP_BACK]
-  ]);
+  const rows = [];
+  for(let i = 0; i < ZAKAZ_OPERATORS.length; i += 2){
+    rows.push([ZAKAZ_OPERATORS[i], ZAKAZ_OPERATORS[i+1]]);
+  }
+  rows.push([BTN.CANCEL, BTN.STEP_BACK]);
+  return replyKb(rows);
 }
 function confirmKeyboard(){ return replyKb([[BTN.CONFIRM_YES, BTN.CONFIRM_NO]]); }
 function backKeyboard(){ return replyKb([[BTN.BACK]]); }
@@ -273,8 +274,12 @@ function districtKeyboard(region){
   rows.push([BTN.CANCEL, BTN.STEP_BACK]);
   return replyKb(rows);
 }
+// MUHIM: mijoz iltimosiga ko'ra "kontaktni ulashish" tugmasi ATAYLAB
+// olib tashlangan — mijoz o'z raqamini FAQAT qo'lda yozib yuborishi kerak
+// (bu "o'yin uchun" soxta buyurtma berishning oldini oladi; raqam quyida
+// haqiqiy O'zbekiston operator kodlariga qarshi tekshiriladi).
 function contactKeyboard(){
-  return replyKb([[{ text: BTN.SHARE_CONTACT, request_contact: true }], [BTN.CANCEL, BTN.STEP_BACK]]);
+  return replyKb([[BTN.CANCEL, BTN.STEP_BACK]]);
 }
 
 function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
@@ -373,8 +378,10 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   if(navRow.length) rows.push(navRow);
   rows.push([BTN.CANCEL]);
 
-  const pageInfo = totalPages > 1 ? ` (${page + 1}/${totalPages}-sahifa)` : '';
-  await sendHtml(chatId, `✨ <b>${items.length} ta mos raqam</b> topildi${pageInfo}. Batafsil ko'rish uchun birini tanlang 👇`, replyKb(rows));
+  // Mijoz iltimosiga ko'ra tavsif matni olib tashlandi — faqat kerak
+  // bo'lganda (bir nechta sahifa bo'lsa) qaysi sahifada ekani ko'rsatiladi.
+  const pageInfo = totalPages > 1 ? `${page + 1}/${totalPages}-sahifa 👇` : '👇';
+  await send(chatId, pageInfo, replyKb(rows));
 }
 
 async function showNumberDetail(chatId, item){
@@ -458,6 +465,25 @@ async function showZakazPriceCard(chatId, session){
       [{ text: '✅ Tasdiqlash', callback_data: 'zakazconfirm' }, { text: '❌ Bekor qilish', callback_data: 'zakazcancel' }]
     ])
   });
+}
+
+/* number_price_categories'dan operator+pattern bo'yicha narx qidiradi va
+   narx kartochkasini ko'rsatadi. "Zakaz qilish"ning oddiy oqimida HAM,
+   "Raqam tanlash"da topilmagan raqamdan bevosita "Zakaz berish" bosilganda
+   HAM ishlatiladi — ikkalasida ham bir xil natija bo'lishi uchun. */
+async function zakazLookupAndShowPrice(chatId, session, operator, pattern){
+  const docId = `${operator}_${pattern}`;
+  let priceData = null;
+  try{
+    const doc = await withRetry(() => db.collection('number_price_categories').doc(docId).get());
+    if(doc.exists) priceData = doc.data();
+  }catch(e){ console.error('Zakaz narx qidirishda xato:', e); }
+  session.zakazOperator = operator;
+  session.zakazPattern = pattern;
+  session.zakazPriceData = priceData;
+  session.step = 'zakaz_confirm_price';
+  await saveSession(chatId, session);
+  await showZakazPriceCard(chatId, session);
 }
 
 /* ---------------- Admin bildirishnomasi (buyurtma tushganda) ---------------- */
@@ -852,6 +878,27 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    // "Raqam tanlash"da qidirilgan raqam hech qayerda topilmaganda
+    // ko'rsatiladigan "🛒 XX-XX zakaz berish" tugmasi — mijozni qaytadan
+    // hammasini boshidan yozdirmasdan, to'g'ridan-to'g'ri Zakaz bo'limiga
+    // (operator + pattern bilan) olib o'tadi.
+    if(data.startsWith('zakazfrom|')){
+      const parts = data.split('|');
+      const opRaw = parts[1];
+      const patRaw = parts[2];
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      const operator = (opRaw && ZAKAZ_OPERATORS.includes(opRaw)) ? opRaw : null;
+      if(operator){
+        session = { step: 'menu' };
+        await zakazLookupAndShowPrice(chatId, session, operator, patRaw);
+      }else{
+        session = { step: 'zakaz_awaiting_operator', zakazPendingPattern: patRaw };
+        await saveSession(chatId, session);
+        await sendHtml(chatId, "🛒 <b>Zakaz qilish</b>\n\nAvval kompaniyani tanlang 👇", zakazOperatorKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
     if(data === 'zakazcancel'){
       session = { step: 'menu' };
       await saveSession(chatId, session);
@@ -1189,7 +1236,7 @@ exports.handler = async function (event) {
     }else if(session.step === 'awaiting_region'){
       session.step = 'awaiting_phone';
       await saveSession(chatId, session);
-      await send(chatId, "Hozir ishlatib turgan raqamingizni yuboring (yozing yoki kontaktni ulashing):", contactKeyboard());
+      await send(chatId, "Hozir ishlatib turgan raqamingizni kiriting (masalan: 90 123 45 67):", contactKeyboard());
     }else if(session.step === 'awaiting_district'){
       session.step = 'awaiting_region';
       await saveSession(chatId, session);
@@ -1417,11 +1464,17 @@ exports.handler = async function (event) {
     const emptyText = wantOp
       ? `${wantOp} kompaniyasida ${digits} raqami topilmadi, boshqa kompaniyalarda ham yo'q`
       : `${digits} raqami sotuvda mavjud emas`;
+    // Raqam topilmasa (yoki tanlangan kompaniyada topilmay, boshqasidan
+    // ko'rsatilsa ham) — mijoz shu aniq raqamni "Zakaz qilish" orqali
+    // buyurtma qilib qo'yishi uchun tugma har doim birga boradi.
+    const zakazBtn = { text: `🛒 ${digits.slice(0,2)}-${digits.slice(2)} zakaz berish`, callback_data: `zakazfrom|${wantOp || ''}|${digits}` };
     if(usedFallback && combined.length > 0){
-      await send(chatId, `ℹ️ ${wantOp}da topilmadi, boshqa kompaniyalardagi variantlar:`);
+      await tg('sendMessage', {
+        chat_id: chatId, text: `ℹ️ ${wantOp}da topilmadi, boshqa kompaniyalardagi variantlar:`,
+        reply_markup: inlineKb([[zakazBtn]])
+      });
     }
-    await showNumberList(chatId, session, combined, emptyText,
-      inlineKb([[{ text: '📋 Raqam ro\'yxati', url: 'https://t.me/vip_raqamlar_uz' }]]));
+    await showNumberList(chatId, session, combined, emptyText, inlineKb([[zakazBtn]]));
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -1472,6 +1525,15 @@ exports.handler = async function (event) {
       await send(chatId, "Iltimos, ro'yxatdan kompaniyani tanlang.", zakazOperatorKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
+    // "Raqam tanlash"da topilmagan raqamdan "Zakaz berish" bosilgan bo'lsa,
+    // pattern allaqachon ma'lum — endi faqat kompaniya kerak edi, digit
+    // qayta so'ralmaydi.
+    if(session.zakazPendingPattern){
+      const pattern = session.zakazPendingPattern;
+      session = { step: 'menu' };
+      await zakazLookupAndShowPrice(chatId, session, text, pattern);
+      return { statusCode: 200, body: 'ok' };
+    }
     session = { step: 'zakaz_awaiting_digits', zakazOperator: text };
     await saveSession(chatId, session);
     await send(chatId, `${OPERATOR_EMOJI[text] || '📶'} ${text} tanlandi.\n\nXohlagan raqamingizning oxirgi 4 ta raqamini kiriting.\nMisol: 0707`, backKeyboard());
@@ -1485,18 +1547,7 @@ exports.handler = async function (event) {
       await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", backKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const docId = `${session.zakazOperator}_${digits}`;
-    let priceData = null;
-    try{
-      const doc = await withRetry(() => db.collection('number_price_categories').doc(docId).get());
-      if(doc.exists) priceData = doc.data();
-    }catch(e){ console.error('Zakaz narx qidirishda xato:', e); }
-
-    session.zakazPattern = digits;
-    session.zakazPriceData = priceData;
-    session.step = 'zakaz_confirm_price';
-    await saveSession(chatId, session);
-    await showZakazPriceCard(chatId, session);
+    await zakazLookupAndShowPrice(chatId, session, session.zakazOperator, digits);
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -1611,7 +1662,7 @@ ${monthsLines}
     session.draftName = text;
     session.step = 'awaiting_phone';
     await saveSession(chatId, session);
-    await send(chatId, "Hozir ishlatib turgan raqamingizni yuboring (yozing yoki kontaktni ulashing):", contactKeyboard());
+    await send(chatId, "Hozir ishlatib turgan raqamingizni kiriting (masalan: 90 123 45 67):", contactKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -1619,15 +1670,15 @@ ${monthsLines}
   if(session.step === 'awaiting_phone'){
     const phone = message.contact ? message.contact.phone_number : text;
     if(!phone){
-      await send(chatId, "Iltimos, raqamingizni kiriting yoki kontaktni ulashing.", contactKeyboard());
+      await send(chatId, "Iltimos, raqamingizni kiriting.", contactKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const VALID_UZ_CODES = ['20','33','50','70','77','80','87','88','90','91','92','93','94','95','97','98','99'];
+    const VALID_UZ_CODES = ['20','33','50','55','70','77','78','80','87','88','90','91','92','93','94','95','97','98','99'];
     let rawDigits = phone.replace(/\D/g, '');
     if(rawDigits.startsWith('998')) rawDigits = rawDigits.slice(3);
     rawDigits = rawDigits.slice(0, 9);
     if(rawDigits.length < 9 || !VALID_UZ_CODES.includes(rawDigits.slice(0, 2))){
-      await send(chatId, "Bunday raqam mavjud emas. Iltimos, to'g'ri raqam kiriting yoki kontaktni ulashing.", contactKeyboard());
+      await send(chatId, "Bunday raqam mavjud emas. Iltimos, to'g'ri O'zbekiston raqamini kiriting (masalan: 90 123 45 67).", contactKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
     session.draftPhone = phone;
