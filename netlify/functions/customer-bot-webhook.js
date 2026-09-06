@@ -747,7 +747,7 @@ async function aiExecSearch(input){
   if(input.operator) items = items.filter(it => it.operator === input.operator);
   if(input.tag) items = items.filter(it => it.tag === input.tag);
   if(typeof input.maxPrice === 'number') items = items.filter(it => (it.price||0) <= input.maxPrice);
-  items = items.filter(it => !it.reserved);
+  items = items.filter(it => !it.reserved && !it.installment);
 
   const total = items.length;
   const limit = Math.min(input.limit || 5, 10);
@@ -1322,13 +1322,13 @@ exports.handler = async function (event) {
     if(text === BTN.PREMIUM){
       session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(200).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha VIP raqamlar yo'q.");
+      await showNumberList(chatId, session, snap.docs.map(docToItem).filter(item => !item.installment), "Hozircha VIP raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
       session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(200).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
+      await showNumberList(chatId, session, snap.docs.map(docToItem).filter(item => !item.installment), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.INSTALLMENT){
@@ -1441,7 +1441,7 @@ exports.handler = async function (event) {
         const snap = await withRetry(() => db.collection('numbers')
           .where('last4', '==', digits)
           .limit(50).get());
-        dbMatchesAll = snap.docs.map(docToItem).filter(item => !item.reserved);
+        dbMatchesAll = snap.docs.map(docToItem).filter(item => !item.reserved && !item.installment);
       }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
 
       // Agar topilmasa (yoki indeks yo'q bo'lsa) — bazadagi BARCHA raqamlarni
@@ -1462,7 +1462,7 @@ exports.handler = async function (event) {
           if(pageSnap.docs.length < 300) break;
         }
         dbMatchesAll = allDocs.map(docToItem)
-          .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
+          .filter(item => !item.reserved && !item.installment && localDigits(item.number).endsWith(digits));
       }
 
       // Saytdagi kabi: "Raqam tanlash" endi VIP bazamiz bilan operatorlardan

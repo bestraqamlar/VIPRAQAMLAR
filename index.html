@@ -683,6 +683,40 @@
     0%,100%{ filter:drop-shadow(0 0 0 rgba(255,255,255,0)); }
     50%{ filter:drop-shadow(0 0 5px rgba(255,255,255,.65)); }
   }
+  .premium-toggle-btn .ptg-label{ display:none; }
+  /* Mijoz iltimosiga ko'ra: KOMPYUTERDA bu tugma AVVALGIDAY (yuqoridagi
+     qoidalar bo'yicha) qoladi — o'zgarmaydi. Faqat TOR (mobil) ekranda
+     ptichka deyarli "ko'rinmas" va nima qilishi tushunarsiz bo'lib
+     qolgani uchun, faqat shu o'lchamda: doimiy (hover/active kutmasdan)
+     boy-premium ko'rinishli gradient fon + "Premium" yorlig'i + sekin
+     "diqqatga chaqiruvchi" nafas olish animatsiyasi qo'shildi. */
+  @media (max-width:1023px){
+    .premium-toggle-btn{
+      width:auto;min-width:0;padding:0 12px;gap:6px;
+      background:linear-gradient(135deg, rgba(139,92,246,.16), rgba(245,166,35,.18));
+      border-color:rgba(139,92,246,.55);
+      box-shadow:0 4px 14px -6px rgba(139,92,246,.5);
+      animation:ptgIdlePulse 2.6s ease-in-out infinite;
+    }
+    .premium-toggle-btn svg{width:19px;height:19px;}
+    .premium-toggle-btn .ptg-label{
+      display:inline-block;font-family:'Sora',sans-serif;font-weight:800;font-size:11.5px;
+      letter-spacing:.2px;white-space:nowrap;
+      background:linear-gradient(135deg,var(--ptg1),var(--ptg2));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .premium-toggle-btn.active{ animation:none; }
+    .premium-toggle-btn.active .ptg-label{
+      background:none;-webkit-background-clip:initial;background-clip:initial;color:#fff;
+    }
+  }
+  @keyframes ptgIdlePulse{
+    0%,100%{ box-shadow:0 4px 14px -6px rgba(139,92,246,.5); }
+    50%{ box-shadow:0 4px 20px -3px rgba(139,92,246,.85); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .premium-toggle-btn{ animation:none !important; }
+  }
   .std-op-card.vip-premium-chip .premium-dot{
     background:linear-gradient(135deg,#8B5CF6,#F5A623)!important;color:#fff;
     display:flex;align-items:center;justify-content:center;
@@ -902,6 +936,15 @@
     box-shadow:0 3px 10px -5px rgba(47,107,224,0.45);
   }
   .std-op-card.selected .soc-name{color:#173B7A;}
+  /* Mijoz iltimosiga ko'ra: "Raqam qidirish" bo'limidagi kompaniya
+     kartochkalari (bitta tanlansa) ravshan YASHIL ramka bilan ajralib
+     tursin — .standard-op-toggles (boshqa bo'lim) ko'k ranglicha qoladi. */
+  .vip-op-toggles .std-op-card.selected{
+    border-color:#16A34A;background:#EAFBF1;
+    box-shadow:0 3px 10px -5px rgba(22,163,74,0.45);
+  }
+  .vip-op-toggles .std-op-card.selected .soc-name{color:#0F7A3D;}
+  .vip-op-toggles .std-op-card.selected .soc-count{color:#16A34A;background:#DCF7E6;}
   .hint-text{
     /* Mijoz iltimosiga ko'ra bu tushuntirish matni (VIP'da ham,
        STANDART'da ham) endi umuman ko'rsatilmaydi — JS uni hamon
@@ -2896,6 +2939,7 @@ html.theme-purple-premium .card button.order-btn{
           <path class="ptg-badge" d="M12 2.4l2 1.5 2.5-.4.9 2.3 2.3.9-.4 2.5L20.9 11l1.5 2-1.5 2 .4 2.5-2.3.9-.9 2.3-2.5-.4-2 1.5-2-1.5-2.5.4-.9-2.3-2.3-.9.4-2.5L3.1 13l-1.5-2 1.5-2-.4-2.5 2.3-.9.9-2.3 2.5.4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
           <path class="ptg-check" d="M8.6 12.1l2.2 2.2 4.4-4.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+        <span class="ptg-label">Premium</span>
       </button>
       <button type="button" class="standard-search-btn" id="standardSearchBtn">
         <span class="ssb-icon" id="standardSearchIcon">
@@ -4780,14 +4824,15 @@ function renderVipOpToggles(){
   // "Mashhur raqamlarga qo'shish" belgilagan raqamlar chiqadi, hech qaysi
   // kompaniya tagida ko'rinmaydi (kompaniya tanlovi bilan bir-birini
   // istisno qiladi — pastdagi toggleVipOp shuni ta'minlaydi).
-  const premiumCount = showCounts ? NUMBERS.filter(x => x.featured && !x.reserved && x.dailyDeal !== true).length : null;
+  // Mijoz iltimosiga ko'ra Premium kartochkasida UMUMAN son ko'rsatilmaydi
+  // (na qidirishdan oldin, na keyin) — faqat qolgan kompaniyalarda son
+  // hardoimgidek (qidirilgandan keyin) ko'rinadi.
   const premiumChipHtml = `
     <button type="button" class="std-op-card vip-premium-chip${premiumFilterActive ? ' selected' : ''}" data-op="__premium__">
       <span class="opc-dot premium-dot">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2.4l2 1.5 2.5-.4.9 2.3 2.3.9-.4 2.5L20.9 11l1.5 2-1.5 2 .4 2.5-2.3.9-.9 2.3-2.5-.4-2 1.5-2-1.5-2.5.4-.9-2.3-2.3-.9.4-2.5L3.1 13l-1.5-2 1.5-2-.4-2.5 2.3-.9.9-2.3 2.5.4z"/><path d="M8.6 12.1l2.2 2.2 4.4-4.6" stroke-width="2.1" stroke-linecap="round"/></svg>
       </span>
       <span class="soc-name">Premium</span>
-      ${premiumCount !== null ? `<span class="soc-count">${premiumCount}</span>` : ''}
       <span class="soc-radio"></span>
     </button>`;
   const opsHtml = OPERATOR_PICKER_LIST.map(name=>{
@@ -4820,12 +4865,10 @@ function toggleVipOp(op){
   // o'chadi (ikkalasi birga yonmaydi).
   premiumFilterActive = false;
   syncPremiumToggleBtn();
-  if(op === ''){
-    selectedOperators = [];
-  }else{
-    const idx = selectedOperators.indexOf(op);
-    if(idx === -1) selectedOperators.push(op); else selectedOperators.splice(idx, 1);
-  }
+  // Mijoz iltimosiga ko'ra endi BIR VAQTDA faqat BITTA kompaniya tanlash
+  // mumkin (ko'p tanlovli emas, radio-tugma kabi) — qaysi kartochka
+  // bosilsa, aynan o'shanga o'tadi, oldingi tanlov avtomatik bekor bo'ladi.
+  selectedOperators = op === '' ? [] : [op];
   renderVipOpToggles();
   currentPage = 0;
   updateSearchUI();
