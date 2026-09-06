@@ -304,10 +304,12 @@
   }
   #newNumber{font-family:'Sora',sans-serif;font-weight:700;}
   .add-form input:focus, .add-form select:focus{border-color:var(--amber);}
-  .add-form button{
+  .add-form button:not(.zk-op-toggle){
     grid-column:1/-1;background:var(--green);color:var(--bg);border:none;border-radius:8px;
     padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;
   }
+  .add-form .zk-op-toggle{grid-column:1/-1;}
+  .add-form #newAksiyaFields{grid-column:1/-1;}
   .code-hint{
     grid-column:1/-1;font-family:'Space Mono',monospace;font-size:12px;min-height:16px;
   }
@@ -729,6 +731,11 @@
   /* ---- "Mijoz qo'shish" / "Mijozlarni ko'rish" kartochkalari ---- */
   .zk-cust-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
   @media (max-width:560px){ .zk-cust-cards{grid-template-columns:1fr;} }
+  .zk-cust-cards-4{grid-template-columns:repeat(4,1fr);}
+  @media (max-width:900px){ .zk-cust-cards-4{grid-template-columns:1fr 1fr;} }
+  @media (max-width:560px){ .zk-cust-cards-4{grid-template-columns:1fr;} }
+  .zk-cust-card-price{background:linear-gradient(135deg,#F5A623,#B9720C);animation-delay:.14s;}
+  .zk-cust-card-orders{background:linear-gradient(135deg,#8E5BA6,#5B3B75);animation-delay:.2s;}
   .zk-cust-card{
     display:flex;align-items:center;gap:13px;text-align:left;border:none;cursor:pointer;
     border-radius:16px;padding:16px 17px;color:#fff;position:relative;overflow:hidden;
@@ -778,6 +785,18 @@
   .zk-panel-accent-add .zk-inline-head h3{color:#fff;}
   .zk-panel-accent-add .zk-inline-back{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;}
   .zk-panel-accent-add .zk-inline-back:hover{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;transform:translateX(-2px);}
+  .zk-panel-accent-price .zk-inline-head{
+    background:linear-gradient(135deg,#F5A623,#B9720C);border-bottom:none;color:#fff;
+  }
+  .zk-panel-accent-price .zk-inline-head h3{color:#fff;}
+  .zk-panel-accent-price .zk-inline-back{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;}
+  .zk-panel-accent-price .zk-inline-back:hover{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;transform:translateX(-2px);}
+  .zk-panel-accent-orders .zk-inline-head{
+    background:linear-gradient(135deg,#8E5BA6,#5B3B75);border-bottom:none;color:#fff;
+  }
+  .zk-panel-accent-orders .zk-inline-head h3{color:#fff;}
+  .zk-panel-accent-orders .zk-inline-back{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;}
+  .zk-panel-accent-orders .zk-inline-back:hover{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;transform:translateX(-2px);}
   .zk-inline-back{
     background:var(--panel-2);border:1px solid var(--line);color:var(--text);
     width:34px;height:34px;border-radius:10px;cursor:pointer;flex:none;
@@ -798,12 +817,13 @@
   .zk-inline-body input:focus, .zk-inline-body textarea:focus, .zk-inline-body select:focus{
     outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,176,0,.18);
   }
-  .zk-inline-body button{
+  .zk-inline-body button:not(.zk-op-btn):not(.zk-op-toggle):not(.zk-del-btn):not(.zk-edit-btn){
     width:100%;margin-top:18px;background:var(--amber);color:var(--bg);border:none;border-radius:12px;
     padding:13px;font-weight:800;font-size:13.5px;cursor:pointer;transition:filter .15s ease, transform .1s ease;
   }
-  .zk-inline-body button:hover{filter:brightness(1.08);}
-  .zk-inline-body button:active{transform:scale(.98);}
+  .zk-inline-body button:not(.zk-op-btn):not(.zk-op-toggle):not(.zk-del-btn):not(.zk-edit-btn):hover{filter:brightness(1.08);}
+  .zk-inline-body button:not(.zk-op-btn):not(.zk-op-toggle):not(.zk-del-btn):not(.zk-edit-btn):active{transform:scale(.98);}
+  .zk-subhead{margin:20px 0 8px;font-size:12.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
   /* Yirik summalar (so'm) uchun — input ichida "so'm" birligi ko'rinib turadi */
   .zk-sum-field{position:relative;}
   .zk-sum-field input{padding-right:46px;}
@@ -912,15 +932,24 @@
   .zk-cust-action-btn.delete-btn:hover{border-color:var(--red);color:var(--red);}
   .zk-cust-action-btn.active-status{background:currentColor;}
 
-  /* ---- "Zakaz" narx belgilash formasi — kompaniya tanlash va yoq/yon tugmalar ---- */
-  .zk-op-select{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 4px;}
+  /* ---- "Zakaz" narx belgilash formasi — kompaniya tanlash va yoq/yon tugmalar ----
+     Har bir kompaniya O'Z rangida (bir xil amber emas) — tanlanganda o'sha
+     rang bilan to'lib, aniq "tanlangan" ko'rinishi bo'ladi. */
+  .zk-op-select{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:2px 0 4px;}
   .zk-op-btn{
+    --op-c:var(--amber);
     border:1.5px solid var(--line);background:var(--panel-2);color:var(--text);
-    border-radius:10px;padding:10px 8px;font-size:12.5px;font-weight:700;cursor:pointer;
-    transition:all .15s ease;
+    border-radius:12px;padding:11px 8px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:all .15s ease;position:relative;
   }
-  .zk-op-btn:hover{border-color:var(--amber);}
-  .zk-op-btn.active{background:var(--amber);border-color:var(--amber);color:var(--bg);}
+  .zk-op-btn[data-op="Ucell"]{--op-c:#8E5BA6;}
+  .zk-op-btn[data-op="Humans"]{--op-c:#D98A2B;}
+  .zk-op-btn[data-op="Beeline"]{--op-c:#D4B106;}
+  .zk-op-btn[data-op="Mobiuz"]{--op-c:#C0392B;}
+  .zk-op-btn[data-op="Uzmobile"]{--op-c:#2E86C1;}
+  .zk-op-btn[data-op="Perfektum"]{--op-c:#27AE60;}
+  .zk-op-btn:hover{border-color:var(--op-c);color:var(--op-c);}
+  .zk-op-btn.active{background:var(--op-c);border-color:var(--op-c);color:#fff;box-shadow:0 6px 16px -6px var(--op-c);}
   .zk-op-toggle{
     width:100%;border:1.5px solid var(--line);background:var(--panel-2);color:var(--muted);
     border-radius:10px;padding:11px 10px;font-size:13px;font-weight:700;cursor:pointer;
@@ -949,6 +978,48 @@
   .zk-cat-op-badge[data-op="Mobiuz"]{background:rgba(192,57,43,.18);color:#ED8B80;border-color:rgba(192,57,43,.45);}
   .zk-cat-op-badge[data-op="Uzmobile"]{background:rgba(46,134,193,.18);color:#8FC6EA;border-color:rgba(46,134,193,.45);}
   .zk-cat-op-badge[data-op="Perfektum"]{background:rgba(39,174,96,.18);color:#8FE0B3;border-color:rgba(39,174,96,.45);}
+
+  /* ---- "Raqamlar" ro'yxati — kompaniya/aksiya/VIP filtr kartochkalari va
+     ko'p tanlab o'chirish (bulk) paneli ---- */
+  .nb-op-filter-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;}
+  .nb-op-chip{
+    --op-c:var(--amber);
+    border:1.5px solid var(--line);background:var(--panel-2);color:var(--text);
+    border-radius:20px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .nb-op-chip[data-op="Ucell"]{--op-c:#8E5BA6;}
+  .nb-op-chip[data-op="Humans"]{--op-c:#D98A2B;}
+  .nb-op-chip[data-op="Beeline"]{--op-c:#D4B106;}
+  .nb-op-chip[data-op="Mobiuz"]{--op-c:#C0392B;}
+  .nb-op-chip[data-op="Uzmobile"]{--op-c:#2E86C1;}
+  .nb-op-chip[data-op="Perfektum"]{--op-c:#27AE60;}
+  .nb-op-chip:hover{border-color:var(--op-c);color:var(--op-c);}
+  .nb-op-chip.active{background:var(--op-c);border-color:var(--op-c);color:#fff;}
+  .nb-flag-filter-row{display:flex;gap:7px;margin-bottom:12px;}
+  .nb-flag-chip{
+    border:1.5px solid var(--line);background:var(--panel-2);color:var(--text);
+    border-radius:20px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .nb-flag-chip[data-flag="aksiya"]:hover{border-color:#E85D4A;color:#E85D4A;}
+  .nb-flag-chip[data-flag="aksiya"].active{background:#E85D4A;border-color:#E85D4A;color:#fff;}
+  .nb-flag-chip[data-flag="vip"]:hover{border-color:var(--amber);color:var(--amber);}
+  .nb-flag-chip[data-flag="vip"].active{background:var(--amber);border-color:var(--amber);color:var(--bg);}
+  .nb-select-mode-btn{
+    border:1.5px solid var(--line);background:var(--panel-2);color:var(--text);
+    border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s ease;
+  }
+  .nb-select-mode-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .nb-select-mode-btn.active{background:var(--amber);border-color:var(--amber);color:var(--bg);}
+  .nb-bulk-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(255,176,0,.1);border:1px solid var(--amber);border-radius:10px;
+    padding:10px 14px;margin-bottom:10px;font-size:12.5px;color:var(--text);
+    animation:fadeSlideUp .2s ease;
+  }
+  .nb-bulk-bar button{background:var(--red);color:#fff;border:none;border-radius:7px;padding:8px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+  .an-select-cb{width:auto !important;margin-right:4px;accent-color:var(--amber);flex:none;}
   .zk-cat-sale-badge{
     font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;
     background:rgba(231,76,60,.15);color:var(--red);
@@ -1073,7 +1144,14 @@
   .zk-status-select.opt-bekor{border-color:var(--red);color:var(--red);}
   .settings-form .checkbox-field{margin-top:4px;}
   .settings-form .checkbox-field input{width:auto;}
-  .settings-form button{
+  /* MUHIM: bu umumiy qoida .zk-op-btn/.zk-op-toggle/.zk-del-btn/.zk-edit-btn
+     kabi o'ziga xos (kichik, rangli, ikonkali) tugmalarni HAM "to'liq kenglik,
+     amber fon" ko'rinishiga majburlab, ularni butunlay buzib qo'yayotgan edi
+     (barcha kompaniya tugmalari bir xil amber rangda ko'rinishi, tahrirlash/
+     o'chirish ikonkalari to'liq kenglikdagi bo'sh amber panelga aylanib
+     qolishi shundan edi) — endi ular bundan chiqarib qo'yilgan (o'zlarining
+     maxsus CSS qoidalari ishlaydi).*/
+  .settings-form button:not(.zk-op-btn):not(.zk-op-toggle):not(.zk-del-btn):not(.zk-edit-btn):not(.zk-inline-back):not(.zk-cust-card){
     width:100%;margin-top:16px;background:var(--amber);color:var(--bg);border:none;border-radius:8px;
     padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;
   }
@@ -1551,8 +1629,7 @@
         <option value="Humans">Humans</option>
         <option value="Perfektum">Perfektum</option>
       </select>
-      <input type="number" id="newPrice" placeholder="Narxi (so'm)">
-      <input type="number" id="newOldPrice" placeholder="Eski narx (aksiya bo'lsa)">
+      <div id="newPriceWrap"><input type="number" id="newPrice" placeholder="Narxi (so'm)"></div>
       <select id="newTag">
         <option value="oddiy">Oddiy</option>
         <option value="vip">VIP</option>
@@ -1565,14 +1642,34 @@
         <input type="checkbox" id="newFeatured">
         Mashhur raqamlarga qo'shish
       </label>
-      <label class="checkbox-field">
-        <input type="checkbox" id="newDailyDeal">
-        🔥 Bugungi aksiyaga qo'shish
-      </label>
-      <label class="checkbox-field">
+      <!-- Mijoz iltimosiga ko'ra hozircha kerak emas — o'chirilmadi, keyinchalik
+           kerak bo'lsa oson qaytariladi (display:none). -->
+      <label class="checkbox-field" style="display:none;">
         <input type="checkbox" id="newRecommended">
         ⭐ ASOSIY'da "Tavsiya etiladi"ga qo'shish
       </label>
+
+      <button type="button" class="zk-op-toggle" id="newDailyDealToggle" style="width:100%;margin:2px 0 4px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8a2 2 0 0 1-2.8 0l-6.2-6.2a2 2 0 0 1 0-2.8l8-8H18a2.5 2.5 0 0 1 2.5 2.5v6.5z"/><circle cx="15" cy="7.5" r="1.4"/></svg>
+        <span>🔥 Bugungi aksiyaga qo'shish</span>
+      </button>
+      <input type="checkbox" id="newDailyDeal" style="display:none;">
+      <div id="newAksiyaFields" style="display:none;">
+        <label for="newOldPrice" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Eski narxi</label>
+        <input type="number" id="newOldPrice" placeholder="Masalan: 8 000 000">
+        <label for="newSalePrice" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Aksiyadagi narx</label>
+        <input type="number" id="newSalePrice" placeholder="Masalan: 6 500 000">
+        <label for="newMonthlyTariff" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Oylik tarif — bo'lmasa bo'sh qoldiring</label>
+        <input type="number" id="newMonthlyTariff" placeholder="Masalan: 25 000">
+        <label for="newTariffMonths" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Necha oy muddat — bo'lmasa bo'sh qoldiring</label>
+        <input type="number" id="newTariffMonths" placeholder="Masalan: 12">
+        <button type="button" class="zk-op-toggle" id="newOwnershipToggle" style="width:100%;margin:10px 0 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Nomiga chiqadimi?</span>
+        </button>
+        <div id="newOwnershipNote" style="display:none;color:var(--green);font-size:12px;font-weight:700;margin-top:6px;">✅ Raqam nomingizga rasmiylashtiriladi</div>
+      </div>
+
       <button id="addNumberBtn">+ Raqam qo'shish</button>
       <div class="code-hint" id="codeHint"></div>
     </div>
@@ -1585,9 +1682,32 @@
       <div class="bulk-preview" id="bulkPreview"></div>
     </div>
 
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <button type="button" id="nbSelectModeBtn" class="nb-select-mode-btn">☑️ Belgilash</button>
       <button id="deleteAllNumbersBtn" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">🗑 Barcha raqamlarni o'chirish</button>
     </div>
+
+    <!-- Kompaniya kartochkalari — ustiga bosib shu kompaniya bo'yicha filtrlash,
+         "Aksiya"/"VIP" tugmalari bilan birga qo'shimcha filtrlash mumkin. -->
+    <div class="nb-op-filter-row" id="nbOpFilterRow">
+      <button type="button" class="nb-op-chip active" data-op="">🌐 Barchasi</button>
+      <button type="button" class="nb-op-chip" data-op="Ucell">🟣 Ucell</button>
+      <button type="button" class="nb-op-chip" data-op="Humans">🟠 Humans</button>
+      <button type="button" class="nb-op-chip" data-op="Beeline">🟡 Beeline</button>
+      <button type="button" class="nb-op-chip" data-op="Mobiuz">🔴 Mobiuz</button>
+      <button type="button" class="nb-op-chip" data-op="Uzmobile">🔵 Uzmobile</button>
+      <button type="button" class="nb-op-chip" data-op="Perfektum">🟢 Perfektum</button>
+    </div>
+    <div class="nb-flag-filter-row" id="nbFlagFilterRow">
+      <button type="button" class="nb-flag-chip" data-flag="aksiya">🔥 Aksiya</button>
+      <button type="button" class="nb-flag-chip" data-flag="vip">⭐ VIP</button>
+    </div>
+
+    <div class="nb-bulk-bar" id="nbBulkBar" style="display:none;">
+      <span><b id="nbSelectedCount">0</b> ta belgilandi</span>
+      <button type="button" id="nbBulkDeleteBtn">🗑 Tanlanganlarni o'chirish</button>
+    </div>
+
     <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
     <div class="admin-list" id="adminNumbersList"></div>
   </div>
@@ -1730,7 +1850,7 @@
   </div>
 
   <div class="pane" id="paneZakaz">
-    <div class="zk-cust-cards" id="zkCustCardsRow">
+    <div class="zk-cust-cards zk-cust-cards-4" id="zkCustCardsRow">
       <button type="button" class="zk-cust-card zk-cust-card-add" id="zkAddCustomerCard">
         <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
         <div class="zk-cust-card-body">
@@ -1743,6 +1863,20 @@
         <div class="zk-cust-card-body">
           <span class="zk-cust-card-title">Mijozlarni ko'rish</span>
           <span class="zk-cust-card-sub"><b id="zkCustomerCount">0</b> ta mijoz</span>
+        </div>
+      </button>
+      <button type="button" class="zk-cust-card zk-cust-card-price" id="zkOpenPriceCard">
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Narx qo'shish</span>
+          <span class="zk-cust-card-sub"><b id="zkPriceCatCount">0</b> ta toifa narxi</span>
+        </div>
+      </button>
+      <button type="button" class="zk-cust-card zk-cust-card-orders" id="zkOpenOrdersCard">
+        <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8.5"/><path d="M3 8.5 6 4h12l3 4.5"/><path d="M3 8.5h18"/><path d="M9 12.5a3 3 0 0 0 6 0"/></svg></div>
+        <div class="zk-cust-card-body">
+          <span class="zk-cust-card-title">Buyurtmalar</span>
+          <span class="zk-cust-card-sub"><b id="zkOrdersCount">0</b> ta so'rov</span>
         </div>
       </button>
     </div>
@@ -1781,11 +1915,14 @@
       </div>
     </div>
 
-    <div class="zk-stats-row" id="zkStatsRow"></div>
-
-    <div class="zk-grid">
-      <div class="settings-form zk-price-form">
-        <h3 id="zkFormTitle">💰 Raqam toifasi narxi (Zakaz)</h3>
+    <!-- "Narx qo'shish" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel zk-panel-accent-price zk-inline-wide" id="zkPricePanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="zkPriceBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="zk-inline-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h3 id="zkFormTitle">Raqam toifasi narxi (Zakaz)</h3>
+      </div>
+      <div class="zk-inline-body">
         <p style="color:var(--muted);font-size:11.5px;margin:0 0 12px;">
           Mijoz saytda yoki Telegram botda "Zakaz qilish" orqali kompaniyani va oxirgi 4
           raqamni tanlaganda, shu yerda belgilangan narx va shartlar to'liq ko'rsatiladi.
@@ -1845,11 +1982,20 @@
         <button id="zkSaveBtn" style="margin-top:16px;">Saqlash</button>
         <button type="button" id="zkResetFormBtn" style="margin-top:8px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);">Yangi narx (formani tozalash)</button>
         <div class="settings-msg" id="zkMsg"></div>
-        <div class="zk-category-list" id="zkCategoryList" style="margin-top:14px;"></div>
+        <h4 class="zk-subhead">Kiritilgan narxlar ro'yxati</h4>
+        <div class="zk-category-list" id="zkCategoryList"></div>
       </div>
+    </div>
 
-      <div class="settings-form zk-orders-form" style="max-width:none;">
-        <h3>📥 Mijozlardan kelgan "Zakaz" so'rovlari</h3>
+    <!-- "Buyurtmalar" — kartochka bosilganda SHU YERDA (yangi oynasiz) ochiladi -->
+    <div class="zk-inline-panel zk-panel-accent-orders zk-inline-wide" id="zkOrdersPanel">
+      <div class="zk-inline-head">
+        <button type="button" class="zk-inline-back" id="zkOrdersBack" aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="zk-inline-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8.5"/><path d="M3 8.5 6 4h12l3 4.5"/><path d="M3 8.5h18"/><path d="M9 12.5a3 3 0 0 0 6 0"/></svg></div>
+        <h3>Mijozlardan kelgan "Zakaz" so'rovlari</h3>
+      </div>
+      <div class="zk-inline-body">
+        <div class="zk-stats-row" id="zkStatsRow"></div>
         <div class="orders-list" id="customOrdersList"></div>
       </div>
     </div>
@@ -2550,7 +2696,11 @@ const ORDER_STATUSES = ["Yangi","Bog'lanildi","Yakunlandi","Bekor qilindi"];
 function operatorOptionsHtml(selected){
   return OPERATORS.map(op => `<option value="${op}" ${op===selected?'selected':''}>${op}</option>`).join('');
 }
-function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+function formatPrice(n){
+  const num = Number(n);
+  if(!isFinite(num)) return "0 so'm";
+  return num.toLocaleString('ru-RU').replace(/,/g,' ') + " so'm";
+}
 /* XAVFSIZLIK: mijozlar tomonidan kiritilgan (masalan buyurtma formasidagi
    ism/telefon/manzil) matnlarni HTML sifatida emas, oddiy matn sifatida
    ko'rsatish uchun — aks holda kimdir ismiga zararli kod yozib, admin
@@ -2721,6 +2871,8 @@ async function loadPriceCategories(){
   listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
   try{
     const snap = await db.collection('number_price_categories').get();
+    const catCountEl = document.getElementById('zkPriceCatCount');
+    if(catCountEl) catCountEl.textContent = snap.size;
     if(snap.empty){
       listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali hech qanday toifa narxi kiritilmagan.</div>';
       return;
@@ -2770,6 +2922,8 @@ const ZAKAZ_STATUS_CLASS = { 'Yangi':'opt-yangi', "Bog'lanildi":'opt-boglanildi'
 function renderZkStats(orders){
   const counts = { 'Yangi':0, "Bog'lanildi":0, 'Yakunlandi':0, 'Bekor qilindi':0 };
   orders.forEach(o => { if(counts[o.status] !== undefined) counts[o.status]++; });
+  const ordersCountEl = document.getElementById('zkOrdersCount');
+  if(ordersCountEl) ordersCountEl.textContent = orders.length;
   const statsEl = document.getElementById('zkStatsRow');
   statsEl.innerHTML = `
     <div class="zk-stat-card"><b>${orders.length}</b><span>Jami so'rov</span></div>
@@ -3087,6 +3241,30 @@ document.getElementById('zkViewCustomersCard').addEventListener('click', ()=>{
 });
 document.getElementById('zkViewCustomersBack').addEventListener('click', ()=>{
   document.getElementById('zkViewCustomersPanel').classList.remove('open');
+  document.getElementById('zkCustCardsRow').style.display = '';
+});
+
+// "Narx qo'shish" va "Buyurtmalar" — xuddi shu naqsh: kartochka bosilsa
+// shu bo'limning o'zida (joyida) tegishli panel ochiladi, kartochkalar
+// qatori vaqtincha yashiriladi.
+document.getElementById('zkOpenPriceCard').addEventListener('click', ()=>{
+  document.getElementById('zkCustCardsRow').style.display = 'none';
+  document.getElementById('zkOrdersPanel').classList.remove('open');
+  document.getElementById('zkPricePanel').classList.add('open');
+  loadPriceCategories();
+});
+document.getElementById('zkPriceBack').addEventListener('click', ()=>{
+  document.getElementById('zkPricePanel').classList.remove('open');
+  document.getElementById('zkCustCardsRow').style.display = '';
+});
+document.getElementById('zkOpenOrdersCard').addEventListener('click', ()=>{
+  document.getElementById('zkCustCardsRow').style.display = 'none';
+  document.getElementById('zkPricePanel').classList.remove('open');
+  document.getElementById('zkOrdersPanel').classList.add('open');
+  loadCustomOrders();
+});
+document.getElementById('zkOrdersBack').addEventListener('click', ()=>{
+  document.getElementById('zkOrdersPanel').classList.remove('open');
   document.getElementById('zkCustCardsRow').style.display = '';
 });
 
@@ -6672,6 +6850,65 @@ async function updateVisitorStats(){
   }catch(e){ console.error('Jami tashrifni yuklashda xato:', e); }
 }
 
+// Kompaniya/Aksiya/VIP filtrlar + "belgilash" (bulk) rejimi holati.
+let nbOperatorFilter = '';
+let nbFlagFilters = new Set();
+let nbSelectMode = false;
+let nbSelectedIds = new Set();
+
+function applyNumberFilters(){
+  const q = (document.getElementById('numberSearchInput').value || '').replace(/\D/g, '');
+  let list = currentNumbersCache;
+  if(q) list = list.filter(item => (item.number || '').replace(/\D/g,'').includes(q));
+  if(nbOperatorFilter) list = list.filter(item => item.operator === nbOperatorFilter);
+  if(nbFlagFilters.has('vip')) list = list.filter(item => item.tag === 'vip');
+  if(nbFlagFilters.has('aksiya')) list = list.filter(item => item.dailyDeal || (item.oldPrice > item.price));
+  renderAdminNumbers(list);
+}
+
+document.querySelectorAll('.nb-op-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    nbOperatorFilter = chip.dataset.op;
+    document.querySelectorAll('.nb-op-chip').forEach(c => c.classList.toggle('active', c === chip));
+    applyNumberFilters();
+  });
+});
+document.querySelectorAll('.nb-flag-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const flag = chip.dataset.flag;
+    if(nbFlagFilters.has(flag)){ nbFlagFilters.delete(flag); chip.classList.remove('active'); }
+    else{ nbFlagFilters.add(flag); chip.classList.add('active'); }
+    applyNumberFilters();
+  });
+});
+
+function updateBulkBar(){
+  const bar = document.getElementById('nbBulkBar');
+  const countEl = document.getElementById('nbSelectedCount');
+  countEl.textContent = nbSelectedIds.size;
+  bar.style.display = nbSelectedIds.size > 0 ? 'flex' : 'none';
+}
+document.getElementById('nbSelectModeBtn').addEventListener('click', ()=>{
+  nbSelectMode = !nbSelectMode;
+  document.getElementById('nbSelectModeBtn').classList.toggle('active', nbSelectMode);
+  if(!nbSelectMode){ nbSelectedIds.clear(); updateBulkBar(); }
+  applyNumberFilters();
+});
+document.getElementById('nbBulkDeleteBtn').addEventListener('click', async ()=>{
+  if(nbSelectedIds.size === 0) return;
+  if(!confirm(`${nbSelectedIds.size} ta belgilangan raqamni o'chirishni tasdiqlaysizmi?`)) return;
+  const btn = document.getElementById('nbBulkDeleteBtn');
+  btn.disabled = true;
+  try{
+    await Promise.all(Array.from(nbSelectedIds).map(id => db.collection('numbers').doc(id).delete()));
+    vibrate(80);
+    nbSelectedIds.clear();
+    updateBulkBar();
+    refreshNumbers();
+  }catch(err){ alert('O\'chirishda xato: ' + err.message); }
+  finally{ btn.disabled = false; }
+});
+
 async function refreshNumbers(){
   adminNumbersList.innerHTML = `<div class="empty-admin">Yuklanmoqda...</div>`;
   try{
@@ -6679,7 +6916,7 @@ async function refreshNumbers(){
     const numbers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     currentNumbersCache = numbers;
     updateOverview();
-    renderAdminNumbers(numbers);
+    applyNumberFilters();
   }catch(err){
     adminNumbersList.innerHTML = `<div class="empty-admin">Bazaga ulanishda xato. Firebase sozlamalarini tekshiring.</div>`;
     console.error(err);
@@ -6699,6 +6936,7 @@ function renderAdminNumbers(numbers){
   adminNumbersList.innerHTML = shown.map(item => `
     <div class="admin-row-collapsed" data-id="${item.id}">
       <div class="an-summary" data-id="${item.id}">
+        ${nbSelectMode ? `<input type="checkbox" class="an-select-cb" data-id="${item.id}" ${nbSelectedIds.has(item.id) ? 'checked' : ''}>` : ''}
         <span class="an-summary-num">${escapeHtml(item.number)}</span>
         <span class="an-summary-op">${escapeHtml(item.operator)}${item.tag==='vip' ? ' · VIP' : ''}</span>
         <span class="an-summary-price">${formatPrice(item.price)}</span>
@@ -6717,6 +6955,8 @@ function renderAdminNumbers(numbers){
           <button class="an-delete">O'chirish</button>
           <div class="an-extra">
             <input class="an-oldprice" type="number" placeholder="Eski narx (aksiya)" value="${escapeHtml(item.oldPrice || '')}">
+            <input class="an-monthlytariff" type="number" placeholder="Oylik tarif" value="${escapeHtml(item.monthlyTariff || '')}">
+            <input class="an-tariffmonths" type="number" placeholder="Necha oy muddat" value="${escapeHtml(item.tariffMonths || '')}">
             <label class="an-installment-label">
               <input type="checkbox" class="an-installment" ${item.installment ? 'checked' : ''}>
               Bo'lib to'lash
@@ -6728,6 +6968,10 @@ function renderAdminNumbers(numbers){
             <label class="an-installment-label">
               <input type="checkbox" class="an-dailydeal" ${item.dailyDeal ? 'checked' : ''}>
               🔥 Bugungi aksiyada
+            </label>
+            <label class="an-installment-label">
+              <input type="checkbox" class="an-ownership" ${item.ownershipTransfer ? 'checked' : ''}>
+              ✅ Nomiga chiqadi
             </label>
             <label class="an-installment-label">
               <input type="checkbox" class="an-recommended" ${item.recommended ? 'checked' : ''}>
@@ -6753,6 +6997,15 @@ function renderAdminNumbers(numbers){
     });
   });
 
+  adminNumbersList.querySelectorAll('.an-select-cb').forEach(cb=>{
+    cb.addEventListener('click', (e)=> e.stopPropagation());
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) nbSelectedIds.add(cb.dataset.id);
+      else nbSelectedIds.delete(cb.dataset.id);
+      updateBulkBar();
+    });
+  });
+
   adminNumbersList.querySelectorAll('.an-save').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const row = btn.closest('.admin-row');
@@ -6771,6 +7024,9 @@ function renderAdminNumbers(numbers){
           installment: row.querySelector('.an-installment').checked,
           featured: row.querySelector('.an-featured').checked,
           dailyDeal: row.querySelector('.an-dailydeal').checked,
+          monthlyTariff: Number(row.querySelector('.an-monthlytariff').value) || 0,
+          tariffMonths: Number(row.querySelector('.an-tariffmonths').value) || 0,
+          ownershipTransfer: row.querySelector('.an-ownership').checked,
           recommended: row.querySelector('.an-recommended').checked,
           tag: row.querySelector('.an-tag').value
         });
@@ -6806,11 +7062,8 @@ function debounce(fn, delay){
   };
 }
 
-document.getElementById('numberSearchInput').addEventListener('input', debounce((e)=>{
-  const q = e.target.value.replace(/\D/g, '');
-  if(!q){ renderAdminNumbers(currentNumbersCache); return; }
-  const filtered = currentNumbersCache.filter(item => (item.number || '').replace(/\D/g,'').includes(q));
-  renderAdminNumbers(filtered);
+document.getElementById('numberSearchInput').addEventListener('input', debounce(()=>{
+  applyNumberFilters();
 }, 180));
 
 /* ---- Raqam kiritilganda avtomatik formatlash + operatorni aniqlash ---- */
@@ -6839,6 +7092,23 @@ newNumberInput.addEventListener('input', ()=>{
   }
 });
 
+// "Bugungi aksiya" bosilsa — Narxi maydoni yashirinadi, o'rniga Eski narxi/
+// Aksiyadagi narx/Oylik tarif/Necha oy muddat/"Nomiga chiqadimi" maydonlari
+// chiqadi; bosilmasa hech narsa qo'shimcha ko'rsatilmaydi (oddiy "Narxi").
+let newOwnershipOn = false;
+document.getElementById('newDailyDealToggle').addEventListener('click', ()=>{
+  const cb = document.getElementById('newDailyDeal');
+  cb.checked = !cb.checked;
+  document.getElementById('newDailyDealToggle').classList.toggle('active', cb.checked);
+  document.getElementById('newPriceWrap').style.display = cb.checked ? 'none' : '';
+  document.getElementById('newAksiyaFields').style.display = cb.checked ? '' : 'none';
+});
+document.getElementById('newOwnershipToggle').addEventListener('click', ()=>{
+  newOwnershipOn = !newOwnershipOn;
+  document.getElementById('newOwnershipToggle').classList.toggle('active', newOwnershipOn);
+  document.getElementById('newOwnershipNote').style.display = newOwnershipOn ? '' : 'none';
+});
+
 document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   const numberInput = document.getElementById('newNumber');
   let num = numberInput.value.trim();
@@ -6846,8 +7116,16 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   if(!num.startsWith('+')) num = '+' + num;
 
   try{
-    const priceVal = Number(document.getElementById('newPrice').value) || 0;
-    const oldPriceVal = Number(document.getElementById('newOldPrice').value) || 0;
+    const onDeal = document.getElementById('newDailyDeal').checked;
+    // Aksiya YOQ bo'lsa — oddiy "Narxi" maydoni ishlatiladi (eskidagiday).
+    // Aksiya YOQILGAN bo'lsa — "Aksiyadagi narx" asosiy narx bo'ladi,
+    // "Eski narxi" esa chizib ko'rsatiladigan narx sifatida saqlanadi.
+    const priceVal = onDeal
+      ? (Number(document.getElementById('newSalePrice').value) || 0)
+      : (Number(document.getElementById('newPrice').value) || 0);
+    const oldPriceVal = onDeal ? (Number(document.getElementById('newOldPrice').value) || 0) : 0;
+    const monthlyTariffVal = onDeal ? (Number(document.getElementById('newMonthlyTariff').value) || 0) : 0;
+    const tariffMonthsVal = onDeal ? (Number(document.getElementById('newTariffMonths').value) || 0) : 0;
     const rawDigits = num.replace(/\D/g, '').slice(-9); // 9 xonali mahalliy qism
     await db.collection('numbers').add({
       number: num,
@@ -6857,7 +7135,10 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       onSale: oldPriceVal > priceVal,
       installment: document.getElementById('newInstallment').checked,
       featured: document.getElementById('newFeatured').checked,
-      dailyDeal: document.getElementById('newDailyDeal').checked,
+      dailyDeal: onDeal,
+      monthlyTariff: monthlyTariffVal,
+      tariffMonths: tariffMonthsVal,
+      ownershipTransfer: onDeal ? newOwnershipOn : false,
       recommended: document.getElementById('newRecommended').checked,
       tag: document.getElementById('newTag').value,
       last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
@@ -6868,9 +7149,18 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     numberInput.value = '';
     document.getElementById('newPrice').value = '';
     document.getElementById('newOldPrice').value = '';
+    document.getElementById('newSalePrice').value = '';
+    document.getElementById('newMonthlyTariff').value = '';
+    document.getElementById('newTariffMonths').value = '';
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
     document.getElementById('newDailyDeal').checked = false;
+    document.getElementById('newDailyDealToggle').classList.remove('active');
+    document.getElementById('newPriceWrap').style.display = '';
+    document.getElementById('newAksiyaFields').style.display = 'none';
+    newOwnershipOn = false;
+    document.getElementById('newOwnershipToggle').classList.remove('active');
+    document.getElementById('newOwnershipNote').style.display = 'none';
     document.getElementById('newRecommended').checked = false;
     codeHint.textContent = '';
     codeHint.className = 'code-hint';

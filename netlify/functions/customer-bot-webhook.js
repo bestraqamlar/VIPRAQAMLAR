@@ -378,9 +378,11 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   if(navRow.length) rows.push(navRow);
   rows.push([BTN.CANCEL]);
 
-  // Mijoz iltimosiga ko'ra tavsif matni olib tashlandi — faqat kerak
-  // bo'lganda (bir nechta sahifa bo'lsa) qaysi sahifada ekani ko'rsatiladi.
-  const pageInfo = totalPages > 1 ? `${page + 1}/${totalPages}-sahifa 👇` : '👇';
+  // Topilgan sonini har doim aytib beramiz ("X ta raqam topildi"), yolg'iz
+  // "👇" belgisi (katta emoji bo'lib ko'rinib, noqulay chiqqan edi) olib
+  // tashlandi.
+  let pageInfo = `✨ ${items.length} ta raqam topildi`;
+  if(totalPages > 1) pageInfo += ` (${page + 1}/${totalPages}-sahifa)`;
   await send(chatId, pageInfo, replyKb(rows));
 }
 
