@@ -6206,7 +6206,7 @@ document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
   coDraftPattern = pattern;
   try{
     const doc = await db.collection('number_price_categories').doc(`${coDraftOperator}_${pattern}`).get();
-    const numLabel = `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)}`;
+    const numLabel = `+998 (**)-***-${pattern.slice(0,2)}-${pattern.slice(2)}`;
     if(doc.exists){
       const d = doc.data();
       coDraftPriceData = d;
@@ -6218,11 +6218,16 @@ document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
         rows.push(`<div class="co-price-result-row"><span>${isRu?'Цена':'Narxi'}</span><span><b>${formatPrice(d.fullPrice)}</b></span></div>`);
         if(d.monthlyTariff) rows.push(`<div class="co-price-result-row"><span>${isRu?'Тариф/мес':'Oylik tarif'}</span><span><b>${formatPrice(d.monthlyTariff)}</b></span></div>`);
       }
+      if(d.tariffMonths){
+        rows.push(`<div class="co-price-result-row"><span></span><span>${isRu?`✅ Через ${d.tariffMonths} мес. можно сменить тариф`:`✅ ${d.tariffMonths} oydan so'ng istalgan tarifga o'tish mumkin`}</span></div>`);
+      }
       if(d.installmentAvailable){
         rows.push(`<div class="co-price-result-row"><span>${isRu?'Рассрочка':"Bo'lib to'lash"}</span><span><b>${d.installmentMonths} ${isRu?'мес.':'oy'}, ${formatPrice(d.installmentMonthly)}/${isRu?'мес':'oy'}</b></span></div>`);
         if(d.downPayment) rows.push(`<div class="co-price-result-row"><span>${isRu?'Первый взнос':"Bosh to'lov"}</span><span><b>${formatPrice(d.downPayment)}</b></span></div>`);
       }
       rows.push(`<div class="co-price-result-row"><span>${isRu?'Оформление':'Rasmiylashtirish'}</span><span>${d.ownershipTransfer ? (isRu?'✅ На ваше имя':'✅ Sizning nomingizga') : (isRu?'➖ Не переоформляется':"➖ Nomiga o'tkazilmaydi")}</span></div>`);
+      const coTotalPrice = (d.onSale && d.salePrice ? d.salePrice : (d.fullPrice||0)) + (d.onSale && d.saleMonthlyTariff ? d.saleMonthlyTariff : (d.monthlyTariff||0));
+      rows.push(`<div class="co-price-result-row" style="border-top:1px solid var(--line);margin-top:4px;padding-top:8px;"><span>${isRu?'Итого':'Umumiy summa'}</span><span><b>${formatPrice(coTotalPrice)}</b></span></div>`);
       coPriceResult.innerHTML = `<div style="margin-bottom:6px;font-family:'Space Mono',monospace;color:var(--text);">${numLabel}</div>${rows.join('')}`;
     }else{
       coDraftPriceData = null;
@@ -6237,7 +6242,7 @@ document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
     // to'xtab qolmasin — narx "hali belgilanmagan" holatiga o'tkazib,
     // baribir davom etish imkonini beramiz.
     coDraftPriceData = null;
-    const numLabel = `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)}`;
+    const numLabel = `+998 (**)-***-${pattern.slice(0,2)}-${pattern.slice(2)}`;
     coPriceResult.innerHTML = isRu
       ? `${numLabel}<br><br>Цена ещё не установлена — оставьте заявку, мы сообщим цену.`
       : `${numLabel}<br><br>Narx hali belgilanmagan — buyurtma qoldiring, sizga aytamiz.`;
@@ -6292,6 +6297,7 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
       installmentMonthly: d ? (d.installmentMonthly || 0) : 0,
       downPayment: d ? (d.downPayment || 0) : 0,
       ownershipTransfer: d ? !!d.ownershipTransfer : false,
+      tariffMonths: d ? (d.tariffMonths || 0) : 0,
       createdAt: new Date().toLocaleString('uz-UZ'),
       createdAtSort: Date.now()
     });

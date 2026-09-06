@@ -930,11 +930,21 @@
   .zk-op-toggle svg{width:16px;height:16px;}
   .zk-op-toggle:hover{border-color:var(--amber);color:var(--amber);}
   .zk-op-toggle.active{background:rgba(255,176,0,.14);border-color:var(--amber);color:var(--amber);}
-  .zk-cat-row{flex-wrap:wrap;row-gap:4px;}
+  .zk-cat-row{flex-wrap:wrap;row-gap:4px;border-left:3px solid var(--line);}
+  /* Har bir operator o'z rangida — ro'yxat bir xil kulrang emas, bir
+     qarashda qaysi kompaniyaga tegishli ekani ko'rinadi. */
+  .zk-cat-row[data-op="Ucell"]{border-left-color:#8E5BA6;}
+  .zk-cat-row[data-op="Humans"]{border-left-color:#D98A2B;}
+  .zk-cat-row[data-op="Beeline"]{border-left-color:#D4B106;}
+  .zk-cat-row[data-op="Mobiuz"]{border-left-color:#C0392B;}
   .zk-cat-op-badge{
     font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;
     background:var(--panel);color:var(--text);border:1px solid var(--line);
   }
+  .zk-cat-op-badge[data-op="Ucell"]{background:rgba(142,91,166,.18);color:#D3B4E3;border-color:rgba(142,91,166,.45);}
+  .zk-cat-op-badge[data-op="Humans"]{background:rgba(217,138,43,.18);color:#F2BE84;border-color:rgba(217,138,43,.45);}
+  .zk-cat-op-badge[data-op="Beeline"]{background:rgba(212,177,6,.18);color:#EBD776;border-color:rgba(212,177,6,.45);}
+  .zk-cat-op-badge[data-op="Mobiuz"]{background:rgba(192,57,43,.18);color:#ED8B80;border-color:rgba(192,57,43,.45);}
   .zk-cat-sale-badge{
     font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;
     background:rgba(231,76,60,.15);color:var(--red);
@@ -1794,6 +1804,9 @@
         <label for="zkMonthlyTariff">Oylik tarif (abonent to'lovi) — bo'lmasa bo'sh qoldiring</label>
         <div class="zk-sum-field"><input type="text" id="zkMonthlyTariff" placeholder="Masalan: 25 000" inputmode="numeric"><span>so'm</span></div>
 
+        <label for="zkTariffMonths">Necha oy shu tarifda yurishi kerak — bo'lmasa bo'sh qoldiring</label>
+        <input type="number" id="zkTariffMonths" placeholder="Masalan: 12">
+
         <button type="button" class="zk-op-toggle" id="zkSaleToggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8a2 2 0 0 1-2.8 0l-6.2-6.2a2 2 0 0 1 0-2.8l8-8H18a2.5 2.5 0 0 1 2.5 2.5v6.5z"/><circle cx="15" cy="7.5" r="1.4"/></svg>
           <span>Aksiyada</span>
@@ -2604,6 +2617,7 @@ function zkResetForm(){
   document.getElementById('zkPattern').value = '';
   document.getElementById('zkFullPrice').value = '';
   document.getElementById('zkMonthlyTariff').value = '';
+  document.getElementById('zkTariffMonths').value = '';
   document.getElementById('zkSalePrice').value = '';
   document.getElementById('zkSaleTariff').value = '';
   document.getElementById('zkInstallmentMonths').value = '';
@@ -2648,6 +2662,7 @@ document.getElementById('zkSaveBtn').addEventListener('click', async ()=>{
     pattern,
     fullPrice,
     monthlyTariff: parseSumInput(document.getElementById('zkMonthlyTariff').value),
+    tariffMonths: Number(document.getElementById('zkTariffMonths').value) || 0,
     onSale,
     salePrice: onSale ? parseSumInput(document.getElementById('zkSalePrice').value) : 0,
     saleMonthlyTariff: onSale ? parseSumInput(document.getElementById('zkSaleTariff').value) : 0,
@@ -2679,6 +2694,7 @@ function zkFillFormForEdit(id, data){
   document.getElementById('zkPattern').value = data.pattern || '';
   document.getElementById('zkFullPrice').value = data.fullPrice ? data.fullPrice.toLocaleString('ru-RU').replace(/,/g,' ') : '';
   document.getElementById('zkMonthlyTariff').value = data.monthlyTariff ? data.monthlyTariff.toLocaleString('ru-RU').replace(/,/g,' ') : '';
+  document.getElementById('zkTariffMonths').value = data.tariffMonths || '';
   document.getElementById('zkSaleToggle').classList.toggle('active', !!data.onSale);
   document.getElementById('zkSaleFields').style.display = data.onSale ? 'block' : 'none';
   document.getElementById('zkSalePrice').value = data.salePrice ? data.salePrice.toLocaleString('ru-RU').replace(/,/g,' ') : '';
@@ -2705,14 +2721,16 @@ async function loadPriceCategories(){
     }
     const docs = snap.docs.map(d => ({ id: d.id, data: d.data() }))
       .sort((a,b) => (a.data.operator||'').localeCompare(b.data.operator||'') || (a.data.pattern||'').localeCompare(b.data.pattern||''));
+    const OP_EMOJI = { Ucell: '🟣', Humans: '🟠', Beeline: '🟡', Mobiuz: '🔴' };
     listEl.innerHTML = docs.map(({ id, data })=>{
       const extras = [];
       if(data.installmentAvailable) extras.push(`💳 ${data.installmentMonths} oyga, oyiga ${formatPrice(data.installmentMonthly)}`);
       if(data.monthlyTariff) extras.push(`📶 Oylik tarif: ${formatPrice(data.monthlyTariff)}`);
+      if(data.tariffMonths) extras.push(`⏳ ${data.tariffMonths} oydan keyin tarif almashtirish mumkin`);
       if(data.ownershipTransfer) extras.push(`✅ Mijoz nomiga rasmiylashtiriladi`);
       return `
-        <div class="zk-cat-row">
-          <span class="zk-cat-op-badge">${escapeHtml(data.operator || '')}</span>
+        <div class="zk-cat-row" data-op="${escapeHtml(data.operator || '')}">
+          <span class="zk-cat-op-badge" data-op="${escapeHtml(data.operator || '')}">${OP_EMOJI[data.operator] || '📶'} ${escapeHtml(data.operator || '')}</span>
           <span class="zk-cat-pattern">••${escapeHtml(data.pattern || id)}</span>
           <span class="zk-cat-price">${formatPrice(data.fullPrice)}</span>
           ${data.onSale ? `<span class="zk-cat-sale-badge">🔥 ${formatPrice(data.salePrice)}</span>` : ''}
@@ -2792,6 +2810,7 @@ async function loadCustomOrders(){
               ${o.monthlyTariff ? `<span>Oylik tarif</span><span>${formatPrice(o.monthlyTariff)}</span>` : ''}
               ${o.installmentAvailable ? `<span>Bo'lib to'lash</span><span>${o.installmentMonths} oyga, oyiga ${formatPrice(o.installmentMonthly)}${o.downPayment ? ' (bosh to\'lov ' + formatPrice(o.downPayment) + ')' : ''}</span>` : ''}
               ${o.ownershipTransfer !== undefined ? `<span>Nomiga o'tkazish</span><span>${o.ownershipTransfer ? "✅ Mijoz nomiga" : "➖ O'tkazilmaydi"}</span>` : ''}
+              ${o.tariffMonths ? `<span>Tarif muddati</span><span>${o.tariffMonths} oydan keyin almashtirish mumkin</span>` : ''}
               ${o.source ? `<span>Manba</span><span>${escapeHtml(o.source)}</span>` : ''}
             </div>
             <select class="zk-status-select ${badgeClass}" data-id="${o.id}">

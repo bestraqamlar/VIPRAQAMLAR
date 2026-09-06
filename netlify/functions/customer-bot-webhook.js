@@ -151,6 +151,10 @@ const BTN = {
 /* "Zakaz qilish" bo'limida mijoz tanlaydigan kompaniyalar — admin panelda
    xuddi shu 4 ta operator uchun narx belgilanadi (number_price_categories). */
 const ZAKAZ_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz'];
+// "Raqam tanlash" — saytdagi kabi, mijoz aniq bitta kompaniyani tanlashi
+// (yoki "Barchasi") mumkin. Tartib saytdagi kartochkalar bilan bir xil.
+const RAQAM_BARCHASI = '🌐 Barchasi';
+const RAQAM_OPERATORS = ['Uzmobile', 'Ucell', 'Beeline', 'Mobiuz', 'Perfektum', 'Humans'];
 
 /* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
 async function getSession(chatId){
@@ -204,6 +208,24 @@ async function send(chatId, text, keyboard, opts){
 }
 /* Professional ko'rinish uchun — HTML formatlangan xabar (bold, italic va h.k.) */
 function sendHtml(chatId, text, keyboard){ return send(chatId, text, keyboard, { html: true }); }
+
+/* Qidiruv kabi bir necha soniya cho'zilishi mumkin bo'lgan amallarda —
+   alohida "🔍 Qidirilmoqda..." degan xabar yubormasdan, Telegram'ning
+   O'ZINING "yozmoqda..." ko'rsatkichini (chat suhbat tepasida) amal
+   davomida tirik saqlaymiz. Telegram'da bu belgi atigi ~5 soniya turadi,
+   shu sabab uzoqroq amallarda muntazam yangilab turiladi. Xabar bo'lmagani
+   uchun keyin uni o'chirish ham shart emas — ekran toza qoladi. */
+async function withTyping(chatId, fn){
+  await tg('sendChatAction', { chat_id: chatId, action: 'typing' }).catch(() => {});
+  const timer = setInterval(() => {
+    tg('sendChatAction', { chat_id: chatId, action: 'typing' }).catch(() => {});
+  }, 4000);
+  try{
+    return await fn();
+  }finally{
+    clearInterval(timer);
+  }
+}
 function replyKb(rows){ return { keyboard: rows, resize_keyboard: true }; }
 function inlineKb(rows){ return { inline_keyboard: rows }; }
 
@@ -214,6 +236,18 @@ function mainMenuKeyboard(){
     [BTN.ZAKAZ, BTN.MYORDERS],
     [BTN.CONTRACTS, BTN.CONTACT]
   ]);
+}
+function raqamOpLabel(op){ return `${OPERATOR_EMOJI[op] || '📶'} ${op}`; }
+// Tugma matnidan ("🔵 Uzmobile") qaysi operator bosilganini aniq topish
+// uchun — regex bilan taxmin qilmasdan, aynan shu labellar ro'yxatidan.
+const RAQAM_OP_BY_LABEL = Object.fromEntries(RAQAM_OPERATORS.map(op => [raqamOpLabel(op), op]));
+function raqamOperatorKeyboard(){
+  const rows = [[RAQAM_BARCHASI]];
+  for(let i = 0; i < RAQAM_OPERATORS.length; i += 2){
+    rows.push([raqamOpLabel(RAQAM_OPERATORS[i]), raqamOpLabel(RAQAM_OPERATORS[i+1])]);
+  }
+  rows.push([BTN.BACK]);
+  return replyKb(rows);
 }
 function zakazOperatorKeyboard(){
   return replyKb([
@@ -295,11 +329,12 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   if(page < 0) page = 0;
   const pageItems = items.slice(page * LIST_PAGE_SIZE, (page + 1) * LIST_PAGE_SIZE);
 
-  // Mijoz iltimosiga ko'ra har bir raqam RO'YXATDA ikki qatorli tugma
-  // ko'rinishida chiqadi: 1-qator — operator+raqam, 2-qator — narxi. Shunda
-  // mijoz ustiga bosmasdan turib ham narxni bir qarashda ko'radi; ustiga
-  // bosilsa (session.candidates orqali) to'liq ma'lumot ochiladi.
-  const btnLabel = item => `${OPERATOR_EMOJI[item.operator] || '📶'} ${displayNumber(item.number)}\n💰 ${formatPrice(item.price)}`;
+  // Mijoz iltimosiga ko'ra ro'yxat IKKI USTUNLI panjara (grid) ko'rinishida
+  // chiqadi — bir qatorda IKKITA raqam yonma-yon, faqat operator+raqam
+  // (narxisiz — narx uzun qatorni pastga tushirib, noqulay ko'rinish
+  // berardi). To'liq narx/shart ustiga bosilganda (session.candidates
+  // orqali) ochiladi.
+  const btnLabel = item => `${OPERATOR_EMOJI[item.operator] || '📶'} ${displayNumber(item.number)}`;
 
   session.step = 'list_shown';
   session.candidates = {};
@@ -313,7 +348,12 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   session.listEmptyText = emptyText;
   await saveSession(chatId, session);
 
-  const rows = pageItems.map(item => [btnLabel(item)]);
+  const rows = [];
+  for(let i = 0; i < pageItems.length; i += 2){
+    const pair = [btnLabel(pageItems[i])];
+    if(pageItems[i+1]) pair.push(btnLabel(pageItems[i+1]));
+    rows.push(pair);
+  }
   const navRow = [];
   if(page > 0) navRow.push(BTN.PREV_PAGE);
   if(page < totalPages - 1) navRow.push(BTN.NEXT_PAGE);
@@ -365,7 +405,11 @@ async function showNumberDetail(chatId, item){
 }
 
 /* ---------------- "Zakaz qilish" — narx/shartlar kartochkasi ---------------- */
-function zakazMaskedNumber(pattern){ return `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)}`; }
+function zakazMaskedNumber(pattern){ return `+998 (**)-***-${pattern.slice(0,2)}-${pattern.slice(2)}`; }
+/* Narx+tarifni (aksiya bo'lsa aksiya narxi/tarifi) bitta joydan olib
+   beradi — kartochkada VA "Umumiy summa"da bir xil son ishlatilishi uchun. */
+function zakazEffectivePrice(d){ return (d.onSale && d.salePrice) ? d.salePrice : (d.fullPrice || 0); }
+function zakazEffectiveTariff(d){ return (d.onSale && d.saleMonthlyTariff) ? d.saleMonthlyTariff : (d.monthlyTariff || 0); }
 async function showZakazPriceCard(chatId, session){
   const d = session.zakazPriceData;
   const opEmoji = OPERATOR_EMOJI[session.zakazOperator] || '📶';
@@ -374,20 +418,23 @@ async function showZakazPriceCard(chatId, session){
   if(!d){
     text += "Narx hali belgilanmagan — so'rovingizni qoldiring, operatorimiz tez orada narxini aytadi.\n\n✍️ Zakaz berishni istaysizmi?";
   }else{
+    const tariff = zakazEffectiveTariff(d);
     if(d.onSale && d.salePrice){
-      text += `💵 Narxi: <s>${formatPrice(d.fullPrice)}</s> <b>${formatPrice(d.salePrice)}</b> 🔥 <b>AKSIYA</b>\n`;
-      if(d.saleMonthlyTariff) text += `📶 Oylik tarif: <b>${formatPrice(d.saleMonthlyTariff)}</b>\n`;
+      text += `💵 Narxi: <s>${formatPrice(d.fullPrice)}</s>\n`;
+      text += `🔥 Aksiyada: <b>${formatPrice(d.salePrice)}</b>\n`;
     }else{
       text += `💵 Narxi: <b>${formatPrice(d.fullPrice)}</b>\n`;
-      if(d.monthlyTariff) text += `📶 Oylik tarif: <b>${formatPrice(d.monthlyTariff)}</b>\n`;
     }
+    if(tariff) text += `📶 Oylik tarif: <b>${formatPrice(tariff)}</b>\n`;
+    if(d.tariffMonths) text += `✅ ${d.tariffMonths} oydan so'ng istalgan tarifga o'tib olishingiz mumkin\n`;
     if(d.installmentAvailable){
       text += `💳 Bo'lib to'lash: <b>${d.installmentMonths} oyga, oyiga ${formatPrice(d.installmentMonthly)}</b>\n`;
       if(d.downPayment) text += `💰 Bosh to'lov: <b>${formatPrice(d.downPayment)}</b>\n`;
     }
     text += d.ownershipTransfer
-      ? `📝 Rasmiylashtirish: ✅ Sizning nomingizga\n`
-      : `📝 Rasmiylashtirish: ➖ Nomiga o'tkazilmaydi (tayyor faol holda beriladi)\n`;
+      ? `📝 Sizning nomingizga rasmiylashtiriladi\n`
+      : `📝 Rasmiylashtirilmaydi (tayyor faol holatda beriladi)\n`;
+    text += `\n✅ Umumiy summa: <b>${formatPrice(zakazEffectivePrice(d) + tariff)}</b>\n`;
     text += `\n✍️ Ushbu shartlarda zakaz berishni istaysizmi?`;
   }
 
@@ -908,7 +955,7 @@ exports.handler = async function (event) {
       await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Yuborilmoqda...' });
       const d = session.zakazPriceData;
       const manzil = session.draftDistrict
-        ? `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`
+        ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
         : (session.draftRegion || '');
       const time = new Date().toLocaleString('uz-UZ');
 
@@ -931,6 +978,7 @@ exports.handler = async function (event) {
         installmentMonthly: d ? (d.installmentMonthly || 0) : 0,
         downPayment: d ? (d.downPayment || 0) : 0,
         ownershipTransfer: d ? !!d.ownershipTransfer : false,
+        tariffMonths: d ? (d.tariffMonths || 0) : 0,
         createdAt: time,
         createdAtSort: Date.now()
       }));
@@ -944,7 +992,7 @@ exports.handler = async function (event) {
 
       session = { step: 'menu' };
       await saveSession(chatId, session);
-      await sendHtml(chatId, "✅ <b>So'rovingiz qabul qilindi!</b>\n\nTez orada operatorimiz siz bilan bog'lanadi. Rahmat, VIP RAQAMLAR bilan qolganingiz uchun! 🙏", mainMenuKeyboard());
+      await sendHtml(chatId, "✅ <b>So'rovingiz qabul qilindi!</b>", mainMenuKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -967,7 +1015,7 @@ exports.handler = async function (event) {
       }
       const time = new Date().toLocaleString('uz-UZ');
       const manzil = session.draftDistrict
-        ? `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`
+        ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
         : (session.draftRegion || '');
 
       const orderRef = await withRetry(() => db.collection('orders').add({
@@ -1009,7 +1057,7 @@ exports.handler = async function (event) {
 
       session = { step: 'menu' };
       await saveSession(chatId, session);
-      await sendHtml(chatId, "✅ <b>Buyurtmangiz qabul qilindi!</b>\n\nTez orada operatorimiz siz bilan bog'lanadi. Rahmat, VIP RAQAMLAR bilan qolganingiz uchun! 🙏", mainMenuKeyboard());
+      await sendHtml(chatId, "✅ <b>Buyurtmangiz qabul qilindi!</b>", mainMenuKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -1084,7 +1132,11 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
   if(text === BTN.STEP_BACK){
-    if(session.step === 'zakaz_awaiting_digits'){
+    if(session.step === 'awaiting_digits' && ('raqamOperator' in session)){
+      session = { step: 'raqam_awaiting_operator' };
+      await saveSession(chatId, session);
+      await send(chatId, "Qaysi kompaniyadan qidiraylik? Yoki \"Barchasi\"ni tanlang 👇", raqamOperatorKeyboard());
+    }else if(session.step === 'zakaz_awaiting_digits'){
       session = { step: 'zakaz_awaiting_operator' };
       await saveSession(chatId, session);
       await send(chatId, 'Kompaniyani tanlang:', zakazOperatorKeyboard());
@@ -1144,9 +1196,9 @@ exports.handler = async function (event) {
   /* ---- Asosiy menyu tugmalari ---- */
   if(session.step === 'menu' || !session.step){
     if(text === BTN.CHOOSE){
-      session = { step: 'awaiting_digits' };
+      session = { step: 'raqam_awaiting_operator' };
       await saveSession(chatId, session);
-      await send(chatId, 'Raqamning oxirgi 4 ta raqamini kiriting.\nMisol: 0707', backKeyboard());
+      await send(chatId, "Qaysi kompaniyadan qidiraylik? Yoki \"Barchasi\"ni tanlang 👇", raqamOperatorKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -1228,72 +1280,106 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
 
-  /* ---- Raqam qidirish: operator tanlangandan keyin raqam kutilmoqda ---- */
+  /* ---- "Raqam tanlash": 1-qadam — kompaniya (yoki "Barchasi") tanlandi ---- */
+  if(session.step === 'raqam_awaiting_operator'){
+    if(text !== RAQAM_BARCHASI && !RAQAM_OP_BY_LABEL[text]){
+      await send(chatId, "Iltimos, ro'yxatdan tanlang.", raqamOperatorKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    const chosenOperator = text === RAQAM_BARCHASI ? null : RAQAM_OP_BY_LABEL[text];
+    session = { step: 'awaiting_digits', raqamOperator: chosenOperator };
+    await saveSession(chatId, session);
+    const prompt = chosenOperator
+      ? `${OPERATOR_EMOJI[chosenOperator] || '📶'} <b>${escapeHtml(chosenOperator)}</b> tanlandi.\n\nXohlagan raqamingizning oxirgi 4 ta raqamini kiriting.\nMisol: 0707`
+      : "Xohlagan raqamingizning oxirgi 4 ta raqamini kiriting.\nMisol: 0707";
+    await sendHtml(chatId, prompt, replyKb([[BTN.STEP_BACK]]));
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* ---- Raqam qidirish: kompaniya tanlangandan keyin raqam kutilmoqda ---- */
   if(session.step === 'awaiting_digits'){
     const digits = text.replace(/\D/g, '');
     if(!digits || digits.length !== 4){
-      await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", backKeyboard());
+      await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", replyKb([[BTN.STEP_BACK]]));
       return { statusCode: 200, body: 'ok' };
     }
 
-    // Qidiruv boshlanganini darhol bildiramiz — mijoz jim kutib qolmasin
-    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-    const searchingMsg = await send(chatId, "🔍 Qidirilmoqda...");
+    const wantOp = session.raqamOperator || null;
+    const dedup = (a, b) => {
+      const seen = new Set();
+      const out = [];
+      [...a, ...b].forEach(item => { if(!seen.has(item.number)){ seen.add(item.number); out.push(item); } });
+      return out;
+    };
 
-    // Avval tezkor (indekslangan) qidiruv — barcha operatorlar orasidan,
-    // yangi qo'shilgan raqamlar uchun
-    let dbMatches = [];
-    try{
-      const snap = await withRetry(() => db.collection('numbers')
-        .where('last4', '==', digits)
-        .limit(50).get());
-      dbMatches = snap.docs.map(docToItem).filter(item => !item.reserved);
-    }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
-
-    // Agar topilmasa (yoki indeks yo'q bo'lsa) — bazadagi BARCHA raqamlarni
-    // (sahifalab, cheklovsiz, operatordan qat'iy nazar) tekshirib chiqamiz —
-    // bu eski raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
-    if(dbMatches.length === 0){
-      const allDocs = [];
-      let lastDoc = null;
-      while(true){
-        await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-        let q = db.collection('numbers')
-          .orderBy(admin.firestore.FieldPath.documentId())
-          .limit(300);
-        if(lastDoc) q = q.startAfter(lastDoc);
-        const pageSnap = await withRetry(() => q.get());
-        if(pageSnap.empty) break;
-        allDocs.push(...pageSnap.docs);
-        lastDoc = pageSnap.docs[pageSnap.docs.length - 1];
-        if(pageSnap.docs.length < 300) break;
-      }
-      dbMatches = allDocs.map(docToItem)
-        .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
-    }
-
-    // Saytdagi kabi: "Raqam tanlash" endi VIP bazamiz bilan operatorlardan
-    // JONLI (Standart) qidiruvni BITTA umumiy ro'yxatga birlashtirib
-    // ko'rsatadi — mijoz alohida "Standart baza"ni qidirib yurmasin.
+    // Qidiruv davomida alohida xabar yubormasdan, tepada Telegram'ning
+    // o'zining "yozmoqda..." ko'rsatkichini tirik saqlaymiz.
+    let dbMatchesAll = [];
     let liveItems = [];
-    try{
-      const boxes = parseStandardMask(digits);
-      const config = await loadOperatorConfig();
-      const result = await searchAll(boxes, config, { limit: 40 });
-      liveItems = (result.items || []).map(liveToItem);
-    }catch(e){ console.error('Jonli qidiruv xatosi (Raqam tanlash):', e); }
+    let usedFallback = false;
+    await withTyping(chatId, async () => {
+      // Avval tezkor (indekslangan) qidiruv — barcha operatorlar orasidan,
+      // yangi qo'shilgan raqamlar uchun
+      try{
+        const snap = await withRetry(() => db.collection('numbers')
+          .where('last4', '==', digits)
+          .limit(50).get());
+        dbMatchesAll = snap.docs.map(docToItem).filter(item => !item.reserved);
+      }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
 
-    if(searchingMsg && searchingMsg.result && searchingMsg.result.message_id){
-      await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
+      // Agar topilmasa (yoki indeks yo'q bo'lsa) — bazadagi BARCHA raqamlarni
+      // (sahifalab, cheklovsiz, operatordan qat'iy nazar) tekshirib chiqamiz —
+      // bu eski raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
+      if(dbMatchesAll.length === 0){
+        const allDocs = [];
+        let lastDoc = null;
+        while(true){
+          let q = db.collection('numbers')
+            .orderBy(admin.firestore.FieldPath.documentId())
+            .limit(300);
+          if(lastDoc) q = q.startAfter(lastDoc);
+          const pageSnap = await withRetry(() => q.get());
+          if(pageSnap.empty) break;
+          allDocs.push(...pageSnap.docs);
+          lastDoc = pageSnap.docs[pageSnap.docs.length - 1];
+          if(pageSnap.docs.length < 300) break;
+        }
+        dbMatchesAll = allDocs.map(docToItem)
+          .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
+      }
+
+      // Saytdagi kabi: "Raqam tanlash" endi VIP bazamiz bilan operatorlardan
+      // JONLI (Standart) qidiruvni BITTA umumiy ro'yxatga birlashtirib
+      // ko'rsatadi. Agar mijoz ANIQ bitta kompaniyani tanlagan bo'lsa,
+      // AVVAL faqat o'shandan qidiriladi (searchAll'ga operator filtri
+      // beriladi — tezroq ham). Faqat o'sha kompaniyada hech narsa
+      // topilmasa, boshqa kompaniyalardan ham ko'rsatiladi (pastda).
+      try{
+        const boxes = parseStandardMask(digits);
+        const config = await loadOperatorConfig();
+        const result = await searchAll(boxes, config, { limit: 40, operator: wantOp || undefined });
+        liveItems = (result.items || []).map(liveToItem);
+      }catch(e){ console.error('Jonli qidiruv xatosi (Raqam tanlash):', e); }
+    });
+
+    let dbMatches = wantOp ? dbMatchesAll.filter(item => item.operator === wantOp) : dbMatchesAll;
+    let combined = dedup(liveItems, dbMatches);
+
+    // Tanlangan kompaniyada hech narsa topilmadi — boshqa kompaniyalardan
+    // variantlar ko'rsatamiz (mijoz butunlay bo'sh natija bilan qolmasin).
+    if(wantOp && combined.length === 0){
+      usedFallback = true;
+      await withTyping(chatId, async () => {
+        try{
+          const boxes = parseStandardMask(digits);
+          const config = await loadOperatorConfig();
+          const result = await searchAll(boxes, config, { limit: 40 });
+          liveItems = (result.items || []).map(liveToItem);
+        }catch(e){ console.error('Jonli qidiruv xatosi (zaxira):', e); }
+      });
+      dbMatches = dbMatchesAll;
+      combined = dedup(liveItems, dbMatches);
     }
-
-    // Bir xil raqam ikkalasida chiqib qolmasligi uchun (odatda kesishmaydi)
-    // raqam bo'yicha takrorlar olib tashlanadi — avval jonli, keyin VIP
-    // (saytdagi getFilteredNumbers() bilan bir xil tartib).
-    const seen = new Set();
-    const combined = [];
-    liveItems.forEach(item => { if(!seen.has(item.number)){ seen.add(item.number); combined.push(item); } });
-    dbMatches.forEach(item => { if(!seen.has(item.number)){ seen.add(item.number); combined.push(item); } });
 
     // Jonli raqamlarning Firestore'da hujjati yo'q — narx/operatorni
     // seansda saqlaymiz (Standart qidiruvdagi kabi), keyin buyurtma
@@ -1301,8 +1387,13 @@ exports.handler = async function (event) {
     session.liveItems = {};
     liveItems.forEach(it => { session.liveItems[it.id] = { number: it.number, price: it.price, operator: it.operator }; });
 
-    await showNumberList(chatId, session, combined,
-      `${digits} raqami sotuvda mavjud emas`,
+    const emptyText = wantOp
+      ? `${wantOp} kompaniyasida ${digits} raqami topilmadi, boshqa kompaniyalarda ham yo'q`
+      : `${digits} raqami sotuvda mavjud emas`;
+    if(usedFallback && combined.length > 0){
+      await send(chatId, `ℹ️ ${wantOp}da topilmadi, boshqa kompaniyalardagi variantlar:`);
+    }
+    await showNumberList(chatId, session, combined, emptyText,
       inlineKb([[{ text: '📋 Raqam ro\'yxati', url: 'https://t.me/vip_raqamlar_uz' }]]));
     return { statusCode: 200, body: 'ok' };
   }
@@ -1315,25 +1406,20 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
-    // Operatorlarga ~20 ta so'rov ketadi — bir necha soniya. Mijoz jim
-    // kutib qolmasligi uchun darhol xabar beramiz.
-    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-    const searchingMsg = await send(chatId, "🔍 Operatorlardan qidirilmoqda...");
-
+    // Operatorlarga ~20 ta so'rov ketadi — bir necha soniya. Alohida xabar
+    // yubormasdan, tepada "yozmoqda..." ko'rsatkichini tirik saqlaymiz.
     let items = [];
     let searchFailed = false;
-    try{
-      const config = await loadOperatorConfig();
-      const result = await searchAll(boxes, config, { limit: 40 });
-      items = (result.items || []).map(liveToItem);
-    }catch(err){
-      console.error('Standart qidiruv xatosi:', err);
-      searchFailed = true;
-    }
-
-    if(searchingMsg && searchingMsg.result && searchingMsg.result.message_id){
-      await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
-    }
+    await withTyping(chatId, async () => {
+      try{
+        const config = await loadOperatorConfig();
+        const result = await searchAll(boxes, config, { limit: 40 });
+        items = (result.items || []).map(liveToItem);
+      }catch(err){
+        console.error('Standart qidiruv xatosi:', err);
+        searchFailed = true;
+      }
+    });
 
     if(searchFailed){
       session = { step: 'menu' };
@@ -1556,7 +1642,7 @@ ${monthsLines}
     if(session.isZakazOrder){
       const d = session.zakazPriceData;
       numberStr = `${OPERATOR_EMOJI[session.zakazOperator] || '📶'} ${zakazMaskedNumber(session.zakazPattern)}`;
-      priceStr = d ? formatPrice(d.onSale && d.salePrice ? d.salePrice : d.fullPrice) : "Kelishiladi";
+      priceStr = d ? formatPrice(zakazEffectivePrice(d) + zakazEffectiveTariff(d)) : "Kelishiladi";
     }else if(session.isLiveOrder && session.liveNumber){
       numberStr = displayNumber(session.liveNumber.number || '');
       priceStr = formatPrice(session.liveNumber.price || 0);
@@ -1566,16 +1652,18 @@ ${monthsLines}
       numberStr = displayNumber(nd.number || '');
       priceStr = formatPrice(nd.price || 0);
     }
-    const manzil = `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`;
+    const manzil = `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`;
 
+    // Mijoz iltimosiga ko'ra — qisqa, aniq, kam so'zli (uzun matn qator
+    // pastga tushib ketishiga sabab bo'lardi).
     let summary =
-`✅ <b>Barcha ma'lumotlar to'g'rimi?</b>
+`✅ <b>Ma'lumotlaringizni tasdiqlang</b>
 
 👤 FIO: <b>${escapeHtml(session.draftName)}</b>
-📱 Sevimli raqam: <b>${numberStr}</b>
+📱 Raqam: <b>${numberStr}</b>
 💰 Narxi: <b>${priceStr}</b>
-☎️ Bog'lanish uchun raqam: <b>${escapeHtml(session.draftPhone)}</b>
-📍 Manzil: <b>${escapeHtml(manzil)}</b>`;
+☎️ Tel: <b>${escapeHtml(session.draftPhone)}</b>
+📍 <b>${escapeHtml(manzil)}</b>`;
     if(session.installmentMonths){
       summary += `\n💳 To'lov turi: <b>${session.installmentMonths} oyga bo'lib to'lash</b> (oyiga ${formatPrice(session.installmentMonthly)})`;
     }
