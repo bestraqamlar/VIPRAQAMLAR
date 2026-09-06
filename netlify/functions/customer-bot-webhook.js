@@ -139,7 +139,7 @@ const BTN = {
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
   CONTRACTS: '📄 Shartnomalarim',
-  PREV_PAGE: '◀️ Oldingi',
+  PREV_PAGE: '◀️ Orqaga',
   NEXT_PAGE: 'Keyingisi ▶️',
   BACK: '⬅️ Orqaga',
   CANCEL: '🔁 Bekor qilish',
@@ -154,7 +154,7 @@ const ZAKAZ_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz'];
 // "Raqam tanlash" — saytdagi kabi, mijoz aniq bitta kompaniyani tanlashi
 // (yoki "Barchasi") mumkin. Tartib saytdagi kartochkalar bilan bir xil.
 const RAQAM_BARCHASI = '🌐 Barchasi';
-const RAQAM_OPERATORS = ['Uzmobile', 'Ucell', 'Beeline', 'Mobiuz', 'Perfektum', 'Humans'];
+const RAQAM_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz', 'Uzmobile', 'Perfektum'];
 
 /* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
 async function getSession(chatId){
@@ -310,6 +310,16 @@ function displayNumber(numberStr){
   return `+998 ${nine.slice(0,2)}-${nine.slice(2,5)}-${nine.slice(5,7)}-${nine.slice(7,9)}`;
 }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
+
+/* "Premium" ko'rinish — oddiy 0-9 o'rniga qalin Unicode raqamlar
+   (Mathematical Sans-Serif Bold). Faqat MIJOZGA CHATDA ko'rsatiladigan
+   matnlarda ishlatiladi (ro'yxat, batafsil, "Buyurtmalarim"). Firestore'ga
+   yoziladigan qiymatlar (orders.number, shartnoma PDF va h.k.) ATAYLAB
+   ODDIY ASCII holida qoldiriladi — chunki PDF shrifti bu maxsus Unicode
+   belgilarni chizolmaydi (shartnoma buzilib qolardi) va boshqa joylarda
+   raqam qidirish/solishtirish ASCII kutadi. */
+const PREMIUM_DIGITS = ['𝟬','𝟭','𝟮','𝟯','𝟰','𝟱','𝟲','𝟳','𝟴','𝟵'];
+function premiumNumber(str){ return String(str || '').replace(/[0-9]/g, d => PREMIUM_DIGITS[d]); }
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
 const LIST_PAGE_SIZE = 10;
 async function showNumberList(chatId, session, items, emptyText, emptyExtraKeyboard, page){
@@ -330,11 +340,11 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   const pageItems = items.slice(page * LIST_PAGE_SIZE, (page + 1) * LIST_PAGE_SIZE);
 
   // Mijoz iltimosiga ko'ra ro'yxat IKKI USTUNLI panjara (grid) ko'rinishida
-  // chiqadi — bir qatorda IKKITA raqam yonma-yon, faqat operator+raqam
-  // (narxisiz — narx uzun qatorni pastga tushirib, noqulay ko'rinish
-  // berardi). To'liq narx/shart ustiga bosilganda (session.candidates
-  // orqali) ochiladi.
-  const btnLabel = item => `${OPERATOR_EMOJI[item.operator] || '📶'} ${displayNumber(item.number)}`;
+  // chiqadi — bir qatorda IKKITA raqam yonma-yon, faqat raqamning o'zi
+  // (operator doiracha belgisisiz — mijoz buni keraksiz deb topdi, narx
+  // ham ko'rsatilmaydi). To'liq narx/shart/operator ustiga bosilganda
+  // (session.candidates orqali) ochiladi.
+  const btnLabel = item => premiumNumber(displayNumber(item.number));
 
   session.step = 'list_shown';
   session.candidates = {};
@@ -354,18 +364,21 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
     if(pageItems[i+1]) pair.push(btnLabel(pageItems[i+1]));
     rows.push(pair);
   }
+  // Mijoz "◀️ Orqaga" (avvalgi sahifa) va "⬅️ Orqaga" (ro'yxatdan butunlay
+  // chiqish) ikkalasi ham "Orqaga" deb chalkashtirilganini aytdi — shu
+  // sabab ro'yxatdan butunlay chiqish tugmasi endi "🔁 Bekor qilish".
   const navRow = [];
   if(page > 0) navRow.push(BTN.PREV_PAGE);
   if(page < totalPages - 1) navRow.push(BTN.NEXT_PAGE);
   if(navRow.length) rows.push(navRow);
-  rows.push([BTN.BACK]);
+  rows.push([BTN.CANCEL]);
 
   const pageInfo = totalPages > 1 ? ` (${page + 1}/${totalPages}-sahifa)` : '';
   await sendHtml(chatId, `✨ <b>${items.length} ta mos raqam</b> topildi${pageInfo}. Batafsil ko'rish uchun birini tanlang 👇`, replyKb(rows));
 }
 
 async function showNumberDetail(chatId, item){
-  const plainNumber = displayNumber(item.number);
+  const plainNumber = premiumNumber(displayNumber(item.number));
   const opEmoji = OPERATOR_EMOJI[item.operator] || '📶';
   let text = `<b>${plainNumber}</b>\n`;
   if(item.operator) text += `${opEmoji} ${escapeHtml(item.operator)}\n`;
@@ -405,7 +418,7 @@ async function showNumberDetail(chatId, item){
 }
 
 /* ---------------- "Zakaz qilish" — narx/shartlar kartochkasi ---------------- */
-function zakazMaskedNumber(pattern){ return `+998 (**)-***-${pattern.slice(0,2)}-${pattern.slice(2)}`; }
+function zakazMaskedNumber(pattern){ return premiumNumber(`+998 (**)-***-${pattern.slice(0,2)}-${pattern.slice(2)}`); }
 /* Narx+tarifni (aksiya bo'lsa aksiya narxi/tarifi) bitta joydan olib
    beradi — kartochkada VA "Umumiy summa"da bir xil son ishlatilishi uchun. */
 function zakazEffectivePrice(d){ return (d.onSale && d.salePrice) ? d.salePrice : (d.fullPrice || 0); }
@@ -1193,6 +1206,20 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
 
+  // MUHIM TUZATISH: mijoz oldingi bir oqimda (masalan raqam qidirish,
+  // buyurtma to'ldirish) "chala" holatda qolib ketgan bo'lishi mumkin —
+  // shunday holatda asosiy menyu tugmalaridan birini bossa ham,
+  // pastdagi "session.step === 'menu'" tekshiruvi mos kelmagani uchun
+  // hech narsa qilmay, "Iltimos, menyudagi tugmalardan foydalaning"
+  // degan umumiy javobga tushib qolardi — mijozga "bot ishlamayapti"
+  // taassurotini berardi. Endi ASOSIY MENYU tugmalaridan biri bosilsa,
+  // qaysi bosqichda "qolib ketgan" bo'lishidan qat'i nazar, session
+  // darhol tozalanadi va tugma normal ishlaydi.
+  const MAIN_MENU_TEXTS = [BTN.CHOOSE, BTN.PREMIUM, BTN.SALE, BTN.ZAKAZ, BTN.MYORDERS, BTN.CONTRACTS, BTN.CONTACT];
+  if(MAIN_MENU_TEXTS.includes(text) && session.step !== 'menu' && session.step){
+    session = { step: 'menu' };
+  }
+
   /* ---- Asosiy menyu tugmalari ---- */
   if(session.step === 'menu' || !session.step){
     if(text === BTN.CHOOSE){
@@ -1254,7 +1281,7 @@ exports.handler = async function (event) {
           .sort((a,b)=> (b.createdAtSort||0) - (a.createdAtSort||0))
           .map(o => {
             const icon = ORDER_STATUS_ICON[o.status] || '📌';
-            return `📱 <b>${escapeHtml(o.number)}</b>\n💰 ${formatPrice(o.price)}\n${icon} Holati: <b>${escapeHtml(o.status)}</b>`;
+            return `📱 <b>${escapeHtml(premiumNumber(o.number))}</b>\n💰 ${formatPrice(o.price)}\n${icon} Holati: <b>${escapeHtml(o.status)}</b>`;
           })
           .join('\n\n▪️▪️▪️\n\n');
         await sendHtml(chatId, `📋 <b>Sizning buyurtmalaringiz</b>\n\n${list}`, mainMenuKeyboard());
@@ -1561,7 +1588,7 @@ exports.handler = async function (event) {
 `📄 <b>Shartnoma: ${escapeHtml(contractId)}</b>
 
 👤 Mijoz: <b>${escapeHtml(cdata.customerName)}</b>
-📱 Raqam: <b>${escapeHtml(cdata.number)}</b>
+📱 Raqam: <b>${escapeHtml(premiumNumber(cdata.number))}</b>
 🗓 Muddat: ${totalMonths} oy
 💰 Oylik to'lov: <b>${formatPrice(cdata.monthlyPayment)}</b>
 ✅ To'landi: <b>${paidCount} / ${totalMonths}</b> oy
@@ -1644,12 +1671,12 @@ ${monthsLines}
       numberStr = `${OPERATOR_EMOJI[session.zakazOperator] || '📶'} ${zakazMaskedNumber(session.zakazPattern)}`;
       priceStr = d ? formatPrice(zakazEffectivePrice(d) + zakazEffectiveTariff(d)) : "Kelishiladi";
     }else if(session.isLiveOrder && session.liveNumber){
-      numberStr = displayNumber(session.liveNumber.number || '');
+      numberStr = premiumNumber(displayNumber(session.liveNumber.number || ''));
       priceStr = formatPrice(session.liveNumber.price || 0);
     }else{
       const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
       const nd = numberDoc.exists ? numberDoc.data() : {};
-      numberStr = displayNumber(nd.number || '');
+      numberStr = premiumNumber(displayNumber(nd.number || ''));
       priceStr = formatPrice(nd.price || 0);
     }
     const manzil = `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`;
