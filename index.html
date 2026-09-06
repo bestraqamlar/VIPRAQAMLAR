@@ -660,55 +660,45 @@
   /* "Qidirish" tugmasi endi kichik "Premium" ptichka-tugma bilan bitta
      qatorda — shu sabab o'zi endi 100% emas, qolgan joyni egallaydi
      (flex:1), joy va markazlash esa shu wrapper orqali boshqariladi. */
-  .search-btn-row{display:flex;align-items:center;gap:8px;width:100%;max-width:448px;margin:10px auto 0;}
+  .search-btn-row{display:flex;align-items:center;gap:8px;width:100%;margin:10px 0 0;}
   .search-btn-row .standard-search-btn{width:auto;max-width:none;flex:1;margin:0;}
   .premium-toggle-btn{
+    /* Mijoz iltimosiga ko'ra bu "boy/premium" ko'rinish endi barcha
+       ekran o'lchamida (mobil HAM, kompyuter HAM) bir xil — avval
+       faqat mobilda edi, kompyuterda deyarli "ko'rinmas" bo'lib qolardi. */
     --ptg1:#8B5CF6;--ptg2:#F5A623;
-    flex:none;width:var(--search-row-h);height:var(--search-row-h);min-width:48px;
-    border-radius:12px;border:1.5px solid rgba(139,92,246,.35);
-    background:rgba(139,92,246,.08);color:var(--ptg1);
+    flex:none;height:var(--search-row-h);min-width:0;
+    padding:0 14px;gap:7px;border-radius:12px;
+    border:1.5px solid rgba(139,92,246,.55);
+    background:linear-gradient(135deg, rgba(139,92,246,.16), rgba(245,166,35,.18));
+    color:var(--ptg1);
     display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 4px 14px -6px rgba(139,92,246,.5);
     transition:all .25s cubic-bezier(.34,1.56,.64,1);
+    animation:ptgIdlePulse 2.6s ease-in-out infinite;
   }
-  .premium-toggle-btn svg{width:23px;height:23px;}
+  .premium-toggle-btn svg{width:21px;height:21px;flex:none;}
   .premium-toggle-btn .ptg-check{stroke-dasharray:14;stroke-dashoffset:14;transition:stroke-dashoffset .3s ease .05s;}
-  .premium-toggle-btn:hover{border-color:var(--ptg1);background:rgba(139,92,246,.16);}
+  .premium-toggle-btn .ptg-label{
+    display:inline-block;font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
+    letter-spacing:.2px;white-space:nowrap;
+    background:linear-gradient(135deg,var(--ptg1),var(--ptg2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .premium-toggle-btn:hover{border-color:var(--ptg1);box-shadow:0 6px 18px -5px rgba(139,92,246,.65);}
   .premium-toggle-btn.active{
     background:linear-gradient(135deg,var(--ptg1),var(--ptg2));border-color:transparent;color:#fff;
     box-shadow:0 8px 20px -8px rgba(139,92,246,.65);transform:scale(1.03);
+    animation:none;
   }
   .premium-toggle-btn.active .ptg-check{stroke-dashoffset:0;}
   .premium-toggle-btn.active .ptg-badge{animation:premiumPulse 1.8s ease-in-out infinite;}
+  .premium-toggle-btn.active .ptg-label{
+    background:none;-webkit-background-clip:initial;background-clip:initial;color:#fff;
+  }
   @keyframes premiumPulse{
     0%,100%{ filter:drop-shadow(0 0 0 rgba(255,255,255,0)); }
     50%{ filter:drop-shadow(0 0 5px rgba(255,255,255,.65)); }
-  }
-  .premium-toggle-btn .ptg-label{ display:none; }
-  /* Mijoz iltimosiga ko'ra: KOMPYUTERDA bu tugma AVVALGIDAY (yuqoridagi
-     qoidalar bo'yicha) qoladi — o'zgarmaydi. Faqat TOR (mobil) ekranda
-     ptichka deyarli "ko'rinmas" va nima qilishi tushunarsiz bo'lib
-     qolgani uchun, faqat shu o'lchamda: doimiy (hover/active kutmasdan)
-     boy-premium ko'rinishli gradient fon + "Premium" yorlig'i + sekin
-     "diqqatga chaqiruvchi" nafas olish animatsiyasi qo'shildi. */
-  @media (max-width:1023px){
-    .premium-toggle-btn{
-      width:auto;min-width:0;padding:0 12px;gap:6px;
-      background:linear-gradient(135deg, rgba(139,92,246,.16), rgba(245,166,35,.18));
-      border-color:rgba(139,92,246,.55);
-      box-shadow:0 4px 14px -6px rgba(139,92,246,.5);
-      animation:ptgIdlePulse 2.6s ease-in-out infinite;
-    }
-    .premium-toggle-btn svg{width:19px;height:19px;}
-    .premium-toggle-btn .ptg-label{
-      display:inline-block;font-family:'Sora',sans-serif;font-weight:800;font-size:11.5px;
-      letter-spacing:.2px;white-space:nowrap;
-      background:linear-gradient(135deg,var(--ptg1),var(--ptg2));
-      -webkit-background-clip:text;background-clip:text;color:transparent;
-    }
-    .premium-toggle-btn.active{ animation:none; }
-    .premium-toggle-btn.active .ptg-label{
-      background:none;-webkit-background-clip:initial;background-clip:initial;color:#fff;
-    }
   }
   @keyframes ptgIdlePulse{
     0%,100%{ box-shadow:0 4px 14px -6px rgba(139,92,246,.5); }
@@ -898,6 +888,12 @@
        joy (16px) — endi hech narsa bir-biriga "yopishib" chiziq bo'lib
        ko'rinmaydi, ikkalasi aniq ajratilgan holda turadi. */
     display:flex;flex-wrap:nowrap;gap:7px;margin:16px 0 0;
+    /* Mijoz iltimosiga ko'ra: bu qator (kompaniyalar) va pastdagi ikkita
+       tugma qatori (Premium + Qidirish) HECH QANDAY eni bilan
+       cheklanmaydi — telefondagi kabi kartochkaning O'ZI qancha keng
+       bo'lsa, ular ham shuncha (eng chekkagacha) cho'ziladi — kompyuterda
+       ham xuddi shunday (qarang: .search-btn-row). */
+    width:100%;box-sizing:border-box;
     overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;
     padding-bottom:2px;/* soyalar pastdan kesilib qolmasin */
@@ -1920,11 +1916,23 @@
 
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
+    /* Mijoz iltimosiga ko'ra: oddiy statik ramka o'rniga, Instagram
+       "story" doiralaridagi kabi ZAMONAVIY, aylanib turadigan rang-barang
+       gradient ramka — pastdagi ::before shu gradientni aylantirib
+       turadi, kartaning O'ZI (opaque fon) esa uni faqat nozik chekka
+       (halqacha) sifatida ko'rsatadi. */
     flex:0 0 150px;border-radius:12px;padding:10px;
-    border:1px solid var(--line);
+    border:none;position:relative;z-index:0;
     background:var(--panel);
     display:flex;flex-direction:column;min-height:130px;
   }
+  .daily-deal-card::before{
+    content:'';position:absolute;inset:-2.5px;border-radius:14.5px;z-index:-1;
+    background:conic-gradient(from 0deg, #f9ce34, #ee2a7b, #6228d7, #4a4de7, #f9ce34);
+    animation:ddRingSpin 3.4s linear infinite;
+  }
+  @keyframes ddRingSpin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .daily-deal-card::before{ animation:none; } }
   .daily-deal-card .dd-badge{
     display:inline-block;background:var(--amber);color:var(--bg);font-size:9px;font-weight:800;
     padding:2px 6px;border-radius:6px;margin-bottom:6px;align-self:flex-start;
