@@ -1,8 +1,8 @@
-# XAVFSIZLIK UCHUN ANIQ KO'RSATIB QO'YISH: Netlify funksiyalari va statik
-# fayllar (assets) pastdagi umumiy qoidadan TA'SIRLANMASIN — saytning barcha
-# ishlashi (bot, to'lovlar, qidiruv va h.k.) shularga bog'liq.
-/.netlify/functions/*   /.netlify/functions/:splat   200
-/.netlify/edge-functions/*   /.netlify/edge-functions/:splat   200
+# ESLATMA: Netlify funksiyalari (/.netlify/functions/...) va Edge Function'lar
+# uchun ALOHIDA qoida YOZISH SHART EMAS va Netlify buni RAD ETADI ("path"
+# field must not start with "/.netlify") — chunki ular _redirects'dan OLDIN,
+# Netlify'ning o'zi tomonidan avtomatik ishlanadi. Pastdagi umumiy "/* ->
+# index.html" qoidasi ularga ta'sir qilmaydi.
 /assets/*   /assets/:splat   200
 
 # Admin panel manzili — o'zining haqiqiy fayli sifatida ishlaydi (o'zgarishsiz).

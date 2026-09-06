@@ -139,6 +139,7 @@ const BTN = {
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
   CONTRACTS: '📄 Shartnomalarim',
+  INSTALLMENT: "💳 Bo'lib to'lashga Raqamlar",
   PREV_PAGE: '◀️ Orqaga',
   NEXT_PAGE: 'Keyingisi ▶️',
   BACK: '⬅️ Orqaga',
@@ -234,7 +235,8 @@ function mainMenuKeyboard(){
     [BTN.CHOOSE],
     [BTN.PREMIUM, BTN.SALE],
     [BTN.ZAKAZ, BTN.MYORDERS],
-    [BTN.CONTRACTS, BTN.CONTACT]
+    [BTN.CONTRACTS, BTN.CONTACT],
+    [BTN.INSTALLMENT]
   ]);
 }
 function raqamOpLabel(op){ return `${OPERATOR_EMOJI[op] || '📶'} ${op}`; }
@@ -386,14 +388,33 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   await send(chatId, pageInfo, replyKb(rows));
 }
 
-async function showNumberDetail(chatId, item){
+// "instOnly" — mijoz "💳 Bo'lib to'lashga Raqamlar" bo'limi orqali kirgan
+// bo'lsa true: naqt narx BUTUNLAY ko'rsatilmaydi, faqat "Bo'lib to'lash"
+// tugmasi chiqadi (boshqa hamma joyda — Premium/Aksiya/Raqam tanlash va
+// h.k. — bu ta'sir qilmaydi, ular hardoimgiday ikkala variantni chiqaradi).
+async function showNumberDetail(chatId, item, instOnly){
   const plainNumber = premiumNumber(displayNumber(item.number));
   const opEmoji = OPERATOR_EMOJI[item.operator] || '📶';
   let text = `<b>${plainNumber}</b>\n`;
   if(item.operator) text += `${opEmoji} ${escapeHtml(item.operator)}\n`;
-  text += `\n💵 Narxi: <b>${formatPrice(item.price)}</b>\n`;
-  if(item.onSale && item.oldPrice > item.price){
-    text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
+
+  const hideCash = !!(instOnly && item.installment);
+  if(!hideCash){
+    text += `\n💵 Narxi: <b>${formatPrice(item.price)}</b>\n`;
+    if(item.onSale && item.oldPrice > item.price){
+      text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
+    }
+  }
+  // To'liq ma'lumot — botda har doim ko'rinadi (oylik tarif, muddat,
+  // nomiga chiqish sharti bo'lsa).
+  if(item.monthlyTariff){
+    text += `📶 Oylik tarif: <b>${formatPrice(item.monthlyTariff)}</b>\n`;
+  }
+  if(item.tariffMonths){
+    text += `✅ ${item.tariffMonths} oydan so'ng istalgan tarifga o'tib olishingiz mumkin.\n`;
+  }
+  if(item.ownershipTransfer){
+    text += `📝 Sizning nomingizga rasmiylashtiriladi.\n`;
   }
   if(item.installment){
     text += `💰 Raqamni 6,12,24,36 oygacha bo'lib to'lash sharti bilan olish mumkin.\n`;
@@ -410,18 +431,23 @@ async function showNumberDetail(chatId, item){
   // 'backmenu' emas, alohida 'backtolist' ishlatiladi.
   const buttons = item.reserved
     ? [[{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]]
-    : item.installment
+    : hideCash
       ? [
-          [
-            { text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` },
-            { text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }
-          ],
+          [{ text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }],
           [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
         ]
-      : [
-          [{ text: "🛒 Buyurtma berish", callback_data: `buy|${item.id}` }],
-          [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
-        ];
+      : item.installment
+        ? [
+            [
+              { text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` },
+              { text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }
+            ],
+            [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
+          ]
+        : [
+            [{ text: "🛒 Buyurtma berish", callback_data: `buy|${item.id}` }],
+            [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
+          ];
   await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
   await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(buttons) });
 }
@@ -549,7 +575,10 @@ function docToItem(doc){
     installment: !!d.installment,
     featured: !!d.featured,
     onSale: !!d.onSale,
-    reserved: !!d.reserved
+    reserved: !!d.reserved,
+    monthlyTariff: d.monthlyTariff || 0,
+    tariffMonths: d.tariffMonths || 0,
+    ownershipTransfer: !!d.ownershipTransfer
   };
 }
 
@@ -1216,18 +1245,19 @@ exports.handler = async function (event) {
       // seansda saqlangan ma'lumotdan qayta ko'rsatamiz.
       const live = session.isLiveOrder ? session.liveNumber : null;
       const numberDoc = (!live && numberId) ? await withRetry(() => db.collection('numbers').doc(numberId).get()) : null;
+      const wasInstOnly = session.instOnlyMode;
       if(live){
         // Ro'yxat/jonli natijalarni saqlab qolamiz, aks holda mijoz
         // "Naqt to'lov"ni qayta bosa raqam ma'lumoti topilmay qoladi.
-        session = { step: 'list_shown', liveItems: session.liveItems, candidates: session.candidates, listAll: session.listAll, listPage: session.listPage, listEmptyText: session.listEmptyText };
+        session = { step: 'list_shown', liveItems: session.liveItems, candidates: session.candidates, listAll: session.listAll, listPage: session.listPage, listEmptyText: session.listEmptyText, instOnlyMode: wasInstOnly };
       }else{
-        session = { step: 'list_shown' };
+        session = { step: 'list_shown', instOnlyMode: wasInstOnly };
       }
       await saveSession(chatId, session);
       if(live){
-        await showNumberDetail(chatId, liveToItem(live));
+        await showNumberDetail(chatId, liveToItem(live), wasInstOnly);
       }else if(numberDoc && numberDoc.exists){
-        await showNumberDetail(chatId, docToItem(numberDoc));
+        await showNumberDetail(chatId, docToItem(numberDoc), wasInstOnly);
       }else{
         await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
       }
@@ -1264,7 +1294,7 @@ exports.handler = async function (event) {
   // taassurotini berardi. Endi ASOSIY MENYU tugmalaridan biri bosilsa,
   // qaysi bosqichda "qolib ketgan" bo'lishidan qat'i nazar, session
   // darhol tozalanadi va tugma normal ishlaydi.
-  const MAIN_MENU_TEXTS = [BTN.CHOOSE, BTN.PREMIUM, BTN.SALE, BTN.ZAKAZ, BTN.MYORDERS, BTN.CONTRACTS, BTN.CONTACT];
+  const MAIN_MENU_TEXTS = [BTN.CHOOSE, BTN.PREMIUM, BTN.SALE, BTN.ZAKAZ, BTN.MYORDERS, BTN.CONTRACTS, BTN.CONTACT, BTN.INSTALLMENT];
   if(MAIN_MENU_TEXTS.includes(text) && session.step !== 'menu' && session.step){
     session = { step: 'menu' };
   }
@@ -1290,13 +1320,24 @@ exports.handler = async function (event) {
     }
 
     if(text === BTN.PREMIUM){
+      session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(200).get());
       await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha VIP raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
+      session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(200).get());
       await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(text === BTN.INSTALLMENT){
+      // Bu bo'lim orqali ochilgan har bir raqamda naqt narx ko'rsatilmaydi —
+      // shu sababdan "instOnlyMode" seansda saqlanadi (showNumberDetail
+      // shundan foydalanadi).
+      session.instOnlyMode = true;
+      const snap = await withRetry(() => db.collection('numbers').where('installment', '==', true).limit(200).get());
+      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bo'lib to'lashga raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.CONTACT){
@@ -1560,7 +1601,7 @@ exports.handler = async function (event) {
     if(numberId.startsWith('live:')){
       const live = (session.liveItems || {})[numberId];
       if(live){
-        await showNumberDetail(chatId, liveToItem(live));
+        await showNumberDetail(chatId, liveToItem(live), session.instOnlyMode);
       }else{
         await send(chatId, "Ma'lumot eskirdi, iltimos qaytadan qidiring.", mainMenuKeyboard());
       }
@@ -1568,7 +1609,7 @@ exports.handler = async function (event) {
     }
     const numberDoc = await withRetry(() => db.collection('numbers').doc(numberId).get());
     if(numberDoc.exists){
-      await showNumberDetail(chatId, docToItem(numberDoc));
+      await showNumberDetail(chatId, docToItem(numberDoc), session.instOnlyMode);
     }
     return { statusCode: 200, body: 'ok' };
   }

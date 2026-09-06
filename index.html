@@ -657,6 +657,37 @@
     border-color:transparent;
     box-shadow:0 6px 18px -6px color-mix(in srgb, var(--amber) 55%, transparent), inset 0 1px 0 rgba(255,255,255,0.28);
   }
+  /* "Qidirish" tugmasi endi kichik "Premium" ptichka-tugma bilan bitta
+     qatorda — shu sabab o'zi endi 100% emas, qolgan joyni egallaydi
+     (flex:1), joy va markazlash esa shu wrapper orqali boshqariladi. */
+  .search-btn-row{display:flex;align-items:center;gap:8px;width:100%;max-width:448px;margin:10px auto 0;}
+  .search-btn-row .standard-search-btn{width:auto;max-width:none;flex:1;margin:0;}
+  .premium-toggle-btn{
+    --ptg1:#8B5CF6;--ptg2:#F5A623;
+    flex:none;width:var(--search-row-h);height:var(--search-row-h);min-width:48px;
+    border-radius:12px;border:1.5px solid rgba(139,92,246,.35);
+    background:rgba(139,92,246,.08);color:var(--ptg1);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .premium-toggle-btn svg{width:23px;height:23px;}
+  .premium-toggle-btn .ptg-check{stroke-dasharray:14;stroke-dashoffset:14;transition:stroke-dashoffset .3s ease .05s;}
+  .premium-toggle-btn:hover{border-color:var(--ptg1);background:rgba(139,92,246,.16);}
+  .premium-toggle-btn.active{
+    background:linear-gradient(135deg,var(--ptg1),var(--ptg2));border-color:transparent;color:#fff;
+    box-shadow:0 8px 20px -8px rgba(139,92,246,.65);transform:scale(1.03);
+  }
+  .premium-toggle-btn.active .ptg-check{stroke-dashoffset:0;}
+  .premium-toggle-btn.active .ptg-badge{animation:premiumPulse 1.8s ease-in-out infinite;}
+  @keyframes premiumPulse{
+    0%,100%{ filter:drop-shadow(0 0 0 rgba(255,255,255,0)); }
+    50%{ filter:drop-shadow(0 0 5px rgba(255,255,255,.65)); }
+  }
+  .std-op-card.vip-premium-chip .premium-dot{
+    background:linear-gradient(135deg,#8B5CF6,#F5A623)!important;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .std-op-card.vip-premium-chip .premium-dot svg{width:14px;height:14px;}
   .standard-search-btn{
     /* Mobil/planshetda 448px'gacha (VIP/STANDART tablari, katakchalar
        bilan bir xil chiziqda) — kompyuterda esa endi TO'LIQ (chekkadan-
@@ -2859,13 +2890,21 @@ html.theme-purple-premium .card button.order-btn{
          mijozga ko'rinadigan (customer-facing) qidiruvga tegishli. -->
     <div class="vip-op-toggles" id="vipOpToggles"></div>
     <div class="standard-op-toggles" id="standardOpToggles" style="display:none;"></div>
-    <button type="button" class="standard-search-btn" id="standardSearchBtn">
-      <span class="ssb-icon" id="standardSearchIcon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      </span>
-      <span class="ssb-spinner" id="standardSearchSpinner" style="display:none;"></span>
-      <span data-i18n="standardSearchBtn" id="standardSearchBtnLabel">Qidirish</span>
-    </button>
+    <div class="search-btn-row">
+      <button type="button" class="premium-toggle-btn" id="premiumToggleBtn" aria-label="Premium raqamlar">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path class="ptg-badge" d="M12 2.4l2 1.5 2.5-.4.9 2.3 2.3.9-.4 2.5L20.9 11l1.5 2-1.5 2 .4 2.5-2.3.9-.9 2.3-2.5-.4-2 1.5-2-1.5-2.5.4-.9-2.3-2.3-.9.4-2.5L3.1 13l-1.5-2 1.5-2-.4-2.5 2.3-.9.9-2.3 2.5.4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          <path class="ptg-check" d="M8.6 12.1l2.2 2.2 4.4-4.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" class="standard-search-btn" id="standardSearchBtn">
+        <span class="ssb-icon" id="standardSearchIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </span>
+        <span class="ssb-spinner" id="standardSearchSpinner" style="display:none;"></span>
+        <span data-i18n="standardSearchBtn" id="standardSearchBtnLabel">Qidirish</span>
+      </button>
+    </div>
     <div class="hint-text" id="hintText" data-i18n="searchHint">Raqamni katakchalarga kiriting va "Qidirish"ni bosing — VIP va oddiy raqamlar birga chiqadi</div>
     <button class="clear-search" id="clearSearchBtn" style="display:none;" data-i18n="clear">Tozalash</button>
     </div>
@@ -3503,9 +3542,13 @@ let currentPage = 0;
 // mumkin (raqam katakchalari ostidagi kartochkalar orqali, VIP'da
 // #vipOpToggles, STANDART'da #standardOpToggles). Bo'sh massiv = "Barchasi".
 let selectedOperators = [];
+// "Premium" filtri — kompaniyadan qat'iy nazar, admin "Mashhur raqamlarga
+// qo'shish" (featured) belgilagan raqamlarni ko'rsatadi. Kompaniya tanlovi
+// bilan bir-birini istisno qiladi (ikkalasi birga yoqilmaydi).
+let premiumFilterActive = false;
 
 function currentPattern(){ return digitBoxes.map(box => box.value.trim()); }
-function isSearchActive(){ return selectedOperators.length > 0 || currentPattern().some(d => d !== ''); }
+function isSearchActive(){ return selectedOperators.length > 0 || currentPattern().some(d => d !== '') || premiumFilterActive; }
 function updateSearchUI(){
   clearSearchBtn.style.display = isSearchActive() ? 'block' : 'none';
 }
@@ -3526,6 +3569,21 @@ function cheapestVipSample(n){
 function getFilteredNumbers(ignoreOperator){
   const pattern = currentPattern();
   const selectedOps = ignoreOperator ? [] : selectedOperators;
+
+  if(premiumFilterActive){
+    // "Premium" yoqilgan — kompaniyadan qat'iy nazar FAQAT admin "Mashhur
+    // raqamlarga qo'shish" (featured) belgilagan raqamlar. "Qidirish"
+    // bosilmasa ham darhol ko'rinadi; raqam kiritilgan bo'lsa o'sha naqsh
+    // bo'yicha ham (shu Premium to'plam ICHIDA) filtrlaydi.
+    return NUMBERS.filter(item=>{
+      if(!item.featured || item.reserved || item.dailyDeal === true) return false;
+      const local = getLocalDigits(item.number);
+      for(let i = 0; i < 7; i++){
+        if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
+      }
+      return true;
+    });
+  }
 
   if(!standardSearchTriggered){
     // Mijoz iltimosiga ko'ra: "Qidirish" bosilmaguncha pastdagi
@@ -4712,15 +4770,29 @@ function renderVipOpToggles(){
   const matches = showCounts ? getFilteredNumbers(true) : null;
   const allCount = showCounts ? matches.length : null;
   const allChipHtml = `
-    <button type="button" class="std-op-card vip-op-all${allSelected ? ' selected' : ''}" data-op="">
+    <button type="button" class="std-op-card vip-op-all${allSelected && !premiumFilterActive ? ' selected' : ''}" data-op="">
       <span class="opc-dot" style="background:#DCE6F7;box-shadow:inset -1px -1px 2px rgba(255,255,255,0.7), inset 1px 1px 2px rgba(150,168,204,0.4);">🌐</span>
       <span class="soc-name">${t('Barchasi')}</span>
       ${allCount !== null ? `<span class="soc-count">${allCount}</span>` : ''}
       <span class="soc-radio"></span>
     </button>`;
+  // "Premium" — kompaniyalarning oldida turadi. Bosilsa faqat admin
+  // "Mashhur raqamlarga qo'shish" belgilagan raqamlar chiqadi, hech qaysi
+  // kompaniya tagida ko'rinmaydi (kompaniya tanlovi bilan bir-birini
+  // istisno qiladi — pastdagi toggleVipOp shuni ta'minlaydi).
+  const premiumCount = showCounts ? NUMBERS.filter(x => x.featured && !x.reserved && x.dailyDeal !== true).length : null;
+  const premiumChipHtml = `
+    <button type="button" class="std-op-card vip-premium-chip${premiumFilterActive ? ' selected' : ''}" data-op="__premium__">
+      <span class="opc-dot premium-dot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2.4l2 1.5 2.5-.4.9 2.3 2.3.9-.4 2.5L20.9 11l1.5 2-1.5 2 .4 2.5-2.3.9-.9 2.3-2.5-.4-2 1.5-2-1.5-2.5.4-.9-2.3-2.3-.9.4-2.5L3.1 13l-1.5-2 1.5-2-.4-2.5 2.3-.9.9-2.3 2.5.4z"/><path d="M8.6 12.1l2.2 2.2 4.4-4.6" stroke-width="2.1" stroke-linecap="round"/></svg>
+      </span>
+      <span class="soc-name">Premium</span>
+      ${premiumCount !== null ? `<span class="soc-count">${premiumCount}</span>` : ''}
+      <span class="soc-radio"></span>
+    </button>`;
   const opsHtml = OPERATOR_PICKER_LIST.map(name=>{
     const meta = OPERATOR_META[name] || { color: '#6b7280', logo: null };
-    const selected = selectedOperators.includes(name);
+    const selected = !premiumFilterActive && selectedOperators.includes(name);
     const count = showCounts ? matches.filter(x => x.operator === name).length : null;
     const iconHtml = meta.logo
       ? `<img src="${meta.logo}" alt="">`
@@ -4733,14 +4805,21 @@ function renderVipOpToggles(){
         <span class="soc-radio"></span>
       </button>`;
   }).join('');
-  vipOpTogglesEl.innerHTML = allChipHtml + opsHtml;
+  vipOpTogglesEl.innerHTML = allChipHtml + premiumChipHtml + opsHtml;
 
   vipOpTogglesEl.querySelectorAll('.std-op-card').forEach(card=>{
-    card.addEventListener('click', ()=> toggleVipOp(card.dataset.op));
+    card.addEventListener('click', ()=>{
+      if(card.dataset.op === '__premium__'){ togglePremiumFilter(); return; }
+      toggleVipOp(card.dataset.op);
+    });
   });
 }
 
 function toggleVipOp(op){
+  // Kompaniya (yoki "Barchasi") aniq tanlansa — Premium filtri avtomatik
+  // o'chadi (ikkalasi birga yonmaydi).
+  premiumFilterActive = false;
+  syncPremiumToggleBtn();
   if(op === ''){
     selectedOperators = [];
   }else{
@@ -4751,6 +4830,23 @@ function toggleVipOp(op){
   currentPage = 0;
   updateSearchUI();
   renderCatalog();
+}
+
+// "Premium" — kartochkadan (operator qatoridagi) HAM, qidiruv tugmasi
+// yonidagi kichik "ptichka"dan HAM boshqarilishi mumkin — ikkalasi ham
+// bitta umumiy holatni (premiumFilterActive) ko'rsatadi/o'zgartiradi.
+function togglePremiumFilter(){
+  premiumFilterActive = !premiumFilterActive;
+  if(premiumFilterActive) selectedOperators = [];
+  syncPremiumToggleBtn();
+  renderVipOpToggles();
+  currentPage = 0;
+  updateSearchUI();
+  renderCatalog();
+}
+function syncPremiumToggleBtn(){
+  const btn = document.getElementById('premiumToggleBtn');
+  if(btn) btn.classList.toggle('active', premiumFilterActive);
 }
 
 // Eski nomi (updateOperatorLabel) boshqa joylarda ham chaqirilgani uchun
@@ -5024,7 +5120,18 @@ function setSearchBtnLoading(loading){
     }
   }
 }
+const premiumToggleBtn = document.getElementById('premiumToggleBtn');
+if(premiumToggleBtn) premiumToggleBtn.addEventListener('click', togglePremiumFilter);
+
 standardSearchBtn.addEventListener('click', ()=>{
+  if(premiumFilterActive){
+    // Premium yoqilgan bo'lsa jonli operator API'siga umuman murojaat
+    // qilinmaydi (Premium faqat VIP bazadagi "featured" raqamlar) — natija
+    // mahalliy naqsh bo'yicha darhol chiqadi.
+    currentPage = 0;
+    renderCatalog();
+    return;
+  }
   if(!currentPattern().some(d => d !== '')){
     // Mijoz iltimosiga ko'ra: raqam kiritilmagan bo'lsa ham endi
     // "Avval kamida bitta raqam kiriting" degan xatolik KO'RSATILMAYDI —
@@ -5051,6 +5158,8 @@ standardSearchBtn.addEventListener('click', ()=>{
 });
 clearSearchBtn.addEventListener('click', ()=>{
   selectedOperators = [];
+  premiumFilterActive = false;
+  syncPremiumToggleBtn();
   updateOperatorLabel();
   digitBoxes.forEach(box=>{ box.value=''; box.classList.remove('filled'); });
   currentPage = 0;
