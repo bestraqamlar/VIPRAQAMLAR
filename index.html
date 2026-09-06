@@ -27,6 +27,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&family=Nunito:wght@400;700;800&display=swap">
 
+<!-- Firebase/Firestore uchun DNS+TLS handshake ONA sahifa hali o'qilayotganda
+     ("parallel") boshlanadi — sekin internetda bu ~bir necha yuz millisoniya
+     yutib beradi (aks holda brauzer bu ulanishlarni sahifa OXIRIGA yetganda,
+     script teglariga yetganda, boshlab o'tirardi). -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://firestore.googleapis.com">
+
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VIP RAQAMLAR">
 <meta property="og:title" content="VIP RAQAMLAR — Chiroyli, Oltin va VIP Raqamlar">
@@ -2163,6 +2172,22 @@
   .co-step-line{width:36px;height:2px;background:var(--line);}
   .co-intro{color:var(--muted);font-size:12px;line-height:1.6;margin:0 0 14px;}
 
+  .co-op-select{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 14px;}
+  .co-op-btn{
+    border:1.5px solid var(--line);background:var(--panel-2);color:var(--text);
+    border-radius:10px;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .co-op-btn:hover{border-color:var(--amber);}
+  .co-op-btn.active{background:var(--amber);border-color:var(--amber);color:#1A1200;}
+  .co-price-result-row{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:3px 0;}
+  .co-price-result-row span:first-child{color:var(--muted);}
+  .co-price-old{text-decoration:line-through;color:var(--muted);font-size:12px;}
+  .co-price-badge{
+    display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;
+    background:rgba(231,76,60,.15);color:#E74C3C;margin-left:6px;
+  }
+
   .co-number-row{
     display:flex;align-items:center;gap:8px;margin-top:6px;
     background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;
@@ -3021,7 +3046,14 @@ html.theme-purple-premium .card button.order-btn{
     </div>
 
     <div id="coStep1">
-      <p class="co-intro" data-i18n="coIntro">Bizda hozircha mavjud bo'lmagan, lekin sizga yoqqan raqam naqshini buyurtma qilishingiz mumkin. Oxirgi 4 raqamni kiriting — operatorlarimiz mos raqam topib, narxini aytib beradi.</p>
+      <p class="co-intro" data-i18n="coIntro">Bizda hozircha mavjud bo'lmagan, lekin sizga yoqqan raqam naqshini buyurtma qilishingiz mumkin. Kompaniyani va oxirgi 4 raqamni tanlang — narxi va shartlari darhol chiqadi.</p>
+      <label data-i18n="coOperatorLabel">Kompaniyani tanlang</label>
+      <div class="co-op-select" id="coOpSelect">
+        <button type="button" class="co-op-btn" data-op="Ucell">🟣 Ucell</button>
+        <button type="button" class="co-op-btn" data-op="Humans">🟠 Humans</button>
+        <button type="button" class="co-op-btn" data-op="Beeline">🟡 Beeline</button>
+        <button type="button" class="co-op-btn" data-op="Mobiuz">🔴 Mobiuz</button>
+      </div>
       <label data-i18n="coPatternLabel">Xohlagan raqamingizning oxirgi 4 ta raqamini kiriting</label>
       <div class="co-number-row">
         <span class="co-prefix">+998 (XX)-XXX-</span>
@@ -3446,9 +3478,14 @@ async function loadNumbers(retryDelay){
     if(NUMBERS.length === 0){
       // Hali hech qanday ma'lumot yo'q — yuklanish animatsiyasini ko'rsatamiz va qayta urinamiz
       renderCatalog();
-      const nextDelay = Math.min((retryDelay || 2000) * 1.5, 15000);
-      setTimeout(() => loadNumbers(nextDelay), nextDelay);
     }
+    // Kesh bor-yo'qligidan qat'i nazar — orqa fonda jimgina qayta urinib
+    // turamiz (ortib boruvchi interval bilan, 60s'da to'xtaydi). Aks
+    // holda internet bir marta uzilib qolsa, mijoz eski keshdagi
+    // (masalan allaqachon sotilgan yoki narxi o'zgargan) raqamlarni
+    // sahifani qo'lda yangilamaguncha ko'rib o'tiraverardi.
+    const nextDelay = Math.min((retryDelay || 2000) * 1.5, 60000);
+    setTimeout(() => loadNumbers(nextDelay), nextDelay);
   }
 }
 
@@ -6108,6 +6145,8 @@ const coPatternInput = document.getElementById('coPatternInput');
 const coPriceResult = document.getElementById('coPriceResult');
 const coStep1Next = document.getElementById('coStep1Next');
 let coDraftPattern = '';
+let coDraftOperator = '';
+let coDraftPriceData = null; // number_price_categories'dan kelgan to'liq hujjat (topilsa)
 
 function coSetStep(step){
   const dot1 = document.getElementById('coDot1');
@@ -6123,6 +6162,9 @@ function openCustomOrderOverlay(){
   coStep2.style.display = 'none';
   coSuccessView.style.display = 'none';
   coPatternInput.value = '';
+  coDraftOperator = '';
+  coDraftPriceData = null;
+  document.querySelectorAll('#coOpSelect .co-op-btn').forEach(b => b.classList.remove('active'));
   coPriceResult.style.display = 'none';
   coStep1Next.style.display = 'none';
   document.getElementById('coName').value = '';
@@ -6135,6 +6177,15 @@ function openCustomOrderOverlay(){
 document.getElementById('customOrderClose').addEventListener('click', ()=> customOrderOverlay.classList.remove('open'));
 customOrderOverlay.addEventListener('click', (e)=>{ if(e.target === customOrderOverlay) customOrderOverlay.classList.remove('open'); });
 
+document.querySelectorAll('#coOpSelect .co-op-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    coDraftOperator = btn.dataset.op;
+    document.querySelectorAll('#coOpSelect .co-op-btn').forEach(b => b.classList.toggle('active', b === btn));
+    coPriceResult.style.display = 'none';
+    coStep1Next.style.display = 'none';
+  });
+});
+
 coPatternInput.addEventListener('input', ()=>{
   coPatternInput.value = coPatternInput.value.replace(/\D/g,'').slice(0,4);
   coPriceResult.style.display = 'none';
@@ -6143,28 +6194,55 @@ coPatternInput.addEventListener('input', ()=>{
 
 document.getElementById('coPriceBtn').addEventListener('click', async ()=>{
   const pattern = coPatternInput.value;
+  const isRu = window.currentLangMode === 'ru';
+  if(!coDraftOperator){
+    if(window.showToast) showToast(isRu ? 'Пожалуйста, выберите компанию' : 'Iltimos, kompaniyani tanlang', 2500);
+    return;
+  }
   if(pattern.length !== 4){
     if(window.showToast) showToast("Iltimos, 4 ta raqamni to'liq kiriting", 2500);
     return;
   }
   coDraftPattern = pattern;
   try{
-    const doc = await db.collection('number_price_categories').doc(pattern).get();
-    const isRu = window.currentLangMode === 'ru';
+    const doc = await db.collection('number_price_categories').doc(`${coDraftOperator}_${pattern}`).get();
+    const numLabel = `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)}`;
     if(doc.exists){
-      const startPrice = doc.data().startPrice || 0;
-      coPriceResult.innerHTML = isRu
-        ? `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)} — от <b>${formatPrice(startPrice)}</b>`
-        : `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)} — <b>${formatPrice(startPrice)}</b> dan boshlanadi`;
+      const d = doc.data();
+      coDraftPriceData = d;
+      const rows = [];
+      if(d.onSale && d.salePrice){
+        rows.push(`<div class="co-price-result-row"><span>${isRu?'Цена':'Narxi'}</span><span><s class="co-price-old">${formatPrice(d.fullPrice)}</s> <b>${formatPrice(d.salePrice)}</b><span class="co-price-badge">🔥 ${isRu?'АКЦИЯ':'AKSIYA'}</span></span></div>`);
+        if(d.saleMonthlyTariff) rows.push(`<div class="co-price-result-row"><span>${isRu?'Тариф/мес':'Oylik tarif'}</span><span><b>${formatPrice(d.saleMonthlyTariff)}</b></span></div>`);
+      }else{
+        rows.push(`<div class="co-price-result-row"><span>${isRu?'Цена':'Narxi'}</span><span><b>${formatPrice(d.fullPrice)}</b></span></div>`);
+        if(d.monthlyTariff) rows.push(`<div class="co-price-result-row"><span>${isRu?'Тариф/мес':'Oylik tarif'}</span><span><b>${formatPrice(d.monthlyTariff)}</b></span></div>`);
+      }
+      if(d.installmentAvailable){
+        rows.push(`<div class="co-price-result-row"><span>${isRu?'Рассрочка':"Bo'lib to'lash"}</span><span><b>${d.installmentMonths} ${isRu?'мес.':'oy'}, ${formatPrice(d.installmentMonthly)}/${isRu?'мес':'oy'}</b></span></div>`);
+        if(d.downPayment) rows.push(`<div class="co-price-result-row"><span>${isRu?'Первый взнос':"Bosh to'lov"}</span><span><b>${formatPrice(d.downPayment)}</b></span></div>`);
+      }
+      rows.push(`<div class="co-price-result-row"><span>${isRu?'Оформление':'Rasmiylashtirish'}</span><span>${d.ownershipTransfer ? (isRu?'✅ На ваше имя':'✅ Sizning nomingizga') : (isRu?'➖ Не переоформляется':"➖ Nomiga o'tkazilmaydi")}</span></div>`);
+      coPriceResult.innerHTML = `<div style="margin-bottom:6px;font-family:'Space Mono',monospace;color:var(--text);">${numLabel}</div>${rows.join('')}`;
     }else{
+      coDraftPriceData = null;
       coPriceResult.innerHTML = isRu
-        ? 'Цена ещё не установлена — оставьте заявку, мы сообщим цену.'
-        : "Narx hali belgilanmagan — buyurtma qoldiring, sizga aytamiz.";
+        ? `${numLabel}<br><br>Цена ещё не установлена — оставьте заявку, мы сообщим цену.`
+        : `${numLabel}<br><br>Narx hali belgilanmagan — buyurtma qoldiring, sizga aytamiz.`;
     }
     coPriceResult.style.display = 'block';
     coStep1Next.style.display = 'block';
   }catch(err){
-    if(window.showToast) showToast('Xato: ' + err.message, 3000);
+    // Internet/Firestore vaqtincha ishlamasa ham mijoz buyurtma berishda
+    // to'xtab qolmasin — narx "hali belgilanmagan" holatiga o'tkazib,
+    // baribir davom etish imkonini beramiz.
+    coDraftPriceData = null;
+    const numLabel = `+998 (XX)-XXX-${pattern.slice(0,2)}-${pattern.slice(2)}`;
+    coPriceResult.innerHTML = isRu
+      ? `${numLabel}<br><br>Цена ещё не установлена — оставьте заявку, мы сообщим цену.`
+      : `${numLabel}<br><br>Narx hali belgilanmagan — buyurtma qoldiring, sizga aytamiz.`;
+    coPriceResult.style.display = 'block';
+    coStep1Next.style.display = 'block';
   }
 });
 
@@ -6197,10 +6275,23 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
   btn.textContent = t('Yuborilmoqda...');
 
   try{
+    const d = coDraftPriceData;
     await db.collection('custom_orders').add({
       pattern: coDraftPattern,
+      operator: coDraftOperator,
       name, region, phone,
       status: 'Yangi',
+      source: 'Sayt',
+      fullPrice: d ? (d.fullPrice || 0) : 0,
+      monthlyTariff: d ? (d.monthlyTariff || 0) : 0,
+      onSale: d ? !!d.onSale : false,
+      salePrice: d ? (d.salePrice || 0) : 0,
+      saleMonthlyTariff: d ? (d.saleMonthlyTariff || 0) : 0,
+      installmentAvailable: d ? !!d.installmentAvailable : false,
+      installmentMonths: d ? (d.installmentMonths || 0) : 0,
+      installmentMonthly: d ? (d.installmentMonthly || 0) : 0,
+      downPayment: d ? (d.downPayment || 0) : 0,
+      ownershipTransfer: d ? !!d.ownershipTransfer : false,
       createdAt: new Date().toLocaleString('uz-UZ'),
       createdAtSort: Date.now()
     });
@@ -6383,7 +6474,7 @@ let hideOrderButtonSetting = !!window.__cachedHideOrderBtn;
 let currentCatalogStyle = window.__cachedCatalogStyle || 'classic';
 let installmentRates = { 6: 5, 12: 10, 24: 20, 36: 30 }; // standart foizlar — admin panelda o'zgartiriladi, mijozga ko'rinmaydi
 
-async function loadSiteSettings(){
+async function loadSiteSettings(retryDelay){
   try{
     const doc = await withClientTimeout(db.collection('site_settings').doc('general').get(), 10000);
     if(!doc.exists){ if(window.__revealSite) window.__revealSite(); return; }
@@ -6484,8 +6575,20 @@ async function loadSiteSettings(){
 
     if(window.__revealSite) window.__revealSite();
   }catch(e){
+    // MUHIM: sekin/uzilib turuvchi internetda bu so'rov ko'pincha
+    // birinchi urinishda muvaffaqiyatsiz tugaydi (yoki 10s ichida javob
+    // kelmaydi). ILGARI bu yerda hech qanday qayta urinish YO'Q edi —
+    // shu sabab admin panelda rang/shrift/uslub o'zgartirilgan bo'lsa
+    // ham, mijoz sekin internetda doim ESKI (localStorage'dagi yoki
+    // standart) ko'rinishda qolib ketardi, sahifani qo'lda yangilamasa
+    // ham tuzalmasdi. Endi — sahifa sekinlik uchun kutdirilmaydi (darhol
+    // ko'rinadi, bor keshi bilan), LEKIN orqa fonda jimgina, ortib
+    // boruvchi interval bilan qayta urinishda davom etadi, internet
+    // tiklangan zahoti to'g'ri dizayn o'zi almashadi.
     console.error('Sozlamalarni yuklashda xato:', e);
     if(window.__revealSite) window.__revealSite();
+    const nextDelay = Math.min((retryDelay || 3000) * 1.5, 60000);
+    setTimeout(() => loadSiteSettings(nextDelay), nextDelay);
   }
 }
 /* ===========================================================
