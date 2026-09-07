@@ -1917,10 +1917,11 @@
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     /* Mijoz iltimosiga ko'ra: oddiy statik ramka o'rniga, Instagram
-       "story" doiralaridagi kabi ZAMONAVIY, aylanib turadigan rang-barang
-       gradient ramka — pastdagi ::before shu gradientni aylantirib
-       turadi, kartaning O'ZI (opaque fon) esa uni faqat nozik chekka
-       (halqacha) sifatida ko'rsatadi. */
+       "story" doiralaridagi kabi ZAMONAVIY rang-barang gradient CHIZIQ
+       (ramka) — pastdagi ::before shu gradientni beradi, ::after esa
+       uning USTIDAN kartaning O'ZI rangidagi "niqob"ni qo'yib, faqat
+       2.5px'lik nozik chiziq (halqa) qolib, qolgani (raqam/narx turgan
+       joy) butunlay toza qoladi. */
     flex:0 0 150px;border-radius:12px;padding:10px;
     border:none;position:relative;z-index:0;
     background:var(--panel);
@@ -1934,9 +1935,19 @@
        (faqat 2.5px'lik nozik halqa), FAQAT ranglar joyida sekin
        "chayqalib" harakatlanadi (hue-rotate filtri orqali) — Instagram
        story ramkasidagi kabi tirik, lekin faqat CHETDA. */
-    content:'';position:absolute;inset:-2.5px;border-radius:14.5px;z-index:-1;
+    content:'';position:absolute;inset:-2.5px;border-radius:14.5px;z-index:-2;
     background:conic-gradient(from 0deg, #f9ce34, #ee2a7b, #6228d7, #4a4de7, #f9ce34);
     animation:ddRingHue 3.4s linear infinite;
+  }
+  .daily-deal-card::after{
+    /* MUHIM: negativ z-index'li ::before ota-elementning FONI ustidan
+       chiziladi (uning OSTIDAN emas) — shu sabab avval faqat ::before
+       qo'yilganda gradient BUTUN karta yuzida ko'rinib qolgan edi. Bu
+       ::after aynan shu muammoni tuzatadi: kartaning ICHKI yuzasini
+       (chiziqdan boshqa hammasini) qayta yopib, faqat chetdagi nozik
+       rang-barang chiziq ko'rinib qoladi. */
+    content:'';position:absolute;inset:0;border-radius:12px;z-index:-1;
+    background:var(--panel);
   }
   @keyframes ddRingHue{ to{ filter:hue-rotate(360deg); } }
   @media (prefers-reduced-motion:reduce){ .daily-deal-card::before{ animation:none; } }
