@@ -71,13 +71,14 @@
    rang, keyin to'g'ri rangga almashish" holati BIRINCHI tashrifda ham
    umuman ko'rinmaydi. */
 (function(){
-  // O'ng panel yopiq holatda qoldirilganmi — sahifa chizilmasdan oldin
-  // qo'llaymiz, aks holda panel bir lahza ochilib keyin yopilardi.
-  try{
-    if(localStorage.getItem('drawerClosed') === '1'){
-      document.documentElement.classList.add('drawer-closed');
-    }
-  }catch(_){}
+  // Mijoz iltimosiga ko'ra: kompyuterda o'ng panel ENDI UMUMAN
+  // YOPILMAYDI (doimiy ochiq turadi) — shu sabab avvalgi "yopiq holatni
+  // eslab qolish" funksiyasi butunlay OLIB TASHLANDI. Eski
+  // tashrifchilarning brauzerida qolgan localStorage'dagi eski qiymat
+  // ham tozalanadi, shunda panel HECH QACHON yashirin holda qolib
+  // ketmaydi.
+  try{ localStorage.removeItem('drawerClosed'); }catch(_){}
+  document.documentElement.classList.remove('drawer-closed');
 })();
 (function(){
   function showNow(){
@@ -379,6 +380,39 @@
   .lang-opt svg{border-radius:2px;flex-shrink:0;}
   .lang-opt:hover{background:var(--panel-2);color:var(--text);}
   .lang-opt.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
+
+  /* Valyuta (UZS/USD) tanlash — til tanlashdagi bilan bir xil dropdown
+     mantiqda, lekin ko'rinishi mijoz yuborgan rasmga o'xshab bayroqcha +
+     kod (UZS/USD) yozuvi + pastga qaragan strelka bilan, ingichka
+     chegarali to'rtburchak tugma sifatida. */
+  .currency-switch-wrap{position:relative;}
+  .currency-flag-btn{
+    display:flex;align-items:center;gap:6px;
+    background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:6px 9px;cursor:pointer;color:var(--text);
+    transition:border-color .15s ease;
+  }
+  .currency-flag-btn:hover{border-color:var(--amber);}
+  .currency-flag-btn svg:first-of-type, .currency-flag-btn svg:nth-of-type(2){
+    border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,0.15);flex-shrink:0;
+  }
+  .currency-flag-btn .curr-code{font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;}
+  .currency-flag-btn .curr-chevron{flex-shrink:0;opacity:.7;}
+  .currency-dropdown{
+    position:absolute;top:46px;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:6px;display:none;flex-direction:column;gap:3px;z-index:40;
+    box-shadow:0 10px 24px rgba(0,0,0,0.35);min-width:110px;
+  }
+  .currency-dropdown.open{display:flex;}
+  .currency-opt{
+    background:none;border:1px solid transparent;border-radius:7px;
+    padding:8px 10px;font-size:12.5px;font-weight:700;color:var(--muted);
+    text-align:left;cursor:pointer;transition:all .15s ease;
+    display:flex;align-items:center;gap:8px;
+  }
+  .currency-opt svg{border-radius:2px;flex-shrink:0;}
+  .currency-opt:hover{background:var(--panel-2);color:var(--text);}
+  .currency-opt.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
 
   .drawer-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.55);
@@ -913,8 +947,19 @@
        kesilib qolmasin, buning o'rniga butun qator svayp qilinadi. */
     display:flex;align-items:center;gap:6px;padding:6px 11px 6px 8px;border-radius:9px;
     border:1.5px solid #E4E9F3;background:#FBFCFF;cursor:pointer;flex:none;
+    position:relative;
     transition:transform .15s cubic-bezier(.34,1.56,.64,1), border-color .18s ease,
       background .18s ease, box-shadow .18s ease;
+  }
+  /* Mijoz iltimosiga ko'ra: qaysi kompaniya kartochkasi TANLANGANI hozir
+     yetarlicha aniq bilinmayapti (fon/border farqi juda ingichka). Shu
+     sabab pastki chetida — ICHIDAGI logo/yozuv rangiga umuman TEGMAY —
+     "Buyurtma berish" tugmasi bilan bir xil ko'k rangda, chetning ~30%
+     qismini egallaydigan ANIQ, mustahkam belgi (chiziqcha) qo'shiladi. */
+  .std-op-card.selected::after{
+    content:'';position:absolute;left:50%;bottom:-1.5px;transform:translateX(-50%);
+    width:30%;min-width:20px;height:3px;border-radius:3px;
+    background:var(--btn-bg, #2F6BE0);
   }
   .std-op-card:active{transform:scale(0.96);}
   .std-op-card img{width:15px;height:15px;object-fit:contain;border-radius:4px;background:#fff;flex:none;}
@@ -2579,15 +2624,18 @@
       width:380px;max-width:380px;
       transform:translateX(0);
       box-shadow:-4px 0 24px rgba(0,0,0,0.25);
-      border-left:1px solid var(--line);
     }
-    /* Katta ekranda ham panel yopilishi mumkin. Yopilganda sahifa butun
-       kenglikni egallaydi, ochish uchun yuqoridagi menyu tugmasi chiqadi.
-       Tanlov localStorage'da saqlanadi — keyingi tashrifda ham o'sha holat. */
-    html.drawer-closed body{margin-right:0;}
-    html.drawer-closed .side-drawer{transform:translateX(100%);}
-    html.drawer-closed .menu-btn{display:flex;}
-    .drawer-close{display:flex;}
+    /* Mijoz iltimosiga ko'ra: kompyuterda panel bilan sahifaning bosh
+       header qatori orasidagi (va panel ICHIDAGI "VIP RAQAMLAR" sarlavha
+       qatori bilan menyu ro'yxati orasidagi) oq ajratuvchi chiziqlar
+       OLIB TASHLANADI — hammasi bir xil, uzluksiz oq maydon bo'lib
+       birlashib ko'rinsin deb. */
+    .drawer-top{border-bottom:none;margin-bottom:0;}
+    /* Mijoz iltimosiga ko'ra: kompyuterda panel ENDI UMUMAN YOPILMAYDI —
+       doimiy ochiq turadi, shu sabab yopish ("X") tugmasi kompyuterda
+       butunlay YASHIRILADI (faqat telefon/planshetdagi ustidan chiqadigan
+       menyuda kerak). */
+    .drawer-close{display:none;}
     footer{padding:30px 20px 40px;}
   }
   /* ---- "Lyuks Premium" mavzusi uchun — sekinroq, nafisroq o'tishlar.
@@ -2825,6 +2873,18 @@ html.theme-purple-premium .card button.order-btn{
     <span class="hrb-text">RELS</span>
   </button>
   <div class="header-right-group">
+    <div class="currency-switch-wrap">
+      <button type="button" class="currency-flag-btn" id="currencyFlagBtn" aria-label="Valyuta tanlash">
+        <svg id="currFlagSvgUzs" viewBox="0 0 32 20" width="20" height="13"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/><circle cx="5.4" cy="3" r="1.8" fill="#fff"/><circle cx="6.1" cy="3" r="1.5" fill="#0099b5"/></svg>
+        <svg id="currFlagSvgUsd" viewBox="0 0 32 20" width="20" height="13" style="display:none;"><rect width="32" height="20" fill="#fff"/><rect width="32" height="1.54" y="0" fill="#B22234"/><rect width="32" height="1.54" y="3.08" fill="#B22234"/><rect width="32" height="1.54" y="6.16" fill="#B22234"/><rect width="32" height="1.54" y="9.24" fill="#B22234"/><rect width="32" height="1.54" y="12.32" fill="#B22234"/><rect width="32" height="1.54" y="15.4" fill="#B22234"/><rect width="32" height="1.54" y="18.48" fill="#B22234"/><rect width="14" height="11.5" fill="#3C3B6E"/></svg>
+        <span class="curr-code" id="currCodeLabel">UZS</span>
+        <svg class="curr-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="currency-dropdown" id="currencyDropdown">
+        <button type="button" class="currency-opt active" data-currency="uzs"><svg viewBox="0 0 32 20" width="18" height="12"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/></svg>UZS</button>
+        <button type="button" class="currency-opt" data-currency="usd"><svg viewBox="0 0 32 20" width="18" height="12"><rect width="32" height="20" fill="#fff"/><rect width="32" height="1.54" y="0" fill="#B22234"/><rect width="32" height="1.54" y="3.08" fill="#B22234"/><rect width="32" height="1.54" y="6.16" fill="#B22234"/><rect width="32" height="1.54" y="9.24" fill="#B22234"/><rect width="32" height="1.54" y="12.32" fill="#B22234"/><rect width="32" height="1.54" y="15.4" fill="#B22234"/><rect width="32" height="1.54" y="18.48" fill="#B22234"/><rect width="14" height="11.5" fill="#3C3B6E"/></svg>USD</button>
+      </div>
+    </div>
     <div class="lang-switch-wrap">
       <button type="button" class="lang-flag-btn" id="langFlagBtn" aria-label="Til tanlash">
         <svg id="langFlagSvgUz" viewBox="0 0 32 20" width="26" height="17"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/><circle cx="6.2" cy="3" r="2.1" fill="#fff"/><circle cx="7.1" cy="3" r="1.8" fill="#0099b5"/><g fill="#fff"><circle cx="11" cy="1.3" r="0.4"/><circle cx="13" cy="1.3" r="0.4"/><circle cx="15" cy="1.3" r="0.4"/><circle cx="11" cy="3" r="0.4"/><circle cx="13" cy="3" r="0.4"/><circle cx="15" cy="3" r="0.4"/><circle cx="11" cy="4.7" r="0.4"/><circle cx="13" cy="4.7" r="0.4"/><circle cx="15" cy="4.7" r="0.4"/></g></svg>
@@ -3364,7 +3424,7 @@ html.theme-purple-premium .card button.order-btn{
         </div>
         <div class="ic-row">
           <span class="ic-months"><span id="icMonthsValue">6</span> oyga</span>
-          <span class="ic-monthly">oyiga <b id="icMonthlyValue">0</b> so'm</span>
+          <span class="ic-monthly">oyiga <b id="icMonthlyValue">0 so'm</b></span>
         </div>
       </div>
 
@@ -3524,7 +3584,36 @@ function formatUzNumber(rawDigits){
   if(rawDigits.length > 7) out += '-' + rawDigits.slice(7,9);
   return out;
 }
+// --- Valyuta (UZS / USD) ---
+// Mijoz iltimosiga ko'ra: USD tanlansa, SAYTDAGI BARCHA narx (bazadagi
+// VIP raqamlar, serverdan jonli qidirilgan STANDART raqamlar, bo'lib
+// to'lash oylik to'lovlari, chegirmalar, savat/buyurtma xulosalari —
+// hammasi, bittasi ham qolmasdan) shu YAGONA formatPrice() funksiyasi
+// orqali chiqadi, shu sabab konvertatsiya FAQAT shu yerda qilinsa yetarli.
+window.currentCurrency = 'uzs';
+const USD_RATE = 12000;
+// Mijoz aniq ko'rsatgan yaxlitlash qoidasi: kasr qismi 0.5 dan KATTA
+// bo'lsagina yuqoriga (masalan 11.6 -> 12), aks holda (11.5 -> 11 ham)
+// pastga yaxlitlanadi.
+function usdRound(x){
+  const fl = Math.floor(x);
+  const frac = x - fl;
+  return frac > 0.5 ? fl + 1 : fl;
+}
 function formatPrice(n){
+  if(window.currentCurrency === 'usd'){
+    const usd = usdRound(Number(n) / USD_RATE);
+    return '$' + usd.toLocaleString('en-US');
+  }
+  return formatPriceUzs(n);
+}
+// Mijozning ekranidagi valyuta tanloviga (USD/UZS) BOG'LIQ BO'LMAGAN,
+// har doim HAQIQIY so'm summasini qaytaradigan format — bu FAQAT admin/
+// Telegram'ga ketadigan ICHKI xabarlar uchun ishlatiladi (masalan
+// sendOrderToTelegram), toki mijoz brauzerida USD tanlagani sababli
+// bizneszning haqiqiy buyurtma yozuvi noto'g'ri (dollarda) ko'rinib
+// qolmasin.
+function formatPriceUzs(n){
   const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
   return num + (window.currentLangMode === 'ru' ? " сум" : " so'm");
 }
@@ -3539,6 +3628,12 @@ function installmentMonthlyFor(item, months){
   return Math.ceil(totalWithMarkup / months / 1000) * 1000;
 }
 function formatInstallmentTeaser(monthly, months){
+  if(window.currentCurrency === 'usd'){
+    const usd = usdRound(Number(monthly) / USD_RATE);
+    return window.currentLangMode === 'ru'
+      ? `от $${usd.toLocaleString('en-US')} / ${months} мес.`
+      : `$${usd.toLocaleString('en-US')} dan / ${months} oy`;
+  }
   const numStr = Number(monthly).toLocaleString('ru-RU').replace(/,/g,' ');
   return window.currentLangMode === 'ru'
     ? `от ${numStr} сум / ${months} мес.`
@@ -3659,6 +3754,18 @@ let selectedOperators = [];
 // qo'shish" (featured) belgilagan raqamlarni ko'rsatadi. Kompaniya tanlovi
 // bilan bir-birini istisno qiladi (ikkalasi birga yoqilmaydi).
 let premiumFilterActive = false;
+// Mijoz iltimosiga ko'ra: "Premium" bosilgan HAR SAFAR (yoqilganda)
+// raqamlar YANGI, tasodifiy tartibda ko'rsatiladi — shu ro'yxat
+// har faollashtirilganda qayta aralashtiriladi (pastda togglePremiumFilter).
+let premiumShuffledList = [];
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 function currentPattern(){ return digitBoxes.map(box => box.value.trim()); }
 function isSearchActive(){ return selectedOperators.length > 0 || currentPattern().some(d => d !== '') || premiumFilterActive; }
@@ -3685,11 +3792,12 @@ function getFilteredNumbers(ignoreOperator){
 
   if(premiumFilterActive){
     // "Premium" yoqilgan — kompaniyadan qat'iy nazar FAQAT admin "Mashhur
-    // raqamlarga qo'shish" (featured) belgilagan raqamlar. "Qidirish"
-    // bosilmasa ham darhol ko'rinadi; raqam kiritilgan bo'lsa o'sha naqsh
-    // bo'yicha ham (shu Premium to'plam ICHIDA) filtrlaydi.
-    return NUMBERS.filter(item=>{
-      if(!item.featured || item.reserved || item.dailyDeal === true || item.installment) return false;
+    // raqamlarga qo'shish" (featured) belgilagan raqamlar, HAR SAFAR
+    // yoqilganda tasodifiy aralashtirilgan tartibda (premiumShuffledList,
+    // qarang: togglePremiumFilter). "Qidirish" bosilmasa ham darhol
+    // ko'rinadi; raqam kiritilgan bo'lsa o'sha naqsh bo'yicha ham (shu
+    // Premium to'plam ICHIDA, tasodifiy tartib buzilmasdan) filtrlaydi.
+    return premiumShuffledList.filter(item=>{
       const local = getLocalDigits(item.number);
       for(let i = 0; i < 7; i++){
         if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
@@ -4980,7 +5088,13 @@ function toggleVipOp(op){
 // bitta umumiy holatni (premiumFilterActive) ko'rsatadi/o'zgartiradi.
 function togglePremiumFilter(){
   premiumFilterActive = !premiumFilterActive;
-  if(premiumFilterActive) selectedOperators = [];
+  if(premiumFilterActive){
+    selectedOperators = [];
+    // Har faollashtirilganda ro'yxat YANGI tasodifiy tartibda.
+    premiumShuffledList = shuffleArray(
+      NUMBERS.filter(item => item.featured && !item.reserved && item.dailyDeal !== true && !item.installment)
+    );
+  }
   syncPremiumToggleBtn();
   renderVipOpToggles();
   currentPage = 0;
@@ -5392,7 +5506,7 @@ function selectInstallmentMonths(months){
   const totalWithMarkup = (selectedPrice || 0) * (1 + rate / 100);
   const monthly = Math.ceil(totalWithMarkup / months / 1000) * 1000;
   selectedMonthlyPayment = monthly;
-  icMonthlyValue.textContent = formatPrice(monthly).replace(" so'm", '');
+  icMonthlyValue.textContent = formatPrice(monthly);
 }
 icTabButtons.forEach(btn => btn.addEventListener('click', ()=> selectInstallmentMonths(Number(btn.dataset.months))));
 
@@ -5595,7 +5709,7 @@ function validate(){
 /* Har bir buyurtma yuborilganda Netlify Function orqali (token ochiq ko'rinmaydi) Telegram'ga xabar ketadi */
 async function sendOrderToTelegram(payload, time, orderId){
   const paymentLine = payload.paymentType === 'installment'
-    ? `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPrice(payload.monthlyPayment)}dan`
+    ? `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPriceUzs(payload.monthlyPayment)}dan`
     : `💵 To'lov turi: Naqt to'lov`;
   const text =
 `🔔 Yangi buyurtma
@@ -5939,11 +6053,11 @@ const sideDrawer   = document.getElementById('sideDrawer');
 const drawerOverlay= document.getElementById('drawerOverlay');
 const drawerClose  = document.getElementById('drawerClose');
 
-/* Katta ekranda panel doimiy yopishtirilgan (media query 1024px+), kichik
-   ekranda esa ustidan chiqadigan menyu. Yopish tugmasi endi ikkalasida ham
-   ishlaydi: kichik ekranda menyuni yopadi, kattasida panelni butunlay
-   olib qo'yadi va tanlovni eslab qoladi. */
-const DRAWER_CLOSED_KEY = 'drawerClosed';
+/* Katta ekranda panel DOIMIY OCHIQ turadi va ENDI UMUMAN YOPILMAYDI
+   (mijoz iltimosiga ko'ra — avval "X" bosilsa butunlay yopilib,
+   localStorage'da eslab qolinardi, bu OLIB TASHLANDI). Kichik ekranda
+   esa avvalgidek — ustidan chiqadigan (overlay) menyu, ochish/yopish
+   tugmalari faqat SHU holatni boshqaradi. */
 function isWideScreen(){
   return window.matchMedia('(min-width:1024px)').matches;
 }
@@ -5951,17 +6065,15 @@ function isWideScreen(){
 function openDrawer(){
   sideDrawer.classList.add('open');
   drawerOverlay.classList.add('open');
-  document.documentElement.classList.remove('drawer-closed');
-  try{ localStorage.removeItem(DRAWER_CLOSED_KEY); }catch(_){}
   initYandexOfficeMap();
 }
 function closeDrawer(){
+  // Katta ekranda (kompyuter) bu funksiya endi HECH NARSA qilmaydi —
+  // panel doimiy ochiq qoladi. Faqat kichik ekranda overlay-menyuni
+  // yopadi.
+  if(isWideScreen()) return;
   sideDrawer.classList.remove('open');
   drawerOverlay.classList.remove('open');
-  if(isWideScreen()){
-    document.documentElement.classList.add('drawer-closed');
-    try{ localStorage.setItem(DRAWER_CLOSED_KEY, '1'); }catch(_){}
-  }
 }
 menuBtn.addEventListener('click', openDrawer);
 drawerClose.addEventListener('click', closeDrawer);
@@ -7103,6 +7215,41 @@ function setLanguage(lang){
   document.addEventListener('click', ()=> dropdown.classList.remove('open'));
 
   if(saved !== 'uz') applyCurrentLanguage();
+})();
+
+// Mijoz iltimosiga ko'ra: til tanlashdagi bilan BIR XIL, oddiy va
+// ishonchli usul — tanlov localStorage'ga saqlanadi va sahifa qayta
+// yuklanadi, shunda BARCHA narx ko'rsatuvchi joy (formatPrice orqali)
+// yangi valyutada, birortasi ham qolmasdan qayta chiziladi.
+function setCurrency(cur){
+  try{ localStorage.setItem('raqamuz_currency', cur); }catch(e){}
+  location.reload();
+}
+(function initCurrencySwitcher(){
+  let saved = 'uzs';
+  try{ saved = localStorage.getItem('raqamuz_currency') || 'uzs'; }catch(e){}
+  window.currentCurrency = saved;
+
+  const flagBtn = document.getElementById('currencyFlagBtn');
+  const dropdown = document.getElementById('currencyDropdown');
+  const codeLabel = document.getElementById('currCodeLabel');
+  if(!flagBtn || !dropdown) return;
+  document.getElementById('currFlagSvgUzs').style.display = saved === 'usd' ? 'none' : 'block';
+  document.getElementById('currFlagSvgUsd').style.display = saved === 'usd' ? 'block' : 'none';
+  if(codeLabel) codeLabel.textContent = saved === 'usd' ? 'USD' : 'UZS';
+
+  document.querySelectorAll('.currency-opt').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.currency === saved);
+    btn.addEventListener('click', ()=>{
+      dropdown.classList.remove('open');
+      if(btn.dataset.currency !== window.currentCurrency) setCurrency(btn.dataset.currency);
+    });
+  });
+  flagBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', ()=> dropdown.classList.remove('open'));
 })();
 
 loadSiteSettings();
