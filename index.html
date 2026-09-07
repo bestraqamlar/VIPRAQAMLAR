@@ -827,7 +827,7 @@
        farqli, chegara toza va tushunarli). */
     flex:0 0 auto;box-sizing:border-box;
     width:var(--digit-box-w);height:var(--digit-box-h);
-    background:var(--scm-digit-bg);border:1.5px solid var(--scm-digit-border);border-radius:12px;
+    background:var(--scm-digit-bg);border:1.5px solid var(--btn-bg, #2F6BE0);border-radius:12px;
     color:var(--scm-digit-text);font-family:'Sora',sans-serif;
     font-size:clamp(18px,5vw,23px);font-weight:800;
     /* Turli shriftlar (masalan "X" belgisi uchun Nunito) balandlik
@@ -1200,6 +1200,21 @@
   .price-row .old-price{
     font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;
   }
+  /* "Bo'lib to'lashga Raqamlar" oynasidagi "Keyingisi" (yana 8 tasini
+     ochish) tugmasi — "Buyurtma berish" tugmasi bilan bir xil uslubda. */
+  .installment-more-btn{
+    display:block;width:fit-content;margin:4px auto 24px;padding:12px 34px;
+    background:linear-gradient(180deg,
+      color-mix(in srgb, var(--btn-bg, #1D2A44) 100%, white 14%),
+      var(--btn-bg, #1D2A44) 65%);
+    color:var(--btn-text, #fff);
+    border:var(--btn-border-width, 1px) solid var(--btn-border-color, rgba(255,255,255,0.18));
+    border-radius:var(--btn-radius, 9px);
+    font-weight:700;font-size:14px;cursor:pointer;
+    box-shadow:0 8px 18px -8px color-mix(in srgb, var(--btn-bg, #1D2A44) 65%, transparent);
+    transition:transform .16s cubic-bezier(.34,1.56,.64,1), opacity .12s ease;
+  }
+  .installment-more-btn:active{transform:scale(0.96);}
   .installment-tag{
     display:inline-flex;align-items:center;gap:5px;
     background:rgba(255,176,0,0.12);border:1px solid rgba(255,176,0,0.3);
@@ -1928,12 +1943,13 @@
     /* Mijoz iltimosiga ko'ra: ODDIY, QIMIRLAMAYDIGAN ramka (oddiy CSS
        border — pseudo-element yoki border-image EMAS, chunki
        border-image burchaklarni border-radius bilan TO'G'RI
-       dumaloqlamaydi, burchaklarda xunuk chiziq qoldiradi). Rang esa
-       oddiy pushtidan — to'q sariq/oltin (sabzi-rang) PREMIUM ko'rinishga
-       almashtirildi, atrofida yengil charaqlash (glow) bilan. */
+       dumaloqlamaydi, burchaklarda xunuk chiziq qoldiradi). Rang endi
+       "Buyurtma berish" tugmasi bilan AYNAN bir xil (--btn-bg) ko'k —
+       shu bilan admin qaysi mavzuni (theme) tanlasa ham ikkalasi doim
+       mos keladi. */
     flex:0 0 150px;border-radius:12px;padding:10px;
-    border:2.5px solid #E8891B;
-    box-shadow:0 0 0 1px rgba(232,137,27,.25), 0 4px 14px -6px rgba(232,137,27,.55);
+    border:2.5px solid var(--btn-bg, #2F6BE0);
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--btn-bg, #2F6BE0) 25%, transparent), 0 4px 14px -6px color-mix(in srgb, var(--btn-bg, #2F6BE0) 55%, transparent);
     background:var(--panel);
     display:flex;flex-direction:column;min-height:130px;
     scroll-snap-align:start;
@@ -2531,6 +2547,13 @@
     .catalog{
       grid-template-columns:repeat(2,1fr);
       gap:24px;padding:24px 40px 40px;
+    }
+    /* Mijoz iltimosiga ko'ra: "Bo'lib to'lashga Raqamlar" oynasidagi
+       katalog kompyuterda 2 EMAS, 3 ustunli bo'lsin (asosiy katalog
+       o'zining 2 ustunida qolaveradi — shu sabab ID orqali aniq
+       cheklangan). */
+    #installmentCatalogGrid{
+      grid-template-columns:repeat(3,1fr);
     }
     .card{transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
     .card:hover{
@@ -6135,14 +6158,29 @@ favoritesOverlay.addEventListener('click', (e)=>{ if(e.target === favoritesOverl
 const installmentOverlay = document.getElementById('installmentOverlay');
 const installmentCatalogGrid = document.getElementById('installmentCatalogGrid');
 
+// Mijoz iltimosiga ko'ra: hammasi birdaniga EMAS, bir vaqtda 8 tadan
+// ko'rsatiladi, pastida "Keyingisi" tugmasi bosilganda YANA 8 tasi
+// (mavjud kartochkalar YO'QOTILMASDAN, ustiga qo'shilib) ochiladi.
+const INSTALLMENT_PAGE_SIZE = 8;
+let installmentAllPicks = [];
+let installmentShownCount = 0;
+
 function renderInstallmentNumbersList(){
-  const picks = NUMBERS.filter(item => item.installment === true && !item.reserved);
-  if(picks.length === 0){
+  installmentAllPicks = NUMBERS.filter(item => item.installment === true && !item.reserved);
+  installmentShownCount = 0;
+  installmentCatalogGrid.innerHTML = '';
+  const oldMoreBtn = document.getElementById('installmentMoreBtn');
+  if(oldMoreBtn) oldMoreBtn.remove();
+  if(installmentAllPicks.length === 0){
     installmentCatalogGrid.innerHTML = `<div class="empty-state">${t("Hozircha bo'lib to'lashga raqamlar yo'q.")}</div>`;
     return;
   }
-  installmentCatalogGrid.innerHTML = '';
-  picks.forEach(item=>{
+  appendInstallmentCards(INSTALLMENT_PAGE_SIZE);
+}
+
+function appendInstallmentCards(count){
+  const nextBatch = installmentAllPicks.slice(installmentShownCount, installmentShownCount + count);
+  nextBatch.forEach(item=>{
     const card = document.createElement('div');
     card.className = 'card cs-classic';
     card.dataset.id = item.id;
@@ -6152,8 +6190,27 @@ function renderInstallmentNumbersList(){
       const header = card.querySelector('.card-header');
       if(header) header.insertAdjacentHTML('beforeend', badge);
     }
+    // Kartochka .card klassida allaqachon o'zining "cardPopIn" kirish
+    // animatsiyasi bor (base CSS) — shu sabab "Keyingisi" bosilganda
+    // yangi qo'shilgan kartochkalar avtomatik ravishda zamonaviy
+    // paydo bo'lish animatsiyasi bilan ochiladi, qo'shimcha kod shart emas.
     installmentCatalogGrid.appendChild(card);
   });
+  installmentShownCount += nextBatch.length;
+  renderInstallmentMoreButton();
+}
+
+function renderInstallmentMoreButton(){
+  const oldBtn = document.getElementById('installmentMoreBtn');
+  if(oldBtn) oldBtn.remove();
+  if(installmentShownCount >= installmentAllPicks.length) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'installmentMoreBtn';
+  btn.className = 'installment-more-btn';
+  btn.textContent = t('Keyingisi');
+  btn.addEventListener('click', ()=> appendInstallmentCards(INSTALLMENT_PAGE_SIZE));
+  installmentCatalogGrid.insertAdjacentElement('afterend', btn);
 }
 
 // Belgi (sevimlilar) va "Buyurtma berish" — xuddi asosiy katalogdagidek
