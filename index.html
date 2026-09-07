@@ -1927,11 +1927,18 @@
     display:flex;flex-direction:column;min-height:130px;
   }
   .daily-deal-card::before{
+    /* MUHIM: bu element ROTATSIYA QILINMAYDI (transform:rotate bilan
+       aylantirilsa, kvadratning burchaklari halqadan chiqib, kartaning
+       O'RTASIDA katta romb/olmos shaklida "chaqnab" ko'rinib qolar edi —
+       aynan shu xato oldin yuz bergan edi). Shakli/o'lchami QOTIB turadi
+       (faqat 2.5px'lik nozik halqa), FAQAT ranglar joyida sekin
+       "chayqalib" harakatlanadi (hue-rotate filtri orqali) — Instagram
+       story ramkasidagi kabi tirik, lekin faqat CHETDA. */
     content:'';position:absolute;inset:-2.5px;border-radius:14.5px;z-index:-1;
     background:conic-gradient(from 0deg, #f9ce34, #ee2a7b, #6228d7, #4a4de7, #f9ce34);
-    animation:ddRingSpin 3.4s linear infinite;
+    animation:ddRingHue 3.4s linear infinite;
   }
-  @keyframes ddRingSpin{ to{ transform:rotate(360deg); } }
+  @keyframes ddRingHue{ to{ filter:hue-rotate(360deg); } }
   @media (prefers-reduced-motion:reduce){ .daily-deal-card::before{ animation:none; } }
   .daily-deal-card .dd-badge{
     display:inline-block;background:var(--amber);color:var(--bg);font-size:9px;font-weight:800;
