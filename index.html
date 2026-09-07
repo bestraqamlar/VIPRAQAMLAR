@@ -86,15 +86,28 @@
     var loader = document.getElementById('lyuksLoader');
     if(loader) loader.style.display = 'none';
   }
+  // MIJOZ ILTIMOSIGA KO'RA — MUHIM XAVFSIZLIK QATLAMI: avval bu yerda
+  // (birinchi tashrifda) 4 SONIYAGACHA sahifa "visibility:hidden" holida
+  // qotib turishi mumkin edi — sekin internetda yoki ba'zi telefonlarda
+  // (masalan iPhone) bu HAQIQIY, uzoq "qotib qolish" his qildirardi va
+  // mijoz sahifaga umuman kira olmayotgandek ko'rinardi. Endi, nima
+  // bo'lishidan qat'iy nazar (Firestore javob bermasa ham, xato
+  // chiqsa ham, shrift API ishlamasa ham) sahifa ESKI 4000ms EMAS,
+  // ENG KO'PI BILAN ~1.2 soniyadan keyin albatta ko'rinadigan bo'ladi —
+  // valyuta (USD/UZS) almashtirilganda sahifa qayta yuklanganda ham
+  // (bu ham xuddi shu "birinchi ochilish" yo'lidan o'tadi) shu qoida
+  // amal qiladi.
+  var __hardFailsafe = setTimeout(showNow, 1200);
   function reveal(){
     // Rang tayyor bo'ldi — endi shirft (Sora, yoki tanlangan boshqa shirft)
     // to'liq yuklanishini ham kutamiz, shundan keyingina sahifani ko'rsatamiz.
     // Shunda "kichik/standart shirft birinchi, keyin almashadi" holati ham
-    // umuman ko'rinmaydi.
+    // umuman ko'rinmaydi. Lekin yuqoridagi __hardFailsafe baribir eng
+    // yakuniy kafolat bo'lib qoladi.
     if(document.fonts && document.fonts.ready){
       try{ document.fonts.load("800 16px Sora"); }catch(e){}
       document.fonts.ready.then(showNow).catch(showNow);
-      setTimeout(showNow, 700); // xavfsizlik: shirft juda sekin bo'lsa ham cheksiz kutmaymiz
+      setTimeout(showNow, 500); // xavfsizlik: shirft juda sekin bo'lsa ham cheksiz kutmaymiz
     }else{
       showNow();
     }
@@ -104,10 +117,14 @@
     var raw = localStorage.getItem('raqamuz_theme_v1');
     if(!raw){
       // Kesh yo'q — bu birinchi tashrif. Firebase'dan haqiqiy rang-dizayn
-      // kelishini ko'proq kutamiz (4s) — aks holda juda tez "standart"
-      // ko'rinishga o'tib, keyin haqiqiy ranglarga sakrab qolar edi.
-      // Baribir abadiy kutib qolmasligi uchun xavfsizlik chegarasi bor.
-      setTimeout(reveal, 4000);
+      // kelishini BIROZ kutamiz — lekin ENDI UZOQ EMAS (avval 4000ms edi,
+      // bu haqiqiy "qotib qolish" hissi berardi). Real rang Firestore'dan
+      // kelgunga qadar standart (odatiy ko'rinishdagi) rang bilan
+      // ko'rsatib turish, uzoq vaqt HECH NARSA ko'rsatmaslikdan ANCHA
+      // yaxshi — shu sabab endi atigi 600ms kutiladi, undan keyin
+      // standart ko'rinish bilan sahifa albatta ochiladi (rang keyin,
+      // Firestore javob berganda, silliq almashadi).
+      setTimeout(reveal, 600);
       return;
     }
     var t = JSON.parse(raw);
@@ -165,6 +182,22 @@
     --brand-red: #E63946;
     --text: #EDEFF3;
     --muted: #8494B0;
+    /* MUHIM: avval --btn-bg (va boshqa tugma o'zgaruvchilari) uchun
+       BU YERDA (:root'da) umuman standart qiymat YO'Q edi — ular FAQAT
+       Firestore'dan (yoki keshdan) kelgach o'rnatilardi. Sekin internetda
+       yoki BIRINCHI TASHRIFDA (kesh yo'q), shu oraliqda turli CSS
+       qoidalari o'zlarining HAR XIL "ehtiyot" qiymatlaridan (ba'zisi
+       #2F6BE0, ba'zisi #1D2A44) foydalanib, natijada sahifaning turli
+       joylari BIR-BIRIGA MOS KELMAYDIGAN ranglarda ko'rinib, "buzilgan
+       dizayn" taassurotini berardi. Endi BITTA umumiy, aniq standart
+       qiymat bor — sahifa Firestore javobini kutayotgan har qanday
+       lahzada ham hammasi BIR XIL, mos ko'rinishda turadi. */
+    --btn-bg: #2F6BE0;
+    --btn-text: #FFFFFF;
+    --btn-border-width: 0px;
+    --btn-border-color: transparent;
+    --btn-radius: 10px;
+    --card-radius: 14px;
     --font-main: 'Sora', sans-serif;
     --accent-grad-1: #8B5CF6;
     --accent-grad-2: #EC4899;
@@ -751,7 +784,7 @@
     background:linear-gradient(135deg,#8B5CF6,#F5A623)!important;color:#fff;
     display:flex;align-items:center;justify-content:center;
   }
-  .std-op-card.vip-premium-chip .premium-dot svg{width:14px;height:14px;}
+  .std-op-card.vip-premium-chip .premium-dot svg{width:11px;height:11px;}
   .standard-search-btn{
     /* Mobil/planshetda 448px'gacha (VIP/STANDART tablari, katakchalar
        bilan bir xil chiziqda) — kompyuterda esa endi TO'LIQ (chekkadan-
@@ -852,6 +885,11 @@
   .std-op-card .opc-dot{
     width:15px;height:15px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;font-size:9px;
+    /* Mijoz iltimosiga ko'ra: ichidagi belgi (masalan Premium nishoni)
+       chetlari doiradan sal chiqib, "qiyshiq" ko'rinishga sabab
+       bo'lmasligi uchun — konteyner o'zi ANIQ, tekis DOIRA bo'lib
+       kesib (mask qilib) turadi. */
+    overflow:hidden;
   }
   .digit-box{
     /* Mijoz iltimosiga ko'ra: SOYA UMUMAN YO'Q endi — buning o'rniga
@@ -935,7 +973,10 @@
     width:100%;box-sizing:border-box;
     overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;
-    padding-bottom:2px;/* soyalar pastdan kesilib qolmasin */
+    /* Kattalashtirilgan "tanlangan" belgisi (.std-op-card.selected::after)
+       kartochkadan pastga chiqib turadi — shu kesilib qolmasin deb
+       yetarlicha joy qoldiriladi. */
+    padding-bottom:8px;
   }
   .standard-op-toggles::-webkit-scrollbar, .vip-op-toggles::-webkit-scrollbar{display:none;}
   .std-op-card{
@@ -957,8 +998,11 @@
      "Buyurtma berish" tugmasi bilan bir xil ko'k rangda, chetning ~30%
      qismini egallaydigan ANIQ, mustahkam belgi (chiziqcha) qo'shiladi. */
   .std-op-card.selected::after{
-    content:'';position:absolute;left:50%;bottom:-1.5px;transform:translateX(-50%);
-    width:30%;min-width:20px;height:3px;border-radius:3px;
+    /* Mijoz iltimosiga ko'ra: avvalgi ingichka chiziqchadan ko'ra
+       ANCHA kattaroq, qalinroq va ikkala uchi TO'LIQ dumaloq (pilla
+       shaklidagi) belgi. */
+    content:'';position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);
+    width:46%;min-width:28px;height:6px;border-radius:999px;
     background:var(--btn-bg, #2F6BE0);
   }
   .std-op-card:active{transform:scale(0.96);}
@@ -1512,7 +1556,12 @@
     display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
   }
   .featured-title{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);
+    /* Mijoz iltimosiga ko'ra: bu sarlavha KARTOCHKA (--panel) emas,
+       SAHIFANING UMUMIY foni (--bg) ustida turadi — shu sabab --text
+       o'rniga --page-text (fon yorug'ligiga qarab avtomatik oq/qora
+       bo'ladigan, applyTheme() da hisoblanadigan) rang ishlatiladi,
+       aks holda fon to'q bo'lganda matn "yo'qolib" qolishi mumkin edi. */
+    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--page-text, var(--text));
   }
   .featured-scroll{
     display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
@@ -1535,7 +1584,7 @@
   /* ---- Mijozlar fikri ---- */
   .testimonials-section{max-width:1100px;margin:0 auto 8px;padding:0 16px;}
   .testimonials-header{text-align:center;margin-bottom:16px;}
-  .testimonials-title{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);}
+  .testimonials-title{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--page-text, var(--text));}
   .testimonials-sub{color:var(--muted);font-size:12.5px;margin-top:4px;}
   .testimonials-scroll{
     display:flex;gap:12px;overflow-x:auto;padding:4px 4px 10px;
@@ -2000,7 +2049,10 @@
     scroll-snap-align:start;
   }
   .daily-deal-card .dd-badge{
-    display:inline-block;background:var(--amber);color:var(--bg);font-size:9px;font-weight:800;
+    /* Mijoz iltimosiga ko'ra: yozuv rangi endi doim OQ (avval --bg
+       o'zgaruvchisidan olinib, ba'zi mavzularda to'q/qora bo'lib,
+       fon bilan qorishib ko'rinardi). */
+    display:inline-block;background:var(--amber);color:#FFFFFF;font-size:9px;font-weight:800;
     padding:2px 6px;border-radius:6px;margin-bottom:6px;align-self:flex-start;
   }
   .daily-deal-card .dd-num{
@@ -2016,8 +2068,12 @@
   }
   .featured-hint{text-align:center;color:var(--muted);font-size:10px;margin-top:6px;}
   .featured-card{
+    /* Mijoz iltimosiga ko'ra: tepadagi "Bugungi aksiya" kartochkasi
+       bilan BIR XIL — "Buyurtma berish" tugmasidagi ko'k rangda,
+       yengil charaqlash (glow) bilan chegara. */
     flex:0 0 220px;border-radius:14px;padding:14px;
-    border:1px solid var(--line);
+    border:2.5px solid var(--btn-bg, #2F6BE0);
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--btn-bg, #2F6BE0) 25%, transparent), 0 4px 14px -6px color-mix(in srgb, var(--btn-bg, #2F6BE0) 55%, transparent);
     background:var(--panel);
     display:flex;flex-direction:column;min-height:178px;
   }
@@ -3602,8 +3658,10 @@ function usdRound(x){
 }
 function formatPrice(n){
   if(window.currentCurrency === 'usd'){
+    // Mijoz iltimosiga ko'ra: "$1700" EMAS, so'mdagi kabi RAQAM OLDIN,
+    // belgi KEYIN — "1700 $".
     const usd = usdRound(Number(n) / USD_RATE);
-    return '$' + usd.toLocaleString('en-US');
+    return usd.toLocaleString('en-US') + ' $';
   }
   return formatPriceUzs(n);
 }
@@ -3631,8 +3689,8 @@ function formatInstallmentTeaser(monthly, months){
   if(window.currentCurrency === 'usd'){
     const usd = usdRound(Number(monthly) / USD_RATE);
     return window.currentLangMode === 'ru'
-      ? `от $${usd.toLocaleString('en-US')} / ${months} мес.`
-      : `$${usd.toLocaleString('en-US')} dan / ${months} oy`;
+      ? `от ${usd.toLocaleString('en-US')} $ / ${months} мес.`
+      : `${usd.toLocaleString('en-US')} $dan / ${months} oy`;
   }
   const numStr = Number(monthly).toLocaleString('ru-RU').replace(/,/g,' ');
   return window.currentLangMode === 'ru'
@@ -4972,11 +5030,22 @@ function renderStandardOpToggles(){
   });
 }
 
+// Mijoz iltimosiga ko'ra: mijoz biror kompaniyani tanlaganda, o'sha
+// kartochka gorizontal svayp qatorida (masalan "Barchasi"dan keyin,
+// ko'rinmay turgan joyda) qolib ketmasin — DARHOL, silliq ravishda
+// ko'rinadigan joyga (o'rtaga yaqin) sirg'aladi.
+function scrollSelectedOpIntoView(container){
+  if(!container) return;
+  const sel = container.querySelector('.std-op-card.selected');
+  if(sel) sel.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+}
+
 function toggleStandardOp(name){
   if(name === ''){
     // "Barchasi" bosildi — aniq tanlanganlarning barchasi tozalanadi.
     selectedOperators = [];
     renderStandardOpToggles();
+    scrollSelectedOpIntoView(standardOpTogglesEl);
     currentPage = 0;
     renderCatalog();
     return;
@@ -4997,6 +5066,7 @@ function toggleStandardOp(name){
     selectedOperators = selectedOperators.filter(n => n !== name);
   }
   renderStandardOpToggles();
+  scrollSelectedOpIntoView(standardOpTogglesEl);
   currentPage = 0;
   renderCatalog();
 }
@@ -5078,6 +5148,7 @@ function toggleVipOp(op){
   // bosilsa, aynan o'shanga o'tadi, oldingi tanlov avtomatik bekor bo'ladi.
   selectedOperators = op === '' ? [] : [op];
   renderVipOpToggles();
+  scrollSelectedOpIntoView(vipOpTogglesEl);
   currentPage = 0;
   updateSearchUI();
   renderCatalog();
@@ -5097,6 +5168,7 @@ function togglePremiumFilter(){
   }
   syncPremiumToggleBtn();
   renderVipOpToggles();
+  scrollSelectedOpIntoView(vipOpTogglesEl);
   currentPage = 0;
   updateSearchUI();
   renderCatalog();
