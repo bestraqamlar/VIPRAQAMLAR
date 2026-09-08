@@ -2687,6 +2687,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 const db = firebase.firestore();
+// Ba'zi tarmoqlar (mobil operator, ofis Wi-Fi, VPN) Firestore'ning
+// standart "streaming" ulanishini bloklashi mumkin — shu qator yoqilganda
+// Firestore buni avtomatik aniqlab, orqa fonda oddiy "long polling"
+// (HTTP so'rovlar) usuliga o'tadi, admin buni sezmaydi ham. Qarang:
+// index.html'dagi bir xil izoh.
+try{ db.settings({ experimentalAutoDetectLongPolling: true }); }catch(e){}
 let storage = null;
 try{ storage = firebase.storage(); }
 catch(e){ console.error('Firebase Storage ishga tushmadi:', e); }
@@ -4037,12 +4043,34 @@ function loginToEmail(raw){
   return digits ? digits + ADMIN_EMAIL_DOMAIN : v;
 }
 
+// Kirish paytida "auth/network-request-failed" ko'pincha BIR MARTALIK,
+// o'tkinchi tarmoq uzilishi tufayli chiqadi (Wi-Fi bir zumga sakrashi,
+// mobil tarmoq uyasi almashishi va h.k.) — shu sabab darhol xato
+// ko'rsatish o'rniga, avval jim-jimgina 2 marta (qisqa kutish bilan)
+// qayta urinib ko'ramiz. Faqat SHU aniq (tarmoq) xatosida qayta
+// urinamiz — parol/login xato bo'lsa qayta urinishning foydasi yo'q,
+// darhol to'g'ri xabar ko'rsatiladi.
+function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
+async function signInWithRetry(email, password, attemptsLeft){
+  try{
+    return await firebase.auth().signInWithEmailAndPassword(email, password);
+  }catch(err){
+    if(err.code === 'auth/network-request-failed' && attemptsLeft > 0){
+      await wait(1500);
+      return signInWithRetry(email, password, attemptsLeft - 1);
+    }
+    throw err;
+  }
+}
+
 async function doLogin(){
   const btn = document.getElementById('loginBtn');
   const authGate = document.getElementById('authGateScreen');
+  const btnOrigText = btn.textContent;
   btn.disabled = true;
+  btn.textContent = 'Ulanmoqda...';
   try{
-    await firebase.auth().signInWithEmailAndPassword(loginToEmail(usernameInput.value), passwordInput.value);
+    await signInWithRetry(loginToEmail(usernameInput.value), passwordInput.value, 2);
     loginError.style.display = 'none';
     loginScreen.style.display = 'none';
     // XAVFSIZLIK: dashboard HALI ko'rsatilmaydi — avval ruxsatlar
@@ -4076,7 +4104,7 @@ async function doLogin(){
       'auth/invalid-login-credentials': "Login yoki parol noto'g'ri",
       'auth/user-disabled':        "Bu admin hisobi to'xtatilgan — bosh admin bilan bog'laning",
       'auth/too-many-requests':    'Juda ko\'p urinish — biroz kuting',
-      'auth/network-request-failed': 'Tarmoq xatosi — internet yoki Firebase bloklangan',
+      'auth/network-request-failed': "Tarmoq xatosi — internetga ulanolmadi (avtomatik 2 marta qayta urinildi). Wi-Fi'dan mobil internetga (yoki aksincha) o'tib ko'ring, VPN yoqiq bo'lsa o'chiring, so'ng yana urinib ko'ring",
       'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)'
     };
     loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri")
@@ -4085,6 +4113,7 @@ async function doLogin(){
     console.error('Login xatosi:', err.code, err.message);
   }
   btn.disabled = false;
+  btn.textContent = btnOrigText;
 }
 
 /* XAVFSIZLIK TEKSHIRUVI: tizimga kirgan hisobda HAQIQIY admin huquqi

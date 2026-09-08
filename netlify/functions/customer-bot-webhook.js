@@ -1187,14 +1187,13 @@ exports.handler = async function (event) {
     await saveSession(chatId, session);
     const from = message.from || {};
     const firstName = from.first_name ? escapeHtml(from.first_name) : '';
+    // Mijoz iltimosiga ko'ra: /start bosilganda chiqadigan xabar juda uzun
+    // edi (funksiyalar ro'yxati bilan) — endi qisqa, tushunarli va
+    // to'g'ridan-to'g'ri menyuga yo'naltiradigan holga keltirildi.
     await sendHtml(chatId,
       `Assalomu alaykum${firstName ? ', ' + firstName : ''}! 👋\n\n` +
-      `<b>VIP RAQAMLAR</b> rasmiy botiga xush kelibsiz — chiroyli, oltin va VIP telefon raqamlari bir joyda.\n\n` +
-      `🔢 <b>Raqam tanlash</b> — bazadagi VIP raqamlar orasidan qidiring\n` +
-      `💎 <b>VIP raqamlar</b> / 🔥 <b>Aksiya raqamlar</b> — eng saralanganlari\n` +
-      `🌐 <b>Standart raqamlar</b> — barcha operatorlarda hozir bo'sh turgan raqamlar\n` +
-      `📋 <b>Buyurtmalarim</b> / 📄 <b>Shartnomalarim</b> — o'z hisobingizni kuzatib boring\n\n` +
-      `Quyidagi menyudan kerakli bo'limni tanlang 👇`,
+      `<b>VIP RAQAMLAR</b> rasmiy botiga xush kelibsiz.\n\n` +
+      `Chiroyli va vip raqamni tanlash uchun kerakli tugmani tanlang 👇`,
       mainMenuKeyboard());
     return { statusCode: 200, body: 'ok' };
   }

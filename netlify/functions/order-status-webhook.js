@@ -1,5 +1,14 @@
 // TELEGRAM XABARIDAGI TUGMALARNI BOSISH ORQALI BUYURTMA STATUSINI O'ZGARTIRISH
 // (firebase-admin bilan, ishonchli)
+//
+// Bu ADMIN BOTI — buyurtma bildirishnomalari, /panel boshqaruv paneli,
+// "Barchaga xabar yuborish" va "Kanalga raqam joylash" shu yerda ishlaydi.
+// "Kanalga raqam joylash" uchun QO'SHIMCHA environment variable kerak:
+//   TELEGRAM_BUSINESS_BOT_TOKEN — @vip_raqamlar_uz kanaliga ADMIN (post
+//     joylash huquqi bilan) qilib qo'shilgan bot tokeni (telegram-business-
+//     webhook.js'dagi bilan bir xil bot — u kanalga allaqachon admin).
+//   TELEGRAM_CHANNEL_ID — ixtiyoriy, sozlanmasa standart holatda
+//     "@vip_raqamlar_uz" ishlatiladi.
 
 const admin = require('firebase-admin');
 
@@ -64,9 +73,119 @@ function controlPanelKeyboard(state){
       [{ text: `🤖 Avtobot: ${state.autoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|auto' }],
       [{ text: `🆕 Yangi mijozlarga avto javob: ${state.newUserAutoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|newuser' }],
       [{ text: '📊 Statistika', callback_data: 'bc|stats' }],
-      [{ text: '📢 Barchaga xabar yuborish', callback_data: 'bc|broadcast' }]
+      [{ text: '📢 Barchaga xabar yuborish', callback_data: 'bc|broadcast' }],
+      [{ text: '📣 Kanalga raqam joylash', callback_data: 'bc|postchannel' }]
     ]
   };
+}
+
+/* ==================================================================
+   "KANALGA RAQAM JOYLASH" — admin matn/rasm/video yuboradi, bot buni
+   @vip_raqamlar_uz kanaliga, tagida DOIM ikkita yonma-yon tugma bilan
+   joylaydi: "📱 Raqam tanlash" (mijoz botimizga) va "📸 Instagram"
+   (Instagram sahifamizga). Bu tugmalar Telegram'ning o'zi tomonidan
+   xabarga "yopishtirilgani" uchun, mijoz shu postni boshqa odamga
+   ULASHSA (forward qilsa) ham, ikkala tugma xabar bilan BIRGA ketadi.
+   ================================================================== */
+const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot';
+const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipraqamlar';
+function channelPostButtons(){
+  return {
+    inline_keyboard: [[
+      { text: '📱 Raqam tanlash', url: CHANNEL_POST_BOT_LINK },
+      { text: '📸 Instagram', url: CHANNEL_POST_INSTAGRAM_LINK }
+    ]]
+  };
+}
+async function getPendingChannelPost(){
+  const doc = await withRetry(() => db.collection('site_settings').doc('pending_channel_post').get());
+  return doc.exists ? doc.data() : null;
+}
+async function setPendingChannelPost(data){
+  await withRetry(() => db.collection('site_settings').doc('pending_channel_post').set(data));
+}
+async function clearPendingChannelPost(){
+  await withRetry(() => db.collection('site_settings').doc('pending_channel_post').delete()).catch(() => {});
+}
+/* Admin "📣 Kanalga raqam joylash"ni bosgandan keyin yuborgan birinchi
+   xabarini (matn/rasm/video) qabul qiladi — HALI kanalga joylamaydi,
+   avval oldindan ko'rsatib tasdiqlash so'raydi (tasodifan bosilib
+   ketishning oldini olish uchun). */
+async function handleIncomingChannelPostContent(msg){
+  let pending;
+  if(msg.photo && msg.photo.length){
+    const best = msg.photo[msg.photo.length - 1];
+    pending = { type: 'photo', sourceFileId: best.file_id, caption: msg.caption || '', createdAt: Date.now() };
+  }else if(msg.video){
+    pending = { type: 'video', sourceFileId: msg.video.file_id, caption: msg.caption || '', createdAt: Date.now() };
+  }else if(msg.text){
+    pending = { type: 'text', text: msg.text, createdAt: Date.now() };
+  }else{
+    await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: "Iltimos, matn, rasm yoki video yuboring." });
+    return;
+  }
+
+  await setAdminState({ awaitingChannelPost: false });
+  await setPendingChannelPost(pending);
+
+  await sendTelegram('sendMessage', {
+    chat_id: msg.chat.id,
+    text: "Kanalga shu holicha joylanaversinmi? Tagida avtomatik \"📱 Raqam tanlash\" va \"📸 Instagram\" tugmalari qo'shiladi.",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '✅ Ha, joylash', callback_data: 'bc|postchannel_confirm' }],
+        [{ text: '❌ Bekor qilish', callback_data: 'bc|postchannel_cancel' }]
+      ]
+    }
+  });
+}
+/* Tasdiqlangandan keyin — TELEGRAM_BUSINESS_BOT_TOKEN orqali (aynan shu
+   bot @vip_raqamlar_uz kanaliga ADMIN qilib qo'shilgan) haqiqiy postni
+   joylaydi. Fayl (rasm/video) avval ADMIN botining o'z tokeni bilan
+   yuklab olinadi, so'ng BUSINESS bot tokeni bilan qayta yuklanadi —
+   chunki Telegram file_id'lari bitta botdan ikkinchisiga to'g'ridan-
+   to'g'ri ko'chmaydi. */
+async function executeChannelPost(adminChatId){
+  const pending = await getPendingChannelPost();
+  if(!pending) throw new Error("Joylanishi kerak bo'lgan xabar topilmadi.");
+
+  const businessToken = process.env.TELEGRAM_BUSINESS_BOT_TOKEN;
+  if(!businessToken){
+    throw new Error("TELEGRAM_BUSINESS_BOT_TOKEN sozlanmagan — shu bot @vip_raqamlar_uz kanaliga ADMIN (post joylash huquqi bilan) qilib qo'shilgan bo'lishi kerak.");
+  }
+  const channelId = process.env.TELEGRAM_CHANNEL_ID || '@vip_raqamlar_uz';
+  const buttons = channelPostButtons();
+
+  let res;
+  if(pending.type === 'text'){
+    res = await fetch(`https://api.telegram.org/bot${businessToken}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: channelId, text: pending.text, reply_markup: buttons })
+    }).then(r => r.json());
+  }else{
+    const adminToken = process.env.TELEGRAM_BOT_TOKEN;
+    const buffer = await downloadTelegramFile(adminToken, pending.sourceFileId);
+    const form = new FormData();
+    form.append('chat_id', channelId);
+    if(pending.caption) form.append('caption', pending.caption);
+    form.append('reply_markup', JSON.stringify(buttons));
+    const field = pending.type === 'photo' ? 'photo' : 'video';
+    const filename = pending.type === 'photo' ? 'post.jpg' : 'post.mp4';
+    const mime = pending.type === 'photo' ? 'image/jpeg' : 'video/mp4';
+    form.append(field, new Blob([buffer], { type: mime }), filename);
+    const method = pending.type === 'photo' ? 'sendPhoto' : 'sendVideo';
+    res = await fetch(`https://api.telegram.org/bot${businessToken}/${method}`, { method: 'POST', body: form }).then(r => r.json());
+  }
+
+  await clearPendingChannelPost();
+  if(res && res.ok){
+    await sendTelegram('sendMessage', { chat_id: adminChatId, text: '✅ Kanalga joylandi.' });
+  }else{
+    await sendTelegram('sendMessage', {
+      chat_id: adminChatId,
+      text: '❌ Kanalga joylashda xato: ' + (res && res.description ? res.description : JSON.stringify(res))
+    });
+  }
 }
 // Har qanday ikkilik (yoqish/o'chirish) sozlama uchun umumiy tasdiqlash tugmalari
 function confirmKeyboard(fieldKey, nextVal, onLabel, offLabel){
@@ -175,6 +294,28 @@ async function handleControlCallback(callback){
     await clearPendingBroadcast();
     await answerCallback(callback.id, 'Bekor qilindi');
     await sendTelegram('sendMessage', { chat_id: chatId, text: 'Xabar yuborish bekor qilindi.' });
+    return;
+  }
+
+  if(action === 'postchannel'){
+    await setAdminState({ awaitingChannelPost: true });
+    await answerCallback(callback.id);
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: "✍️ Kanalga joylamoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin). Tagida avtomatik \"📱 Raqam tanlash\" va \"📸 Instagram\" tugmalari qo'shiladi.\n\nBekor qilish uchun /bekor yozing."
+    });
+    return;
+  }
+  if(action === 'postchannel_confirm'){
+    await answerCallback(callback.id, 'Joylanmoqda...');
+    try{ await executeChannelPost(chatId); }
+    catch(err){ await sendTelegram('sendMessage', { chat_id: chatId, text: 'Xato: ' + err.message }); }
+    return;
+  }
+  if(action === 'postchannel_cancel'){
+    await clearPendingChannelPost();
+    await answerCallback(callback.id, 'Bekor qilindi');
+    await sendTelegram('sendMessage', { chat_id: chatId, text: 'Kanalga joylash bekor qilindi.' });
     return;
   }
 
@@ -423,8 +564,9 @@ exports.handler = async function (event) {
     if(String(msg.chat.id) !== String(allowedChatId)) return { statusCode: 200, body: 'ignored' };
 
     if(msg.text && msg.text.trim() === '/bekor'){
-      await setAdminState({ awaitingBroadcast: false });
+      await setAdminState({ awaitingBroadcast: false, awaitingChannelPost: false });
       await clearPendingBroadcast().catch(() => {});
+      await clearPendingChannelPost();
       await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Bekor qilindi.' });
       return { statusCode: 200, body: 'ok' };
     }
@@ -442,6 +584,14 @@ exports.handler = async function (event) {
       try{ await handleIncomingBroadcastContent(msg); }
       catch(err){
         console.error('BROADCAST XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(adminState.awaitingChannelPost){
+      try{ await handleIncomingChannelPostContent(msg); }
+      catch(err){
+        console.error('CHANNEL-POST XATOSI:', err);
         await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
       }
       return { statusCode: 200, body: 'ok' };

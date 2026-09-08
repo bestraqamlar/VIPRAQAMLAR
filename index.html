@@ -3586,6 +3586,16 @@ firebase.initializeApp(firebaseConfig);
 firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 
 const db = firebase.firestore();
+// MUHIM (mijoz iltimosiga ko'ra — "Firebase bloklandi" xatosining oldini
+// olish): ba'zi tarmoqlar (ba'zi mobil operatorlar, ofis/uy Wi-Fi'lari,
+// VPN'lar) Firestore'ning standart "streaming" ulanishini (WebChannel)
+// bloklaydi yoki uzib qo'yadi — garchi oddiy HTTP so'rovlar (masalan sayt
+// sahifasining o'zi) muammosiz o'tsa ham. Natijada mijozga "internet yoki
+// Firebase bloklangan" degan xato yoki cheksiz "yuklanmoqda" holati
+// chiqadi. Shu qatorni yoqish orqali Firestore avtomatik aniqlaydi —
+// agar streaming ishlamasa, ORQA FONDA, mijoz sezmagan holda, oddiy
+// "long polling" (oddiy HTTP so'rovlar) usuliga o'tadi.
+try{ db.settings({ experimentalAutoDetectLongPolling: true }); }catch(e){}
 
 /* Server funksiyalariga (check-contract-status, check-my-orders,
    check-promo-code) so'rov yuborganda App Check tokenini ham qo'shib
