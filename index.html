@@ -4363,15 +4363,12 @@ function renderCatalog(){
       // MIJOZGA texnik sabab (operator nomi, "429", "fetch failed",
       // "timeout" va h.k.) HECH QACHON ko'rsatilmaydi — bu ichki muammo,
       // mijozga aloqasi yo'q va noqulay ko'rinadi. Konsolga (dasturchi
-      // uchun) to'liq matn yozib qo'yamiz, mijozga esa faqat oddiy,
-      // umumiy xabar va "qayta urinish" tugmasi chiqadi.
+      // uchun) to'liq matn yozib qo'yamiz. Bu holat odatda ko'rinmaydi ham
+      // (fetchLiveNumbers avtomatik, jimgina 2 marta qayta urinib ko'radi),
+      // lekin ehtiyot chorasi sifatida — mijozga texnik xabar/"qayta
+      // urinish" tugmasi o'rniga oddiy "topilmadi" matni chiqadi.
       console.warn('STANDART qidiruv xatosi (mijozga ko\'rsatilmaydi):', LIVE_SEARCH_ERROR);
-      catalogEl.innerHTML = `<div class="empty-state">
-        ⚠️ ${t("Hozircha natija olinmadi, biroz kuting.")}<br><br>
-        ${t("Server hozir sekinroq javob berayotgan bo'lishi mumkin.")}
-        <br>
-        <button type="button" class="retry-search-btn">🔄 ${t("Qayta urinish")}</button>
-      </div>`;
+      catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
     }else{
       catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
     }
@@ -4474,6 +4471,15 @@ function splitNumberDisplay(numberStr){
 }
 
 function renderFeatured(){
+  // Mijoz iltimosiga ko'ra: ma'lumot (Firestore'dan) hali kelmagan bo'lsa
+  // bo'lim BUTUNLAY yashirilib, keyin birdan "paydo bo'lib qolmasin" —
+  // shu oraliqda joyni egallab turadigan skelet-kartochkalar ko'rsatiladi,
+  // shunda sahifa birinchi soniyadanoq "to'liq" ko'rinadi.
+  if(NUMBERS.length === 0){
+    featuredSection.style.display = 'block';
+    featuredScroll.innerHTML = Array(4).fill('<div class="skeleton" style="width:150px;flex-shrink:0;"></div>').join('');
+    return;
+  }
   const picks = NUMBERS.filter(item => item.featured && !item.installment).slice(0, 8);
   if(picks.length < 2){
     featuredSection.style.display = 'none';
@@ -4514,6 +4520,13 @@ const dailyDealSection = document.getElementById('dailyDealSection');
 const dailyDealScroll  = document.getElementById('dailyDealScroll');
 
 function renderDailyDeal(){
+  // Xuddi renderFeatured() dagidek: ma'lumot hali kelmagan bo'lsa bo'lim
+  // yashirilmaydi — joy egallab turadigan skelet-kartochkalar chiqadi.
+  if(NUMBERS.length === 0){
+    dailyDealSection.style.display = 'block';
+    dailyDealScroll.innerHTML = Array(4).fill('<div class="skeleton" style="width:150px;flex-shrink:0;"></div>').join('');
+    return;
+  }
   const picks = NUMBERS.filter(item => item.dailyDeal === true && !item.installment);
   if(picks.length === 0){
     dailyDealSection.style.display = 'none';
@@ -4852,7 +4865,7 @@ const LIVE_OPERATORS = ['Beeline', 'Ucell', 'Humans', 'Mobiuz', 'Perfektum'];
 // bazadan eng arzon raqamlar ko'rsatiladi, qarang: cheapestVipSample()).
 // fetchLiveNumbers endi FAQAT mijoz haqiqatan "Qidirish"ni bosganda, HAQIQIY
 // (bo'sh bo'lmagan) mask bilan chaqiriladi.
-async function fetchLiveNumbers(){
+async function fetchLiveNumbers(retryCount){
   const pattern = currentPattern();
   if(!pattern.some(d => d !== '')){
     if(LIVE_NUMBERS.length){ LIVE_NUMBERS = []; liveMask = ''; renderCatalog(); }
@@ -4863,7 +4876,7 @@ async function fetchLiveNumbers(){
   // Shu maska bo'yicha natija allaqachon olingan bo'lsa qayta so'ramaymiz.
   // Kompaniya tugmalari faqat filtrlaydi — ular uchun yangi so'rov shart emas,
   // shuning uchun tugma bosilganda mijoz kutib qolmaydi.
-  if(mask === liveMask) return;
+  if(!retryCount && mask === liveMask) return;
 
   const myId = ++liveRequestId;
   liveLoading = true;
@@ -4918,6 +4931,24 @@ async function fetchLiveNumbers(){
   }finally{
     clearTimeout(timeoutId);
     if(myId === liveRequestId){
+      // Mijoz iltimosiga ko'ra: operator serveridan xato/kechikish bo'lsa
+      // ham mijozga HECH QANDAY texnik xabar yoki "Qayta urinish" tugmasi
+      // ko'rsatilmaydi — buning o'rniga bot jimgina, mijoz bilmagan holda,
+      // orqa fonda 2 marta qayta urinib ko'radi ("Qidirilmoqda..." spinneri
+      // shu vaqt davomida ekranda turaveradi). Faqat hammasi muvaffaqiyatsiz
+      // tugagandan keyingina — texnik sabab HECH aytilmasdan — oddiy "Bunday
+      // raqam topilmadi" xabari (renderCatalog() ichidagi umumiy holat)
+      // ko'rsatiladi, chunki VIP bazasi ustidan qidiruv baribir ishlayveradi.
+      if(LIVE_SEARCH_ERROR && (retryCount || 0) < 2){
+        const rc = (retryCount || 0) + 1;
+        setTimeout(()=>{
+          if(myId === liveRequestId) fetchLiveNumbers(rc);
+        }, 900);
+        return;
+      }
+      // Barcha urinishlar tugadi — mijozga texnik matn ko'rsatmasdan,
+      // xato holatini "topilmadi"ga o'xshatib tozalab qo'yamiz.
+      if(LIVE_SEARCH_ERROR) LIVE_SEARCH_ERROR = null;
       liveLoading = false;
       renderCatalog();
       // Natija (STANDART + VIP birlashtirilgan) kelgandan keyin operator
@@ -5216,7 +5247,21 @@ digitBoxes.forEach((box, idx)=>{
   });
   box.addEventListener('keydown', (e)=>{
     if(e.key === 'Backspace' && box.value === '' && idx > 0){ digitBoxes[idx-1].focus({ preventScroll: true }); }
+    // Mijoz iltimosiga ko'ra: klaviaturada Enter bosilsa ham "Qidirish"
+    // tugmasini bosgandek qidiruv ishga tushsin — mijoz sichqoncha bilan
+    // pastga tushib tugmani izlab yurmasin.
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      standardSearchBtn.click();
+    }
   });
+  // Mijoz iltimosiga ko'ra: katakchada allaqachon raqam turgan bo'lsa,
+  // mijoz shu katakchaga qayta bossa (yoki Tab bilan kelsa) — eski raqamni
+  // avval o'chirmasdan, to'g'ridan-to'g'ri YANGI raqam yozib qo'ya olsin.
+  // Buning uchun katakcha ichidagi matn fokusda avtomatik tanlanadi —
+  // shunda birinchi bosilgan tugma eskisini almashtiradi.
+  box.addEventListener('focus', ()=>{ box.select(); });
+  box.addEventListener('click', ()=>{ box.select(); });
 });
 
 /* ---- VIP TOIFA / STANDART TOIFA almashtirgichi ---- */
@@ -5680,6 +5725,16 @@ function openModal(number, id, priceOverride){
   if(orderModalEl) orderModalEl.classList.add('modal-preview');
   overlay.classList.add('open');
   lockBodyScroll();
+  // Mijoz iltimosiga ko'ra: telefonning "orqaga" tugmasi (yoki gesture)
+  // bosilganda mijoz BUTUN sahifadan/saytdan chiqib ketib, eski (tugagan/
+  // sotilgan) kartochkalarga boshidan qaytib qolmasin — buning o'rniga
+  // shunchaki shu oyna yopilsin. Shu sabab oyna ochilganda brauzer
+  // tarixiga bitta "soxta" qadam qo'shiladi (URL o'zgarmaydi); "orqaga"
+  // bosilganda haqiqiy sahifa emas, aynan shu qadam "yeyiladi" — buni
+  // pastdagi popstate tinglovchisi ushlab, oynani yopadi.
+  if(!__modalPushedState){
+    try{ history.pushState({ vipModal: true }, '', location.href); __modalPushedState = true; }catch(e){}
+  }
 }
 
 // "Rasmiylashtirish" bosilganda — oldindan ko'rishdan to'liq formaga o'tadi.
@@ -5691,7 +5746,7 @@ function showOrderForm(){
   setTimeout(()=>custName.focus(), 250);
 }
 
-function closeModal(){
+function closeModal(fromPopstate){
   overlay.classList.remove('open');
   unlockBodyScroll();
   // Qo'shimcha ehtiyot chorasi: ba'zi mobil brauzerlarda body'ning
@@ -5702,6 +5757,18 @@ function closeModal(){
   // urinilganda kuzatilgan holat).
   void document.body.offsetHeight;
   requestAnimationFrame(()=>{ void document.body.offsetHeight; });
+  // Oyna ochilganda qo'shilgan "soxta" tarix qadami — oyna endi yopilyapti,
+  // shu qadam endi kerak emas. Agar bu closeModal popstate (mijozning
+  // "orqaga" bosishi) SABABLI chaqirilgan bo'lsa, qadam allaqachon
+  // brauzer tomonidan "yeyilgan" — yana history.back() chaqirsak, mijoz
+  // saytdan chiqib ketadi (xato); shu sabab faqat mijoz o'zi Bekor
+  // qilish/X bosganda chaqiramiz.
+  if(__modalPushedState){
+    __modalPushedState = false;
+    if(!fromPopstate){
+      try{ history.back(); }catch(e){}
+    }
+  }
   // Agar bu buyurtma oynasi "Premium raqamlar" video-reels ichidan
   // ochilgan bo'lsa — yopilganda ortga, video-reels'ga qaytamiz.
   if(window.__returnToPremiumReels){
@@ -5710,11 +5777,43 @@ function closeModal(){
     window.__returnToPremiumReels = null;
   }
 }
-document.getElementById('cancelBtn').addEventListener('click', closeModal);
-document.getElementById('closeSuccessBtn').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', ()=>closeModal(false));
+document.getElementById('closeSuccessBtn').addEventListener('click', ()=>closeModal(false));
 document.getElementById('previewConfirmBtn').addEventListener('click', showOrderForm);
-document.getElementById('previewCancelBtn').addEventListener('click', closeModal);
-overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+document.getElementById('previewCancelBtn').addEventListener('click', ()=>closeModal(false));
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(false); });
+
+// Mijoz telefonda "orqaga" tugmasini/gesture'ni bossa — agar shu payt
+// buyurtma oynasi ochiq bo'lsa, saytdan chiqib ketish/sahifa qayta
+// yuklanish O'RNIGA shunchaki oyna yopiladi (yuqoridagi openModal'da
+// qo'shilgan "soxta" tarix qadami shu yerda "iste'mol" qilinadi).
+let __modalPushedState = false;
+window.addEventListener('popstate', ()=>{
+  if(overlay.classList.contains('open')) closeModal(true);
+});
+
+// Mijoz iltimosiga ko'ra: sahifa iOS/Android'ning "bfcache"idan (orqaga/
+// oldinga tugmalari bilan xotiradan tiklanganda, QAYTA YUKLANMASDAN)
+// tiklansa — bu holatda eski, "muzlab"/qulflangan qolgan oyna yoki
+// qidiruv-overlay holatlari (aynan shu WebKit xususiyati "shaffof, hech
+// narsa bosilmaydigan oyna" muammosining asosiy sababi bo'lgan) darhol
+// tozalanadi, va raqamlar ro'yxati eskirgan (kimdir sotib olgan/narx
+// o'zgargan) bo'lishi mumkinligi uchun serverdan qayta so'raladi — mijoz
+// qo'lda sahifani yangilashi shart bo'lmaydi.
+window.addEventListener('pageshow', (e)=>{
+  if(!e.persisted) return;
+  __modalPushedState = false;
+  if(overlay) overlay.classList.remove('open');
+  __scrollLockCount = 0;
+  document.documentElement.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  if(typeof hideSearchOverlay === 'function') hideSearchOverlay();
+  if(typeof loadNumbers === 'function') loadNumbers();
+});
 
 function showToast(text, duration, opts){
   const toast = document.getElementById('toast');
