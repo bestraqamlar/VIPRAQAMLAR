@@ -2032,6 +2032,85 @@
   .ic-monthly{color:var(--text);}
   .ic-monthly b{color:var(--amber);font-size:15px;font-family:'Sora',sans-serif;font-weight:800;}
 
+  /* ---- Humans — Bo'lib to'lash (rasrochka) to'liq ekranli oynasi ---- */
+  /* Mijoz iltimosiga ko'ra: shu oyna FAQAT Humans operatoridan (jonli API)
+     "Bo'lib to'lash" tanlanganda TO'LIQ EKRAN bo'lib ochiladi — oddiy naqd
+     xarid va eski VIP-baza bo'lib to'lash oynasi (.installment-calc)
+     HOZIRGIDEK (yarim ekran, pastdan chiquvchi) qoladi. */
+  .overlay.hf-fullscreen{align-items:stretch;}
+  .overlay.hf-fullscreen .modal{
+    max-width:none;width:100%;height:100%;max-height:none;
+    border-radius:0;margin-bottom:0;
+    padding-top:calc(18px + env(safe-area-inset-top, 0px));
+  }
+  @media (min-width:600px){
+    .overlay.hf-fullscreen .modal{max-width:520px;height:auto;max-height:92vh;border-radius:20px;margin-bottom:22px;}
+  }
+  .hf-title-row{text-align:center;margin:2px 0 16px;}
+  .hf-title-row .hf-sub{color:var(--muted);font-size:12.5px;margin-top:4px;}
+  .humans-fin-view{
+    position:relative;background:var(--panel-2);border-radius:16px;
+    padding:17px 16px 16px;margin:0 0 18px;animation:hfPanelIn .38s cubic-bezier(.22,1,.36,1) both;
+    box-shadow:0 10px 28px -14px rgba(0,0,0,0.35);
+    /* Zamonaviy gradient ramka — bitta yassi rang o'rniga. */
+    border:1px solid transparent;
+    background-image:linear-gradient(var(--panel-2), var(--panel-2)),
+      linear-gradient(135deg, var(--amber) 0%, #FFD778 45%, var(--green) 100%);
+    background-origin:border-box;background-clip:padding-box, border-box;
+  }
+  @keyframes hfPanelIn{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .hf-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 0;transition:opacity .15s ease;}
+  .hf-row span{color:var(--muted);}
+  .hf-row b{color:var(--text);font-family:'Sora',sans-serif;transition:transform .2s ease;}
+  .hf-row.hf-down b{
+    color:var(--amber);font-size:17px;font-weight:800;
+    background:linear-gradient(90deg, var(--amber), #FFD778);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hf-months{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 4px;}
+  .hf-month-btn{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:10px 4px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;text-align:center;
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+  .hf-month-btn:active{transform:scale(0.94);}
+  .hf-month-btn.active{
+    background:var(--amber-soft);border-color:var(--amber);color:var(--amber);
+    transform:translateY(-1px);box-shadow:0 4px 12px -4px color-mix(in srgb, var(--amber) 50%, transparent);
+  }
+  #hfMonthlyValue, #hfDownPaymentValue{display:inline-block;transition:transform .25s ease;}
+  .hf-tariff-label{color:var(--muted);font-size:12px;font-weight:700;margin:16px 0 6px;display:flex;align-items:center;gap:6px;}
+  .hf-tariff-label::before{
+    content:'';width:5px;height:5px;border-radius:50%;background:var(--amber);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 20%, transparent);
+  }
+  .hf-tariffs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .hf-tariff-btn{
+    flex:1 1 100px;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    padding:11px 8px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700;text-align:center;
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+  .hf-tariff-btn:active{transform:scale(0.96);}
+  .hf-tariff-btn.active{
+    background:linear-gradient(135deg, color-mix(in srgb, var(--amber) 20%, var(--panel)), color-mix(in srgb, var(--green) 14%, var(--panel)));
+    border-color:var(--amber);color:var(--amber);transform:translateY(-1px);
+    box-shadow:0 6px 16px -6px color-mix(in srgb, var(--amber) 55%, transparent);
+  }
+  .hf-tariff-detail{
+    background:var(--panel);border-radius:12px;padding:12px 10px;margin-bottom:6px;
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;
+    animation:hfDetailIn .25s ease both;
+  }
+  @keyframes hfDetailIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  .hf-tariff-detail div{font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .hf-tariff-detail svg{width:18px;height:18px;color:var(--amber);flex-shrink:0;}
+  .hf-tariff-detail b{display:block;color:var(--text);font-size:12.5px;margin-top:1px;}
+  .hf-divider{
+    display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;
+    margin:20px 0 18px;text-transform:uppercase;letter-spacing:.04em;
+  }
+  .hf-divider::before, .hf-divider::after{content:'';flex:1;height:1px;background:var(--line);}
+
   .daily-deal-scroll::-webkit-scrollbar{display:none;}
   .daily-deal-card{
     /* Mijoz iltimosiga ko'ra: ODDIY, QIMIRLAMAYDIGAN ramka (oddiy CSS
@@ -2534,6 +2613,29 @@
     0%{transform:translate(0,0) rotate(0deg);opacity:1;}
     100%{transform:translate(var(--cx,0px),220px) rotate(var(--cr,360deg));opacity:0;}
   }
+
+  /* ---- Buyurtma MUVAFFAQIYATLI tugagandagi TO'LIQ EKRANLI ekran ----
+     Mijoz iltimosiga ko'ra: buyurtma oxirida mijozga "his" berish uchun
+     shu ekran endi (naqd yoki bo'lib to'lash — farqi yo'q) BUTUN oynaga
+     ochiladi, zamonaviy animatsiya va tovush bilan. */
+  .overlay.success-fullscreen{align-items:stretch;}
+  .overlay.success-fullscreen .modal{
+    max-width:none;width:100%;height:100%;max-height:none;
+    border-radius:0;margin-bottom:0;
+    display:flex;flex-direction:column;justify-content:center;
+    background:radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--green) 14%, var(--panel)) 0%, var(--panel) 55%);
+  }
+  @media (min-width:600px){
+    .overlay.success-fullscreen .modal{max-width:480px;height:auto;max-height:92vh;border-radius:20px;margin-bottom:22px;}
+  }
+  .overlay.success-fullscreen .success-view{padding:8px 6px 4px;}
+  .overlay.success-fullscreen .success-check{width:96px;height:96px;margin-bottom:22px;}
+  .overlay.success-fullscreen .success-check svg{width:46px;height:46px;}
+  .overlay.success-fullscreen .success-view h3{font-size:22px;margin-bottom:8px;}
+  .overlay.success-fullscreen .success-view p{font-size:14.5px;}
+  .success-glow-ring-2{animation-delay:.5s;animation-duration:2.3s;}
+  .success-order-recap .sor-tariff{color:var(--muted);font-size:12px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;}
+  .success-order-recap .sor-tariff span b{color:var(--text);}
 
   footer{
     text-align:center;color:var(--muted);font-size:12px;padding:22px 20px 28px;border-top:1px solid var(--line);
@@ -3454,6 +3556,7 @@ html.theme-purple-premium .card button.order-btn{
     <div id="formView">
       <h2 data-i18n="placeOrder">Buyurtma berish</h2>
       <div class="modal-number" id="modalNumber"></div>
+      <div class="hf-sub" id="hfRegisterNote" style="display:none;text-align:center;margin:-8px 0 14px;">Raqam nomingizga rasmiylashtiriladi</div>
 
       <div class="order-info-banner">
         <div class="oib-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Yetkazib berish: O'zbekiston bo'ylab, 1-3 kun ichida (bepul)</span></div>
@@ -3483,6 +3586,32 @@ html.theme-purple-premium .card button.order-btn{
           <span class="ic-monthly">oyiga <b id="icMonthlyValue">0 so'm</b></span>
         </div>
       </div>
+
+      <!-- Humans — Bo'lib to'lash (rasrochka). Faqat Humans operatoridan
+           (jonli API) qidirilgan, admin panelda shu kategoriyaga narx
+           kiritilgan raqamlarda ko'rinadi (qarang: HUMANS_FINANCING,
+           humansFinancingFor()). To'liq ekran holatida (.hf-fullscreen)
+           shu bo'lim eng tepada, keyin pastda oddiy ma'lumot formasi
+           chiqadi. -->
+      <div class="humans-fin-view" id="humansFinView" style="display:none;">
+        <div class="hf-row hf-down"><span>Bosh to'lov</span><b id="hfDownPaymentValue">0 so'm</b></div>
+        <div class="hf-months" id="hfMonths">
+          <button type="button" class="hf-month-btn" data-months="6">6 oy</button>
+          <button type="button" class="hf-month-btn" data-months="12">12 oy</button>
+          <button type="button" class="hf-month-btn" data-months="24">24 oy</button>
+        </div>
+        <div class="hf-row"><span>Oylik to'lov (<span id="hfMonthsLabel">6</span> oy)</span><b id="hfMonthlyValue">0 so'm</b></div>
+
+        <div class="hf-tariff-label">Tarifni tanlang</div>
+        <div class="hf-tariffs" id="hfTariffs"></div>
+        <div class="hf-tariff-detail" id="hfTariffDetail" style="display:none;"></div>
+
+        <div class="hf-row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">
+          <span>Hozir to'lanadigan summa</span><b id="hfTotalNowValue">0 so'm</b>
+        </div>
+        <p style="color:var(--muted);font-size:11.5px;margin:6px 0 0;line-height:1.5;" id="hfScheduleNote"></p>
+      </div>
+      <div class="hf-divider" id="hfDivider" style="display:none;">Ma'lumotlaringiz</div>
 
       <label for="custName">Ismingiz</label>
       <input type="text" id="custName" placeholder="Ism Familiya">
@@ -3540,11 +3669,12 @@ html.theme-purple-premium .card button.order-btn{
     </div>
     <div class="success-view" id="successView">
       <div class="success-glow-ring"></div>
+      <div class="success-glow-ring success-glow-ring-2"></div>
       <div class="success-check">
         <svg viewBox="0 0 24 24" fill="none"><path class="check-path" d="M5 13l4 4L19 7" stroke="#33E28C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <h3>Buyurtma yuborildi!</h3>
-      <p>Tez orada admin siz bilan bog'lanadi.</p>
+      <h3 id="successTitle">Buyurtma yuborildi!</h3>
+      <p id="successSubtitle">Tez orada admin siz bilan bog'lanadi.</p>
       <div class="success-order-recap" id="successOrderRecap"></div>
       <div class="modal-actions" style="margin-top:18px;">
         <button class="btn-cancel" id="closeSuccessBtn" style="flex:1;">Yopish</button>
@@ -5637,11 +5767,137 @@ function selectInstallmentMonths(months){
 }
 icTabButtons.forEach(btn => btn.addEventListener('click', ()=> selectInstallmentMonths(Number(btn.dataset.months))));
 
+/* ---- Humans — Bo'lib to'lash (rasrochka), faqat jonli API'dan (mijoz
+   iltimosiga ko'ra) — eski, VIP-bazadagi %-ustama tizimidan (yuqorida)
+   ATAYLAB ALOHIDA: bu yerda bosh to'lov/oylik to'lov admin panelda
+   HAR BIR Humans narx kategoriyasi uchun QO'LDA kiritiladi, hech narsa
+   avtomatik hisoblanmaydi. */
+let HUMANS_FINANCING = { categories: {}, tariffs: [] };
+async function loadHumansFinancing(){
+  try{
+    const doc = await db.collection('site_settings').doc('humans_financing').get();
+    if(!doc.exists) return;
+    const d = doc.data() || {};
+    const catMap = {};
+    (Array.isArray(d.categories) ? d.categories : []).forEach(c=>{
+      const n = Number(c.category);
+      if(!n) return;
+      catMap[n] = {
+        downPayment: Number(c.downPayment) || 0,
+        monthly: { 6: Number(c.monthly6) || 0, 12: Number(c.monthly12) || 0, 24: Number(c.monthly24) || 0 }
+      };
+    });
+    HUMANS_FINANCING = { categories: catMap, tariffs: Array.isArray(d.tariffs) ? d.tariffs : [] };
+  }catch(err){ console.error('Humans bo\'lib to\'lash sozlamalarini yuklashda xato:', err); }
+}
+loadHumansFinancing();
+
+// Faqat Humans'dan (jonli API, item.live && item.operator==='Humans')
+// qidirilgan, va admin panelda shu kategoriyaga narx kiritilgan
+// raqamlarda "Bo'lib to'lash" imkoni bo'ladi.
+function humansFinancingFor(item){
+  if(!item || item.operator !== 'Humans' || !item.live) return null;
+  const n = Number(item.categoryNum);
+  if(!n) return null;
+  return HUMANS_FINANCING.categories[n] || null;
+}
+
+const humansFinView     = document.getElementById('humansFinView');
+const hfDivider         = document.getElementById('hfDivider');
+const hfRegisterNote    = document.getElementById('hfRegisterNote');
+const hfDownPaymentValue= document.getElementById('hfDownPaymentValue');
+const hfMonthButtons    = Array.from(document.querySelectorAll('.hf-month-btn'));
+const hfMonthsLabel     = document.getElementById('hfMonthsLabel');
+const hfMonthlyValue    = document.getElementById('hfMonthlyValue');
+const hfTariffsEl       = document.getElementById('hfTariffs');
+const hfTariffDetail    = document.getElementById('hfTariffDetail');
+const hfTotalNowValue   = document.getElementById('hfTotalNowValue');
+const hfScheduleNote    = document.getElementById('hfScheduleNote');
+
+let selectedHumansFin = null;      // { downPayment, monthly:{6,12,24} } | null
+let selectedHumansTariff = null;   // { name, internet, minutes, sms } | null
+
+// Summasi o'zgarganda (oy tanlansa) raqam ozgina "sakrab" yangilanadi —
+// mijozga o'zgarish sodir bo'lganini his qildiradigan kichik animatsiya.
+function hfBumpValue(el){
+  el.style.transform = 'scale(1.14)';
+  requestAnimationFrame(()=>{ setTimeout(()=>{ el.style.transform = 'scale(1)'; }, 20); });
+}
+
+function selectHumansMonths(months){
+  if(!selectedHumansFin) return;
+  selectedInstallmentMonths = months;
+  hfMonthButtons.forEach(btn => btn.classList.toggle('active', Number(btn.dataset.months) === months));
+  hfMonthsLabel.textContent = months;
+  const monthly = selectedHumansFin.monthly[months] || 0;
+  selectedMonthlyPayment = monthly;
+  // Mijoz uchun bo'lib to'lash real to'lov majburiyati — narx ko'rsatish
+  // valyutasidan (USD/UZS) QAT'IY NAZAR har doim aniq so'mda ko'rsatiladi
+  // (xuddi admin ichki xabarlari kabi — formatPriceUzs, valyuta o'zgarishi
+  // bu yerga ta'sir qilmasin, chalkashlik/xato hisob-kitob bo'lmasin).
+  hfMonthlyValue.textContent = formatPriceUzs(monthly);
+  hfBumpValue(hfMonthlyValue);
+  updateHumansFinTotals();
+}
+hfMonthButtons.forEach(btn => btn.addEventListener('click', ()=> selectHumansMonths(Number(btn.dataset.months))));
+
+function selectHumansTariff(tariff){
+  selectedHumansTariff = tariff;
+  hfTariffsEl.querySelectorAll('.hf-tariff-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.name === tariff.name);
+  });
+  hfTariffDetail.style.display = 'grid';
+  hfTariffDetail.innerHTML =
+    `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.5 16.43a6 6 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>Internet<b>${escapeHtml(tariff.internet || '-')}</b></div>` +
+    `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Daqiqa<b>${escapeHtml(tariff.minutes || '-')}</b></div>` +
+    `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sms<b>${escapeHtml(tariff.sms || '-')}</b></div>`;
+}
+function renderHumansTariffs(){
+  hfTariffsEl.innerHTML = '';
+  hfTariffDetail.style.display = 'none';
+  hfTariffDetail.innerHTML = '';
+  selectedHumansTariff = null;
+  (HUMANS_FINANCING.tariffs || []).forEach(t=>{
+    if(!t.name) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hf-tariff-btn';
+    btn.dataset.name = t.name;
+    btn.textContent = t.name;
+    btn.addEventListener('click', ()=> selectHumansTariff(t));
+    hfTariffsEl.appendChild(btn);
+  });
+  if(HUMANS_FINANCING.tariffs && HUMANS_FINANCING.tariffs.length) selectHumansTariff(HUMANS_FINANCING.tariffs[0]);
+}
+
+function updateHumansFinTotals(){
+  if(!selectedHumansFin) return;
+  hfDownPaymentValue.textContent = formatPriceUzs(selectedHumansFin.downPayment);
+  hfTotalNowValue.textContent = formatPriceUzs(selectedHumansFin.downPayment);
+  hfScheduleNote.textContent =
+    `Keyingi oydan boshlab ${selectedInstallmentMonths} oy davomida oyiga ${formatPriceUzs(selectedMonthlyPayment)} raqamingiz balansiga to'ldirib turasiz.`;
+}
+
 function selectPaymentTab(type){
   selectedPaymentType = type;
   payTabCash.classList.toggle('active', type === 'cash');
   payTabInstallment.classList.toggle('active', type === 'installment');
-  installmentCalc.style.display = type === 'installment' ? 'block' : 'none';
+  if(selectedHumansFin){
+    // Humans-rasrochka: eski %-kalkulyator ko'rinmaydi, o'rniga to'liq
+    // ekranli Humans bo'limi (pastda) ochiladi/yopiladi.
+    installmentCalc.style.display = 'none';
+    const showHf = type === 'installment';
+    humansFinView.style.display = showHf ? 'block' : 'none';
+    hfDivider.style.display = showHf ? 'flex' : 'none';
+    hfRegisterNote.style.display = showHf ? 'block' : 'none';
+    overlay.classList.toggle('hf-fullscreen', showHf);
+    if(showHf){
+      renderHumansTariffs();
+      selectHumansMonths(6);
+    }
+  }else{
+    installmentCalc.style.display = type === 'installment' ? 'block' : 'none';
+  }
 }
 payTabCash.addEventListener('click', ()=> selectPaymentTab('cash'));
 payTabInstallment.addEventListener('click', ()=> selectPaymentTab('installment'));
@@ -5700,11 +5956,27 @@ function openModal(number, id, priceOverride){
   // (naxt to'lov varianti umuman yo'q), shu sabab bunday raqamlarda
   // "Naqt/Bo'lib to'lash" tanlagichi (payTabs) ko'rsatilmaydi — to'g'ridan
   // to'g'ri oylik-to'lov jadvali (installmentCalc, 6/12/24/36 oy) chiqadi.
+  // Humans (jonli API) uchun: shu raqamning narx kategoriyasiga admin
+  // panelda bo'lib to'lash summasi kiritilgan bo'lsa, mijoz Naqt/Bo'lib
+  // to'lash o'rtasida O'ZI tanlaydi (eski VIP-baza .installment kabi
+  // MAJBURIY emas).
+  selectedHumansFin = humansFinancingFor(item);
+  selectedHumansTariff = null;
+  humansFinView.style.display = 'none';
+  hfDivider.style.display = 'none';
+  hfRegisterNote.style.display = 'none';
+  overlay.classList.remove('hf-fullscreen');
+  overlay.classList.remove('success-fullscreen');
+
   if(item && item.installment){
     payTabs.style.display = 'none';
     installmentCalc.style.display = 'block';
     selectedPaymentType = 'installment';
     selectInstallmentMonths(6);
+  }else if(selectedHumansFin){
+    payTabs.style.display = '';
+    installmentCalc.style.display = 'none';
+    selectPaymentTab('cash');
   }else{
     payTabs.style.display = 'none';
     installmentCalc.style.display = 'none';
@@ -5748,6 +6020,8 @@ function showOrderForm(){
 
 function closeModal(fromPopstate){
   overlay.classList.remove('open');
+  overlay.classList.remove('hf-fullscreen');
+  overlay.classList.remove('success-fullscreen');
   unlockBodyScroll();
   // Qo'shimcha ehtiyot chorasi: ba'zi mobil brauzerlarda body'ning
   // position:fixed'dan chiqarilishi darhol qayta chizilmasligi mumkin —
@@ -5803,7 +6077,7 @@ window.addEventListener('popstate', ()=>{
 window.addEventListener('pageshow', (e)=>{
   if(!e.persisted) return;
   __modalPushedState = false;
-  if(overlay) overlay.classList.remove('open');
+  if(overlay){ overlay.classList.remove('open'); overlay.classList.remove('hf-fullscreen'); overlay.classList.remove('success-fullscreen'); }
   __scrollLockCount = 0;
   document.documentElement.style.overflow = '';
   document.body.style.position = '';
@@ -5889,9 +6163,13 @@ function validate(){
 /* Har bir buyurtma yuborilganda shu Telegram botga darhol xabar boradi */
 /* Har bir buyurtma yuborilganda Netlify Function orqali (token ochiq ko'rinmaydi) Telegram'ga xabar ketadi */
 async function sendOrderToTelegram(payload, time, orderId){
-  const paymentLine = payload.paymentType === 'installment'
+  let paymentLine = payload.paymentType === 'installment'
     ? `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPriceUzs(payload.monthlyPayment)}dan`
     : `💵 To'lov turi: Naqt to'lov`;
+  if(payload.paymentType === 'installment' && payload.humansDownPayment !== undefined){
+    paymentLine += `\n💰 Bosh to'lov: ${formatPriceUzs(payload.humansDownPayment)}`;
+    if(payload.humansTariff) paymentLine += `\n📶 Tarif: ${payload.humansTariff}`;
+  }
   const text =
 `🔔 Yangi buyurtma
 
@@ -5934,6 +6212,41 @@ function spawnConfetti(){
     container.appendChild(piece);
     setTimeout(()=> piece.remove(), 2100);
   }
+}
+
+/* Buyurtma MUVAFFAQIYATLI tugaganda chiqadigan qisqa, yoqimli "muvaffaqiyat
+   ohangi" — tashqi audio fayl KERAK EMAS (yuklanish/tarmoq bog'liqligi
+   bo'lmasin deb), Web Audio API orqali 3 ta ko'tariluvchi nota jonli
+   yasaladi (mayin sinus tovush, "chime" uslubida). Ba'zi brauzerlarda
+   audio konteksti faqat mijoz "gesture"idan (masalan tugma bosishi) keyin
+   ishga tushadi — bu funksiya aynan "Tasdiqlash" bosilgandan keyin
+   chaqirilgani uchun bu shart allaqachon bajarilgan bo'ladi. Xato bo'lsa
+   (masalan brauzer qo'llamasa) — jimgina o'tkazib yuboriladi, buyurtmaga
+   ta'sir qilmaydi.
+*/
+function playSuccessSound(){
+  try{
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    const ctx = new Ctx();
+    const notes = [880, 1108.73, 1318.51]; // A5, C#6, E6 — yorqin, quvnoq uchlik
+    const startAt = ctx.currentTime + 0.02;
+    notes.forEach((freq, i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t0 = startAt + i * 0.09;
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.16, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.55);
+    });
+    setTimeout(()=>{ try{ ctx.close(); }catch(e){} }, 900);
+  }catch(e){ /* tovush ixtiyoriy — xato bo'lsa jimgina o'tkazib yuboriladi */ }
 }
 
 /* Buyurtmani bazaga yozish, raqamni "band" qilish, Telegramga xabar —
@@ -6087,15 +6400,40 @@ async function finalizeOrder(payload, smsVerified){
 
   formView.style.display = 'none';
   successView.style.display = 'block';
+  // Mijoz iltimosiga ko'ra: buyurtma MUVAFFAQIYATLI tugaganda endi (naqd
+  // yoki bo'lib to'lash — farqi yo'q) BUTUN oynaga ochiladi, shaxsiylash-
+  // tirilgan ("Hurmatli ...") matn, zamonaviy animatsiya va tovush bilan.
+  overlay.classList.remove('hf-fullscreen');
+  overlay.classList.add('success-fullscreen');
+  const successTitleEl = document.getElementById('successTitle');
+  const successSubtitleEl = document.getElementById('successSubtitle');
+  const custFirstName = (payload.name || '').trim().split(/\s+/)[0] || '';
+  if(successTitleEl){
+    successTitleEl.textContent = custFirstName
+      ? `Hurmatli ${custFirstName}!`
+      : 'Muvaffaqiyatli rasmiylashtirildi!';
+  }
+  if(successSubtitleEl){
+    successSubtitleEl.textContent =
+      `Siz ${displayNumber(payload.number)} raqamni muvaffaqiyatli rasmiylashtirdingiz. Tez orada admin siz bilan bog'lanadi.`;
+  }
 
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){
-    recapEl.innerHTML = `<div class="sor-number">${escapeHtml(payload.number)}</div>`;
+    let extra = '';
+    if(payload.paymentType === 'installment' && payload.humansDownPayment !== undefined){
+      extra = `<div class="sor-tariff">` +
+        `<span>Bosh to'lov <b>${formatPriceUzs(payload.humansDownPayment)}</b></span>` +
+        (payload.humansTariff ? `<span>Tarif <b>${escapeHtml(payload.humansTariff)}</b></span>` : '') +
+      `</div>`;
+    }
+    recapEl.innerHTML = `<div class="sor-number">${escapeHtml(payload.number)}</div>${extra}`;
     recapEl.style.display = 'block';
   }
 
   if(navigator.vibrate) navigator.vibrate([40, 60, 80]);
   spawnConfetti();
+  playSuccessSound();
 
   renderCatalog();
   renderFeatured();
@@ -6130,6 +6468,12 @@ confirmBtn.addEventListener('click', async ()=>{
   if(selectedPaymentType === 'installment'){
     payload.installmentMonths = selectedInstallmentMonths;
     payload.monthlyPayment = selectedMonthlyPayment;
+    // Humans (jonli API) — bosh to'lov va tanlangan tarif ham buyurtmaga
+    // qo'shiladi, admin buni Telegram xabari va buyurtma tafsilotida ko'radi.
+    if(selectedHumansFin){
+      payload.humansDownPayment = selectedHumansFin.downPayment;
+      if(selectedHumansTariff) payload.humansTariff = selectedHumansTariff.name;
+    }
   }
 
   // SMS tasdiqlashga URINIB KO'RAMIZ — lekin bu hech qachon buyurtmani

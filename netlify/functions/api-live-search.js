@@ -213,7 +213,11 @@ exports.handler = async function (event) {
       dailyDeal: false,
       reserved: false,
       live: true,
-      category: x.category || ''
+      category: x.category || '',
+      // Faqat Humans uchun to'ldiriladi (qarang: lib/operators.js) — sayt
+      // shu bo'yicha "Bo'lib to'lash" (rasrochka) imkoni bor-yo'qligini
+      // tekshiradi.
+      categoryNum: x.categoryNum || null
     }));
 
     const payload = { ok: true, count: items.length, items, errors: result.errors };

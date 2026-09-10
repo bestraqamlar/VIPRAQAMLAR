@@ -91,12 +91,17 @@ const DEFAULT_PRICES = {
     // Humans "amount" ni TIYINDA qaytaradi — 100 ga bo'linadi (pastda).
     { operatorPrice: 0,        salePrice: 50000 },
     { operatorPrice: 54000,    salePrice: 180000 },
+    // Kategoriya 2 — avval jadvalda umuman yo'q edi (operator narxida,
+    // ustamasiz sotilardi). Endi qo'shildi.
+    { operatorPrice: 108000,   salePrice: 200000 },
     { operatorPrice: 144000,   salePrice: 344000 },
     { operatorPrice: 288000,   salePrice: 488000 },
     { operatorPrice: 576000,   salePrice: 776000 },
     { operatorPrice: 1440000,  salePrice: 1800000 },
     { operatorPrice: 3600000,  salePrice: 3900000 },
-    { operatorPrice: 8600000,  salePrice: 9000000 },
+    // Kategoriya 8 — avval 8 600 000 deb yozilgan edi, operatordagi haqiqiy
+    // narxga (8 640 000) hech qachon mos kelmasdi. Tuzatildi.
+    { operatorPrice: 8640000,  salePrice: 9000000 },
     { operatorPrice: 18000000, salePrice: 18000000 }
   ],
   Perfektum: [
@@ -437,6 +442,12 @@ async function searchHumans(boxes, cfg, limit) {
         number: '+' + String(x.msisdn).replace(/\D/g, ''),
         operator: 'Humans',
         category: x.category ? ('Kategoriya ' + x.category) : '',
+        // Xom kategoriya raqami (masalan 2, 8) — "Bo'lib to'lash" (rasrochka)
+        // funksiyasi shu bo'yicha, admin panelda kategoriyaga bog'lab
+        // kiritilgan bosh to'lov/oylik to'lovni topadi (index.html,
+        // HUMANS_FINANCING). Matnli "category" maydoni faqat ko'rsatish
+        // uchun, hisoblash uchun esa aynan shu xom raqam ishlatiladi.
+        categoryNum: x.category || null,
         operatorPrice: op,
         price: toSalePrice(table, op)
       };

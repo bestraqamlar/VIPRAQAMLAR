@@ -2421,6 +2421,33 @@
 
     <div class="op-block">
       <div class="op-head">
+        <span class="op-name">Humans — Bo'lib to'lash (rasrochka)</span>
+      </div>
+      <p class="op-note">Faqat Humans'dan (jonli API) qidirilgan raqamlarga tegishli. Har bir
+        narx kategoriyasi uchun bosh to'lov va 6/12/24 oylik to'lovni QO'LDA kiriting (avtomatik
+        hisoblanmaydi). Kategoriya shu yerda kiritilmasa, o'sha kategoriyadagi raqamlar mijoz
+        saytida faqat naqd sotiladi — "Bo'lib to'lash" ko'rsatilmaydi.</p>
+      <table class="op-table">
+        <thead><tr><th>Kategoriya #</th><th>Bosh to'lov</th><th>6 oy — oyiga</th><th>12 oy — oyiga</th><th>24 oy — oyiga</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="humansFinCatRows"></tbody>
+      </table>
+      <button type="button" class="op-add" id="humansFinAddCatBtn">+ Kategoriya qo'shish</button>
+
+      <p class="op-note" style="margin-top:16px;">Tariflar — mijoz "Bo'lib to'lash"ni tanlaganda
+        shular orasidan birini tanlaydi (nomi va tafsilotlarini o'zingiz kiritasiz, cheklanmagan
+        miqdorda qo'shishingiz mumkin).</p>
+      <table class="op-table">
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="humansFinTariffRows"></tbody>
+      </table>
+      <button type="button" class="op-add" id="humansFinAddTariffBtn">+ Tarif qo'shish</button>
+
+      <button id="humansFinSaveBtn" class="ig-save-btn" style="margin-top:14px;">💾 Saqlash</button>
+      <div class="settings-msg" id="humansFinMsg"></div>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
         <span class="op-name">Mobiuz</span>
         <label class="op-toggle"><input type="checkbox" id="opMobiuzEnabled"> yoqilgan</label>
       </div>
@@ -5800,9 +5827,10 @@ const OP_DEFAULTS = {
   ]},
   Humans: { enabled: true, prices: [
     { operatorPrice: 0, salePrice: 50000 }, { operatorPrice: 54000, salePrice: 180000 },
+    { operatorPrice: 108000, salePrice: 200000 },
     { operatorPrice: 144000, salePrice: 344000 }, { operatorPrice: 288000, salePrice: 488000 },
     { operatorPrice: 576000, salePrice: 776000 }, { operatorPrice: 1440000, salePrice: 1800000 },
-    { operatorPrice: 3600000, salePrice: 3900000 }, { operatorPrice: 8600000, salePrice: 9000000 },
+    { operatorPrice: 3600000, salePrice: 3900000 }, { operatorPrice: 8640000, salePrice: 9000000 },
     { operatorPrice: 18000000, salePrice: 18000000 }
   ]},
   // Perfektum narxlari operatordan olingan (perfectum.uz/numbers/data javobi).
@@ -5829,9 +5857,11 @@ const OP_DEFAULTS = {
 const OP_GAPS = {
   Ucell:  'Diqqat: operatorda 10 000 (Steel) va 50 000 (Bronze) darajalari ham bor — jadvalda yo\'q. ' +
           'Ular ayni operator narxida ko\'rsatiladi (ustamasiz).',
-  Humans: 'Diqqat: operatorda 108 000 (Kategoriya 2) darajasi bor — jadvalda yo\'q. ' +
-          'Yana: Kategoriya 8 ning haqiqiy narxi 8 640 000, jadvalda esa 8 600 000 — ' +
-          'shu holda hech qachon mos kelmaydi, tuzatish kerak.',
+  Humans: 'Tuzatildi: Kategoriya 2 (108 000) qatori qo\'shildi (sotuv narxi 200 000 so\'m), ' +
+          'Kategoriya 8 operator narxi 8 640 000 ga to\'g\'irlandi (sotuv narxi 9 000 000 ' +
+          'o\'zgarishsiz). Agar pastdagi jadvalda hali eski qiymatlar (8 600 000 yoki 108 000 ' +
+          'qatorisiz) ko\'rinsa — bu eski saqlangan sozlama, "+ Qator" bilan qo\'shib/tahrirlab ' +
+          '"Saqlash"ni bosing.',
   Perfektum: 'Chap ustundagi narxlar operatorning o\'zidan olingan (Free 0, First 200 000, ' +
              'Second 600 000, Third 1 mln, Fourth 3 mln, Fifth 6 mln, Sixth 10 mln, ' +
              'Seventh 20 mln, Eighth 30 mln, Ninth 60 mln, Tenth 100 mln). ' +
@@ -5916,7 +5946,122 @@ async function loadOperatorSettings(){
   }catch(err){
     console.error('Operator sozlamalarini yuklashda xato:', err);
   }
+  loadHumansFinancing();
 }
+
+/* ---- Humans — Bo'lib to'lash (rasrochka) ----
+   operator_config/main'dan ALOHIDA — u yerga yozish faqat "Operatorlar"
+   ruxsatiga ega adminlarga OCHIQ EMAS mijozga (login/parol bor bo'lgani
+   uchun read ham yopiq). Bu ma'lumot esa MIJOZ SAYTIDA (index.html) ko'rinishi
+   kerak, shu sabab site_settings/humans_financing hujjatida saqlanadi —
+   site_settings/{doc} qoidasi bo'yicha O'QISH hammaga ochiq. */
+let humansFinData = { categories: [], tariffs: [] };
+
+function humansFinCatRow(item, idx){
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td><input type="number" data-f="category" value="' + (item.category ?? '') + '" placeholder="2" style="width:70px;"></td>' +
+    '<td><input type="number" data-f="downPayment" value="' + (item.downPayment ?? 0) + '"></td>' +
+    '<td><input type="number" data-f="monthly6" value="' + (item.monthly6 ?? 0) + '"></td>' +
+    '<td><input type="number" data-f="monthly12" value="' + (item.monthly12 ?? 0) + '"></td>' +
+    '<td><input type="number" data-f="monthly24" value="' + (item.monthly24 ?? 0) + '"></td>' +
+    '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
+  tr.querySelector('.op-del').addEventListener('click', ()=>{
+    humansFinData.categories.splice(idx, 1);
+    humansFinRenderCats();
+  });
+  return tr;
+}
+function humansFinTariffRow(item, idx){
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td><input type="text" data-f="name" value="' + escapeHtml(item.name || '') + '" placeholder="Standart"></td>' +
+    '<td><input type="text" data-f="internet" value="' + escapeHtml(item.internet || '') + '" placeholder="26 GB"></td>' +
+    '<td><input type="text" data-f="minutes" value="' + escapeHtml(item.minutes || '') + '" placeholder="Cheksiz"></td>' +
+    '<td><input type="text" data-f="sms" value="' + escapeHtml(item.sms || '') + '" placeholder="0 ta"></td>' +
+    '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
+  tr.querySelector('.op-del').addEventListener('click', ()=>{
+    humansFinData.tariffs.splice(idx, 1);
+    humansFinRenderTariffs();
+  });
+  return tr;
+}
+function humansFinRenderCats(){
+  const tbody = document.getElementById('humansFinCatRows');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  humansFinData.categories.forEach((item, i)=> tbody.appendChild(humansFinCatRow(item, i)));
+}
+function humansFinRenderTariffs(){
+  const tbody = document.getElementById('humansFinTariffRows');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  humansFinData.tariffs.forEach((item, i)=> tbody.appendChild(humansFinTariffRow(item, i)));
+}
+function humansFinCollectCats(){
+  const tbody = document.getElementById('humansFinCatRows');
+  const rows = [];
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const o = {};
+    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.f] = Number(inp.value) || 0; });
+    if(o.category) rows.push(o);
+  });
+  return rows;
+}
+function humansFinCollectTariffs(){
+  const tbody = document.getElementById('humansFinTariffRows');
+  const rows = [];
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const o = {};
+    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.f] = inp.value.trim(); });
+    if(o.name) rows.push(o);
+  });
+  return rows;
+}
+async function loadHumansFinancing(){
+  try{
+    const doc = await db.collection('site_settings').doc('humans_financing').get();
+    const d = doc.exists ? (doc.data() || {}) : {};
+    humansFinData.categories = Array.isArray(d.categories) ? d.categories : [];
+    humansFinData.tariffs = Array.isArray(d.tariffs) ? d.tariffs : [];
+    humansFinRenderCats();
+    humansFinRenderTariffs();
+  }catch(err){
+    console.error('Humans bo\'lib to\'lash sozlamalarini yuklashda xato:', err);
+  }
+}
+const humansFinAddCatBtn = document.getElementById('humansFinAddCatBtn');
+if(humansFinAddCatBtn) humansFinAddCatBtn.addEventListener('click', ()=>{
+  humansFinData.categories.push({ category:'', downPayment:0, monthly6:0, monthly12:0, monthly24:0 });
+  humansFinRenderCats();
+});
+const humansFinAddTariffBtn = document.getElementById('humansFinAddTariffBtn');
+if(humansFinAddTariffBtn) humansFinAddTariffBtn.addEventListener('click', ()=>{
+  humansFinData.tariffs.push({ name:'', internet:'', minutes:'', sms:'' });
+  humansFinRenderTariffs();
+});
+const humansFinSaveBtn = document.getElementById('humansFinSaveBtn');
+if(humansFinSaveBtn) humansFinSaveBtn.addEventListener('click', async ()=>{
+  const msg = document.getElementById('humansFinMsg');
+  humansFinSaveBtn.disabled = true;
+  msg.className = 'settings-msg'; msg.textContent = '';
+  try{
+    try{ await firebase.auth().currentUser.getIdToken(true); }catch(e){}
+    humansFinData.categories = humansFinCollectCats();
+    humansFinData.tariffs = humansFinCollectTariffs();
+    await db.collection('site_settings').doc('humans_financing').set({
+      categories: humansFinData.categories,
+      tariffs: humansFinData.tariffs,
+      updatedAt: Date.now()
+    }, { merge: false });
+    msg.classList.add('ok'); msg.textContent = '✓ Saqlandi.';
+    vibrate(80);
+    setTimeout(()=>{ msg.textContent = ''; }, 4000);
+  }catch(err){
+    msg.classList.add('bad'); msg.textContent = 'Xato: ' + err.message;
+  }
+  humansFinSaveBtn.disabled = false;
+});
 
 /* ---- "Baza raqam" kuzatuvi ---- */
 /* Kompaniya tanlash — zamonaviy ikonkali tugmalar, orqa fonda yashirin
@@ -7535,6 +7680,9 @@ function renderAdminOrders(orders){
           <div class="oc-row"><b>Narxi:</b> ${o.price ? formatPrice(o.price) : "Noma'lum"}</div>
           ${o.paymentType === 'installment'
             ? `<div class="oc-row" style="color:var(--amber);"><b>💳 To'lov:</b> Bo'lib to'lash — ${escapeHtml(o.installmentMonths)} oyga, oyiga ${formatPrice(o.monthlyPayment || 0)}dan</div>`
+            : ''}
+          ${o.humansDownPayment !== undefined
+            ? `<div class="oc-row" style="color:var(--amber);"><b>💰 Bosh to'lov:</b> ${formatPrice(o.humansDownPayment)}${o.humansTariff ? ' &middot; 📶 Tarif: ' + escapeHtml(o.humansTariff) : ''}</div>`
             : ''}
           <div class="oc-row"><b>Qayerdan:</b> ${escapeHtml(o.source || 'Sayt')}</div>
           <select class="order-status">
