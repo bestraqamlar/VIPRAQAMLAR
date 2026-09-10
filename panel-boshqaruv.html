@@ -1702,50 +1702,10 @@
         ⭐ ASOSIY'da "Tavsiya etiladi"ga qo'shish
       </label>
 
-      <button type="button" class="zk-op-toggle" id="newDailyDealToggle" style="width:100%;margin:2px 0 4px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8a2 2 0 0 1-2.8 0l-6.2-6.2a2 2 0 0 1 0-2.8l8-8H18a2.5 2.5 0 0 1 2.5 2.5v6.5z"/><circle cx="15" cy="7.5" r="1.4"/></svg>
-        <span>🔥 Bugungi aksiyaga qo'shish</span>
-      </button>
-      <input type="checkbox" id="newDailyDeal" style="display:none;">
-      <div id="newAksiyaFields" style="display:none;">
-        <label for="newOldPrice" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Eski narxi</label>
-        <input type="number" id="newOldPrice" placeholder="Masalan: 8 000 000">
-        <label for="newSalePrice" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Aksiyadagi narx</label>
-        <input type="number" id="newSalePrice" placeholder="Masalan: 6 500 000">
-        <label for="newMonthlyTariff" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Oylik tarif — bo'lmasa bo'sh qoldiring</label>
-        <input type="number" id="newMonthlyTariff" placeholder="Masalan: 25 000">
-        <label for="newTariffMonths" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 5px;">Necha oy muddat — bo'lmasa bo'sh qoldiring</label>
-        <input type="number" id="newTariffMonths" placeholder="Masalan: 12">
-        <button type="button" class="zk-op-toggle" id="newOwnershipToggle" style="width:100%;margin:10px 0 0;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Nomiga chiqadimi?</span>
-        </button>
-        <div id="newOwnershipNote" style="display:none;color:var(--green);font-size:12px;font-weight:700;margin-top:6px;">✅ Raqam nomingizga rasmiylashtiriladi</div>
-
-        <label for="newDealHours" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:14px 0 5px;">⏱ Necha soatdan keyin aksiya tugaydi — bo'lmasa taymer chiqmaydi</label>
-        <input type="number" id="newDealHours" placeholder="Masalan: 24">
-
-        <button type="button" class="op-fin-toggle" id="newDealFinToggle" style="width:100%;margin:10px 0 0;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
-          <span>Bo'lib to'lash (ixtiyoriy)</span><span style="display:inline-block;">▾</span>
-        </button>
-        <div class="op-fin-panel" id="newDealFinPanel" style="display:none;margin-top:8px;">
-          <div class="op-fin-group">
-            <div class="op-fin-group-title">6 oy</div>
-            <label>Bosh to'lov</label><input type="number" id="newDealDown6">
-            <label>Oylik to'lov</label><input type="number" id="newDealMonthly6">
-          </div>
-          <div class="op-fin-group">
-            <div class="op-fin-group-title">12 oy</div>
-            <label>Bosh to'lov</label><input type="number" id="newDealDown12">
-            <label>Oylik to'lov</label><input type="number" id="newDealMonthly12">
-          </div>
-          <div class="op-fin-group">
-            <div class="op-fin-group-title">24 oy</div>
-            <label>Bosh to'lov</label><input type="number" id="newDealDown24">
-            <label>Oylik to'lov</label><input type="number" id="newDealMonthly24">
-          </div>
-        </div>
-      </div>
+      <!-- "Bugungi aksiyaga qo'shish" — mijoz iltimosiga ko'ra bu yerdan
+           OLIB TASHLANDI: endi "Bugungi aksiya" pastda, Raqamlar
+           ro'yxatidan ALOHIDA o'z bo'limida (qarang: #aksiyaList),
+           qo'shishda faqat Raqam/Aksiya narxi/Eski narxi so'raladi. -->
 
       <button id="addNumberBtn">+ Raqam qo'shish</button>
       <div class="code-hint" id="codeHint"></div>
@@ -1812,6 +1772,32 @@
 
     <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
     <div class="admin-list" id="adminNumbersList"></div>
+
+    <!-- "Bugungi aksiya" — Raqamlar ro'yxatidan MUSTAQIL, alohida bo'lim.
+         Mijoz iltimosiga ko'ra qo'shishda FAQAT 3 ta maydon so'raladi:
+         Raqam, Aksiya narxi, Eski narxi. Taymer va (ixtiyoriy) Bo'lib
+         to'lash — raqam qo'shilgandan KEYIN, quyidagi ro'yxatda ▾ tugmasi
+         orqali sozlanadi (bu imkoniyat olib tashlanmagan, faqat qo'shish
+         formasidan chiqarilgan). -->
+    <div class="op-block" style="margin-top:26px;">
+      <div class="op-head">
+        <span class="op-name">🔥 Bugungi aksiya</span>
+      </div>
+      <p class="op-note">Bu bo'lim yuqoridagi umumiy Raqamlar ro'yxatidan ALOHIDA — faqat "Bugungi
+        aksiya"dagi raqamlar shu yerda boshqariladi. Qo'shishda faqat Raqam, Aksiya narxi va Eski
+        narxini kiriting. Taymer (necha soatdan keyin tugaydi) va ixtiyoriy Bo'lib to'lash — raqam
+        qo'shilgandan keyin, pastdagi ro'yxatda har bir qatorning <b>▾</b> tugmasi ichida sozlanadi.</p>
+
+      <div class="add-form" style="margin-bottom:16px;">
+        <input type="text" id="aksNewNumber" placeholder="90 777-77-77" inputmode="numeric">
+        <input type="number" id="aksNewSalePrice" placeholder="Aksiya narxi (so'm)">
+        <input type="number" id="aksNewOldPrice" placeholder="Eski narxi (so'm)">
+        <button id="aksAddBtn" type="button">+ Aksiyaga qo'shish</button>
+        <div class="code-hint" id="aksAddHint"></div>
+      </div>
+
+      <div class="admin-list" id="aksiyaList"></div>
+    </div>
   </div>
 
   <div class="pane" id="paneAi">
@@ -7298,6 +7284,7 @@ async function refreshNumbers(){
     currentNumbersCache = numbers;
     updateOverview();
     applyNumberFilters();
+    renderAksiyaList();
   }catch(err){
     adminNumbersList.innerHTML = `<div class="empty-admin">Bazaga ulanishda xato. Firebase sozlamalarini tekshiring.</div>`;
     console.error(err);
@@ -7430,6 +7417,170 @@ function renderAdminNumbers(numbers){
   });
 }
 
+/* ---- "Bugungi aksiya" — Raqamlar ro'yxatidan alohida bo'lim ----
+   Qo'shish paytida faqat Raqam/Aksiya narxi/Eski narxi so'raladi; Taymer va
+   ixtiyoriy Bo'lib to'lash (bosh to'lov + 6/12/24 oy) shu ro'yxatdagi har
+   bir qatorning ▾ tugmasi ichida, qo'shilgandan KEYIN sozlanadi. */
+document.getElementById('aksAddBtn').addEventListener('click', async ()=>{
+  const numberInput = document.getElementById('aksNewNumber');
+  let num = numberInput.value.trim();
+  const hint = document.getElementById('aksAddHint');
+  if(!num){ numberInput.focus(); return; }
+  if(!num.startsWith('+')) num = '+' + num;
+  const salePrice = Number(document.getElementById('aksNewSalePrice').value) || 0;
+  const oldPrice = Number(document.getElementById('aksNewOldPrice').value) || 0;
+  if(!salePrice){
+    hint.textContent = "Aksiya narxini kiriting.";
+    hint.className = 'code-hint bad';
+    return;
+  }
+  try{
+    const rawDigits = num.replace(/\D/g, '').slice(-9);
+    await db.collection('numbers').add({
+      number: num,
+      operator: '',
+      price: salePrice,
+      oldPrice: oldPrice,
+      onSale: oldPrice > salePrice,
+      installment: false,
+      featured: false,
+      dailyDeal: true,
+      monthlyTariff: 0,
+      tariffMonths: 0,
+      dealExpiresAt: null,
+      dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
+      ownershipTransfer: false,
+      recommended: false,
+      tag: 'oddiy',
+      last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
+      addedAt: Date.now(),
+      randomKey: Math.random()
+    });
+    vibrate(80);
+    numberInput.value = '';
+    document.getElementById('aksNewSalePrice').value = '';
+    document.getElementById('aksNewOldPrice').value = '';
+    hint.textContent = '✅ Qo\'shildi';
+    hint.className = 'code-hint ok';
+    setTimeout(()=>{ hint.textContent = ''; hint.className = 'code-hint'; }, 1800);
+    refreshNumbers();
+  }catch(err){ alert('Qo\'shishda xato: ' + err.message); }
+});
+
+function aksFinGroupHtml(item, months){
+  return `
+    <div class="op-fin-group">
+      <div class="op-fin-group-title">${months} oy</div>
+      <label>Bosh to'lov</label><input type="number" class="aks-down" data-months="${months}" value="${item['dealDown' + months] || 0}">
+      <label>Oylik to'lov</label><input type="number" class="aks-monthly" data-months="${months}" value="${item['dealMonthly' + months] || 0}">
+    </div>`;
+}
+
+function renderAksiyaList(){
+  const list = document.getElementById('aksiyaList');
+  if(!list) return;
+  const items = (currentNumbersCache || []).filter(n => n.dailyDeal);
+  if(items.length === 0){
+    list.innerHTML = `<div class="empty-admin">Hali "Bugungi aksiya"ga raqam qo'shilmagan.</div>`;
+    return;
+  }
+  list.innerHTML = items.map(item=>{
+    const hoursLeft = item.dealExpiresAt ? Math.max(0, Math.round((item.dealExpiresAt - Date.now()) / 3600000)) : '';
+    return `
+    <div class="admin-row-collapsed" data-id="${item.id}">
+      <div class="an-summary" data-id="${item.id}">
+        <span class="an-summary-num">${escapeHtml(item.number)}</span>
+        <span class="an-summary-price">${formatPrice(item.price)}</span>
+        ${item.oldPrice ? `<span class="an-summary-op" style="text-decoration:line-through;opacity:.6;">${formatPrice(item.oldPrice)}</span>` : ''}
+        <span class="an-summary-arrow">▾</span>
+      </div>
+      <div class="an-body" style="display:none;">
+        <div class="admin-row aks-row" data-id="${item.id}">
+          <input class="aks-number" value="${escapeHtml(item.number)}">
+          <input class="aks-saleprice" type="number" placeholder="Aksiya narxi" value="${item.price || 0}">
+          <input class="aks-oldprice" type="number" placeholder="Eski narxi" value="${item.oldPrice || 0}">
+          <button class="aks-save">Saqlash</button>
+          <button class="aks-delete">O'chirish</button>
+          <div class="an-extra">
+            <label for="aks-hours-${item.id}" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:8px 0 4px;">⏱ Necha soatdan keyin aksiya tugaydi (bo'lmasa bo'sh qoldiring${hoursLeft !== '' ? ' — hozir ~' + hoursLeft + ' soat qoldi' : ''})</label>
+            <input type="number" id="aks-hours-${item.id}" class="aks-hours" placeholder="Masalan: 24">
+            <button type="button" class="op-fin-toggle aks-fin-toggle" style="width:100%;margin:10px 0 0;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+              <span>Bo'lib to'lash (ixtiyoriy)</span><span style="display:inline-block;">▾</span>
+            </button>
+            <div class="op-fin-panel aks-fin-panel" style="display:none;margin-top:8px;">
+              ${aksFinGroupHtml(item, 6)}
+              ${aksFinGroupHtml(item, 12)}
+              ${aksFinGroupHtml(item, 24)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.an-summary').forEach(summary=>{
+    summary.addEventListener('click', ()=>{
+      const wrap = summary.closest('.admin-row-collapsed');
+      const body = wrap.querySelector('.an-body');
+      const arrow = summary.querySelector('.an-summary-arrow');
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      arrow.textContent = isOpen ? '▾' : '▴';
+    });
+  });
+  list.querySelectorAll('.aks-fin-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const panel = btn.nextElementSibling;
+      const isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : 'grid';
+      btn.classList.toggle('active', !isOpen);
+    });
+  });
+  list.querySelectorAll('.aks-save').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const row = btn.closest('.aks-row');
+      const id = row.dataset.id;
+      let numVal = row.querySelector('.aks-number').value.trim();
+      if(numVal && !numVal.startsWith('+')) numVal = '+' + numVal;
+      const salePrice = Number(row.querySelector('.aks-saleprice').value) || 0;
+      const oldPrice = Number(row.querySelector('.aks-oldprice').value) || 0;
+      const hoursVal = Number(row.querySelector('.aks-hours').value) || 0;
+      const patch = {
+        number: numVal,
+        price: salePrice,
+        oldPrice: oldPrice,
+        onSale: oldPrice > salePrice
+      };
+      // Taymer maydoni bo'sh qoldirilsa — mavjud muddat o'zgarmaydi;
+      // qiymat kiritilsa, HOZIRDAN boshlab shuncha soatga yangilanadi.
+      if(hoursVal > 0) patch.dealExpiresAt = Date.now() + hoursVal * 3600 * 1000;
+      [6,12,24].forEach(m=>{
+        const downInp = row.querySelector(`.aks-down[data-months="${m}"]`);
+        const monthlyInp = row.querySelector(`.aks-monthly[data-months="${m}"]`);
+        patch['dealDown' + m] = Number(downInp.value) || 0;
+        patch['dealMonthly' + m] = Number(monthlyInp.value) || 0;
+      });
+      try{
+        await db.collection('numbers').doc(id).update(patch);
+        btn.textContent = '✓ Saqlandi';
+        btn.classList.add('saved-flash');
+        vibrate(80);
+        setTimeout(()=>{ btn.textContent = 'Saqlash'; btn.classList.remove('saved-flash'); refreshNumbers(); }, 900);
+      }catch(err){ alert('Saqlashda xato: ' + err.message); }
+    });
+  });
+  list.querySelectorAll('.aks-delete').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const row = btn.closest('.aks-row');
+      if(!confirm('Rostdan ham o\'chirilsinmi?')) return;
+      try{
+        await db.collection('numbers').doc(row.dataset.id).delete();
+        refreshNumbers();
+      }catch(err){ alert('O\'chirishda xato: ' + err.message); }
+    });
+  });
+}
+
 // Har bir harf uchun butun ro'yxatni (300 tagacha murakkab qator) qayta
 // chizish og'ir amal — tez yozganda sayt "qotib qolishi"ga sabab bo'lardi.
 // Shuning uchun foydalanuvchi yozishni bir oz to'xtatgandan keyingina
@@ -7473,34 +7624,10 @@ newNumberInput.addEventListener('input', ()=>{
   }
 });
 
-// "Bugungi aksiya" bosilsa — Narxi maydoni yashirinadi, o'rniga Eski narxi/
-// Aksiyadagi narx/Oylik tarif/Necha oy muddat/"Nomiga chiqadimi" maydonlari
-// chiqadi; bosilmasa hech narsa qo'shimcha ko'rsatilmaydi (oddiy "Narxi").
-let newOwnershipOn = false;
-document.getElementById('newDailyDealToggle').addEventListener('click', ()=>{
-  const cb = document.getElementById('newDailyDeal');
-  cb.checked = !cb.checked;
-  document.getElementById('newDailyDealToggle').classList.toggle('active', cb.checked);
-  document.getElementById('newPriceWrap').style.display = cb.checked ? 'none' : '';
-  document.getElementById('newAksiyaFields').style.display = cb.checked ? '' : 'none';
-});
-document.getElementById('newOwnershipToggle').addEventListener('click', ()=>{
-  newOwnershipOn = !newOwnershipOn;
-  document.getElementById('newOwnershipToggle').classList.toggle('active', newOwnershipOn);
-  document.getElementById('newOwnershipNote').style.display = newOwnershipOn ? '' : 'none';
-});
-// "Bugungi aksiya"ga qo'shilayotgan raqam uchun ixtiyoriy "Bo'lib to'lash"
-// (bosh to'lov + 6/12/24 oy) — operator narx-jadvalidagi tizimdan farqli,
-// bu yerda TO'G'RIDAN-TO'G'RI shu bitta raqam hujjatiga yoziladi (chunki
-// har bir "Bugungi aksiya" raqami allaqachon o'zining aniq narxiga ega).
-document.getElementById('newDealFinToggle').addEventListener('click', ()=>{
-  const panel = document.getElementById('newDealFinPanel');
-  const btn = document.getElementById('newDealFinToggle');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'grid';
-  btn.classList.toggle('active', !isOpen);
-});
-
+// Mijoz iltimosiga ko'ra "Bugungi aksiya" endi shu umumiy formadan OLIB
+// TASHLANDI — pastda (#aksiyaList) o'zining ALOHIDA, sodda (Raqam/Aksiya
+// narxi/Eski narxi) qo'shish bo'limi bor. Shu sabab bu yerdagi
+// "onDeal"/"dailyDeal" har doim FALSE bo'ladi.
 document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   const numberInput = document.getElementById('newNumber');
   let num = numberInput.value.trim();
@@ -7508,42 +7635,22 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   if(!num.startsWith('+')) num = '+' + num;
 
   try{
-    const onDeal = document.getElementById('newDailyDeal').checked;
-    // Aksiya YOQ bo'lsa — oddiy "Narxi" maydoni ishlatiladi (eskidagiday).
-    // Aksiya YOQILGAN bo'lsa — "Aksiyadagi narx" asosiy narx bo'ladi,
-    // "Eski narxi" esa chizib ko'rsatiladigan narx sifatida saqlanadi.
-    const priceVal = onDeal
-      ? (Number(document.getElementById('newSalePrice').value) || 0)
-      : (Number(document.getElementById('newPrice').value) || 0);
-    const oldPriceVal = onDeal ? (Number(document.getElementById('newOldPrice').value) || 0) : 0;
-    const monthlyTariffVal = onDeal ? (Number(document.getElementById('newMonthlyTariff').value) || 0) : 0;
-    const tariffMonthsVal = onDeal ? (Number(document.getElementById('newTariffMonths').value) || 0) : 0;
-    // "Bugungi aksiya" — taymer (necha soatdan keyin tugaydi) va ixtiyoriy
-    // "Bo'lib to'lash" (bosh to'lov + 6/12/24 oy), to'g'ridan-to'g'ri shu
-    // raqam hujjatiga yoziladi.
-    const dealHoursVal = onDeal ? (Number(document.getElementById('newDealHours').value) || 0) : 0;
-    const dealExpiresAtVal = dealHoursVal > 0 ? (Date.now() + dealHoursVal * 3600 * 1000) : null;
-    const dealDown6 = onDeal ? (Number(document.getElementById('newDealDown6').value) || 0) : 0;
-    const dealMonthly6 = onDeal ? (Number(document.getElementById('newDealMonthly6').value) || 0) : 0;
-    const dealDown12 = onDeal ? (Number(document.getElementById('newDealDown12').value) || 0) : 0;
-    const dealMonthly12 = onDeal ? (Number(document.getElementById('newDealMonthly12').value) || 0) : 0;
-    const dealDown24 = onDeal ? (Number(document.getElementById('newDealDown24').value) || 0) : 0;
-    const dealMonthly24 = onDeal ? (Number(document.getElementById('newDealMonthly24').value) || 0) : 0;
+    const priceVal = Number(document.getElementById('newPrice').value) || 0;
     const rawDigits = num.replace(/\D/g, '').slice(-9); // 9 xonali mahalliy qism
     await db.collection('numbers').add({
       number: num,
       operator: document.getElementById('newOperator').value,
       price: priceVal,
-      oldPrice: oldPriceVal,
-      onSale: oldPriceVal > priceVal,
+      oldPrice: 0,
+      onSale: false,
       installment: document.getElementById('newInstallment').checked,
       featured: document.getElementById('newFeatured').checked,
-      dailyDeal: onDeal,
-      monthlyTariff: monthlyTariffVal,
-      tariffMonths: tariffMonthsVal,
-      dealExpiresAt: dealExpiresAtVal,
-      dealDown6, dealMonthly6, dealDown12, dealMonthly12, dealDown24, dealMonthly24,
-      ownershipTransfer: onDeal ? newOwnershipOn : false,
+      dailyDeal: false,
+      monthlyTariff: 0,
+      tariffMonths: 0,
+      dealExpiresAt: null,
+      dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
+      ownershipTransfer: false,
       recommended: document.getElementById('newRecommended').checked,
       tag: document.getElementById('newTag').value,
       last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
@@ -7553,25 +7660,8 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     vibrate(80);
     numberInput.value = '';
     document.getElementById('newPrice').value = '';
-    document.getElementById('newOldPrice').value = '';
-    document.getElementById('newSalePrice').value = '';
-    document.getElementById('newMonthlyTariff').value = '';
-    document.getElementById('newTariffMonths').value = '';
-    document.getElementById('newDealHours').value = '';
-    ['newDealDown6','newDealMonthly6','newDealDown12','newDealMonthly12','newDealDown24','newDealMonthly24'].forEach(id=>{
-      const el = document.getElementById(id); if(el) el.value = '';
-    });
-    document.getElementById('newDealFinPanel').style.display = 'none';
-    document.getElementById('newDealFinToggle').classList.remove('active');
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
-    document.getElementById('newDailyDeal').checked = false;
-    document.getElementById('newDailyDealToggle').classList.remove('active');
-    document.getElementById('newPriceWrap').style.display = '';
-    document.getElementById('newAksiyaFields').style.display = 'none';
-    newOwnershipOn = false;
-    document.getElementById('newOwnershipToggle').classList.remove('active');
-    document.getElementById('newOwnershipNote').style.display = 'none';
     document.getElementById('newRecommended').checked = false;
     codeHint.textContent = '';
     codeHint.className = 'code-hint';
