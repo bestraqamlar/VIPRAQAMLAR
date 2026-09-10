@@ -1279,16 +1279,16 @@
     border-radius:8px;margin-bottom:14px;width:fit-content;
   }
   .installment-tag svg{width:12px;height:12px;flex-shrink:0;}
-  /* Humans/Ucell "Bo'lib to'lash" — kartochka burchagidagi "X so'mdan /
-     24 oy" belgisi. Oddiy oqim ichida (position:absolute EMAS) — shu
-     bilan raqam matni bilan hech qachon ustma-ust tushmaydi. */
+  /* "Bo'lib to'lash" belgisi — narx bilan BIR QATORDA, narx CHAPDA bo'lsa
+     bu O'NG chetda tursin deb (mijoz iltimosiga ko'ra) margin-left:auto
+     bilan narx qatorining (.price-row va h.k.) oxiriga suriladi. */
   .hu-fin-badge{
     display:inline-flex;align-items:center;gap:4px;
     background:linear-gradient(135deg, color-mix(in srgb, var(--amber) 20%, transparent), color-mix(in srgb, var(--green) 20%, transparent));
     border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);
-    color:var(--amber);font-size:10px;font-weight:700;
-    padding:4px 9px 4px 7px;border-radius:20px;
-    margin:10px 0 0 10px;width:fit-content;white-space:nowrap;
+    color:var(--amber);font-size:9.5px;font-weight:700;
+    padding:4px 8px 4px 6px;border-radius:20px;
+    margin-left:auto;white-space:nowrap;
     box-shadow:0 4px 10px -4px color-mix(in srgb, var(--amber) 60%, transparent);
     animation:hfBadgeIn .4s cubic-bezier(.34,1.56,.64,1);
   }
@@ -2108,6 +2108,12 @@
   .hf-tariff-detail div{font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;}
   .hf-tariff-detail svg{width:18px;height:18px;color:var(--amber);flex-shrink:0;}
   .hf-tariff-detail b{display:block;color:var(--text);font-size:12.5px;margin-top:1px;}
+  .hf-tariff-price-box{
+    grid-column:1 / -1;flex-direction:row !important;justify-content:center;gap:8px !important;
+    margin-top:4px;padding-top:10px;border-top:1px dashed var(--line);
+  }
+  .hf-tariff-price-box svg{color:var(--green);}
+  .hf-tariff-price-box b{font-size:14px !important;color:var(--green) !important;margin-top:0 !important;}
 
   /* ---- Tarif tanlab bo'lgandan keyin chiqadigan yakuniy chek (hf-receipt) ---- */
   .hf-receipt{
@@ -2131,7 +2137,8 @@
   }
   .hf-receipt-row span{color:var(--muted);}
   .hf-receipt-row b{color:var(--text);font-family:'Sora',sans-serif;font-weight:700;transition:transform .2s ease;}
-  .hf-receipt-note{color:var(--muted);font-size:11.5px;margin:8px 0 0;line-height:1.5;}
+  .hf-receipt-note{color:var(--muted);font-size:12.5px;margin:8px 0 0;line-height:1.6;font-weight:600;}
+  .hf-receipt-note .hf-red{color:#DC2626;font-weight:800;}
   .hf-receipt-total{
     display:flex;align-items:center;justify-content:space-between;
     margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
@@ -2163,7 +2170,7 @@
     box-shadow:0 0 0 1px color-mix(in srgb, var(--btn-bg, #2F6BE0) 25%, transparent), 0 4px 14px -6px color-mix(in srgb, var(--btn-bg, #2F6BE0) 55%, transparent);
     background:var(--panel);
     display:flex;flex-direction:column;min-height:130px;
-    scroll-snap-align:start;
+    scroll-snap-align:start;position:relative;
   }
   .daily-deal-card .dd-badge{
     /* Mijoz iltimosiga ko'ra: yozuv rangi endi doim OQ (avval --bg
@@ -2172,12 +2179,29 @@
     display:inline-block;background:var(--amber);color:#FFFFFF;font-size:9px;font-weight:800;
     padding:2px 6px;border-radius:6px;margin-bottom:6px;align-self:flex-start;
   }
+  /* Taymer — "-X%" belgisi bilan bir xil o'lcham/uslub, lekin O'NG chekada
+     (mijoz iltimosiga ko'ra). Har soniyada JS orqali yangilanadi. */
+  .daily-deal-card .dd-timer{
+    position:absolute;top:10px;right:10px;
+    display:inline-flex;align-items:center;gap:3px;
+    background:#DC2626;color:#FFFFFF;font-size:9px;font-weight:800;
+    padding:2px 6px;border-radius:6px;font-family:'Space Mono',monospace;
+    white-space:nowrap;animation:ddTimerPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes ddTimerPulse{0%,100%{opacity:1;}50%{opacity:.72;}}
   .daily-deal-card .dd-num{
     font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(10px,3vw,13px);color:var(--text);
     white-space:nowrap;margin-bottom:6px;
   }
-  .daily-deal-card .dd-price-row{margin-top:auto;}
-  .daily-deal-card .dd-price{font-size:11px;color:var(--amber);font-weight:800;}
+  .daily-deal-card .dd-price-row{
+    margin-top:auto;display:flex;align-items:baseline;gap:4px;
+    overflow:hidden;white-space:nowrap;
+  }
+  .daily-deal-card .dd-price{
+    font-size:11px;color:var(--amber);font-weight:800;
+    transition:opacity .15s ease, transform .15s ease;overflow:hidden;text-overflow:ellipsis;
+  }
+  .daily-deal-card .dd-price.dd-price-flip{opacity:0;transform:translateY(3px);}
   .daily-deal-card .dd-oldprice{font-size:10px;color:var(--muted);text-decoration:line-through;margin-left:4px;}
   .daily-deal-card button{
     width:100%;margin-top:8px;background:var(--btn-bg, var(--amber));color:var(--btn-text, #0a1a12);border:none;border-radius:8px;
@@ -2280,7 +2304,12 @@
      "Rasmiylashtirish" bosilib to'liq forma (#formView) ochilganda oyna
      odatdagi (mavzuga mos) fonga qaytadi. ---- */
   .modal.modal-preview{
-    background:linear-gradient(160deg, #1E4FB8 0%, #0B2E7A 100%);
+    /* Mijoz iltimosiga ko'ra zamonaviylashtirildi — tekis ko'k o'rniga
+       chuqur indigo/binafsha fon + yumshoq amber nur (radial glow),
+       premium/rasmiy taassurot uchun. */
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255,176,0,0.16) 0%, transparent 55%),
+      linear-gradient(160deg, #2A1F6B 0%, #150F3D 55%, #0A0820 100%);
     border-color:rgba(255,255,255,0.14);
   }
   .modal.modal-preview .modal-handle{background:rgba(255,255,255,0.35);}
@@ -2302,12 +2331,13 @@
   .op-preview-text{font-size:13px;color:var(--muted);text-align:center;margin:0 0 16px;line-height:1.5;}
   .op-preview-confirm{
     width:100%;padding:15px;border:none;border-radius:12px;
-    background:#0B1220;color:#FFFFFF;font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;
+    background:linear-gradient(135deg, var(--amber) 0%, #FFD778 50%, var(--green) 100%);
+    color:#0B1220;font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;
     cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;
-    box-shadow:0 10px 24px -10px rgba(0,0,0,0.5);
+    box-shadow:0 10px 26px -8px color-mix(in srgb, var(--amber) 60%, transparent);
     transition:transform .15s ease, filter .15s ease;
   }
-  .op-preview-confirm:hover{filter:brightness(1.2);}
+  .op-preview-confirm:hover{filter:brightness(1.08);}
   .op-preview-confirm:active{transform:scale(0.97);}
   .op-preview-cancel{
     display:block;width:100%;background:none;border:none;color:var(--muted);
@@ -2632,6 +2662,19 @@
   @keyframes drawCheck{to{stroke-dashoffset:0;}}
   .success-view h3{font-family:'Space Mono',monospace;color:var(--green);font-size:18px;margin:0 0 6px;position:relative;z-index:2;}
   .success-view p{color:var(--muted);font-size:13px;margin:0;position:relative;z-index:2;}
+
+  /* "Admin sizga +998... raqamidan aloqaga chiqadi" — rasmiy/ishonchli
+     ko'rinish uchun alohida ramkali qator, telefon ikonkasi bilan. */
+  .success-contact-line{
+    position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:9px;
+    margin:16px 14px 0;padding:11px 14px;border-radius:12px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--green) 12%, transparent), color-mix(in srgb, var(--amber) 10%, transparent));
+    border:1px solid color-mix(in srgb, var(--green) 35%, transparent);
+    color:var(--text);font-size:12.5px;font-weight:600;
+    animation:recapFadeIn .4s ease .35s both;
+  }
+  .success-contact-line svg{width:17px;height:17px;flex-shrink:0;color:var(--green);}
+  .success-contact-line b{font-family:'Sora',sans-serif;font-weight:800;color:var(--green);white-space:nowrap;}
 
   .success-order-recap{
     position:relative;z-index:2;margin:16px 12px 0;
@@ -3645,7 +3688,7 @@ html.theme-purple-premium .card button.order-btn{
           <div class="hf-receipt-row"><span>Raqam 1-chi oylik to'lov</span><b id="hfrFirstMonthly">0 so'm</b></div>
           <div class="hf-receipt-row"><span>Tarif</span><b id="hfrTariff">—</b></div>
           <p class="hf-receipt-note" id="hfScheduleNote"></p>
-          <div class="hf-receipt-total"><span>Umumiy</span><b id="hfTotalOverall">0 so'm</b></div>
+          <div class="hf-receipt-total"><span>Hozir to'lanadigan summa</span><b id="hfTotalOverall">0 so'm</b></div>
         </div>
       </div>
       <div class="hf-divider" id="hfDivider" style="display:none;">Ma'lumotlaringiz</div>
@@ -3712,6 +3755,10 @@ html.theme-purple-premium .card button.order-btn{
       </div>
       <h3 id="successTitle">Buyurtma yuborildi!</h3>
       <p id="successSubtitle">Tez orada admin siz bilan bog'lanadi.</p>
+      <div class="success-contact-line" id="successContactLine">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span>Admin sizga <b>+998 87 888 01 01</b> raqamidan aloqaga chiqadi</span>
+      </div>
       <div class="success-order-recap" id="successOrderRecap"></div>
       <div class="modal-actions" style="margin-top:18px;">
         <button class="btn-cancel" id="closeSuccessBtn" style="flex:1;">Yopish</button>
@@ -3855,16 +3902,26 @@ function formatInstallmentTeaser(monthly, months){
     ? `от ${numStr} сум / ${months} мес.`
     : `${numStr} so'mdan / ${months} oy`;
 }
-// Humans/Ucell/Beeline "Bo'lib to'lash" — katalog kartochkasining
-// burchagida chiqadigan kichik belgi. Mijoz iltimosiga ko'ra ANIQ SUMMA
-// EMAS ("X so'mdan / X oy" olib tashlandi) — avvalgidek oddiy "Bo'lib
-// to'lash mavjud" matni. installmentFinancingFor() pastda
-// (OPERATOR_FINANCING) e'lon qilingan — funksiya deklaratsiyalari hoisted
-// bo'lgani uchun bu yerdan chaqirish xavfsiz.
+// "Bo'lib to'lash" — narx qatorining O'NG tarafida (narx chapda) chiqadigan
+// kichik belgi. Mijoz iltimosiga ko'ra operator bo'yicha FARQLI matn:
+// Beeline — oddiy "Bo'lib to'lash mavjud" (aniq summasiz); Humans/Ucell —
+// aniq "X so'mdan / Y oy" taklifi (eng uzoq muddat, odatda eng arzon
+// oylik). installmentFinancingFor() pastda (OPERATOR_FINANCING) e'lon
+// qilingan — funksiya deklaratsiyalari hoisted bo'lgani uchun bu yerdan
+// chaqirish xavfsiz.
 function humansUcellTeaserHtml(item){
   const fin = (typeof installmentFinancingFor === 'function') ? installmentFinancingFor(item) : null;
   if(!fin) return '';
-  return `<div class="hu-fin-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Bo'lib to'lash mavjud</div>`;
+  const icon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>';
+  if(item.operator === 'Beeline'){
+    return `<span class="hu-fin-badge">${icon}Bo'lib to'lash mavjud</span>`;
+  }
+  let months = 0, monthly = 0;
+  if(fin.monthly && fin.monthly[24]){ months = 24; monthly = fin.monthly[24]; }
+  else if(fin.monthly && fin.monthly[12]){ months = 12; monthly = fin.monthly[12]; }
+  else if(fin.monthly && fin.monthly[6]){ months = 6; monthly = fin.monthly[6]; }
+  if(!months) return '';
+  return `<span class="hu-fin-badge">${icon}${formatInstallmentTeaser(monthly, months)}</span>`;
 }
 function escapeHtml(s){
   return String(s == null ? '' : s)
@@ -4195,9 +4252,11 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     case 'outline':
       return `
-        ${humansUcellTeaserHtml(item)}
         <div class="ol-num">${numDisp}</div>
-        <div class="ol-price">${priceDisp}</div>
+        <div class="ol-price-row" style="display:flex;align-items:center;gap:6px;">
+          <div class="ol-price">${priceDisp}</div>
+          ${humansUcellTeaserHtml(item)}
+        </div>
         ${installmentHtml}
         ${orderButtonHtml(item, t('Buyurtma berish'), 'ol-btn')}`;
 
@@ -4254,13 +4313,13 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
       // ham, keyingi dizayn yangilanishlariga ham bog'liq emas — har doim
       // aynan shu ko'rinishda qoladi.
       return `
-        ${humansUcellTeaserHtml(item)}
         <div class="lk-header"><div class="lk-num">${numDisp}</div></div>
         ${hasDiscount ? `<span class="lk-badge">-${discountPct}%</span>` : ''}
         <div class="lk-body">
           <div class="lk-price-row">
             <span class="lk-new-price">${priceDisp}</span>
             ${hasDiscount ? `<span class="lk-old-price">${oldPriceDisp}</span>` : ''}
+            ${humansUcellTeaserHtml(item)}
           </div>
           ${installmentHtml}
           ${item.reserved
@@ -4270,7 +4329,6 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     default: // classic
       return `
-        ${humansUcellTeaserHtml(item)}
         <div class="card-header">
           <span class="num-label">${numDisp}</span>
         </div>
@@ -4281,6 +4339,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
           <div class="price-row">
             <span class="new-price">${priceDisp}</span>
             ${hasDiscount ? `<span class="old-price">${oldPriceDisp}</span>` : ''}
+            ${humansUcellTeaserHtml(item)}
           </div>
           ${installmentHtml}
           ${item.reserved
@@ -4710,7 +4769,9 @@ function renderDailyDeal(){
     dailyDealScroll.innerHTML = Array(4).fill('<div class="skeleton" style="width:150px;flex-shrink:0;"></div>').join('');
     return;
   }
-  const picks = NUMBERS.filter(item => item.dailyDeal === true && !item.installment);
+  // Muddati tugagan aksiyalar (dealExpiresAt o'tib ketgan) endi ko'rsatilmaydi.
+  const picks = NUMBERS.filter(item => item.dailyDeal === true && !item.installment
+    && (!item.dealExpiresAt || item.dealExpiresAt > Date.now()));
   if(picks.length === 0){
     dailyDealSection.style.display = 'none';
     return;
@@ -4719,11 +4780,20 @@ function renderDailyDeal(){
   dailyDealScroll.innerHTML = picks.map(item => {
     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
     const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+    // Shu raqamga xos "Bo'lib to'lash" (agar admin bosh to'lov/oylik
+    // to'lov kiritgan bo'lsa) — eng uzoq muddat (24>12>6) afzal, chunki
+    // odatda eng arzon oylik shu bo'ladi ("X so'mdan" taklifi uchun).
+    let dealMonths = 0, dealMonthly = 0;
+    if(item.dealMonthly24 > 0){ dealMonths = 24; dealMonthly = item.dealMonthly24; }
+    else if(item.dealMonthly12 > 0){ dealMonths = 12; dealMonthly = item.dealMonthly12; }
+    else if(item.dealMonthly6 > 0){ dealMonths = 6; dealMonthly = item.dealMonthly6; }
+    const installmentTeaser = dealMonths ? formatInstallmentTeaser(dealMonthly, dealMonths) : '';
     return `
       <div class="daily-deal-card">
         ${hasDiscount ? `<div class="dd-badge">-${discountPct}%</div>` : ''}
+        ${item.dealExpiresAt ? `<div class="dd-timer" data-expires="${item.dealExpiresAt}">--:--:--</div>` : ''}
         <div class="dd-num">${displayNumber(item.number)}</div>
-        <div class="dd-price-row">
+        <div class="dd-price-row" ${installmentTeaser ? `data-cash="${formatPrice(item.price)}" data-installment="${escapeHtml(installmentTeaser)}"` : ''}>
           <span class="dd-price">${formatPrice(item.price)}</span>
           ${hasDiscount ? `<span class="dd-oldprice">${formatPrice(item.oldPrice)}</span>` : ''}
         </div>
@@ -4736,6 +4806,67 @@ function renderDailyDeal(){
 
   dailyDealScroll.querySelectorAll('button:not(:disabled)').forEach(btn=>{
     btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
+  });
+
+  updateDailyDealTimers();
+  startDailyDealPriceCycles();
+}
+
+// Har bir "Bugungi aksiya" kartochkasining taymerini soniyada bir marta
+// yangilaydi (necha soat/daqiqa/soniya qolganini ko'rsatadi). Muddati
+// tugagan bo'lsa keyingi renderDailyDeal() chaqiruvida (Firestore
+// yangilanganda yoki sahifa yangilanganda) o'zi ro'yxatdan tushib qoladi.
+let __ddTimerInterval = null;
+function updateDailyDealTimers(){
+  const els = dailyDealScroll ? dailyDealScroll.querySelectorAll('.dd-timer') : [];
+  els.forEach(el=>{
+    const exp = Number(el.dataset.expires);
+    let diff = exp - Date.now();
+    if(diff < 0) diff = 0;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  });
+  if(!__ddTimerInterval){
+    __ddTimerInterval = setInterval(()=>{
+      const live = dailyDealScroll ? dailyDealScroll.querySelectorAll('.dd-timer') : [];
+      if(live.length === 0) return;
+      live.forEach(el=>{
+        const exp = Number(el.dataset.expires);
+        let diff = exp - Date.now();
+        if(diff <= 0){ renderDailyDeal(); return; }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      });
+    }, 1000);
+  }
+}
+
+// Narx qatori (naqt narx <-> "X so'mdan / X oy") har 30 soniyada almashib
+// turadi — mijoz iltimosiga ko'ra HAMMASI BIR VAQTDA emas, har kartaning
+// o'zi tasodifiy vaqtda (0-30s orasida) boshlab, keyin har 30s da davom etadi.
+function startDailyDealPriceCycles(){
+  if(!dailyDealScroll) return;
+  dailyDealScroll.querySelectorAll('.dd-price-row[data-installment]').forEach(row=>{
+    const priceEl = row.querySelector('.dd-price');
+    const oldPriceEl = row.querySelector('.dd-oldprice');
+    const cash = row.dataset.cash;
+    const installment = row.dataset.installment;
+    let showingCash = true;
+    const flip = ()=>{
+      showingCash = !showingCash;
+      priceEl.classList.add('dd-price-flip');
+      setTimeout(()=>{
+        priceEl.textContent = showingCash ? cash : installment;
+        if(oldPriceEl) oldPriceEl.style.display = showingCash ? '' : 'none';
+        priceEl.classList.remove('dd-price-flip');
+      }, 150);
+    };
+    const startDelay = Math.random() * 30000;
+    setTimeout(()=>{ flip(); setInterval(flip, 30000); }, startDelay);
   });
 }
 
@@ -5829,7 +5960,7 @@ icTabButtons.forEach(btn => btn.addEventListener('click', ()=> selectInstallment
    qatorning o'zi (operatorPrice) kalit sifatida ishlatiladi, chunki jonli
    qidiruv natijasi ham aynan shu operatorPrice qiymatini qaytaradi
    (qarang: lib/operators.js). */
-let OPERATOR_FINANCING = { byOperator: { Humans: {}, Ucell: {}, Beeline: {} }, tariffs: [] };
+let OPERATOR_FINANCING = { byOperator: { Humans: {}, Ucell: {}, Beeline: {} }, tariffsByOperator: { Humans: [], Ucell: [], Beeline: [] } };
 async function loadInstallmentFinancing(){
   try{
     const doc = await db.collection('site_settings').doc('operator_financing').get();
@@ -5849,7 +5980,21 @@ async function loadInstallmentFinancing(){
         };
       });
     });
-    OPERATOR_FINANCING = { byOperator, tariffs: Array.isArray(d.tariffs) ? d.tariffs : [] };
+    // Mijoz iltimosiga ko'ra: har bir operator (Humans/Ucell/Beeline) uchun
+    // tarif reja va summasi ENDI ALOHIDA — eski bitta umumiy "tariffs"
+    // ro'yxati o'rniga tariffsByOperator ishlatiladi (eski flat "tariffs"
+    // maydoni bilan orqaga moslik uchun ham qo'llab-quvvatlanadi).
+    const tariffsByOperator = { Humans: [], Ucell: [], Beeline: [] };
+    ['Humans','Ucell','Beeline'].forEach(op=>{
+      if(d.tariffsByOperator && Array.isArray(d.tariffsByOperator[op])){
+        tariffsByOperator[op] = d.tariffsByOperator[op];
+      }
+    });
+    if(!d.tariffsByOperator && Array.isArray(d.tariffs)){
+      // Eski ma'lumot formati — hammasi Humans'ga tegishli deb hisoblaymiz.
+      tariffsByOperator.Humans = d.tariffs;
+    }
+    OPERATOR_FINANCING = { byOperator, tariffsByOperator };
     // Katalog kartochkalari bu ma'lumot kelgunicha allaqachon chizilgan
     // bo'lishi mumkin (Firestore o'qish asinxron) — shu sabab "X so'mdan /
     // 24 oy" belgisi ko'rinishi uchun bir marta qayta chizamiz.
@@ -5921,7 +6066,8 @@ function selectHumansTariff(tariff){
   hfTariffDetail.innerHTML =
     `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.5 16.43a6 6 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>Internet<b>${escapeHtml(tariff.internet || '-')}</b></div>` +
     `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Daqiqa<b>${escapeHtml(tariff.minutes || '-')}</b></div>` +
-    `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sms<b>${escapeHtml(tariff.sms || '-')}</b></div>`;
+    `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sms<b>${escapeHtml(tariff.sms || '-')}</b></div>` +
+    `<div class="hf-tariff-price-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Tarif narxi<b>${formatPriceUzs(Number(tariff.price) || 0)}</b></div>`;
   updateHumansFinTotals();
 }
 function renderHumansTariffs(){
@@ -5929,7 +6075,11 @@ function renderHumansTariffs(){
   hfTariffDetail.style.display = 'none';
   hfTariffDetail.innerHTML = '';
   selectedHumansTariff = null;
-  (OPERATOR_FINANCING.tariffs || []).forEach(t=>{
+  // Mijoz iltimosiga ko'ra: har bir operator (Humans/Ucell/Beeline) uchun
+  // o'z tariflari — tanlangan raqamning operatoriga (selectedOperator) mos
+  // ro'yxat ko'rsatiladi.
+  const tariffs = (OPERATOR_FINANCING.tariffsByOperator && OPERATOR_FINANCING.tariffsByOperator[selectedOperator]) || [];
+  tariffs.forEach(t=>{
     if(!t.name) return;
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -5939,15 +6089,53 @@ function renderHumansTariffs(){
     btn.addEventListener('click', ()=> selectHumansTariff(t));
     hfTariffsEl.appendChild(btn);
   });
-  if(OPERATOR_FINANCING.tariffs && OPERATOR_FINANCING.tariffs.length) selectHumansTariff(OPERATOR_FINANCING.tariffs[0]);
+  if(tariffs.length) selectHumansTariff(tariffs[0]);
+}
+
+// Umumiy summa (hozir to'lanadigan) o'zgarganda raqam eskisidan yangisiga
+// zamonaviy "hisoblagich" (odometer) animatsiyasi bilan sanab o'tadi —
+// mijoz iltimosi: "rez sanab kesin soniyad yani animatsiya bolisin".
+let __hfTotalAnimRaf = null;
+let __hfTotalCurrentValue = 0;
+function animateCountUp(el, targetValue){
+  if(!el) return;
+  const startValue = __hfTotalCurrentValue || 0;
+  const diff = targetValue - startValue;
+  if(__hfTotalAnimRaf) cancelAnimationFrame(__hfTotalAnimRaf);
+  if(diff === 0){ el.textContent = formatPriceUzs(targetValue); return; }
+  const duration = 550;
+  const startTime = performance.now();
+  function tick(now){
+    const t = Math.min(1, (now - startTime) / duration);
+    // ease-out kub — oxiriga yaqinlashganda sekinlashadi, zamonaviyroq
+    // ko'rinadi (chiziqli sanashdan farqli).
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = Math.round(startValue + diff * eased);
+    el.textContent = formatPriceUzs(val);
+    if(t < 1){
+      __hfTotalAnimRaf = requestAnimationFrame(tick);
+    }else{
+      el.textContent = formatPriceUzs(targetValue);
+      __hfTotalCurrentValue = targetValue;
+    }
+  }
+  __hfTotalAnimRaf = requestAnimationFrame(tick);
 }
 
 // "Tarif tanlab bo'lgandan keyin" pastda chiqadigan, alohida ramkali
 // "Raqam nomingizga rasmiylashtiriladi!" cheki — tepadagi oy (6/12/24)
 // yoki tarif tugmasi bosilganda DARHOL shu joyning o'zida yangilanadi.
+//
+// Mijoz iltimosiga ko'ra HISOB-KITOB FORMULASI: hozir to'lanadigan summa =
+// Bosh to'lov + Raqam 1-chi oylik to'lovi + Tarif summasi (tarif NARXI,
+// nomi emas). Qolgan oylar soni = umumiy tanlangan oy - 1 (1-oy allaqachon
+// "hozir" to'lovga kiritilgani uchun) — lekin bu ayirish FORMULASI mijozga
+// ko'rsatilmaydi, faqat natija ("S oy") chiqadi.
 function updateHumansFinTotals(){
   if(!selectedInstallmentFin) return;
-  const total = selectedDownPayment + (selectedMonthlyPayment * selectedInstallmentMonths);
+  const tariffPrice = selectedHumansTariff ? (Number(selectedHumansTariff.price) || 0) : 0;
+  const payNow = selectedDownPayment + selectedMonthlyPayment + tariffPrice;
+  const remainingMonths = Math.max(selectedInstallmentMonths - 1, 0);
   const hfrDown = document.getElementById('hfrDown');
   const hfrFirstMonthly = document.getElementById('hfrFirstMonthly');
   const hfrTariff = document.getElementById('hfrTariff');
@@ -5955,11 +6143,11 @@ function updateHumansFinTotals(){
   const hfReceipt = document.getElementById('hfReceipt');
   if(hfrDown) hfrDown.textContent = formatPriceUzs(selectedDownPayment);
   if(hfrFirstMonthly) hfrFirstMonthly.textContent = formatPriceUzs(selectedMonthlyPayment);
-  if(hfrTariff) hfrTariff.textContent = selectedHumansTariff ? selectedHumansTariff.name : '—';
-  if(hfTotalOverall) hfTotalOverall.textContent = formatPriceUzs(total);
+  if(hfrTariff) hfrTariff.textContent = selectedHumansTariff ? formatPriceUzs(tariffPrice) : '—';
+  if(hfTotalOverall) animateCountUp(hfTotalOverall, payNow);
   if(hfReceipt) hfReceipt.style.display = selectedHumansTariff ? 'block' : 'none';
-  hfScheduleNote.textContent =
-    `Keyingi oydan boshlab ${selectedInstallmentMonths} oy davomida oyiga ${formatPriceUzs(selectedMonthlyPayment)} raqamingiz balansiga to'ldirib turasiz.`;
+  hfScheduleNote.innerHTML =
+    `Keyingi oydan boshlab <b class="hf-red">${remainingMonths} oy</b> davomida oyiga ${formatPriceUzs(selectedMonthlyPayment)} raqamingiz balansiga to'ldirib turasiz.`;
 }
 
 function selectPaymentTab(type){
@@ -6050,13 +6238,18 @@ function openModal(number, id, priceOverride){
   selectedInstallmentFin = installmentFinancingFor(item);
   selectedHumansTariff = null;
   selectedDownPayment = 0;
+  __hfTotalCurrentValue = 0;
+  if(__hfTotalAnimRaf){ cancelAnimationFrame(__hfTotalAnimRaf); __hfTotalAnimRaf = null; }
   humansFinView.style.display = 'none';
   hfDivider.style.display = 'none';
   hfRegisterNote.style.display = 'none';
-  // Mijoz iltimosiga ko'ra: buyurtma oynasi endi to'lov turidan (naqt/
-  // bo'lib to'lash) va raqam turidan qat'iy nazar, saytning HAR QAYERIDA
-  // har doim TO'LIQ EKRAN bo'lib ochiladi.
-  overlay.classList.add('hf-fullscreen');
+  // Mijoz iltimosiga ko'ra: "Buyurtma berish" bosilgan zahoti chiqadigan
+  // BIRINCHI ("oldindan ko'rish") qadam — AVVALGIDEK pastdan chiquvchi
+  // yarim-ekranli oyna bo'lib qoladi (faqat rangi zamonaviylashtirilgan,
+  // qarang: .modal.modal-preview). To'liq ekran FAQAT "Rasmiylashtirish"
+  // bosilib, haqiqiy forma (#formView) ochilganda yoqiladi — qarang:
+  // showOrderForm().
+  overlay.classList.remove('hf-fullscreen');
   overlay.classList.remove('success-fullscreen');
 
   if(item && item.installment){
@@ -6101,11 +6294,14 @@ function openModal(number, id, priceOverride){
 }
 
 // "Rasmiylashtirish" bosilganda — oldindan ko'rishdan to'liq formaga o'tadi.
+// Mijoz iltimosiga ko'ra shu daqiqadan boshlab oyna TO'LIQ EKRAN bo'ladi
+// (oldindan ko'rish qadami esa avvalgidek yarim-ekran bo'lib qoladi).
 function showOrderForm(){
   document.getElementById('previewView').style.display = 'none';
   formView.style.display = 'block';
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.remove('modal-preview');
+  overlay.classList.add('hf-fullscreen');
   setTimeout(()=>custName.focus(), 250);
 }
 
@@ -6513,7 +6709,7 @@ async function finalizeOrder(payload, smsVerified){
   }
   if(successSubtitleEl){
     successSubtitleEl.textContent =
-      `Siz ${displayNumber(payload.number)} raqamni muvaffaqiyatli rasmiylashtirdingiz. Tez orada admin siz bilan bog'lanadi.`;
+      `Siz ${displayNumber(payload.number)} raqamni muvaffaqiyatli rasmiylashtirdingiz.`;
   }
 
   const recapEl = document.getElementById('successOrderRecap');

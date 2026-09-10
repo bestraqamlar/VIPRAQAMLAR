@@ -1721,6 +1721,30 @@
           <span>Nomiga chiqadimi?</span>
         </button>
         <div id="newOwnershipNote" style="display:none;color:var(--green);font-size:12px;font-weight:700;margin-top:6px;">✅ Raqam nomingizga rasmiylashtiriladi</div>
+
+        <label for="newDealHours" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:14px 0 5px;">⏱ Necha soatdan keyin aksiya tugaydi — bo'lmasa taymer chiqmaydi</label>
+        <input type="number" id="newDealHours" placeholder="Masalan: 24">
+
+        <button type="button" class="op-fin-toggle" id="newDealFinToggle" style="width:100%;margin:10px 0 0;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <span>Bo'lib to'lash (ixtiyoriy)</span><span style="display:inline-block;">▾</span>
+        </button>
+        <div class="op-fin-panel" id="newDealFinPanel" style="display:none;margin-top:8px;">
+          <div class="op-fin-group">
+            <div class="op-fin-group-title">6 oy</div>
+            <label>Bosh to'lov</label><input type="number" id="newDealDown6">
+            <label>Oylik to'lov</label><input type="number" id="newDealMonthly6">
+          </div>
+          <div class="op-fin-group">
+            <div class="op-fin-group-title">12 oy</div>
+            <label>Bosh to'lov</label><input type="number" id="newDealDown12">
+            <label>Oylik to'lov</label><input type="number" id="newDealMonthly12">
+          </div>
+          <div class="op-fin-group">
+            <div class="op-fin-group-title">24 oy</div>
+            <label>Bosh to'lov</label><input type="number" id="newDealDown24">
+            <label>Oylik to'lov</label><input type="number" id="newDealMonthly24">
+          </div>
+        </div>
       </div>
 
       <button id="addNumberBtn">+ Raqam qo'shish</button>
@@ -2455,17 +2479,40 @@
 
     <div class="op-block">
       <div class="op-head">
-        <span class="op-name">Bo'lib to'lash — Tariflar</span>
+        <span class="op-name">Bo'lib to'lash — Tariflar (Humans)</span>
       </div>
-      <p class="op-note">Humans va Ucell uchun UMUMIY (bitta) tarif ro'yxati — mijoz "Bo'lib
-        to'lash"ni tanlaganda shular orasidan birini tanlaydi. Bosh to'lov/oylik to'lovlarning
-        o'zi esa yuqoridagi Ucell va Humans narx jadvalidagi har bir qatorning <b>▾</b> tugmasi
-        ichida, alohida-alohida kiritiladi.</p>
+      <p class="op-note">Faqat Humans uchun tarif ro'yxati — mijoz "Bo'lib to'lash"ni tanlaganda
+        shular orasidan birini tanlaydi. Narxi maydoni — shu tarifning oylik summasi, mijoz
+        saytida "hozir to'lanadigan summa"ga qo'shib hisoblanadi.</p>
       <table class="op-table">
-        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th style="width:32px;"></th></tr></thead>
-        <tbody id="finTariffRows"></tbody>
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="finTariffRows_Humans"></tbody>
       </table>
-      <button type="button" class="op-add" id="finAddTariffBtn">+ Tarif qo'shish</button>
+      <button type="button" class="op-add" data-fin-add="Humans">+ Tarif qo'shish</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Bo'lib to'lash — Tariflar (Ucell)</span>
+      </div>
+      <p class="op-note">Faqat Ucell uchun tarif ro'yxati.</p>
+      <table class="op-table">
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="finTariffRows_Ucell"></tbody>
+      </table>
+      <button type="button" class="op-add" data-fin-add="Ucell">+ Tarif qo'shish</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Bo'lib to'lash — Tariflar (Beeline)</span>
+      </div>
+      <p class="op-note">Faqat Beeline uchun tarif ro'yxati.</p>
+      <table class="op-table">
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="finTariffRows_Beeline"></tbody>
+      </table>
+      <button type="button" class="op-add" data-fin-add="Beeline">+ Tarif qo'shish</button>
     </div>
 
     <div class="op-block">
@@ -6059,37 +6106,45 @@ async function loadOperatorSettings(){
    site_settings/{doc} qoidasi bo'yicha O'QISH hammaga ochiq.
 
    Bosh to'lov/oylik to'lovlar endi har bir narx qatorining o'zida (▾ tugma
-   ostida) kiritiladi — qarang: opRow()/opCollectFinancing(). Bu yerda faqat
-   Humans va Ucell uchun UMUMIY (bitta) tarif ro'yxati boshqariladi. */
-let finData = { tariffs: [], byOperator: { Humans: {}, Ucell: {}, Beeline: {} } };
+   ostida) kiritiladi — qarang: opRow()/opCollectFinancing(). Mijoz iltimosiga
+   ko'ra: har bir operator (Humans/Ucell/Beeline) uchun tarif reja va
+   summasi ENDI ALOHIDA — tariffsByOperator: {Humans:[...], Ucell:[...],
+   Beeline:[...]}. */
+let finData = { tariffsByOperator: { Humans: [], Ucell: [], Beeline: [] }, byOperator: { Humans: {}, Ucell: {}, Beeline: {} } };
 
-function finTariffRow(item, idx){
+function finTariffRow(op, item, idx){
   const tr = document.createElement('tr');
   tr.innerHTML =
     '<td><input type="text" data-f="name" value="' + escapeHtml(item.name || '') + '" placeholder="Standart"></td>' +
     '<td><input type="text" data-f="internet" value="' + escapeHtml(item.internet || '') + '" placeholder="26 GB"></td>' +
     '<td><input type="text" data-f="minutes" value="' + escapeHtml(item.minutes || '') + '" placeholder="Cheksiz"></td>' +
     '<td><input type="text" data-f="sms" value="' + escapeHtml(item.sms || '') + '" placeholder="0 ta"></td>' +
+    '<td><input type="number" data-f="price" value="' + (item.price ?? 0) + '" placeholder="0"></td>' +
     '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
   tr.querySelector('.op-del').addEventListener('click', ()=>{
-    finData.tariffs.splice(idx, 1);
-    finRenderTariffs();
+    finData.tariffsByOperator[op].splice(idx, 1);
+    finRenderTariffs(op);
   });
   return tr;
 }
-function finRenderTariffs(){
-  const tbody = document.getElementById('finTariffRows');
+function finRenderTariffs(op){
+  const tbody = document.getElementById('finTariffRows_' + op);
   if(!tbody) return;
   tbody.innerHTML = '';
-  finData.tariffs.forEach((item, i)=> tbody.appendChild(finTariffRow(item, i)));
+  (finData.tariffsByOperator[op] || []).forEach((item, i)=> tbody.appendChild(finTariffRow(op, item, i)));
 }
-function finCollectTariffs(){
-  const tbody = document.getElementById('finTariffRows');
+function finRenderAllTariffs(){
+  FIN_OPERATORS.forEach(op=> finRenderTariffs(op));
+}
+function finCollectTariffs(op){
+  const tbody = document.getElementById('finTariffRows_' + op);
   if(!tbody) return [];
   const rows = [];
   tbody.querySelectorAll('tr').forEach(tr=>{
     const o = {};
-    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.f] = inp.value.trim(); });
+    tr.querySelectorAll('input').forEach(inp=>{
+      o[inp.dataset.f] = inp.dataset.f === 'price' ? (Number(inp.value) || 0) : inp.value.trim();
+    });
     if(o.name) rows.push(o);
   });
   return rows;
@@ -6098,7 +6153,16 @@ async function loadOperatorFinancing(){
   try{
     const doc = await db.collection('site_settings').doc('operator_financing').get();
     const d = doc.exists ? (doc.data() || {}) : {};
-    finData.tariffs = Array.isArray(d.tariffs) ? d.tariffs : [];
+    finData.tariffsByOperator = { Humans: [], Ucell: [], Beeline: [] };
+    FIN_OPERATORS.forEach(op=>{
+      if(d.tariffsByOperator && Array.isArray(d.tariffsByOperator[op])){
+        finData.tariffsByOperator[op] = d.tariffsByOperator[op];
+      }
+    });
+    if(!d.tariffsByOperator && Array.isArray(d.tariffs)){
+      // Eski ma'lumot formati — hammasi Humans'ga tegishli deb hisoblaymiz.
+      finData.tariffsByOperator.Humans = d.tariffs;
+    }
     finData.byOperator = { Humans: {}, Ucell: {}, Beeline: {} };
     FIN_OPERATORS.forEach(op=>{
       (Array.isArray(d.byOperator && d.byOperator[op]) ? d.byOperator[op] : []).forEach(row=>{
@@ -6111,7 +6175,7 @@ async function loadOperatorFinancing(){
         };
       });
     });
-    finRenderTariffs();
+    finRenderAllTariffs();
     // Yuqorida narx qatorlari finData bo'sh paytda chizilgan edi — endi
     // ma'lumot keldi, Humans/Ucell qatorlarini (▾ panellari bilan) qayta chizamiz.
     if(opData){ FIN_OPERATORS.forEach(op=> opRenderRows(op)); }
@@ -6119,10 +6183,13 @@ async function loadOperatorFinancing(){
     console.error('Bo\'lib to\'lash sozlamalarini yuklashda xato:', err);
   }
 }
-const finAddTariffBtn = document.getElementById('finAddTariffBtn');
-if(finAddTariffBtn) finAddTariffBtn.addEventListener('click', ()=>{
-  finData.tariffs.push({ name:'', internet:'', minutes:'', sms:'' });
-  finRenderTariffs();
+document.querySelectorAll('[data-fin-add]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const op = btn.dataset.finAdd;
+    if(!finData.tariffsByOperator[op]) finData.tariffsByOperator[op] = [];
+    finData.tariffsByOperator[op].push({ name:'', internet:'', minutes:'', sms:'', price:0 });
+    finRenderTariffs(op);
+  });
 });
 
 /* ---- "Baza raqam" kuzatuvi ---- */
@@ -6641,7 +6708,7 @@ async function loadAdminsList(){
   }
 }
 
-document.querySelectorAll('.op-add').forEach(btn=>{
+document.querySelectorAll('.op-add[data-add]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     const name = btn.dataset.add;
     if(name === 'Beeline') opData.Beeline.warehouses.push({ id:'', name:'', operatorPrice:0, salePrice:0 });
@@ -6684,14 +6751,18 @@ async function opSave(){
     Ucell: opCollectFinancing('Ucell'),
     Beeline: opCollectFinancing('Beeline')
   };
-  finData.tariffs = finCollectTariffs();
+  finData.tariffsByOperator = {
+    Humans: finCollectTariffs('Humans'),
+    Ucell: finCollectTariffs('Ucell'),
+    Beeline: finCollectTariffs('Beeline')
+  };
   await db.collection('site_settings').doc('operator_financing').set({
     byOperator: {
       Humans: toArray(finData.byOperator.Humans),
       Ucell: toArray(finData.byOperator.Ucell),
       Beeline: toArray(finData.byOperator.Beeline)
     },
-    tariffs: finData.tariffs,
+    tariffsByOperator: finData.tariffsByOperator,
     updatedAt: Date.now()
   }, { merge: false });
 }
@@ -7418,6 +7489,17 @@ document.getElementById('newOwnershipToggle').addEventListener('click', ()=>{
   document.getElementById('newOwnershipToggle').classList.toggle('active', newOwnershipOn);
   document.getElementById('newOwnershipNote').style.display = newOwnershipOn ? '' : 'none';
 });
+// "Bugungi aksiya"ga qo'shilayotgan raqam uchun ixtiyoriy "Bo'lib to'lash"
+// (bosh to'lov + 6/12/24 oy) — operator narx-jadvalidagi tizimdan farqli,
+// bu yerda TO'G'RIDAN-TO'G'RI shu bitta raqam hujjatiga yoziladi (chunki
+// har bir "Bugungi aksiya" raqami allaqachon o'zining aniq narxiga ega).
+document.getElementById('newDealFinToggle').addEventListener('click', ()=>{
+  const panel = document.getElementById('newDealFinPanel');
+  const btn = document.getElementById('newDealFinToggle');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'grid';
+  btn.classList.toggle('active', !isOpen);
+});
 
 document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   const numberInput = document.getElementById('newNumber');
@@ -7436,6 +7518,17 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     const oldPriceVal = onDeal ? (Number(document.getElementById('newOldPrice').value) || 0) : 0;
     const monthlyTariffVal = onDeal ? (Number(document.getElementById('newMonthlyTariff').value) || 0) : 0;
     const tariffMonthsVal = onDeal ? (Number(document.getElementById('newTariffMonths').value) || 0) : 0;
+    // "Bugungi aksiya" — taymer (necha soatdan keyin tugaydi) va ixtiyoriy
+    // "Bo'lib to'lash" (bosh to'lov + 6/12/24 oy), to'g'ridan-to'g'ri shu
+    // raqam hujjatiga yoziladi.
+    const dealHoursVal = onDeal ? (Number(document.getElementById('newDealHours').value) || 0) : 0;
+    const dealExpiresAtVal = dealHoursVal > 0 ? (Date.now() + dealHoursVal * 3600 * 1000) : null;
+    const dealDown6 = onDeal ? (Number(document.getElementById('newDealDown6').value) || 0) : 0;
+    const dealMonthly6 = onDeal ? (Number(document.getElementById('newDealMonthly6').value) || 0) : 0;
+    const dealDown12 = onDeal ? (Number(document.getElementById('newDealDown12').value) || 0) : 0;
+    const dealMonthly12 = onDeal ? (Number(document.getElementById('newDealMonthly12').value) || 0) : 0;
+    const dealDown24 = onDeal ? (Number(document.getElementById('newDealDown24').value) || 0) : 0;
+    const dealMonthly24 = onDeal ? (Number(document.getElementById('newDealMonthly24').value) || 0) : 0;
     const rawDigits = num.replace(/\D/g, '').slice(-9); // 9 xonali mahalliy qism
     await db.collection('numbers').add({
       number: num,
@@ -7448,6 +7541,8 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       dailyDeal: onDeal,
       monthlyTariff: monthlyTariffVal,
       tariffMonths: tariffMonthsVal,
+      dealExpiresAt: dealExpiresAtVal,
+      dealDown6, dealMonthly6, dealDown12, dealMonthly12, dealDown24, dealMonthly24,
       ownershipTransfer: onDeal ? newOwnershipOn : false,
       recommended: document.getElementById('newRecommended').checked,
       tag: document.getElementById('newTag').value,
@@ -7462,6 +7557,12 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     document.getElementById('newSalePrice').value = '';
     document.getElementById('newMonthlyTariff').value = '';
     document.getElementById('newTariffMonths').value = '';
+    document.getElementById('newDealHours').value = '';
+    ['newDealDown6','newDealMonthly6','newDealDown12','newDealMonthly12','newDealDown24','newDealMonthly24'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+    document.getElementById('newDealFinPanel').style.display = 'none';
+    document.getElementById('newDealFinToggle').classList.remove('active');
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
     document.getElementById('newDailyDeal').checked = false;
