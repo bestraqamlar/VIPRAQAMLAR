@@ -93,7 +93,7 @@ const DEFAULT_PRICES = {
     { operatorPrice: 54000,    salePrice: 180000 },
     // Kategoriya 2 — avval jadvalda umuman yo'q edi (operator narxida,
     // ustamasiz sotilardi). Endi qo'shildi.
-    { operatorPrice: 108000,   salePrice: 200000 },
+    { operatorPrice: 108000,   salePrice: 308000 },
     { operatorPrice: 144000,   salePrice: 344000 },
     { operatorPrice: 288000,   salePrice: 488000 },
     { operatorPrice: 576000,   salePrice: 776000 },

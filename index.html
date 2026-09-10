@@ -3589,8 +3589,8 @@ html.theme-purple-premium .card button.order-btn{
 
       <!-- Humans — Bo'lib to'lash (rasrochka). Faqat Humans operatoridan
            (jonli API) qidirilgan, admin panelda shu kategoriyaga narx
-           kiritilgan raqamlarda ko'rinadi (qarang: HUMANS_FINANCING,
-           humansFinancingFor()). To'liq ekran holatida (.hf-fullscreen)
+           kiritilgan raqamlarda ko'rinadi (qarang: OPERATOR_FINANCING,
+           installmentFinancingFor()). To'liq ekran holatida (.hf-fullscreen)
            shu bo'lim eng tepada, keyin pastda oddiy ma'lumot formasi
            chiqadi. -->
       <div class="humans-fin-view" id="humansFinView" style="display:none;">
@@ -5767,39 +5767,45 @@ function selectInstallmentMonths(months){
 }
 icTabButtons.forEach(btn => btn.addEventListener('click', ()=> selectInstallmentMonths(Number(btn.dataset.months))));
 
-/* ---- Humans — Bo'lib to'lash (rasrochka), faqat jonli API'dan (mijoz
-   iltimosiga ko'ra) — eski, VIP-bazadagi %-ustama tizimidan (yuqorida)
-   ATAYLAB ALOHIDA: bu yerda bosh to'lov/oylik to'lov admin panelda
-   HAR BIR Humans narx kategoriyasi uchun QO'LDA kiritiladi, hech narsa
-   avtomatik hisoblanmaydi. */
-let HUMANS_FINANCING = { categories: {}, tariffs: [] };
-async function loadHumansFinancing(){
+/* ---- Bo'lib to'lash (rasrochka), faqat jonli API'dan (Humans va Ucell —
+   mijoz iltimosiga ko'ra ikkalasi bir xil ishlaydi) — eski, VIP-bazadagi
+   %-ustama tizimidan (yuqorida) ATAYLAB ALOHIDA: bu yerda bosh to'lov/
+   oylik to'lov admin panelda HAR BIR NARX QATORI (operatorPrice) uchun
+   QO'LDA kiritiladi, hech narsa avtomatik hisoblanmaydi. Kategoriya
+   raqami ENDI KERAK EMAS — narx jadvalidagi qatorning o'zi (operatorPrice)
+   kalit sifatida ishlatiladi, chunki jonli qidiruv natijasi ham aynan
+   shu operatorPrice qiymatini qaytaradi (qarang: lib/operators.js). */
+let OPERATOR_FINANCING = { byOperator: { Humans: {}, Ucell: {} }, tariffs: [] };
+async function loadInstallmentFinancing(){
   try{
-    const doc = await db.collection('site_settings').doc('humans_financing').get();
+    const doc = await db.collection('site_settings').doc('operator_financing').get();
     if(!doc.exists) return;
     const d = doc.data() || {};
-    const catMap = {};
-    (Array.isArray(d.categories) ? d.categories : []).forEach(c=>{
-      const n = Number(c.category);
-      if(!n) return;
-      catMap[n] = {
-        downPayment: Number(c.downPayment) || 0,
-        monthly: { 6: Number(c.monthly6) || 0, 12: Number(c.monthly12) || 0, 24: Number(c.monthly24) || 0 }
-      };
+    const byOperator = { Humans: {}, Ucell: {} };
+    ['Humans','Ucell'].forEach(op=>{
+      (Array.isArray(d.byOperator && d.byOperator[op]) ? d.byOperator[op] : []).forEach(row=>{
+        const price = Number(row.operatorPrice);
+        if(row.operatorPrice === undefined || row.operatorPrice === null || Number.isNaN(price)) return;
+        byOperator[op][price] = {
+          downPayment: Number(row.downPayment) || 0,
+          monthly: { 6: Number(row.monthly6) || 0, 12: Number(row.monthly12) || 0, 24: Number(row.monthly24) || 0 }
+        };
+      });
     });
-    HUMANS_FINANCING = { categories: catMap, tariffs: Array.isArray(d.tariffs) ? d.tariffs : [] };
-  }catch(err){ console.error('Humans bo\'lib to\'lash sozlamalarini yuklashda xato:', err); }
+    OPERATOR_FINANCING = { byOperator, tariffs: Array.isArray(d.tariffs) ? d.tariffs : [] };
+  }catch(err){ console.error('Bo\'lib to\'lash sozlamalarini yuklashda xato:', err); }
 }
-loadHumansFinancing();
+loadInstallmentFinancing();
 
-// Faqat Humans'dan (jonli API, item.live && item.operator==='Humans')
-// qidirilgan, va admin panelda shu kategoriyaga narx kiritilgan
-// raqamlarda "Bo'lib to'lash" imkoni bo'ladi.
-function humansFinancingFor(item){
-  if(!item || item.operator !== 'Humans' || !item.live) return null;
-  const n = Number(item.categoryNum);
-  if(!n) return null;
-  return HUMANS_FINANCING.categories[n] || null;
+// Faqat jonli API'dan (item.live) qidirilgan, Humans yoki Ucell operatoridan,
+// va admin panelda AYNAN shu narx qatoriga (operatorPrice) bo'lib to'lash
+// summasi kiritilgan raqamlarda "Bo'lib to'lash" imkoni bo'ladi.
+function installmentFinancingFor(item){
+  if(!item || !item.live) return null;
+  if(item.operator !== 'Humans' && item.operator !== 'Ucell') return null;
+  const table = OPERATOR_FINANCING.byOperator[item.operator];
+  if(!table) return null;
+  return table[Number(item.operatorPrice)] || null;
 }
 
 const humansFinView     = document.getElementById('humansFinView');
@@ -5814,7 +5820,7 @@ const hfTariffDetail    = document.getElementById('hfTariffDetail');
 const hfTotalNowValue   = document.getElementById('hfTotalNowValue');
 const hfScheduleNote    = document.getElementById('hfScheduleNote');
 
-let selectedHumansFin = null;      // { downPayment, monthly:{6,12,24} } | null
+let selectedInstallmentFin = null;      // { downPayment, monthly:{6,12,24} } | null
 let selectedHumansTariff = null;   // { name, internet, minutes, sms } | null
 
 // Summasi o'zgarganda (oy tanlansa) raqam ozgina "sakrab" yangilanadi —
@@ -5825,11 +5831,11 @@ function hfBumpValue(el){
 }
 
 function selectHumansMonths(months){
-  if(!selectedHumansFin) return;
+  if(!selectedInstallmentFin) return;
   selectedInstallmentMonths = months;
   hfMonthButtons.forEach(btn => btn.classList.toggle('active', Number(btn.dataset.months) === months));
   hfMonthsLabel.textContent = months;
-  const monthly = selectedHumansFin.monthly[months] || 0;
+  const monthly = selectedInstallmentFin.monthly[months] || 0;
   selectedMonthlyPayment = monthly;
   // Mijoz uchun bo'lib to'lash real to'lov majburiyati — narx ko'rsatish
   // valyutasidan (USD/UZS) QAT'IY NAZAR har doim aniq so'mda ko'rsatiladi
@@ -5857,7 +5863,7 @@ function renderHumansTariffs(){
   hfTariffDetail.style.display = 'none';
   hfTariffDetail.innerHTML = '';
   selectedHumansTariff = null;
-  (HUMANS_FINANCING.tariffs || []).forEach(t=>{
+  (OPERATOR_FINANCING.tariffs || []).forEach(t=>{
     if(!t.name) return;
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -5867,13 +5873,13 @@ function renderHumansTariffs(){
     btn.addEventListener('click', ()=> selectHumansTariff(t));
     hfTariffsEl.appendChild(btn);
   });
-  if(HUMANS_FINANCING.tariffs && HUMANS_FINANCING.tariffs.length) selectHumansTariff(HUMANS_FINANCING.tariffs[0]);
+  if(OPERATOR_FINANCING.tariffs && OPERATOR_FINANCING.tariffs.length) selectHumansTariff(OPERATOR_FINANCING.tariffs[0]);
 }
 
 function updateHumansFinTotals(){
-  if(!selectedHumansFin) return;
-  hfDownPaymentValue.textContent = formatPriceUzs(selectedHumansFin.downPayment);
-  hfTotalNowValue.textContent = formatPriceUzs(selectedHumansFin.downPayment);
+  if(!selectedInstallmentFin) return;
+  hfDownPaymentValue.textContent = formatPriceUzs(selectedInstallmentFin.downPayment);
+  hfTotalNowValue.textContent = formatPriceUzs(selectedInstallmentFin.downPayment);
   hfScheduleNote.textContent =
     `Keyingi oydan boshlab ${selectedInstallmentMonths} oy davomida oyiga ${formatPriceUzs(selectedMonthlyPayment)} raqamingiz balansiga to'ldirib turasiz.`;
 }
@@ -5882,7 +5888,7 @@ function selectPaymentTab(type){
   selectedPaymentType = type;
   payTabCash.classList.toggle('active', type === 'cash');
   payTabInstallment.classList.toggle('active', type === 'installment');
-  if(selectedHumansFin){
+  if(selectedInstallmentFin){
     // Humans-rasrochka: eski %-kalkulyator ko'rinmaydi, o'rniga to'liq
     // ekranli Humans bo'limi (pastda) ochiladi/yopiladi.
     installmentCalc.style.display = 'none';
@@ -5960,7 +5966,7 @@ function openModal(number, id, priceOverride){
   // panelda bo'lib to'lash summasi kiritilgan bo'lsa, mijoz Naqt/Bo'lib
   // to'lash o'rtasida O'ZI tanlaydi (eski VIP-baza .installment kabi
   // MAJBURIY emas).
-  selectedHumansFin = humansFinancingFor(item);
+  selectedInstallmentFin = installmentFinancingFor(item);
   selectedHumansTariff = null;
   humansFinView.style.display = 'none';
   hfDivider.style.display = 'none';
@@ -5973,7 +5979,7 @@ function openModal(number, id, priceOverride){
     installmentCalc.style.display = 'block';
     selectedPaymentType = 'installment';
     selectInstallmentMonths(6);
-  }else if(selectedHumansFin){
+  }else if(selectedInstallmentFin){
     payTabs.style.display = '';
     installmentCalc.style.display = 'none';
     selectPaymentTab('cash');
@@ -6166,9 +6172,9 @@ async function sendOrderToTelegram(payload, time, orderId){
   let paymentLine = payload.paymentType === 'installment'
     ? `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPriceUzs(payload.monthlyPayment)}dan`
     : `💵 To'lov turi: Naqt to'lov`;
-  if(payload.paymentType === 'installment' && payload.humansDownPayment !== undefined){
-    paymentLine += `\n💰 Bosh to'lov: ${formatPriceUzs(payload.humansDownPayment)}`;
-    if(payload.humansTariff) paymentLine += `\n📶 Tarif: ${payload.humansTariff}`;
+  if(payload.paymentType === 'installment' && payload.installmentDownPayment !== undefined){
+    paymentLine += `\n💰 Bosh to'lov: ${formatPriceUzs(payload.installmentDownPayment)}`;
+    if(payload.installmentTariff) paymentLine += `\n📶 Tarif: ${payload.installmentTariff}`;
   }
   const text =
 `🔔 Yangi buyurtma
@@ -6421,10 +6427,10 @@ async function finalizeOrder(payload, smsVerified){
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){
     let extra = '';
-    if(payload.paymentType === 'installment' && payload.humansDownPayment !== undefined){
+    if(payload.paymentType === 'installment' && payload.installmentDownPayment !== undefined){
       extra = `<div class="sor-tariff">` +
-        `<span>Bosh to'lov <b>${formatPriceUzs(payload.humansDownPayment)}</b></span>` +
-        (payload.humansTariff ? `<span>Tarif <b>${escapeHtml(payload.humansTariff)}</b></span>` : '') +
+        `<span>Bosh to'lov <b>${formatPriceUzs(payload.installmentDownPayment)}</b></span>` +
+        (payload.installmentTariff ? `<span>Tarif <b>${escapeHtml(payload.installmentTariff)}</b></span>` : '') +
       `</div>`;
     }
     recapEl.innerHTML = `<div class="sor-number">${escapeHtml(payload.number)}</div>${extra}`;
@@ -6470,9 +6476,9 @@ confirmBtn.addEventListener('click', async ()=>{
     payload.monthlyPayment = selectedMonthlyPayment;
     // Humans (jonli API) — bosh to'lov va tanlangan tarif ham buyurtmaga
     // qo'shiladi, admin buni Telegram xabari va buyurtma tafsilotida ko'radi.
-    if(selectedHumansFin){
-      payload.humansDownPayment = selectedHumansFin.downPayment;
-      if(selectedHumansTariff) payload.humansTariff = selectedHumansTariff.name;
+    if(selectedInstallmentFin){
+      payload.installmentDownPayment = selectedInstallmentFin.downPayment;
+      if(selectedHumansTariff) payload.installmentTariff = selectedHumansTariff.name;
     }
   }
 

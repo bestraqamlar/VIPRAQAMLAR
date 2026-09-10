@@ -214,10 +214,14 @@ exports.handler = async function (event) {
       reserved: false,
       live: true,
       category: x.category || '',
-      // Faqat Humans uchun to'ldiriladi (qarang: lib/operators.js) — sayt
-      // shu bo'yicha "Bo'lib to'lash" (rasrochka) imkoni bor-yo'qligini
-      // tekshiradi.
-      categoryNum: x.categoryNum || null
+      // Faqat Humans uchun to'ldiriladi (qarang: lib/operators.js) — hozircha
+      // faqat ko'rsatish uchun (masalan "Kategoriya 2" yorlig'i), hisoblash
+      // uchun ishlatilmaydi.
+      categoryNum: x.categoryNum || null,
+      // "Bo'lib to'lash" (rasrochka) — Humans va Ucell uchun — AYNAN shu
+      // operatorPrice bo'yicha admin panelda kiritilgan qatorga bog'lanadi
+      // (qarang: index.html, installmentFinancingFor()).
+      operatorPrice: (typeof x.operatorPrice === 'number') ? x.operatorPrice : null
     }));
 
     const payload = { ok: true, count: items.length, items, errors: result.errors };
