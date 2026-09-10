@@ -1270,13 +1270,24 @@
 .op-fin-panel-row td{padding:0 6px 8px !important;}
 .op-fin-panel{
   background:rgba(255,176,0,.06);border:1px solid rgba(255,176,0,.25);border-radius:8px;
-  padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
   animation:fadeSlideUp .2s ease both;
 }
-.op-fin-panel label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:3px;}
+/* Har bir muddat (6/12/24 oy) o'z bosh to'lovi bilan alohida guruhda —
+   ular endi BIR XIL emas, shu sabab har biri o'z quti ichida turadi. */
+.op-fin-group{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:7px;padding:8px;
+}
+.op-fin-group-title{
+  font-size:11px;font-weight:700;color:var(--amber,#FFB000);margin-bottom:6px;
+  text-align:center;
+}
+.op-fin-panel label{display:block;font-size:10.5px;color:var(--muted);margin:6px 0 3px;}
+.op-fin-panel label:first-of-type{margin-top:0;}
 .op-fin-panel input{width:100%;padding:6px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.12);
   background:rgba(255,255,255,.04);color:inherit;font-size:15px;}
-@media(max-width:520px){ .op-fin-panel{grid-template-columns:1fr 1fr;} }
+@media(max-width:520px){ .op-fin-panel{grid-template-columns:1fr;} }
 
 /* ---- "Baza raqam" kuzatuvi bo'limi ---- */
 .wt-form{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px;}
@@ -2384,7 +2395,9 @@
       </div>
       <p class="op-note">
         Beeline yagona operator — u login/parol talab qiladi. Boshqalari kalitsiz ishlaydi.
-        Beeline javobida narx YO'Q: narx pastdagi ombor (warehouse) jadvalidan olinadi.
+        Beeline javobida narx YO'Q: narx pastdagi ombor (warehouse) jadvalidan olinadi. Sotuv
+        narxi yonidagi <b>▾</b> tugmasi — shu qator uchun "Bo'lib to'lash" (bosh to'lov, oylik
+        to'lovlar) sozlamasini ochadi/yopadi.
       </p>
       <div class="op-cred">
         <div>
@@ -2397,7 +2410,7 @@
         </div>
       </div>
       <table class="op-table">
-        <thead><tr><th style="width:80px;">Ombor ID</th><th>Nomi</th><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:32px;"></th></tr></thead>
+        <thead><tr><th style="width:80px;">Ombor ID</th><th>Nomi</th><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:36px;"></th><th style="width:32px;"></th></tr></thead>
         <tbody id="opBeelineRows"></tbody>
       </table>
       <button type="button" class="op-add" data-add="Beeline">+ Qator</button>
@@ -5879,7 +5892,9 @@ const OP_GAPS = {
 
 let opData = null;
 
-const FIN_OPERATORS = ['Humans', 'Ucell'];
+// Mijoz iltimosiga ko'ra: "Bo'lib to'lash" endi Beeline'da HAM ishlaydi
+// (Humans/Ucell bilan bir xil tizim — operatorPrice bo'yicha bog'lanadi).
+const FIN_OPERATORS = ['Humans', 'Ucell', 'Beeline'];
 
 function opRow(name, item, idx){
   const tr = document.createElement('tr');
@@ -5890,6 +5905,7 @@ function opRow(name, item, idx){
       '<td><input type="text" data-f="name" value="' + escapeHtml(item.name || '') + '"></td>' +
       '<td><input type="number" data-f="operatorPrice" value="' + (item.operatorPrice ?? 0) + '"></td>' +
       '<td><input type="number" data-f="salePrice" value="' + (item.salePrice ?? 0) + '"></td>' +
+      '<td><button type="button" class="op-fin-toggle" title="Bo\'lib to\'lash">▾</button></td>' +
       '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
   }else if(isFin){
     tr.innerHTML =
@@ -5910,19 +5926,26 @@ function opRow(name, item, idx){
   });
   if(!isFin) return tr;
 
-  // "Bo'lib to'lash" paneli — shu narx qatoriga bog'langan bosh to'lov va
-  // 6/12/24 oylik to'lov. ▾ tugmasi bosilganda ochiladi/yopiladi.
+  // "Bo'lib to'lash" paneli — shu narx qatoriga bog'langan, HAR BIR muddat
+  // (6/12/24 oy) uchun ALOHIDA bosh to'lov + oylik to'lov (muddat uzunroq
+  // bo'lsa bosh to'lov ham odatda boshqacha bo'ladi, shu sabab bittagina
+  // umumiy bosh to'lov emas — har oy guruhining o'z bosh to'lovi bor).
+  // ▾ tugmasi bosilganda ochiladi/yopiladi.
   const finRow = document.createElement('tr');
   finRow.className = 'op-fin-panel-row';
   finRow.style.display = 'none';
   const finKey = String(item.operatorPrice ?? 0);
   const fin = (finData.byOperator[name] && finData.byOperator[name][finKey]) || {};
+  const finGroup = (months)=>
+    '<div class="op-fin-group">' +
+      '<div class="op-fin-group-title">' + months + ' oy</div>' +
+      '<label>Bosh to\'lov</label><input type="number" data-ff="down' + months + '" value="' + (fin['down' + months] ?? 0) + '">' +
+      '<label>Oylik to\'lov</label><input type="number" data-ff="monthly' + months + '" value="' + (fin['monthly' + months] ?? 0) + '">' +
+    '</div>';
+  const finColspan = name === 'Beeline' ? 6 : 4;
   finRow.innerHTML =
-    '<td colspan="4"><div class="op-fin-panel">' +
-      '<div><label>Bosh to\'lov</label><input type="number" data-ff="downPayment" value="' + (fin.downPayment ?? 0) + '"></div>' +
-      '<div><label>6 oy (oylik)</label><input type="number" data-ff="monthly6" value="' + (fin.monthly6 ?? 0) + '"></div>' +
-      '<div><label>12 oy (oylik)</label><input type="number" data-ff="monthly12" value="' + (fin.monthly12 ?? 0) + '"></div>' +
-      '<div><label>24 oy (oylik)</label><input type="number" data-ff="monthly24" value="' + (fin.monthly24 ?? 0) + '"></div>' +
+    '<td colspan="' + finColspan + '"><div class="op-fin-panel">' +
+      finGroup(6) + finGroup(12) + finGroup(24) +
     '</div></td>';
 
   const toggleBtn = tr.querySelector('.op-fin-toggle');
@@ -5981,12 +6004,14 @@ function opCollectFinancing(name){
     if(!finRow || !finRow.classList.contains('op-fin-panel-row')) continue;
     const f = {};
     finRow.querySelectorAll('input').forEach(inp=>{ f[inp.dataset.ff] = Number(inp.value) || 0; });
-    if(f.downPayment > 0){
+    // Har bir muddat (6/12/24 oy) o'zining bosh to'lovi bilan mustaqil —
+    // qatorni saqlash uchun kamida BITTA muddatda bosh to'lov kiritilgan
+    // bo'lishi kifoya (hammasini to'ldirish shart emas).
+    if((f.down6 > 0) || (f.down12 > 0) || (f.down24 > 0)){
       result[opPrice] = {
-        downPayment: f.downPayment,
-        monthly6: f.monthly6 || 0,
-        monthly12: f.monthly12 || 0,
-        monthly24: f.monthly24 || 0
+        down6: f.down6 || 0, monthly6: f.monthly6 || 0,
+        down12: f.down12 || 0, monthly12: f.monthly12 || 0,
+        down24: f.down24 || 0, monthly24: f.monthly24 || 0
       };
     }
   }
@@ -6036,7 +6061,7 @@ async function loadOperatorSettings(){
    Bosh to'lov/oylik to'lovlar endi har bir narx qatorining o'zida (▾ tugma
    ostida) kiritiladi — qarang: opRow()/opCollectFinancing(). Bu yerda faqat
    Humans va Ucell uchun UMUMIY (bitta) tarif ro'yxati boshqariladi. */
-let finData = { tariffs: [], byOperator: { Humans: {}, Ucell: {} } };
+let finData = { tariffs: [], byOperator: { Humans: {}, Ucell: {}, Beeline: {} } };
 
 function finTariffRow(item, idx){
   const tr = document.createElement('tr');
@@ -6074,16 +6099,15 @@ async function loadOperatorFinancing(){
     const doc = await db.collection('site_settings').doc('operator_financing').get();
     const d = doc.exists ? (doc.data() || {}) : {};
     finData.tariffs = Array.isArray(d.tariffs) ? d.tariffs : [];
-    finData.byOperator = { Humans: {}, Ucell: {} };
+    finData.byOperator = { Humans: {}, Ucell: {}, Beeline: {} };
     FIN_OPERATORS.forEach(op=>{
       (Array.isArray(d.byOperator && d.byOperator[op]) ? d.byOperator[op] : []).forEach(row=>{
         const price = row.operatorPrice;
         if(price === undefined || price === null) return;
         finData.byOperator[op][String(price)] = {
-          downPayment: Number(row.downPayment) || 0,
-          monthly6: Number(row.monthly6) || 0,
-          monthly12: Number(row.monthly12) || 0,
-          monthly24: Number(row.monthly24) || 0
+          down6: Number(row.down6) || 0, monthly6: Number(row.monthly6) || 0,
+          down12: Number(row.down12) || 0, monthly12: Number(row.monthly12) || 0,
+          down24: Number(row.down24) || 0, monthly24: Number(row.monthly24) || 0
         };
       });
     });
@@ -6657,13 +6681,15 @@ async function opSave(){
   const toArray = (obj)=> Object.keys(obj).map(price=> Object.assign({ operatorPrice: Number(price) }, obj[price]));
   finData.byOperator = {
     Humans: opCollectFinancing('Humans'),
-    Ucell: opCollectFinancing('Ucell')
+    Ucell: opCollectFinancing('Ucell'),
+    Beeline: opCollectFinancing('Beeline')
   };
   finData.tariffs = finCollectTariffs();
   await db.collection('site_settings').doc('operator_financing').set({
     byOperator: {
       Humans: toArray(finData.byOperator.Humans),
-      Ucell: toArray(finData.byOperator.Ucell)
+      Ucell: toArray(finData.byOperator.Ucell),
+      Beeline: toArray(finData.byOperator.Beeline)
     },
     tariffs: finData.tariffs,
     updatedAt: Date.now()

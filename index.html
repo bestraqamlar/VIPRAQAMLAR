@@ -414,38 +414,6 @@
   .lang-opt:hover{background:var(--panel-2);color:var(--text);}
   .lang-opt.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
 
-  /* Valyuta (UZS/USD) tanlash — til tanlashdagi bilan bir xil dropdown
-     mantiqda, lekin ko'rinishi mijoz yuborgan rasmga o'xshab bayroqcha +
-     kod (UZS/USD) yozuvi + pastga qaragan strelka bilan, ingichka
-     chegarali to'rtburchak tugma sifatida. */
-  .currency-switch-wrap{position:relative;}
-  .currency-flag-btn{
-    display:flex;align-items:center;gap:6px;
-    background:var(--panel);border:1px solid var(--line);border-radius:9px;
-    padding:6px 9px;cursor:pointer;color:var(--text);
-    transition:border-color .15s ease;
-  }
-  .currency-flag-btn:hover{border-color:var(--amber);}
-  .currency-flag-btn svg:first-of-type, .currency-flag-btn svg:nth-of-type(2){
-    border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,0.15);flex-shrink:0;
-  }
-  .currency-flag-btn .curr-code{font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;}
-  .currency-flag-btn .curr-chevron{flex-shrink:0;opacity:.7;}
-  .currency-dropdown{
-    position:absolute;top:46px;right:0;background:var(--panel);border:1px solid var(--line);
-    border-radius:10px;padding:6px;display:none;flex-direction:column;gap:3px;z-index:40;
-    box-shadow:0 10px 24px rgba(0,0,0,0.35);min-width:110px;
-  }
-  .currency-dropdown.open{display:flex;}
-  .currency-opt{
-    background:none;border:1px solid transparent;border-radius:7px;
-    padding:8px 10px;font-size:12.5px;font-weight:700;color:var(--muted);
-    text-align:left;cursor:pointer;transition:all .15s ease;
-    display:flex;align-items:center;gap:8px;
-  }
-  .currency-opt svg{border-radius:2px;flex-shrink:0;}
-  .currency-opt:hover{background:var(--panel-2);color:var(--text);}
-  .currency-opt.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
 
   .drawer-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.55);
@@ -1311,6 +1279,21 @@
     border-radius:8px;margin-bottom:14px;width:fit-content;
   }
   .installment-tag svg{width:12px;height:12px;flex-shrink:0;}
+  /* Humans/Ucell "Bo'lib to'lash" — kartochka burchagidagi "X so'mdan /
+     24 oy" belgisi. Oddiy oqim ichida (position:absolute EMAS) — shu
+     bilan raqam matni bilan hech qachon ustma-ust tushmaydi. */
+  .hu-fin-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--amber) 20%, transparent), color-mix(in srgb, var(--green) 20%, transparent));
+    border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+    color:var(--amber);font-size:10px;font-weight:700;
+    padding:4px 9px 4px 7px;border-radius:20px;
+    margin:10px 0 0 10px;width:fit-content;white-space:nowrap;
+    box-shadow:0 4px 10px -4px color-mix(in srgb, var(--amber) 60%, transparent);
+    animation:hfBadgeIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .hu-fin-badge svg{width:11px;height:11px;flex-shrink:0;}
+  @keyframes hfBadgeIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
   .card button.order-btn{
     /* Tekis bitta rang o'rniga yengil "yaltiroq" gradient (tepasi ozgina
        yorug'roq) — tugma metall/shisha tugma kabi hajmli ko'rinadi,
@@ -1474,6 +1457,26 @@
     color:#8A97AE;text-transform:uppercase;margin:14px 0 4px;
   }
   .ahc-number{font-family:'Space Mono',monospace;font-size:clamp(17px,5vw,23px);font-weight:700;color:#0B1220;letter-spacing:1px;}
+  /* Buyurtma oynasi "oldindan ko'rish" qadami — narx yashirilganda raqam
+     biroz kattaroq va tepada zamonaviy "tasdiqlash" qatori chiqadi. */
+  .ahc-number-hero{
+    font-size:clamp(22px,7vw,30px);margin:2px 0 16px;
+    animation:ahcNumberPop .45s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes ahcNumberPop{from{opacity:0;transform:translateY(6px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .ahc-confirm-row{
+    display:flex;align-items:center;gap:9px;margin-top:auto;
+    background:linear-gradient(135deg, rgba(16,185,129,0.12), rgba(180,83,9,0.10));
+    border:1px solid rgba(16,185,129,0.35);border-radius:12px;
+    padding:11px 13px;font-family:'Sora',sans-serif;font-size:12.5px;font-weight:700;color:#0B1220;
+    animation:ahcConfirmIn .5s cubic-bezier(.22,1,.36,1) .1s both;
+  }
+  @keyframes ahcConfirmIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .ahc-confirm-icon{
+    width:19px;height:19px;flex-shrink:0;color:#10B981;
+    animation:ahcCheckPulse 2s ease-in-out infinite;
+  }
+  @keyframes ahcCheckPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.14);}}
   .ahc-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:auto;}
   .ahc-brand{font-family:'Sora',sans-serif;font-size:10.5px;font-weight:800;color:#5B6B85;letter-spacing:.3px;}
   .ahc-price-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
@@ -2105,6 +2108,41 @@
   .hf-tariff-detail div{font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;}
   .hf-tariff-detail svg{width:18px;height:18px;color:var(--amber);flex-shrink:0;}
   .hf-tariff-detail b{display:block;color:var(--text);font-size:12.5px;margin-top:1px;}
+
+  /* ---- Tarif tanlab bo'lgandan keyin chiqadigan yakuniy chek (hf-receipt) ---- */
+  .hf-receipt{
+    position:relative;margin-top:14px;padding:16px 15px 14px;border-radius:14px;
+    background:var(--panel);border:1px solid transparent;
+    background-image:linear-gradient(var(--panel), var(--panel)),
+      linear-gradient(135deg, var(--green) 0%, #6FE3B0 45%, var(--amber) 100%);
+    background-origin:border-box;background-clip:padding-box, border-box;
+    box-shadow:0 12px 30px -16px color-mix(in srgb, var(--green) 55%, transparent);
+    animation:hfReceiptIn .35s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes hfReceiptIn{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .hf-receipt-title{
+    display:flex;align-items:center;gap:7px;color:var(--green);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;margin-bottom:10px;
+  }
+  .hf-receipt-title svg{width:18px;height:18px;flex-shrink:0;}
+  .hf-receipt-row{
+    display:flex;align-items:center;justify-content:space-between;font-size:12.5px;
+    padding:5px 0;
+  }
+  .hf-receipt-row span{color:var(--muted);}
+  .hf-receipt-row b{color:var(--text);font-family:'Sora',sans-serif;font-weight:700;transition:transform .2s ease;}
+  .hf-receipt-note{color:var(--muted);font-size:11.5px;margin:8px 0 0;line-height:1.5;}
+  .hf-receipt-total{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  }
+  .hf-receipt-total span{color:var(--text);font-weight:700;font-size:13px;}
+  .hf-receipt-total b{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:18px;
+    background:linear-gradient(90deg, var(--green), var(--amber));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+
   .hf-divider{
     display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;
     margin:20px 0 18px;text-transform:uppercase;letter-spacing:.04em;
@@ -3031,18 +3069,6 @@ html.theme-purple-premium .card button.order-btn{
     <span class="hrb-text">RELS</span>
   </button>
   <div class="header-right-group">
-    <div class="currency-switch-wrap">
-      <button type="button" class="currency-flag-btn" id="currencyFlagBtn" aria-label="Valyuta tanlash">
-        <svg id="currFlagSvgUzs" viewBox="0 0 32 20" width="20" height="13"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/><circle cx="5.4" cy="3" r="1.8" fill="#fff"/><circle cx="6.1" cy="3" r="1.5" fill="#0099b5"/></svg>
-        <svg id="currFlagSvgUsd" viewBox="0 0 32 20" width="20" height="13" style="display:none;"><rect width="32" height="20" fill="#fff"/><rect width="32" height="1.54" y="0" fill="#B22234"/><rect width="32" height="1.54" y="3.08" fill="#B22234"/><rect width="32" height="1.54" y="6.16" fill="#B22234"/><rect width="32" height="1.54" y="9.24" fill="#B22234"/><rect width="32" height="1.54" y="12.32" fill="#B22234"/><rect width="32" height="1.54" y="15.4" fill="#B22234"/><rect width="32" height="1.54" y="18.48" fill="#B22234"/><rect width="14" height="11.5" fill="#3C3B6E"/></svg>
-        <span class="curr-code" id="currCodeLabel">UZS</span>
-        <svg class="curr-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="currency-dropdown" id="currencyDropdown">
-        <button type="button" class="currency-opt active" data-currency="uzs"><svg viewBox="0 0 32 20" width="18" height="12"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/></svg>UZS</button>
-        <button type="button" class="currency-opt" data-currency="usd"><svg viewBox="0 0 32 20" width="18" height="12"><rect width="32" height="20" fill="#fff"/><rect width="32" height="1.54" y="0" fill="#B22234"/><rect width="32" height="1.54" y="3.08" fill="#B22234"/><rect width="32" height="1.54" y="6.16" fill="#B22234"/><rect width="32" height="1.54" y="9.24" fill="#B22234"/><rect width="32" height="1.54" y="12.32" fill="#B22234"/><rect width="32" height="1.54" y="15.4" fill="#B22234"/><rect width="32" height="1.54" y="18.48" fill="#B22234"/><rect width="14" height="11.5" fill="#3C3B6E"/></svg>USD</button>
-      </div>
-    </div>
     <div class="lang-switch-wrap">
       <button type="button" class="lang-flag-btn" id="langFlagBtn" aria-label="Til tanlash">
         <svg id="langFlagSvgUz" viewBox="0 0 32 20" width="26" height="17"><rect width="32" height="20" fill="#fff"/><rect width="32" height="6" fill="#0099b5"/><rect width="32" height="6" y="14" fill="#1eb53a"/><rect width="32" height="1.2" y="6" fill="#ce1126"/><rect width="32" height="1.2" y="12.8" fill="#ce1126"/><circle cx="6.2" cy="3" r="2.1" fill="#fff"/><circle cx="7.1" cy="3" r="1.8" fill="#0099b5"/><g fill="#fff"><circle cx="11" cy="1.3" r="0.4"/><circle cx="13" cy="1.3" r="0.4"/><circle cx="15" cy="1.3" r="0.4"/><circle cx="11" cy="3" r="0.4"/><circle cx="13" cy="3" r="0.4"/><circle cx="15" cy="3" r="0.4"/><circle cx="11" cy="4.7" r="0.4"/><circle cx="13" cy="4.7" r="0.4"/><circle cx="15" cy="4.7" r="0.4"/></g></svg>
@@ -3606,10 +3632,21 @@ html.theme-purple-premium .card button.order-btn{
         <div class="hf-tariffs" id="hfTariffs"></div>
         <div class="hf-tariff-detail" id="hfTariffDetail" style="display:none;"></div>
 
-        <div class="hf-row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">
-          <span>Hozir to'lanadigan summa</span><b id="hfTotalNowValue">0 so'm</b>
+        <!-- Tarif tanlangandan keyin chiqadigan, alohida ramkali yakuniy
+             chek — tepadagi oy (6/12/24) yoki tarif tugmasi bosilganda
+             DARHOL shu joyning o'zida (updateHumansFinTotals orqali)
+             yangilanadi. -->
+        <div class="hf-receipt" id="hfReceipt" style="display:none;">
+          <div class="hf-receipt-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Raqam nomingizga rasmiylashtiriladi!
+          </div>
+          <div class="hf-receipt-row"><span>Bosh to'lov</span><b id="hfrDown">0 so'm</b></div>
+          <div class="hf-receipt-row"><span>Raqam 1-chi oylik to'lov</span><b id="hfrFirstMonthly">0 so'm</b></div>
+          <div class="hf-receipt-row"><span>Tarif</span><b id="hfrTariff">—</b></div>
+          <p class="hf-receipt-note" id="hfScheduleNote"></p>
+          <div class="hf-receipt-total"><span>Umumiy</span><b id="hfTotalOverall">0 so'm</b></div>
         </div>
-        <p style="color:var(--muted);font-size:11.5px;margin:6px 0 0;line-height:1.5;" id="hfScheduleNote"></p>
       </div>
       <div class="hf-divider" id="hfDivider" style="display:none;">Ma'lumotlaringiz</div>
 
@@ -3787,22 +3824,9 @@ function formatUzNumber(rawDigits){
 // hammasi, bittasi ham qolmasdan) shu YAGONA formatPrice() funksiyasi
 // orqali chiqadi, shu sabab konvertatsiya FAQAT shu yerda qilinsa yetarli.
 window.currentCurrency = 'uzs';
-const USD_RATE = 12000;
-// Mijoz aniq ko'rsatgan yaxlitlash qoidasi: kasr qismi 0.5 dan KATTA
-// bo'lsagina yuqoriga (masalan 11.6 -> 12), aks holda (11.5 -> 11 ham)
-// pastga yaxlitlanadi.
-function usdRound(x){
-  const fl = Math.floor(x);
-  const frac = x - fl;
-  return frac > 0.5 ? fl + 1 : fl;
-}
+// Mijoz iltimosiga ko'ra: dollar/so'm almashtirgich BUTUNLAY olib
+// tashlandi — sayt endi har doim FAQAT so'mda ko'rsatadi.
 function formatPrice(n){
-  if(window.currentCurrency === 'usd'){
-    // Mijoz iltimosiga ko'ra: "$1700" EMAS, so'mdagi kabi RAQAM OLDIN,
-    // belgi KEYIN — "1700 $".
-    const usd = usdRound(Number(n) / USD_RATE);
-    return usd.toLocaleString('en-US') + ' $';
-  }
   return formatPriceUzs(n);
 }
 // Mijozning ekranidagi valyuta tanloviga (USD/UZS) BOG'LIQ BO'LMAGAN,
@@ -3826,16 +3850,21 @@ function installmentMonthlyFor(item, months){
   return Math.ceil(totalWithMarkup / months / 1000) * 1000;
 }
 function formatInstallmentTeaser(monthly, months){
-  if(window.currentCurrency === 'usd'){
-    const usd = usdRound(Number(monthly) / USD_RATE);
-    return window.currentLangMode === 'ru'
-      ? `от ${usd.toLocaleString('en-US')} $ / ${months} мес.`
-      : `${usd.toLocaleString('en-US')} $dan / ${months} oy`;
-  }
   const numStr = Number(monthly).toLocaleString('ru-RU').replace(/,/g,' ');
   return window.currentLangMode === 'ru'
     ? `от ${numStr} сум / ${months} мес.`
     : `${numStr} so'mdan / ${months} oy`;
+}
+// Humans/Ucell/Beeline "Bo'lib to'lash" — katalog kartochkasining
+// burchagida chiqadigan kichik belgi. Mijoz iltimosiga ko'ra ANIQ SUMMA
+// EMAS ("X so'mdan / X oy" olib tashlandi) — avvalgidek oddiy "Bo'lib
+// to'lash mavjud" matni. installmentFinancingFor() pastda
+// (OPERATOR_FINANCING) e'lon qilingan — funksiya deklaratsiyalari hoisted
+// bo'lgani uchun bu yerdan chaqirish xavfsiz.
+function humansUcellTeaserHtml(item){
+  const fin = (typeof installmentFinancingFor === 'function') ? installmentFinancingFor(item) : null;
+  if(!fin) return '';
+  return `<div class="hu-fin-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Bo'lib to'lash mavjud</div>`;
 }
 function escapeHtml(s){
   return String(s == null ? '' : s)
@@ -4058,7 +4087,7 @@ const OPERATOR_META = {
 // (operator nishoni, chegirma belgisi, sarlavha, narx, eski narx).
 // withViewBtn=true bo'lsa pastda "Ko'rish" tugmasi ham qo'shiladi (faqat
 // ASOSIY karuselida kerak — oldindan ko'rish oynasida shart emas).
-function heroCardInnerHtml(item, withViewBtn){
+function heroCardInnerHtml(item, withViewBtn, hidePrice){
   const meta = OPERATOR_META[item.operator] || { color: '#6b7280' };
   const hasDiscount = item.oldPrice && item.oldPrice > item.price;
   const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
@@ -4068,6 +4097,24 @@ function heroCardInnerHtml(item, withViewBtn){
   const priceRowHtml = item.installment
     ? `<span class="ahc-price">${formatInstallmentTeaser(installmentMonthlyFor(item, 24), 24)}</span>`
     : `<span class="ahc-price">${formatPrice(item.price)}</span>${hasDiscount ? `<span class="ahc-old-price">${formatPrice(item.oldPrice)}</span>` : ''}`;
+  // hidePrice=true — FAQAT buyurtma oynasining "oldindan ko'rish" qadami
+  // uchun (mijoz iltimosiga ko'ra): summani UMUMAN ko'rsatmaymiz, o'rniga
+  // raqamning o'zi biroz kattaroq va zamonaviy "tasdiqlash" ikonkasi bilan
+  // chiqadi. Asosiy karusel (withViewBtn=true chaqiruvi) buni ishlatmaydi
+  // — u yerda narx hamon avvalgidek ko'rinadi.
+  if(hidePrice){
+    return `
+      <div class="ahc-top">
+        <span class="ahc-badge" style="background:${meta.color}">${item.operator || 'VIP'}</span>
+      </div>
+      <div class="ahc-sub">VIP &middot; Premium raqam</div>
+      <div class="ahc-number ahc-number-hero">${displayNumber(item.number)}</div>
+      <div class="ahc-confirm-row">
+        <svg class="ahc-confirm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Ushbu raqam nomingizga rasmiylashtiriladi</span>
+      </div>
+    `;
+  }
   return `
     <div class="ahc-top">
       <span class="ahc-badge" style="background:${meta.color}">${item.operator || 'VIP'}</span>
@@ -4148,6 +4195,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     case 'outline':
       return `
+        ${humansUcellTeaserHtml(item)}
         <div class="ol-num">${numDisp}</div>
         <div class="ol-price">${priceDisp}</div>
         ${installmentHtml}
@@ -4206,6 +4254,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
       // ham, keyingi dizayn yangilanishlariga ham bog'liq emas — har doim
       // aynan shu ko'rinishda qoladi.
       return `
+        ${humansUcellTeaserHtml(item)}
         <div class="lk-header"><div class="lk-num">${numDisp}</div></div>
         ${hasDiscount ? `<span class="lk-badge">-${discountPct}%</span>` : ''}
         <div class="lk-body">
@@ -4221,6 +4270,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
 
     default: // classic
       return `
+        ${humansUcellTeaserHtml(item)}
         <div class="card-header">
           <span class="num-label">${numDisp}</span>
         </div>
@@ -4610,7 +4660,10 @@ function renderFeatured(){
     featuredScroll.innerHTML = Array(4).fill('<div class="skeleton" style="width:150px;flex-shrink:0;"></div>').join('');
     return;
   }
-  const picks = NUMBERS.filter(item => item.featured && !item.installment).slice(0, 8);
+  // Mijoz iltimosiga ko'ra: kamgina emas, 20 tagacha — va har doim BIR
+  // XIL tartibda (birinchi qo'shilganlar) emas, RANDOM tanlanadi.
+  const eligibleFeatured = NUMBERS.filter(item => item.featured && !item.installment);
+  const picks = shuffleArray(eligibleFeatured).slice(0, 20);
   if(picks.length < 2){
     featuredSection.style.display = 'none';
     return;
@@ -5767,42 +5820,50 @@ function selectInstallmentMonths(months){
 }
 icTabButtons.forEach(btn => btn.addEventListener('click', ()=> selectInstallmentMonths(Number(btn.dataset.months))));
 
-/* ---- Bo'lib to'lash (rasrochka), faqat jonli API'dan (Humans va Ucell —
-   mijoz iltimosiga ko'ra ikkalasi bir xil ishlaydi) — eski, VIP-bazadagi
-   %-ustama tizimidan (yuqorida) ATAYLAB ALOHIDA: bu yerda bosh to'lov/
-   oylik to'lov admin panelda HAR BIR NARX QATORI (operatorPrice) uchun
-   QO'LDA kiritiladi, hech narsa avtomatik hisoblanmaydi. Kategoriya
-   raqami ENDI KERAK EMAS — narx jadvalidagi qatorning o'zi (operatorPrice)
-   kalit sifatida ishlatiladi, chunki jonli qidiruv natijasi ham aynan
-   shu operatorPrice qiymatini qaytaradi (qarang: lib/operators.js). */
-let OPERATOR_FINANCING = { byOperator: { Humans: {}, Ucell: {} }, tariffs: [] };
+/* ---- Bo'lib to'lash (rasrochka), faqat jonli API'dan (Humans, Ucell va
+   endi Beeline — mijoz iltimosiga ko'ra hammasi bir xil ishlaydi) — eski,
+   VIP-bazadagi %-ustama tizimidan (yuqorida) ATAYLAB ALOHIDA: bu yerda
+   bosh to'lov/oylik to'lov admin panelda HAR BIR NARX QATORI
+   (operatorPrice) uchun QO'LDA kiritiladi, hech narsa avtomatik
+   hisoblanmaydi. Kategoriya raqami ENDI KERAK EMAS — narx jadvalidagi
+   qatorning o'zi (operatorPrice) kalit sifatida ishlatiladi, chunki jonli
+   qidiruv natijasi ham aynan shu operatorPrice qiymatini qaytaradi
+   (qarang: lib/operators.js). */
+let OPERATOR_FINANCING = { byOperator: { Humans: {}, Ucell: {}, Beeline: {} }, tariffs: [] };
 async function loadInstallmentFinancing(){
   try{
     const doc = await db.collection('site_settings').doc('operator_financing').get();
     if(!doc.exists) return;
     const d = doc.data() || {};
-    const byOperator = { Humans: {}, Ucell: {} };
-    ['Humans','Ucell'].forEach(op=>{
+    const byOperator = { Humans: {}, Ucell: {}, Beeline: {} };
+    ['Humans','Ucell','Beeline'].forEach(op=>{
       (Array.isArray(d.byOperator && d.byOperator[op]) ? d.byOperator[op] : []).forEach(row=>{
         const price = Number(row.operatorPrice);
         if(row.operatorPrice === undefined || row.operatorPrice === null || Number.isNaN(price)) return;
+        // Har bir muddat (6/12/24 oy) uchun bosh to'lov HAM alohida-alohida —
+        // muddat uzunroq bo'lsa odatda bosh to'lov ham boshqacha bo'ladi,
+        // shu sabab bitta umumiy "downPayment" o'rniga har oyga o'ziniki.
         byOperator[op][price] = {
-          downPayment: Number(row.downPayment) || 0,
+          down: { 6: Number(row.down6) || 0, 12: Number(row.down12) || 0, 24: Number(row.down24) || 0 },
           monthly: { 6: Number(row.monthly6) || 0, 12: Number(row.monthly12) || 0, 24: Number(row.monthly24) || 0 }
         };
       });
     });
     OPERATOR_FINANCING = { byOperator, tariffs: Array.isArray(d.tariffs) ? d.tariffs : [] };
+    // Katalog kartochkalari bu ma'lumot kelgunicha allaqachon chizilgan
+    // bo'lishi mumkin (Firestore o'qish asinxron) — shu sabab "X so'mdan /
+    // 24 oy" belgisi ko'rinishi uchun bir marta qayta chizamiz.
+    if(typeof renderCatalog === 'function') renderCatalog();
   }catch(err){ console.error('Bo\'lib to\'lash sozlamalarini yuklashda xato:', err); }
 }
 loadInstallmentFinancing();
 
-// Faqat jonli API'dan (item.live) qidirilgan, Humans yoki Ucell operatoridan,
-// va admin panelda AYNAN shu narx qatoriga (operatorPrice) bo'lib to'lash
-// summasi kiritilgan raqamlarda "Bo'lib to'lash" imkoni bo'ladi.
+// Faqat jonli API'dan (item.live) qidirilgan, Humans/Ucell/Beeline
+// operatoridan, va admin panelda AYNAN shu narx qatoriga (operatorPrice)
+// bo'lib to'lash summasi kiritilgan raqamlarda "Bo'lib to'lash" imkoni bo'ladi.
 function installmentFinancingFor(item){
   if(!item || !item.live) return null;
-  if(item.operator !== 'Humans' && item.operator !== 'Ucell') return null;
+  if(item.operator !== 'Humans' && item.operator !== 'Ucell' && item.operator !== 'Beeline') return null;
   const table = OPERATOR_FINANCING.byOperator[item.operator];
   if(!table) return null;
   return table[Number(item.operatorPrice)] || null;
@@ -5817,11 +5878,11 @@ const hfMonthsLabel     = document.getElementById('hfMonthsLabel');
 const hfMonthlyValue    = document.getElementById('hfMonthlyValue');
 const hfTariffsEl       = document.getElementById('hfTariffs');
 const hfTariffDetail    = document.getElementById('hfTariffDetail');
-const hfTotalNowValue   = document.getElementById('hfTotalNowValue');
 const hfScheduleNote    = document.getElementById('hfScheduleNote');
 
-let selectedInstallmentFin = null;      // { downPayment, monthly:{6,12,24} } | null
+let selectedInstallmentFin = null;      // { down:{6,12,24}, monthly:{6,12,24} } | null
 let selectedHumansTariff = null;   // { name, internet, minutes, sms } | null
+let selectedDownPayment = 0;       // tanlangan muddat (6/12/24 oy)ga mos bosh to'lov
 
 // Summasi o'zgarganda (oy tanlansa) raqam ozgina "sakrab" yangilanadi —
 // mijozga o'zgarish sodir bo'lganini his qildiradigan kichik animatsiya.
@@ -5835,14 +5896,18 @@ function selectHumansMonths(months){
   selectedInstallmentMonths = months;
   hfMonthButtons.forEach(btn => btn.classList.toggle('active', Number(btn.dataset.months) === months));
   hfMonthsLabel.textContent = months;
-  const monthly = selectedInstallmentFin.monthly[months] || 0;
+  const monthly = (selectedInstallmentFin.monthly && selectedInstallmentFin.monthly[months]) || 0;
+  const down = (selectedInstallmentFin.down && selectedInstallmentFin.down[months]) || 0;
   selectedMonthlyPayment = monthly;
+  selectedDownPayment = down;
   // Mijoz uchun bo'lib to'lash real to'lov majburiyati — narx ko'rsatish
   // valyutasidan (USD/UZS) QAT'IY NAZAR har doim aniq so'mda ko'rsatiladi
   // (xuddi admin ichki xabarlari kabi — formatPriceUzs, valyuta o'zgarishi
   // bu yerga ta'sir qilmasin, chalkashlik/xato hisob-kitob bo'lmasin).
   hfMonthlyValue.textContent = formatPriceUzs(monthly);
   hfBumpValue(hfMonthlyValue);
+  hfDownPaymentValue.textContent = formatPriceUzs(down);
+  hfBumpValue(hfDownPaymentValue);
   updateHumansFinTotals();
 }
 hfMonthButtons.forEach(btn => btn.addEventListener('click', ()=> selectHumansMonths(Number(btn.dataset.months))));
@@ -5857,6 +5922,7 @@ function selectHumansTariff(tariff){
     `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.5 16.43a6 6 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>Internet<b>${escapeHtml(tariff.internet || '-')}</b></div>` +
     `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Daqiqa<b>${escapeHtml(tariff.minutes || '-')}</b></div>` +
     `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sms<b>${escapeHtml(tariff.sms || '-')}</b></div>`;
+  updateHumansFinTotals();
 }
 function renderHumansTariffs(){
   hfTariffsEl.innerHTML = '';
@@ -5876,10 +5942,22 @@ function renderHumansTariffs(){
   if(OPERATOR_FINANCING.tariffs && OPERATOR_FINANCING.tariffs.length) selectHumansTariff(OPERATOR_FINANCING.tariffs[0]);
 }
 
+// "Tarif tanlab bo'lgandan keyin" pastda chiqadigan, alohida ramkali
+// "Raqam nomingizga rasmiylashtiriladi!" cheki — tepadagi oy (6/12/24)
+// yoki tarif tugmasi bosilganda DARHOL shu joyning o'zida yangilanadi.
 function updateHumansFinTotals(){
   if(!selectedInstallmentFin) return;
-  hfDownPaymentValue.textContent = formatPriceUzs(selectedInstallmentFin.downPayment);
-  hfTotalNowValue.textContent = formatPriceUzs(selectedInstallmentFin.downPayment);
+  const total = selectedDownPayment + (selectedMonthlyPayment * selectedInstallmentMonths);
+  const hfrDown = document.getElementById('hfrDown');
+  const hfrFirstMonthly = document.getElementById('hfrFirstMonthly');
+  const hfrTariff = document.getElementById('hfrTariff');
+  const hfTotalOverall = document.getElementById('hfTotalOverall');
+  const hfReceipt = document.getElementById('hfReceipt');
+  if(hfrDown) hfrDown.textContent = formatPriceUzs(selectedDownPayment);
+  if(hfrFirstMonthly) hfrFirstMonthly.textContent = formatPriceUzs(selectedMonthlyPayment);
+  if(hfrTariff) hfrTariff.textContent = selectedHumansTariff ? selectedHumansTariff.name : '—';
+  if(hfTotalOverall) hfTotalOverall.textContent = formatPriceUzs(total);
+  if(hfReceipt) hfReceipt.style.display = selectedHumansTariff ? 'block' : 'none';
   hfScheduleNote.textContent =
     `Keyingi oydan boshlab ${selectedInstallmentMonths} oy davomida oyiga ${formatPriceUzs(selectedMonthlyPayment)} raqamingiz balansiga to'ldirib turasiz.`;
 }
@@ -5889,14 +5967,17 @@ function selectPaymentTab(type){
   payTabCash.classList.toggle('active', type === 'cash');
   payTabInstallment.classList.toggle('active', type === 'installment');
   if(selectedInstallmentFin){
-    // Humans-rasrochka: eski %-kalkulyator ko'rinmaydi, o'rniga to'liq
-    // ekranli Humans bo'limi (pastda) ochiladi/yopiladi.
+    // Humans/Ucell-rasrochka: eski %-kalkulyator ko'rinmaydi, o'rniga
+    // Bo'lib to'lash bo'limi (pastda) ochiladi/yopiladi. Mijoz iltimosiga
+    // ko'ra endi oyna NAQT to'lovda ham, umuman saytning HAR QAYERIDA ham
+    // har doim to'liq ekran bo'lib ochiladi (qarang: openModal — overlay
+    // doim 'hf-fullscreen' bilan ochiladi), shu sabab bu yerda alohida
+    // yoqib/o'chirish shart emas.
     installmentCalc.style.display = 'none';
     const showHf = type === 'installment';
     humansFinView.style.display = showHf ? 'block' : 'none';
     hfDivider.style.display = showHf ? 'flex' : 'none';
     hfRegisterNote.style.display = showHf ? 'block' : 'none';
-    overlay.classList.toggle('hf-fullscreen', showHf);
     if(showHf){
       renderHumansTariffs();
       selectHumansMonths(6);
@@ -5968,10 +6049,14 @@ function openModal(number, id, priceOverride){
   // MAJBURIY emas).
   selectedInstallmentFin = installmentFinancingFor(item);
   selectedHumansTariff = null;
+  selectedDownPayment = 0;
   humansFinView.style.display = 'none';
   hfDivider.style.display = 'none';
   hfRegisterNote.style.display = 'none';
-  overlay.classList.remove('hf-fullscreen');
+  // Mijoz iltimosiga ko'ra: buyurtma oynasi endi to'lov turidan (naqt/
+  // bo'lib to'lash) va raqam turidan qat'iy nazar, saytning HAR QAYERIDA
+  // har doim TO'LIQ EKRAN bo'lib ochiladi.
+  overlay.classList.add('hf-fullscreen');
   overlay.classList.remove('success-fullscreen');
 
   if(item && item.installment){
@@ -5994,7 +6079,7 @@ function openModal(number, id, priceOverride){
   // qilish"), forma faqat "Rasmiylashtirish" bosilganda ochiladi.
   const previewCardEl = document.getElementById('previewCard');
   if(previewCardEl){
-    previewCardEl.innerHTML = heroCardInnerHtml(item || { number, price: selectedPrice, operator: selectedOperator }, false);
+    previewCardEl.innerHTML = heroCardInnerHtml(item || { number, price: selectedPrice, operator: selectedOperator }, false, true);
   }
   document.getElementById('previewView').style.display = 'block';
   formView.style.display = 'none';
@@ -6046,7 +6131,14 @@ function closeModal(fromPopstate){
   if(__modalPushedState){
     __modalPushedState = false;
     if(!fromPopstate){
-      try{ history.back(); }catch(e){}
+      // Mijoz o'zi "Bekor qilish"/X/tashqarisini bosib yopganda — ORTGA
+      // HAQIQIY NAVIGATSIYA qilmaymiz (history.back() ba'zan boshqa,
+      // kutilmagan yon-effektlarga — masalan qidiruv katakchalari eski
+      // holatga sakrab qaytishiga — olib kelgan, mijoz shikoyat qildi).
+      // Shunchaki o'zimiz ochilganda qo'shgan "soxta" tarix qadamini
+      // joyida almashtiramiz (replaceState) — tarix uzunligi o'smaydi,
+      // lekin mijoz aynan o'sha kartochkada, hech qayerga sakramasdan qoladi.
+      try{ history.replaceState(null, '', location.href); }catch(e){}
     }
   }
   // Agar bu buyurtma oynasi "Premium raqamlar" video-reels ichidan
@@ -6477,7 +6569,7 @@ confirmBtn.addEventListener('click', async ()=>{
     // Humans (jonli API) — bosh to'lov va tanlangan tarif ham buyurtmaga
     // qo'shiladi, admin buni Telegram xabari va buyurtma tafsilotida ko'radi.
     if(selectedInstallmentFin){
-      payload.installmentDownPayment = selectedInstallmentFin.downPayment;
+      payload.installmentDownPayment = selectedDownPayment;
       if(selectedHumansTariff) payload.installmentTariff = selectedHumansTariff.name;
     }
   }
@@ -7748,40 +7840,10 @@ function setLanguage(lang){
   if(saved !== 'uz') applyCurrentLanguage();
 })();
 
-// Mijoz iltimosiga ko'ra: til tanlashdagi bilan BIR XIL, oddiy va
-// ishonchli usul — tanlov localStorage'ga saqlanadi va sahifa qayta
-// yuklanadi, shunda BARCHA narx ko'rsatuvchi joy (formatPrice orqali)
-// yangi valyutada, birortasi ham qolmasdan qayta chiziladi.
-function setCurrency(cur){
-  try{ localStorage.setItem('raqamuz_currency', cur); }catch(e){}
-  location.reload();
-}
-(function initCurrencySwitcher(){
-  let saved = 'uzs';
-  try{ saved = localStorage.getItem('raqamuz_currency') || 'uzs'; }catch(e){}
-  window.currentCurrency = saved;
-
-  const flagBtn = document.getElementById('currencyFlagBtn');
-  const dropdown = document.getElementById('currencyDropdown');
-  const codeLabel = document.getElementById('currCodeLabel');
-  if(!flagBtn || !dropdown) return;
-  document.getElementById('currFlagSvgUzs').style.display = saved === 'usd' ? 'none' : 'block';
-  document.getElementById('currFlagSvgUsd').style.display = saved === 'usd' ? 'block' : 'none';
-  if(codeLabel) codeLabel.textContent = saved === 'usd' ? 'USD' : 'UZS';
-
-  document.querySelectorAll('.currency-opt').forEach(btn=>{
-    btn.classList.toggle('active', btn.dataset.currency === saved);
-    btn.addEventListener('click', ()=>{
-      dropdown.classList.remove('open');
-      if(btn.dataset.currency !== window.currentCurrency) setCurrency(btn.dataset.currency);
-    });
-  });
-  flagBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    dropdown.classList.toggle('open');
-  });
-  document.addEventListener('click', ()=> dropdown.classList.remove('open'));
-})();
+// Mijoz iltimosiga ko'ra: dollar/so'm almashtirgich BUTUNLAY olib
+// tashlandi — sayt endi har doim FAQAT so'mda ko'rsatadi (formatPrice va
+// formatInstallmentTeaser ichida ham valyuta shartlari olib tashlandi).
+window.currentCurrency = 'uzs';
 
 loadSiteSettings();
 
