@@ -1642,7 +1642,6 @@
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
       <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
       <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
-      <button class="tab" data-tab="chat"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span class="tab-label">Chat</span><span class="task-tab-badge" id="chatTabBadge" style="display:none;">0</span></button>
       <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
 
       <div class="tab-divider" id="mgmtTabDivider" style="display:none;"><span>SUPER ADMIN</span></div>
@@ -2688,21 +2687,6 @@
     </div>
   </div>
 
-  <div class="pane" id="paneChat">
-    <div class="ai-hint">
-      💬 Sayt tashrif buyuruvchilari uchun umumiy (hammaga ko'rinadigan) real vaqtli chat — Telegram guruhiga
-      o'xshab, mijozlar shu yerda ochiq yozishadi. Nomaqbul/spam xabarni shu yerdan darhol o'chirib tashlashingiz
-      mumkin — o'chirilgan xabar barcha mijozlarning ekranidan ham bir zumda yo'qoladi.
-    </div>
-    <div class="wt-toolbar">
-      <button type="button" class="wt-bulk-del" id="chatRefreshBtn">🔄 Yangilash</button>
-      <span id="chatMsgCount" style="margin-left:auto;font-size:13px;color:var(--muted,#8a93a6);"></span>
-    </div>
-    <div class="wt-list" id="chatMsgList">
-      <div class="wt-empty">Hozircha xabar yo'q</div>
-    </div>
-  </div>
-
   <div class="pane" id="paneSettings">
     <div class="settings-grid">
     <div class="settings-form">
@@ -2882,6 +2866,28 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 const db = firebase.firestore();
+
+// MUHIM (mijoz iltimosi: "admin saytda faqat iPhone'dan yozilsa umuman
+// yozilmayabdi, qotib qolyabdi — orqada biror narsa ishlayotgan bo'lsa
+// olib tashla"): sahifada bir nechta orqa fon jarayoni (buyurtmalar
+// ro'yxatining jonli tinglovchisi, vazifa muddati countdown'i, onlayn
+// statistika) muntazam DOM'ni yangilab turadi. Bu jarayonlar, hatto
+// "yengil" ko'rinsa ham, aynan klaviaturadan harf bosilgan zumda ishga
+// tushib qolsa — iPhone Safari'da asosiy JS oqimini bir lahzaga band
+// qilib, ekranga chiqishi kerak bo'lgan harfni "kechiktirib" yuboradi
+// (natijada "yozgan so'zlar darhol ko'rinmayabdi" degan taassurot
+// qoldiradi). Shu sabab BUTUN sahifa darajasida ANIQ bitta bayroq bilan
+// "hozir kimdir yozyapti" holatini kuzatamiz — pastda bir nechta joyda
+// (buyurtmalar, vazifa countdown'i, onlayn statistika) shu bayroqqa
+// qarab og'ir/davriy yangilanishlar YOZISH TUGAGUNCHA kechiktiriladi.
+let isUserTyping = false;
+document.addEventListener('focusin', (e)=>{
+  if(e.target && e.target.matches && e.target.matches('input, textarea')) isUserTyping = true;
+});
+document.addEventListener('focusout', (e)=>{
+  if(e.target && e.target.matches && e.target.matches('input, textarea')) isUserTyping = false;
+});
+
 // Ba'zi tarmoqlar (mobil operator, ofis Wi-Fi, VPN) Firestore'ning
 // standart "streaming" ulanishini bloklashi mumkin — shu qator yoqilganda
 // Firestore buni avtomatik aniqlab, orqa fonda oddiy "long polling"
@@ -3781,8 +3787,12 @@ function vzFormatDue(dueAt){
 }
 
 /* Har soniyada — sahifada ochiq turgan barcha countdown yozuvlarini
-   yangilab boradi (qaysi panel ochiq bo'lishidan qat'i nazar). */
+   yangilab boradi (qaysi panel ochiq bo'lishidan qat'i nazar). Admin
+   biror maydonga yozayotgan bo'lsa (isUserTyping) — iPhone'da klaviatura
+   bilan to'qnashmasin deb shu soniyalik yangilanish o'tkazib yuboriladi
+   (keyingi soniyada baribir davom etadi, foydalanuvchiga sezilmaydi). */
 setInterval(()=>{
+  if(isUserTyping) return;
   document.querySelectorAll('.vz-countdown[data-due]').forEach(el=>{
     if(el.dataset.completed === '1') return;
     const { text, cls } = vzFormatCountdown(Number(el.dataset.due));
@@ -3828,6 +3838,9 @@ let vzAlertedIds = new Set();
 let vzWatchStarted = false;
 
 async function vzGlobalCheck(){
+  // Admin hozir biror joyga yozayotgan bo'lsa — bu tekshiruvni o'tkazib
+  // yuboramiz (keyingi 30 soniyalik siklda baribir qayta ishlaydi).
+  if(isUserTyping) return;
   try{
     const snap = await db.collection('admin_tasks').where('completed', '==', false).get();
     const now = Date.now();
@@ -4283,10 +4296,6 @@ async function doLogin(){
     if(hasFeaturePerm('orders')) refreshOrders();
     if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
     if(hasFeaturePerm('vazifalar')) startVazifalarWatch();
-    // Chat tinglovchisi darhol (bo'limga kirmasdan ham) ishga tushadi — shu
-    // bilan admin "Chat" bo'limiga kirmasdan turib ham yangi xabar sonini
-    // (badge) ko'radi, xuddi "Vazifalar"dagi kabi.
-    if(hasFeaturePerm('chat')) loadChatMessages();
     // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
     // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
     // avtomatik chiqarilmaydi.
@@ -4435,7 +4444,7 @@ document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
 });
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings', chat:'Chat' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -4471,7 +4480,6 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
     if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
-    if(tab.dataset.tab === 'chat'){ loadChatMessages(); markChatSeen(); }
 
     // Mobil ekranda menyudan bo'lim tanlansa, sidebar avtomatik yopiladi
     const shellEl = document.querySelector('.admin-shell');
@@ -6534,87 +6542,6 @@ async function loadWatchList(){
   }
 }
 
-/* ---- "Chat" — sayt mijozlari uchun umumiy (Telegram guruhiga o'xshash)
-   real vaqtli chat. Har bir mijoz sayt(index.html)dan yozadi, bu yerda
-   admin barcha xabarlarni jonli ko'radi va noo'rinini o'chira oladi. ---- */
-let chatUnsub = null;
-let chatMessagesCache = [];
-const CHAT_LAST_SEEN_KEY = 'vipAdminChatLastSeen';
-
-function chatFormatTime(ts){
-  try{
-    const d = ts && typeof ts.toDate === 'function' ? ts.toDate() : null;
-    if(!d) return '';
-    return d.toLocaleDateString('uz-UZ') + ' ' + d.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
-  }catch(e){ return ''; }
-}
-
-function renderChatMessages(msgs){
-  const list = document.getElementById('chatMsgList');
-  const countEl = document.getElementById('chatMsgCount');
-  if(countEl) countEl.textContent = msgs.length ? (msgs.length + ' ta xabar') : '';
-  if(!list) return;
-  if(!msgs.length){ list.innerHTML = '<div class="wt-empty">Hozircha xabar yo\'q</div>'; return; }
-  list.innerHTML = msgs.map(m => `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-      <div style="min-width:0;">
-        <div style="font-size:12.5px;font-weight:700;color:var(--accent,#e8a33d);">${escapeHtml(m.name || 'Mehmon')}
-          <span style="font-weight:400;color:var(--muted,#8a93a6);font-size:11px;margin-left:6px;">${chatFormatTime(m.createdAt)}</span>
-        </div>
-        <div style="font-size:13.5px;margin-top:3px;white-space:pre-wrap;word-break:break-word;">${escapeHtml(m.text || '')}</div>
-      </div>
-      <button class="chat-msg-delete" data-id="${m.id}" style="flex:none;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;padding:4px 6px;">🗑</button>
-    </div>`).join('');
-  list.querySelectorAll('.chat-msg-delete').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      if(!confirm("Bu xabarni o'chirasizmi? Mijozlarning ekranidan ham darhol yo'qoladi.")) return;
-      try{ await db.collection('site_chat').doc(btn.dataset.id).delete(); }
-      catch(err){ alert('Xato: ' + err.message); }
-    });
-  });
-}
-
-function updateChatBadge(msgs){
-  const badge = document.getElementById('chatTabBadge');
-  if(!badge) return;
-  const chatPaneActive = document.getElementById('paneChat') && document.getElementById('paneChat').classList.contains('active');
-  if(chatPaneActive){ badge.style.display = 'none'; return; }
-  let lastSeen = 0;
-  try{ lastSeen = Number(localStorage.getItem(CHAT_LAST_SEEN_KEY) || 0); }catch(e){}
-  const unread = msgs.filter(m => {
-    const ms = m.createdAt && typeof m.createdAt.toMillis === 'function' ? m.createdAt.toMillis() : 0;
-    return ms > lastSeen;
-  }).length;
-  if(unread > 0){ badge.textContent = unread > 99 ? '99+' : String(unread); badge.style.display = ''; }
-  else{ badge.style.display = 'none'; }
-}
-
-function markChatSeen(){
-  try{ localStorage.setItem(CHAT_LAST_SEEN_KEY, String(Date.now())); }catch(e){}
-  const badge = document.getElementById('chatTabBadge');
-  if(badge) badge.style.display = 'none';
-}
-
-function loadChatMessages(){
-  if(chatUnsub) return; // real vaqtli tinglovchi allaqachon ishlayapti
-  const list = document.getElementById('chatMsgList');
-  if(list) list.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
-  chatUnsub = db.collection('site_chat').orderBy('createdAt', 'desc').limit(150)
-    .onSnapshot(snap => {
-      const msgs = [];
-      snap.forEach(doc => msgs.push(Object.assign({ id: doc.id }, doc.data())));
-      msgs.reverse(); // eskisidan yangisiga
-      chatMessagesCache = msgs;
-      renderChatMessages(msgs);
-      updateChatBadge(msgs);
-    }, err => {
-      console.error('Chat tinglovchisi xato:', err);
-      if(list) list.innerHTML = '<div class="wt-empty">Xato: ' + escapeHtml(err.message) + '</div>';
-    });
-}
-const chatRefreshBtnEl = document.getElementById('chatRefreshBtn');
-if(chatRefreshBtnEl) chatRefreshBtnEl.addEventListener('click', ()=>{ renderChatMessages(chatMessagesCache); });
-
 /* ---- "Baza raqam" — qo'shimcha Telegram bildirishnoma ID'lari (Sozlamalar) ---- */
 async function loadWatchNotifyIds(){
   const list = document.getElementById('watchNotifyIdList');
@@ -6676,7 +6603,7 @@ const MGMT_FEATURE_LABELS = {
   watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
-  finance:'💰 Kirim-Chiqim', chat:'💬 Chat'
+  finance:'💰 Kirim-Chiqim'
 };
 const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
 
@@ -7385,6 +7312,9 @@ function startVisitorTracking(){
 }
 
 async function updateVisitorStats(){
+  // Admin hozir yozayotgan bo'lsa — bu davriy so'rovni o'tkazib yuboramiz
+  // (keyingi 15 soniyalik siklda baribir davom etadi).
+  if(isUserTyping) return;
   try{
     // Ayni vaqtda saytda: oxirgi 40 soniya ichida "men shu yerdaman" deb signal bergan seanslar
     // (lastSeen endi Firestore serverTimestamp — solishtirish uchun ham Timestamp kerak)
@@ -7988,22 +7918,16 @@ let ordersPaneVisible = false;
 // ko'rinsa-da, arzon Android telefonlarda aynan klaviatura bosilgan
 // paytda asosiy JS oqimini bir zumga to'sib, ekranga chiqishi kerak bo'lgan
 // harfni "kechiktirib" yuborishi mumkin. Endi: agar foydalanuvchi HOZIR
-// istalgan matn maydoniga (input/textarea — AI chat, kredit formasi va
-// h.k.) yozayotgan bo'lsa, bu yangilanishlar KECHIKTIRILADI — yozishni
-// tugatgan zahoti (fokusdan chiqishi bilan) darhol qo'llaniladi. Yangi
-// buyurtma ovoz/vibratsiya bildirishnomasi esa baribir DARHOL ishlaydi.
-let isUserTyping = false;
+// istalgan matn maydoniga yozayotgan bo'lsa (isUserTyping — yuqorida,
+// db e'lon qilingandan keyin butun sahifa darajasida kuzatiladi), bu
+// yangilanish KECHIKTIRILADI — yozishni tugatgan zahoti (fokusdan
+// chiqishi bilan) darhol qo'llaniladi. Yangi buyurtma ovoz/vibratsiya
+// bildirishnomasi esa baribir DARHOL ishlaydi.
 let pendingOrdersUpdate = null;
-document.addEventListener('focusin', (e)=>{
-  if(e.target && e.target.matches && e.target.matches('input, textarea')) isUserTyping = true;
-});
 document.addEventListener('focusout', (e)=>{
-  if(e.target && e.target.matches && e.target.matches('input, textarea')){
-    isUserTyping = false;
-    if(pendingOrdersUpdate){
-      applyOrdersUpdate(pendingOrdersUpdate);
-      pendingOrdersUpdate = null;
-    }
+  if(e.target && e.target.matches && e.target.matches('input, textarea') && pendingOrdersUpdate){
+    applyOrdersUpdate(pendingOrdersUpdate);
+    pendingOrdersUpdate = null;
   }
 });
 
