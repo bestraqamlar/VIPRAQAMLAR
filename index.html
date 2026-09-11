@@ -2147,6 +2147,63 @@
     -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   }
 
+  /* ---- Naqt to'lov tanlanganda chiqadigan raqam+summa kartochkasi ---- */
+  .cash-summary-card{
+    position:relative;margin-bottom:16px;padding:16px 15px;border-radius:14px;
+    text-align:center;background:var(--panel);border:1px solid transparent;
+    background-image:linear-gradient(var(--panel), var(--panel)),
+      linear-gradient(135deg, var(--amber) 0%, #FFD778 50%, var(--green) 100%);
+    background-origin:border-box;background-clip:padding-box, border-box;
+    box-shadow:0 12px 30px -16px color-mix(in srgb, var(--amber) 45%, transparent);
+    animation:hfReceiptIn .35s cubic-bezier(.22,1,.36,1) both;
+  }
+  .cash-summary-card .csc-num{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);
+    letter-spacing:.02em;margin-bottom:6px;
+  }
+  .cash-summary-card .csc-price-row{display:flex;align-items:baseline;justify-content:center;gap:8px;}
+  .cash-summary-card .csc-price{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:20px;
+    background:linear-gradient(90deg, var(--green), var(--amber));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .cash-summary-card .csc-oldprice{font-size:13px;color:var(--muted);text-decoration:line-through;}
+
+  /* ---- Bo'lib to'lash bo'limidagi har bir bosqich ----
+     Mijoz iltimosiga ko'ra: Bosh to'lov / Oylik to'lov / Tarif bosqichlari
+     bir-biridan ANIQ, chalkashmaydigan tarzda ajratilgan bo'lishi kerak —
+     shu sabab har bir bosqich o'zining yengil fonli "kartasi" ichida, va
+     ular orasida raqamli (1→2→3→4), zamonaviy dumaloq ajratkich bilan
+     bo'linadi (oddiy ingichka chiziqdan ko'ra ancha ko'zga tashlanadigan). */
+  .hf-step{
+    background:color-mix(in srgb, var(--panel) 92%, var(--amber) 8%);
+    border:1px solid var(--line);border-radius:12px;
+    padding:12px 13px;display:flex;gap:10px;align-items:flex-start;
+  }
+  .hf-step-num{
+    flex-shrink:0;width:20px;height:20px;border-radius:50%;
+    background:linear-gradient(135deg, var(--amber), var(--green));
+    color:#0B1220;font-family:'Sora',sans-serif;font-weight:800;font-size:11px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .hf-step-body{flex:1;min-width:0;}
+  .hf-step-body .hf-months{margin-top:0;}
+  .hf-step-sep{
+    display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0;
+    color:var(--muted);
+  }
+  .hf-step-sep::before, .hf-step-sep::after{
+    content:'';flex:1;height:2px;border-radius:2px;
+    background:linear-gradient(90deg, transparent, var(--amber), transparent);
+    opacity:.55;
+  }
+  .hf-step-sep span{
+    flex-shrink:0;width:22px;height:22px;border-radius:50%;
+    background:var(--panel);border:1.5px solid var(--amber);color:var(--amber);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:11px;
+    display:flex;align-items:center;justify-content:center;
+  }
+
   .hf-divider{
     display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;
     margin:20px 0 18px;text-transform:uppercase;letter-spacing:.04em;
@@ -2270,7 +2327,9 @@
        Fon shaffofligini (0.65->0.72) biroz oshirib, blur'siz ham yetarli
        tiniq ko'rinish saqlanadi. */
   }
-  .overlay.open{display:flex;animation:fadeIn .2s ease;}
+  /* Mijoz iltimosiga ko'ra: oyna "srazi" (bir zumda) emas, ozgina
+     sekinroq, zamonaviy fade bilan ochilsin (iPhone'da ham). */
+  .overlay.open{display:flex;animation:fadeIn .38s ease;}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @media (min-width:600px){ .overlay{align-items:center;} }
 
@@ -2284,7 +2343,10 @@
        ekran/klaviatura ostida yashirinib qolmaydi. */
     margin-bottom:22px;
     position:relative;overflow:hidden;
-    transform:translateY(30px) scale(.98);opacity:0;animation:slideUp .32s cubic-bezier(.22,1,.36,1) forwards;
+    /* Mijoz iltimosiga ko'ra: oyna endi biroz sekinroq va yumshoqroq
+       (zamonaviyroq easing) chiqadi — avval juda tez/"srazi" chiqib,
+       ba'zi telefonlarda (ayniqsa iPhone) "qotib qolgandek" ko'rinardi. */
+    transform:translateY(34px) scale(.97);opacity:0;animation:slideUp .48s cubic-bezier(.16,1,.3,1) forwards;
     max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
     box-shadow:0 20px 60px -12px color-mix(in srgb, var(--amber) 30%, transparent);
   }
@@ -2293,7 +2355,7 @@
     background:var(--accent-gradient);
   }
   @media (min-width:600px){ .modal{border-radius:20px;} }
-  @keyframes slideUp{from{transform:translateY(30px) scale(.98);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+  @keyframes slideUp{from{transform:translateY(34px) scale(.97);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
 
   .modal-handle{width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;}
 
@@ -3632,6 +3694,17 @@ html.theme-purple-premium .card button.order-btn{
       <div class="modal-number" id="modalNumber"></div>
       <div class="hf-sub" id="hfRegisterNote" style="display:none;text-align:center;margin:-8px 0 14px;">Raqam nomingizga rasmiylashtiriladi</div>
 
+      <!-- Mijoz iltimosiga ko'ra: "Naqt to'lov" tanlanganda raqam va summasi
+           tartibli, chiroyli dizaynda alohida ko'rsatiladi, pastida esa
+           mijoz ma'lumotlarini to'ldiradigan forma keladi. -->
+      <div class="cash-summary-card" id="cashSummaryCard" style="display:none;">
+        <div class="csc-num" id="cashSummaryNumber"></div>
+        <div class="csc-price-row">
+          <span class="csc-price" id="cashSummaryPrice"></span>
+          <span class="csc-oldprice" id="cashSummaryOldPrice" style="display:none;"></span>
+        </div>
+      </div>
+
       <div class="order-info-banner">
         <div class="oib-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Yetkazib berish: O'zbekiston bo'ylab, 1-3 kun ichida (bepul)</span></div>
         <div class="oib-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Buyurtma tasdiqlangach, operatorimiz sizga qo'ng'iroq qilib to'lov tafsilotlarini kelishadi</span></div>
@@ -3650,10 +3723,10 @@ html.theme-purple-premium .card button.order-btn{
 
       <div class="installment-calc" id="installmentCalc" style="display:none;">
         <div class="ic-tabs" id="icTabs">
-          <button type="button" class="ic-tab" data-months="6">6 oy</button>
-          <button type="button" class="ic-tab" data-months="12">12 oy</button>
-          <button type="button" class="ic-tab" data-months="24">24 oy</button>
           <button type="button" class="ic-tab" data-months="36">36 oy</button>
+          <button type="button" class="ic-tab" data-months="24">24 oy</button>
+          <button type="button" class="ic-tab" data-months="12">12 oy</button>
+          <button type="button" class="ic-tab" data-months="6">6 oy</button>
         </div>
         <div class="ic-row">
           <span class="ic-months"><span id="icMonthsValue">6</span> oyga</span>
@@ -3668,17 +3741,39 @@ html.theme-purple-premium .card button.order-btn{
            shu bo'lim eng tepada, keyin pastda oddiy ma'lumot formasi
            chiqadi. -->
       <div class="humans-fin-view" id="humansFinView" style="display:none;">
-        <div class="hf-row hf-down"><span>Bosh to'lov</span><b id="hfDownPaymentValue">0 so'm</b></div>
-        <div class="hf-months" id="hfMonths">
-          <button type="button" class="hf-month-btn" data-months="6">6 oy</button>
-          <button type="button" class="hf-month-btn" data-months="12">12 oy</button>
-          <button type="button" class="hf-month-btn" data-months="24">24 oy</button>
+        <div class="hf-step">
+          <div class="hf-step-num">1</div>
+          <div class="hf-step-body">
+            <div class="hf-row hf-down"><span>Bosh to'lov</span><b id="hfDownPaymentValue">0 so'm</b></div>
+          </div>
         </div>
-        <div class="hf-row"><span>Oylik to'lov (<span id="hfMonthsLabel">6</span> oy)</span><b id="hfMonthlyValue">0 so'm</b></div>
 
-        <div class="hf-tariff-label">Tarifni tanlang</div>
-        <div class="hf-tariffs" id="hfTariffs"></div>
-        <div class="hf-tariff-detail" id="hfTariffDetail" style="display:none;"></div>
+        <div class="hf-step-sep"><span>2</span></div>
+
+        <div class="hf-step">
+          <div class="hf-step-num">2</div>
+          <div class="hf-step-body">
+            <div class="hf-months" id="hfMonths">
+              <button type="button" class="hf-month-btn" data-months="24">24 oy</button>
+              <button type="button" class="hf-month-btn" data-months="12">12 oy</button>
+              <button type="button" class="hf-month-btn" data-months="6">6 oy</button>
+            </div>
+            <div class="hf-row"><span>Oylik to'lov (<span id="hfMonthsLabel">6</span> oy)</span><b id="hfMonthlyValue">0 so'm</b></div>
+          </div>
+        </div>
+
+        <div class="hf-step-sep"><span>3</span></div>
+
+        <div class="hf-step">
+          <div class="hf-step-num">3</div>
+          <div class="hf-step-body">
+            <div class="hf-tariff-label">Tarifni tanlang</div>
+            <div class="hf-tariffs" id="hfTariffs"></div>
+            <div class="hf-tariff-detail" id="hfTariffDetail" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="hf-step-sep"><span>4</span></div>
 
         <!-- Tarif tanlangandan keyin chiqadigan, alohida ramkali yakuniy
              chek — tepadagi oy (6/12/24) yoki tarif tugmasi bosilganda
@@ -6174,10 +6269,31 @@ function updateHumansFinTotals(){
     `Keyingi oydan boshlab <b class="hf-red">${remainingMonths} oy</b> davomida oyiga ${formatPriceUzs(selectedMonthlyPayment)} raqamingiz balansiga to'ldirib turasiz.`;
 }
 
+// Mijoz iltimosiga ko'ra: "Naqt to'lov" tanlanganda raqam+summasi tartibli,
+// chiroyli kartochkada ko'rsatiladi. selectedOldPriceForCash — item.oldPrice
+// (agar chegirma bo'lsa) openModal'da o'rnatiladi.
+let selectedOldPriceForCash = 0;
+function updateCashSummaryCard(show){
+  const card = document.getElementById('cashSummaryCard');
+  if(!card) return;
+  if(!show){ card.style.display = 'none'; return; }
+  document.getElementById('cashSummaryNumber').textContent = modalNumber.textContent;
+  document.getElementById('cashSummaryPrice').textContent = formatPrice(selectedPrice);
+  const oldPriceEl = document.getElementById('cashSummaryOldPrice');
+  if(selectedOldPriceForCash > selectedPrice){
+    oldPriceEl.textContent = formatPrice(selectedOldPriceForCash);
+    oldPriceEl.style.display = '';
+  }else{
+    oldPriceEl.style.display = 'none';
+  }
+  card.style.display = 'block';
+}
+
 function selectPaymentTab(type){
   selectedPaymentType = type;
   payTabCash.classList.toggle('active', type === 'cash');
   payTabInstallment.classList.toggle('active', type === 'installment');
+  updateCashSummaryCard(type === 'cash');
   if(selectedInstallmentFin){
     // Humans/Ucell-rasrochka: eski %-kalkulyator ko'rinmaydi, o'rniga
     // Bo'lib to'lash bo'limi (pastda) ochiladi/yopiladi. Mijoz iltimosiga
@@ -6229,6 +6345,21 @@ let selectedOperator = '';
 
 function openModal(number, id, priceOverride){
   if(navigator.vibrate) navigator.vibrate(35);
+  // Mijoz iltimosiga ko'ra: oyna ochiq turgan vaqtida orqa fonda ishlab
+  // turgan animatsiyalar (ASOSIY sahifadagi hero-karusel avtomatik
+  // almashinuvi, "Bugungi aksiya" taymer sekundomeri) TO'XTATILADI — bular
+  // ekranda ko'rinmasa ham protsessorni band qilib, ayrim (ayniqsa eski)
+  // iPhone'larda oyna ichidagi yozuv/tugma bosishlarni "sekinlashtirishi"
+  // yoki "qotib qolgandek" ko'rsatishi mumkin edi. Oyna yopilganda pastda
+  // (closeModal) qayta ishga tushiriladi.
+  try{
+    if(typeof asosiyHeroTimer !== 'undefined' && asosiyHeroTimer){ clearInterval(asosiyHeroTimer); asosiyHeroTimer = null; }
+    if(typeof __ddTimerInterval !== 'undefined' && __ddTimerInterval){ clearInterval(__ddTimerInterval); __ddTimerInterval = null; }
+  }catch(e){}
+  // Har ehtimolga qarshi: agar avvalgi oyna "Premium reels" ichidan
+  // ochilib, biror sababdan zIndex asl holatiga qaytmagan bo'lsa — yangi
+  // oddiy oyna hamisha to'g'ri qatlamda chiqishi uchun shu yerda tozalaymiz.
+  overlay.style.zIndex = '';
   const recapEl = document.getElementById('successOrderRecap');
   if(recapEl){ recapEl.style.display = 'none'; recapEl.innerHTML = ''; }
   // Agar avvalgi buyurtmadan SMS oynasi ko'rinib qolgan bo'lsa — hammasini
@@ -6267,38 +6398,55 @@ function openModal(number, id, priceOverride){
   // panelda bo'lib to'lash summasi kiritilgan bo'lsa, mijoz Naqt/Bo'lib
   // to'lash o'rtasida O'ZI tanlaydi (eski VIP-baza .installment kabi
   // MAJBURIY emas).
-  selectedInstallmentFin = installmentFinancingFor(item);
-  selectedHumansTariff = null;
-  selectedDownPayment = 0;
-  // Yangi buyurtma oynasi ochilganda "hozir to'lanadigan summa" hisoblagichi
-  // 0'dan qayta boshlab sanashi uchun eski animatsiya holatini tozalaymiz.
-  const hfTotalOverallReset = document.getElementById('hfTotalOverall');
-  if(hfTotalOverallReset){ hfTotalOverallReset.textContent = "0 so'm"; __countUpState.delete(hfTotalOverallReset); }
-  humansFinView.style.display = 'none';
-  hfDivider.style.display = 'none';
-  hfRegisterNote.style.display = 'none';
-  // Mijoz iltimosiga ko'ra: "Buyurtma berish" bosilgan zahoti chiqadigan
-  // BIRINCHI ("oldindan ko'rish") qadam — AVVALGIDEK pastdan chiquvchi
-  // yarim-ekranli oyna bo'lib qoladi (faqat rangi zamonaviylashtirilgan,
-  // qarang: .modal.modal-preview). To'liq ekran FAQAT "Rasmiylashtirish"
-  // bosilib, haqiqiy forma (#formView) ochilganda yoqiladi — qarang:
-  // showOrderForm().
-  overlay.classList.remove('hf-fullscreen');
-  overlay.classList.remove('success-fullscreen');
+  // Mijoz iltimosiga ko'ra: buyurtma oynasi IKKINCHI marta ochilganda
+  // ba'zan (ayniqsa iPhone'da) umuman ko'rinmay qolgan holat kuzatilgan —
+  // sababi to'lov turi/bo'lib to'lash hisob-kitobi ichida biror kutilmagan
+  // xato bo'lsa, funksiya to'xtab qolib, PASTDAGI oynani ko'rsatuvchi kod
+  // (overlay.classList.add('open')) umuman ishlamay qolardi. Shu sabab bu
+  // butun bo'lim endi try/catch ichida — xato bo'lsa ham, oyna baribir
+  // (oddiy, naqt to'lov holatida) ochiladi.
+  try{
+    overlay.classList.remove('hf-fullscreen');
+    overlay.classList.remove('success-fullscreen');
 
-  if(item && item.installment){
-    payTabs.style.display = 'none';
-    installmentCalc.style.display = 'block';
-    selectedPaymentType = 'installment';
-    selectInstallmentMonths(6);
-  }else if(selectedInstallmentFin){
-    payTabs.style.display = '';
-    installmentCalc.style.display = 'none';
-    selectPaymentTab('cash');
-  }else{
-    payTabs.style.display = 'none';
-    installmentCalc.style.display = 'none';
+    selectedInstallmentFin = installmentFinancingFor(item);
+    selectedHumansTariff = null;
+    selectedDownPayment = 0;
+    // Yangi buyurtma oynasi ochilganda "hozir to'lanadigan summa" hisoblagichi
+    // 0'dan qayta boshlab sanashi uchun eski animatsiya holatini tozalaymiz.
+    const hfTotalOverallReset = document.getElementById('hfTotalOverall');
+    if(hfTotalOverallReset){ hfTotalOverallReset.textContent = "0 so'm"; __countUpState.delete(hfTotalOverallReset); }
+    humansFinView.style.display = 'none';
+    hfDivider.style.display = 'none';
+    hfRegisterNote.style.display = 'none';
+
+    selectedOldPriceForCash = (item && item.oldPrice > item.price) ? item.oldPrice : 0;
+
+    if(item && item.installment){
+      payTabs.style.display = 'none';
+      installmentCalc.style.display = 'block';
+      updateCashSummaryCard(false);
+      selectedPaymentType = 'installment';
+      selectInstallmentMonths(6);
+    }else if(selectedInstallmentFin){
+      payTabs.style.display = '';
+      installmentCalc.style.display = 'none';
+      selectPaymentTab('cash');
+    }else{
+      payTabs.style.display = 'none';
+      installmentCalc.style.display = 'none';
+      selectedPaymentType = 'cash';
+      updateCashSummaryCard(true);
+    }
+  }catch(err){
+    console.error("Buyurtma oynasini tayyorlashda kutilmagan xato (naqt to'lovga qaytarildi):", err);
+    // Xavfsiz zaxira holat — hech bo'lmasa oddiy naqt to'lov bilan oyna ochiladi.
+    selectedInstallmentFin = null;
     selectedPaymentType = 'cash';
+    payTabs.style.display = 'none';
+    installmentCalc.style.display = 'none';
+    humansFinView.style.display = 'none';
+    updateCashSummaryCard(true);
   }
 
   // Endi to'g'ridan-to'g'ri forma emas — avval qisqa "oldindan ko'rish"
@@ -6306,18 +6454,30 @@ function openModal(number, id, priceOverride){
   // qilish"), forma faqat "Rasmiylashtirish" bosilganda ochiladi.
   const previewCardEl = document.getElementById('previewCard');
   if(previewCardEl){
-    // Mijoz iltimosiga ko'ra: "Bo'lib to'lash" bilan buyurtma qilinayotgan
-    // raqamlarda (menyudan yoki Telegram bot orqali) "Ushbu raqam
-    // nomingizga rasmiylashtiriladi" degan matn KERAK EMAS — chunki bunday
-    // raqam faqat TO'LIQ to'lov qilingandan keyin rasmiylashtiriladi.
-    const isInstallmentFlow = !!((item && item.installment) || selectedInstallmentFin);
-    previewCardEl.innerHTML = heroCardInnerHtml(item || { number, price: selectedPrice, operator: selectedOperator }, false, true, isInstallmentFlow);
+    try{
+      // Mijoz iltimosiga ko'ra: "Bo'lib to'lash" bilan buyurtma qilinayotgan
+      // raqamlarda (menyudan yoki Telegram bot orqali) "Ushbu raqam
+      // nomingizga rasmiylashtiriladi" degan matn KERAK EMAS — chunki bunday
+      // raqam faqat TO'LIQ to'lov qilingandan keyin rasmiylashtiriladi.
+      const isInstallmentFlow = !!((item && item.installment) || selectedInstallmentFin);
+      previewCardEl.innerHTML = heroCardInnerHtml(item || { number, price: selectedPrice, operator: selectedOperator }, false, true, isInstallmentFlow);
+    }catch(err){
+      console.error('Oldindan ko\'rish kartochkasini chizishda xato:', err);
+      previewCardEl.innerHTML = `<div class="ahc-number ahc-number-hero">${displayNumber(number)}</div>`;
+    }
   }
   document.getElementById('previewView').style.display = 'block';
   formView.style.display = 'none';
   successView.style.display = 'none';
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.add('modal-preview');
+  // MUHIM (iPhone'da ikkinchi marta ochishda kuzatilgan "ko'rinmay qolish"
+  // muammosi): 'open' klassi ikkinchi marta qo'shilishidan OLDIN majburiy
+  // reflow so'raymiz — shu bilan WebKit oynaning kirish animatsiyasini har
+  // safar TO'G'RI qayta boshlab, oldingi (yopiq/shaffof) holatda "muzlab"
+  // qolishining oldini oladi.
+  overlay.classList.remove('open');
+  void overlay.offsetHeight;
   overlay.classList.add('open');
   lockBodyScroll();
   // Mijoz iltimosiga ko'ra: telefonning "orqaga" tugmasi (yoki gesture)
@@ -6349,6 +6509,12 @@ function closeModal(fromPopstate){
   overlay.classList.remove('hf-fullscreen');
   overlay.classList.remove('success-fullscreen');
   unlockBodyScroll();
+  // Oyna ochilganda to'xtatilgan orqa fon animatsiyalarini (hero-karusel,
+  // "Bugungi aksiya" taymer) qaytadan ishga tushiramiz.
+  try{
+    if(typeof startAsosiyHeroAutoplay === 'function') startAsosiyHeroAutoplay();
+    if(typeof updateDailyDealTimers === 'function' && dailyDealScroll && dailyDealScroll.querySelector('.dd-timer')) updateDailyDealTimers();
+  }catch(e){}
   // Qo'shimcha ehtiyot chorasi: ba'zi mobil brauzerlarda body'ning
   // position:fixed'dan chiqarilishi darhol qayta chizilmasligi mumkin —
   // DARHOL (sinxron) va keyingi kadrda (requestAnimationFrame) IKKALASIDA
