@@ -2325,13 +2325,30 @@
        backdrop-filter qatlamini position:fixed o'zgarishi bilan bir
        vaqtda to'g'ri qayta hisoblay olmasligi — ma'lum WebKit xatosi).
        Fon shaffofligini (0.65->0.72) biroz oshirib, blur'siz ham yetarli
-       tiniq ko'rinish saqlanadi. */
+       tiniq ko'rinish saqlanadi.
+       MUHIM #2 (mijoz TAKRORAN xabar bergan "ikkinchi marta buyurtma
+       berganda oyna ko'rinmay qolish" xatosi): avvalgi versiyada bu yerda
+       `animation: fadeIn ...` (va .modal'da `animation: slideUp ...
+       forwards`) ishlatilgan edi — ya'ni faqat klass mavjudligiga bog'liq,
+       BIR MARTA o'zi ishga tushadigan animatsiya. WebKit'da display:none
+       holatidan qaytadan display:flex qilinganda ICHKI (nested) elementlar
+       ustidagi shunday avtomatik animatsiyalar ba'zan QAYTA BOSHLANMAYDI —
+       natijada .modal opacity:0 holatida "qotib" qolib, mijozga umuman
+       ko'rinmay qoladi (lekin DOM'da joyida turgani uchun ichidagi
+       <select> kabi elementlar hamon bosilaveradi — aynan mijoz
+       screenshot'da ko'rgan holat). Shu sabab endi animatsiya emas, ODDIY
+       CSS TRANSITION + JS orqali ANIQ boshqariladigan `.overlay-in` klassi
+       ishlatiladi (qarang: openModal/closeModal) — bu har safar, hech
+       qanday holatga bog'liq bo'lmagan holda, ANIQ qayta ishlaydi. */
+    opacity:0;transition:opacity .38s ease;
   }
-  /* Mijoz iltimosiga ko'ra: oyna "srazi" (bir zumda) emas, ozgina
-     sekinroq, zamonaviy fade bilan ochilsin (iPhone'da ham). */
-  .overlay.open{display:flex;animation:fadeIn .38s ease;}
-  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .overlay.open{display:flex;}
+  .overlay.open.overlay-in{opacity:1;}
   @media (min-width:600px){ .overlay{align-items:center;} }
+  /* .overlay endi yuqoridagi transition orqali ochiladi, lekin bu
+     keyframes boshqa (kichikroq) oynalar uchun (masalan .cp-input-overlay)
+     hali ham kerak — shu sabab saqlab qolinadi. */
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 
   .modal{
     background:var(--panel);border:1px solid var(--line);
@@ -2344,20 +2361,90 @@
     margin-bottom:22px;
     position:relative;overflow:hidden;
     /* Mijoz iltimosiga ko'ra: oyna endi biroz sekinroq va yumshoqroq
-       (zamonaviyroq easing) chiqadi — avval juda tez/"srazi" chiqib,
-       ba'zi telefonlarda (ayniqsa iPhone) "qotib qolgandek" ko'rinardi. */
-    transform:translateY(34px) scale(.97);opacity:0;animation:slideUp .48s cubic-bezier(.16,1,.3,1) forwards;
+       (zamonaviyroq easing) chiqadi. Endi `.overlay-in` klassi orqali
+       ANIQ boshqariladigan transition — izoh uchun yuqoridagi .overlay
+       izohiga qarang. */
+    transform:translateY(34px) scale(.97);opacity:0;
+    transition:opacity .46s cubic-bezier(.16,1,.3,1), transform .46s cubic-bezier(.16,1,.3,1);
     max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
     box-shadow:0 20px 60px -12px color-mix(in srgb, var(--amber) 30%, transparent);
   }
+  .overlay.overlay-in .modal{transform:translateY(0) scale(1);opacity:1;}
   .modal::before{
     content:'';position:absolute;top:0;left:0;right:0;height:4px;
     background:var(--accent-gradient);
   }
   @media (min-width:600px){ .modal{border-radius:20px;} }
-  @keyframes slideUp{from{transform:translateY(34px) scale(.97);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+  /* .modal endi yuqoridagi transition orqali ochiladi, lekin bu keyframes
+     boshqa (kichikroq) oynalar uchun (masalan .cp-input-modal) hali ham
+     kerak — shu sabab saqlab qolinadi. */
+  @keyframes slideUp{from{transform:translateY(30px);}to{transform:translateY(0);}}
 
   .modal-handle{width:36px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 16px;}
+
+  /* ============ UMUMIY CHAT (Telegram guruhiga o'xshash) ============
+     Barcha sayt mijozlari uchun ochiq, real vaqtli (Firestore) chat —
+     pastki o'ng burchakdagi aylana tugma orqali ochiladi. */
+  .chat-fab{
+    position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom, 0px));z-index:150;
+    width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--accent-gradient);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 24px -6px color-mix(in srgb, var(--amber) 55%, transparent), 0 2px 8px rgba(0,0,0,.25);
+    transition:transform .2s ease;
+  }
+  .chat-fab:active{transform:scale(0.92);}
+  .chat-fab svg{width:24px;height:24px;}
+  .chat-fab-badge{
+    position:absolute;top:-2px;right:-2px;min-width:19px;height:19px;padding:0 4px;
+    background:#e8433d;color:#fff;border-radius:10px;font-size:10.5px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;border:2px solid var(--bg, #0B1220);
+  }
+  .chat-panel-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;
+    display:none;align-items:flex-end;justify-content:center;
+    opacity:0;transition:opacity .3s ease;
+  }
+  .chat-panel-overlay.open{display:flex;}
+  .chat-panel-overlay.open.chat-in{opacity:1;}
+  @media (min-width:600px){ .chat-panel-overlay{align-items:center;} }
+  .chat-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;
+    width:100%;max-width:460px;height:min(78vh, 620px);
+    display:flex;flex-direction:column;overflow:hidden;
+    transform:translateY(30px);opacity:0;
+    transition:opacity .38s cubic-bezier(.16,1,.3,1), transform .38s cubic-bezier(.16,1,.3,1);
+  }
+  .chat-panel-overlay.chat-in .chat-panel{transform:translateY(0);opacity:1;}
+  @media (min-width:600px){ .chat-panel{border-radius:20px;height:min(74vh, 600px);} }
+  .chat-panel-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-bottom:1px solid var(--line);flex:none;
+  }
+  .chat-panel-title{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;}
+  .chat-panel-close{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;display:flex;}
+  .chat-panel-close svg{width:19px;height:19px;}
+  .chat-msgs{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px;display:flex;flex-direction:column;gap:9px;}
+  .chat-empty{color:var(--muted);font-size:13px;text-align:center;margin:auto;padding:20px;}
+  .chat-bubble{max-width:82%;align-self:flex-start;background:var(--panel-2, rgba(255,255,255,.05));
+    border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:8px 11px;}
+  .chat-bubble.own{align-self:flex-end;background:color-mix(in srgb, var(--amber) 18%, var(--panel));
+    border-color:color-mix(in srgb, var(--amber) 40%, var(--line));border-radius:14px 14px 4px 14px;}
+  .chat-bubble-name{font-size:11.5px;font-weight:800;color:var(--amber);margin-bottom:2px;}
+  .chat-bubble-text{font-size:13.5px;line-height:1.4;white-space:pre-wrap;word-break:break-word;}
+  .chat-bubble-time{font-size:10px;color:var(--muted);margin-top:3px;text-align:right;}
+  .chat-name-row, .chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);flex:none;}
+  .chat-name-row input, .chat-input-row input{
+    flex:1;min-width:0;padding:11px 13px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel-2, rgba(255,255,255,.04));color:var(--text);font-size:14px;font-family:inherit;
+  }
+  .chat-name-row button, .chat-input-row button{
+    flex:none;width:44px;height:44px;border-radius:12px;border:none;cursor:pointer;
+    background:var(--accent-gradient);color:#fff;display:flex;align-items:center;justify-content:center;
+  }
+  .chat-name-row button{width:auto;padding:0 16px;font-weight:700;font-size:13px;}
+  .chat-input-row button svg{width:19px;height:19px;}
+  .chat-input-row button:disabled, .chat-name-row button:disabled{opacity:.5;cursor:default;}
 
   /* ---- Buyurtma oynasining 1-qadami (oldindan ko'rish, #previewView)
      ochiq bo'lganida — butun oynaning orqa foni ko'k. FAQAT shu qadamga
@@ -3674,6 +3761,38 @@ html.theme-purple-premium .card button.order-btn{
   <div class="catalog" id="installmentCatalogGrid" style="margin:14px auto;"></div>
 </div>
 
+<!-- Umumiy CHAT — barcha sayt mijozlari uchun ochiq, real vaqtli chat
+     (Telegram guruhiga o'xshash). Firestore 'site_chat' kolleksiyasi
+     orqali ishlaydi (qarang: firestore.rules). -->
+<button class="chat-fab" id="chatFabBtn" aria-label="Chat" title="Umumiy chat">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <span class="chat-fab-badge" id="chatFabBadge" style="display:none;">0</span>
+</button>
+
+<div class="chat-panel-overlay" id="chatPanelOverlay">
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+      <span class="chat-panel-title">💬 Umumiy chat</span>
+      <button class="chat-panel-close" id="chatPanelCloseBtn" aria-label="Yopish">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+      </button>
+    </div>
+    <div class="chat-msgs" id="chatMsgsEl">
+      <div class="chat-empty" id="chatEmptyState">Hozircha xabar yo'q — birinchi bo'lib yozing!</div>
+    </div>
+    <div class="chat-name-row" id="chatNameRow" style="display:none;">
+      <input type="text" id="chatNameInput" maxlength="40" placeholder="Ismingiz" autocomplete="off">
+      <button type="button" id="chatNameSaveBtn">Davom etish</button>
+    </div>
+    <div class="chat-input-row" id="chatInputRow">
+      <input type="text" id="chatTextInput" maxlength="500" placeholder="Xabar yozing..." autocomplete="off">
+      <button type="button" id="chatSendBtn" aria-label="Yuborish">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay">
   <div class="modal" id="orderModal">
     <div class="modal-handle"></div>
@@ -3874,6 +3993,19 @@ html.theme-purple-premium .card button.order-btn{
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
 <script>
+// MUHIM (mijoz shikoyati: "qidiruvda istalgan joyda buyurtma tugmasi
+// bosilib, orqaga qaytganda eng tepadan boshlanib qolyabdi" — kerakli
+// kartochka o'rniga sahifa boshiga sakrab ketishi): brauzerlarning
+// standart xatti-harakati — "orqaga" navigatsiya (popstate) bo'lganda,
+// brauzer O'ZI, bizning kodimizdan MUSTAQIL ravishda, skroll pozitsiyasini
+// "tiklashga" harakat qiladi (history.scrollRestoration = 'auto', standart
+// holat). Bizning buyurtma oynasi ochilganda/yopilganda o'zimiz ANIQ skroll
+// pozitsiyasini boshqaramiz (pastda lockBodyScroll/unlockBodyScroll) —
+// lekin brauzerning o'zi ham bir vaqtda aralashsa, ikkalasi "musobaqalashib"
+// ba'zan sahifa tepaga sakrab qolishiga sabab bo'ladi. Shu sabab, skroll
+// tiklashni TO'LIQ o'zimiz nazorat qilamiz deb, brauzerning avtomatik
+// tiklashini o'chirib qo'yamiz.
+try{ if('scrollRestoration' in history) history.scrollRestoration = 'manual'; }catch(e){}
 /* =========================================================
    FIREBASE SOZLAMALARI
    ---------------------------------------------------------
@@ -6017,9 +6149,191 @@ function unlockBodyScroll(){
   document.body.style.right = '';
   document.body.style.width = '';
   window.scrollTo(0, __scrollLockY);
+  // Ehtiyot chorasi: ba'zi brauzerlarda (ayniqsa "orqaga" gesture/tugma bilan
+  // yopilganda) shu darhol scrollTo'dan keyin ham brauzerning o'zi bir
+  // kadr ichida boshqa joyga sakratib yuborishi mumkin — shu sabab keyingi
+  // kadrda ham xuddi shu pozitsiyani qayta tasdiqlaymiz.
+  requestAnimationFrame(()=>{ window.scrollTo(0, __scrollLockY); });
 }
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
+
+/* ============ UMUMIY CHAT (Telegram guruhiga o'xshash) ============
+   Barcha sayt mijozlari uchun ochiq, real vaqtli chat. Firestore
+   'site_chat' kolleksiyasidan foydalanadi (qoidalar: firestore.rules).
+   Bir vaqtda ko'p odam yozsa ham muammo bo'lmaydi — Firestore'ning
+   real vaqtli tinglovchisi (onSnapshot) har bir yangi xabarni barcha
+   ochiq oynalarga AVTOMATIK, deyarli bir zumda yetkazadi; yozish
+   (create) operatsiyalari bir-biriga bog'liq/navbat kutmaydi, har biri
+   mustaqil hujjat sifatida saqlanadi. */
+(function(){
+  const CHAT_NAME_KEY = 'vipChatName';
+  const fabBtn = document.getElementById('chatFabBtn');
+  const fabBadge = document.getElementById('chatFabBadge');
+  const panelOverlay = document.getElementById('chatPanelOverlay');
+  const panelCloseBtn = document.getElementById('chatPanelCloseBtn');
+  const msgsEl = document.getElementById('chatMsgsEl');
+  const emptyStateEl = document.getElementById('chatEmptyState');
+  const nameRow = document.getElementById('chatNameRow');
+  const nameInput = document.getElementById('chatNameInput');
+  const nameSaveBtn = document.getElementById('chatNameSaveBtn');
+  const inputRow = document.getElementById('chatInputRow');
+  const textInput = document.getElementById('chatTextInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  if(!fabBtn || !panelOverlay) return;
+
+  let chatOpen = false;
+  let chatUnsub = null;
+  let lastMsgCount = 0;
+  let sending = false;
+  let lastSendAt = 0;
+
+  function getChatName(){
+    try{ return (localStorage.getItem(CHAT_NAME_KEY) || '').trim(); }catch(e){ return ''; }
+  }
+  function setChatName(name){
+    try{ localStorage.setItem(CHAT_NAME_KEY, name); }catch(e){}
+  }
+
+  function chatFormatTime(ts){
+    try{
+      const d = ts && typeof ts.toDate === 'function' ? ts.toDate() : null;
+      if(!d) return '';
+      return d.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+    }catch(e){ return ''; }
+  }
+
+  function renderChatMessages(msgs){
+    if(!msgs.length){
+      msgsEl.innerHTML = '';
+      msgsEl.appendChild(emptyStateEl);
+      return;
+    }
+    const myName = getChatName();
+    const wasNearBottom = (msgsEl.scrollHeight - msgsEl.scrollTop - msgsEl.clientHeight) < 120;
+    msgsEl.innerHTML = msgs.map(m => {
+      const isOwn = myName && m.name === myName;
+      return '<div class="chat-bubble' + (isOwn ? ' own' : '') + '">'
+        + '<div class="chat-bubble-name">' + escapeHtml(m.name || 'Mehmon') + '</div>'
+        + '<div class="chat-bubble-text">' + escapeHtml(m.text || '') + '</div>'
+        + '<div class="chat-bubble-time">' + chatFormatTime(m.createdAt) + '</div>'
+        + '</div>';
+    }).join('');
+    // Yangi xabar kelganda, mijoz avval pastda (eng oxirgi xabarlarda)
+    // turgan bo'lsa — avtomatik pastga suramiz. Agar u yuqoriga chiqib,
+    // eski xabarlarni o'qiyotgan bo'lsa — bezovta qilmaymiz.
+    if(wasNearBottom || msgs.length !== lastMsgCount){
+      requestAnimationFrame(()=>{ msgsEl.scrollTop = msgsEl.scrollHeight; });
+    }
+    lastMsgCount = msgs.length;
+  }
+
+  function updateFabBadge(msgs){
+    if(chatOpen){ fabBadge.style.display = 'none'; return; }
+    let lastSeen = 0;
+    try{ lastSeen = Number(localStorage.getItem('vipChatLastSeen') || 0); }catch(e){}
+    const unread = msgs.filter(m => {
+      const ms = m.createdAt && typeof m.createdAt.toMillis === 'function' ? m.createdAt.toMillis() : 0;
+      return ms > lastSeen;
+    }).length;
+    if(unread > 0){ fabBadge.textContent = unread > 9 ? '9+' : String(unread); fabBadge.style.display = 'flex'; }
+    else{ fabBadge.style.display = 'none'; }
+  }
+
+  function markChatSeenLocal(){
+    try{ localStorage.setItem('vipChatLastSeen', String(Date.now())); }catch(e){}
+    fabBadge.style.display = 'none';
+  }
+
+  function startChatListener(){
+    if(chatUnsub) return;
+    // Faqat oxirgi 50 ta xabar — trafik/o'qish sonini nazoratda ushlab
+    // turish uchun (butun tarixni har safar yuklamaymiz).
+    chatUnsub = db.collection('site_chat').orderBy('createdAt', 'desc').limit(50)
+      .onSnapshot(snap => {
+        const msgs = [];
+        snap.forEach(doc => msgs.push(Object.assign({ id: doc.id }, doc.data())));
+        msgs.reverse();
+        renderChatMessages(msgs);
+        updateFabBadge(msgs);
+      }, err => {
+        console.error('Chat tinglovchisi xato:', err);
+      });
+  }
+
+  function openChatPanel(){
+    chatOpen = true;
+    const name = getChatName();
+    nameRow.style.display = name ? 'none' : 'flex';
+    inputRow.style.display = name ? 'flex' : 'none';
+    startChatListener();
+    panelOverlay.classList.remove('chat-in');
+    panelOverlay.classList.add('open');
+    void panelOverlay.offsetHeight;
+    lockBodyScroll();
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        panelOverlay.classList.add('chat-in');
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+        if(name){ textInput.focus({ preventScroll: true }); } else { nameInput.focus({ preventScroll: true }); }
+      });
+    });
+    markChatSeenLocal();
+  }
+
+  function closeChatPanel(){
+    chatOpen = false;
+    panelOverlay.classList.remove('open');
+    panelOverlay.classList.remove('chat-in');
+    unlockBodyScroll();
+  }
+
+  fabBtn.addEventListener('click', openChatPanel);
+  panelCloseBtn.addEventListener('click', closeChatPanel);
+  panelOverlay.addEventListener('click', (e)=>{ if(e.target === panelOverlay) closeChatPanel(); });
+
+  nameSaveBtn.addEventListener('click', ()=>{
+    const name = nameInput.value.trim();
+    if(!name){ nameInput.focus(); return; }
+    setChatName(name.slice(0, 40));
+    nameRow.style.display = 'none';
+    inputRow.style.display = 'flex';
+    textInput.focus({ preventScroll: true });
+  });
+  nameInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') nameSaveBtn.click(); });
+
+  async function sendChatMessage(){
+    const name = getChatName();
+    const text = textInput.value.trim();
+    if(!name){ nameRow.style.display = 'flex'; inputRow.style.display = 'none'; nameInput.focus(); return; }
+    if(!text || sending) return;
+    // Oddiy mijoz-tarafdagi tezlik cheklovi — ketma-ket bosib
+    // "spam" qilib yuborilishining oldini olish uchun (asosiy himoya
+    // baribir firestore.rules'da — matn/ism uzunligi qat'iy tekshiriladi).
+    const now = Date.now();
+    if(now - lastSendAt < 1200) return;
+    lastSendAt = now;
+    sending = true;
+    sendBtn.disabled = true;
+    try{
+      await db.collection('site_chat').add({
+        name: name.slice(0, 40),
+        text: text.slice(0, 500),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      textInput.value = '';
+    }catch(err){
+      console.error('Chat xabari yuborilmadi:', err);
+      alert("Xabar yuborilmadi. Internet aloqasini tekshirib, qayta urinib ko'ring.");
+    }finally{
+      sending = false;
+      sendBtn.disabled = false;
+      textInput.focus({ preventScroll: true });
+    }
+  }
+  sendBtn.addEventListener('click', sendChatMessage);
+  textInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendChatMessage(); } });
+})();
 
 const overlay       = document.getElementById('overlay');
 const modalNumber    = document.getElementById('modalNumber');
@@ -6471,15 +6785,27 @@ function openModal(number, id, priceOverride){
   successView.style.display = 'none';
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.add('modal-preview');
-  // MUHIM (iPhone'da ikkinchi marta ochishda kuzatilgan "ko'rinmay qolish"
-  // muammosi): 'open' klassi ikkinchi marta qo'shilishidan OLDIN majburiy
-  // reflow so'raymiz — shu bilan WebKit oynaning kirish animatsiyasini har
-  // safar TO'G'RI qayta boshlab, oldingi (yopiq/shaffof) holatda "muzlab"
-  // qolishining oldini oladi.
-  overlay.classList.remove('open');
-  void overlay.offsetHeight;
+  // MUHIM (mijoz TAKRORAN xabar bergan "ikkinchi marta buyurtma berganda
+  // oyna ko'rinmay qolish" xatosi — screenshot'da <select>ning "Viloyat"
+  // ochilib, lekin butun oyna o'zi ko'rinmasdan qolgani): avval bu
+  // opacity/transform ko'rinishga chiqishi KEYFRAME ANIMATSIYA orqali
+  // (element DOM'ga kirishi bilan bir marta o'zi ishga tushadigan)
+  // boshqarilardi — WebKit'da display:none'dan qaytadan display:flex
+  // qilinganda ICHKI elementlar (.modal) ustidagi bunday animatsiyalar
+  // ba'zan QAYTA BOSHLANMAY, opacity:0'da "qotib" qolishi mumkin ekan.
+  // Endi buning o'rniga ANIQ, JS orqali to'liq nazorat qilinadigan
+  // `.overlay-in` klassi ishlatiladi: avval klass OLIB TASHLANADI (va
+  // majburiy reflow bilan bu holat DARHOL "qotiriladi"), keyin IKKI marta
+  // requestAnimationFrame orqali (brauzer albatta bitta kadr chizib
+  // ulgurgandan keyin) qayta QO'SHILADI — shu bilan CSS transition har
+  // safar, oldingi holatdan qat'i nazar, ANIQ ishga tushishi kafolatlanadi.
+  overlay.classList.remove('overlay-in');
   overlay.classList.add('open');
+  void overlay.offsetHeight;
   lockBodyScroll();
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{ overlay.classList.add('overlay-in'); });
+  });
   // Mijoz iltimosiga ko'ra: telefonning "orqaga" tugmasi (yoki gesture)
   // bosilganda mijoz BUTUN sahifadan/saytdan chiqib ketib, eski (tugagan/
   // sotilgan) kartochkalarga boshidan qaytib qolmasin — buning o'rniga
@@ -6506,6 +6832,7 @@ function showOrderForm(){
 
 function closeModal(fromPopstate){
   overlay.classList.remove('open');
+  overlay.classList.remove('overlay-in');
   overlay.classList.remove('hf-fullscreen');
   overlay.classList.remove('success-fullscreen');
   unlockBodyScroll();
