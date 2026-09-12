@@ -229,7 +229,7 @@
     --scm-digit-bg: rgba(10,30,70,0.06);
     --scm-digit-border: rgba(20,45,110,0.22);
     --scm-digit-text: #0B1220;
-    --scm-digit-placeholder: rgba(10,20,40,0.34);
+    --scm-digit-placeholder: rgba(10,20,40,0.18);
   }
   /* Planshet/kompyuterda katakchalar avvalgidek 46px'da "qotib" qolmasin
      deb (kichkina telefon o'lchamida "muzlab" qolgandek ko'rinardi) —
@@ -891,6 +891,15 @@
     caret-color:var(--amber);
   }
   .digit-box:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);}
+  /* Mijoz iltimosiga ko'ra: har bir katakcha ichida odamlarga qanday
+     raqam kiritish kerakligini ko'rsatib turadigan XIRA (ko'rinar-
+     ko'rinmas) namuna raqam chiqadi (1 2 3 - 4 5 - 6 7) — biror narsa
+     kiritilgach avtomatik yo'qoladi (bu — brauzerning odatiy
+     placeholder xatti-harakati). Ba'zi brauzerlar placeholder matnini
+     avtomatik xiralashtiradi (opacity pasaytiradi) — shu farqni
+     yo'qotish uchun opacity ANIQ 1 qilib, xiralikni FAQAT rangning o'zi
+     (shaffof --scm-digit-placeholder) orqali beramiz. */
+  .digit-box::placeholder{color:var(--scm-digit-placeholder);opacity:1;font-weight:600;}
   .digit-box.filled{
     /* Mijoz iltimosiga ko'ra: to'ldirilgan katakchada HECH QANDAY fon
        rangi yo'q, faqat ramka yashil tusga o'tadi. Raqamning O'ZI esa
@@ -3323,15 +3332,15 @@ html.theme-purple-premium .card button.order-btn{
 
     <div class="search-wrap" id="searchWrap">
       <div class="number-builder nb-wide" id="numberBuilder">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="0">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="1">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="2">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="1" data-idx="0">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="2" data-idx="1">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="3" data-idx="2">
         <span class="dash">-</span>
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="3">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="4">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="4" data-idx="3">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="5" data-idx="4">
         <span class="dash">-</span>
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="5">
-        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="" data-idx="6">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="6" data-idx="5">
+        <input class="digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="7" data-idx="6">
       </div>
     <!-- Mijoz iltimosiga ko'ra VIP va STANDART endi ALOHIDA bo'lim emas —
          bitta umumiy qidiruv: "Qidirish" tugmasi bosilganda AVVAL
@@ -8081,7 +8090,7 @@ async function loadSiteSettings(retryDelay){
       // shu sabab "X" va yozilgan raqam rangi TANLANGAN fonga qarab
       // o'qiladigan bo'lishi kerak (to'q fonda oq, och/pastel fonda to'q).
       document.documentElement.style.setProperty('--scm-digit-text', scp.light ? '#0B1220' : '#FFFFFF');
-      document.documentElement.style.setProperty('--scm-digit-placeholder', scp.light ? 'rgba(10,20,40,0.34)' : 'rgba(255,255,255,0.55)');
+      document.documentElement.style.setProperty('--scm-digit-placeholder', scp.light ? 'rgba(10,20,40,0.18)' : 'rgba(255,255,255,0.3)');
     }
     if(s.font !== undefined) applyFont(s.font);
     hideOrderButtonSetting = !!s.hideOrderButton;
