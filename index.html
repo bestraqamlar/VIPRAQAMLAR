@@ -2760,10 +2760,12 @@
      uslubi shu yerda ID orqali qayta belgilanadi (boshqa 3 ta shu
      klassni ishlatuvchi oyna — customOrderOverlay, aboutOverlay,
      contractOverlay — o'zgarishsiz qoladi). ---- */
-  /* Mijoz iltimosiga ko'ra: qora fon o'rniga "Buyurtma berish" tugmasi
-     bilan bir xil ko'k (--btn-bg) fon ishlatiladi. */
+  /* Mijoz iltimosiga ko'ra: sof OQ fon, kartochkalar esa ANIQ AJRALIB
+     turishi uchun ozgina to'q (och kulrang) fonda, matnlar esa TO'LIQ
+     TINIQ o'qilishi uchun to'q (deyarli qora) rangda — umumiy saytning
+     qorong'i mavzusidan mustaqil, doim shu ko'rinishda. */
   #vacancyOverlay{
-    display:block;padding:0;background:var(--btn-bg, #2F6BE0);align-items:stretch;justify-content:stretch;
+    display:block;padding:0;background:#FFFFFF;align-items:stretch;justify-content:stretch;
     overflow-y:auto;
   }
   #vacancyOverlay .contract-modal{
@@ -2773,19 +2775,26 @@
   #vacancyOverlay .contract-top{
     position:sticky;top:0;margin:-16px -18px 14px;z-index:2;
     padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 14px;
-    background:var(--btn-bg, #2F6BE0);border-bottom:1px solid rgba(255,255,255,0.18);
+    background:#FFFFFF;border-bottom:1px solid #E4E7EC;
   }
-  #vacancyOverlay .contract-title{font-size:19px;color:var(--btn-text, #fff);}
-  #vacancyOverlay .drawer-close{background:rgba(255,255,255,0.16);color:var(--btn-text, #fff);}
-  #vacancyOverlay .drawer-close:hover{background:rgba(255,255,255,0.28);}
+  #vacancyOverlay .contract-title{font-size:19px;color:#12151C;}
+  #vacancyOverlay .drawer-close{background:#F1F3F6;color:#12151C;}
+  #vacancyOverlay .drawer-close:hover{background:#E4E7EC;}
   #vacancyOverlay .vac-empty-title,
-  #vacancyOverlay label{color:var(--btn-text, #fff);}
+  #vacancyOverlay label{color:#12151C;}
   #vacancyOverlay .vac-empty-sub,
-  #vacancyOverlay .co-intro{color:rgba(255,255,255,0.75);}
-  #vacancyOverlay .vac-card{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
-  #vacancyOverlay .vac-card-title{color:var(--btn-text, #fff);}
-  #vacancyOverlay .vac-card-desc{color:rgba(255,255,255,0.75);}
-  #vacancyOverlay .vac-consent{color:rgba(255,255,255,0.75);}
+  #vacancyOverlay .co-intro{color:#5B6472;}
+  #vacancyOverlay .vac-card{background:#F1F3F6;border:1px solid #E4E7EC;}
+  #vacancyOverlay .vac-card-title{color:#12151C;}
+  #vacancyOverlay .vac-card-desc{color:#444C58;}
+  #vacancyOverlay .vac-card-salary{color:#2F6BE0;}
+  #vacancyOverlay .vac-consent{color:#444C58;}
+  #vacancyOverlay .vac-locked-field,
+  #vacancyOverlay .contract-modal input,
+  #vacancyOverlay .contract-modal textarea{
+    background:#F1F3F6;border:1px solid #E4E7EC;color:#12151C;
+  }
+  #vacancyOverlay .field-error{color:#D0332F;}
 
   .vac-empty{text-align:center;padding:36px 10px;color:var(--muted);}
   .vac-empty-icon{font-size:34px;margin-bottom:10px;}
@@ -9668,7 +9677,13 @@ window.pauseReelsVideo = function(slideEl){
           return { videoId: v.id, videoUrl: v.videoUrl, numberId: num.id, number: num.number, price: num.price, reserved: !!num.reserved, likes: v.likes || 0 };
         })
         .filter(Boolean);
-    }catch(e){ items = []; }
+    }catch(e){
+      // Testimonials'dagi kabi endi bu yerda ham xato jim yutilmaydi —
+      // aks holda Firestore ruxsat/tarmoq xatosi bo'lganda konsolda hech
+      // narsa ko'rinmay, "nega ishlamayapti" sababini topib bo'lmasdi.
+      console.error('loadPremiumVideos: premium_number_videos yuklanmadi:', e);
+      items = [];
+    }
 
     // Tasodifiy tartib endi shu yerda, BIR MARTA (sahifa yuklanganda)
     // belgilanadi — shunda "birinchi" video har doim aniq bo'ladi va
@@ -9929,6 +9944,10 @@ window.pauseReelsVideo = function(slideEl){
   }
 
   banner.addEventListener('click', ()=>{
+    if(!items.length){
+      if(window.showToast) showToast("Hozircha premium videolar yo'q", 2200);
+      return;
+    }
     items = shuffle(items);
     openPremiumReels(0);
   });
@@ -10047,13 +10066,29 @@ window.pauseReelsVideo = function(slideEl){
 // hech narsa chizilmaydi — sahifaning oddiy foni (--page-bg) ko'rinib
 // turadi, ma'lumot kelgach katalog to'g'ridan-to'g'ri to'ldiriladi.
 (async function init(){
-  // "Mijozlar fikri" va "Premium video" raqamlar bazasiga bog'liq emas —
-  // shu sabab ularni DARHOL, katalog bilan BIR VAQTDA (parallel) ishga
-  // tushiramiz, ketma-ket kutib o'tirmaydi.
+  // "Mijozlar fikri" (video_testimonials) haqiqatan ham raqamlar bazasiga
+  // bog'liq EMAS — shu sabab uni DARHOL, katalog bilan BIR VAQTDA
+  // (parallel) ishga tushiramiz, ketma-ket kutib o'tirmaydi.
+  //
+  // MUHIM TUZATISH: "Premium video" (loadPremiumVideos) esa, avvalgi
+  // izohdagi da'voga qaramay, ASLIDA NUMBERS massiviga BOG'LIQ — u har bir
+  // videoni `NUMBERS.find(n => n.id === v.numberId)` orqali mos raqamga
+  // bog'laydi va topilmasa (num bo'lmasa) o'sha videoni JIMGINA
+  // ro'yxatdan chiqarib tashlaydi. Bu funksiya ilgari `loadNumbers()` bilan
+  // BIR VAQTDA (parallel, kutmasdan) chaqirilardi — agar mijozda eski
+  // katalog keshi (localStorage) bo'lmasa (masalan birinchi tashrif yoki
+  // kesh tozalangan holat), NUMBERS hali bo'sh turgan paytda
+  // 'premium_number_videos' so'rovi tezroq qaytishi mumkin edi va NATIJADA
+  // BARCHA premium videolar (num topilmagani uchun) jimgina tushib
+  // qolardi — banner ko'rinardi, lekin RELS ochilganda ICHI BO'SH bo'lardi
+  // ("PREMIUM RAQAMLAR" rels ishlamay qolgani shu edi). Shu sabab endi
+  // loadPremiumVideos() NUMBERS to'liq yuklanib bo'lgach (loadNumbers()
+  // await qilingandan KEYIN) chaqiriladi — shunda NUMBERS har doim tayyor
+  // bo'ladi va hech qanday video sababsiz tushib qolmaydi.
   try{ if(window.__loadVideoTestimonials) window.__loadVideoTestimonials(); }catch(e){ console.error('init: video testimonials xato:', e); }
-  try{ if(window.__loadPremiumVideos) window.__loadPremiumVideos(); }catch(e){ console.error('init: premium videos xato:', e); }
 
   try{ await loadNumbers(); }catch(e){ console.error('init: loadNumbers xato:', e); }
+  try{ if(window.__loadPremiumVideos) window.__loadPremiumVideos(); }catch(e){ console.error('init: premium videos xato:', e); }
   try{ initNewNumberWatcher(); }catch(e){ console.error('init: initNewNumberWatcher xato:', e); }
   try{ initDailyDealWatcher(); }catch(e){ console.error('init: initDailyDealWatcher xato:', e); }
   try{ renderCatalog(); }catch(e){ console.error('init: renderCatalog xato:', e); }
