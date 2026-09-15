@@ -3375,6 +3375,14 @@ html.theme-purple-premium .card button.order-btn{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
       <span data-i18n="contactUs">Call Markaz</span>
     </a>
+    <!-- Mijoz iltimosiga ko'ra: "Vakansiya" hamburger menyusining (yon
+         panel) ENG TAGIDA, alohida band sifatida turishi kerak edi —
+         avval xato ravishda faqat "Buyurtmalarim" ichki oynasiga
+         qo'shilgan edi, shu sabab mijozlarga umuman ko'rinmasdi. -->
+    <a href="#" id="openVacancyDrawerLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg>
+      <span data-i18n="vacancyTitle">💼 Vakansiya</span>
+    </a>
   </div>
 </aside>
 
@@ -3625,11 +3633,6 @@ html.theme-purple-premium .card button.order-btn{
       <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.9" fill="currentColor" stroke="none"/></svg></span>
       <span class="hub-btn-title" data-i18n="aboutUs">Biz haqimizda</span>
       <span class="hub-btn-sub" data-i18n="aboutUsSub">Kompaniyamiz va aloqa ma'lumotlari</span>
-    </button>
-    <button type="button" class="hub-btn" id="hubBtnVacancy">
-      <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
-      <span class="hub-btn-title" data-i18n="vacancyTitle">💼 Vakansiya</span>
-      <span class="hub-btn-sub" data-i18n="vacancySub">Bizga qo'shiling — ochiq ish o'rinlari</span>
     </button>
   </div>
 </div>
@@ -7654,10 +7657,6 @@ document.getElementById('hubBtnCustomOrder').addEventListener('click', ()=>{
 document.getElementById('hubBtnAbout').addEventListener('click', ()=>{
   aboutOverlay.classList.add('open');
 });
-document.getElementById('hubBtnVacancy').addEventListener('click', ()=>{
-  openVacancyOverlay();
-});
-
 /* ---- "Vakansiya" — ochiq ish o'rinlari ro'yxati va ariza formasi ----
    `vacancies` kolleksiyasi kichik bo'lgani uchun oyna har ochilganda
    to'liq (.get()) o'qiladi — doimiy tinglovchi (onSnapshot) shart emas.
@@ -8000,6 +7999,16 @@ if(openCallPreviewLinkEl){
     e.preventDefault();
     closeDrawer();
     setTimeout(()=>{ if(window.__openCallPreview) window.__openCallPreview(); }, 200);
+  });
+}
+
+// "Vakansiya" — yon menyu (hamburger)ning eng tagidagi bandi.
+const openVacancyDrawerLinkEl = document.getElementById('openVacancyDrawerLink');
+if(openVacancyDrawerLinkEl){
+  openVacancyDrawerLinkEl.addEventListener('click', (e)=>{
+    e.preventDefault();
+    closeDrawer();
+    setTimeout(()=>{ openVacancyOverlay(); }, 200);
   });
 }
 
