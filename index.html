@@ -1061,6 +1061,93 @@
     font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Sora',sans-serif;
   }
 
+  /* ==================================================================
+     NARX ORALIG'I SLAYDERI — mijoz iltimosiga ko'ra ("qulay, ikki
+     chekasi chiqib ketmagan, zamonaviy animatsiyali ikkita tutqichli
+     slayder") qo'shildi. Ranglar saytning O'Z mavzu o'zgaruvchilaridan
+     (--panel/--panel-2/--line/--amber/--amber-soft) olinadi — shu bilan
+     admin panelidan tema (rang) o'zgartirilsa, slayder ham AVTOMATIK mos
+     rangga o'tadi, alohida rang qattiq yozilmaydi. */
+  .price-range-sec{ margin-top:14px; }
+  .pr-heading{
+    display:flex;align-items:center;gap:6px;margin:0 2px 16px;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:var(--muted);
+  }
+  .pr-heading svg{ width:15px;height:15px;color:var(--amber);flex-shrink:0; }
+
+  /* MUHIM (mijoz aynan shu muammoni ko'rsatgan): tutqichlar 0%/100%
+     pozitsiyada bo'lganda ham TO'LIQ ko'rinishi, karta chekkasidan yoki
+     dumaloq burchagidan "kesilib"/chiqib ketmasligi kerak. Shu sabab
+     .pr-track (haqiqiy chiziq) ikkala tomondan PR_HANDLE_INSET (JS'dagi
+     bilan bir xil, 17px) qadar ICHKARIGA suriladi — tutqich markazi hech
+     qachon shu insetdan tashqariga chiqmaydi, demak doiraning yarmi ham
+     kartadan tashqarida qolmaydi. */
+  .pr-track-wrap{
+    position:relative;height:34px;margin:34px 2px 10px;
+    touch-action:none; /* mijoz tutqichni sudrayotganda sahifa o'zi skroll bo'lib ketmasin */
+  }
+  .pr-track{
+    position:absolute;left:17px;right:17px;top:50%;transform:translateY(-50%);
+    height:8px;border-radius:999px;
+    background:var(--panel-2);border:1px solid var(--line);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,0.18);
+    overflow:hidden;
+  }
+  .pr-fill{
+    position:absolute;top:0;bottom:0;left:0;width:0;border-radius:999px;
+    background:linear-gradient(90deg, var(--amber), color-mix(in srgb, var(--amber) 65%, #FFD778));
+    box-shadow:0 0 10px -2px color-mix(in srgb, var(--amber) 70%, transparent);
+    transition:left .18s ease, width .18s ease;
+  }
+  .pr-track-wrap.pr-dragging .pr-fill{ transition:none; }
+  .pr-handle{
+    position:absolute;top:50%;left:0;width:30px;height:30px;
+    transform:translate(-50%,-50%);
+    border-radius:50%;border:none;padding:0;cursor:grab;
+    background:radial-gradient(circle at 35% 30%, #FFFFFF, #EDF1F8 72%);
+    box-shadow:0 3px 8px rgba(8,4,30,0.35), 0 1px 2px rgba(8,4,30,0.25), inset 0 -1px 1px rgba(0,0,0,0.06);
+    transition:left .18s ease, transform .15s ease, box-shadow .15s ease;
+    z-index:2;
+  }
+  .pr-handle:active{ cursor:grabbing; }
+  /* "Vinil plastinka" ko'rinishi — markazda kichik to'q nuqta. */
+  .pr-handle-dot{
+    position:absolute;top:50%;left:50%;width:9px;height:9px;border-radius:50%;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 30%, #4B5568, #10141F 75%);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.12);
+  }
+  /* Faol sudralayotganda tutqich sal kattalashadi + porlash kuchayadi —
+     mijoz iltimosidagi "zamonaviy animatsiya"/taktil sezgi. */
+  .pr-handle.pr-active{
+    transform:translate(-50%,-50%) scale(1.14);
+    box-shadow:0 6px 16px rgba(8,4,30,0.4), 0 0 0 6px color-mix(in srgb, var(--amber) 22%, transparent);
+    transition:box-shadow .15s ease, transform .12s ease;
+  }
+  .pr-track-wrap.pr-dragging .pr-handle{ transition:transform .12s ease, box-shadow .15s ease; }
+  /* Sudralayotganda tutqich ustida darhol ko'rinadigan narx yorlig'i —
+     .search-card{overflow:hidden} bilan to'qnashmasligi uchun, tashqariga
+     emas, shu .pr-track-wrap ICHIDAGI (yuqorida ataylab ajratib qo'yilgan
+     34px bo'sh joy) hududda chiqadi — shu sabab hech qachon karta
+     chekkasidan yoki ekran tepasidan kesilib qolmaydi. */
+  .pr-handle-tip{
+    position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%) translateY(4px);
+    background:var(--panel);border:1px solid var(--line);color:var(--amber);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:11.5px;
+    padding:4px 9px;border-radius:8px;white-space:nowrap;
+    box-shadow:0 8px 18px rgba(8,4,30,0.3);
+    opacity:0;pointer-events:none;transition:opacity .15s ease, transform .15s ease;
+  }
+  .pr-handle-tip::after{
+    content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:var(--panel);
+  }
+  .pr-handle.pr-active .pr-handle-tip{ opacity:1;transform:translateX(-50%) translateY(0); }
+  .pr-ticks{
+    display:flex;justify-content:space-between;padding:0 2px;
+    font-family:'Space Mono',monospace;font-size:10.5px;color:var(--muted);
+  }
+
   .catalog{
     margin:0 auto;padding:16px 16px 24px;
     display:grid;grid-template-columns:repeat(2,1fr);
@@ -3530,6 +3617,34 @@ html.theme-purple-premium .card button.order-btn{
          mijozga ko'rinadigan (customer-facing) qidiruvga tegishli. -->
     <div class="vip-op-toggles" id="vipOpToggles"></div>
     <div class="standard-op-toggles" id="standardOpToggles" style="display:none;"></div>
+
+    <!-- NARX ORALIG'I SLAYDERI — mijoz iltimosiga ko'ra qo'shildi ("ikkita
+         tutqichli, ikki chekasi chiqib ketmagan slayder"): chap tutqich
+         mijoz izlayotgan ENG ARZON, o'ng tutqich ENG QIMMAT narxni
+         belgilaydi. Chekka qiymatlar HAQIQIY katalog narxidan hisoblanadi
+         (qarang: refreshPriceRangeBounds/JS), skrinshotdagi kabi qattiq
+         yozilgan raqam emas. `display:none` boshlanishida — hali narx
+         ma'lumoti (NUMBERS) kelmagan bo'lsa slayder ko'rsatilmaydi, birinchi
+         refreshPriceRangeBounds() muvaffaqiyatli chaqirilganda ochiladi. -->
+    <div class="price-range-sec" id="priceRangeSec" style="display:none;">
+      <div class="pr-heading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4v9.2M9.3 9.6c0-1.1 1.1-1.9 2.7-1.9s2.7.8 2.7 1.9c0 1-.9 1.5-2.4 1.9-1.6.4-2.6.9-2.6 1.9 0 1.1 1.2 1.9 2.7 1.9s2.7-.8 2.7-1.9"/></svg>
+        <span data-i18n="priceRangeTitle">Narx bo'yicha</span>
+      </div>
+      <div class="pr-track-wrap" id="prTrackWrap">
+        <div class="pr-track"><div class="pr-fill" id="prFill"></div></div>
+        <button type="button" class="pr-handle" id="prHandleMin" aria-label="Minimal narx">
+          <span class="pr-handle-tip" id="prTipMin"></span>
+          <span class="pr-handle-dot"></span>
+        </button>
+        <button type="button" class="pr-handle" id="prHandleMax" aria-label="Maksimal narx">
+          <span class="pr-handle-tip" id="prTipMax"></span>
+          <span class="pr-handle-dot"></span>
+        </button>
+      </div>
+      <div class="pr-ticks" id="prTicks"></div>
+    </div>
+
     <div class="search-btn-row">
       <button type="button" class="premium-toggle-btn" id="premiumToggleBtn" aria-label="Premium raqamlar">
         <svg viewBox="0 0 24 24" fill="none">
@@ -4125,7 +4240,11 @@ html.theme-purple-premium .card button.order-btn{
   </div>
 </div>
 
-<p class="seo-text" style="max-width:900px;margin:0 auto;padding:18px 20px 0;text-align:center;color:var(--muted);font-size:12px;line-height:1.7;">
+<!-- SEO uchun: quyidagi matn qidiruv tizimlari (Google) tomonidan
+     o'qiladi va indekslanadi, lekin mijozga sahifada KO'RINMAYDI (h1'dagi
+     sr-only bilan bir xil usul) — mijoz iltimosiga ko'ra vizual ko'rinishdan
+     olib tashlandi, lekin SEO kalit so'zlari kod ichida qoldirildi. -->
+<p class="sr-only">
   <strong>VIP Raqamlar (vipraqamlar.uz)</strong> — O'zbekistondagi eng katta oltin raqam, chiroyli raqam va VIP raqam katalogi. Bizning saytimizda qulay raqam tanlash xizmati orqali oq nomer, gold raqam va aksiya raqamlarni topishingiz mumkin. Beeline nomer, Ucell nomer, Uzmobile raqam va Uzmobile vip, Humans nomer, Mobiuz raqam — barcha operatorlarning oltin raqamlari va chiroyli nomerlari bir joyda. Bo'lib to'lash imkoniyati, bepul yetkazib berish va kafolatli rasmiylashtirish bilan.
 </p>
 <footer>&copy; 2026 VIP RAQAMLAR (vipraqamlar.uz). Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
@@ -4283,6 +4402,24 @@ function formatPriceUzs(n){
   const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
   return num + (window.currentLangMode === 'ru' ? " сум" : " so'm");
 }
+// Mijoz iltimosiga ko'ra qo'shilgan NARX ORALIG'I SLAYDERI uchun ALOHIDA,
+// ANCHA QISQA narx formati — yuqoridagi formatPriceUzs() ("1 234 567 so'm")
+// slayder tutqichlari ustidagi kichik yorliqlar/chekka raqamlar uchun juda
+// UZUN bo'lardi. Bu funksiya AYNAN skrinshotdagi uslubda ("490k", "990k",
+// "6,5mln", "20mln") ixcham qiymat qaytaradi — o'nlik qism bo'lsa vergul
+// bilan (o'zbekcha yozuv qoidasi, nuqta bilan emas).
+function formatCompactPriceUz(n){
+  const num = Math.max(0, Math.round(Number(n) || 0));
+  if(num >= 1000000){
+    const millions = Math.round((num / 1000000) * 10) / 10;
+    const str = (millions % 1 === 0) ? String(millions) : String(millions).replace('.', ',');
+    return str + 'mln';
+  }
+  if(num >= 1000){
+    return Math.round(num / 1000) + 'k';
+  }
+  return String(num);
+}
 // YAGONA "chegirma faolmi?" tekshiruvi — BUTUN saytda (katalog kartalari,
 // raqam modali, "Bugungi aksiya", sevimlilar, buyurtma xulosasi va h.k.)
 // shu funksiya orqali aniqlanadi, toki hammasi bir xil qoidaga bo'ysunsin.
@@ -4398,6 +4535,7 @@ async function loadNumbers(retryDelay){
       hadCache = true;
       NUMBERS = JSON.parse(cached);
       ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
+      refreshPriceRangeBounds();
       renderCatalog();
       renderFeatured();
       renderDailyDeal();
@@ -4426,6 +4564,7 @@ async function loadNumbers(retryDelay){
     ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
     numbersLoaded = true;
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
+    refreshPriceRangeBounds();
     renderCatalog();
     renderFeatured();
     renderDailyDeal();
@@ -4590,6 +4729,10 @@ function upsertNumberInMemory(item){
 // xuddi buyurtma xatosidan keyingi to'liq qayta chizish bilan bir xil
 // naqsh (qarang: "Kechirasiz, bu raqamni ayni damda..." xato holati).
 function rerenderAfterDealChange(){
+  // Aksiyaga chiqarilgan/yangilangan raqam narx chegaralariga ta'sir
+  // qilishi mumkin (masalan yangi eng arzon/eng qimmat) — slayder shu
+  // sabab qayta hisoblanadi (mijozning joriy tanlovi buzilmaydi).
+  try{ refreshPriceRangeBounds(); }catch(e){ console.error('rerenderAfterDealChange: refreshPriceRangeBounds xato:', e); }
   try{ renderCatalog(); }catch(e){ console.error('rerenderAfterDealChange: renderCatalog xato:', e); }
   try{ renderFeatured(); }catch(e){ console.error('rerenderAfterDealChange: renderFeatured xato:', e); }
   try{ renderDailyDeal(); }catch(e){ console.error('rerenderAfterDealChange: renderDailyDeal xato:', e); }
@@ -4651,9 +4794,222 @@ function shuffleArray(arr){
 }
 
 function currentPattern(){ return digitBoxes.map(box => box.value.trim()); }
-function isSearchActive(){ return selectedOperators.length > 0 || currentPattern().some(d => d !== '') || premiumFilterActive; }
+function isSearchActive(){ return selectedOperators.length > 0 || currentPattern().some(d => d !== '') || premiumFilterActive || isPriceRangeActive(); }
 function updateSearchUI(){
   clearSearchBtn.style.display = isSearchActive() ? 'block' : 'none';
+}
+
+/* ==================================================================
+   NARX ORALIG'I SLAYDERI — mijoz iltimosiga ko'ra: ikkita tutqichli
+   slayder, chap tutqich mijoz qidirayotgan ENG ARZON, o'ng tutqich ENG
+   QIMMAT narxni belgilaydi. Chekkalar (priceBoundMin/Max) skrinshotdagi
+   kabi QATTIQ YOZILGAN raqamlar EMAS — har doim JORIY katalog
+   ma'lumotidan (NUMBERS + LIVE_NUMBERS) HISOBLANADI, shu sabab admin
+   narxlarni o'zgartirsa yoki jonli qidiruv yangi raqamlar topsa, slayder
+   o'z-o'zidan haqiqiy holatga mos keladi (qarang: refreshPriceRangeBounds,
+   pastda tegishli joylarda chaqiriladi).
+   Mijozning JORIY tanlovi (selectedMinPrice/selectedMaxPrice) yangi
+   ma'lumot kelgani sabab BEHUDA qayta o'rnatilmaydi — faqat u endi
+   haqiqiy oraliqdan tashqarida (noto'g'ri) qolib ketsa tuzatiladi, aks
+   holda mijoz sudrab qo'ygan chegara yo'qolib qolardi. */
+let priceBoundMin = 0;        // katalogdagi ENG ARZON haqiqiy narx
+let priceBoundMax = 0;        // katalogdagi ENG QIMMAT haqiqiy narx
+let selectedMinPrice = 0;     // mijoz chap tutqichni qo'ygan narx
+let selectedMaxPrice = 0;     // mijoz o'ng tutqichni qo'ygan narx
+let priceRangeReady = false;  // hali hech qanday narx ma'lumoti yo'q bo'lsa (bo'sh katalog) slayder yashiriladi
+
+// Slayder uchun "pool" — band, "Bugungi aksiya" va "Bo'lib to'lash"
+// raqamlari getFilteredNumbers()dagi asosiy ro'yxatga umuman kirmaydi,
+// shu sabab ular slayder chegaralariga ham ta'sir qilmasligi kerak
+// (aks holda chekkalar mijoz haqiqatan ko'radigan/sotib ola oladigan
+// eng arzon-eng qimmat bilan mos kelmay qolardi). LIVE_NUMBERS ham
+// qo'shiladi — shunda STANDART bo'limida jonli qidiruv natijasi ham
+// darhol to'g'ri chegaraga sig'adi.
+function computePriceBoundsPool(){
+  const pool = [];
+  NUMBERS.forEach(x=>{
+    if(!x.reserved && x.dailyDeal !== true && !x.installment && typeof x.price === 'number' && x.price > 0) pool.push(x.price);
+  });
+  LIVE_NUMBERS.forEach(x=>{
+    if(typeof x.price === 'number' && x.price > 0) pool.push(x.price);
+  });
+  return pool;
+}
+
+function refreshPriceRangeBounds(){
+  const pool = computePriceBoundsPool();
+  if(pool.length === 0){ priceRangeReady = false; renderPriceRangeSlider(); return; }
+  let newMin = Infinity, newMax = -Infinity;
+  pool.forEach(p=>{ if(p < newMin) newMin = p; if(p > newMax) newMax = p; });
+  if(newMin === newMax) newMax = newMin + 1; // slayderga bir zumlik "kenglik" berish uchun (bo'lmasa tutqichlar ustma-ust tushib qoladi)
+
+  if(!priceRangeReady){
+    // Birinchi marta hisoblanmoqda — slayder to'liq (cheklanmagan) oraliqdan boshlanadi.
+    priceBoundMin = newMin; priceBoundMax = newMax;
+    selectedMinPrice = newMin; selectedMaxPrice = newMax;
+    priceRangeReady = true;
+  }else if(newMin !== priceBoundMin || newMax !== priceBoundMax){
+    priceBoundMin = newMin; priceBoundMax = newMax;
+    if(selectedMinPrice < newMin || selectedMinPrice > newMax) selectedMinPrice = newMin;
+    if(selectedMaxPrice > newMax || selectedMaxPrice < newMin) selectedMaxPrice = newMax;
+    if(selectedMinPrice > selectedMaxPrice){ selectedMinPrice = newMin; selectedMaxPrice = newMax; }
+  }
+  renderPriceRangeSlider();
+}
+
+// Slayder hali "to'liq oraliqda" bo'lsa (mijoz tutqichlarni sudramagan)
+// filtr UMUMAN qo'llanmaydi — shu bilan slayderning o'zi hech narsani
+// yashirib qo'ymaydi, faqat mijoz ANIQ chegarani sudragandan keyin ishga tushadi.
+function isPriceRangeActive(){
+  return priceRangeReady && (selectedMinPrice > priceBoundMin || selectedMaxPrice < priceBoundMax);
+}
+function matchesPriceRange(item){
+  if(!isPriceRangeActive()) return true;
+  return typeof item.price === 'number' && item.price >= selectedMinPrice && item.price <= selectedMaxPrice;
+}
+
+/* ---- Narx oralig'i slayderi — DOM va sudrash (drag) mantiqi ----
+   Mavjud kodda sudrash uchun Pointer Events emas, mousedown/mousemove/
+   mouseup + touchstart/touchmove/touchend juftligi ishlatilgan (qarang:
+   pastdagi "slide to answer" komponenti) — izchillik uchun shu NAQSH
+   davom ettiriladi. */
+const priceRangeSecEl = document.getElementById('priceRangeSec');
+const prTrackWrapEl   = document.getElementById('prTrackWrap');
+const prFillEl        = document.getElementById('prFill');
+const prHandleMinEl   = document.getElementById('prHandleMin');
+const prHandleMaxEl   = document.getElementById('prHandleMax');
+const prTipMinEl      = document.getElementById('prTipMin');
+const prTipMaxEl      = document.getElementById('prTipMax');
+const prTicksEl       = document.getElementById('prTicks');
+
+// MUHIM: shu qiymat CSS'dagi .pr-track{left/right} va .pr-handle joylashuv
+// hisob-kitobida ishlatilgan insetning ANIQ o'zi bo'lishi shart — aks
+// holda tutqichning KO'RINISHI (CSS) bilan uning "aslida qayerda turibdi"
+// (JS hisob-kitobi) bir-biriga mos kelmay qoladi. Mijoz aynan shu narsani
+// ("ikki chekasi chiqib ketmasin") so'ragani uchun bu ikkisi ATAYLAB
+// bitta joyda (shu son) ushlab turiladi.
+const PR_HANDLE_INSET = 17;
+
+function priceToPercent(p){
+  if(priceBoundMax <= priceBoundMin) return 0;
+  return Math.max(0, Math.min(1, (p - priceBoundMin) / (priceBoundMax - priceBoundMin)));
+}
+function percentToPrice(pct){
+  return priceBoundMin + (priceBoundMax - priceBoundMin) * pct;
+}
+function prHandleLeftCss(pct){
+  return `calc(${PR_HANDLE_INSET}px + ${pct} * (100% - ${PR_HANDLE_INSET * 2}px))`;
+}
+
+// animated=true — dasturiy o'zgarish (masalan "Tozalash" tugmasi): silliq
+// CSS o'tish (transition) bilan. Sudrashning O'ZIDA esa (animated=false/
+// berilmagan) tutqich DARHOL, kechikishsiz sudraluvchi barmoq/sichqonchaga
+// ergashishi kerak — shu sabab shu payt .pr-dragging klassi orqali CSS
+// transitionlar vaqtincha o'chirib qo'yiladi (qarang: yuqoridagi CSS).
+function renderPriceRangeSlider(animated){
+  if(!priceRangeSecEl) return;
+  if(!priceRangeReady){ priceRangeSecEl.style.display = 'none'; return; }
+  priceRangeSecEl.style.display = '';
+  const minPct = priceToPercent(selectedMinPrice);
+  const maxPct = priceToPercent(selectedMaxPrice);
+  if(prHandleMinEl) prHandleMinEl.style.left = prHandleLeftCss(minPct);
+  if(prHandleMaxEl) prHandleMaxEl.style.left = prHandleLeftCss(maxPct);
+  if(prFillEl){
+    prFillEl.style.left = (minPct * 100) + '%';
+    prFillEl.style.width = Math.max(0, (maxPct - minPct) * 100) + '%';
+  }
+  if(prTipMinEl) prTipMinEl.textContent = formatCompactPriceUz(selectedMinPrice);
+  if(prTipMaxEl) prTipMaxEl.textContent = formatCompactPriceUz(selectedMaxPrice);
+
+  // Skrinshotdagi kabi 6 ta BARAVAR oraliqdagi narx yorlig'i — lekin
+  // qattiq yozilgan raqamlar o'rniga HAQIQIY eng arzon/eng qimmat
+  // (priceBoundMin/Max) orasidan hisoblanadi.
+  if(prTicksEl){
+    let html = '';
+    for(let i = 0; i < 6; i++){
+      const v = priceBoundMin + (priceBoundMax - priceBoundMin) * (i / 5);
+      html += `<span>${formatCompactPriceUz(v)}</span>`;
+    }
+    prTicksEl.innerHTML = html;
+  }
+  if(animated && prTrackWrapEl){
+    // Bir lahzalik silliq o'tish uchun "dragging" holatini ataylab OLIB
+    // TASHLANGAN holda qoldiramiz — CSS'dagi standart transition ishlaydi.
+    prTrackWrapEl.classList.remove('pr-dragging');
+  }
+}
+
+let prActiveHandle = null; // 'min' | 'max' | null
+function prClientX(e){ return (e.touches && e.touches.length) ? e.touches[0].clientX : e.clientX; }
+function prPercentFromClientX(clientX){
+  if(!prTrackWrapEl) return 0;
+  const rect = prTrackWrapEl.getBoundingClientRect();
+  const usable = rect.width - PR_HANDLE_INSET * 2;
+  if(usable <= 0) return 0;
+  const x = Math.max(0, Math.min(usable, clientX - rect.left - PR_HANDLE_INSET));
+  return x / usable;
+}
+function prSetActive(which, on){
+  const el = which === 'min' ? prHandleMinEl : prHandleMaxEl;
+  if(el) el.classList.toggle('pr-active', on);
+}
+function prDragStart(which, e){
+  prActiveHandle = which;
+  if(prTrackWrapEl) prTrackWrapEl.classList.add('pr-dragging');
+  prSetActive(which, true);
+  if(e && e.cancelable) e.preventDefault();
+}
+function prDragMove(e){
+  if(!prActiveHandle) return;
+  const clientX = prClientX(e);
+  if(clientX === undefined || clientX === null) return;
+  if(e && e.cancelable) e.preventDefault();
+  const pct = prPercentFromClientX(clientX);
+  let price = Math.round(percentToPrice(pct));
+  if(prActiveHandle === 'min'){
+    price = Math.max(priceBoundMin, Math.min(price, selectedMaxPrice));
+    selectedMinPrice = price;
+  }else{
+    price = Math.min(priceBoundMax, Math.max(price, selectedMinPrice));
+    selectedMaxPrice = price;
+  }
+  renderPriceRangeSlider(false);
+  // Mijoz aniq iltimosi: tutqichni sudrash DARHOL (alohida "Qidirish"
+  // bosmasdan) haqiqiy narxga qarab katalogni filtrlashi kerak.
+  currentPage = 0;
+  updateSearchUI();
+  renderCatalog();
+}
+function prDragEnd(){
+  if(!prActiveHandle) return;
+  if(prTrackWrapEl) prTrackWrapEl.classList.remove('pr-dragging');
+  prSetActive('min', false);
+  prSetActive('max', false);
+  prActiveHandle = null;
+}
+
+if(prHandleMinEl && prHandleMaxEl && prTrackWrapEl){
+  prHandleMinEl.addEventListener('mousedown', (e)=> prDragStart('min', e));
+  prHandleMaxEl.addEventListener('mousedown', (e)=> prDragStart('max', e));
+  window.addEventListener('mousemove', prDragMove);
+  window.addEventListener('mouseup', prDragEnd);
+
+  prHandleMinEl.addEventListener('touchstart', (e)=> prDragStart('min', e), { passive:false });
+  prHandleMaxEl.addEventListener('touchstart', (e)=> prDragStart('max', e), { passive:false });
+  window.addEventListener('touchmove', prDragMove, { passive:false });
+  window.addEventListener('touchend', prDragEnd);
+  window.addEventListener('touchcancel', prDragEnd);
+
+  // Mijoz izning ustidan emas, TREKNING o'zidan bosilsa ham — ENG YAQIN
+  // tutqich darhol o'sha nuqtaga sudraladi (odatiy, kutilgan slayder UX'i).
+  prTrackWrapEl.addEventListener('mousedown', (e)=>{
+    if(e.target === prHandleMinEl || e.target === prHandleMaxEl ||
+       prHandleMinEl.contains(e.target) || prHandleMaxEl.contains(e.target)) return;
+    const price = percentToPrice(prPercentFromClientX(e.clientX));
+    const which = Math.abs(price - selectedMinPrice) <= Math.abs(price - selectedMaxPrice) ? 'min' : 'max';
+    prDragStart(which, e);
+    prDragMove(e);
+  });
 }
 function showSkeletons(){ catalogEl.innerHTML = Array(6).fill('<div class="skeleton"></div>').join(''); }
 
@@ -4680,13 +5036,24 @@ function getFilteredNumbers(ignoreOperator){
     // qarang: togglePremiumFilter). "Qidirish" bosilmasa ham darhol
     // ko'rinadi; raqam kiritilgan bo'lsa o'sha naqsh bo'yicha ham (shu
     // Premium to'plam ICHIDA, tasodifiy tartib buzilmasdan) filtrlaydi.
-    return premiumShuffledList.filter(item=>{
+    const premiumFiltered = premiumShuffledList.filter(item=>{
       const local = getLocalDigits(item.number);
       for(let i = 0; i < 7; i++){
         if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
       }
+      // Mijoz iltimosiga ko'ra qo'shilgan narx oralig'i slayderi — mijoz
+      // tutqichlarni sudragan zahoti (alohida "Qidirish" bosmasdan)
+      // Premium ro'yxatini ham DARHOL shu narx oralig'iga cheklaydi, xuddi
+      // raqam naqshi kabi.
+      if(!matchesPriceRange(item)) return false;
       return true;
     });
+    // Mijoz aniq iltimosi: "eng arzoni chap chekkada, eng qimmati o'ng
+    // chekkada" — slayder ANIQ tor qilingan bo'lsa, natija narx bo'yicha
+    // o'sish tartibida chiqadi (aks holda Premium'ning o'z tasodifiy
+    // tartibi saqlanadi).
+    if(isPriceRangeActive()) premiumFiltered.sort((a,b)=> a.price - b.price);
+    return premiumFiltered;
   }
 
   if(!standardSearchTriggered){
@@ -4695,7 +5062,12 @@ function getFilteredNumbers(ignoreOperator){
     // tursin — raqam terish yoki operator tanlash ekranni DARHOL
     // "yo'qotib qo'ymaydi"/o'zgartirmaydi. Faqat "Qidirish" bosilgandan
     // keyin (pastdagi else) natija almashadi.
-    return ZIGZAG_ORDER;
+    // ISTISNO: narx oralig'i slayderi — bu boshqa filtrlardan farqli, mijoz
+    // tutqichni sudrashi bilanoq (Qidirish bosmasdan ham) DARHOL real
+    // narxga qarab filtrlashi kerak (mijoz iltimosi: "tutqichni sudraganda
+    // real narx bo'yicha filtr bo'lsin"), shu sabab shu yerda ham qo'llanadi.
+    if(!isPriceRangeActive()) return ZIGZAG_ORDER;
+    return ZIGZAG_ORDER.filter(matchesPriceRange).sort((a,b)=> a.price - b.price);
   }
 
   // "Qidirish" bosilgan — AVVAL operatorlardan jonli (STANDART) natija,
@@ -4708,7 +5080,7 @@ function getFilteredNumbers(ignoreOperator){
   LIVE_NUMBERS.forEach(item=>{ if(!seen.has(item.number)){ seen.add(item.number); source.push(item); } });
   NUMBERS.forEach(item=>{ if(!seen.has(item.number)){ seen.add(item.number); source.push(item); } });
 
-  return source.filter(item=>{
+  const mainFiltered = source.filter(item=>{
     // "Bugungi aksiya"da ko'rsatilgan raqamlar asosiy katalogda (qidiruvda)
     // takrorlanmaydi — bir xil raqam ikki joyda ko'rinishi mijozni
     // chalkashtirishi mumkin edi.
@@ -4719,8 +5091,18 @@ function getFilteredNumbers(ignoreOperator){
     for(let i = 0; i < 7; i++){
       if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
     }
+    // Mijoz iltimosiga ko'ra: narx oralig'i slayderi bilan sudralgan
+    // chegaradan tashqaridagi raqamlar bu yerda ham chiqarib tashlanadi.
+    if(!matchesPriceRange(item)) return false;
     return true;
   });
+  // Mijoz aniq iltimosi: "mijoz tutqichlarni sudraganda REAL narx bo'yicha
+  // saralangan bo'lsin, eng arzoni chapda, eng qimmati o'ngda" — shu sabab
+  // slayder ANIQ tor qilingan paytda natija narx bo'yicha o'suvchi
+  // tartibda chiqadi (aks holda "jonli + VIP" birlashtirilgan tabiiy
+  // tartib saqlanadi, o'zgartirilmaydi).
+  if(isPriceRangeActive()) mainFiltered.sort((a,b)=> a.price - b.price);
+  return mainFiltered;
 }
 
 /* Operator ranglari qidiruv ro'yxatidagi ranglar bilan bir xil (yuqoridagi
@@ -5794,7 +6176,7 @@ const LIVE_OPERATORS = ['Beeline', 'Ucell', 'Humans', 'Mobiuz', 'Perfektum'];
 async function fetchLiveNumbers(retryCount){
   const pattern = currentPattern();
   if(!pattern.some(d => d !== '')){
-    if(LIVE_NUMBERS.length){ LIVE_NUMBERS = []; liveMask = ''; renderCatalog(); }
+    if(LIVE_NUMBERS.length){ LIVE_NUMBERS = []; liveMask = ''; refreshPriceRangeBounds(); renderCatalog(); }
     return;
   }
 
@@ -5891,6 +6273,10 @@ async function fetchLiveNumbers(retryCount){
       // xato holatini "topilmadi"ga o'xshatib tozalab qo'yamiz.
       if(LIVE_SEARCH_ERROR) LIVE_SEARCH_ERROR = null;
       liveLoading = false;
+      // Jonli qidiruv (LIVE_NUMBERS) yangi narxlar olib kelgan bo'lishi
+      // mumkin — mijozning joriy slayder tanlovi buzilmasdan, chekkalar
+      // shu yangi ma'lumotga mos yangilanadi.
+      refreshPriceRangeBounds();
       renderCatalog();
       // Natija (STANDART + VIP birlashtirilgan) kelgandan keyin operator
       // kartochkalaridagi sonlar (badge) ham yangilanishi kerak.
@@ -6080,7 +6466,8 @@ function renderVipOpToggles(){
       ${allCount !== null ? `<span class="soc-count">${allCount}</span>` : ''}
       <span class="soc-radio"></span>
     </button>`;
-  // "Premium" — kompaniyalarning oldida turadi. Bosilsa faqat admin
+  // "Premium" — endi kompaniyalarning KEYIN (qatorning oxirida) turadi.
+  // Bosilsa faqat admin
   // "Mashhur raqamlarga qo'shish" belgilagan raqamlar chiqadi, hech qaysi
   // kompaniya tagida ko'rinmaydi (kompaniya tanlovi bilan bir-birini
   // istisno qiladi — pastdagi toggleVipOp shuni ta'minlaydi).
@@ -6110,7 +6497,11 @@ function renderVipOpToggles(){
         <span class="soc-radio"></span>
       </button>`;
   }).join('');
-  vipOpTogglesEl.innerHTML = allChipHtml + premiumChipHtml + opsHtml;
+  // Mijoz iltimosiga ko'ra "Premium" kartochkasi endi "Barchasi"dan
+  // KEYIN emas, BARCHA kompaniyalardan KEYIN, qatorning ENG OXIRIGA
+  // ko'chirildi (avval: Barchasi, Premium, Mobiuz, Beeline...; endi:
+  // Barchasi, Mobiuz, Beeline, ..., Premium).
+  vipOpTogglesEl.innerHTML = allChipHtml + opsHtml + premiumChipHtml;
 
   vipOpTogglesEl.querySelectorAll('.std-op-card').forEach(card=>{
     card.addEventListener('click', ()=>{
@@ -6510,6 +6901,12 @@ clearSearchBtn.addEventListener('click', ()=>{
   liveRequestId++;              // ketayotgan so'rov javobi endi hisobga olinmaydi
   standardSearchTriggered = false;
   LIVE_SEARCH_ERROR = null;
+  // Mijoz iltimosiga ko'ra: "Tozalash" bosilganda narx oralig'i slayderi
+  // ham boshqa filtrlar kabi o'zining TO'LIQ (cheklanmagan) holatiga
+  // qaytariladi — LIVE_NUMBERS endi bo'sh bo'lgani sabab chegaralar ham
+  // qayta hisoblanadi (odatda faqat VIP katalogiga qarab).
+  refreshPriceRangeBounds();
+  if(priceRangeReady){ selectedMinPrice = priceBoundMin; selectedMaxPrice = priceBoundMax; renderPriceRangeSlider(true); }
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
 });
 
@@ -8839,6 +9236,7 @@ async function loadSiteSettings(retryDelay){
      ishonchli usul: aralashib/buzilib qolish xavfi yo'q.
 =========================================================== */
 const RU_DICT = {
+  priceRangeTitle:    'По цене',
   tagline:            'Доставка по всему Узбекистану',
   searchHint:         'Введите понравившиеся цифры в любую ячейку для поиска',
   clear:              'Очистить',
