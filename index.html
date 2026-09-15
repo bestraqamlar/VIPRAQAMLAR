@@ -1976,6 +1976,28 @@
     animation:reelsSpin .8s linear infinite;
   }
   @keyframes reelsSpin{ to{ transform:rotate(360deg); } }
+  /* Video umuman ochilmasa (masalan brauzer qo'llab-quvvatlamaydigan
+     format) — jim qolib ketmasin deb, aniq xabar va "qayta urinish"
+     tugmasi ko'rsatamiz. */
+  .reels-error-box{
+    display:none;position:absolute;inset:0;z-index:4;
+    flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    background:rgba(0,0,0,0.55);color:#fff;text-align:center;padding:0 24px;
+    font-size:13px;
+  }
+  .reels-slide.reels-play-error .reels-error-box{display:flex;}
+  .reels-retry-btn{
+    background:#fff;color:#111;border:none;border-radius:20px;
+    padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .reels-mute-btn{
+    position:absolute;top:calc(env(safe-area-inset-top, 0px) + 14px);right:60px;z-index:910;
+    background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border:none;color:#fff;
+    width:34px;height:34px;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .reels-mute-btn svg{width:17px;height:17px;}
+  .reels-mute-btn.sound-on{background:rgba(255,255,255,0.32);}
   /* Video bir marta tugaganda, "tepaga surish mumkin" his qildirish uchun
      video biroz tepaga sirg'alib, keyin joyiga qaytadi — Instagram Reels'da
      ham shunga o'xshash imo bo'ladi. */
@@ -2732,8 +2754,27 @@
   }
 
   /* ---- "Vakansiya" bo'limi (mijoz sayti) — ochiq ish o'rinlari ro'yxati
-     va ariza formasi, xuddi shu `.contract-overlay`/.contract-modal
-     naqshida (eski @keyframes animatsiyalarsiz, faqat CSS transition). ---- */
+     va ariza formasi. Mijoz iltimosiga ko'ra endi "Buyurtmalarim" oynasiga
+     o'xshab TO'LIQ EKRAN bo'lib ochiladi (kichik markazlashgan oyna
+     emas) — shu sabab umumiy `.contract-overlay`/`.contract-modal`
+     uslubi shu yerda ID orqali qayta belgilanadi (boshqa 3 ta shu
+     klassni ishlatuvchi oyna — customOrderOverlay, aboutOverlay,
+     contractOverlay — o'zgarishsiz qoladi). ---- */
+  #vacancyOverlay{
+    display:block;padding:0;background:var(--bg);align-items:stretch;justify-content:stretch;
+    overflow-y:auto;
+  }
+  #vacancyOverlay .contract-modal{
+    width:100%;max-width:640px;margin:0 auto;min-height:100%;max-height:none;
+    border:none;border-radius:0;background:transparent;padding:16px 18px calc(env(safe-area-inset-bottom,0px) + 28px);
+  }
+  #vacancyOverlay .contract-top{
+    position:sticky;top:0;margin:-16px -18px 14px;z-index:2;
+    padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 14px;
+    background:var(--bg);border-bottom:1px solid var(--line);
+  }
+  #vacancyOverlay .contract-title{font-size:19px;}
+
   .vac-empty{text-align:center;padding:36px 10px;color:var(--muted);}
   .vac-empty-icon{font-size:34px;margin-bottom:10px;}
   .vac-empty-title{color:var(--text);font-weight:700;font-size:14px;margin-bottom:6px;}
@@ -3381,7 +3422,7 @@ html.theme-purple-premium .card button.order-btn{
          qo'shilgan edi, shu sabab mijozlarga umuman ko'rinmasdi. -->
     <a href="#" id="openVacancyDrawerLink">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg>
-      <span data-i18n="vacancyTitle">💼 Vakansiya</span>
+      <span data-i18n="vacancyTitle">Vakansiya</span>
     </a>
   </div>
 </aside>
@@ -3596,11 +3637,13 @@ html.theme-purple-premium .card button.order-btn{
 
 <div class="reels-overlay" id="reelsOverlay">
   <button class="reels-close" id="reelsClose">✕</button>
+  <button class="reels-mute-btn" id="reelsMuteBtn" aria-label="Ovoz"></button>
   <div class="reels-track" id="reelsTrack"></div>
 </div>
 
 <div class="reels-overlay" id="pvReelsOverlay">
   <button class="reels-close" id="pvReelsClose">✕</button>
+  <button class="reels-mute-btn" id="pvReelsMuteBtn" aria-label="Ovoz"></button>
   <div class="reels-track" id="pvReelsTrack"></div>
 </div>
 
@@ -3640,7 +3683,7 @@ html.theme-purple-premium .card button.order-btn{
 <div class="contract-overlay" id="vacancyOverlay">
   <div class="contract-modal">
     <div class="contract-top">
-      <span class="contract-title" id="vacancyOverlayTitle" data-i18n="vacancyTitle">💼 Vakansiya</span>
+      <span class="contract-title" id="vacancyOverlayTitle" data-i18n="vacancyTitle">Vakansiya</span>
       <button class="drawer-close" id="vacancyClose">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
       </button>
@@ -4446,7 +4489,7 @@ function showNewNumberToast(item, opts){
   requestAnimationFrame(() => {
     requestAnimationFrame(() => { wrap.classList.add('nn-toast-in'); });
   });
-  __nnToastTimer = setTimeout(() => { __nnToastTimer = null; hide(); }, 3000);
+  __nnToastTimer = setTimeout(() => { __nnToastTimer = null; hide(); }, 6000);
 }
 
 /* ==================================================================
@@ -8778,7 +8821,7 @@ const RU_DICT = {
   aboutContact:       'По вопросам и предложениям:',
   close:              'Закрыть',
   coSuccessText:      'Ваша заявка принята! В ближайшее время наши операторы свяжутся с вами.',
-  vacancyTitle:       '💼 Вакансии',
+  vacancyTitle:       'Вакансии',
   vacancySub:         'Присоединяйтесь к нам — открытые вакансии',
   vacFormIntro:       'Оставьте заявку — наши операторы свяжутся с вами в ближайшее время.',
   vacFormPositionLabel:'Вакансия',
@@ -8957,6 +9000,72 @@ function takeWarmedVideo(url){
 }
 
 /* ==================================================================
+   REELS OVOZ SOZLAMASI — barcha brauzerlar (telefon HAM, kompyuter HAM)
+   video "autoplay"ni FAQAT ovozsiz (muted) holatda SO'ZSIZ ruxsat beradi;
+   ovoz bilan avtomatik ishga tushirishga esa ko'plab holatlarda
+   (sichqoncha g'ildiragi bilan navigatsiya, ulashilgan havola orqali
+   to'g'ridan-to'g'ri ochilish va h.k. — bularning barchasida "user
+   gesture" bo'lmaydi) brauzer jim ruxsat bermay qo'yadi va video
+   ekranda muzlab qoladi ("ishlamayapti" muammosining asosiy sababi shu
+   edi). Shu sabab endi har bir video AVVAL har doim OVOZSIZ ishga
+   tushiriladi (bu—kafolatlangan ishlaydi), so'ng mijoz avval "ovozni
+   yoqish" tugmasini bir marta bossa, shu tanlovi eslab qolinadi va
+   keyingi barcha videolar ham ovoz bilan davom etadi (Instagram/TikTok
+   Reels'dagi kabi).
+   ================================================================== */
+function getReelsSoundOn(){
+  try{ return localStorage.getItem('raqamuz_reels_sound') === '1'; }catch(e){ return false; }
+}
+function setReelsSoundOn(on){
+  try{ localStorage.setItem('raqamuz_reels_sound', on ? '1' : '0'); }catch(e){}
+}
+window.reelsMuteIconSvg = function(muted){
+  return muted
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a9 9 0 0 1 0 12"/></svg>`;
+};
+// Video hali "waiting/loading" bo'lmasa ham, muted=false qilishga urinish
+// (masalan wheel bilan navigatsiya paytida) ba'zi brauzerlarda rad
+// etilishi mumkin — shu holatda video OVOZSIZ bo'lsa ham davom etaveradi
+// (hech qachon to'xtab qolmaydi), bu funksiya shuni xavfsiz bajaradi.
+window.applyReelsSoundPreference = function(video){
+  if(!video) return;
+  if(getReelsSoundOn()){
+    try{ video.muted = false; }catch(e){}
+  }
+};
+// Video elementini REELS uslubida ishga tushiradi: har doim AVVAL
+// ovozsiz holda play() chaqiriladi (bu HAR QANDAY brauzerda — telefon
+// ham, kompyuter ham — har doim ruxsat etiladi), muvaffaqiyatli
+// boshlangach, agar mijoz avvalroq "ovozni yoqish"ni tanlagan bo'lsa,
+// o'sha zahoti ovoz ham yoqiladi. Agar play() baribir rad etilsa
+// (masalan video formati brauzerda umuman ochilmasa), slaydda "qayta
+// urinish" (play) tugmasi ko'rsatiladi — video hech qachon sababsiz
+// "muzlab" qolmaydi.
+window.playReelsVideo = function(slideEl){
+  const video = slideEl && slideEl.querySelector('video');
+  if(!video) return;
+  slideEl.classList.remove('reels-play-error');
+  video.muted = true;
+  const playPromise = video.play();
+  if(playPromise && typeof playPromise.then === 'function'){
+    playPromise.then(()=>{
+      applyReelsSoundPreference(video);
+    }).catch(()=>{
+      // Ovozsiz holda ham ishga tushmadi — odatda format qo'llab-
+      // quvvatlanmasligi yoki tarmoq xatosi sabab bo'ladi. Mijozga
+      // ko'rinadigan "qayta urinish" imkonini beramiz (jim qolib
+      // ketmasin).
+      slideEl.classList.add('reels-play-error');
+    });
+  }
+};
+window.pauseReelsVideo = function(slideEl){
+  const video = slideEl && slideEl.querySelector('video');
+  if(video) video.pause();
+};
+
+/* ==================================================================
    VIDEO SHARHLAR ("Mijozlarimiz fikri") — Reels uslubidagi ko'ruvchi
    ================================================================== */
 (function(){
@@ -8965,6 +9074,8 @@ function takeWarmedVideo(url){
   const overlay = document.getElementById('reelsOverlay');
   const track = document.getElementById('reelsTrack');
   const closeBtn = document.getElementById('reelsClose');
+  const muteBtn = document.getElementById('reelsMuteBtn');
+  const retryBtnDelegate = track;
   let videos = [];
   let currentIdx = 0;
 
@@ -9153,8 +9264,12 @@ function takeWarmedVideo(url){
     const liked = likedSet.has(v.id);
     return `
       <div class="reels-slide" data-idx="${idx}">
-        <video data-src="${v.videoUrl}" playsinline preload="none"></video>
+        <video data-src="${v.videoUrl}" playsinline muted></video>
         <div class="reels-loading" aria-hidden="true"><span class="reels-spinner"></span></div>
+        <div class="reels-error-box" aria-hidden="true">
+          <span>Video ochilmadi</span>
+          <button type="button" class="reels-retry-btn">↻ Qayta urinish</button>
+        </div>
         <button class="reels-like-btn ${liked ? 'liked' : ''}" data-id="${v.id}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
@@ -9207,28 +9322,55 @@ function takeWarmedVideo(url){
         slideEl.classList.add('nudge-hint');
         setTimeout(()=> slideEl.classList.remove('nudge-hint'), 550);
         video.currentTime = 0;
-        video.play().catch(()=>{});
+        playSlideVideo(slideEl);
       });
       // Video hali yuklanayotganda (buferlashda) — zagruska belgisini
       // ko'rsatamiz, mijoz "ochilmayapti" deb o'ylamasin.
       video.addEventListener('waiting', ()=> slideEl.classList.add('is-loading'));
-      video.addEventListener('playing', ()=> slideEl.classList.remove('is-loading'));
+      video.addEventListener('playing', ()=>{ slideEl.classList.remove('is-loading'); slideEl.classList.remove('reels-play-error'); });
       video.addEventListener('canplay', ()=> slideEl.classList.remove('is-loading'));
-      video.addEventListener('error', ()=> slideEl.classList.remove('is-loading'));
+      // Brauzer video manbasini UMUMAN ocha olmasa (masalan format
+      // qo'llab-quvvatlanmasa) — bu 'error' hodisasi bilan bildiriladi.
+      // Jim qolib ketmasin deb, mijozga ko'rinadigan xabar chiqaramiz.
+      video.addEventListener('error', ()=>{
+        slideEl.classList.remove('is-loading');
+        slideEl.classList.add('reels-play-error');
+      });
     }
   }
 
-  function playSlideVideo(slideEl){
-    const video = slideEl && slideEl.querySelector('video');
-    if(!video) return;
-    video.muted = false;
-    video.play().catch(()=>{});
-  }
-  function pauseSlideVideo(slideEl){
-    const video = slideEl && slideEl.querySelector('video');
-    if(video) video.pause();
-  }
+  const playSlideVideo = window.playReelsVideo;
+  const pauseSlideVideo = window.pauseReelsVideo;
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
+
+  function updateMuteBtn(){
+    if(!muteBtn) return;
+    const on = getReelsSoundOn();
+    muteBtn.innerHTML = reelsMuteIconSvg(!on);
+    muteBtn.classList.toggle('sound-on', on);
+  }
+  if(muteBtn){
+    updateMuteBtn();
+    muteBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      // Tugma bosilishi — bu HAQIQIY "user gesture", shu sabab shu
+      // yerda ovozni yoqish har doim ruxsat etiladi (brauzer siyosati).
+      const next = !getReelsSoundOn();
+      setReelsSoundOn(next);
+      updateMuteBtn();
+      const curVideo = slideAt(currentIdx) && slideAt(currentIdx).querySelector('video');
+      if(curVideo) curVideo.muted = !next;
+    });
+  }
+  if(retryBtnDelegate){
+    retryBtnDelegate.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.reels-retry-btn');
+      if(!btn) return;
+      e.stopPropagation();
+      const slideEl = btn.closest('.reels-slide');
+      if(slideEl) playSlideVideo(slideEl);
+    });
+  }
 
   // MUHIM (minglab video uchun): DOM'da (sahifa tuzilishida) faqat HOZIRGI
   // slaydga yaqin turgan bir nechtasi bo'ladi — qolgan minglab slayd
@@ -9469,6 +9611,7 @@ function takeWarmedVideo(url){
   const overlay = document.getElementById('pvReelsOverlay');
   const track = document.getElementById('pvReelsTrack');
   const closeBtn = document.getElementById('pvReelsClose');
+  const muteBtn = document.getElementById('pvReelsMuteBtn');
   let items = []; // { videoUrl, number, price, numberId, reserved }
   let currentIdx = 0;
   let isAnimating = false;
@@ -9516,16 +9659,33 @@ function takeWarmedVideo(url){
   }
 
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
-  function playSlideVideo(slideEl){
-    const video = slideEl && slideEl.querySelector('video');
-    if(!video) return;
-    video.muted = false;
-    video.play().catch(()=>{});
+  const playSlideVideo = window.playReelsVideo;
+  const pauseSlideVideo = window.pauseReelsVideo;
+
+  function updateMuteBtn(){
+    if(!muteBtn) return;
+    const on = getReelsSoundOn();
+    muteBtn.innerHTML = reelsMuteIconSvg(!on);
+    muteBtn.classList.toggle('sound-on', on);
   }
-  function pauseSlideVideo(slideEl){
-    const video = slideEl && slideEl.querySelector('video');
-    if(video) video.pause();
+  if(muteBtn){
+    updateMuteBtn();
+    muteBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const next = !getReelsSoundOn();
+      setReelsSoundOn(next);
+      updateMuteBtn();
+      const curVideo = slideAt(currentIdx) && slideAt(currentIdx).querySelector('video');
+      if(curVideo) curVideo.muted = !next;
+    });
   }
+  track.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.reels-retry-btn');
+    if(!btn) return;
+    e.stopPropagation();
+    const slideEl = btn.closest('.reels-slide');
+    if(slideEl) playSlideVideo(slideEl);
+  });
 
   // MUHIM (minglab video uchun): DOM'da (sahifa tuzilishida) faqat
   // HOZIRGI slaydga yaqin turgan bir nechtasi bo'ladi — qolgan minglab
@@ -9592,8 +9752,12 @@ function takeWarmedVideo(url){
     const liked = likedSet.has(v.videoId);
     return `
       <div class="reels-slide" data-idx="${idx}">
-        <video data-src="${v.videoUrl}" playsinline preload="none"></video>
+        <video data-src="${v.videoUrl}" playsinline muted></video>
         <div class="reels-loading" aria-hidden="true"><span class="reels-spinner"></span></div>
+        <div class="reels-error-box" aria-hidden="true">
+          <span>Video ochilmadi</span>
+          <button type="button" class="reels-retry-btn">↻ Qayta urinish</button>
+        </div>
         <button class="reels-like-btn pv-like-elevated ${liked ? 'liked' : ''}" data-video-id="${v.videoId}">
           ${heartSvg(liked)}
           <span class="reels-like-count">${v.likes || 0}</span>
@@ -9625,12 +9789,15 @@ function takeWarmedVideo(url){
         slideEl.classList.add('nudge-hint');
         setTimeout(()=> slideEl.classList.remove('nudge-hint'), 550);
         video.currentTime = 0;
-        video.play().catch(()=>{});
+        playSlideVideo(slideEl);
       });
       video.addEventListener('waiting', ()=> slideEl.classList.add('is-loading'));
-      video.addEventListener('playing', ()=> slideEl.classList.remove('is-loading'));
+      video.addEventListener('playing', ()=>{ slideEl.classList.remove('is-loading'); slideEl.classList.remove('reels-play-error'); });
       video.addEventListener('canplay', ()=> slideEl.classList.remove('is-loading'));
-      video.addEventListener('error', ()=> slideEl.classList.remove('is-loading'));
+      video.addEventListener('error', ()=>{
+        slideEl.classList.remove('is-loading');
+        slideEl.classList.add('reels-play-error');
+      });
     }
     const likeBtn = slideEl.querySelector('.reels-like-btn');
     if(likeBtn){

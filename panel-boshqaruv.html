@@ -7415,6 +7415,22 @@ document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
 });
 
 /* ---- Video sharhlar (mijoz fikri, saytda Reels uslubida ko'rsatiladi) ---- */
+// Brauzerlar (ayniqsa Chrome/Android va Windows kompyuter) <video> tegi
+// orqali FAQAT MP4 (H.264/AAC) va WEBM formatlarini ishonchli o'ynatadi.
+// .mov (ba'zan Safari'da ishlaydi, boshqa hech qayerda), .avi, .mkv,
+// .3gp esa saytga yuklansa ham ko'pchilik mijozning telefoni/kompyuterida
+// UMUMAN OCHILMAYDI (sahifa "ishlamayapti" bo'lib chiqadi) — shu sabab
+// bu formatlar tanlansa, yuklashdan oldin admin'ga ogohlantirish
+// ko'rsatamiz (butunlay taqiqlamaymiz, chunki fayl kengaytmasi ba'zan
+// noto'g'ri bo'lishi ham mumkin, lekin admin ongli tanlov qilsin).
+function warnIfRiskyVideoFormat(file){
+  const isWebSafe = /\.(mp4|webm|m4v)$/i.test(file.name || '') || file.type === 'video/mp4' || file.type === 'video/webm';
+  if(isWebSafe) return true;
+  return window.confirm(
+    "DIQQAT: bu video formati (" + (file.name || file.type || "noma'lum") + ") ko'pgina telefon/kompyuterlarda (masalan Android, Windows'dagi Chrome) UMUMAN OCHILMASLIGI mumkin — faqat MP4 yoki WEBM formati barcha qurilmalarda kafolatli ishlaydi.\n\nShunga qaramay shu faylni yuklashni davom ettirasizmi?"
+  );
+}
+
 window.handleVideoUpload = async function(){
   const fileInput = document.getElementById('videoFileInput');
   const numberInput = document.getElementById('videoNumberInput');
@@ -7441,6 +7457,7 @@ window.handleVideoUpload = async function(){
     const looksLikeVideo = file.type.startsWith('video/')
       || /\.(mp4|mov|m4v|avi|webm|3gp|mkv)$/i.test(file.name || '');
     if(!looksLikeVideo){ showError("Bu video fayl emas. Fayl turi: " + (file.type || "noma'lum")); return; }
+    if(!warnIfRiskyVideoFormat(file)){ return; }
 
     if(!window.firebase || !firebase.storage){ showError("Firebase Storage SDK yuklanmadi. Internetni tekshiring va sahifani yangilang."); return; }
     if(!storage){ showError("Video xizmati (Firebase Storage) sozlanmagan. Avval Firebase konsolida Storage'ni yoqing."); return; }
@@ -7613,6 +7630,7 @@ window.handlePremiumVideoUpload = async function(){
     if(!file){ showError('Iltimos, video fayl tanlang.'); return; }
     const looksLikeVideo = file.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|webm|3gp|mkv)$/i.test(file.name || '');
     if(!looksLikeVideo){ showError("Bu video fayl emas. Fayl turi: " + (file.type || "noma'lum")); return; }
+    if(!warnIfRiskyVideoFormat(file)){ return; }
     if(!storage){ showError("Video xizmati (Firebase Storage) sozlanmagan."); return; }
 
     btn.disabled = true;
