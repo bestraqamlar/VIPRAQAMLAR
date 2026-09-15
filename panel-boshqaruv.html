@@ -558,6 +558,35 @@
   .video-upload-box .ig-save-btn{margin-top:12px;}
 
   .video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+
+  /* ---- "Vakansiya" bo'limi (admin) — mavjud "video-upload-box" (forma)
+     va "zk-order-card" (ro'yxat, xuddi "Zakaz" so'rovlaridagidek
+     ochiladigan kartochka) uslublaridan foydalanadi, faqat matn/raqam
+     inputlarini shu forma ichida ko'rinadigan qilish uchun kichik
+     qo'shimcha qoidalar kerak (video-upload-box asosan fayl/textarea
+     uchun mo'ljallangan edi). ---- */
+  #vacAdminForm input[type="text"], #vacAdminForm input[type="number"]{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    padding:10px 12px;color:var(--text);font-size:13.5px;outline:none;
+  }
+  #vacAdminForm input:focus{border-color:var(--amber);}
+  .vac-admin-form-title{font-family:'Space Mono',monospace;color:var(--amber);font-size:14.5px;font-weight:700;}
+  .vac-admin-salary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .vac-admin-active-label{
+    display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);font-weight:600;
+    margin:14px 0 0;cursor:pointer;
+  }
+  .vac-admin-active-label input{width:16px;height:16px;accent-color:var(--green);cursor:pointer;}
+  .zk-order-list{display:flex;flex-direction:column;}
+  .vac-inactive-badge{background:rgba(148,163,184,.18);color:var(--muted);}
+  .vac-card-desc-admin{white-space:pre-wrap;font-size:12.5px;color:var(--text);line-height:1.55;margin-bottom:10px;}
+  .vac-admin-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .vac-admin-actions button{
+    flex:1;min-width:100px;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;
+  }
+  .vac-admin-actions button:hover{border-color:var(--amber);}
+  .vac-admin-actions .vac-del-btn{color:var(--red);border-color:rgba(231,76,60,.4);}
   .pv-number-results{
     max-height:180px;overflow-y:auto;background:var(--panel-2);border:1px solid var(--line);
     border-radius:9px;margin-top:6px;display:none;
@@ -1240,87 +1269,151 @@
 
 
 /* ---- Operatorlar (jonli API) bo'limi ---- */
-/* ---- "Bugungi aksiya" qo'shish oynasi — o't (fire) mavzusida, mijoz
-   iltimosiga ko'ra qulay va "zor" ko'rinishli qilib alohida uslublangan
-   (oddiy .op-block'dan farqli, gradient ramka + ikonkali maydonlar). ---- */
-.aks-block{
-  position:relative;border-radius:16px;padding:18px 16px;margin-bottom:14px;
+/* ==================================================================
+   "Aksiya" — o'zining alohida bo'limi (avval "Raqamlar" ichida
+   #aksiyaList nomi bilan yashagan, mijoz iltimosiga ko'ra o'z tabiga
+   ko'chirildi va zamonaviyroq dizaynda qayta qurildi). O't (fire)
+   mavzusi saqlanib qoldi — gradient hero, kartochkali ro'yxat, Faol/
+   Arxiv almashtirgich va jonli (vz-countdown bilan bir xil uslubdagi)
+   taymer.
+   ================================================================== */
+.akt-hero{
+  position:relative;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;
+  border-radius:18px;padding:20px 18px;margin-bottom:16px;
   background:
-    radial-gradient(circle at 15% 0%, rgba(255,92,92,0.14) 0%, transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(255,176,0,0.12) 0%, transparent 55%),
+    radial-gradient(circle at 12% 0%, rgba(255,92,92,0.16) 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(255,176,0,0.13) 0%, transparent 55%),
     var(--card,#161a20);
   border:1px solid transparent;
   background-image:
-    radial-gradient(circle at 15% 0%, rgba(255,92,92,0.14) 0%, transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(255,176,0,0.12) 0%, transparent 55%),
+    radial-gradient(circle at 12% 0%, rgba(255,92,92,0.16) 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(255,176,0,0.13) 0%, transparent 55%),
     linear-gradient(var(--card,#161a20), var(--card,#161a20)),
     linear-gradient(135deg, var(--red) 0%, var(--amber) 55%, var(--red) 100%);
   background-origin:border-box;background-clip:padding-box, padding-box, padding-box, border-box;
   box-shadow:0 14px 34px -18px rgba(255,92,92,.35);
 }
-.aks-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;}
-.aks-head-icon{
-  flex-shrink:0;width:38px;height:38px;border-radius:11px;
+.akt-hero-icon{
+  flex-shrink:0;width:44px;height:44px;border-radius:13px;
   display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg, var(--red), var(--amber));color:#1a0d05;
   box-shadow:0 6px 16px -6px rgba(255,92,92,.6);
 }
-.aks-head-icon svg{width:20px;height:20px;}
-.aks-head-title{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);display:block;}
-.aks-head-sub{color:var(--muted);font-size:11.5px;line-height:1.55;margin:4px 0 0;}
-.aks-head-sub b{color:var(--text);}
-
-.aks-form{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
-  border-radius:12px;padding:14px;
+.akt-hero-icon svg{width:23px;height:23px;}
+.akt-hero-text{flex:1;min-width:200px;}
+.akt-hero-text h2{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin:2px 0 6px;}
+.akt-hero-text p{color:var(--muted);font-size:12px;line-height:1.6;margin:0;max-width:520px;}
+.akt-add-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;
+  padding:13px 20px;border:none;border-radius:12px;align-self:center;
+  background:linear-gradient(135deg, var(--red) 0%, var(--amber) 100%);
+  color:#1a0d05;font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;
+  cursor:pointer;box-shadow:0 8px 20px -8px rgba(255,92,92,.55);white-space:nowrap;
 }
-.aks-field{display:flex;flex-direction:column;gap:5px;}
-.aks-field:first-child{grid-column:1/-1;}
-.aks-field label{
+.akt-add-btn:active{transform:scale(0.97);}
+.akt-add-btn svg{width:16px;height:16px;}
+.akt-add-btn.akt-add-btn-active{background:var(--panel-2);color:var(--muted);box-shadow:none;}
+
+/* ---- Qo'shish/tahrirlash formasi ---- */
+.akt-form-wrap{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:16px;margin-bottom:16px;animation:fadeSlideUp .22s ease both;
+}
+.akt-form-title{font-family:'Sora',sans-serif;color:var(--amber);font-size:14.5px;font-weight:700;margin-bottom:12px;}
+.akt-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.akt-field{display:flex;flex-direction:column;gap:5px;position:relative;}
+.akt-field-wide{grid-column:1/-1;}
+.akt-field label{
   display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--muted);
 }
-.aks-field label svg{width:14px;height:14px;color:var(--amber);flex-shrink:0;}
-.aks-field input{
+.akt-field label svg{width:14px;height:14px;color:var(--amber);flex-shrink:0;}
+.akt-field input[type="text"], .akt-field input[type="number"]{
   width:100%;padding:11px 12px;border-radius:9px;border:1.5px solid rgba(255,255,255,.1);
   background:rgba(255,255,255,.045);color:var(--text);font-size:16px;font-family:'Inter',sans-serif;
 }
-.aks-field input:focus{border-color:var(--amber);outline:none;background:rgba(255,176,0,.06);}
-.aks-add-btn{
-  grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:13px;border:none;border-radius:10px;margin-top:2px;
-  background:linear-gradient(135deg, var(--red) 0%, var(--amber) 100%);
-  color:#1a0d05;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
-  cursor:pointer;box-shadow:0 8px 20px -8px rgba(255,92,92,.55);
-}
-.aks-add-btn:active{transform:scale(0.98);}
-.aks-add-btn svg{width:17px;height:17px;}
-.aks-list{margin-top:14px;}
-.aks-list .admin-row-collapsed{border-left:2.5px solid var(--amber);}
-/* ---- Faol/Arxiv (muddati tugagan) bo'limlari sarlavhalari va arxiv qatorlari ---- */
-.aks-list-heading{
-  font-family:'Sora',sans-serif;font-size:12px;font-weight:800;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px;
-  display:flex;align-items:center;gap:6px;
-}
-.aks-list-heading:first-child{margin-top:0;}
-.aks-list-heading-archive{color:#c0392b;}
-.aks-list .admin-row-collapsed.aks-expired{border-left-color:#c0392b;opacity:.82;}
-.aks-expired-badge{
-  font-size:10.5px;font-weight:700;color:#ff8a7a;background:rgba(192,57,43,.16);
-  border:1px solid rgba(192,57,43,.4);border-radius:20px;padding:2px 8px;white-space:nowrap;
-}
-.aks-repost-row{
-  display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:12px;
-  padding:10px;border-radius:9px;background:rgba(192,57,43,.08);border:1px dashed rgba(192,57,43,.3);
-}
-.aks-repost-label{font-size:11.5px;font-weight:700;color:var(--muted);margin-right:2px;}
-.aks-repost-btn{
+.akt-field input:focus{border-color:var(--amber);outline:none;background:rgba(255,176,0,.06);}
+.akt-duration-row{display:flex;flex-wrap:wrap;gap:8px;}
+.akt-duration-btn, .akt-repost-btn2, .akt-repost-custom2{
   background:rgba(255,176,0,.1);border:1px solid rgba(255,176,0,.35);color:var(--amber,#FFB000);
-  border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;
+  border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
 }
-.aks-repost-btn:active{transform:scale(.96);}
-@media(max-width:520px){ .aks-form{grid-template-columns:1fr;} .aks-field:first-child{grid-column:1;} }
+.akt-duration-btn:active, .akt-repost-btn2:active, .akt-repost-custom2:active{transform:scale(.96);}
+.akt-duration-btn.active{background:linear-gradient(135deg, var(--red), var(--amber));color:#1a0d05;border-color:transparent;}
+.akt-duration-picked{font-size:11.5px;color:var(--muted);margin-top:6px;min-height:15px;}
+.akt-duration-picked b{color:var(--amber);}
+.akt-installment-field{
+  grid-column:1/-1;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);
+  font-weight:600;cursor:pointer;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;padding:10px 12px;
+}
+.akt-installment-field input{width:16px;height:16px;accent-color:var(--amber);cursor:pointer;}
+.akt-form-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.akt-save-btn{
+  flex:1;min-width:160px;padding:12px;border:none;border-radius:10px;
+  background:var(--green);color:#0a1a12;font-weight:800;font-size:13.5px;cursor:pointer;
+}
+.akt-cancel-btn{
+  padding:12px 18px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--text);font-weight:700;font-size:13px;cursor:pointer;
+}
+@media(max-width:560px){ .akt-form-grid{grid-template-columns:1fr;} .akt-hero{padding:16px 14px;} .akt-add-btn{width:100%;} }
+
+/* ---- Faol/Arxiv almashtirgich ---- */
+.akt-switch{display:flex;gap:8px;margin-bottom:14px;}
+.akt-switch-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);
+  color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;
+}
+.akt-switch-btn.active{border-color:var(--amber);color:var(--amber);background:rgba(255,176,0,.08);}
+.akt-switch-count{
+  font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,255,255,.08);
+  border-radius:20px;padding:1px 7px;
+}
+.akt-switch-btn.active .akt-switch-count{background:rgba(255,176,0,.2);color:var(--amber);}
+
+/* ---- Aksiya kartochkalari ---- */
+.akt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.akt-card{
+  position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;
+  opacity:0;animation:fadeSlideUp .3s ease forwards;border-left:3px solid var(--amber);
+}
+.akt-card.akt-card-expired{border-left-color:#c0392b;opacity:.85 !important;}
+.akt-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.akt-card-num{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;color:var(--text);}
+.akt-card-badge{
+  font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.03em;
+}
+.akt-card-badge.akt-badge-active{background:rgba(51,226,140,.15);color:var(--green);}
+.akt-card-badge.akt-badge-expired{background:rgba(192,57,43,.16);color:#ff8a7a;}
+.akt-card-prices{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.akt-card-price{font-family:'Space Mono',monospace;font-weight:800;font-size:16px;color:var(--amber);}
+.akt-card-oldprice{font-size:12px;color:var(--muted);text-decoration:line-through;opacity:.75;}
+.akt-card-timer{
+  display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:6px 9px;
+}
+.akt-card-timer .vz-countdown{font-size:11.5px;}
+.akt-card-installment{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.akt-card-actions{display:flex;gap:8px;margin-top:auto;padding-top:4px;}
+.akt-card-actions button{
+  flex:1;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:700;cursor:pointer;
+}
+.akt-edit-btn{background:rgba(255,176,0,.1);border:1px solid rgba(255,176,0,.35);color:var(--amber);}
+.akt-delete-btn{background:none;border:1px solid var(--red);color:var(--red);flex:0 0 auto;min-width:40px;}
+.akt-repost-toggle-wrap{margin-top:2px;}
+.akt-repost-toggle{
+  width:100%;background:rgba(51,226,140,.1);border:1px solid rgba(51,226,140,.35);color:var(--green);
+  border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;
+}
+.akt-repost-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.akt-empty{
+  grid-column:1/-1;text-align:center;padding:44px 16px;color:var(--muted);
+  background:var(--panel);border:1px dashed var(--line);border-radius:14px;font-size:13px;
+}
+.akt-empty b{display:block;font-size:26px;margin-bottom:8px;}
 
 .op-block{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:14px;}
 .op-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
@@ -1653,6 +1746,7 @@
     </div>
     <nav class="tabs">
       <button class="tab active" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
+      <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
       <button class="tab" data-tab="ai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="10" rx="3"/><path d="M12 5v4M9 14h.01M15 14h.01"/><circle cx="12" cy="4" r="1"/></svg></span><span class="tab-label">AI Yordamchi</span></button>
       <button class="tab" data-tab="instagram"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8 6l1.4-2h5.2L16 6"/></svg></span><span class="tab-label">Instagram AI</span></button>
       <button class="tab" data-tab="telegramai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></span><span class="tab-label">Telegram AI</span></button>
@@ -1668,6 +1762,7 @@
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
       <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
       <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
+      <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
       <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
 
       <div class="tab-divider" id="mgmtTabDivider" style="display:none;"><span>SUPER ADMIN</span></div>
@@ -1788,9 +1883,9 @@
       </label>
 
       <!-- "Bugungi aksiyaga qo'shish" — mijoz iltimosiga ko'ra bu yerdan
-           OLIB TASHLANDI: endi "Bugungi aksiya" pastda, Raqamlar
-           ro'yxatidan ALOHIDA o'z bo'limida (qarang: #aksiyaList),
-           qo'shishda faqat Raqam/Aksiya narxi/Eski narxi so'raladi. -->
+           OLIB TASHLANDI: endi "Aksiya" o'zining ALOHIDA tabida (Raqamlar
+           tabidan keyin), to'liq tsikl (ko'rish/qo'shish/tahrirlash/arxiv)
+           bilan boshqariladi. -->
 
       <button id="addNumberBtn">+ Raqam qo'shish</button>
       <div class="code-hint" id="codeHint"></div>
@@ -1857,58 +1952,85 @@
 
     <input type="text" id="numberSearchInput" placeholder="🔍 Raqam bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
     <div class="admin-list" id="adminNumbersList"></div>
+  </div>
 
-    <!-- "Bugungi aksiya" — Raqamlar ro'yxatidan MUSTAQIL, alohida bo'lim.
-         Mijoz iltimosiga ko'ra qo'shishda FAQAT 3 ta maydon so'raladi:
-         Raqam, Aksiya narxi, Eski narxi. Taymer va (ixtiyoriy) Bo'lib
-         to'lash — raqam qo'shilgandan KEYIN, quyidagi ro'yxatda ▾ tugmasi
-         orqali sozlanadi (bu imkoniyat olib tashlanmagan, faqat qo'shish
-         formasidan chiqarilgan). Mijoz iltimosiga ko'ra bu oyna endi
-         qulay va "zor" ko'rinishda — o't (fire) mavzusidagi gradient
-         ramka, ikonkali maydonlar va aniq bosqichli dizayn bilan. -->
-    <div class="aks-block" style="margin-top:26px;">
-      <div class="aks-head">
-        <div class="aks-head-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8a2 2 0 0 1-2.8 0l-6.2-6.2a2 2 0 0 1 0-2.8l8-8H18a2.5 2.5 0 0 1 2.5 2.5v6.5z"/><circle cx="15" cy="7.5" r="1.4"/></svg>
-        </div>
-        <div>
-          <span class="aks-head-title">🔥 Bugungi aksiya</span>
-          <p class="aks-head-sub">Raqamlar ro'yxatidan ALOHIDA boshqariladi. Taymer va Bo'lib to'lash —
-            qo'shilgandan keyin, pastdagi ro'yxatda har bir qatorning <b>▾</b> tugmasi ichida sozlanadi.</p>
-        </div>
+  <!-- "Aksiya" — mijoz iltimosiga ko'ra "Raqamlar" bo'limidan chiqarilib,
+       o'zining ALOHIDA bo'limiga ko'chirildi (avval shu yerda #aksiyaList
+       nomi bilan yashagan). To'liq tsikl shu yerda: Faol/Arxiv ko'rish,
+       yangi aksiya qo'shish va mavjudini tahrirlash — hammasi bitta joyda. -->
+  <div class="pane" id="paneAksiya">
+    <div class="akt-hero">
+      <div class="akt-hero-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5l-8 8a2 2 0 0 1-2.8 0l-6.2-6.2a2 2 0 0 1 0-2.8l8-8H18a2.5 2.5 0 0 1 2.5 2.5v6.5z"/><circle cx="15" cy="7.5" r="1.4"/></svg>
       </div>
+      <div class="akt-hero-text">
+        <h2>🔥 Aksiyalar</h2>
+        <p>Bugungi va rejalashtirilgan chegirmali raqamlarni shu yerdan qo'shing, tahrirlang va muddatini
+          boshqaring. Faol aksiyalar mijoz saytida darhol chegirma bilan ko'rinadi.</p>
+      </div>
+      <button type="button" id="aktAddToggleBtn" class="akt-add-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Yangi aksiya qo'shish
+      </button>
+    </div>
 
-      <div class="aks-form">
-        <div class="aks-field">
-          <label for="aksNewNumber">
+    <div class="akt-form-wrap" id="aktFormWrap" style="display:none;">
+      <div class="akt-form-title" id="aktFormTitle">➕ Yangi aksiya qo'shish</div>
+      <div class="akt-form-grid">
+        <div class="akt-field akt-field-wide">
+          <label for="aktNumberSearch">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Raqam
+            Raqam <span class="ig-field-hint">(mavjud raqamni qidirib tanlang, yoki yangisini kiriting)</span>
           </label>
-          <input type="text" id="aksNewNumber" placeholder="90 777-77-77" inputmode="numeric">
+          <input type="text" id="aktNumberSearch" placeholder="90 777-77-77 yoki qismini yozing" inputmode="numeric" autocomplete="off">
+          <div class="pv-number-results" id="aktNumberResults"></div>
+          <div class="pv-selected-number" id="aktSelectedNumber" style="display:none;"></div>
         </div>
-        <div class="aks-field">
-          <label for="aksNewSalePrice">
+        <div class="akt-field">
+          <label for="aktNewPrice">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg>
-            Aksiya narxi
+            Aksiya narxi (yangi)
           </label>
-          <input type="number" id="aksNewSalePrice" placeholder="Masalan: 6 500 000">
+          <input type="number" id="aktNewPrice" placeholder="Masalan: 6 500 000">
         </div>
-        <div class="aks-field">
-          <label for="aksNewOldPrice">
+        <div class="akt-field">
+          <label for="aktOldPrice">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M12 3v18"/></svg>
             Eski narxi
           </label>
-          <input type="number" id="aksNewOldPrice" placeholder="Masalan: 8 000 000">
+          <input type="number" id="aktOldPrice" placeholder="Masalan: 8 000 000">
         </div>
-        <button id="aksAddBtn" type="button" class="aks-add-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Aksiyaga qo'shish
-        </button>
-        <div class="code-hint" id="aksAddHint"></div>
+        <div class="akt-field akt-field-wide">
+          <label>⏱ Muddati <span class="ig-field-hint">(necha soatdan keyin aksiya tugaydi — tanlamasangiz, muddatsiz qoladi)</span></label>
+          <div class="akt-duration-row" id="aktDurationRow">
+            <button type="button" class="akt-duration-btn" data-hours="1">1 soat</button>
+            <button type="button" class="akt-duration-btn" data-hours="3">3 soat</button>
+            <button type="button" class="akt-duration-btn" data-hours="12">12 soat</button>
+            <button type="button" class="akt-duration-btn" data-hours="24">24 soat</button>
+            <button type="button" class="akt-duration-btn" data-hours="72">3 kun</button>
+            <button type="button" class="akt-duration-btn akt-duration-custom">Boshqa...</button>
+          </div>
+          <div class="akt-duration-picked" id="aktDurationPicked"></div>
+        </div>
+        <label class="akt-installment-field">
+          <input type="checkbox" id="aktInstallment">
+          <span>💳 Bo'lib to'lash mavjud</span>
+        </label>
       </div>
-
-      <div class="admin-list aks-list" id="aksiyaList"></div>
+      <div class="akt-form-actions">
+        <button type="button" id="aktSaveBtn" class="akt-save-btn">💾 Saqlash</button>
+        <button type="button" id="aktCancelBtn" class="akt-cancel-btn" style="display:none;">✕ Bekor qilish</button>
+      </div>
+      <div class="code-hint" id="aktFormHint"></div>
     </div>
+
+    <div class="akt-switch" id="aktSwitch">
+      <button type="button" class="akt-switch-btn active" data-view="active">🔥 Faol <span class="akt-switch-count" id="aktActiveCount">0</span></button>
+      <button type="button" class="akt-switch-btn" data-view="archive">🗂 Arxiv <span class="akt-switch-count" id="aktArchiveCount">0</span></button>
+    </div>
+
+    <div class="akt-grid" id="aktGridActive"></div>
+    <div class="akt-grid" id="aktGridArchive" style="display:none;"></div>
   </div>
 
   <div class="pane" id="paneAi">
@@ -2713,6 +2835,41 @@
     </div>
   </div>
 
+  <div class="pane" id="paneVakansiya">
+    <div class="ai-hint">
+      💼 Bu yerda saytdagi "Vakansiya" bo'limida mijozlarga ko'rinadigan ochiq ish o'rinlarini boshqarasiz.
+      "Faol" qilib belgilangan vakansiyalar saytda DARHOL ko'rinadi, "Nofaol" qilinsa saytdan yashiriladi
+      (shunga qarab vakansiya bo'limi o'zgaradi). Pastda esa arizachilardan kelgan murojaatlar ro'yxati.
+    </div>
+
+    <div class="video-upload-box" id="vacAdminForm">
+      <div class="vac-admin-form-title" id="vacAdminFormTitle">➕ Yangi vakansiya qo'shish</div>
+      <label for="vacAdminTitle">Lavozim nomi</label>
+      <input type="text" id="vacAdminTitle" placeholder="Masalan: Call-markaz operatori">
+      <label for="vacAdminDesc">Vazifalar / talablar <span class="ig-field-hint">(nomzod nima qila olishi kerak)</span></label>
+      <textarea id="vacAdminDesc" rows="7" placeholder="Masalan:&#10;- Mijozlar bilan telefon orqali muloqot qilish&#10;- Kamida 1 yillik tajriba&#10;- Savodli o'zbek va rus tilida yozish"></textarea>
+      <div class="vac-admin-salary-row">
+        <div>
+          <label for="vacAdminSalaryMin">Oylik (dan), so'm</label>
+          <input type="number" id="vacAdminSalaryMin" placeholder="5000000">
+        </div>
+        <div>
+          <label for="vacAdminSalaryMax">Oylik (gacha), so'm</label>
+          <input type="number" id="vacAdminSalaryMax" placeholder="8000000">
+        </div>
+      </div>
+      <label class="vac-admin-active-label"><input type="checkbox" id="vacAdminActive" checked> Faol (saytda ko'rinsin)</label>
+      <button type="button" id="vacAdminSaveBtn" class="ig-save-btn">💾 Saqlash</button>
+      <button type="button" id="vacAdminCancelBtn" class="ig-save-btn" style="background:var(--panel-2);color:var(--text);display:none;">✕ Tahrirlashni bekor qilish</button>
+      <div class="ig-save-msg" id="vacAdminSaveMsg"></div>
+    </div>
+
+    <div class="zk-order-list" id="vacAdminList"></div>
+
+    <h3 style="margin:28px 0 10px;font-size:15px;color:var(--text);">📥 Kelgan arizalar (<span id="vacAppCount">0</span>)</h3>
+    <div class="zk-order-list" id="vacAppList"></div>
+  </div>
+
   <div class="pane" id="paneSettings">
     <div class="settings-grid">
     <div class="settings-form">
@@ -3276,6 +3433,235 @@ async function loadCustomOrders(){
             body: JSON.stringify({ customOrderId: sel.dataset.id, status: sel.value })
           });
         }catch(e){ console.error('Mijozga xabar yuborishda xato:', e); }
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+
+/* ================= "Vakansiya" bo'limi (admin) =================
+   `vacancies` — saytdagi "Vakansiya" bo'limida ko'rinadigan ochiq ish
+   o'rinlari (title, description, salaryMin/Max, active, order). `active`
+   maydoni to'g'ridan-to'g'ri mijoz saytidagi ko'rinishni boshqaradi.
+   `job_applications` — arizachilardan kelgan murojaatlar, "Zakaz"
+   bo'limidagi so'rovlar ro'yxati bilan bir xil "zk-order-card"
+   uslubida ko'rsatiladi. */
+let vacEditingId = null; // hozir tahrirlanayotgan vakansiya ID (null = yangi qo'shish)
+
+function vacAdminResetForm(){
+  vacEditingId = null;
+  document.getElementById('vacAdminFormTitle').textContent = "➕ Yangi vakansiya qo'shish";
+  document.getElementById('vacAdminTitle').value = '';
+  document.getElementById('vacAdminDesc').value = '';
+  document.getElementById('vacAdminSalaryMin').value = '';
+  document.getElementById('vacAdminSalaryMax').value = '';
+  document.getElementById('vacAdminActive').checked = true;
+  document.getElementById('vacAdminCancelBtn').style.display = 'none';
+  document.getElementById('vacAdminSaveMsg').textContent = '';
+}
+
+async function loadVacancyAdminList(){
+  const listEl = document.getElementById('vacAdminList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('vacancies').get();
+    const vacancies = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
+
+    if(vacancies.length === 0){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali vakansiya qo\'shilmagan.</div>';
+      return;
+    }
+
+    listEl.innerHTML = vacancies.map((v, i) => {
+      const badgeClass = v.active ? 'opt-yakunlandi' : 'vac-inactive-badge';
+      const badgeText = v.active ? 'Faol' : 'Nofaol';
+      return `
+        <div class="zk-order-card" data-id="${v.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
+          <div class="zk-order-summary" data-id="${v.id}">
+            <span class="zk-order-summary-name">${escapeHtml(v.title || '')}</span>
+            <span class="zk-order-badge ${badgeClass}">${badgeText}</span>
+            <span class="zk-order-arrow">▾</span>
+          </div>
+          <div class="zk-order-body">
+            <div class="zk-order-info">
+              <span>Oylik</span><span>${formatPrice(v.salaryMin || 0)} – ${formatPrice(v.salaryMax || 0)}</span>
+            </div>
+            <div class="vac-card-desc-admin">${escapeHtml(v.description || '')}</div>
+            <div class="vac-admin-actions">
+              <button type="button" class="vac-edit-btn" data-id="${v.id}">✏️ Tahrirlash</button>
+              <button type="button" class="vac-toggle-btn" data-id="${v.id}" data-active="${v.active ? '1' : '0'}">${v.active ? '🚫 Nofaol qilish' : '✅ Faollashtirish'}</button>
+              <button type="button" class="vac-del-btn" data-id="${v.id}">🗑 O'chirish</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.zk-order-summary').forEach(summary=>{
+      summary.addEventListener('click', ()=>{
+        summary.closest('.zk-order-card').classList.toggle('zk-open');
+      });
+    });
+
+    listEl.querySelectorAll('.vac-edit-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const v = vacancies.find(x => x.id === btn.dataset.id);
+        if(!v) return;
+        vacEditingId = v.id;
+        document.getElementById('vacAdminFormTitle').textContent = '✏️ Vakansiyani tahrirlash';
+        document.getElementById('vacAdminTitle').value = v.title || '';
+        document.getElementById('vacAdminDesc').value = v.description || '';
+        document.getElementById('vacAdminSalaryMin').value = v.salaryMin || '';
+        document.getElementById('vacAdminSalaryMax').value = v.salaryMax || '';
+        document.getElementById('vacAdminActive').checked = !!v.active;
+        document.getElementById('vacAdminCancelBtn').style.display = 'block';
+        document.getElementById('vacAdminForm').scrollIntoView({ behavior:'smooth', block:'start' });
+      });
+    });
+
+    listEl.querySelectorAll('.vac-toggle-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const nextActive = btn.dataset.active !== '1';
+        try{
+          await db.collection('vacancies').doc(btn.dataset.id).update({ active: nextActive });
+          vibrate(60);
+          loadVacancyAdminList();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+
+    listEl.querySelectorAll('.vac-del-btn').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        if(!confirm("Bu vakansiyani o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          await db.collection('vacancies').doc(btn.dataset.id).delete();
+          if(vacEditingId === btn.dataset.id) vacAdminResetForm();
+          loadVacancyAdminList();
+        }catch(err){ alert('Xato: ' + err.message); }
+      });
+    });
+  }catch(err){
+    listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
+  }
+}
+
+document.getElementById('vacAdminSaveBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('vacAdminSaveMsg');
+  const title = document.getElementById('vacAdminTitle').value.trim();
+  const description = document.getElementById('vacAdminDesc').value.trim();
+  const salaryMin = Number(document.getElementById('vacAdminSalaryMin').value) || 0;
+  const salaryMax = Number(document.getElementById('vacAdminSalaryMax').value) || 0;
+  const active = document.getElementById('vacAdminActive').checked;
+
+  if(!title || !description){
+    msg.textContent = "Lavozim nomi va vazifalar/talablarni to'ldiring";
+    msg.className = 'ig-save-msg';
+    msg.style.color = 'var(--red)';
+    return;
+  }
+
+  const btn = document.getElementById('vacAdminSaveBtn');
+  btn.disabled = true;
+  msg.style.color = '';
+  msg.textContent = 'Saqlanmoqda...';
+  try{
+    if(vacEditingId){
+      await db.collection('vacancies').doc(vacEditingId).update({ title, description, salaryMin, salaryMax, active });
+      msg.textContent = '✓ Vakansiya yangilandi';
+    }else{
+      await db.collection('vacancies').add({
+        title, description, salaryMin, salaryMax, active,
+        order: Date.now(),
+        createdAt: Date.now()
+      });
+      msg.textContent = '✓ Vakansiya qo\'shildi';
+    }
+    vibrate(60);
+    vacAdminResetForm();
+    loadVacancyAdminList();
+  }catch(err){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Xato: ' + err.message;
+  }
+  btn.disabled = false;
+});
+document.getElementById('vacAdminCancelBtn').addEventListener('click', vacAdminResetForm);
+
+const VAC_APP_STATUS_OPTIONS = ['new', 'reviewing', 'accepted', 'rejected'];
+const VAC_APP_STATUS_LABELS = { new: 'Yangi', reviewing: "Ko'rib chiqilmoqda", accepted: 'Qabul qilindi', rejected: 'Rad etildi' };
+const VAC_APP_STATUS_CLASS = { new: 'opt-yangi', reviewing: 'opt-boglanildi', accepted: 'opt-yakunlandi', rejected: 'opt-bekor' };
+
+async function loadJobApplications(){
+  const listEl = document.getElementById('vacAppList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('job_applications').orderBy('createdAt', 'desc').limit(200).get();
+    const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('vacAppCount').textContent = apps.length;
+
+    const newCount = apps.filter(a => (a.status || 'new') === 'new').length;
+    const badge = document.getElementById('vacTabBadge');
+    if(badge){
+      badge.style.display = newCount > 0 ? 'inline-flex' : 'none';
+      badge.textContent = newCount;
+    }
+
+    if(apps.length === 0){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Hali ariza kelmagan.</div>';
+      return;
+    }
+
+    listEl.innerHTML = apps.map((a, i) => {
+      const status = a.status || 'new';
+      const badgeClass = VAC_APP_STATUS_CLASS[status] || 'opt-yangi';
+      const dateStr = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().toLocaleString('uz-UZ') : '';
+      return `
+        <div class="zk-order-card" data-id="${a.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
+          <div class="zk-order-summary" data-id="${a.id}">
+            <span class="zk-order-summary-name">${escapeHtml(a.fullName || '')}</span>
+            <span class="zk-order-badge ${badgeClass}">${VAC_APP_STATUS_LABELS[status] || status}</span>
+            <span class="zk-order-arrow">▾</span>
+          </div>
+          <div class="zk-order-body">
+            <div class="zk-order-top">
+              <span></span>
+              <span class="zk-order-time">${escapeHtml(dateStr)}</span>
+            </div>
+            <div class="zk-order-info">
+              <span>Lavozim</span><span>${escapeHtml(a.vacancyTitle || '')}</span>
+              <span>Telefon</span><span>${escapeHtml(a.phone || '')}</span>
+              ${a.experience ? `<span>Tajriba</span><span>${escapeHtml(a.experience)}</span>` : ''}
+            </div>
+            <select class="zk-status-select ${badgeClass}" data-id="${a.id}">
+              ${VAC_APP_STATUS_OPTIONS.map(s => `<option value="${s}" ${status === s ? 'selected' : ''}>${VAC_APP_STATUS_LABELS[s]}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.zk-order-summary').forEach(summary=>{
+      summary.addEventListener('click', ()=>{
+        summary.closest('.zk-order-card').classList.toggle('zk-open');
+      });
+    });
+    listEl.querySelectorAll('.zk-status-select').forEach(sel=>{
+      sel.addEventListener('click', (e)=> e.stopPropagation());
+      sel.addEventListener('change', async (e)=>{
+        e.stopPropagation();
+        sel.className = 'zk-status-select ' + (VAC_APP_STATUS_CLASS[sel.value] || 'opt-yangi');
+        const card = sel.closest('.zk-order-card');
+        const badge = card ? card.querySelector('.zk-order-badge') : null;
+        if(badge){
+          badge.className = 'zk-order-badge ' + (VAC_APP_STATUS_CLASS[sel.value] || 'opt-yangi');
+          badge.textContent = VAC_APP_STATUS_LABELS[sel.value] || sel.value;
+        }
+        await db.collection('job_applications').doc(sel.dataset.id).update({ status: sel.value });
+        vibrate(60);
+        loadJobApplications();
       });
     });
   }catch(err){
@@ -4322,6 +4708,7 @@ async function doLogin(){
     if(hasFeaturePerm('orders')) refreshOrders();
     if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
     if(hasFeaturePerm('vazifalar')) startVazifalarWatch();
+    if(hasFeaturePerm('vakansiya')) loadJobApplications();
     // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
     // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
     // avtomatik chiqarilmaydi.
@@ -4470,7 +4857,7 @@ document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
 });
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', vakansiya:'Vakansiya', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -4506,6 +4893,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
     if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
+    if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
+    if(tab.dataset.tab === 'aksiya'){ renderAksiyaTab(); }
 
     // Mobil ekranda menyudan bo'lim tanlansa, sidebar avtomatik yopiladi
     const shellEl = document.querySelector('.admin-shell');
@@ -6624,12 +7013,12 @@ if(addWatchNotifyIdBtn){
 
 /* ---- "Boshqaruv" — adminlarni qo'shish/boshqarish (faqat bosh admin) ---- */
 const MGMT_FEATURE_LABELS = {
-  numbers:'📱 Raqamlar', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit', personalbase:'🗄️ Shaxsiy baza',
+  numbers:'📱 Raqamlar', aksiya:'🔥 Aksiya', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit', personalbase:'🗄️ Shaxsiy baza',
   vazifalar:'⏰ Vazifalar',
   watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
-  finance:'💰 Kirim-Chiqim'
+  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya'
 };
 const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
 
@@ -7427,7 +7816,7 @@ async function refreshNumbers(){
     currentNumbersCache = numbers;
     updateOverview();
     applyNumberFilters();
-    renderAksiyaList();
+    renderAksiyaTab();
   }catch(err){
     adminNumbersList.innerHTML = `<div class="empty-admin">Bazaga ulanishda xato. Firebase sozlamalarini tekshiring.</div>`;
     console.error(err);
@@ -7560,226 +7949,373 @@ function renderAdminNumbers(numbers){
   });
 }
 
-/* ---- "Bugungi aksiya" — Raqamlar ro'yxatidan alohida bo'lim ----
-   Qo'shish paytida faqat Raqam/Aksiya narxi/Eski narxi so'raladi; Taymer va
-   ixtiyoriy Bo'lib to'lash (bosh to'lov + 6/12/24 oy) shu ro'yxatdagi har
-   bir qatorning ▾ tugmasi ichida, qo'shilgandan KEYIN sozlanadi. */
-document.getElementById('aksAddBtn').addEventListener('click', async ()=>{
-  const numberInput = document.getElementById('aksNewNumber');
-  let num = numberInput.value.trim();
-  const hint = document.getElementById('aksAddHint');
-  if(!num){ numberInput.focus(); return; }
-  if(!num.startsWith('+')) num = '+' + num;
-  const salePrice = Number(document.getElementById('aksNewSalePrice').value) || 0;
-  const oldPrice = Number(document.getElementById('aksNewOldPrice').value) || 0;
-  if(!salePrice){
+/* ==================================================================
+   "Aksiya" — o'zining alohida bo'limi (mijoz iltimosiga ko'ra
+   "Raqamlar" tabidan chiqarilib, to'liq tsikl — ko'rish, qo'shish,
+   tahrirlash, muddat/arxiv — shu yerga jamlandi). Raqam tanlash
+   "Premium video" bo'limidagi qidiruv-tanlash uslubidan (pvNumberSearch)
+   foydalanadi: mavjud raqamni qidirib tanlasa — o'sha raqam aksiyaga
+   qo'yiladi (yangilanadi), hech narsa tanlamay yangi raqam yozsa — avvalgi
+   xulq-atvor saqlanib, YANGI raqam yozuvi yaratiladi. ================== */
+let aktEditingId = null;               // tahrirlanayotgan aksiya ID (null = yangi qo'shish)
+let aktSelectedNumberData = null;      // qidiruvdan tanlangan MAVJUD raqam: {id, number, price, oldPrice, installment}
+let aktDurationHours = 0;              // tanlangan tez-muddat (soat); 0 = tanlanmagan (o'zgarmaydi/muddatsiz)
+
+const aktNumberSearchEl = document.getElementById('aktNumberSearch');
+const aktNumberResultsEl = document.getElementById('aktNumberResults');
+const aktSelectedNumberEl = document.getElementById('aktSelectedNumber');
+
+aktNumberSearchEl.addEventListener('input', debounce(()=>{
+  const q = aktNumberSearchEl.value.replace(/\D/g, '');
+  if(!q){ aktNumberResultsEl.classList.remove('show'); aktNumberResultsEl.innerHTML = ''; return; }
+  const matches = currentNumbersCache.filter(n => (n.number || '').replace(/\D/g,'').includes(q)).slice(0, 15);
+  if(matches.length === 0){
+    aktNumberResultsEl.innerHTML = `<div class="pv-number-row" style="cursor:default;color:var(--muted);">Topilmadi — "Saqlash" bosilsa shu yozilgan raqam YANGI sifatida qo'shiladi</div>`;
+  }else{
+    aktNumberResultsEl.innerHTML = matches.map(n => `
+      <div class="pv-number-row" data-id="${n.id}" data-number="${escapeHtml(n.number)}" data-price="${n.price||0}" data-oldprice="${n.oldPrice||0}" data-installment="${n.installment ? 1 : 0}">
+        <span>${escapeHtml(n.number)}${n.dailyDeal ? ' 🔥' : ''}</span>
+        <span class="pvn-price">${formatPrice(n.price||0)}</span>
+      </div>
+    `).join('');
+    aktNumberResultsEl.querySelectorAll('.pv-number-row').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        aktSelectedNumberData = {
+          id: row.dataset.id, number: row.dataset.number,
+          price: Number(row.dataset.price), oldPrice: Number(row.dataset.oldprice),
+          installment: row.dataset.installment === '1'
+        };
+        document.getElementById('aktNewPrice').value = aktSelectedNumberData.price || '';
+        document.getElementById('aktOldPrice').value = aktSelectedNumberData.oldPrice || '';
+        document.getElementById('aktInstallment').checked = aktSelectedNumberData.installment;
+        aktShowSelectedChip();
+        aktNumberResultsEl.classList.remove('show');
+        aktNumberSearchEl.value = '';
+      });
+    });
+  }
+  aktNumberResultsEl.classList.add('show');
+}, 200));
+
+function aktShowSelectedChip(){
+  aktSelectedNumberEl.style.display = 'flex';
+  aktSelectedNumberEl.innerHTML = `<span>✓ Tanlandi: <b>${escapeHtml(aktSelectedNumberData.number)}</b></span>`
+    + (aktEditingId ? '' : `<button type="button" class="pvsel-clear" id="aktSelClear">✕</button>`);
+  if(!aktEditingId){
+    document.getElementById('aktSelClear').addEventListener('click', ()=>{
+      aktSelectedNumberData = null;
+      aktSelectedNumberEl.style.display = 'none';
+    });
+  }
+}
+
+document.querySelectorAll('#aktFormWrap .akt-duration-btn:not(.akt-duration-custom)').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#aktFormWrap .akt-duration-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    aktDurationHours = Number(btn.dataset.hours);
+    document.getElementById('aktDurationPicked').innerHTML = `Tanlandi: <b>${btn.textContent}</b>dan keyin tugaydi (HOZIRDAN hisoblanadi).`;
+  });
+});
+document.querySelector('#aktFormWrap .akt-duration-custom').addEventListener('click', ()=>{
+  const hoursStr = prompt("Necha SOATdan keyin aksiya tugasin? (masalan: 48)");
+  const hours = Number(hoursStr);
+  if(!hours || hours <= 0) return;
+  document.querySelectorAll('#aktFormWrap .akt-duration-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#aktFormWrap .akt-duration-custom').classList.add('active');
+  aktDurationHours = hours;
+  document.getElementById('aktDurationPicked').innerHTML = `Tanlandi: <b>${hours} soat</b>dan keyin tugaydi (HOZIRDAN hisoblanadi).`;
+});
+
+function aktResetForm(){
+  aktEditingId = null;
+  aktSelectedNumberData = null;
+  aktDurationHours = 0;
+  document.getElementById('aktFormTitle').textContent = "➕ Yangi aksiya qo'shish";
+  aktNumberSearchEl.value = '';
+  aktNumberSearchEl.style.display = '';
+  aktNumberResultsEl.classList.remove('show');
+  aktNumberResultsEl.innerHTML = '';
+  aktSelectedNumberEl.style.display = 'none';
+  document.getElementById('aktNewPrice').value = '';
+  document.getElementById('aktOldPrice').value = '';
+  document.getElementById('aktInstallment').checked = false;
+  document.querySelectorAll('#aktFormWrap .akt-duration-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('aktDurationPicked').innerHTML = '';
+  const hint = document.getElementById('aktFormHint');
+  hint.textContent = ''; hint.className = 'code-hint';
+  document.getElementById('aktCancelBtn').style.display = 'none';
+  const finWrap = document.getElementById('aktFinPanelWrap');
+  if(finWrap) finWrap.remove();
+}
+
+document.getElementById('aktAddToggleBtn').addEventListener('click', ()=>{
+  const wrap = document.getElementById('aktFormWrap');
+  const addBtn = document.getElementById('aktAddToggleBtn');
+  const isOpen = wrap.style.display !== 'none';
+  if(isOpen && !aktEditingId){
+    wrap.style.display = 'none';
+    addBtn.classList.remove('akt-add-btn-active');
+    return;
+  }
+  aktResetForm();
+  wrap.style.display = 'block';
+  addBtn.classList.add('akt-add-btn-active');
+  wrap.scrollIntoView({ behavior:'smooth', block:'start' });
+});
+document.getElementById('aktCancelBtn').addEventListener('click', ()=>{
+  aktResetForm();
+  document.getElementById('aktFormWrap').style.display = 'none';
+  document.getElementById('aktAddToggleBtn').classList.remove('akt-add-btn-active');
+});
+
+// "Bo'lib to'lash rejasi" (oyma-oy bosh to'lov/oylik to'lov, 6/12/24 oy) —
+// bu customer saytida (index.html) alohida "installmentTeaser" sifatida
+// ko'rsatiladigan, item.installment bayrog'idan MUSTAQIL, faqat mavjud
+// aksiyalarga xos qo'shimcha imkoniyat edi — avvalgidek faqat TAHRIRLASH
+// vaqtida (raqam allaqachon mavjud bo'lganda), ixtiyoriy panel sifatida saqlanadi.
+function aktFinGroupHtml(item, months){
+  return `
+    <div class="op-fin-group">
+      <div class="op-fin-group-title">${months} oy</div>
+      <label>Bosh to'lov</label><input type="number" class="akt-fin-down" data-months="${months}" value="${item['dealDown' + months] || 0}">
+      <label>Oylik to'lov</label><input type="number" class="akt-fin-monthly" data-months="${months}" value="${item['dealMonthly' + months] || 0}">
+    </div>`;
+}
+function aktRenderFinPanel(item){
+  const grid = document.querySelector('#aktFormWrap .akt-form-grid');
+  const wrap = document.createElement('div');
+  wrap.className = 'akt-field-wide';
+  wrap.id = 'aktFinPanelWrap';
+  wrap.innerHTML = `
+    <button type="button" class="op-fin-toggle akt-fin-toggle" style="width:100%;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <span>💳 Bo'lib to'lash rejasi (oyma-oy, ixtiyoriy)</span><span>▾</span>
+    </button>
+    <div class="op-fin-panel akt-fin-panel" style="display:none;margin-top:8px;">
+      ${aktFinGroupHtml(item, 6)}
+      ${aktFinGroupHtml(item, 12)}
+      ${aktFinGroupHtml(item, 24)}
+    </div>`;
+  grid.appendChild(wrap);
+  wrap.querySelector('.akt-fin-toggle').addEventListener('click', ()=>{
+    const panel = wrap.querySelector('.akt-fin-panel');
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'grid';
+    wrap.querySelector('.akt-fin-toggle').classList.toggle('active', !isOpen);
+  });
+}
+
+// Kartochkadagi "✏️ Tahrirlash" bosilganda — xuddi shu forma, endi
+// tanlangan raqamga bog'langan holda (raqam qidiruv maydoni yashiriladi,
+// o'rniga "tanlandi" chipi ko'rsatiladi) qayta ochiladi.
+function aktOpenEdit(item){
+  aktResetForm();
+  aktEditingId = item.id;
+  aktSelectedNumberData = { id: item.id, number: item.number, price: item.price, oldPrice: item.oldPrice, installment: item.installment };
+  document.getElementById('aktFormTitle').textContent = '✏️ Aksiyani tahrirlash';
+  aktNumberSearchEl.style.display = 'none';
+  aktShowSelectedChip();
+  document.getElementById('aktNewPrice').value = item.price || '';
+  document.getElementById('aktOldPrice').value = item.oldPrice || '';
+  document.getElementById('aktInstallment').checked = !!item.installment;
+  const now = Date.now();
+  if(item.dealExpiresAt){
+    const hoursLeft = Math.max(0, Math.round((item.dealExpiresAt - now) / 3600000));
+    document.getElementById('aktDurationPicked').innerHTML = `Hozirgi muddat: ~<b>${hoursLeft} soat</b> qoldi. Yangi muddat tanlasangiz, HOZIRDAN shuncha soatga yangilanadi (tanlamasangiz — o'zgarmaydi).`;
+  }else{
+    document.getElementById('aktDurationPicked').innerHTML = `Hozir <b>muddatsiz</b>. Yangi muddat tanlasangiz, HOZIRDAN shuncha soatga o'rnatiladi.`;
+  }
+  aktRenderFinPanel(item);
+  document.getElementById('aktCancelBtn').style.display = 'inline-block';
+  const wrap = document.getElementById('aktFormWrap');
+  wrap.style.display = 'block';
+  document.getElementById('aktAddToggleBtn').classList.add('akt-add-btn-active');
+  wrap.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+document.getElementById('aktSaveBtn').addEventListener('click', async ()=>{
+  const hint = document.getElementById('aktFormHint');
+  const newPrice = Number(document.getElementById('aktNewPrice').value) || 0;
+  const oldPrice = Number(document.getElementById('aktOldPrice').value) || 0;
+  const installment = document.getElementById('aktInstallment').checked;
+  if(!newPrice){
     hint.textContent = "Aksiya narxini kiriting.";
     hint.className = 'code-hint bad';
     return;
   }
+  const btn = document.getElementById('aktSaveBtn');
+  btn.disabled = true;
   try{
-    const rawDigits = num.replace(/\D/g, '').slice(-9);
-    await db.collection('numbers').add({
-      number: num,
-      operator: '',
-      price: salePrice,
-      oldPrice: oldPrice,
-      onSale: oldPrice > salePrice,
-      installment: false,
-      featured: false,
-      dailyDeal: true,
-      monthlyTariff: 0,
-      tariffMonths: 0,
-      dealExpiresAt: null,
-      dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
-      ownershipTransfer: false,
-      recommended: false,
-      tag: 'oddiy',
-      last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
-      addedAt: Date.now(),
-      randomKey: Math.random()
-    });
+    if(aktEditingId){
+      // Mavjud aksiyani tahrirlash.
+      const patch = { price: newPrice, oldPrice, onSale: oldPrice > newPrice, installment };
+      if(aktDurationHours > 0) patch.dealExpiresAt = Date.now() + aktDurationHours * 3600 * 1000;
+      const finWrap = document.getElementById('aktFinPanelWrap');
+      if(finWrap){
+        [6,12,24].forEach(m=>{
+          patch['dealDown' + m] = Number(finWrap.querySelector(`.akt-fin-down[data-months="${m}"]`).value) || 0;
+          patch['dealMonthly' + m] = Number(finWrap.querySelector(`.akt-fin-monthly[data-months="${m}"]`).value) || 0;
+        });
+      }
+      await db.collection('numbers').doc(aktEditingId).update(patch);
+    }else if(aktSelectedNumberData){
+      // Qidiruvdan tanlangan MAVJUD raqamni aksiyaga qo'yish.
+      const patch = { price: newPrice, oldPrice, onSale: oldPrice > newPrice, installment, dailyDeal: true };
+      if(aktDurationHours > 0) patch.dealExpiresAt = Date.now() + aktDurationHours * 3600 * 1000;
+      await db.collection('numbers').doc(aktSelectedNumberData.id).update(patch);
+    }else{
+      // Hech narsa tanlanmagan — yozilgan raqam bilan YANGI yozuv yaratiladi
+      // (avvalgi #aksiyaList qo'shish formasi bilan bir xil xulq-atvor).
+      let num = (aktNumberSearchEl.value || '').trim();
+      if(!num){ hint.textContent = "Raqamni kiriting yoki ro'yxatdan tanlang."; hint.className = 'code-hint bad'; btn.disabled = false; return; }
+      if(!num.startsWith('+')) num = '+' + num;
+      const rawDigits = num.replace(/\D/g, '').slice(-9);
+      await db.collection('numbers').add({
+        number: num, operator: '', price: newPrice, oldPrice, onSale: oldPrice > newPrice,
+        installment, featured: false, dailyDeal: true, monthlyTariff: 0, tariffMonths: 0,
+        dealExpiresAt: aktDurationHours > 0 ? Date.now() + aktDurationHours * 3600 * 1000 : null,
+        dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
+        ownershipTransfer: false, recommended: false, tag: 'oddiy',
+        last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
+        addedAt: Date.now(), randomKey: Math.random()
+      });
+    }
     vibrate(80);
-    numberInput.value = '';
-    document.getElementById('aksNewSalePrice').value = '';
-    document.getElementById('aksNewOldPrice').value = '';
-    hint.textContent = '✅ Qo\'shildi';
+    hint.textContent = '✅ Saqlandi';
     hint.className = 'code-hint ok';
-    setTimeout(()=>{ hint.textContent = ''; hint.className = 'code-hint'; }, 1800);
+    document.getElementById('aktFormWrap').style.display = 'none';
+    document.getElementById('aktAddToggleBtn').classList.remove('akt-add-btn-active');
+    aktResetForm();
     refreshNumbers();
-  }catch(err){ alert('Qo\'shishda xato: ' + err.message); }
+  }catch(err){ alert('Saqlashda xato: ' + err.message); }
+  finally{ btn.disabled = false; }
 });
 
-function aksFinGroupHtml(item, months){
-  return `
-    <div class="op-fin-group">
-      <div class="op-fin-group-title">${months} oy</div>
-      <label>Bosh to'lov</label><input type="number" class="aks-down" data-months="${months}" value="${item['dealDown' + months] || 0}">
-      <label>Oylik to'lov</label><input type="number" class="aks-monthly" data-months="${months}" value="${item['dealMonthly' + months] || 0}">
-    </div>`;
-}
+document.querySelectorAll('.akt-switch-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.akt-switch-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const view = btn.dataset.view;
+    document.getElementById('aktGridActive').style.display = view === 'active' ? 'grid' : 'none';
+    document.getElementById('aktGridArchive').style.display = view === 'archive' ? 'grid' : 'none';
+  });
+});
 
-// Har bir "Bugungi aksiya" qatorini (faol yoki arxiv) chizadi. Arxivdagi
-// (muddati tugagan) raqamlarda qo'shimcha "🔁 Qayta joylash" tez tugmalari
-// chiqadi — bosilganda YANGI dealExpiresAt yozib, raqamni qaytadan
-// faollashtiradi (dailyDeal allaqachon true bo'lgani uchun boshqa hech
-// narsa o'zgarmaydi — sayt/bot buni darhol "faol aksiya" deb qabul qiladi).
-function aksRowHtml(item, isExpired, hoursLeft){
-  return `
-    <div class="admin-row-collapsed${isExpired ? ' aks-expired' : ''}" data-id="${item.id}">
-      <div class="an-summary" data-id="${item.id}">
-        <span class="an-summary-num">${escapeHtml(item.number)}</span>
-        <span class="an-summary-price">${formatPrice(item.price)}</span>
-        ${item.oldPrice ? `<span class="an-summary-op" style="text-decoration:line-through;opacity:.6;">${formatPrice(item.oldPrice)}</span>` : ''}
-        ${isExpired ? `<span class="aks-expired-badge">⏱ Muddati tugagan</span>` : ''}
-        <span class="an-summary-arrow">▾</span>
-      </div>
-      <div class="an-body" style="display:none;">
-        ${isExpired ? `
-        <div class="aks-repost-row" data-id="${item.id}">
-          <span class="aks-repost-label">🔁 Qayta joylash:</span>
-          <button type="button" class="aks-repost-btn" data-hours="1">1 soat</button>
-          <button type="button" class="aks-repost-btn" data-hours="3">3 soat</button>
-          <button type="button" class="aks-repost-btn" data-hours="12">12 soat</button>
-          <button type="button" class="aks-repost-btn" data-hours="24">24 soat</button>
-          <button type="button" class="aks-repost-btn" data-hours="72">3 kun</button>
-          <button type="button" class="aks-repost-btn aks-repost-custom">Boshqa...</button>
-        </div>` : ''}
-        <div class="admin-row aks-row" data-id="${item.id}">
-          <input class="aks-number" value="${escapeHtml(item.number)}">
-          <input class="aks-saleprice" type="number" placeholder="Aksiya narxi" value="${item.price || 0}">
-          <input class="aks-oldprice" type="number" placeholder="Eski narxi" value="${item.oldPrice || 0}">
-          <button class="aks-save">Saqlash</button>
-          <button class="aks-delete">O'chirish</button>
-          <div class="an-extra">
-            <label for="aks-hours-${item.id}" style="display:block;font-size:12px;color:var(--muted);font-weight:700;margin:8px 0 4px;">⏱ Necha soatdan keyin aksiya tugaydi (bo'lmasa bo'sh qoldiring${hoursLeft !== '' ? ' — hozir ~' + hoursLeft + ' soat qoldi' : ''})</label>
-            <input type="number" id="aks-hours-${item.id}" class="aks-hours" placeholder="Masalan: 24">
-            <button type="button" class="op-fin-toggle aks-fin-toggle" style="width:100%;margin:10px 0 0;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
-              <span>Bo'lib to'lash (ixtiyoriy)</span><span style="display:inline-block;">▾</span>
-            </button>
-            <div class="op-fin-panel aks-fin-panel" style="display:none;margin-top:8px;">
-              ${aksFinGroupHtml(item, 6)}
-              ${aksFinGroupHtml(item, 12)}
-              ${aksFinGroupHtml(item, 24)}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function renderAksiyaList(){
-  const list = document.getElementById('aksiyaList');
-  if(!list) return;
-  const allItems = (currentNumbersCache || []).filter(n => n.dailyDeal);
-  if(allItems.length === 0){
-    list.innerHTML = `<div class="empty-admin">Hali "Bugungi aksiya"ga raqam qo'shilmagan.</div>`;
-    return;
+// Bitta aksiya kartochkasi — faol bo'lsa jonli taymer (.vz-countdown, xuddi
+// "Vazifalar" bo'limidagi bilan bir xil uslub va avtomatik yangilanish),
+// arxivda bo'lsa "🔁 Qayta joylash" tez tugmalari.
+function aktCardHtml(item, isExpired){
+  const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+  let timerHtml;
+  if(item.dealExpiresAt && !isExpired){
+    const { text, cls } = vzFormatCountdown(item.dealExpiresAt);
+    timerHtml = `<div class="akt-card-timer">⏱ <span class="vz-countdown ${cls}" data-due="${item.dealExpiresAt}">${text}</span></div>`;
+  }else if(isExpired){
+    timerHtml = `<div class="akt-card-timer">⏱ Muddati tugagan</div>`;
+  }else{
+    timerHtml = `<div class="akt-card-timer">♾ Muddatsiz</div>`;
   }
+  const repostBlock = isExpired ? `
+    <div class="akt-repost-toggle-wrap">
+      <button type="button" class="akt-repost-toggle" data-id="${item.id}">🔁 Qayta joylash</button>
+    </div>
+    <div class="akt-repost-row" data-id="${item.id}" style="display:none;">
+      <button type="button" class="akt-repost-btn2" data-hours="1">1 soat</button>
+      <button type="button" class="akt-repost-btn2" data-hours="3">3 soat</button>
+      <button type="button" class="akt-repost-btn2" data-hours="12">12 soat</button>
+      <button type="button" class="akt-repost-btn2" data-hours="24">24 soat</button>
+      <button type="button" class="akt-repost-btn2" data-hours="72">3 kun</button>
+      <button type="button" class="akt-repost-custom2">Boshqa...</button>
+    </div>` : '';
+  return `
+    <div class="akt-card${isExpired ? ' akt-card-expired' : ''}" data-id="${item.id}">
+      <div class="akt-card-top">
+        <span class="akt-card-num">${escapeHtml(item.number)}</span>
+        <span class="akt-card-badge ${isExpired ? 'akt-badge-expired' : 'akt-badge-active'}">${isExpired ? 'Arxiv' : 'Faol'}</span>
+      </div>
+      <div class="akt-card-prices">
+        <span class="akt-card-price">${formatPrice(item.price)}</span>
+        ${hasDiscount ? `<span class="akt-card-oldprice">${formatPrice(item.oldPrice)}</span>` : ''}
+      </div>
+      ${timerHtml}
+      ${item.installment ? `<div class="akt-card-installment">💳 Bo'lib to'lash mavjud</div>` : ''}
+      ${repostBlock}
+      <div class="akt-card-actions">
+        <button type="button" class="akt-edit-btn" data-id="${item.id}">✏️ Tahrirlash</button>
+        <button type="button" class="akt-delete-btn" data-id="${item.id}">🗑</button>
+      </div>
+    </div>`;
+}
+
+// "Aksiya" tabining bosh render funksiyasi — refreshNumbers() har safar
+// (Raqamlar ro'yxati yangilanganda) va shu tab ochilganda chaqiriladi,
+// chunki ma'lumot bir xil 'numbers' kolleksiyasidan (dailyDeal:true) olinadi.
+function renderAksiyaTab(){
+  const gridActive = document.getElementById('aktGridActive');
+  const gridArchive = document.getElementById('aktGridArchive');
+  if(!gridActive || !gridArchive) return;
+  const allItems = (currentNumbersCache || []).filter(n => n.dailyDeal);
   const now = Date.now();
-  // Faol: taymer yo'q (muddatsiz) YOKI hali tugamagan. Arxiv: taymer o'tib ketgan.
   const active  = allItems.filter(n => !n.dealExpiresAt || n.dealExpiresAt > now);
   const expired = allItems.filter(n => n.dealExpiresAt && n.dealExpiresAt <= now);
 
-  const activeHtml = active.length
-    ? active.map(item => aksRowHtml(item, false, item.dealExpiresAt ? Math.max(0, Math.round((item.dealExpiresAt - now) / 3600000)) : '')).join('')
-    : `<div class="empty-admin">Hozir faol aksiya yo'q.</div>`;
-  const expiredHtml = expired.length
-    ? expired.map(item => aksRowHtml(item, true, '')).join('')
-    : `<div class="empty-admin">Arxivda raqam yo'q.</div>`;
+  document.getElementById('aktActiveCount').textContent = active.length;
+  document.getElementById('aktArchiveCount').textContent = expired.length;
 
-  list.innerHTML = `
-    <div class="aks-list-heading">🔥 Faol aksiyalar (${active.length})</div>
-    ${activeHtml}
-    <div class="aks-list-heading aks-list-heading-archive">🗂 Muddati tugagan / arxiv (${expired.length})</div>
-    ${expiredHtml}
-  `;
+  gridActive.innerHTML = active.length
+    ? active.map(item => aktCardHtml(item, false)).join('')
+    : `<div class="akt-empty"><b>🔥</b>Hozir faol aksiya yo'q.<br>Yangi aksiya qo'shish uchun yuqoridagi tugmani bosing.</div>`;
+  gridArchive.innerHTML = expired.length
+    ? expired.map(item => aktCardHtml(item, true)).join('')
+    : `<div class="akt-empty"><b>🗂</b>Arxivda hali hech narsa yo'q.</div>`;
 
-  list.querySelectorAll('.aks-repost-btn:not(.aks-repost-custom)').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const id = btn.closest('.aks-repost-row').dataset.id;
-      const hours = Number(btn.dataset.hours);
-      if(!confirm(`Ushbu raqam yana ${hours} soatga aksiyaga qo'yilsinmi?`)) return;
-      try{
-        await db.collection('numbers').doc(id).update({ dealExpiresAt: Date.now() + hours * 3600 * 1000 });
-        vibrate(80);
-        refreshNumbers();
-      }catch(err){ alert('Qayta joylashda xato: ' + err.message); }
-    });
-  });
-  list.querySelectorAll('.aks-repost-custom').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const id = btn.closest('.aks-repost-row').dataset.id;
-      const hoursStr = prompt("Necha SOATga qayta joylansin? (masalan: 48)");
-      const hours = Number(hoursStr);
-      if(!hours || hours <= 0) return;
-      try{
-        await db.collection('numbers').doc(id).update({ dealExpiresAt: Date.now() + hours * 3600 * 1000 });
-        vibrate(80);
-        refreshNumbers();
-      }catch(err){ alert('Qayta joylashda xato: ' + err.message); }
-    });
-  });
-
-  list.querySelectorAll('.an-summary').forEach(summary=>{
-    summary.addEventListener('click', ()=>{
-      const wrap = summary.closest('.admin-row-collapsed');
-      const body = wrap.querySelector('.an-body');
-      const arrow = summary.querySelector('.an-summary-arrow');
-      const isOpen = body.style.display !== 'none';
-      body.style.display = isOpen ? 'none' : 'block';
-      arrow.textContent = isOpen ? '▾' : '▴';
-    });
-  });
-  list.querySelectorAll('.aks-fin-toggle').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const panel = btn.nextElementSibling;
-      const isOpen = panel.style.display !== 'none';
-      panel.style.display = isOpen ? 'none' : 'grid';
-      btn.classList.toggle('active', !isOpen);
-    });
-  });
-  list.querySelectorAll('.aks-save').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const row = btn.closest('.aks-row');
-      const id = row.dataset.id;
-      let numVal = row.querySelector('.aks-number').value.trim();
-      if(numVal && !numVal.startsWith('+')) numVal = '+' + numVal;
-      const salePrice = Number(row.querySelector('.aks-saleprice').value) || 0;
-      const oldPrice = Number(row.querySelector('.aks-oldprice').value) || 0;
-      const hoursVal = Number(row.querySelector('.aks-hours').value) || 0;
-      const patch = {
-        number: numVal,
-        price: salePrice,
-        oldPrice: oldPrice,
-        onSale: oldPrice > salePrice
-      };
-      // Taymer maydoni bo'sh qoldirilsa — mavjud muddat o'zgarmaydi;
-      // qiymat kiritilsa, HOZIRDAN boshlab shuncha soatga yangilanadi.
-      if(hoursVal > 0) patch.dealExpiresAt = Date.now() + hoursVal * 3600 * 1000;
-      [6,12,24].forEach(m=>{
-        const downInp = row.querySelector(`.aks-down[data-months="${m}"]`);
-        const monthlyInp = row.querySelector(`.aks-monthly[data-months="${m}"]`);
-        patch['dealDown' + m] = Number(downInp.value) || 0;
-        patch['dealMonthly' + m] = Number(monthlyInp.value) || 0;
+  [gridActive, gridArchive].forEach(grid=>{
+    grid.querySelectorAll('.akt-edit-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const item = allItems.find(n => n.id === btn.dataset.id);
+        if(item) aktOpenEdit(item);
       });
-      try{
-        await db.collection('numbers').doc(id).update(patch);
-        btn.textContent = '✓ Saqlandi';
-        btn.classList.add('saved-flash');
-        vibrate(80);
-        setTimeout(()=>{ btn.textContent = 'Saqlash'; btn.classList.remove('saved-flash'); refreshNumbers(); }, 900);
-      }catch(err){ alert('Saqlashda xato: ' + err.message); }
     });
-  });
-  list.querySelectorAll('.aks-delete').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const row = btn.closest('.aks-row');
-      if(!confirm('Rostdan ham o\'chirilsinmi?')) return;
-      try{
-        await db.collection('numbers').doc(row.dataset.id).delete();
-        refreshNumbers();
-      }catch(err){ alert('O\'chirishda xato: ' + err.message); }
+    grid.querySelectorAll('.akt-delete-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Ushbu aksiyani (raqamni) o'chirishni tasdiqlaysizmi?")) return;
+        try{
+          await db.collection('numbers').doc(btn.dataset.id).delete();
+          vibrate(80);
+          refreshNumbers();
+        }catch(err){ alert("O'chirishda xato: " + err.message); }
+      });
+    });
+    grid.querySelectorAll('.akt-repost-toggle').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const row = btn.closest('.akt-card').querySelector('.akt-repost-row');
+        row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+      });
+    });
+    grid.querySelectorAll('.akt-repost-btn2').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.closest('.akt-repost-row').dataset.id;
+        const hours = Number(btn.dataset.hours);
+        if(!confirm(`Ushbu raqam yana ${hours} soatga aksiyaga qo'yilsinmi?`)) return;
+        try{
+          await db.collection('numbers').doc(id).update({ dealExpiresAt: Date.now() + hours * 3600 * 1000 });
+          vibrate(80);
+          refreshNumbers();
+        }catch(err){ alert('Qayta joylashda xato: ' + err.message); }
+      });
+    });
+    grid.querySelectorAll('.akt-repost-custom2').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.closest('.akt-repost-row').dataset.id;
+        const hoursStr = prompt("Necha SOATga qayta joylansin? (masalan: 48)");
+        const hours = Number(hoursStr);
+        if(!hours || hours <= 0) return;
+        try{
+          await db.collection('numbers').doc(id).update({ dealExpiresAt: Date.now() + hours * 3600 * 1000 });
+          vibrate(80);
+          refreshNumbers();
+        }catch(err){ alert('Qayta joylashda xato: ' + err.message); }
+      });
     });
   });
 }
@@ -7827,10 +8363,10 @@ newNumberInput.addEventListener('input', ()=>{
   }
 });
 
-// Mijoz iltimosiga ko'ra "Bugungi aksiya" endi shu umumiy formadan OLIB
-// TASHLANDI — pastda (#aksiyaList) o'zining ALOHIDA, sodda (Raqam/Aksiya
-// narxi/Eski narxi) qo'shish bo'limi bor. Shu sabab bu yerdagi
-// "onDeal"/"dailyDeal" har doim FALSE bo'ladi.
+// Mijoz iltimosiga ko'ra "Aksiya" endi shu umumiy formadan OLIB TASHLANDI —
+// o'zining ALOHIDA tabida ("Aksiya", Raqamlar tabidan keyin) to'liq tsikl
+// bilan boshqariladi. Shu sabab bu yerdagi "onDeal"/"dailyDeal" har doim
+// FALSE bo'ladi.
 document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
   const numberInput = document.getElementById('newNumber');
   let num = numberInput.value.trim();

@@ -74,65 +74,6 @@
 }
 </script>
 
-<!-- Tez-tez so'raladigan savollar — saytdagi (tanaga qarang: #faqSection) ko'rinadigan
-     FAQ bo'limi bilan AYNAN bir xil matn (Google talabiga ko'ra, sahifada ko'rinmaydigan
-     matn uchun FAQ rich-snippet berilmaydi). -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "VIP yoki chiroyli raqamni qanday sotib olsam bo'ladi?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Saytdagi katalogdan yoqqan raqamni tanlang, \"Buyurtma berish\" tugmasini bosing va ism, hudud hamda telefon raqamingizni qoldiring — operatorimiz tez orada siz bilan bog'lanib, buyurtmani rasmiylashtiradi."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Raqamni bo'lib to'lab sotib olsam bo'ladimi?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Ha, ko'plab raqamlar uchun bosh to'lov va oylik to'lovlar asosida bo'lib to'lash (kredit) imkoniyati mavjud — tanlagan muddat va tarifingizga qarab hisoblanadi."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Qaysi operatorlarning raqamlari mavjud?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Beeline, Ucell, Uzmobile, Mobiuz, Humans va Perfektum operatorlarining chiroyli, oltin va VIP raqamlari katalogda taqdim etiladi."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Yetkazib berish qanday ishlaydi?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "O'zbekiston bo'ylab yetkazib berish xizmati mavjud — buyurtma tasdiqlangach, raqam sizga qulay manzilga yetkazib beriladi."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Raqam qachon mening nomimga rasmiylashtiriladi?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Buyurtma tasdiqlangach, operatorimiz siz bilan bog'lanib, kerakli hujjatlar asosida raqamni rasmiy tartibda nomingizga o'tkazib beradi."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Sotib olishdan oldin raqam qanday ko'rinishini bilsam bo'ladimi?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Ha, saytdagi \"Raqamingiz qanday ko'rinadi?\" funksiyasi orqali tanlagan raqamingiz chaqiruv ekranida qanday chiqishini oldindan ko'rishingiz mumkin."
-      }
-    }
-  ]
-}
-</script>
 <script>
 /* Sahifa hali chizilmasdan turib, oxirgi saqlangan rang mavzusini darhol
    qo'llaymiz — shunda mijoz "standart rang -> tanlangan rang" o'tishini
@@ -2785,6 +2726,32 @@
     width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
     background:var(--panel-2);color:var(--text);font-size:13.5px;
   }
+  .contract-modal textarea{
+    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:13.5px;font-family:inherit;resize:vertical;
+  }
+
+  /* ---- "Vakansiya" bo'limi (mijoz sayti) — ochiq ish o'rinlari ro'yxati
+     va ariza formasi, xuddi shu `.contract-overlay`/.contract-modal
+     naqshida (eski @keyframes animatsiyalarsiz, faqat CSS transition). ---- */
+  .vac-empty{text-align:center;padding:36px 10px;color:var(--muted);}
+  .vac-empty-icon{font-size:34px;margin-bottom:10px;}
+  .vac-empty-title{color:var(--text);font-weight:700;font-size:14px;margin-bottom:6px;}
+  .vac-empty-sub{font-size:12px;line-height:1.5;max-width:260px;margin:0 auto;}
+  .vac-list{display:flex;flex-direction:column;gap:10px;}
+  .vac-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .vac-card-title{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;color:var(--text);margin-bottom:6px;}
+  .vac-card-desc{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:10px;white-space:pre-wrap;}
+  .vac-card-salary{font-size:13px;color:var(--amber);font-weight:700;margin-bottom:12px;}
+  .vac-locked-field{
+    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--muted);font-size:13.5px;
+  }
+  .vac-consent{
+    display:flex;align-items:flex-start;gap:9px;margin:14px 0 6px;font-size:11.5px;
+    color:var(--muted);line-height:1.5;cursor:pointer;
+  }
+  .vac-consent input{width:16px;height:16px;flex:none;margin-top:1px;accent-color:var(--amber);cursor:pointer;}
 
   .cr-summary{
     background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
@@ -2941,30 +2908,6 @@
     text-align:center;color:var(--muted);font-size:12px;padding:22px 20px 28px;border-top:1px solid var(--line);
   }
   footer a{color:var(--amber);}
-
-  /* ---- "Ko'p so'raladigan savollar" (FAQ) bo'limi ---- */
-  .faq-section{max-width:720px;margin:8px auto 0;padding:0 16px 8px;}
-  .faq-title{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(19px,4.6vw,25px);
-    text-align:center;margin:0 0 16px;color:var(--text);
-  }
-  .faq-item{
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    margin-bottom:10px;overflow:hidden;
-  }
-  .faq-item summary{
-    padding:14px 42px 14px 16px;cursor:pointer;font-weight:700;font-size:14px;
-    color:var(--text);list-style:none;position:relative;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .faq-item summary::-webkit-details-marker{display:none;}
-  .faq-item summary::after{
-    content:'';position:absolute;right:16px;top:50%;width:9px;height:9px;
-    border-right:2px solid var(--amber);border-bottom:2px solid var(--amber);
-    transform:translateY(-65%) rotate(45deg);transition:transform .2s ease;
-  }
-  .faq-item[open] summary::after{transform:translateY(-35%) rotate(-135deg);}
-  .faq-item p{margin:0;padding:0 16px 16px;color:var(--muted);font-size:13px;line-height:1.55;}
 
   @media (max-width:560px){
     .catalog{
@@ -3683,6 +3626,62 @@ html.theme-purple-premium .card button.order-btn{
       <span class="hub-btn-title" data-i18n="aboutUs">Biz haqimizda</span>
       <span class="hub-btn-sub" data-i18n="aboutUsSub">Kompaniyamiz va aloqa ma'lumotlari</span>
     </button>
+    <button type="button" class="hub-btn" id="hubBtnVacancy">
+      <span class="hub-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
+      <span class="hub-btn-title" data-i18n="vacancyTitle">💼 Vakansiya</span>
+      <span class="hub-btn-sub" data-i18n="vacancySub">Bizga qo'shiling — ochiq ish o'rinlari</span>
+    </button>
+  </div>
+</div>
+
+<div class="contract-overlay" id="vacancyOverlay">
+  <div class="contract-modal">
+    <div class="contract-top">
+      <span class="contract-title" id="vacancyOverlayTitle" data-i18n="vacancyTitle">💼 Vakansiya</span>
+      <button class="drawer-close" id="vacancyClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+      </button>
+    </div>
+
+    <!-- 1-ko'rinish: ochiq vakansiyalar ro'yxati (yoki bo'sh holat) -->
+    <div id="vacancyListView">
+      <div class="vac-list" id="vacancyListInner"></div>
+    </div>
+
+    <!-- 2-ko'rinish: tanlangan vakansiyaga ariza formasi -->
+    <div id="vacancyFormView" style="display:none;">
+      <p class="co-intro" data-i18n="vacFormIntro">Ariza qoldiring — operatorlarimiz siz bilan tez orada bog'lanishadi.</p>
+      <label data-i18n="vacFormPositionLabel">Qaysi lavozimga</label>
+      <input type="text" id="vacFormPosition" class="vac-locked-field" readonly>
+      <label for="vacFormName" data-i18n="fullNameLabel">Ism va familiyangiz</label>
+      <input type="text" id="vacFormName" placeholder="Ism Familiya">
+      <label for="vacFormPhone" data-i18n="currentPhoneLabel2">Telefon raqamingiz</label>
+      <input type="text" id="vacFormPhone" placeholder="90 123-45-67" inputmode="numeric">
+      <label for="vacFormExperience" data-i18n="vacFormExperienceLabel">Tajribangiz / o'zingiz haqingizda qisqacha</label>
+      <textarea id="vacFormExperience" rows="4" placeholder="Ixtiyoriy"></textarea>
+      <label class="vac-consent" for="vacFormConsent">
+        <input type="checkbox" id="vacFormConsent">
+        <span data-i18n="vacConsentText">Shaxsiy ma'lumotlarimni ariza ko'rib chiqish maqsadida qayta ishlashga roziman</span>
+      </label>
+      <div class="field-error" id="vacFormError" data-i18n="fillAllFields">Barcha maydonlarni to'ldiring</div>
+      <div class="co-nav-row">
+        <button class="btn-confirm contract-search-btn" id="vacFormBack" style="background:var(--panel-2);color:var(--text);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          <span data-i18n="back">Orqaga</span>
+        </button>
+        <button class="btn-confirm contract-search-btn" id="vacFormSubmit" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg>
+          <span data-i18n="submit">Yuborish</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-ko'rinish: ariza muvaffaqiyatli yuborilgani -->
+    <div id="vacancySuccessView" style="display:none;text-align:center;padding:10px 0;">
+      <div style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" style="width:52px;height:52px;"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5.5-6"/></svg></div>
+      <p style="font-size:13.5px;line-height:1.6;" data-i18n="vacSuccessText">Arizangiz qabul qilindi! Tez orada siz bilan bog'lanamiz.</p>
+      <button class="btn-confirm contract-search-btn" id="vacCloseSuccess" style="width:100%;margin-top:14px;"><span data-i18n="close">Yopish</span></button>
+    </div>
   </div>
 </div>
 
@@ -4048,42 +4047,6 @@ html.theme-purple-premium .card button.order-btn{
   </div>
 </div>
 
-<!-- Tez-tez so'raladigan savollar — SEO uchun (Google'da FAQ rich-snippet
-     sifatida chiqishi mumkin, qarang: yuqoridagi FAQPage JSON-LD — matn
-     AYNAN bir xil bo'lishi shart) va mijozlar uchun ham foydali. Har doim
-     sahifada, qaysi bo'lim (ASOSIY/VIP/STANDART) ochiq bo'lishidan qat'i
-     nazar ko'rinadi. Oddiy <details>/<summary> ishlatilgan — JavaScript'siz
-     ham ishlaydi, qidiruv tizimlari uchun eng ishonchli/tushunarli usul. -->
-<section class="faq-section" id="faqSection">
-  <h2 class="faq-title">Ko'p so'raladigan savollar</h2>
-  <div class="faq-list">
-    <details class="faq-item">
-      <summary>VIP yoki chiroyli raqamni qanday sotib olsam bo'ladi?</summary>
-      <p>Saytdagi katalogdan yoqqan raqamni tanlang, "Buyurtma berish" tugmasini bosing va ism, hudud hamda telefon raqamingizni qoldiring — operatorimiz tez orada siz bilan bog'lanib, buyurtmani rasmiylashtiradi.</p>
-    </details>
-    <details class="faq-item">
-      <summary>Raqamni bo'lib to'lab sotib olsam bo'ladimi?</summary>
-      <p>Ha, ko'plab raqamlar uchun bosh to'lov va oylik to'lovlar asosida bo'lib to'lash (kredit) imkoniyati mavjud — tanlagan muddat va tarifingizga qarab hisoblanadi.</p>
-    </details>
-    <details class="faq-item">
-      <summary>Qaysi operatorlarning raqamlari mavjud?</summary>
-      <p>Beeline, Ucell, Uzmobile, Mobiuz, Humans va Perfektum operatorlarining chiroyli, oltin va VIP raqamlari katalogda taqdim etiladi.</p>
-    </details>
-    <details class="faq-item">
-      <summary>Yetkazib berish qanday ishlaydi?</summary>
-      <p>O'zbekiston bo'ylab yetkazib berish xizmati mavjud — buyurtma tasdiqlangach, raqam sizga qulay manzilga yetkazib beriladi.</p>
-    </details>
-    <details class="faq-item">
-      <summary>Raqam qachon mening nomimga rasmiylashtiriladi?</summary>
-      <p>Buyurtma tasdiqlangach, operatorimiz siz bilan bog'lanib, kerakli hujjatlar asosida raqamni rasmiy tartibda nomingizga o'tkazib beradi.</p>
-    </details>
-    <details class="faq-item">
-      <summary>Sotib olishdan oldin raqam qanday ko'rinishini bilsam bo'ladimi?</summary>
-      <p>Ha, saytdagi "Raqamingiz qanday ko'rinadi?" funksiyasi orqali tanlagan raqamingiz chaqiruv ekranida qanday chiqishini oldindan ko'rishingiz mumkin.</p>
-    </details>
-  </div>
-</section>
-
 <footer>&copy; 2026 VIP RAQAMLAR (vipraqamlar.uz). Barcha huquqlar himoyalangan. &nbsp;|&nbsp; <a href="https://t.me/Vip_raqamlar_admin" target="_blank" rel="noopener">Telegram: @Vip_raqamlar_admin</a></footer>
 
 <!-- FIREBASE (mijoz sayti va admin sayti bir xil bazani ishlatadi) -->
@@ -4238,6 +4201,21 @@ function formatPrice(n){
 function formatPriceUzs(n){
   const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
   return num + (window.currentLangMode === 'ru' ? " сум" : " so'm");
+}
+// YAGONA "chegirma faolmi?" tekshiruvi — BUTUN saytda (katalog kartalari,
+// raqam modali, "Bugungi aksiya", sevimlilar, buyurtma xulosasi va h.k.)
+// shu funksiya orqali aniqlanadi, toki hammasi bir xil qoidaga bo'ysunsin.
+// Oddiy (dailyDeal bo'lmagan) raqamda oldPrice qo'lda ("Eski narx")
+// belgilangan bo'lsa — bu doimiy chegirma, muddatsiz faol hisoblanadi.
+// "Bugungi aksiya" raqamida esa (dailyDeal===true) chegirma FAQAT
+// muddat (dealExpiresAt) hali o'tmagan bo'lsa faol — bu AYNAN
+// renderDailyDeal()dagi "picks" filtridagi shart bilan bir xil, shu
+// sabab taymer tugagan zahoti eski narx (chizilgan) qatori ham
+// butun saytda birdek yo'qoladi.
+function hasActiveDiscount(item){
+  if(!item || !item.oldPrice || !(item.oldPrice > item.price)) return false;
+  if(item.dailyDeal === true && item.dealExpiresAt && item.dealExpiresAt <= Date.now()) return false;
+  return true;
 }
 // "Bo'lib to'lash" belgilangan raqamlar uchun — admin panelda belgilangan
 // foiz (installmentRates) asosida, berilgan muddat (months) uchun oylik
@@ -4412,21 +4390,26 @@ function initNewNumberWatcher(){
 }
 
 let __nnToastTimer = null;
-function showNewNumberToast(item){
+// opts.dealUpdate=true — bu YANGI raqam emas, balki ALLAQACHON bazada
+// bo'lgan raqam hozirgina aksiyaga qo'yilgani/aksiya narxi yangilangani
+// haqidagi toast (qarang: initDailyDealWatcher). Bir xil karta/animatsiya,
+// faqat matn boshqacha — alohida toast UI YOZILMAYDI.
+function showNewNumberToast(item, opts){
   const wrap = document.getElementById('newNumberToast');
   if(!wrap || !item || !item.number) return;
 
   const isDeal = item.dailyDeal === true;
-  const label = isDeal
-    ? "raqami aksiyada sotuvga qo'yildi"
-    : "raqami sotuvga qo'yildi";
+  const isDealUpdate = !!(opts && opts.dealUpdate);
+  const label = isDealUpdate
+    ? "raqami aksiyada — narxi tushirildi!"
+    : (isDeal ? "raqami aksiyada sotuvga qo'yildi" : "raqami sotuvga qo'yildi");
 
   wrap.innerHTML = `
     <div class="nn-toast-card" role="button" tabindex="0">
-      <div class="nn-toast-icon">${isDeal ? '🔥' : '✨'}</div>
+      <div class="nn-toast-icon">${isDeal || isDealUpdate ? '🔥' : '✨'}</div>
       <div class="nn-toast-body">
         <div class="nn-toast-label">${escapeHtml(displayNumber(item.number))} ${label}</div>
-        <div class="nn-toast-num">${isDeal ? 'Aksiya narxi' : 'Yangi e\'lon'}</div>
+        <div class="nn-toast-num">${isDeal || isDealUpdate ? 'Aksiya narxi' : 'Yangi e\'lon'}</div>
       </div>
       <div class="nn-toast-price">${formatPrice(item.price)}</div>
     </div>`;
@@ -4461,6 +4444,87 @@ function showNewNumberToast(item){
     requestAnimationFrame(() => { wrap.classList.add('nn-toast-in'); });
   });
   __nnToastTimer = setTimeout(() => { __nnToastTimer = null; hide(); }, 3000);
+}
+
+/* ==================================================================
+   "AKSIYA DARHOL SAYTDA KO'RINSIN" — botda "🔥 Aksiya raqam joylash"
+   orqali "Joylash" bosilgan zahoti (mijoz to'liq sahifani yangilamasa
+   ham) katalogda/"Bugungi aksiya"da yangi narx darhol ko'rinishi kerak.
+   Yuqoridagi initNewNumberWatcher() FAQAT haqiqiy YANGI hujjatlarni
+   (docChanges type==='added', addedAt bo'yicha eng oxirgisi) kuzatadi —
+   ALLAQACHON bazada bo'lgan raqamga dailyDeal:true yozilishi bu
+   tinglovchi uchun umuman ko'rinmaydi (chunki hujjat addedAt bo'yicha
+   "eng oxirgisi" bo'lmasligi mumkin va, undan tashqari, bu funksiya
+   raqamning narxini o'zgartirmaydi — faqat "yangi raqam qo'shildi"
+   holatini kuzatadi).
+   Shu sabab BUTUN 'numbers' to'plamini emas, FAQAT hozir FAOL bo'lgan
+   aksiya hujjatlarini (where dailyDeal==true) kuzatuvchi ALOHIDA, juda
+   KICHIK real-vaqt tinglovchisi qo'shiladi — aksiyadagi raqamlar soni
+   har doim kichik bo'lgani uchun bu butun bazani tinglashdek "og'ir"
+   emas (loyihada BELGILANGAN qoidaga mos: hech qachon butun 'numbers'
+   to'plami tinglanmaydi/yuklanmaydi, faqat kichik filtrlangan qism).
+
+   IKKALA MARTA TOAST CHIQMASLIGI (dedup): Firestore'ning `where`
+   so'rovi nuqtai nazaridan, dailyDeal FALSE'dan TRUE'ga o'tgan har
+   qanday hujjat (u YANGI qo'shilgan bo'lsinmi, ESKI, ancha oldin
+   qo'shilgan raqam bo'lsinmi — farqi yo'q) shu tinglovchi uchun HAM
+   docChanges() type==='added' bo'lib keladi (chunki so'rov natijasiga
+   ENDI kirdi). Shu sababli type bilan farqlab bo'lmaydi — buning o'rniga
+   hujjatning `addedAt` maydoniga qaraymiz: agar hujjat FAQAT SO'NGGI
+   bir necha soniyada qo'shilgan bo'lsa (isFreshlyCreated), demak bu
+   HAQIQIY yangi raqam — uni yuqoridagi initNewNumberWatcher() ALLAQACHON
+   alohida toast bilan e'lon qildi (yoki hozir qiladi), shu sabab BU YERDA
+   qayta toast chiqarilmaydi. Aks holda (addedAt eski, yoki type
+   'modified' — ya'ni aksiya ro'yxatida allaqachon bo'lgan raqamning
+   narxi/muddati yangilandi) — bu ANIQ "eski raqam hozir aksiyaga
+   qo'yildi/yangilandi" holati, shu holat uchun toast (matni
+   moslashtirilgan holda) ko'rsatiladi. Birinchi snapshot (sahifa
+   ochilganda ALLAQACHON faol bo'lgan aksiyalar) — initNewNumberWatcher
+   bilan bir xil sababga ko'ra — HECH QACHON toast chiqarmaydi. */
+let __ddFirstSnapshot = true;
+const DD_FRESH_WINDOW_MS = 15000; // shundan kam bo'lsa "hozirgina qo'shilgan" deb hisoblanadi
+
+function upsertNumberInMemory(item){
+  if(!Array.isArray(NUMBERS) || !item || !item.id) return;
+  const idx = NUMBERS.findIndex(n => n.id === item.id);
+  if(idx >= 0) NUMBERS[idx] = { ...NUMBERS[idx], ...item };
+  else NUMBERS.push(item);
+}
+
+// Mavjud render funksiyalari qayta ishlatiladi (yangisi yozilmaydi) —
+// xuddi buyurtma xatosidan keyingi to'liq qayta chizish bilan bir xil
+// naqsh (qarang: "Kechirasiz, bu raqamni ayni damda..." xato holati).
+function rerenderAfterDealChange(){
+  try{ renderCatalog(); }catch(e){ console.error('rerenderAfterDealChange: renderCatalog xato:', e); }
+  try{ renderFeatured(); }catch(e){ console.error('rerenderAfterDealChange: renderFeatured xato:', e); }
+  try{ renderDailyDeal(); }catch(e){ console.error('rerenderAfterDealChange: renderDailyDeal xato:', e); }
+  try{ renderRecommended(); }catch(e){ console.error('rerenderAfterDealChange: renderRecommended xato:', e); }
+  try{ renderAsosiyPremium(); }catch(e){ console.error('rerenderAfterDealChange: renderAsosiyPremium xato:', e); }
+  try{ renderAsosiyHero(); }catch(e){ console.error('rerenderAfterDealChange: renderAsosiyHero xato:', e); }
+}
+
+function initDailyDealWatcher(){
+  try{
+    db.collection('numbers').where('dailyDeal', '==', true)
+      .onSnapshot(snap => {
+        const isFirst = __ddFirstSnapshot;
+        __ddFirstSnapshot = false;
+        let changed = false;
+        snap.docChanges().forEach(change => {
+          if(change.type === 'removed') return; // dailyDeal endi false — keyingi to'liq yuklashda o'zi tushib qoladi
+          const item = { id: change.doc.id, ...change.doc.data() };
+          upsertNumberInMemory(item);
+          changed = true;
+          if(isFirst) return;
+          const addedAt = Number(item.addedAt) || 0;
+          const isFreshlyCreated = (Date.now() - addedAt) < DD_FRESH_WINDOW_MS;
+          if(change.type === 'modified' || !isFreshlyCreated){
+            showNewNumberToast(item, { dealUpdate: true });
+          }
+        });
+        if(changed && !isFirst) rerenderAfterDealChange();
+      }, err => { console.error('Aksiya tinglovchisi xato:', err); });
+  }catch(e){ console.error('initDailyDealWatcher xato:', e); }
 }
 
 const catalogEl      = document.getElementById('catalog');
@@ -4586,7 +4650,7 @@ const OPERATOR_META = {
 // ASOSIY karuselida kerak — oldindan ko'rish oynasida shart emas).
 function heroCardInnerHtml(item, withViewBtn, hidePrice, suppressRegisterText){
   const meta = OPERATOR_META[item.operator] || { color: '#6b7280' };
-  const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+  const hasDiscount = hasActiveDiscount(item);
   const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
   // Mijoz iltimosiga ko'ra: "Bo'lib to'lash" belgilangan raqamlarda naxt
   // narx HECH QAYERDA (shu jumladan shu oldindan ko'rish kartochkasida ham)
@@ -5062,7 +5126,7 @@ function renderCatalog(){
    // bo'lib qolsa ham, BUTUN katalog "bo'sh/oq ekran"ga aylanib qolmasin —
    // shu bitta kartani o'tkazib yuboramiz, qolganlari normal chiziladi.
    try{
-    const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+    const hasDiscount = hasActiveDiscount(item);
     const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
     const rank = currentPage * PAGE_SIZE + idx + 1;
     const card = document.createElement('div');
@@ -5222,7 +5286,7 @@ function renderDailyDeal(){
   if(picks.length > 20) picks = shuffleArray(picks.slice()).slice(0, 20);
   dailyDealSection.style.display = 'block';
   dailyDealScroll.innerHTML = picks.map(item => {
-    const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+    const hasDiscount = hasActiveDiscount(item);
     const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
     // Shu raqamga xos "Bo'lib to'lash" (agar admin bosh to'lov/oylik
     // to'lov kiritgan bo'lsa) — eng uzoq muddat (24>12>6) afzal, chunki
@@ -5235,7 +5299,7 @@ function renderDailyDeal(){
     return `
       <div class="daily-deal-card">
         ${hasDiscount ? `<div class="dd-badge">-${discountPct}%</div>` : ''}
-        ${item.dealExpiresAt ? `<div class="dd-timer" data-expires="${item.dealExpiresAt}">--:--:--</div>` : ''}
+        ${item.dealExpiresAt ? `<div class="dd-timer" data-expires="${item.dealExpiresAt}">Tugamoqda: --:--:--</div>` : ''}
         <div class="dd-num">${displayNumber(item.number)}</div>
         <div class="dd-price-row" ${installmentTeaser ? `data-cash="${formatPrice(item.price)}" data-installment="${escapeHtml(installmentTeaser)}"` : ''}>
           <span class="dd-price">${formatPrice(item.price)}</span>
@@ -5270,7 +5334,7 @@ function updateDailyDealTimers(){
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    el.textContent = (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    el.textContent = 'Tugamoqda: ' + (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
   });
   if(!__ddTimerInterval){
     __ddTimerInterval = setInterval(()=>{
@@ -5283,7 +5347,7 @@ function updateDailyDealTimers(){
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
-        el.textContent = (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        el.textContent = 'Tugamoqda: ' + (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
       });
     }, 1000);
   }
@@ -5398,7 +5462,7 @@ function renderAsosiyPremium(){
   asosiyPremiumGrid.innerHTML = '';
   picks.forEach((item, idx)=>{
     try{
-      const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+      const hasDiscount = hasActiveDiscount(item);
       const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
       const card = document.createElement('div');
       card.className = `card cs-${style}`;
@@ -5987,8 +6051,24 @@ function updateOperatorLabel(){
   if(catalogMode === 'standard') renderStandardOpToggles();
   else renderVipOpToggles();
 }
+// Raqam katakchalariga son yozilganda yoki o'chirilganda mijozga sezilar-
+// sezilmas tebranish (vibratsiya) beriladi — Telegram mini-ilova ichida
+// bo'lsa Telegram'ning o'z haptik xizmati (iPhone'da ham ishlaydi), oddiy
+// brauzerda esa qurilmaning standart Vibration API'si orqali. Qurilma/
+// brauzer buni qo'llab-quvvatlamasa, jimgina hech narsa bo'lmaydi.
+function vibrateDigitTap(){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if(tg && tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function'){
+      tg.HapticFeedback.impactOccurred('light');
+      return;
+    }
+  }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+}
 digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
+    vibrateDigitTap();
     box.value = box.value.replace(/\D/g,'').slice(0,1);
     box.classList.toggle('filled', box.value !== '');
     // Mijoz pastga tushib raqamlarni ko'rib yurgan bo'lsa ham, qidiruvni
@@ -6777,7 +6857,7 @@ function openModal(number, id, priceOverride){
     hfDivider.style.display = 'none';
     hfRegisterNote.style.display = 'none';
 
-    selectedOldPriceForCash = (item && item.oldPrice > item.price) ? item.oldPrice : 0;
+    selectedOldPriceForCash = hasActiveDiscount(item) ? item.oldPrice : 0;
 
     if(item && item.installment){
       payTabs.style.display = 'none';
@@ -7571,6 +7651,160 @@ document.getElementById('hubBtnCustomOrder').addEventListener('click', ()=>{
 document.getElementById('hubBtnAbout').addEventListener('click', ()=>{
   aboutOverlay.classList.add('open');
 });
+document.getElementById('hubBtnVacancy').addEventListener('click', ()=>{
+  openVacancyOverlay();
+});
+
+/* ---- "Vakansiya" — ochiq ish o'rinlari ro'yxati va ariza formasi ----
+   `vacancies` kolleksiyasi kichik bo'lgani uchun oyna har ochilganda
+   to'liq (.get()) o'qiladi — doimiy tinglovchi (onSnapshot) shart emas.
+   Faqat active:true bo'lganlar chiqadi, tartib `order` (bo'lmasa
+   `createdAt`) bo'yicha, lekin composite index shart bo'lmasin deb
+   tartiblash mijoz brauzerida qilinadi. */
+const vacancyOverlay = document.getElementById('vacancyOverlay');
+let vacDraftVacancy = null; // hozir ariza topshirilayotgan vakansiya {id, title}
+
+function vacResetForm(){
+  document.getElementById('vacFormName').value = '';
+  document.getElementById('vacFormPhone').value = '';
+  document.getElementById('vacFormExperience').value = '';
+  document.getElementById('vacFormConsent').checked = false;
+  document.getElementById('vacFormError').style.display = 'none';
+  document.getElementById('vacFormSubmit').disabled = true;
+}
+
+function vacShowList(){
+  document.getElementById('vacancyListView').style.display = 'block';
+  document.getElementById('vacancyFormView').style.display = 'none';
+  document.getElementById('vacancySuccessView').style.display = 'none';
+}
+
+async function openVacancyOverlay(){
+  vacShowList();
+  const inner = document.getElementById('vacancyListInner');
+  inner.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0;">Yuklanmoqda...</div>`;
+  vacancyOverlay.classList.add('open');
+  try{
+    const snap = await db.collection('vacancies').where('active', '==', true).get();
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
+
+    if(list.length === 0){
+      inner.innerHTML = `<div class="vac-empty">
+        <div class="vac-empty-icon">💼</div>
+        <div class="vac-empty-title" data-i18n="vacEmptyTitle">Hozircha ochiq vakansiya yo'q</div>
+        <div class="vac-empty-sub" data-i18n="vacEmptySub">Tez orada yangi ish o'rinlari paydo bo'ladi — qayta tekshirib turing.</div>
+      </div>`;
+      applyCurrentLanguage();
+      return;
+    }
+
+    inner.innerHTML = list.map(v => `
+      <div class="vac-card" data-id="${v.id}">
+        <div class="vac-card-title">${escapeHtml(v.title || '')}</div>
+        <div class="vac-card-desc">${escapeHtml(v.description || '')}</div>
+        <div class="vac-card-salary">${formatPrice(v.salaryMin || 0)} – ${formatPrice(v.salaryMax || 0)}/${window.currentLangMode === 'ru' ? 'мес' : 'oy'}</div>
+        <button type="button" class="btn-confirm contract-search-btn vac-apply-btn" data-id="${v.id}" data-title="${escapeHtml(v.title || '')}" style="width:100%;">
+          <span data-i18n="vacApplyBtn">Ariza topshirish</span>
+        </button>
+      </div>
+    `).join('');
+    applyCurrentLanguage();
+
+    inner.querySelectorAll('.vac-apply-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        vacDraftVacancy = { id: btn.dataset.id, title: btn.dataset.title };
+        vacResetForm();
+        document.getElementById('vacFormPosition').value = vacDraftVacancy.title;
+        document.getElementById('vacancyListView').style.display = 'none';
+        document.getElementById('vacancyFormView').style.display = 'block';
+      });
+    });
+  }catch(err){
+    inner.innerHTML = `<div style="color:var(--red);font-size:12.5px;text-align:center;padding:20px 0;">Xato: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+document.getElementById('vacancyClose').addEventListener('click', ()=> vacancyOverlay.classList.remove('open'));
+vacancyOverlay.addEventListener('click', (e)=>{ if(e.target === vacancyOverlay) vacancyOverlay.classList.remove('open'); });
+document.getElementById('vacFormBack').addEventListener('click', vacShowList);
+document.getElementById('vacCloseSuccess').addEventListener('click', ()=> vacancyOverlay.classList.remove('open'));
+
+const vacFormPhoneInput = document.getElementById('vacFormPhone');
+vacFormPhoneInput.addEventListener('input', ()=>{
+  vacFormPhoneInput.value = formatUzNumber(extractRawDigits(vacFormPhoneInput.value));
+});
+
+/* Ariza tugmasi FAQAT shaxsiy ma'lumotlarni qayta ishlashga rozilik
+   (checkbox) belgilangandan keyingina bosiladigan qilib qo'yiladi —
+   bu "qonuniy tarzda" ma'lumot yig'ish talabining ASOSIY qismi. */
+document.getElementById('vacFormConsent').addEventListener('change', (e)=>{
+  document.getElementById('vacFormSubmit').disabled = !e.target.checked;
+});
+
+document.getElementById('vacFormSubmit').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('vacFormError');
+  const name = document.getElementById('vacFormName').value.trim();
+  const phone = document.getElementById('vacFormPhone').value.trim();
+  const experience = document.getElementById('vacFormExperience').value.trim();
+  const consent = document.getElementById('vacFormConsent').checked;
+  const phoneDigits = extractRawDigits(phone);
+
+  if(!name || phoneDigits.length < 9 || !consent){
+    errEl.textContent = !consent
+      ? "Shaxsiy ma'lumotlarni qayta ishlashga rozilik bering"
+      : t("Barcha maydonlarni to'ldiring");
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const btn = document.getElementById('vacFormSubmit');
+  btn.disabled = true;
+  const btnHtml = btn.innerHTML;
+  btn.textContent = t('Yuborilmoqda...');
+
+  try{
+    await db.collection('job_applications').add({
+      vacancyId: vacDraftVacancy.id,
+      vacancyTitle: vacDraftVacancy.title,
+      fullName: name,
+      phone,
+      experience,
+      consentGiven: true,
+      status: 'new',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    /* Admin darhol Telegram'da xabardor bo'lsin deb, sayt buyurtmalarida
+       ishlatiladigan bir xil umumiy Netlify Function (telegram-notify)
+       qayta ishlatiladi — bot tokeni brauzerda ko'rinmaydi. */
+    try{
+      const time = new Date().toLocaleString('uz-UZ');
+      const text =
+`💼 Yangi ish uchun ariza
+
+📋 Lavozim: ${vacDraftVacancy.title}
+👤 Ism: ${name}
+☎️ Telefon: ${phone}
+${experience ? `📝 Tajriba: ${experience}\n` : ''}🕐 Vaqti: ${time}`;
+      await fetch('/.netlify/functions/telegram-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+    }catch(notifyErr){ console.error('Telegramga yuborishda xato:', notifyErr); }
+
+    document.getElementById('vacancyFormView').style.display = 'none';
+    document.getElementById('vacancySuccessView').style.display = 'block';
+  }catch(err){
+    errEl.textContent = 'Xato: ' + err.message;
+    errEl.style.display = 'block';
+  }
+
+  btn.disabled = !document.getElementById('vacFormConsent').checked;
+  btn.innerHTML = btnHtml;
+});
 
 document.getElementById('contractClose').addEventListener('click', ()=> contractOverlay.classList.remove('open'));
 contractOverlay.addEventListener('click', (e)=>{ if(e.target === contractOverlay) contractOverlay.classList.remove('open'); });
@@ -7606,7 +7840,7 @@ function renderFavoritesList(){
   }
 
   view.innerHTML = `<div class="fav-list">` + items.map(item=>{
-    const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+    const hasDiscount = hasActiveDiscount(item);
     return `
       <div class="fav-item" data-id="${item.id}">
         <div class="fav-item-top">
@@ -8531,7 +8765,18 @@ const RU_DICT = {
   aboutP2:            'Мы предлагаем клиентам номера всех операторов (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) в широком каталоге, бесплатную доставку по Узбекистану и возможность рассрочки.',
   aboutContact:       'По вопросам и предложениям:',
   close:              'Закрыть',
-  coSuccessText:      'Ваша заявка принята! В ближайшее время наши операторы свяжутся с вами.'
+  coSuccessText:      'Ваша заявка принята! В ближайшее время наши операторы свяжутся с вами.',
+  vacancyTitle:       '💼 Вакансии',
+  vacancySub:         'Присоединяйтесь к нам — открытые вакансии',
+  vacFormIntro:       'Оставьте заявку — наши операторы свяжутся с вами в ближайшее время.',
+  vacFormPositionLabel:'Вакансия',
+  currentPhoneLabel2: 'Ваш номер телефона',
+  vacFormExperienceLabel:'Ваш опыт / коротко о себе',
+  vacConsentText:     'Даю согласие на обработку моих персональных данных в целях рассмотрения заявки',
+  vacEmptyTitle:      'Пока нет открытых вакансий',
+  vacEmptySub:        'Скоро появятся новые вакансии — загляните позже.',
+  vacApplyBtn:        'Подать заявку',
+  vacSuccessText:     'Ваша заявка принята! Скоро мы свяжемся с вами.'
 };
 
 /* Kartochkalar va boshqa DINAMIK (JS shablonlar orqali qayta-qayta
@@ -9599,6 +9844,7 @@ function takeWarmedVideo(url){
 
   try{ await loadNumbers(); }catch(e){ console.error('init: loadNumbers xato:', e); }
   try{ initNewNumberWatcher(); }catch(e){ console.error('init: initNewNumberWatcher xato:', e); }
+  try{ initDailyDealWatcher(); }catch(e){ console.error('init: initDailyDealWatcher xato:', e); }
   try{ renderCatalog(); }catch(e){ console.error('init: renderCatalog xato:', e); }
   try{ renderFeatured(); }catch(e){ console.error('init: renderFeatured xato:', e); }
   try{ renderDailyDeal(); }catch(e){ console.error('init: renderDailyDeal xato:', e); }

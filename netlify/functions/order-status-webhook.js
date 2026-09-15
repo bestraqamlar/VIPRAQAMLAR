@@ -510,13 +510,17 @@ async function executeBroadcast(adminChatId){
 /* ==================================================================
    "🔥 AKSIYA RAQAM JOYLASH" — persistent menyudagi yangi tugma.
    Admin: 1) raqam yozadi (yoki bir nechta mos topilsa — tanlaydi),
-          2) tayyor muddat (1/3/12/24 soat, 3 kun) yoki "Boshqa" orqali
+          2) ESKI narxni kiritadi (so'mda),
+          3) HOZIRGI (aksiya) narxni kiritadi (so'mda),
+          4) tayyor muddat (1/3/12/24 soat, 3 kun) yoki "Boshqa" orqali
              o'zi soat kiritadi,
-          3) yakuniy tasdiqlaydi.
-   Natijada 'numbers/{id}' hujjatida dailyDeal:true va dealExpiresAt
-   (millisekund, Date.now() + soat*3600*1000) yoziladi — bu AYNAN
-   index.html/panel-boshqaruv.html'dagi "Bugungi aksiya" tizimi
-   kutayotgan maydonlar, shu sabab sayt/panel o'zgarishsiz ishlayveradi.
+          5) yakuniy tasdiqlaydi.
+   Natijada 'numbers/{id}' hujjatida oldPrice, price, dailyDeal:true va
+   dealExpiresAt (millisekund, Date.now() + soat*3600*1000) yoziladi —
+   bu AYNAN index.html/panel-boshqaruv.html'dagi "Bugungi aksiya" tizimi
+   kutayotgan maydonlar (xuddi panel-boshqaruv.html'dagi "aksAddBtn"
+   qo'shish formasi bilan bir xil maydon nomlari), shu sabab sayt/panel
+   o'zgarishsiz to'g'ri ishlayveradi.
    Muddati tugagan aksiyani QAYTA joylash (repost) ham xuddi shu oqim —
    raqam yana tanlanadi va YANGI dealExpiresAt yoziladi.
    ================================================================== */
@@ -545,11 +549,23 @@ function aksiyaDurationKeyboard(){
 
 async function startAksiyaFlow(chatId){
   await clearPendingAksiya();
-  await setAdminState({ awaitingAksiyaNumber: true, awaitingAksiyaCustomHours: false });
+  await setAdminState({ awaitingAksiyaNumber: true, awaitingAksiyaOldPrice: false, awaitingAksiyaNewPrice: false, awaitingAksiyaCustomHours: false });
   await sendTelegram('sendMessage', {
     chat_id: chatId,
     text: "🔥 Aksiya raqam joylash\n\nQaysi raqamni aksiyaga qo'yamiz? Raqamni yozing (masalan: 90 777 77 77) — bu ilgari aksiyada bo'lib, muddati tugagan raqam bo'lsa ham bo'ladi (qayta joylanadi, yangi taymer bilan).\n\nBekor qilish uchun /bekor yozing."
   });
+}
+
+/* Admin chatga narx yozganda ishlatiladigan matn->son ajratuvchi.
+   panel-boshqaruv.html'dagi narx maydonlari (masalan "Aksiya narxi"/
+   "Eski narxi" — Number(input.value)||0) bilan bir xil g'oyada: faqat
+   probel/nuqta/vergul kabi ming ajratuvchilarni tashlab, musbat sonni
+   qaytaradi; noto'g'ri kiritilsa null qaytaradi (qayta so'raladi). */
+function parsePriceInput(text){
+  const cleaned = String(text || '').replace(/[.\s,]/g, '').trim();
+  if(!cleaned) return null;
+  const n = Number(cleaned);
+  return (isFinite(n) && n > 0) ? n : null;
 }
 
 /* Admin yozgan matndan raqamlarni oxirgi raqamlar bo'yicha moslashtiradi
@@ -565,15 +581,34 @@ async function findNumbersByDigits(rawText){
     .slice(0, 10);
 }
 
-async function presentAksiyaDurationStep(chatId, item){
-  await setAdminState({ awaitingAksiyaNumber: false });
-  await setPendingAksiya({ numberId: item.id, number: item.number || '', createdAt: Date.now() });
-  const wasExpired = item.dailyDeal && item.dealExpiresAt && item.dealExpiresAt <= Date.now();
+/* Raqam tanlangandan keyin ENDI birinchi navbatda ESKI narx so'raladi,
+   keyin HOZIRGI (aksiya) narx, so'ng muddat — mijoz iltimosiga ko'ra. */
+async function presentAksiyaOldPriceStep(chatId, item){
+  await setAdminState({ awaitingAksiyaNumber: false, awaitingAksiyaOldPrice: true, awaitingAksiyaNewPrice: false });
+  const wasExpired = !!(item.dailyDeal && item.dealExpiresAt && item.dealExpiresAt <= Date.now());
+  await setPendingAksiya({
+    numberId: item.id,
+    number: item.number || '',
+    wasExpired,
+    createdAt: Date.now()
+  });
   await sendTelegram('sendMessage', {
     chat_id: chatId,
-    text: `📱 ${item.number || item.id}${wasExpired ? "\n(oldingi aksiya muddati tugagan — qayta joylanadi)" : ''}\n\nAksiya necha vaqtga qo'yilsin?`,
+    text: `📱 ${item.number || item.id}${wasExpired ? "\n(oldingi aksiya muddati tugagan — qayta joylanadi)" : ''}\n\n💰 Eski narxini kiriting (so'mda), masalan: 8 000 000\n\nBekor qilish uchun /bekor yozing.`
+  });
+}
+
+async function presentAksiyaDurationStep(chatId, pending){
+  await setAdminState({ awaitingAksiyaNewPrice: false });
+  await sendTelegram('sendMessage', {
+    chat_id: chatId,
+    text: `📱 ${pending.number}\n💵 Eski narx: ${formatSum(pending.oldPrice)}\n🔥 Hozirgi narx: ${formatSum(pending.price)}${pending.wasExpired ? "\n(oldingi aksiya muddati tugagan — qayta joylanadi)" : ''}\n\nAksiya necha vaqtga qo'yilsin?`,
     reply_markup: aksiyaDurationKeyboard()
   });
+}
+
+function formatSum(n){
+  return Number(n || 0).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
 }
 
 async function handleAksiyaNumberInput(msg){
@@ -588,7 +623,7 @@ async function handleAksiyaNumberInput(msg){
     return;
   }
   if(matches.length === 1){
-    await presentAksiyaDurationStep(chatId, matches[0]);
+    await presentAksiyaOldPriceStep(chatId, matches[0]);
     return;
   }
   await setAdminState({ awaitingAksiyaNumber: false });
@@ -597,6 +632,42 @@ async function handleAksiyaNumberInput(msg){
     text: `${matches.length} ta mos raqam topildi. Birini tanlang:`,
     reply_markup: { inline_keyboard: matches.map(m => [{ text: m.number || m.id, callback_data: `ak|pick|${m.id}` }]) }
   });
+}
+
+async function handleAksiyaOldPriceInput(msg){
+  const chatId = msg.chat.id;
+  const oldPrice = parsePriceInput(msg.text);
+  if(!oldPrice){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Iltimos, musbat son kiriting — eski narx so'mda (masalan: 8 000 000)." });
+    return;
+  }
+  const pending = await getPendingAksiya();
+  if(!pending || !pending.numberId){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Xatolik: raqam tanlanmagan. /bekor yozib, qaytadan boshlang." });
+    return;
+  }
+  await setPendingAksiya({ ...pending, oldPrice });
+  await setAdminState({ awaitingAksiyaOldPrice: false, awaitingAksiyaNewPrice: true });
+  await sendTelegram('sendMessage', {
+    chat_id: chatId,
+    text: `💵 Eski narx: ${formatSum(oldPrice)}\n\n🔥 Endi HOZIRGI (aksiya) narxini kiriting (so'mda), masalan: 6 500 000`
+  });
+}
+
+async function handleAksiyaNewPriceInput(msg){
+  const chatId = msg.chat.id;
+  const price = parsePriceInput(msg.text);
+  if(!price){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Iltimos, musbat son kiriting — hozirgi (aksiya) narx so'mda (masalan: 6 500 000)." });
+    return;
+  }
+  const pending = await getPendingAksiya();
+  if(!pending || !pending.numberId){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Xatolik: raqam tanlanmagan. /bekor yozib, qaytadan boshlang." });
+    return;
+  }
+  await setPendingAksiya({ ...pending, price });
+  await presentAksiyaDurationStep(chatId, { ...pending, price });
 }
 
 async function handleAksiyaCustomHours(msg){
@@ -621,7 +692,7 @@ async function confirmAksiyaDuration(chatId, hours){
   const untilStr = new Date(expiresAt).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', dateStyle: 'medium', timeStyle: 'short' });
   await sendTelegram('sendMessage', {
     chat_id: chatId,
-    text: `📱 ${pending.number}\n⏱ Muddat: ${hours} soat\n🕐 Tugash vaqti: ${untilStr}\n\nTasdiqlaysizmi?`,
+    text: `📱 ${pending.number}\n💵 Eski narx: ${formatSum(pending.oldPrice)}\n🔥 Hozirgi narx: ${formatSum(pending.price)}\n⏱ Muddat: ${hours} soat\n🕐 Tugash vaqti: ${untilStr}\n\nTasdiqlaysizmi?`,
     reply_markup: {
       inline_keyboard: [
         [{ text: '✅ Ha, joylash', callback_data: 'ak|confirm' }],
@@ -633,13 +704,15 @@ async function confirmAksiyaDuration(chatId, hours){
 
 async function executeAksiyaPost(chatId){
   const pending = await getPendingAksiya();
-  if(!pending || !pending.expiresAt || !pending.numberId) throw new Error("Joylanishi kerak bo'lgan aksiya topilmadi.");
+  if(!pending || !pending.expiresAt || !pending.numberId || !pending.oldPrice || !pending.price) throw new Error("Joylanishi kerak bo'lgan aksiya topilmadi.");
   await withRetry(() => db.collection('numbers').doc(pending.numberId).update({
+    oldPrice: pending.oldPrice,
+    price: pending.price,
     dailyDeal: true,
     dealExpiresAt: pending.expiresAt
   }));
   await clearPendingAksiya();
-  await sendTelegram('sendMessage', { chat_id: chatId, text: `✅ ${pending.number} aksiyaga qo'yildi (${pending.hours} soat).` });
+  await sendTelegram('sendMessage', { chat_id: chatId, text: `✅ ${pending.number} aksiyaga qo'yildi (${pending.hours} soat).\n💵 ${formatSum(pending.oldPrice)} → 🔥 ${formatSum(pending.price)}` });
 }
 
 async function handleAksiyaCallback(callback){
@@ -652,7 +725,7 @@ async function handleAksiyaCallback(callback){
     const doc = await withRetry(() => db.collection('numbers').doc(numberId).get());
     if(!doc.exists){ await answerCallback(callback.id, 'Topilmadi'); return; }
     await answerCallback(callback.id);
-    await presentAksiyaDurationStep(chatId, { id: doc.id, ...doc.data() });
+    await presentAksiyaOldPriceStep(chatId, { id: doc.id, ...doc.data() });
     return;
   }
   if(action === 'dur'){
@@ -697,6 +770,8 @@ async function handleMenuText(msg){
     awaitingBroadcast: false,
     awaitingChannelPost: false,
     awaitingAksiyaNumber: false,
+    awaitingAksiyaOldPrice: false,
+    awaitingAksiyaNewPrice: false,
     awaitingAksiyaCustomHours: false
   });
 
@@ -781,7 +856,7 @@ exports.handler = async function (event) {
     if(String(msg.chat.id) !== String(allowedChatId)) return { statusCode: 200, body: 'ignored' };
 
     if(msg.text && msg.text.trim() === '/bekor'){
-      await setAdminState({ awaitingBroadcast: false, awaitingChannelPost: false, awaitingAksiyaNumber: false, awaitingAksiyaCustomHours: false });
+      await setAdminState({ awaitingBroadcast: false, awaitingChannelPost: false, awaitingAksiyaNumber: false, awaitingAksiyaOldPrice: false, awaitingAksiyaNewPrice: false, awaitingAksiyaCustomHours: false });
       await clearPendingBroadcast().catch(() => {});
       await clearPendingChannelPost();
       await clearPendingAksiya();
@@ -826,6 +901,22 @@ exports.handler = async function (event) {
     }
     if(adminState.awaitingAksiyaNumber){
       try{ await handleAksiyaNumberInput(msg); }
+      catch(err){
+        console.error('AKSIYA XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(adminState.awaitingAksiyaOldPrice){
+      try{ await handleAksiyaOldPriceInput(msg); }
+      catch(err){
+        console.error('AKSIYA XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(adminState.awaitingAksiyaNewPrice){
+      try{ await handleAksiyaNewPriceInput(msg); }
       catch(err){
         console.error('AKSIYA XATOSI:', err);
         await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
