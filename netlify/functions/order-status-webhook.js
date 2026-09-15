@@ -65,17 +65,35 @@ Umumiy holat: ${state.botEnabled ? '🟢 Ishlayapti' : "🔴 To'xtatilgan"}
 Avtobot (AI javoblar): ${state.autoReplyEnabled ? '🟢 Yoqilgan' : "🔴 O'chirilgan"}
 Yangi mijozlarga avto javob: ${state.newUserAutoReplyEnabled ? '🟢 Yoqilgan' : "🔴 O'chirilgan (o'zingiz javob berasiz)"}`;
 }
-function controlPanelKeyboard(state){
+/* Mijoz iltimosiga ko'ra bosh menyu endi INLINE emas, DOIMIY (persistent)
+   Telegram klaviaturasi — matn kiritish maydonining tepasida doim ko'rinib
+   turadi, yangi xabarlar ostida "yo'qolib" ketmaydi. Har bir tugma sodda
+   (holatga qarab o'zgarmaydigan) matn bilan — joriy holat esa yuqoridagi
+   controlPanelText() xabarida ko'rsatiladi. Tugma bosilganda Telegram
+   xuddi shu matnni oddiy xabar sifatida botga yuboradi — handleMenuText()
+   shu matnni tekshiradi. */
+const MENU_LABELS = {
+  start: '▶️ Botni ishga tushirish',
+  stop: "⏸️ Botni to'xtatish",
+  auto: "🤖 Avtobotni yoqish/o'chirish",
+  newuser: "🆕 Yangi mijoz avto-javobini yoqish/o'chirish",
+  stats: '📊 Statistika',
+  broadcast: '📢 Barchaga xabar yuborish',
+  postchannel: '📣 Kanalga raqam joylash',
+  aksiya: '🔥 Aksiya raqam joylash'
+};
+const MENU_LABEL_SET = new Set(Object.values(MENU_LABELS));
+
+function mainMenuKeyboard(){
   return {
-    inline_keyboard: [
-      [{ text: state.botEnabled ? '✅ Bot ishlamoqda' : '▶️ Botni ishga tushirish', callback_data: 'bc|start' }],
-      [{ text: !state.botEnabled ? "⏹ Bot to'xtatilgan" : "⏸ Botni to'xtatish", callback_data: 'bc|stop' }],
-      [{ text: `🤖 Avtobot: ${state.autoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|auto' }],
-      [{ text: `🆕 Yangi mijozlarga avto javob: ${state.newUserAutoReplyEnabled ? 'Yoqilgan ✅' : "O'chirilgan ❌"}`, callback_data: 'bc|newuser' }],
-      [{ text: '📊 Statistika', callback_data: 'bc|stats' }],
-      [{ text: '📢 Barchaga xabar yuborish', callback_data: 'bc|broadcast' }],
-      [{ text: '📣 Kanalga raqam joylash', callback_data: 'bc|postchannel' }]
-    ]
+    keyboard: [
+      [MENU_LABELS.start, MENU_LABELS.stop],
+      [MENU_LABELS.auto, MENU_LABELS.newuser],
+      [MENU_LABELS.stats, MENU_LABELS.broadcast],
+      [MENU_LABELS.postchannel, MENU_LABELS.aksiya]
+    ],
+    resize_keyboard: true,
+    is_persistent: true
   };
 }
 
@@ -160,14 +178,22 @@ async function executeChannelPost(adminChatId){
   if(pending.type === 'text'){
     res = await fetch(`https://api.telegram.org/bot${businessToken}/sendMessage`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: channelId, text: pending.text, reply_markup: buttons })
+      body: JSON.stringify({
+        chat_id: channelId,
+        text: `<b>${escapeHtml(pending.text)}</b>`,
+        parse_mode: 'HTML',
+        reply_markup: buttons
+      })
     }).then(r => r.json());
   }else{
     const adminToken = process.env.TELEGRAM_BOT_TOKEN;
     const buffer = await downloadTelegramFile(adminToken, pending.sourceFileId);
     const form = new FormData();
     form.append('chat_id', channelId);
-    if(pending.caption) form.append('caption', pending.caption);
+    if(pending.caption){
+      form.append('caption', `<b>${escapeHtml(pending.caption)}</b>`);
+      form.append('parse_mode', 'HTML');
+    }
     form.append('reply_markup', JSON.stringify(buttons));
     const field = pending.type === 'photo' ? 'photo' : 'video';
     const filename = pending.type === 'photo' ? 'post.jpg' : 'post.mp4';
@@ -192,7 +218,7 @@ function confirmKeyboard(fieldKey, nextVal, onLabel, offLabel){
   return {
     inline_keyboard: [
       [{ text: nextVal ? `✅ Ha, ${onLabel}` : `✅ Ha, ${offLabel}`, callback_data: `bc|${fieldKey}_confirm|` + (nextVal ? '1' : '0') }],
-      [{ text: '◀️ Orqaga', callback_data: 'bc|back' }]
+      [{ text: '❌ Bekor qilish', callback_data: `bc|${fieldKey}_toggle_cancel` }]
     ]
   };
 }
@@ -204,17 +230,7 @@ async function sendTelegram(method, payload){
 }
 async function sendControlPanel(chatId){
   const state = await getControlState();
-  await sendTelegram('sendMessage', { chat_id: chatId, text: controlPanelText(state), reply_markup: controlPanelKeyboard(state) });
-}
-async function editControlPanel(chatId, messageId, state){
-  await sendTelegram('editMessageText', { chat_id: chatId, message_id: messageId, text: controlPanelText(state), reply_markup: controlPanelKeyboard(state) });
-}
-async function editToConfirm(chatId, messageId, fieldKey, nextVal, title, onLabel, offLabel){
-  await sendTelegram('editMessageText', {
-    chat_id: chatId, message_id: messageId,
-    text: `${title} ${nextVal ? 'YOQISH' : "O'CHIRISH"}ni tasdiqlaysizmi?`,
-    reply_markup: confirmKeyboard(fieldKey, nextVal, onLabel, offLabel)
-  });
+  await sendTelegram('sendMessage', { chat_id: chatId, text: controlPanelText(state), reply_markup: mainMenuKeyboard() });
 }
 
 const TOGGLES = {
@@ -227,61 +243,30 @@ async function handleControlCallback(callback){
   const action = parts[1];
   const chatId = callback.message.chat.id;
   const messageId = callback.message.message_id;
-  const state = await getControlState();
 
-  if(action === 'start'){
-    await setControlState({ botEnabled: true });
-    await answerCallback(callback.id, 'Bot ishga tushirildi ✅');
-    await editControlPanel(chatId, messageId, await getControlState());
-    return;
-  }
-  if(action === 'stop'){
-    await setControlState({ botEnabled: false });
-    await answerCallback(callback.id, "Bot to'xtatildi ⏸");
-    await editControlPanel(chatId, messageId, await getControlState());
-    return;
-  }
-
-  // "auto" va "newuser" tugmalari — ikkalasi ham TOGGLES orqali umumiy ishlaydi
-  if(TOGGLES[action]){
-    const t = TOGGLES[action];
-    await answerCallback(callback.id);
-    await editToConfirm(chatId, messageId, action, !state[t.field], t.title, t.onLabel, t.offLabel);
-    return;
-  }
+  // "auto" va "newuser" tasdiqlash/bekor qilish tugmalari — persistent
+  // menyudagi 🤖/🆕 tugmalari bosilganda handleMenuText() shu tasdiqlash
+  // xabarini (inline tugmalar bilan) yuboradi, natija shu yerda qayta ishlanadi.
   const confirmMatch = action && action.endsWith('_confirm') ? action.slice(0, -'_confirm'.length) : null;
   if(confirmMatch && TOGGLES[confirmMatch]){
     const t = TOGGLES[confirmMatch];
     const val = parts[2] === '1';
     await setControlState({ [t.field]: val });
     await answerCallback(callback.id, `Yangilandi: ${val ? 'yoqildi' : "o'chirildi"}`);
-    await editControlPanel(chatId, messageId, await getControlState());
+    await sendTelegram('editMessageText', { chat_id: chatId, message_id: messageId, text: `✅ ${t.title} ${val ? 'yoqildi' : "o'chirildi"}.` });
+    return;
+  }
+  const cancelMatch = action && action.endsWith('_toggle_cancel') ? action.slice(0, -'_toggle_cancel'.length) : null;
+  if(cancelMatch && TOGGLES[cancelMatch]){
+    await answerCallback(callback.id, 'Bekor qilindi');
+    await sendTelegram('editMessageText', { chat_id: chatId, message_id: messageId, text: 'Bekor qilindi.' });
     return;
   }
 
-  if(action === 'stats'){
-    const users = await getCustomerBotUsers();
-    await answerCallback(callback.id);
-    await sendTelegram('sendMessage', {
-      chat_id: chatId,
-      text: `📊 Mijoz botidan foydalangan: ${users.length} kishi`,
-      reply_markup: { inline_keyboard: [[{ text: "📋 To'liq ko'rish", callback_data: 'bc|full_list' }]] }
-    });
-    return;
-  }
   if(action === 'full_list'){
     const users = await getCustomerBotUsers();
     await answerCallback(callback.id);
     await sendFullCustomerList(chatId, users);
-    return;
-  }
-  if(action === 'broadcast'){
-    await setAdminState({ awaitingBroadcast: true });
-    await answerCallback(callback.id);
-    await sendTelegram('sendMessage', {
-      chat_id: chatId,
-      text: "✍️ Yubormoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin).\n\nBekor qilish uchun /bekor yozing."
-    });
     return;
   }
   if(action === 'broadcast_confirm'){
@@ -297,15 +282,6 @@ async function handleControlCallback(callback){
     return;
   }
 
-  if(action === 'postchannel'){
-    await setAdminState({ awaitingChannelPost: true });
-    await answerCallback(callback.id);
-    await sendTelegram('sendMessage', {
-      chat_id: chatId,
-      text: "✍️ Kanalga joylamoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin). Tagida avtomatik \"📱 Raqam tanlash\" va \"📸 Instagram\" tugmalari qo'shiladi.\n\nBekor qilish uchun /bekor yozing."
-    });
-    return;
-  }
   if(action === 'postchannel_confirm'){
     await answerCallback(callback.id, 'Joylanmoqda...');
     try{ await executeChannelPost(chatId); }
@@ -319,11 +295,6 @@ async function handleControlCallback(callback){
     return;
   }
 
-  if(action === 'back'){
-    await answerCallback(callback.id);
-    await editControlPanel(chatId, messageId, state);
-    return;
-  }
   await answerCallback(callback.id);
 }
 
@@ -536,6 +507,252 @@ async function executeBroadcast(adminChatId){
   });
 }
 
+/* ==================================================================
+   "🔥 AKSIYA RAQAM JOYLASH" — persistent menyudagi yangi tugma.
+   Admin: 1) raqam yozadi (yoki bir nechta mos topilsa — tanlaydi),
+          2) tayyor muddat (1/3/12/24 soat, 3 kun) yoki "Boshqa" orqali
+             o'zi soat kiritadi,
+          3) yakuniy tasdiqlaydi.
+   Natijada 'numbers/{id}' hujjatida dailyDeal:true va dealExpiresAt
+   (millisekund, Date.now() + soat*3600*1000) yoziladi — bu AYNAN
+   index.html/panel-boshqaruv.html'dagi "Bugungi aksiya" tizimi
+   kutayotgan maydonlar, shu sabab sayt/panel o'zgarishsiz ishlayveradi.
+   Muddati tugagan aksiyani QAYTA joylash (repost) ham xuddi shu oqim —
+   raqam yana tanlanadi va YANGI dealExpiresAt yoziladi.
+   ================================================================== */
+async function getPendingAksiya(){
+  const doc = await withRetry(() => db.collection('site_settings').doc('pending_aksiya').get());
+  return doc.exists ? doc.data() : null;
+}
+async function setPendingAksiya(data){
+  await withRetry(() => db.collection('site_settings').doc('pending_aksiya').set(data));
+}
+async function clearPendingAksiya(){
+  await withRetry(() => db.collection('site_settings').doc('pending_aksiya').delete()).catch(() => {});
+}
+
+function aksiyaDurationKeyboard(){
+  return {
+    inline_keyboard: [
+      [{ text: '1 soat', callback_data: 'ak|dur|1' }, { text: '3 soat', callback_data: 'ak|dur|3' }],
+      [{ text: '12 soat', callback_data: 'ak|dur|12' }, { text: '24 soat', callback_data: 'ak|dur|24' }],
+      [{ text: '3 kun', callback_data: 'ak|dur|72' }],
+      [{ text: '✍️ Boshqa muddat', callback_data: 'ak|custom' }],
+      [{ text: '❌ Bekor qilish', callback_data: 'ak|cancel' }]
+    ]
+  };
+}
+
+async function startAksiyaFlow(chatId){
+  await clearPendingAksiya();
+  await setAdminState({ awaitingAksiyaNumber: true, awaitingAksiyaCustomHours: false });
+  await sendTelegram('sendMessage', {
+    chat_id: chatId,
+    text: "🔥 Aksiya raqam joylash\n\nQaysi raqamni aksiyaga qo'yamiz? Raqamni yozing (masalan: 90 777 77 77) — bu ilgari aksiyada bo'lib, muddati tugagan raqam bo'lsa ham bo'ladi (qayta joylanadi, yangi taymer bilan).\n\nBekor qilish uchun /bekor yozing."
+  });
+}
+
+/* Admin yozgan matndan raqamlarni oxirgi raqamlar bo'yicha moslashtiradi
+   (index.html/panel-boshqaruv.html'dagi raqam qidirish mantig'iga o'xshab) */
+async function findNumbersByDigits(rawText){
+  const digits = String(rawText || '').replace(/\D/g, '');
+  if(digits.length < 4) return [];
+  const suffix = digits.slice(-9);
+  const snap = await withRetry(() => db.collection('numbers').limit(1000).get());
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(item => String(item.number || '').replace(/\D/g, '').endsWith(suffix))
+    .slice(0, 10);
+}
+
+async function presentAksiyaDurationStep(chatId, item){
+  await setAdminState({ awaitingAksiyaNumber: false });
+  await setPendingAksiya({ numberId: item.id, number: item.number || '', createdAt: Date.now() });
+  const wasExpired = item.dailyDeal && item.dealExpiresAt && item.dealExpiresAt <= Date.now();
+  await sendTelegram('sendMessage', {
+    chat_id: chatId,
+    text: `📱 ${item.number || item.id}${wasExpired ? "\n(oldingi aksiya muddati tugagan — qayta joylanadi)" : ''}\n\nAksiya necha vaqtga qo'yilsin?`,
+    reply_markup: aksiyaDurationKeyboard()
+  });
+}
+
+async function handleAksiyaNumberInput(msg){
+  const chatId = msg.chat.id;
+  if(!msg.text){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Iltimos, raqamni matn sifatida yuboring (masalan: 90 777 77 77)." });
+    return;
+  }
+  const matches = await findNumbersByDigits(msg.text);
+  if(matches.length === 0){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Bunday raqam bazada topilmadi. Qaytadan urinib ko'ring yoki /bekor yozing." });
+    return;
+  }
+  if(matches.length === 1){
+    await presentAksiyaDurationStep(chatId, matches[0]);
+    return;
+  }
+  await setAdminState({ awaitingAksiyaNumber: false });
+  await sendTelegram('sendMessage', {
+    chat_id: chatId,
+    text: `${matches.length} ta mos raqam topildi. Birini tanlang:`,
+    reply_markup: { inline_keyboard: matches.map(m => [{ text: m.number || m.id, callback_data: `ak|pick|${m.id}` }]) }
+  });
+}
+
+async function handleAksiyaCustomHours(msg){
+  const chatId = msg.chat.id;
+  const hours = Number(String(msg.text || '').replace(',', '.').trim());
+  if(!hours || hours <= 0 || !isFinite(hours)){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Iltimos, musbat son kiriting — necha SOATga aksiya qo'yilsin (masalan: 5 yoki 48). 1 kun = 24 soat." });
+    return;
+  }
+  await setAdminState({ awaitingAksiyaCustomHours: false });
+  await confirmAksiyaDuration(chatId, hours);
+}
+
+async function confirmAksiyaDuration(chatId, hours){
+  const pending = await getPendingAksiya();
+  if(!pending || !pending.numberId){
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Xatolik: raqam tanlanmagan. /bekor yozib, qaytadan boshlang." });
+    return;
+  }
+  const expiresAt = Date.now() + hours * 3600 * 1000;
+  await setPendingAksiya({ ...pending, hours, expiresAt });
+  const untilStr = new Date(expiresAt).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', dateStyle: 'medium', timeStyle: 'short' });
+  await sendTelegram('sendMessage', {
+    chat_id: chatId,
+    text: `📱 ${pending.number}\n⏱ Muddat: ${hours} soat\n🕐 Tugash vaqti: ${untilStr}\n\nTasdiqlaysizmi?`,
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '✅ Ha, joylash', callback_data: 'ak|confirm' }],
+        [{ text: '❌ Bekor qilish', callback_data: 'ak|cancel' }]
+      ]
+    }
+  });
+}
+
+async function executeAksiyaPost(chatId){
+  const pending = await getPendingAksiya();
+  if(!pending || !pending.expiresAt || !pending.numberId) throw new Error("Joylanishi kerak bo'lgan aksiya topilmadi.");
+  await withRetry(() => db.collection('numbers').doc(pending.numberId).update({
+    dailyDeal: true,
+    dealExpiresAt: pending.expiresAt
+  }));
+  await clearPendingAksiya();
+  await sendTelegram('sendMessage', { chat_id: chatId, text: `✅ ${pending.number} aksiyaga qo'yildi (${pending.hours} soat).` });
+}
+
+async function handleAksiyaCallback(callback){
+  const parts = callback.data.split('|'); // ak|action|extra
+  const action = parts[1];
+  const chatId = callback.message.chat.id;
+
+  if(action === 'pick'){
+    const numberId = parts[2];
+    const doc = await withRetry(() => db.collection('numbers').doc(numberId).get());
+    if(!doc.exists){ await answerCallback(callback.id, 'Topilmadi'); return; }
+    await answerCallback(callback.id);
+    await presentAksiyaDurationStep(chatId, { id: doc.id, ...doc.data() });
+    return;
+  }
+  if(action === 'dur'){
+    const hours = Number(parts[2]);
+    await answerCallback(callback.id);
+    await confirmAksiyaDuration(chatId, hours);
+    return;
+  }
+  if(action === 'custom'){
+    await answerCallback(callback.id);
+    await setAdminState({ awaitingAksiyaCustomHours: true });
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "Necha SOATga aksiya qo'yilsin? Son kiriting (masalan: 5 yoki 48). 1 kun = 24 soat." });
+    return;
+  }
+  if(action === 'confirm'){
+    await answerCallback(callback.id, 'Joylanmoqda...');
+    try{ await executeAksiyaPost(chatId); }
+    catch(err){ await sendTelegram('sendMessage', { chat_id: chatId, text: 'Xato: ' + err.message }); }
+    return;
+  }
+  if(action === 'cancel'){
+    await clearPendingAksiya();
+    await setAdminState({ awaitingAksiyaNumber: false, awaitingAksiyaCustomHours: false });
+    await answerCallback(callback.id, 'Bekor qilindi');
+    await sendTelegram('sendMessage', { chat_id: chatId, text: 'Aksiya joylash bekor qilindi.' });
+    return;
+  }
+  await answerCallback(callback.id);
+}
+
+/* ==================================================================
+   Persistent bosh menyu tugmalari — matn tenglik bo'yicha tekshiriladi
+   (MENU_LABEL_SET). Har bir tugma bosilganda avval boshqa "kutilayotgan"
+   (broadcast/kanal post/aksiya) oqimlar bekor qilinadi — aks holda admin
+   menyu tugmasini bossa, u tasodifan o'sha oqimga matn sifatida ketib
+   qolishi mumkin edi. */
+async function handleMenuText(msg){
+  const chatId = msg.chat.id;
+  const text = (msg.text || '').trim();
+
+  await setAdminState({
+    awaitingBroadcast: false,
+    awaitingChannelPost: false,
+    awaitingAksiyaNumber: false,
+    awaitingAksiyaCustomHours: false
+  });
+
+  if(text === MENU_LABELS.start){
+    await setControlState({ botEnabled: true });
+    await sendTelegram('sendMessage', { chat_id: chatId, text: '✅ Bot ishga tushirildi.' });
+    return;
+  }
+  if(text === MENU_LABELS.stop){
+    await setControlState({ botEnabled: false });
+    await sendTelegram('sendMessage', { chat_id: chatId, text: "⏸ Bot to'xtatildi." });
+    return;
+  }
+  if(text === MENU_LABELS.auto || text === MENU_LABELS.newuser){
+    const key = text === MENU_LABELS.auto ? 'auto' : 'newuser';
+    const t = TOGGLES[key];
+    const state = await getControlState();
+    const nextVal = !state[t.field];
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: `${t.title} ${nextVal ? 'YOQISH' : "O'CHIRISH"}ni tasdiqlaysizmi?`,
+      reply_markup: confirmKeyboard(key, nextVal, t.onLabel, t.offLabel)
+    });
+    return;
+  }
+  if(text === MENU_LABELS.stats){
+    const users = await getCustomerBotUsers();
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: `📊 Mijoz botidan foydalangan: ${users.length} kishi`,
+      reply_markup: { inline_keyboard: [[{ text: "📋 To'liq ko'rish", callback_data: 'bc|full_list' }]] }
+    });
+    return;
+  }
+  if(text === MENU_LABELS.broadcast){
+    await setAdminState({ awaitingBroadcast: true });
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: "✍️ Yubormoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin).\n\nBekor qilish uchun /bekor yozing."
+    });
+    return;
+  }
+  if(text === MENU_LABELS.postchannel){
+    await setAdminState({ awaitingChannelPost: true });
+    await sendTelegram('sendMessage', {
+      chat_id: chatId,
+      text: "✍️ Kanalga joylamoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin). Tagida avtomatik \"📱 Raqam tanlash\" va \"📸 Instagram\" tugmalari qo'shiladi.\n\nBekor qilish uchun /bekor yozing."
+    });
+    return;
+  }
+  if(text === MENU_LABELS.aksiya){
+    await startAksiyaFlow(chatId);
+    return;
+  }
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
@@ -564,9 +781,10 @@ exports.handler = async function (event) {
     if(String(msg.chat.id) !== String(allowedChatId)) return { statusCode: 200, body: 'ignored' };
 
     if(msg.text && msg.text.trim() === '/bekor'){
-      await setAdminState({ awaitingBroadcast: false, awaitingChannelPost: false });
+      await setAdminState({ awaitingBroadcast: false, awaitingChannelPost: false, awaitingAksiyaNumber: false, awaitingAksiyaCustomHours: false });
       await clearPendingBroadcast().catch(() => {});
       await clearPendingChannelPost();
+      await clearPendingAksiya();
       await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Bekor qilindi.' });
       return { statusCode: 200, body: 'ok' };
     }
@@ -577,6 +795,16 @@ exports.handler = async function (event) {
         await sendControlPanel(msg.chat.id);
         return { statusCode: 200, body: 'ok' };
       }
+    }
+
+    // ---- Persistent bosh menyu tugmalari (matn tengligi bo'yicha) ----
+    if(msg.text && MENU_LABEL_SET.has(msg.text.trim())){
+      try{ await handleMenuText(msg); }
+      catch(err){
+        console.error('MENU XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
     }
 
     const adminState = await getAdminState();
@@ -596,6 +824,22 @@ exports.handler = async function (event) {
       }
       return { statusCode: 200, body: 'ok' };
     }
+    if(adminState.awaitingAksiyaNumber){
+      try{ await handleAksiyaNumberInput(msg); }
+      catch(err){
+        console.error('AKSIYA XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(adminState.awaitingAksiyaCustomHours){
+      try{ await handleAksiyaCustomHours(msg); }
+      catch(err){
+        console.error('AKSIYA XATOSI:', err);
+        await sendTelegram('sendMessage', { chat_id: msg.chat.id, text: 'Xato: ' + err.message });
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
 
     return { statusCode: 200, body: 'ok' };
   }
@@ -607,6 +851,13 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ignored' };
   }
   if(callback.data === 'noop') return { statusCode: 200, body: 'ok' };
+
+  /* ---- "🔥 Aksiya raqam joylash" oqimining inline tugmalari ---- */
+  if(callback.data.startsWith('ak|')){
+    try{ await handleAksiyaCallback(callback); }
+    catch(err){ console.error('AKSIYA-CALLBACK XATOSI:', err); await answerCallback(callback.id, 'Xato: ' + err.message); }
+    return { statusCode: 200, body: 'ok' };
+  }
 
   /* ---- Bot boshqaruv paneli tugmalari ---- */
   if(callback.data.startsWith('bc|')){

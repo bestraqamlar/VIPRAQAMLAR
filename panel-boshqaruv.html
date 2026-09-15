@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<!-- Bu — ADMIN paneli, qidiruv tizimlarida (Google) hech qachon
+     chiqmasligi kerak (qarang: robots.txt'da ham shu sahifa yopilgan). -->
+<meta name="robots" content="noindex, nofollow">
 <title>VIP RAQAMLAR &mdash; Admin panel</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
@@ -1294,6 +1297,29 @@
 .aks-add-btn svg{width:17px;height:17px;}
 .aks-list{margin-top:14px;}
 .aks-list .admin-row-collapsed{border-left:2.5px solid var(--amber);}
+/* ---- Faol/Arxiv (muddati tugagan) bo'limlari sarlavhalari va arxiv qatorlari ---- */
+.aks-list-heading{
+  font-family:'Sora',sans-serif;font-size:12px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px;
+  display:flex;align-items:center;gap:6px;
+}
+.aks-list-heading:first-child{margin-top:0;}
+.aks-list-heading-archive{color:#c0392b;}
+.aks-list .admin-row-collapsed.aks-expired{border-left-color:#c0392b;opacity:.82;}
+.aks-expired-badge{
+  font-size:10.5px;font-weight:700;color:#ff8a7a;background:rgba(192,57,43,.16);
+  border:1px solid rgba(192,57,43,.4);border-radius:20px;padding:2px 8px;white-space:nowrap;
+}
+.aks-repost-row{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:12px;
+  padding:10px;border-radius:9px;background:rgba(192,57,43,.08);border:1px dashed rgba(192,57,43,.3);
+}
+.aks-repost-label{font-size:11.5px;font-weight:700;color:var(--muted);margin-right:2px;}
+.aks-repost-btn{
+  background:rgba(255,176,0,.1);border:1px solid rgba(255,176,0,.35);color:var(--amber,#FFB000);
+  border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;
+}
+.aks-repost-btn:active{transform:scale(.96);}
 @media(max-width:520px){ .aks-form{grid-template-columns:1fr;} .aks-field:first-child{grid-column:1;} }
 
 .op-block{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:14px;}
@@ -7593,25 +7619,32 @@ function aksFinGroupHtml(item, months){
     </div>`;
 }
 
-function renderAksiyaList(){
-  const list = document.getElementById('aksiyaList');
-  if(!list) return;
-  const items = (currentNumbersCache || []).filter(n => n.dailyDeal);
-  if(items.length === 0){
-    list.innerHTML = `<div class="empty-admin">Hali "Bugungi aksiya"ga raqam qo'shilmagan.</div>`;
-    return;
-  }
-  list.innerHTML = items.map(item=>{
-    const hoursLeft = item.dealExpiresAt ? Math.max(0, Math.round((item.dealExpiresAt - Date.now()) / 3600000)) : '';
-    return `
-    <div class="admin-row-collapsed" data-id="${item.id}">
+// Har bir "Bugungi aksiya" qatorini (faol yoki arxiv) chizadi. Arxivdagi
+// (muddati tugagan) raqamlarda qo'shimcha "🔁 Qayta joylash" tez tugmalari
+// chiqadi — bosilganda YANGI dealExpiresAt yozib, raqamni qaytadan
+// faollashtiradi (dailyDeal allaqachon true bo'lgani uchun boshqa hech
+// narsa o'zgarmaydi — sayt/bot buni darhol "faol aksiya" deb qabul qiladi).
+function aksRowHtml(item, isExpired, hoursLeft){
+  return `
+    <div class="admin-row-collapsed${isExpired ? ' aks-expired' : ''}" data-id="${item.id}">
       <div class="an-summary" data-id="${item.id}">
         <span class="an-summary-num">${escapeHtml(item.number)}</span>
         <span class="an-summary-price">${formatPrice(item.price)}</span>
         ${item.oldPrice ? `<span class="an-summary-op" style="text-decoration:line-through;opacity:.6;">${formatPrice(item.oldPrice)}</span>` : ''}
+        ${isExpired ? `<span class="aks-expired-badge">⏱ Muddati tugagan</span>` : ''}
         <span class="an-summary-arrow">▾</span>
       </div>
       <div class="an-body" style="display:none;">
+        ${isExpired ? `
+        <div class="aks-repost-row" data-id="${item.id}">
+          <span class="aks-repost-label">🔁 Qayta joylash:</span>
+          <button type="button" class="aks-repost-btn" data-hours="1">1 soat</button>
+          <button type="button" class="aks-repost-btn" data-hours="3">3 soat</button>
+          <button type="button" class="aks-repost-btn" data-hours="12">12 soat</button>
+          <button type="button" class="aks-repost-btn" data-hours="24">24 soat</button>
+          <button type="button" class="aks-repost-btn" data-hours="72">3 kun</button>
+          <button type="button" class="aks-repost-btn aks-repost-custom">Boshqa...</button>
+        </div>` : ''}
         <div class="admin-row aks-row" data-id="${item.id}">
           <input class="aks-number" value="${escapeHtml(item.number)}">
           <input class="aks-saleprice" type="number" placeholder="Aksiya narxi" value="${item.price || 0}">
@@ -7633,7 +7666,60 @@ function renderAksiyaList(){
         </div>
       </div>
     </div>`;
-  }).join('');
+}
+
+function renderAksiyaList(){
+  const list = document.getElementById('aksiyaList');
+  if(!list) return;
+  const allItems = (currentNumbersCache || []).filter(n => n.dailyDeal);
+  if(allItems.length === 0){
+    list.innerHTML = `<div class="empty-admin">Hali "Bugungi aksiya"ga raqam qo'shilmagan.</div>`;
+    return;
+  }
+  const now = Date.now();
+  // Faol: taymer yo'q (muddatsiz) YOKI hali tugamagan. Arxiv: taymer o'tib ketgan.
+  const active  = allItems.filter(n => !n.dealExpiresAt || n.dealExpiresAt > now);
+  const expired = allItems.filter(n => n.dealExpiresAt && n.dealExpiresAt <= now);
+
+  const activeHtml = active.length
+    ? active.map(item => aksRowHtml(item, false, item.dealExpiresAt ? Math.max(0, Math.round((item.dealExpiresAt - now) / 3600000)) : '')).join('')
+    : `<div class="empty-admin">Hozir faol aksiya yo'q.</div>`;
+  const expiredHtml = expired.length
+    ? expired.map(item => aksRowHtml(item, true, '')).join('')
+    : `<div class="empty-admin">Arxivda raqam yo'q.</div>`;
+
+  list.innerHTML = `
+    <div class="aks-list-heading">🔥 Faol aksiyalar (${active.length})</div>
+    ${activeHtml}
+    <div class="aks-list-heading aks-list-heading-archive">🗂 Muddati tugagan / arxiv (${expired.length})</div>
+    ${expiredHtml}
+  `;
+
+  list.querySelectorAll('.aks-repost-btn:not(.aks-repost-custom)').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.closest('.aks-repost-row').dataset.id;
+      const hours = Number(btn.dataset.hours);
+      if(!confirm(`Ushbu raqam yana ${hours} soatga aksiyaga qo'yilsinmi?`)) return;
+      try{
+        await db.collection('numbers').doc(id).update({ dealExpiresAt: Date.now() + hours * 3600 * 1000 });
+        vibrate(80);
+        refreshNumbers();
+      }catch(err){ alert('Qayta joylashda xato: ' + err.message); }
+    });
+  });
+  list.querySelectorAll('.aks-repost-custom').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.closest('.aks-repost-row').dataset.id;
+      const hoursStr = prompt("Necha SOATga qayta joylansin? (masalan: 48)");
+      const hours = Number(hoursStr);
+      if(!hours || hours <= 0) return;
+      try{
+        await db.collection('numbers').doc(id).update({ dealExpiresAt: Date.now() + hours * 3600 * 1000 });
+        vibrate(80);
+        refreshNumbers();
+      }catch(err){ alert('Qayta joylashda xato: ' + err.message); }
+    });
+  });
 
   list.querySelectorAll('.an-summary').forEach(summary=>{
     summary.addEventListener('click', ()=>{

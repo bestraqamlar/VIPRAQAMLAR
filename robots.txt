@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /panel-boshqaruv.html
+Disallow: /.netlify/functions/
 
 Sitemap: https://vipraqamlar.uz/sitemap.xml

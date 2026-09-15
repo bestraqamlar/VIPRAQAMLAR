@@ -1327,7 +1327,14 @@ exports.handler = async function (event) {
     if(text === BTN.SALE){
       session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(200).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem).filter(item => !item.installment), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
+      // Saytdagi (index.html/renderDailyDeal) bilan bir xil mantiq: muddati
+      // (dealExpiresAt) o'tib ketgan aksiya raqamlari endi ko'rsatilmaydi.
+      const now = Date.now();
+      const activeDocs = snap.docs.filter(d => {
+        const dd = d.data();
+        return !dd.dealExpiresAt || dd.dealExpiresAt > now;
+      });
+      await showNumberList(chatId, session, activeDocs.map(docToItem).filter(item => !item.installment), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.INSTALLMENT){
