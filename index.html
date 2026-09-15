@@ -5302,7 +5302,7 @@ function renderDailyDeal(){
     return `
       <div class="daily-deal-card">
         ${hasDiscount ? `<div class="dd-badge">-${discountPct}%</div>` : ''}
-        ${item.dealExpiresAt ? `<div class="dd-timer" data-expires="${item.dealExpiresAt}">Aksiya: --:--:--</div>` : ''}
+        ${item.dealExpiresAt ? `<div class="dd-timer" data-expires="${item.dealExpiresAt}">--:--:--</div>` : ''}
         <div class="dd-num">${displayNumber(item.number)}</div>
         <div class="dd-price-row" ${installmentTeaser ? `data-cash="${formatPrice(item.price)}" data-installment="${escapeHtml(installmentTeaser)}"` : ''}>
           <span class="dd-price">${formatPrice(item.price)}</span>
@@ -5337,7 +5337,7 @@ function updateDailyDealTimers(){
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    el.textContent = 'Aksiya: ' + (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    el.textContent = (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
   });
   if(!__ddTimerInterval){
     __ddTimerInterval = setInterval(()=>{
@@ -5350,7 +5350,7 @@ function updateDailyDealTimers(){
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
-        el.textContent = 'Aksiya: ' + (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        el.textContent = (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
       });
     }, 1000);
   }
