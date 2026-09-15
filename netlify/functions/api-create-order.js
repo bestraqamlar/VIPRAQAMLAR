@@ -40,6 +40,30 @@ function checkApiKey(event) {
   return provided === expected;
 }
 
+// XAVFSIZLIK: bitta IP manzildan (masalan API kaliti oqib chiqqan yoki
+// noto'g'ri ishlatilgan holatda) cheksiz buyurtma yaratib, katalogdagi
+// barcha raqamlarni "band qilib qo'yish" (spam) hujumining oldini olish
+// uchun — send-sms-code.js'dagi bilan bir xil Firestore hisoblagich naqshi.
+const ORDER_HOURLY_LIMIT = 30;
+async function checkIpRateLimit(event) {
+  const ip = (event.headers && (
+    event.headers['x-nf-client-connection-ip']
+    || event.headers['client-ip']
+    || ((event.headers['x-forwarded-for'] || '').split(',')[0].trim())
+  )) || 'unknown';
+  const hourKey = new Date().toISOString().slice(0, 13);
+  const rateLimitRef = db.collection('order_create_rate_limits').doc(ip.replace(/[^\w.:-]/g, '_') || 'unknown');
+  const snap = await rateLimitRef.get();
+  let count = 0;
+  if (snap.exists) {
+    const data = snap.data();
+    if (data.hourKey === hourKey) count = data.count || 0;
+  }
+  if (count >= ORDER_HOURLY_LIMIT) return false;
+  await rateLimitRef.set({ hourKey, count: count + 1, lastAttemptAt: Date.now() });
+  return true;
+}
+
 exports.handler = async function (event) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -54,6 +78,9 @@ exports.handler = async function (event) {
   }
   if (!checkApiKey(event)) {
     return { statusCode: 401, headers, body: JSON.stringify({ ok: false, error: 'Noto\'g\'ri yoki yo\'q API kalit (x-api-key)' }) };
+  }
+  if (!(await checkIpRateLimit(event))) {
+    return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p so'rov. Birozdan so'ng qayta urinib ko'ring." }) };
   }
 
   let data;
@@ -90,6 +117,10 @@ exports.handler = async function (event) {
       number: numData.number || '',
       price: typeof numData.price === 'number' ? numData.price : 0,
       name, region, phone,
+      // check-my-orders.js shu maydon bo'yicha to'g'ridan-to'g'ri
+      // .where() so'rovi yuboradi (3000 tagacha hujjatni skanerlash
+      // o'rniga) — qarang: index.html'dagi finalizeOrder().
+      phoneNormalized: phone.replace(/\D/g, '').slice(-9),
       paymentType,
       numberId,
       status: 'Yangi',
@@ -118,9 +149,15 @@ exports.handler = async function (event) {
 ${paymentLine}
 🕐 Vaqti: ${orderTime}
 🌐 Qayerdan: Mobil ilova`;
+        // telegram-notify endi himoyalangan (App Check YOKI x-api-key
+        // talab qiladi) — bu yerdan server-serverga chaqirilgani uchun
+        // xuddi shu funksiyaning o'zini himoya qilgan MOBILE_API_KEY'ni
+        // qayta ishlatamiz (agar sozlangan bo'lsa).
+        const notifyHeaders = { 'Content-Type': 'application/json' };
+        if (process.env.MOBILE_API_KEY) notifyHeaders['x-api-key'] = process.env.MOBILE_API_KEY;
         await fetch(`${siteUrl}/.netlify/functions/telegram-notify`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: notifyHeaders,
           body: JSON.stringify({ text, orderId: orderRef.id })
         });
       }

@@ -96,8 +96,33 @@
 # nomda joylashgan (index.html yoki boshqa hech qanday sahifada unga
 # havola YO'Q). Qo'shimcha ehtiyot chorasi sifatida qidiruv tizimlari
 # (Google va h.k.) uni HECH QACHON indekslamasligi/ko'rsatmasligi uchun
-# maxsus sarlavha qo'shildi.
+# maxsus sarlavha qo'shildi. Bundan tashqari X-Frame-Options ANIQ shu
+# yerda ham qayta ko'rsatilgan — admin panel hech qachon, hech qanday
+# holatda boshqa sahifaning <iframe> ichida ochilmasligi ("clickjacking"
+# hujumi) uchun ikki karra ta'minlanadi.
 [[headers]]
   for = "/panel-boshqaruv.html"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow, noarchive"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+
+# XAVFSIZLIK: barcha sahifalarga umumiy himoya sarlavhasi.
+# X-Content-Type-Options = "nosniff" — brauzer serverdan kelgan
+# Content-Type'ni "aql bilan taxmin qilib" o'zgartirmasin (masalan .txt
+# faylni JS sifatida ishga tushirmasin) deb, ba'zi hujum turlarining
+# oldini oladi. To'liq CSP (Content-Security-Policy) ATAYLAB qo'shilmadi —
+# saytda ko'plab inline <script> bloklari bor, ularni buzmasdan to'g'ri CSP
+# yozish uchun alohida, sinchiklab testdan o'tkazish kerak.
+#
+# MUHIM: X-Frame-Options = "DENY" ATAYLAB faqat admin panelga (yuqorida)
+# qo'yilgan, BUTUN saytga (index.html) EMAS — chunki bu sayt Telegram
+# "Mini ilova" (Web App) sifatida ham ochiladi, va Telegram Web
+# (web.telegram.org) Mini ilovalarni HAQIQIY <iframe> ichida ko'rsatadi.
+# Agar bosh sahifaga ham X-Frame-Options: DENY qo'yilsa, Telegram Web
+# orqali "Mini ilova" tugmasi bosilganda sahifa OCHILMAY QOLAR EDI (oq
+# ekran) — bu haqiqiy, sinovdan o'tgan Telegram cheklovi.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"

@@ -53,6 +53,32 @@ async function getEskizToken() {
   return cachedToken;
 }
 
+// XAVFSIZLIK: yuqoridagi kunlik/daqiqalik chegara faqat BITTA telefon
+// raqamiga nisbatan ishlaydi — u bitta mijoz (bitta IP) KO'PLAB TURLI
+// telefon raqamlariga SMS yuborishidan (masalan boshqa odamlarni bezovta
+// qilish yoki Eskiz balansini tugatish uchun) HIMOYA QILMAYDI. Shu sabab
+// bu yerga QO'SHIMCHA, IP manzili bo'yicha soatlik umumiy chegara
+// qo'shildi — xuddi shu (Firestore hisoblagich hujjati) naqsh bilan.
+const IP_HOURLY_LIMIT = 15;
+async function checkIpRateLimit(event) {
+  const ip = (event.headers && (
+    event.headers['x-nf-client-connection-ip']
+    || event.headers['client-ip']
+    || ((event.headers['x-forwarded-for'] || '').split(',')[0].trim())
+  )) || 'unknown';
+  const hourKey = new Date().toISOString().slice(0, 13);
+  const rateLimitRef = db.collection('sms_verifications_ip').doc(ip.replace(/[^\w.:-]/g, '_') || 'unknown');
+  const snap = await rateLimitRef.get();
+  let count = 0;
+  if (snap.exists) {
+    const data = snap.data();
+    if (data.hourKey === hourKey) count = data.count || 0;
+  }
+  if (count >= IP_HOURLY_LIMIT) return false;
+  await rateLimitRef.set({ hourKey, count: count + 1, lastAttemptAt: Date.now() });
+  return true;
+}
+
 exports.handler = async function (event) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -70,6 +96,9 @@ exports.handler = async function (event) {
     const cleanPhone = String(phone || '').replace(/\D/g, '');
     if (cleanPhone.length < 9) {
       return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: "Telefon raqam noto'g'ri" }) };
+    }
+    if (!(await checkIpRateLimit(event))) {
+      return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p urinish. Birozdan so'ng qayta urinib ko'ring." }) };
     }
     // Eskiz formatida: 998 bilan boshlanadigan 12 xonali raqam
     const fullPhone = cleanPhone.length === 9 ? '998' + cleanPhone : cleanPhone;

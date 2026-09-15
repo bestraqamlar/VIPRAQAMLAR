@@ -38,10 +38,39 @@ async function verifyAppCheckSoft(event){
   }
 }
 
+/* XAVFSIZLIK (PIN "brute-force" oldini olish): bu funksiya telefon + oxirgi
+   4 raqam ("PIN" kabi, atigi 10 000 xil kombinatsiya) bo'yicha qidiradi —
+   token/parol emas, shu sabab cheklov bo'lmasa kimdir ko'p (yoki skript
+   bilan avtomatik) urinib, boshqa mijozning buyurtmasini "taxmin qilib"
+   topishi mumkin edi. send-sms-code.js'dagi bilan bir xil naqsh: Firestore
+   hujjatida IP bo'yicha soatlik hisoblagich saqlanadi. */
+const LOOKUP_HOURLY_LIMIT = 20;
+async function checkIpRateLimit(event){
+  const ip = (event.headers && (
+    event.headers['x-nf-client-connection-ip']
+    || event.headers['client-ip']
+    || ((event.headers['x-forwarded-for'] || '').split(',')[0].trim())
+  )) || 'unknown';
+  const hourKey = new Date().toISOString().slice(0, 13); // masalan "2026-09-15T14"
+  const rateLimitRef = db.collection('order_lookup_rate_limits').doc(ip.replace(/[^\w.:-]/g, '_') || 'unknown');
+  const snap = await rateLimitRef.get();
+  let count = 0;
+  if(snap.exists){
+    const data = snap.data();
+    if(data.hourKey === hourKey) count = data.count || 0;
+  }
+  if(count >= LOOKUP_HOURLY_LIMIT) return false;
+  await rateLimitRef.set({ hourKey, count: count + 1, lastAttemptAt: Date.now() });
+  return true;
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
   if(!(await verifyAppCheckSoft(event))){
     return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
+  }
+  if(!(await checkIpRateLimit(event))){
+    return { statusCode: 429, body: JSON.stringify({ ok: false, error: "Juda ko'p urinish. Birozdan so'ng qayta urinib ko'ring." }) };
   }
 
   try{
@@ -55,10 +84,17 @@ exports.handler = async function (event) {
     if(!last4 || last4.length !== 4) return notFound;
     const last9 = numVal.slice(-9);
 
-    const snap = await db.collection('orders').orderBy('createdAtSort', 'desc').limit(3000).get();
+    // XAVFSIZLIK/TEZLIK: butun 'orders' kolleksiyasini (3000 tagacha
+    // hujjat) skanerlash o'rniga, endi to'g'ridan-to'g'ri 'phoneNormalized'
+    // maydoni bo'yicha so'raladi (buyurtma yaratilganda yoziladi — qarang:
+    // index.html'dagi finalizeOrder(), api-create-order.js,
+    // customer-bot-webhook.js). ESLATMA: bu maydon qo'shilishidan OLDIN
+    // yaratilgan ESKI buyurtmalarda bu maydon yo'q — ular bu qidiruvda
+    // topilmaydi (qabul qilingan cheklov, orqaga qarab to'ldirish qilinmadi).
+    const snap = await db.collection('orders').where('phoneNormalized', '==', last9).limit(50).get();
     const ownedOrders = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .filter(o => (o.phone || '').replace(/\D/g, '').slice(-9) === last9);
+      .sort((a, b) => (b.createdAtSort || 0) - (a.createdAtSort || 0));
 
     // Ikkinchi omil: shu telefonga tegishli buyurtmalar ICHIDA, kamida
     // BITTASINING raqami aynan shu 4 raqam bilan tugashi shart — aks holda

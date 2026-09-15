@@ -1115,6 +1115,9 @@ exports.handler = async function (event) {
         name: session.draftName || '',
         region: manzil,
         phone: session.draftPhone || '',
+        // check-my-orders.js shu maydon bo'yicha to'g'ridan-to'g'ri
+        // .where() so'rovi yuboradi (butun kolleksiyani skanerlash o'rniga).
+        phoneNormalized: (session.draftPhone || '').replace(/\D/g, '').slice(-9),
         // Jonli raqamda haqiqiy hujjat yo'q — soxta ID yozmaymiz, null qo'yamiz
         numberId: isLive ? null : (session.numberId || null),
         catalogType: isLive ? 'Standart' : 'VIP',

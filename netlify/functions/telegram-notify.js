@@ -18,9 +18,40 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true });
 
+/* XAVFSIZLIK: ilgari bu funksiyada HECH QANDAY tekshiruv yo'q edi — istalgan
+   kishi to'g'ridan-to'g'ri chaqirib, botimiz nomidan ixtiyoriy xabar
+   yuborishi (spam yoki soxta "buyurtma" bildirishnomasi, hatto soxta
+   inline tugmali xabar) mumkin edi. Endi ikki xil qonuniy chaqiruvchi
+   ruxsat etiladi:
+   1) Saytning O'ZI (index.html, panel-boshqaruv.html) — App Check tokeni
+      bilan (xuddi check-my-orders.js, check-promo-code.js'dagi kabi bir
+      xil naqsh), token HAQIQIY bo'lishi shart.
+   2) SERVER-SERVERGA chaqiruvlar (masalan api-create-order.js — mobil
+      ilova uchun) — App Check tokeni bo'lishi shart emas (mobil ilova
+      brauzer emas), o'rniga xuddi api-create-order.js'dagi bilan bir xil
+      "x-api-key" (MOBILE_API_KEY muhit o'zgaruvchisi) qabul qilinadi.
+   Ikkalasi ham bo'lmasa — so'rov rad etiladi. */
+async function verifyCaller(event){
+  const apiKey = (event.headers && (event.headers['x-api-key'] || event.headers['X-Api-Key'])) || '';
+  const expectedApiKey = process.env.MOBILE_API_KEY;
+  if(expectedApiKey && apiKey === expectedApiKey) return true;
+
+  const token = (event.headers && (event.headers['x-firebase-appcheck'] || event.headers['X-Firebase-AppCheck'])) || '';
+  if(!token) return false;
+  try{
+    await admin.appCheck().verifyToken(token);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+  if(!(await verifyCaller(event))){
+    return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
   }
 
   try {

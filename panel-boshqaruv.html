@@ -3050,6 +3050,16 @@ firebase.initializeApp(firebaseConfig);
 firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 const db = firebase.firestore();
 
+/* telegram-notify kabi funksiyalarga so'rov yuborganda App Check tokenini
+   ham qo'shib yuboramiz — xuddi index.html'dagi getAppCheckHeaders() kabi
+   (qarang: netlify/functions/telegram-notify.js). */
+async function getAppCheckHeaders(){
+  try{
+    const t = await firebase.appCheck().getToken();
+    return { 'X-Firebase-AppCheck': t.token };
+  }catch(e){ return {}; }
+}
+
 // MUHIM (mijoz iltimosi: "admin saytda faqat iPhone'dan yozilsa umuman
 // yozilmayabdi, qotib qolyabdi — orqada biror narsa ishlayotgan bo'lsa
 // olib tashla"): sahifada bir nechta orqa fon jarayoni (buyurtmalar
@@ -3699,15 +3709,29 @@ function attachUzPhoneAutoFormat(el){
     if(!el.value) el.value = '+998 ';
   });
   el.addEventListener('input', ()=>{
-    let digits = el.value.replace(/\D/g, '');
-    if(digits.startsWith('998')) digits = digits.slice(3);
-    digits = digits.slice(0, 9);
-    let out = '+998';
-    if(digits.length > 0) out += ' ' + digits.slice(0, 2);
-    if(digits.length > 2) out += ' ' + digits.slice(2, 5);
-    if(digits.length > 5) out += '-' + digits.slice(5, 7);
-    if(digits.length > 7) out += '-' + digits.slice(7, 9);
-    el.value = out;
+    // iPhone'da "yozayotganda harf darhol ko'rinmayabdi, qotib qolgandek"
+    // degan shikoyat: el.value 'input' hodisasi ICHIDA, HAR bir harfda
+    // SINXRON qayta yozilsa, ba'zi iOS Safari versiyalarida klaviatura
+    // ustidagi bashorat (QuickType) paneli bilan matnni sinxronlash
+    // kechikadi — natijada yangi harf zumda emas, biroz kech chiqadi.
+    // Shu sabab formatlashni joriy hodisa siklidan CHIQARAMIZ —
+    // requestAnimationFrame keyingi chizish siklida bajaradi, brauzer esa
+    // shu orada mijoz yozgan harfni odatdagidek, kechikishsiz chizib
+    // ulguradi. `raw` solishtiruvi — orada yana yozib yuborilgan bo'lsa,
+    // eskirgan formatni qo'llamaslik uchun.
+    const raw = el.value;
+    requestAnimationFrame(()=>{
+      if(el.value !== raw) return;
+      let digits = raw.replace(/\D/g, '');
+      if(digits.startsWith('998')) digits = digits.slice(3);
+      digits = digits.slice(0, 9);
+      let out = '+998';
+      if(digits.length > 0) out += ' ' + digits.slice(0, 2);
+      if(digits.length > 2) out += ' ' + digits.slice(2, 5);
+      if(digits.length > 5) out += '-' + digits.slice(5, 7);
+      if(digits.length > 7) out += '-' + digits.slice(7, 9);
+      if(out !== el.value) el.value = out;
+    });
   });
   el.addEventListener('blur', ()=>{
     if(el.value.replace(/\D/g, '') === '998' || el.value.trim() === '+998') el.value = '';
@@ -3720,8 +3744,16 @@ function attachUzPhoneAutoFormat(el){
 function attachThousandsFormat(el){
   if(!el) return;
   el.addEventListener('input', ()=>{
-    const digits = el.value.replace(/\D/g, '');
-    el.value = digits ? Number(digits).toLocaleString('ru-RU').replace(/,/g, ' ') : '';
+    // attachUzPhoneAutoFormat'dagi kabi: iPhone'da yozish "qotib
+    // qolgandek" ko'rinmasligi uchun el.value qayta yozilishi
+    // requestAnimationFrame bilan keyingi chizish sikliga kechiktiriladi.
+    const raw = el.value;
+    requestAnimationFrame(()=>{
+      if(el.value !== raw) return;
+      const digits = raw.replace(/\D/g, '');
+      const out = digits ? Number(digits).toLocaleString('ru-RU').replace(/,/g, ' ') : '';
+      if(out !== el.value) el.value = out;
+    });
   });
 }
 function parseSumInput(val){
@@ -5115,8 +5147,15 @@ function formatDate(ts){
 ['crPhone','crNumber'].forEach(id=>{
   const el = document.getElementById(id);
   el.addEventListener('input', ()=>{
-    const raw = extractRawDigits(el.value);
-    el.value = formatUzNumber(raw);
+    // iPhone'da yozish kechikmasligi uchun (qarang: attachUzPhoneAutoFormat
+    // izohi) — el.value qayta yozilishi keyingi chizish sikliga
+    // kechiktiriladi.
+    const raw0 = el.value;
+    requestAnimationFrame(()=>{
+      if(el.value !== raw0) return;
+      const formatted = formatUzNumber(extractRawDigits(raw0));
+      if(formatted !== el.value) el.value = formatted;
+    });
   });
   el.addEventListener('focus', ()=>{
     if(!el.value) el.value = '+998 ';
@@ -8374,8 +8413,17 @@ const newOperatorSelect = document.getElementById('newOperator');
 const codeHint = document.getElementById('codeHint');
 
 newNumberInput.addEventListener('input', ()=>{
-  const raw = extractRawDigits(newNumberInput.value);
-  newNumberInput.value = formatUzNumber(raw);
+  // iPhone'da yozish kechikmasligi uchun (qarang: attachUzPhoneAutoFormat
+  // izohi) — el.value qayta yozilishi requestAnimationFrame bilan
+  // kechiktiriladi, kod aniqlash esa (visual kechikish keltirmaydigan
+  // yengil ish) darhol bajariladi.
+  const rawValueAtInput = newNumberInput.value;
+  const raw = extractRawDigits(rawValueAtInput);
+  requestAnimationFrame(()=>{
+    if(newNumberInput.value !== rawValueAtInput) return;
+    const formatted = formatUzNumber(raw);
+    if(formatted !== newNumberInput.value) newNumberInput.value = formatted;
+  });
 
   const code = raw.slice(0,2);
   if(code.length === 2){
@@ -8641,7 +8689,7 @@ async function sendBacklogTelegramAlert(count){
   try{
     await fetch('/.netlify/functions/telegram-notify', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
       body: JSON.stringify({
         text: `⚠️ Diqqat! ${count} ta "Yangi" buyurtma to'planib qoldi. Admin panelga kirib ko'rib chiqing.`
       })
