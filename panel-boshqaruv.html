@@ -7485,9 +7485,17 @@ window.handleVideoUpload = async function(){
 
     const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
 
-    // Ro'yxat oxiriga qo'shish uchun joriy eng katta "order" qiymatini topamiz
-    const snap = await db.collection('video_testimonials').orderBy('order', 'desc').limit(1).get();
-    const nextOrder = snap.empty ? 1 : (snap.docs[0].data().order || 0) + 1;
+    // Ro'yxat oxiriga qo'shish uchun joriy eng katta "order" qiymatini topamiz.
+    // MUHIM: bu yerda ATAYLAB .orderBy('order','desc') ISHLATILMAYDI — agar
+    // avvalgi hujjatlardan birortasida "order" maydoni umuman bo'lmasa
+    // (masalan Firestore konsolidan qo'lda qo'shilgan bo'lsa), Firestore
+    // orderBy o'sha hujjatni natijadan chiqarib tashlaydi va eng katta
+    // qiymat noto'g'ri hisoblanishi mumkin — shu sabab BARCHA hujjatlar
+    // olinib, eng katta "order" shu yerda (JavaScript'da) hisoblanadi.
+    const allSnap = await db.collection('video_testimonials').get();
+    const nextOrder = allSnap.empty
+      ? 1
+      : Math.max(0, ...allSnap.docs.map(d => Number(d.data().order) || 0)) + 1;
 
     await db.collection('video_testimonials').add({
       videoUrl,
@@ -7518,8 +7526,13 @@ async function loadVideoTestimonials(){
   const list = document.getElementById('videoList');
   list.innerHTML = 'Yuklanmoqda...';
   try{
-    const snap = await db.collection('video_testimonials').orderBy('order', 'asc').get();
+    // MUHIM: .orderBy('order','asc') o'rniga barcha hujjatlar olinib,
+    // shu yerda saralanadi — aks holda "order" maydoni yo'q hujjatlar
+    // (masalan eski/qo'lda qo'shilgan) admin ro'yxatida HAM ko'rinmay
+    // qolar edi, ya'ni admin ularni ko'rib/tuzatib ham bo'lmasdi.
+    const snap = await db.collection('video_testimonials').get();
     const videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    videos.sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
     if(videos.length === 0){ list.innerHTML = `<div class="empty-admin">Hali video qo'shilmagan.</div>`; return; }
 
     list.innerHTML = videos.map(v => `

@@ -2760,8 +2760,10 @@
      uslubi shu yerda ID orqali qayta belgilanadi (boshqa 3 ta shu
      klassni ishlatuvchi oyna — customOrderOverlay, aboutOverlay,
      contractOverlay — o'zgarishsiz qoladi). ---- */
+  /* Mijoz iltimosiga ko'ra: qora fon o'rniga "Buyurtma berish" tugmasi
+     bilan bir xil ko'k (--btn-bg) fon ishlatiladi. */
   #vacancyOverlay{
-    display:block;padding:0;background:var(--bg);align-items:stretch;justify-content:stretch;
+    display:block;padding:0;background:var(--btn-bg, #2F6BE0);align-items:stretch;justify-content:stretch;
     overflow-y:auto;
   }
   #vacancyOverlay .contract-modal{
@@ -2771,9 +2773,19 @@
   #vacancyOverlay .contract-top{
     position:sticky;top:0;margin:-16px -18px 14px;z-index:2;
     padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 14px;
-    background:var(--bg);border-bottom:1px solid var(--line);
+    background:var(--btn-bg, #2F6BE0);border-bottom:1px solid rgba(255,255,255,0.18);
   }
-  #vacancyOverlay .contract-title{font-size:19px;}
+  #vacancyOverlay .contract-title{font-size:19px;color:var(--btn-text, #fff);}
+  #vacancyOverlay .drawer-close{background:rgba(255,255,255,0.16);color:var(--btn-text, #fff);}
+  #vacancyOverlay .drawer-close:hover{background:rgba(255,255,255,0.28);}
+  #vacancyOverlay .vac-empty-title,
+  #vacancyOverlay label{color:var(--btn-text, #fff);}
+  #vacancyOverlay .vac-empty-sub,
+  #vacancyOverlay .co-intro{color:rgba(255,255,255,0.75);}
+  #vacancyOverlay .vac-card{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+  #vacancyOverlay .vac-card-title{color:var(--btn-text, #fff);}
+  #vacancyOverlay .vac-card-desc{color:rgba(255,255,255,0.75);}
+  #vacancyOverlay .vac-consent{color:rgba(255,255,255,0.75);}
 
   .vac-empty{text-align:center;padding:36px 10px;color:var(--muted);}
   .vac-empty-icon{font-size:34px;margin-bottom:10px;}
@@ -9081,9 +9093,29 @@ window.pauseReelsVideo = function(slideEl){
 
   async function loadVideoTestimonials(){
     try{
-      const snap = await db.collection('video_testimonials').orderBy('order', 'asc').limit(3000).get();
+      // MUHIM TUZATISH: avval bu yerda Firestore'ning o'zida
+      // .orderBy('order','asc') ishlatilardi — lekin Firestore orderBy
+      // FAQAT shu maydonga ega hujjatlarni qaytaradi, "order" maydoni
+      // yo'q (masalan konsoldan qo'lda qo'shilgan yoki eski, bu maydon
+      // paydo bo'lishidan OLDIN yaratilgan) hujjatlar natijadan JIMGINA
+      // (xatosiz) TUSHIB QOLADI — hatto BARCHA hujjatlarda shu muammo
+      // bo'lsa, ro'yxat butunlay bo'sh chiqadi va bo'lim abadiy
+      // yashirilib qoladi (mijoz "video sharhlar umuman ko'rinmayapti/
+      // ishlamayapti" deb tushunadi). Shu sabab endi saralash Firestore
+      // so'rovida emas, BU YERDA (JavaScript'da) qilinadi — shunda
+      // "order" maydoni yo'q hujjatlar ham (oxiriga qo'yilib) baribir
+      // ko'rsatiladi.
+      const snap = await db.collection('video_testimonials').limit(3000).get();
       videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }catch(e){ videos = []; }
+      videos.sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
+    }catch(e){
+      // Avval bu yerda xato butunlay jim yutilardi — Firestore ruxsat
+      // xatosi yoki tarmoq muammosi bo'lsa ham konsolda HECH NARSA
+      // ko'rinmasdi, shu sabab "nega ishlamayapti" degan savolga javob
+      // topib bo'lmasdi. Endi kamida konsolga chiqaramiz.
+      console.error('loadVideoTestimonials: video_testimonials yuklanmadi:', e);
+      videos = [];
+    }
 
     if(videos.length === 0){ section.style.display = 'none'; return; }
     // Video ma'lumoti YUKLANIB BO'LGANDA mijoz VIP bo'limida turmagan
