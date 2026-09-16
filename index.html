@@ -2435,6 +2435,77 @@
      .humans-fin-view ichida emas, mustaqil qadam sifatida. */
   #cashReviewView .hf-receipt{position:static;margin-top:12px;}
 
+  /* ---- QAYTA YOQILGANDA QO'SHILDI (mijoz tanlovi: "Progress-bar bilan
+     bosqichma-bosqich sahifalar"): Naqt-tarif oqimining 3 qadami
+     (Tarif tanlash / Buyurtma tafsilotlari / Ma'lumot to'ldirish) endi
+     tepada segmentli progress-bar bilan ko'rsatiladi, va har bir qadamga
+     o'tishda yengil "chapdan-o'ngga" (yoki orqaga qaytishda "o'ngdan-
+     chapga") sirg'anib kirish animatsiyasi bilan almashadi — mijoz
+     "hammasi bitta oynada qorishib ketgan" his qilmasligi uchun. Bu
+     bar FAQAT shu 3 qadamli oqimda ko'rinadi (installment yoki tarifsiz
+     naqt oqimida umuman chiqmaydi — showStepProgress/hideStepProgress
+     orqali boshqariladi). */
+  .step-progress{padding:2px 2px 0;margin-bottom:2px;}
+  .step-progress-track{display:flex;gap:6px;}
+  .step-progress-seg{flex:1;height:4px;border-radius:3px;background:var(--line);overflow:hidden;position:relative;}
+  .step-progress-seg::after{
+    content:'';position:absolute;inset:0;border-radius:3px;
+    background:linear-gradient(90deg, var(--amber), var(--green));
+    transform:scaleX(0);transform-origin:left;
+    transition:transform .4s cubic-bezier(.22,1,.36,1);
+  }
+  .step-progress-seg.done::after,.step-progress-seg.active::after{transform:scaleX(1);}
+  .step-progress-label{margin-top:8px;font-size:11.5px;color:var(--muted);font-weight:700;text-align:center;letter-spacing:.02em;}
+  @keyframes stepSlideInRight{from{transform:translateX(24px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  @keyframes stepSlideInLeft{from{transform:translateX(-24px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .step-slide-in-right{animation:stepSlideInRight .32s cubic-bezier(.22,1,.36,1) both;}
+  .step-slide-in-left{animation:stepSlideInLeft .32s cubic-bezier(.22,1,.36,1) both;}
+  @media (prefers-reduced-motion: reduce){
+    .step-slide-in-right,.step-slide-in-left{animation:none;}
+  }
+
+  /* ---- YANGI (mijoz so'roviga ko'ra, oqim to'liq qayta tuzildi): endi
+     "Tarif tanlash"dan keyin, agar shu raqam UCHUN ham naqt, ham bo'lib
+     to'lash mumkin bo'lsa (selectedInstallmentFin mavjud bo'lsa) — mijoz
+     ALOHIDA qadamda ikkalasidan birini tanlaydi (#paymentMethodView).
+     Vizual til cash-tariff-card bilan bir xil (katta bosiladigan
+     kartochka), faqat 2 ta katta variant, ikonka bilan. ---- */
+  .pm-options{display:flex;flex-direction:column;gap:12px;margin:16px 0 20px;}
+  .pm-option-card{
+    position:relative;text-align:left;background:var(--panel);border:1.5px solid var(--line);
+    border-radius:16px;padding:16px 16px;cursor:pointer;color:var(--text);width:100%;
+    display:flex;align-items:center;gap:14px;
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), border-color .15s ease, box-shadow .15s ease;
+  }
+  .pm-option-card:active{transform:scale(0.98);}
+  .pm-option-card.active{
+    border-color:var(--amber);
+    box-shadow:0 6px 18px -8px color-mix(in srgb, var(--amber) 55%, transparent);
+    background:linear-gradient(135deg, color-mix(in srgb, var(--amber) 14%, var(--panel)), color-mix(in srgb, var(--green) 10%, var(--panel)));
+  }
+  .pm-option-icon{
+    flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    background:color-mix(in srgb, var(--amber) 16%, var(--panel));color:var(--amber);
+  }
+  .pm-option-card.active .pm-option-icon{background:var(--amber);color:var(--bg);}
+  .pm-option-body{flex:1;min-width:0;}
+  .pm-option-name{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;margin-bottom:3px;}
+  .pm-option-desc{font-size:12px;color:var(--muted);line-height:1.45;}
+  .pm-option-check{
+    flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;transition:all .15s ease;
+  }
+  .pm-option-card.active .pm-option-check{background:var(--amber);border-color:var(--amber);}
+  .pm-option-check svg{width:13px;height:13px;opacity:0;transform:scale(.5);transition:all .15s ease;}
+  .pm-option-card.active .pm-option-check svg{opacity:1;transform:scale(1);stroke:var(--bg);}
+  #pmContinueBtn:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+
+  /* ---- Bo'lib to'lash oqimining "Oylik to'lovni tanlang" mustaqil
+     qadami (#installmentStepView) — ilgari #formView ichida ko'milib
+     yotgan .humans-fin-view shu yerga ko'chirildi (tarif tanlash qismi
+     olib tashlandi — tarif endi eng birinchi umumiy qadamda tanlanadi). ---- */
+  #installmentStepView .humans-fin-view{display:block;margin-top:4px;}
+
   /* ---- Bo'lib to'lash bo'limidagi har bir bosqich ----
      Mijoz iltimosiga ko'ra: Bosh to'lov / Oylik to'lov / Tarif bosqichlari
      bir-biridan ANIQ, chalkashmaydigan tarzda ajratilgan bo'lishi kerak —
@@ -4167,6 +4238,14 @@ html.theme-purple-premium .card button.order-btn{
 <div class="overlay" id="overlay">
   <div class="modal" id="orderModal">
     <div class="modal-handle"></div>
+    <!-- Buyurtma qadamli oqimi (Tarif tanlash / To'lov turi / Tafsilotlar /
+         Ma'lumot to'ldirish) uchun segmentli progress-bar — qarang:
+         renderStepProgress()/hideStepProgress() (JS). Legacy yoki
+         qadamsiz to'g'ridan-to'g'ri oqimlarda ko'rinmaydi. -->
+    <div class="step-progress" id="stepProgress" style="display:none;">
+      <div class="step-progress-track" id="stepProgressTrack"></div>
+      <div class="step-progress-label" id="stepProgressLabel"></div>
+    </div>
     <!-- Birinchi qadam — raqamning o'zi "kartochka" ko'rinishida ko'rsatiladi,
          mijoz "Rasmiylashtirish"ni bossagina to'liq forma (ism/viloyat/telefon)
          ochiladi. "Bekor qilish" bosilsa oyna butunlay yopiladi. -->
@@ -4180,16 +4259,13 @@ html.theme-purple-premium .card button.order-btn{
       <button type="button" class="op-preview-cancel" id="previewCancelBtn">Bekor qilish</button>
     </div>
 
-    <!-- YANGI QADAM (mijoz so'roviga ko'ra, boshqa ilova namunasidagi
-         oqim asosida qo'shildi, faqat NAQT to'lov
-         oqimi uchun — Bo'lib to'lashga TEGMAYDI): mijoz raqamni
-         "Rasmiylashtirish"dan keyin, agar to'lov turi naqt bo'lsa VA
-         tanlangan operator uchun admin panelda kamida bitta tarif
-         sozlangan bo'lsa, avval shu oylik tarifni tanlaydi. Agar bunday
-         tarif sozlanmagan bo'lsa (masalan operator uchun umuman tarif
-         kiritilmagan) — showOrderForm() bu qadamni butunlay o'tkazib
-         yuborib, to'g'ridan-to'g'ri #formView'ga o'tadi, hech qanday
-         "qoq yo'l"ga tushib qolmaydi. -->
+    <!-- QADAM 1 — "Tarif tanlang": mijoz raqamni "Rasmiylashtirish"dan
+         keyin, tanlangan operator uchun admin panelda kamida bitta tarif
+         sozlangan bo'lsa, avval shu oylik tarifni tanlaydi (bu tarif
+         KEYINGI qadamlarning HAR IKKALASIDA — naqt VA bo'lib to'lashda —
+         ham ishlatiladi, mijoz uni ikki marta tanlamaydi). Tarif
+         sozlanmagan bo'lsa — showOrderForm() bu qadamni butunlay
+         o'tkazib yuboradi. -->
     <div id="cashTariffView" style="display:none;">
       <h2>Tarifni tanlang</h2>
       <div class="modal-number" id="cashTariffNumberLabel"></div>
@@ -4198,26 +4274,106 @@ html.theme-purple-premium .card button.order-btn{
       <button type="button" class="op-preview-cancel" id="cashTariffBackBtn">Orqaga</button>
     </div>
 
-    <!-- YANGI QADAM: tarif tanlangandan keyin, ma'lumot formasi (ism/
-         viloyat/telefon)dan OLDIN — "Buyurtma tafsilotlari" ko'rib chiqish
-         ekrani. Mijoz iltimosiga ko'ra bu yerdagi "To'lanishi kerak" summasi
-         RAQAM NARXI + TARIFNING OYLIK TO'LOVI yig'indisidan iborat (bu
-         raqobatchi namunasidan farqli — u yerda raqamning o'zi bepul,
-         vipraqamlar.uz'da esa raqamning o'z qiymati bor, shu sabab
-         izohlovchi matn ham shunga mos yozilgan, "raqam sizga bepul"
-         degan noto'g'ri taassurot berilmaydi). -->
+    <!-- QADAM 2 — "To'lov turini tanlang": FAQAT shu raqam uchun ham
+         naqt, ham bo'lib to'lash haqiqatan mumkin bo'lganda (
+         selectedInstallmentFin mavjud bo'lganda) ko'rsatiladi. Aks holda
+         (masalan operator faqat naqtga tarif sozlagan bo'lsa) bu qadam
+         o'tkazib yuborilib, to'g'ridan-to'g'ri "Buyurtma tafsilotlari"ga
+         (naqt) o'tiladi — qarang: showOrderForm()/cashTariffContinueBtn. -->
+    <div id="paymentMethodView" style="display:none;">
+      <h2>To'lov turini tanlang</h2>
+      <div class="pm-options">
+        <button type="button" class="pm-option-card" data-type="cash">
+          <div class="pm-option-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+          <div class="pm-option-body">
+            <div class="pm-option-name">Naqt to'lov</div>
+            <div class="pm-option-desc">Raqam narxi va tarif to'lovi bir martalik to'lanadi</div>
+          </div>
+          <div class="pm-option-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </button>
+        <button type="button" class="pm-option-card" data-type="installment">
+          <div class="pm-option-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+          <div class="pm-option-body">
+            <div class="pm-option-name">Bo'lib to'lash</div>
+            <div class="pm-option-desc">Bosh to'lov + oylik to'lovlar bilan, muddatni o'zingiz tanlaysiz</div>
+          </div>
+          <div class="pm-option-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </button>
+      </div>
+      <button type="button" class="op-preview-confirm" id="pmContinueBtn" disabled>Davom etish</button>
+      <button type="button" class="op-preview-cancel" id="pmBackBtn">Orqaga</button>
+    </div>
+
+    <!-- QADAM 3a — Naqt to'lov tanlanganda: "Buyurtma tafsilotlari" ko'rib
+         chiqish ekrani. To'lanishi kerak summa = raqam narxi + tarifning
+         oylik to'lovi (bu raqobatchi namunasidan farqli — u yerda
+         raqamning o'zi bepul, vipraqamlar.uz'da esa raqamning o'z qiymati
+         bor, shu sabab izohlovchi matn ham shunga mos yozilgan). -->
     <div id="cashReviewView" style="display:none;">
       <h2>Buyurtma tafsilotlari</h2>
       <div class="hf-receipt">
         <div class="hf-receipt-row"><span>Raqam</span><b id="crNumber"></b></div>
-        <div class="hf-receipt-row"><span>Tarif</span><b id="crTariffName"></b></div>
-        <div class="hf-receipt-row"><span>Abonent to'lovi</span><b id="crTariffPrice"></b></div>
+        <div class="hf-receipt-row" id="crTariffRow"><span>Tarif</span><b id="crTariffName"></b></div>
+        <div class="hf-receipt-row" id="crTariffPriceRow"><span>Abonent to'lovi</span><b id="crTariffPrice"></b></div>
         <div class="hf-receipt-row"><span>Raqam narxi</span><b id="crNumberPrice"></b></div>
         <p class="hf-receipt-note">To'lanishi kerak summa raqamning o'z narxini va tanlangan tarifning birinchi oylik abonent to'lovini birlashtiradi — vipraqamlar.uz'da chiroyli raqamning o'zi ham qiymatga ega bo'lgani uchun, bu yerdagi umumiy summa ikkalasining yig'indisidir.</p>
         <div class="hf-receipt-total"><span>To'lanishi kerak</span><b id="crTotal"></b></div>
       </div>
       <button type="button" class="op-preview-confirm" id="cashReviewContinueBtn" style="margin-top:16px;">Davom etish</button>
       <button type="button" class="op-preview-cancel" id="cashReviewBackBtn">Orqaga</button>
+    </div>
+
+    <!-- QADAM 3b — Bo'lib to'lash tanlanganda: oylik muddatni tanlash
+         (avvalgi #formView ichiga ko'milib yotgan .humans-fin-view shu
+         yerga ko'chirildi — faqat tarif tanlash qismi (eski 3-bosqich)
+         OLIB TASHLANDI, chunki tarif endi eng birinchi umumiy qadamda
+         tanlanadi, qarang: #cashTariffView). Pastdagi chek DARHOL
+         yangilanadi (updateHumansFinTotals). -->
+    <div id="installmentStepView" style="display:none;">
+      <h2>Oylik to'lovni tanlang</h2>
+      <div class="modal-number" id="installmentNumberLabel"></div>
+      <div class="humans-fin-view" id="humansFinView">
+        <div class="hf-step">
+          <div class="hf-step-num">1</div>
+          <div class="hf-step-body">
+            <div class="hf-row hf-down"><span>Bosh to'lov</span><b id="hfDownPaymentValue">0 so'm</b></div>
+          </div>
+        </div>
+
+        <div class="hf-step-sep"></div>
+
+        <div class="hf-step">
+          <div class="hf-step-num">2</div>
+          <div class="hf-step-body">
+            <div class="hf-months" id="hfMonths">
+              <button type="button" class="hf-month-btn" data-months="24">24 oy</button>
+              <button type="button" class="hf-month-btn" data-months="12">12 oy</button>
+              <button type="button" class="hf-month-btn" data-months="6">6 oy</button>
+            </div>
+            <div class="hf-row"><span>Oylik to'lov (<span id="hfMonthsLabel">6</span> oy)</span><b id="hfMonthlyValue">0 so'm</b></div>
+          </div>
+        </div>
+
+        <div class="hf-step-sep"></div>
+
+        <!-- Oy tanlanishi bilan DARHOL shu joyning o'zida (updateHumansFinTotals
+             orqali) yangilanadigan yakuniy chek. Tarif bu yerda TAKROR
+             ko'rsatilmaydi (allaqachon 1-qadamda tanlangan), faqat uning
+             narxi umumiy summaga qo'shilib chiqadi. -->
+        <div class="hf-receipt" id="hfReceipt" style="display:none;">
+          <div class="hf-receipt-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Raqam sizga bron qilinadi!
+          </div>
+          <div class="hf-receipt-row"><span>Bosh to'lov</span><b id="hfrDown">0 so'm</b></div>
+          <div class="hf-receipt-row"><span>Raqam 1-chi oylik to'lov</span><b id="hfrFirstMonthly">0 so'm</b></div>
+          <div class="hf-receipt-row"><span>Tarif</span><b id="hfrTariff">—</b></div>
+          <p class="hf-receipt-note" id="hfScheduleNote"></p>
+          <div class="hf-receipt-total"><span>Hozir to'lanadigan summa</span><b id="hfTotalOverall">0 so'm</b></div>
+        </div>
+      </div>
+      <button type="button" class="op-preview-confirm" id="installmentContinueBtn" style="margin-top:16px;">Davom etish</button>
+      <button type="button" class="op-preview-cancel" id="installmentBackBtn">Orqaga</button>
     </div>
 
     <div id="formView">
@@ -4264,65 +4420,6 @@ html.theme-purple-premium .card button.order-btn{
           <span class="ic-monthly">oyiga <b id="icMonthlyValue">0 so'm</b></span>
         </div>
       </div>
-
-      <!-- Humans — Bo'lib to'lash (rasrochka). Faqat Humans operatoridan
-           (jonli API) qidirilgan, admin panelda shu kategoriyaga narx
-           kiritilgan raqamlarda ko'rinadi (qarang: OPERATOR_FINANCING,
-           installmentFinancingFor()). To'liq ekran holatida (.hf-fullscreen)
-           shu bo'lim eng tepada, keyin pastda oddiy ma'lumot formasi
-           chiqadi. -->
-      <div class="humans-fin-view" id="humansFinView" style="display:none;">
-        <div class="hf-step">
-          <div class="hf-step-num">1</div>
-          <div class="hf-step-body">
-            <div class="hf-row hf-down"><span>Bosh to'lov</span><b id="hfDownPaymentValue">0 so'm</b></div>
-          </div>
-        </div>
-
-        <div class="hf-step-sep"></div>
-
-        <div class="hf-step">
-          <div class="hf-step-num">2</div>
-          <div class="hf-step-body">
-            <div class="hf-months" id="hfMonths">
-              <button type="button" class="hf-month-btn" data-months="24">24 oy</button>
-              <button type="button" class="hf-month-btn" data-months="12">12 oy</button>
-              <button type="button" class="hf-month-btn" data-months="6">6 oy</button>
-            </div>
-            <div class="hf-row"><span>Oylik to'lov (<span id="hfMonthsLabel">6</span> oy)</span><b id="hfMonthlyValue">0 so'm</b></div>
-          </div>
-        </div>
-
-        <div class="hf-step-sep"></div>
-
-        <div class="hf-step">
-          <div class="hf-step-num">3</div>
-          <div class="hf-step-body">
-            <div class="hf-tariff-label">Tarifni tanlang</div>
-            <div class="hf-tariffs" id="hfTariffs"></div>
-            <div class="hf-tariff-detail" id="hfTariffDetail" style="display:none;"></div>
-          </div>
-        </div>
-
-        <div class="hf-step-sep"></div>
-
-        <!-- Tarif tanlangandan keyin chiqadigan, alohida ramkali yakuniy
-             chek — tepadagi oy (6/12/24) yoki tarif tugmasi bosilganda
-             DARHOL shu joyning o'zida (updateHumansFinTotals orqali)
-             yangilanadi. -->
-        <div class="hf-receipt" id="hfReceipt" style="display:none;">
-          <div class="hf-receipt-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Raqam nomingizga rasmiylashtiriladi!
-          </div>
-          <div class="hf-receipt-row"><span>Bosh to'lov</span><b id="hfrDown">0 so'm</b></div>
-          <div class="hf-receipt-row"><span>Raqam 1-chi oylik to'lov</span><b id="hfrFirstMonthly">0 so'm</b></div>
-          <div class="hf-receipt-row"><span>Tarif</span><b id="hfrTariff">—</b></div>
-          <p class="hf-receipt-note" id="hfScheduleNote"></p>
-          <div class="hf-receipt-total"><span>Hozir to'lanadigan summa</span><b id="hfTotalOverall">0 so'm</b></div>
-        </div>
-      </div>
-      <div class="hf-divider" id="hfDivider" style="display:none;">Ma'lumotlaringiz</div>
 
       <label for="custName">Ismingiz</label>
       <input type="text" id="custName" placeholder="Ism Familiya">
@@ -7404,7 +7501,6 @@ function installmentFinancingFor(item){
 }
 
 const humansFinView     = document.getElementById('humansFinView');
-const hfDivider         = document.getElementById('hfDivider');
 const hfRegisterNote    = document.getElementById('hfRegisterNote');
 const hfDownPaymentValue= document.getElementById('hfDownPaymentValue');
 const hfMonthButtons    = Array.from(document.querySelectorAll('.hf-month-btn'));
@@ -7422,6 +7518,26 @@ let selectedHumansTariff = null;   // { name, internet, minutes, sms } | null
 // (OPERATOR_FINANCING.tariffsByOperator) o'qisa ham bir-biriga ta'sir
 // qilmasligi kerak.
 let selectedCashTariff = null;     // { name, internet, minutes, sms, price, badge } | null
+// QAYTA YOQILGANDA QO'SHILDI: joriy oyna naqt-tarif 3 qadamli oqimi
+// ("Progress-bar bilan bosqichma-bosqich sahifalar") ichidami yoki yo'qmi —
+// shu bayroqqa qarab progress-bar ko'rsatiladi/yashiriladi va formView'ga
+// kirishda 3-qadam sifatida belgilanadi (installment yoki tarifsiz naqt
+// oqimida FALSE bo'lib qoladi, hech narsa o'zgarmaydi).
+let cashTariffFlowActive = false;
+// QAYTA QURILGANDA QO'SHILDI (mijoz so'roviga ko'ra, to'liq yangi oqim):
+// legacyInstallmentFlow — eski VIP-baza ".installment" belgili raqamlar
+// uchun, bular hech qanday qadamli oqimga kirmaydi, o'zgarishsiz qoladi.
+// flowNeedsMethodChoice — joriy raqam uchun HAQIQATDA ham naqt, ham
+// bo'lib to'lash mumkinmi (shunda "To'lov turini tanlang" qadami
+// ko'rsatiladi, aks holda o'tkazib yuboriladi). flowTariffsCache — joriy
+// operator uchun tanlangan tarif ro'yxati (bir necha qadamda qayta
+// ishlatiladi, har safar qaytadan hisoblanmasin deb keshlanadi).
+// currentFlowSteps — progress-bar uchun joriy sessiyadagi qadamlar
+// ro'yxati ({key,label}), qarang: renderStepProgress().
+let legacyInstallmentFlow = false;
+let flowNeedsMethodChoice = false;
+let flowTariffsCache = [];
+let currentFlowSteps = [];
 let selectedDownPayment = 0;       // tanlangan muddat (6/12/24 oy)ga mos bosh to'lov
 
 // Summasi o'zgarganda (oy tanlansa) raqam ozgina "sakrab" yangilanadi —
@@ -7589,6 +7705,13 @@ function updateCashSummaryCard(show){
   card.style.display = 'block';
 }
 
+// ESKI (endi ISHLATILMAYDI): naqt/bo'lib-to'lash tanlovi endi formaning
+// o'zi ICHIDA emas, ALOHIDA to'liq ekranli qadamda (#paymentMethodView)
+// amalga oshadi — qarang: showPaymentMethodStep(). payTabs elementi HAR
+// DOIM yashirin (openModal), shu sabab bu funksiya va uning ichidagi
+// hfTariffsEl/hfTariffDetail'ga bog'liq renderHumansTariffs/
+// selectHumansTariff chaqiruvlari amalda hech qachon ishga tushmaydi.
+// Kodda kelajakda kerak bo'lib qolsa deb, butunlay o'chirilmadi.
 function selectPaymentTab(type){
   selectedPaymentType = type;
   payTabCash.classList.toggle('active', type === 'cash');
@@ -7604,7 +7727,6 @@ function selectPaymentTab(type){
     installmentCalc.style.display = 'none';
     const showHf = type === 'installment';
     humansFinView.style.display = showHf ? 'block' : 'none';
-    hfDivider.style.display = showHf ? 'flex' : 'none';
     hfRegisterNote.style.display = showHf ? 'block' : 'none';
     if(showHf){
       renderHumansTariffs();
@@ -7673,10 +7795,15 @@ function openModal(number, id, priceOverride){
   // 1-qadamdan boshlanishi kerak — aks holda avvalgi raqam uchun tanlangan
   // tarif shu yerda "yopishib" qolib, noto'g'ri summa hisoblanishi mumkin edi.
   selectedCashTariff = null;
-  const cashTariffViewReset = document.getElementById('cashTariffView');
-  const cashReviewViewReset = document.getElementById('cashReviewView');
-  if(cashTariffViewReset) cashTariffViewReset.style.display = 'none';
-  if(cashReviewViewReset) cashReviewViewReset.style.display = 'none';
+  cashTariffFlowActive = false;
+  flowNeedsMethodChoice = false;
+  flowTariffsCache = [];
+  currentFlowSteps = [];
+  ['cashTariffView', 'paymentMethodView', 'cashReviewView', 'installmentStepView'].forEach(vid=>{
+    const vEl = document.getElementById(vid);
+    if(vEl) vEl.style.display = 'none';
+  });
+  hideStepProgress();
   selectedNumberId = id || null;
   // Avval VIP katalogdan (NUMBERS), topilmasa jonli qidiruv natijalaridan
   // (LIVE_NUMBERS — Standart toifa), u ham bo'lmasa (masalan "Saqlangan
@@ -7719,37 +7846,41 @@ function openModal(number, id, priceOverride){
 
     selectedInstallmentFin = installmentFinancingFor(item);
     selectedHumansTariff = null;
+    selectedCashTariff = null;
     selectedDownPayment = 0;
     // Yangi buyurtma oynasi ochilganda "hozir to'lanadigan summa" hisoblagichi
     // 0'dan qayta boshlab sanashi uchun eski animatsiya holatini tozalaymiz.
     const hfTotalOverallReset = document.getElementById('hfTotalOverall');
     if(hfTotalOverallReset){ hfTotalOverallReset.textContent = "0 so'm"; __countUpState.delete(hfTotalOverallReset); }
     humansFinView.style.display = 'none';
-    hfDivider.style.display = 'none';
     hfRegisterNote.style.display = 'none';
+    // payTabs (eski, forma ICHIDAGI naqt/bo'lib-to'lash tanlagich) endi
+    // umuman ishlatilmaydi — bu tanlov endi ALOHIDA to'liq ekranli qadamda
+    // (#paymentMethodView, qarang: showOrderForm/showPaymentMethodStep).
+    payTabs.style.display = 'none';
 
     selectedOldPriceForCash = hasActiveDiscount(item) ? item.oldPrice : 0;
 
-    if(item && item.installment){
-      payTabs.style.display = 'none';
+    // "Legacy" bo'lib to'lash (eski VIP-baza .installment belgisi
+    // qo'yilgan raqamlar) — MUTLAQO O'ZGARTIRILMAGAN, eski %-kalkulyator
+    // (installmentCalc) bilan to'g'ridan-to'g'ri formaga o'tadi, yangi
+    // qadamli oqimga (Tarif tanlash / To'lov turi / ...) UMUMAN kirmaydi.
+    legacyInstallmentFlow = !!(item && item.installment);
+    if(legacyInstallmentFlow){
       installmentCalc.style.display = 'block';
       updateCashSummaryCard(false);
       selectedPaymentType = 'installment';
       selectInstallmentMonths(6);
-    }else if(selectedInstallmentFin){
-      payTabs.style.display = '';
-      installmentCalc.style.display = 'none';
-      selectPaymentTab('cash');
     }else{
-      payTabs.style.display = 'none';
       installmentCalc.style.display = 'none';
       selectedPaymentType = 'cash';
-      updateCashSummaryCard(true);
+      updateCashSummaryCard(false);
     }
   }catch(err){
     console.error("Buyurtma oynasini tayyorlashda kutilmagan xato (naqt to'lovga qaytarildi):", err);
     // Xavfsiz zaxira holat — hech bo'lmasa oddiy naqt to'lov bilan oyna ochiladi.
     selectedInstallmentFin = null;
+    legacyInstallmentFlow = false;
     selectedPaymentType = 'cash';
     payTabs.style.display = 'none';
     installmentCalc.style.display = 'none';
@@ -7823,39 +7954,117 @@ function openModal(number, id, priceOverride){
 // o'tib kelingandan keyin (qarang: showCashReviewStep pastdagi "Davom
 // etish" tugmasi).
 function showActualOrderForm(){
-  const cashTariffViewEl = document.getElementById('cashTariffView');
-  const cashReviewViewEl = document.getElementById('cashReviewView');
-  if(cashTariffViewEl) cashTariffViewEl.style.display = 'none';
-  if(cashReviewViewEl) cashReviewViewEl.style.display = 'none';
+  ['cashTariffView', 'paymentMethodView', 'cashReviewView', 'installmentStepView'].forEach(vid=>{
+    const vEl = document.getElementById(vid);
+    if(vEl) vEl.style.display = 'none';
+  });
   document.getElementById('previewView').style.display = 'none';
   formView.style.display = 'block';
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.remove('modal-preview');
   overlay.classList.add('hf-fullscreen');
+  // Mijoz iltimosiga ko'ra: naqt to'lovda tarif tanlangan bo'lsa
+  // cash-summary-card'da ko'rsatiladi, bo'lib to'lashda esa "hozir
+  // to'lanadigan summa" allaqachon oldingi qadamda ko'rsatilgani uchun
+  // shu yerda faqat qisqa eslatma (hfRegisterNote) chiqadi.
+  updateCashSummaryCard(selectedPaymentType === 'cash');
+  hfRegisterNote.style.display = selectedPaymentType === 'installment' ? 'block' : 'none';
+  // Agar qadamli oqimdan kelayotgan bo'lsak — bu forma o'sha oqimning
+  // OXIRGI qadami, progress-bar shunga mos yangilanadi va yengil
+  // sirg'anib kirish animatsiyasi qo'llanadi. Legacy yoki tarifsiz/
+  // tanlovsiz to'g'ridan-to'g'ri naqt oqimida progress-bar ko'rinmaydi.
+  if(cashTariffFlowActive){
+    renderStepProgress('form');
+    applyStepSlideIn(formView, 'forward');
+  }else{
+    hideStepProgress();
+  }
   setTimeout(()=>custName.focus(), 250);
 }
 
 // "Rasmiylashtirish" bosilganda — oldindan ko'rishdan keyingi qadamga
-// o'tadi. Mijoz so'roviga ko'ra (boshqa ilova
-// namunasi asosida) YANGI: agar to'lov turi hozircha NAQT (selectedPaymentType
-// har doim openModal'da 'cash'dan boshlanadi — mijoz keyin pastdagi
-// payTabs orqali "Bo'lib to'lash"ga o'tishi mumkin, lekin bu YANGI
-// tarif-qadamlariga TA'SIR QILMAYDI, chunki ular allaqachon shu nuqtada
-// hal qilingan) VA tanlangan operator uchun admin panelda kamida bitta
-// tarif (OPERATOR_FINANCING.tariffsByOperator[selectedOperator]) sozlangan
-// bo'lsa — avval "Tarifni tanlang" qadami ko'rsatiladi. Aks holda (tarif
-// sozlanmagan operatorlar uchun — hech qanday "qoq yo'l"/bo'sh ekran
-// bo'lmasin deb) to'g'ridan-to'g'ri eski xatti-harakat: haqiqiy forma ochiladi.
+// o'tadi.
+// TO'LIQ QAYTA QURILDI (mijoz so'roviga ko'ra, "yana ham zamonaviy"
+// so'ralgan variant): endi tartib QUYIDAGICHA —
+//   1) Tarif tanlash (agar operator uchun tarif sozlangan bo'lsa)
+//   2) To'lov turi: Naqt yoki Bo'lib to'lash (FAQAT shu raqam uchun
+//      ikkalasi ham haqiqatan mumkin bo'lsa — selectedInstallmentFin)
+//   3) Naqt bo'lsa — "Buyurtma tafsilotlari" (raqam narxi + tarif + jami);
+//      Bo'lib to'lash bo'lsa — "Oylik to'lovni tanlang" (oy + bosh to'lov
+//      + jami "hozir to'lanadigan summa", DARHOL yangilanib turadi)
+//   4) Ma'lumot to'ldirish (ism/viloyat/telefon) — HAR IKKALA yo'l uchun ham
+// Har bir mavjud bo'lgan qadam segmentli progress-barda ko'rinadi, mavjud
+// bo'lmagan qadamlar (masalan tarif yo'q, yoki bo'lib to'lash mumkin
+// emas) butunlay o'tkazib yuboriladi — hech qanday "qoq yo'l"ga
+// tushib qolmaydi. Legacy (eski .installment) raqamlarga TEGMAYDI.
 function showOrderForm(){
-  const cashTariffs = (OPERATOR_FINANCING.tariffsByOperator && OPERATOR_FINANCING.tariffsByOperator[selectedOperator]) || [];
-  if(selectedPaymentType === 'cash' && cashTariffs.length){
-    showCashTariffStep(cashTariffs);
+  if(legacyInstallmentFlow){
+    cashTariffFlowActive = false;
+    currentFlowSteps = [];
+    showActualOrderForm();
     return;
   }
-  showActualOrderForm();
+  const tariffs = (OPERATOR_FINANCING.tariffsByOperator && OPERATOR_FINANCING.tariffsByOperator[selectedOperator]) || [];
+  const hasTariffs = tariffs.length > 0;
+  const needsMethodChoice = !!selectedInstallmentFin;
+  if(!hasTariffs && !needsMethodChoice){
+    cashTariffFlowActive = false;
+    currentFlowSteps = [];
+    selectedPaymentType = 'cash';
+    showActualOrderForm();
+    return;
+  }
+  cashTariffFlowActive = true;
+  flowTariffsCache = tariffs;
+  flowNeedsMethodChoice = needsMethodChoice;
+  currentFlowSteps = [];
+  if(hasTariffs) currentFlowSteps.push({ key: 'tariff', label: 'Tarif tanlash' });
+  if(needsMethodChoice) currentFlowSteps.push({ key: 'method', label: "To'lov turi" });
+  currentFlowSteps.push({ key: 'detail', label: needsMethodChoice ? 'Tafsilotlar' : 'Buyurtma tafsilotlari' });
+  currentFlowSteps.push({ key: 'form', label: "Ma'lumot to'ldirish" });
+
+  if(hasTariffs){
+    showCashTariffStep(tariffs);
+  }else{
+    showPaymentMethodStep('forward');
+  }
 }
 
-// ---- YANGI: Naqt to'lov oqimidagi "Tarifni tanlang" qadami ----
+// ---- YANGI: qadamli oqimning segmentli progress-bari (dinamik — qadamlar
+// soni har bir raqam/operator uchun turlicha bo'lishi mumkin) va qadamlar
+// orasidagi sirg'anib kirish animatsiyasi ----
+function renderStepProgress(stepKey){
+  const el = document.getElementById('stepProgress');
+  if(!el || !currentFlowSteps.length){ if(el) el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  const idx = currentFlowSteps.findIndex(s => s.key === stepKey);
+  const track = document.getElementById('stepProgressTrack');
+  if(track && track.children.length !== currentFlowSteps.length){
+    track.innerHTML = currentFlowSteps.map((_, i)=> `<div class="step-progress-seg" data-idx="${i}"></div>`).join('');
+  }
+  if(track){
+    Array.from(track.children).forEach((seg, i)=>{
+      seg.classList.toggle('done', i < idx);
+      seg.classList.toggle('active', i === idx);
+    });
+  }
+  const labelEl = document.getElementById('stepProgressLabel');
+  if(labelEl) labelEl.textContent = (currentFlowSteps[idx] && currentFlowSteps[idx].label) || '';
+}
+function hideStepProgress(){
+  const el = document.getElementById('stepProgress');
+  if(el) el.style.display = 'none';
+}
+function applyStepSlideIn(el, direction){
+  if(!el) return;
+  el.classList.remove('step-slide-in-right', 'step-slide-in-left');
+  void el.offsetWidth; // reflow — animatsiya qayta ishga tushishi uchun
+  const cls = direction === 'back' ? 'step-slide-in-left' : 'step-slide-in-right';
+  el.classList.add(cls);
+  setTimeout(()=> el.classList.remove(cls), 340);
+}
+
+// ---- QADAM: "Tarif tanlash" (naqt VA bo'lib to'lash uchun UMUMIY) ----
 function renderCashTariffs(tariffs){
   selectedCashTariff = null;
   const listEl = document.getElementById('cashTariffList');
@@ -7896,13 +8105,18 @@ function showCashTariffStep(tariffs){
   renderCashTariffs(tariffs);
   const numberLabelEl = document.getElementById('cashTariffNumberLabel');
   if(numberLabelEl) numberLabelEl.textContent = modalNumber.textContent;
-  document.getElementById('previewView').style.display = 'none';
-  document.getElementById('cashReviewView').style.display = 'none';
+  ['previewView', 'paymentMethodView', 'cashReviewView', 'installmentStepView'].forEach(vid=>{
+    const vEl = document.getElementById(vid);
+    if(vEl) vEl.style.display = 'none';
+  });
   formView.style.display = 'none';
-  document.getElementById('cashTariffView').style.display = 'block';
+  const cashTariffViewEl = document.getElementById('cashTariffView');
+  cashTariffViewEl.style.display = 'block';
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.remove('modal-preview');
   overlay.classList.add('hf-fullscreen');
+  renderStepProgress('tariff');
+  applyStepSlideIn(cashTariffViewEl, 'forward');
 }
 
 // "Orqaga" — tarif qadamidan oldindan ko'rish (raqam kartochkasi) qadamiga.
@@ -7912,38 +8126,162 @@ document.getElementById('cashTariffBackBtn').addEventListener('click', ()=>{
   overlay.classList.remove('hf-fullscreen');
   const orderModalEl = document.getElementById('orderModal');
   if(orderModalEl) orderModalEl.classList.add('modal-preview');
+  cashTariffFlowActive = false;
+  currentFlowSteps = [];
+  hideStepProgress();
 });
 
-// "Davom etish" — tarif tanlangandan keyin "Buyurtma tafsilotlari" ko'rib
-// chiqish qadamiga o'tadi. Mijoz iltimosiga ko'ra HISOB-KITOB: To'lanishi
-// kerak summa = raqamning o'z narxi (selectedPrice) + tanlangan tarifning
-// oylik to'lovi — ATAYLAB shu yerda ko'rsatiladi, mijoz forma to'ldirishdan
-// OLDIN aniq summani ko'rsin.
+// "Davom etish" — tarif tanlangandan keyin: agar shu raqam uchun bo'lib
+// to'lash HAM mumkin bo'lsa — "To'lov turini tanlang" qadamiga, aks
+// holda to'g'ridan-to'g'ri (naqt) "Buyurtma tafsilotlari"ga o'tadi.
 document.getElementById('cashTariffContinueBtn').addEventListener('click', ()=>{
   if(!selectedCashTariff) return;
-  showCashReviewStep();
+  if(flowNeedsMethodChoice){
+    showPaymentMethodStep('forward');
+  }else{
+    selectedPaymentType = 'cash';
+    showCashReviewStep('forward');
+  }
 });
 
-function showCashReviewStep(){
-  document.getElementById('cashTariffView').style.display = 'none';
-  document.getElementById('cashReviewView').style.display = 'block';
+// ---- QADAM: "To'lov turini tanlang" (Naqt / Bo'lib to'lash) ----
+document.querySelectorAll('.pm-option-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.pm-option-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    const btn = document.getElementById('pmContinueBtn');
+    if(btn) btn.disabled = false;
+    if(navigator.vibrate) navigator.vibrate(20);
+  });
+});
+function showPaymentMethodStep(direction){
+  ['previewView', 'cashTariffView', 'cashReviewView', 'installmentStepView'].forEach(vid=>{
+    const vEl = document.getElementById(vid);
+    if(vEl) vEl.style.display = 'none';
+  });
+  formView.style.display = 'none';
+  const el = document.getElementById('paymentMethodView');
+  el.style.display = 'block';
+  document.querySelectorAll('.pm-option-card').forEach(c=>{
+    c.classList.toggle('active', c.dataset.type === selectedPaymentType && !!selectedPaymentType);
+  });
+  const pmContinueBtn = document.getElementById('pmContinueBtn');
+  if(pmContinueBtn) pmContinueBtn.disabled = !document.querySelector('.pm-option-card.active');
+  const orderModalEl = document.getElementById('orderModal');
+  if(orderModalEl) orderModalEl.classList.remove('modal-preview');
+  overlay.classList.add('hf-fullscreen');
+  renderStepProgress('method');
+  applyStepSlideIn(el, direction || 'forward');
+}
+document.getElementById('pmBackBtn').addEventListener('click', ()=>{
+  document.getElementById('paymentMethodView').style.display = 'none';
+  if(flowTariffsCache && flowTariffsCache.length){
+    const tariffEl = document.getElementById('cashTariffView');
+    tariffEl.style.display = 'block';
+    renderStepProgress('tariff');
+    applyStepSlideIn(tariffEl, 'back');
+  }else{
+    document.getElementById('previewView').style.display = 'block';
+    overlay.classList.remove('hf-fullscreen');
+    const orderModalEl = document.getElementById('orderModal');
+    if(orderModalEl) orderModalEl.classList.add('modal-preview');
+    cashTariffFlowActive = false;
+    currentFlowSteps = [];
+    hideStepProgress();
+  }
+});
+document.getElementById('pmContinueBtn').addEventListener('click', ()=>{
+  const activeCard = document.querySelector('.pm-option-card.active');
+  if(!activeCard) return;
+  selectedPaymentType = activeCard.dataset.type;
+  if(selectedPaymentType === 'installment'){
+    // Tarif universal 1-qadamda allaqachon tanlangan — Bo'lib to'lash
+    // hisob-kitobi (updateHumansFinTotals) shu tarifni ATAYLAB bir xil
+    // holatdan (selectedHumansTariff) o'qiydi, shu sabab shu yerda
+    // sinxronlanadi.
+    selectedHumansTariff = selectedCashTariff;
+    const availableMonths = [6, 12, 24].filter(m => (selectedInstallmentFin.monthly && selectedInstallmentFin.monthly[m]) > 0);
+    hfMonthButtons.forEach(btn=>{
+      const m = Number(btn.dataset.months);
+      btn.style.display = availableMonths.includes(m) ? '' : 'none';
+    });
+    selectHumansMonths(availableMonths[0] || 6);
+    showInstallmentStep('forward');
+  }else{
+    showCashReviewStep('forward');
+  }
+});
+
+// ---- QADAM 3a: "Buyurtma tafsilotlari" (Naqt to'lov) ----
+function showCashReviewStep(direction){
+  ['cashTariffView', 'paymentMethodView', 'installmentStepView'].forEach(vid=>{
+    const vEl = document.getElementById(vid);
+    if(vEl) vEl.style.display = 'none';
+  });
+  const cashReviewViewEl = document.getElementById('cashReviewView');
+  cashReviewViewEl.style.display = 'block';
   document.getElementById('crNumber').textContent = modalNumber.textContent;
+  // Kamdan-kam holat: tarif umuman sozlanmagan operator uchun ham
+  // bo'lib to'lash mumkin bo'lib, mijoz shu qadamgacha tarifsiz yetib
+  // kelgan bo'lishi mumkin — bunday holda tarif qatorlari butunlay
+  // yashiriladi (bo'sh "Tarif: " qatori chiqmaydi).
+  const crTariffRowEl = document.getElementById('crTariffRow');
+  const crTariffPriceRowEl = document.getElementById('crTariffPriceRow');
+  if(crTariffRowEl) crTariffRowEl.style.display = selectedCashTariff ? '' : 'none';
+  if(crTariffPriceRowEl) crTariffPriceRowEl.style.display = selectedCashTariff ? '' : 'none';
   document.getElementById('crTariffName').textContent = (selectedCashTariff && selectedCashTariff.name) || '';
   const tariffPrice = selectedCashTariff ? (Number(selectedCashTariff.price) || 0) : 0;
   document.getElementById('crTariffPrice').textContent = formatPrice(tariffPrice) + '/oy';
   document.getElementById('crNumberPrice').textContent = formatPrice(selectedPrice);
   document.getElementById('crTotal').textContent = formatPrice(selectedPrice + tariffPrice);
+  renderStepProgress('detail');
+  applyStepSlideIn(cashReviewViewEl, direction || 'forward');
 }
 
-// "Orqaga" — ko'rib chiqish qadamidan tarif tanlash qadamiga qaytadi
-// (tanlangan tarif saqlanib qoladi, mijoz uni qayta tanlashi shart emas,
-// faqat boshqa reja ko'rmoqchi bo'lsa almashtirishi mumkin).
+// "Orqaga" — ko'rib chiqish qadamidan oldingi qadamga qaytadi: agar
+// to'lov turi tanlangan bo'lsa ("To'lov turi" qadami mavjud bo'lsa) o'sha
+// qadamga, aks holda to'g'ridan-to'g'ri tarif qadamiga.
 document.getElementById('cashReviewBackBtn').addEventListener('click', ()=>{
   document.getElementById('cashReviewView').style.display = 'none';
-  document.getElementById('cashTariffView').style.display = 'block';
+  if(flowNeedsMethodChoice){
+    showPaymentMethodStep('back');
+  }else{
+    const tariffEl = document.getElementById('cashTariffView');
+    tariffEl.style.display = 'block';
+    renderStepProgress('tariff');
+    applyStepSlideIn(tariffEl, 'back');
+  }
 });
 
 document.getElementById('cashReviewContinueBtn').addEventListener('click', showActualOrderForm);
+
+// ---- QADAM 3b: "Oylik to'lovni tanlang" (Bo'lib to'lash) ----
+function showInstallmentStep(direction){
+  const numberLabelEl = document.getElementById('installmentNumberLabel');
+  if(numberLabelEl) numberLabelEl.textContent = modalNumber.textContent;
+  ['cashTariffView', 'paymentMethodView', 'cashReviewView'].forEach(vid=>{
+    const vEl = document.getElementById(vid);
+    if(vEl) vEl.style.display = 'none';
+  });
+  const el = document.getElementById('installmentStepView');
+  el.style.display = 'block';
+  // humansFinView boshqa (eski, endi ishlatilmaydigan) yo'llarda
+  // display:none qilib qo'yilgan bo'lishi mumkin — shu qadam ICHIDA
+  // har doim ko'rinishi kerak, inline uslub ANIQ tozalanadi.
+  humansFinView.style.display = 'block';
+  const orderModalEl = document.getElementById('orderModal');
+  if(orderModalEl) orderModalEl.classList.remove('modal-preview');
+  overlay.classList.add('hf-fullscreen');
+  renderStepProgress('detail');
+  applyStepSlideIn(el, direction || 'forward');
+}
+document.getElementById('installmentBackBtn').addEventListener('click', ()=>{
+  document.getElementById('installmentStepView').style.display = 'none';
+  showPaymentMethodStep('back');
+});
+document.getElementById('installmentContinueBtn').addEventListener('click', ()=>{
+  showActualOrderForm();
+});
 
 function closeModal(fromPopstate){
   overlay.classList.remove('open');
@@ -8358,13 +8696,16 @@ async function finalizeOrder(payload, smsVerified){
   const successSubtitleEl = document.getElementById('successSubtitle');
   const custFirstName = (payload.name || '').trim().split(/\s+/)[0] || '';
   if(successTitleEl){
+    // Mijoz iltimosiga ko'ra: "Rasmiylashtirildi" o'rniga "Bron qilindi"
+    // deyiladi — raqam hali TO'LIQ rasmiylashtirilmagan, faqat mijozga
+    // BAND (bron) qilib qo'yilgan, operator qo'ng'iroq qilib yakunlaydi.
     successTitleEl.textContent = custFirstName
       ? `Hurmatli ${custFirstName}!`
-      : 'Muvaffaqiyatli rasmiylashtirildi!';
+      : 'Bron qilindi!';
   }
   if(successSubtitleEl){
     successSubtitleEl.textContent =
-      `Siz ${displayNumber(payload.number)} raqamni muvaffaqiyatli rasmiylashtirdingiz.`;
+      `Siz ${displayNumber(payload.number)} raqamni bron qildingiz.`;
   }
 
   const recapEl = document.getElementById('successOrderRecap');
