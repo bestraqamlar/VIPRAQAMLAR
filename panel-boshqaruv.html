@@ -428,6 +428,14 @@
   .order-card .oc-number{font-family:'Sora',sans-serif;color:var(--amber);font-weight:700;font-size:15px;}
   .order-card .oc-time{color:var(--muted);font-size:11.5px;}
   .order-card .oc-row{margin:3px 0;}
+  .oc-map-link{
+    display:inline-flex;align-items:center;gap:6px;margin-top:2px;padding:6px 12px;
+    border-radius:10px;font-size:12.5px;font-weight:700;text-decoration:none;
+    background:color-mix(in srgb, var(--amber) 16%, var(--panel));color:var(--amber);
+    border:1px solid color-mix(in srgb, var(--amber) 40%, var(--line));
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), background .15s ease;
+  }
+  .oc-map-link:active{transform:scale(.96);}
   .order-card .oc-row b{color:var(--muted);font-weight:500;}
   .order-card select{
     margin-top:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;
@@ -3199,6 +3207,14 @@ function escapeHtml(s){
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+// YANGI (mijoz so'roviga ko'ra): mijoz saytda "Toshkent shahri" uchun
+// xaritada belgilagan aniq joylashuvi (o.location.lat/lng) mavjud bo'lsa,
+// admin shu havolani bosib to'g'ridan-to'g'ri Yandex Go ilovasida
+// marshrutni ko'radi. index.html'dagi bilan AYNAN bir xil formula
+// (Yandex'ning rasmiy universal "deep link" xizmati).
+function buildYandexGoLink(lat, lng){
+  return `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lng}&appmetrica_tracking_id=1178268795219780156`;
 }
 
 /* ---- Oxirgi ko'rilgan vaqt (bildirishnoma uchun) ---- */
@@ -8858,6 +8874,9 @@ function renderAdminOrders(orders){
             : ''}
           ${o.cashTariffName
             ? `<div class="oc-row" style="color:var(--amber);"><b>📶 Tarif:</b> ${escapeHtml(o.cashTariffName)} (${formatPrice(o.cashTariffPrice || 0)}/oy)</div>`
+            : ''}
+          ${o.location && typeof o.location.lat === 'number' && typeof o.location.lng === 'number'
+            ? `<div class="oc-row"><a class="oc-map-link" href="${buildYandexGoLink(o.location.lat, o.location.lng)}" target="_blank" rel="noopener">🗺️ Xaritaga o'tish (Yandex Go)</a></div>`
             : ''}
           <div class="oc-row"><b>Qayerdan:</b> ${escapeHtml(o.source || 'Sayt')}</div>
           <select class="order-status">

@@ -100,12 +100,13 @@ function mainMenuKeyboard(){
 /* ==================================================================
    "KANALGA RAQAM JOYLASH" — admin matn/rasm/video yuboradi, bot buni
    @vip_raqamlar_uz kanaliga, tagida DOIM ikkita tugma bilan joylaydi:
-   tepada KATTA, alohida qatorda "📱 Raqam tanlash", pastida "📸 Instagram".
+   tepada KATTA, alohida qatorda "Raqam tanlash", pastida "Instagram"
+   (mijoz iltimosiga ko'ra ikkala tugma matnidan ham ikonka olib tashlandi).
    Bu tugmalar Telegram'ning o'zi tomonidan xabarga "yopishtirilgani"
    uchun, mijoz shu postni boshqa odamga ULASHSA (forward qilsa) ham,
    ikkala tugma xabar bilan BIRGA ketadi.
 
-   MUHIM (mijoz iltimosiga ko'ra): "📱 Raqam tanlash" endi botning
+   MUHIM (mijoz iltimosiga ko'ra): "Raqam tanlash" endi botning
    O'ZIGA (chatga) olib O'TMAYDI — bosilganda TO'G'RIDAN-TO'G'RI mini
    ilova (Web App) ochiladi, xuddi mijozga shaxsiy xabarlarda chiqadigan
    "Open" tugmasi kabi. Kanal/guruh postlarida Telegram HAQIQIY
@@ -122,8 +123,8 @@ const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipraqamlar';
 function channelPostButtons(){
   return {
     inline_keyboard: [
-      [{ text: '📱 Raqam tanlash', url: CHANNEL_POST_BOT_LINK }],
-      [{ text: '📸 Instagram', url: CHANNEL_POST_INSTAGRAM_LINK }]
+      [{ text: 'Raqam tanlash', url: CHANNEL_POST_BOT_LINK }],
+      [{ text: 'Instagram', url: CHANNEL_POST_INSTAGRAM_LINK }]
     ]
   };
 }
@@ -160,7 +161,7 @@ async function handleIncomingChannelPostContent(msg){
 
   await sendTelegram('sendMessage', {
     chat_id: msg.chat.id,
-    text: "Kanalga shu holicha joylanaversinmi? Tagida avtomatik \"📱 Raqam tanlash\" va \"📸 Instagram\" tugmalari qo'shiladi.",
+    text: "Kanalga shu holicha joylanaversinmi? Tagida avtomatik \"Raqam tanlash\" va \"Instagram\" tugmalari qo'shiladi.",
     reply_markup: {
       inline_keyboard: [
         [{ text: '✅ Ha, joylash', callback_data: 'bc|postchannel_confirm' }],
@@ -830,7 +831,7 @@ async function handleMenuText(msg){
     await setAdminState({ awaitingChannelPost: true });
     await sendTelegram('sendMessage', {
       chat_id: chatId,
-      text: "✍️ Kanalga joylamoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin). Tagida avtomatik \"📱 Raqam tanlash\" va \"📸 Instagram\" tugmalari qo'shiladi.\n\nBekor qilish uchun /bekor yozing."
+      text: "✍️ Kanalga joylamoqchi bo'lgan xabaringizni yuboring — matn, rasm yoki video (izoh bilan bo'lishi mumkin). Tagida avtomatik \"Raqam tanlash\" va \"Instagram\" tugmalari qo'shiladi.\n\nBekor qilish uchun /bekor yozing."
     });
     return;
   }

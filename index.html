@@ -27,6 +27,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700;800&family=Nunito:wght@400;700;800&display=swap">
 
+<!-- Toshkent shahri uchun "aniq manzilni belgilash" xaritasi (buyurtma
+     formasida) — Leaflet + OpenStreetMap, BEPUL va API kalit talab
+     qilmaydi (Google/Yandex xarita JS API'lari pullik va kalit talab
+     qiladi, saytda hozircha bunday kalit yo'q). Faqat XARITANI
+     KO'RSATISH uchun ishlatiladi — "Yandex Go'ga o'tish" havolasi bu
+     kutubxonaga bog'liq emas, oddiy URL orqali ishlaydi. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
 <!-- Firebase/Firestore uchun DNS+TLS handshake ONA sahifa hali o'qilayotganda
      ("parallel") boshlanadi — sekin internetda bu ~bir necha yuz millisoniya
      yutib beradi (aks holda brauzer bu ulanishlarni sahifa OXIRIGA yetganda,
@@ -2506,6 +2515,79 @@
      olib tashlandi — tarif endi eng birinchi umumiy qadamda tanlanadi). ---- */
   #installmentStepView .humans-fin-view{display:block;margin-top:4px;}
 
+  /* ---- YANGI (mijoz so'roviga ko'ra): "Toshkent shahri" tanlanganda
+     chiqadigan "Aniq manzilni belgilash" xaritasi. Zamonaviy karta
+     ko'rinishida, ochilganda yumshoq animatsiya bilan pastga sirg'aladi,
+     "joriy joylashuvni aniqlash" tugmasi Google/Yandex Maps uslubidagi
+     doiraviy suzuvchi tugma, marker bosilganda/tashlanganda "tushish"
+     animatsiyasi bilan joylashadi (qarang: .loc-pin CSS + JS). ---- */
+  @keyframes locSlideIn{from{opacity:0;transform:translateY(-10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .loc-picker{
+    margin:4px 0 18px;padding:14px 14px 12px;border-radius:16px;
+    background:color-mix(in srgb, var(--panel) 94%, var(--amber) 6%);
+    border:1px solid var(--line);
+    animation:locSlideIn .38s cubic-bezier(.22,1,.36,1) both;
+  }
+  .loc-picker-title{
+    display:flex;align-items:center;gap:7px;font-family:'Sora',sans-serif;
+    font-weight:800;font-size:13.5px;color:var(--text);
+  }
+  .loc-picker-title svg{color:var(--amber);flex:0 0 auto;}
+  .loc-picker-sub{font-size:11.5px;color:var(--muted);margin:4px 0 12px;line-height:1.4;}
+  .loc-map-wrap{
+    position:relative;height:200px;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 10px 24px -14px rgba(0,0,0,.45);
+  }
+  #locMap{width:100%;height:100%;background:#e5e3df;}
+  .leaflet-control-attribution{font-size:9px !important;}
+  .loc-locate-btn{
+    position:absolute;right:10px;bottom:10px;z-index:500;
+    width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--panel);color:var(--amber);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 16px -6px rgba(0,0,0,.5);
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), background .15s ease;
+  }
+  .loc-locate-btn:active{transform:scale(.92);}
+  .loc-locate-btn.loc-locating{color:var(--amber);animation:locSpin 1s linear infinite;}
+  @keyframes locSpin{to{transform:rotate(360deg);}}
+  .loc-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;}
+  .loc-status{
+    display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);
+    transition:color .2s ease;
+  }
+  .loc-status svg{flex:0 0 auto;color:var(--muted);transition:color .2s ease;}
+  .loc-status.loc-status-ok{color:var(--green);}
+  .loc-status.loc-status-ok svg{color:var(--green);}
+  .loc-clear-btn{
+    background:none;border:none;color:var(--red, #E63946);font-size:11.5px;font-weight:700;
+    cursor:pointer;text-decoration:underline;padding:4px;
+  }
+  /* Xaritadagi maxsus "pin" belgisi (Leaflet divIcon) — brend rangida,
+     tashlanganda sakrab tushadigan animatsiya bilan. */
+  .loc-pin{
+    width:30px;height:30px;position:relative;
+    animation:locPinDrop .45s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes locPinDrop{from{transform:translateY(-22px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .loc-pin-dot{
+    width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    background:linear-gradient(135deg, var(--amber), color-mix(in srgb, var(--amber) 70%, #fff));
+    box-shadow:0 4px 10px -3px rgba(0,0,0,.55);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .loc-pin-dot::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--bg);transform:rotate(45deg);}
+  .loc-pin-pulse{
+    position:absolute;left:50%;top:50%;width:14px;height:14px;border-radius:50%;
+    background:var(--amber);opacity:.5;transform:translate(-50%,-50%);
+    animation:locPinPulse 1.8s ease-out infinite;
+  }
+  @keyframes locPinPulse{
+    0%{transform:translate(-50%,-50%) scale(1);opacity:.5;}
+    100%{transform:translate(-50%,-50%) scale(3.2);opacity:0;}
+  }
+
   /* ---- Bo'lib to'lash bo'limidagi har bir bosqich ----
      Mijoz iltimosiga ko'ra: Bosh to'lov / Oylik to'lov / Tarif bosqichlari
      bir-biridan ANIQ, chalkashmaydigan tarzda ajratilgan bo'lishi kerak —
@@ -4448,6 +4530,34 @@ html.theme-purple-premium .card button.order-btn{
         <option>Qoraqalpog'iston</option>
       </select>
       <div class="field-error" id="errRegion">Viloyatni tanlang</div>
+
+      <!-- YANGI (mijoz so'roviga ko'ra): "Toshkent shahri" tanlanganda
+           mijoz aniq joylashuvini xaritada belgilaydi (ixtiyoriy —
+           majburiy emas, faqat qulaylik uchun). Qarang: showLocPicker()/
+           hideLocPicker()/initLocMapIfNeeded() (JS). -->
+      <div class="loc-picker" id="locPickerSec" style="display:none;">
+        <div class="loc-picker-head">
+          <div class="loc-picker-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Aniq manzilingizni belgilang
+          </div>
+          <div class="loc-picker-sub">Xaritada joyni bosing yoki tugma bilan avtomatik aniqlang (ixtiyoriy)</div>
+        </div>
+        <div class="loc-map-wrap">
+          <div id="locMap"></div>
+          <button type="button" class="loc-locate-btn" id="locLocateBtn" title="Joriy joylashuvimni aniqlash">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+        </div>
+        <div class="loc-picker-footer">
+          <div class="loc-status" id="locStatus">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            <span id="locStatusText">Joylashuv belgilanmagan</span>
+          </div>
+          <button type="button" class="loc-clear-btn" id="locClearBtn" style="display:none;">Tozalash</button>
+        </div>
+      </div>
+
       <label for="custPhone">Hozir ishlatib turgan raqamingiz</label>
       <input type="text" id="custPhone" placeholder="90 123-45-67" inputmode="numeric">
       <div class="field-error" id="errPhone">To'g'ri raqam kiriting</div>
@@ -7409,6 +7519,140 @@ custPhone.addEventListener('input', ()=>{
   custPhone.value = formatUzNumber(extractRawDigits(custPhone.value));
 });
 
+/* ---- YANGI (mijoz so'roviga ko'ra): "Toshkent shahri" tanlanganda
+   chiqadigan "Aniq manzilni belgilash" xaritasi (Leaflet + OpenStreetMap,
+   bepul — API kalit kerak emas). Mijoz yo joriy joylashuvini avtomatik
+   aniqlaydi (navigator.geolocation), yo xaritada bosib/pin'ni surib
+   qo'lda belgilaydi. Bu MAJBURIY EMAS — mijoz belgilamasa ham buyurtma
+   odatdagidek ketaveradi, faqat belgilasa payload.location = {lat,lng}
+   qo'shiladi (qarang: confirmBtn handler pastda). Admin panelda va
+   Telegram xabarida shu koordinata orqali "Yandex Go'ga o'tish" havolasi
+   chiqadi (qarang: buildYandexGoLink()). ---- */
+const TASHKENT_CENTER = [41.311081, 69.240562];
+let customerLocation = null;   // { lat, lng } | null
+let locMap = null;
+let locMarker = null;
+let locMapInited = false;
+
+// Yandex Go (taxi) ilovasini shu koordinataga marshrut bilan ochadigan
+// rasmiy "chuqur havola" (deep link) — Yandex'ning o'zi taqdim etgan
+// universal redirect xizmati orqali: telefonda ilova o'rnatilgan bo'lsa
+// TO'G'RIDAN-TO'G'RI ochadi, o'rnatilmagan bo'lsa do'konga, kompyuterda
+// esa veb-versiyaga yo'naltiradi.
+function buildYandexGoLink(lat, lng){
+  return `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lng}&appmetrica_tracking_id=1178268795219780156`;
+}
+window.buildYandexGoLink = buildYandexGoLink;
+
+function createLocPinIcon(){
+  return L.divIcon({
+    className: '',
+    html: '<div class="loc-pin"><div class="loc-pin-pulse"></div><div class="loc-pin-dot"></div></div>',
+    iconSize: [30, 30],
+    iconAnchor: [15, 27]
+  });
+}
+
+function updateLocStatus(){
+  const statusEl = document.getElementById('locStatus');
+  const textEl = document.getElementById('locStatusText');
+  const clearBtn = document.getElementById('locClearBtn');
+  if(!statusEl || !textEl || !clearBtn) return;
+  if(customerLocation){
+    statusEl.classList.add('loc-status-ok');
+    textEl.textContent = 'Joylashuv belgilandi ✓';
+    clearBtn.style.display = 'inline';
+  }else{
+    statusEl.classList.remove('loc-status-ok');
+    textEl.textContent = 'Joylashuv belgilanmagan';
+    clearBtn.style.display = 'none';
+  }
+}
+
+function setCustomerLocation(lat, lng, opts){
+  customerLocation = { lat, lng };
+  if(locMap){
+    if(locMarker){
+      locMarker.setLatLng([lat, lng]);
+    }else{
+      locMarker = L.marker([lat, lng], { icon: createLocPinIcon(), draggable: true }).addTo(locMap);
+      locMarker.on('dragend', ()=>{
+        const p = locMarker.getLatLng();
+        customerLocation = { lat: p.lat, lng: p.lng };
+        updateLocStatus();
+      });
+    }
+    if(!(opts && opts.skipView)){
+      locMap.setView([lat, lng], Math.max(locMap.getZoom(), 15), { animate: true });
+    }
+  }
+  updateLocStatus();
+}
+
+function clearCustomerLocation(){
+  customerLocation = null;
+  if(locMarker && locMap){ locMap.removeLayer(locMarker); locMarker = null; }
+  updateLocStatus();
+}
+
+function initLocMapIfNeeded(){
+  if(locMapInited) return;
+  if(typeof L === 'undefined'){
+    // Leaflet hali (sekin internetda) yuklanmagan bo'lishi mumkin —
+    // biroz kutib qayta urinamiz, xaritasiz oyna "qotib" qolmasin.
+    setTimeout(initLocMapIfNeeded, 300);
+    return;
+  }
+  locMapInited = true;
+  locMap = L.map('locMap', { zoomControl: true, attributionControl: true }).setView(TASHKENT_CENTER, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(locMap);
+  locMap.on('click', (e)=> setCustomerLocation(e.latlng.lat, e.latlng.lng));
+}
+
+function showLocPicker(){
+  const sec = document.getElementById('locPickerSec');
+  if(!sec) return;
+  sec.style.display = 'block';
+  // Leaflet xarita o'lchamini KONTEYNER ko'rinadigan bo'lgandan keyin
+  // hisoblashi kerak — aks holda xarita "yarim bo'sh" ko'rinadi.
+  setTimeout(()=>{
+    initLocMapIfNeeded();
+    if(locMap) locMap.invalidateSize();
+  }, 60);
+}
+function hideLocPicker(){
+  const sec = document.getElementById('locPickerSec');
+  if(sec) sec.style.display = 'none';
+}
+custRegion.addEventListener('change', ()=>{
+  if(custRegion.value === 'Toshkent shahri') showLocPicker();
+  else hideLocPicker();
+});
+document.getElementById('locLocateBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('locLocateBtn');
+  if(!navigator.geolocation){
+    showToast(t("Brauzeringiz joylashuvni aniqlashni qo'llamaydi."), 3000);
+    return;
+  }
+  btn.classList.add('loc-locating');
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      btn.classList.remove('loc-locating');
+      setCustomerLocation(pos.coords.latitude, pos.coords.longitude);
+      if(navigator.vibrate) navigator.vibrate(25);
+    },
+    ()=>{
+      btn.classList.remove('loc-locating');
+      showToast(t("Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang."), 3200);
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
+});
+document.getElementById('locClearBtn').addEventListener('click', clearCustomerLocation);
+
 /* ---- To'lov turi (Naqt / Bo'lib to'lash) va kalkulyator ---- */
 const payTabs          = document.getElementById('payTabs');
 const payTabCash        = document.getElementById('payTabCash');
@@ -7818,6 +8062,10 @@ function openModal(number, id, priceOverride){
   modalNumber.textContent = displayNumber(number);
 
   custName.value = ''; custRegion.value = ''; custPhone.value = '+998';
+  // Yangi raqam uchun oyna ochilganda avvalgi belgilangan joylashuv
+  // "yopishib" qolmasligi kerak — xarita bo'limi ham yashiriladi.
+  clearCustomerLocation();
+  hideLocPicker();
   document.getElementById('promoCode').value = '';
   const promoMsgEl = document.getElementById('promoMsg');
   promoMsgEl.style.display = 'none'; promoMsgEl.className = 'promo-msg';
@@ -8457,6 +8705,15 @@ async function sendOrderToTelegram(payload, time, orderId){
   if(payload.cashTariffName){
     paymentLine += `\n📶 Tarif: ${payload.cashTariffName} (${formatPriceUzs(payload.cashTariffPrice)}/oy)`;
   }
+  // YANGI (mijoz so'roviga ko'ra): agar mijoz "Toshkent shahri" uchun
+  // xaritada aniq joylashuvini belgilagan bo'lsa — admin shu havolani
+  // bosib to'g'ridan-to'g'ri Yandex Go'da marshrutni ko'radi. Telegram
+  // oddiy URL'ni o'zi avtomatik bosiladigan havolaga aylantiradi, alohida
+  // formatlash shart emas.
+  let locationLine = '';
+  if(payload.location && typeof payload.location.lat === 'number' && typeof payload.location.lng === 'number'){
+    locationLine = `\n🗺️ Xaritadagi joylashuv: ${buildYandexGoLink(payload.location.lat, payload.location.lng)}`;
+  }
   const text =
 `🔔 Yangi buyurtma
 
@@ -8464,7 +8721,7 @@ async function sendOrderToTelegram(payload, time, orderId){
 👤 Mijoz ismi: ${payload.name}
 ☎️ Ishlab turgan raqami: ${payload.phone}
 📍 Manzil: ${payload.region}
-${paymentLine}
+${paymentLine}${locationLine}
 🕐 Vaqti: ${time}
 🌐 Qayerdan: ${payload.source || 'Sayt'}`;
 
@@ -8805,6 +9062,17 @@ confirmBtn.addEventListener('click', async ()=>{
     // bu yerda esa faqat KO'RSATISH uchun nom va summa alohida saqlanadi.
     payload.cashTariffName = selectedCashTariff.name;
     payload.cashTariffPrice = cashTariffPriceToAdd;
+  }
+  // YANGI (mijoz so'roviga ko'ra, faqat "Toshkent shahri" tanlanganda
+  // ko'rinadigan xarita orqali): agar mijoz aniq joylashuvini belgilagan
+  // bo'lsa — admin panelida va Telegram xabarida "Yandex Go'ga o'tish"
+  // havolasi chiqishi uchun shu yerda buyurtmaga qo'shiladi. Ixtiyoriy —
+  // belgilanmagan bo'lsa umuman qo'shilmaydi.
+  if(customerLocation && typeof customerLocation.lat === 'number' && typeof customerLocation.lng === 'number'){
+    payload.location = {
+      lat: Number(customerLocation.lat.toFixed(6)),
+      lng: Number(customerLocation.lng.toFixed(6))
+    };
   }
 
   // SMS tasdiqlashga URINIB KO'RAMIZ — lekin bu hech qachon buyurtmani
