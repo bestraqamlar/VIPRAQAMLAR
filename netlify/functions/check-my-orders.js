@@ -111,7 +111,13 @@ exports.handler = async function (event) {
         createdAt: o.createdAt || '',
         paymentType: o.paymentType || 'cash',
         installmentMonths: o.installmentMonths || null,
-        monthlyPayment: o.monthlyPayment || null
+        monthlyPayment: o.monthlyPayment || null,
+        // YANGI (mijoz so'roviga ko'ra, naqt to'lov + tarif tanlash
+        // oqimi uchun — index.html'dagi confirmBtn payload'iga qarang):
+        // "Buyurtmalarim" ro'yxatida mijoz qaysi tarifni tanlaganini
+        // ko'rishi uchun shu ikki maydon ham qaytariladi.
+        cashTariffName: o.cashTariffName || null,
+        cashTariffPrice: o.cashTariffPrice || null
       }));
 
     return { statusCode: 200, body: JSON.stringify({ ok: true, orders: matches }) };

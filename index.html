@@ -1068,12 +1068,14 @@
      (--panel/--panel-2/--line/--amber/--amber-soft) olinadi — shu bilan
      admin panelidan tema (rang) o'zgartirilsa, slayder ham AVTOMATIK mos
      rangga o'tadi, alohida rang qattiq yozilmaydi. */
-  .price-range-sec{ margin-top:14px; }
-  .pr-heading{
-    display:flex;align-items:center;gap:6px;margin:0 2px 16px;
-    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:var(--muted);
-  }
-  .pr-heading svg{ width:15px;height:15px;color:var(--amber);flex-shrink:0; }
+  /* FOLLOW-UP TUZATISH (mijoz slayder ishga tushgandan keyin bildirgan
+     shikoyati — skrinshotda operator kartochkalari bilan slayder orasida
+     va sarlavha bilan trek orasida katta bo'sh joy ko'rsatilgan edi,
+     kompyuterda ham): .price-range-sec top margini kamaytirildi, ".pr-
+     heading" sarlavhasi (ikonka + "Narx bo'yicha" matni) BUTUNLAY OLIB
+     TASHLANDI (yuqoridagi HTML'da), shu sabab endi bu yerda uning CSS
+     qoidasi ham yo'q. */
+  .price-range-sec{ margin-top:6px; }
 
   /* MUHIM (mijoz aynan shu muammoni ko'rsatgan): tutqichlar 0%/100%
      pozitsiyada bo'lganda ham TO'LIQ ko'rinishi, karta chekkasidan yoki
@@ -1081,9 +1083,16 @@
      .pr-track (haqiqiy chiziq) ikkala tomondan PR_HANDLE_INSET (JS'dagi
      bilan bir xil, 17px) qadar ICHKARIGA suriladi — tutqich markazi hech
      qachon shu insetdan tashqariga chiqmaydi, demak doiraning yarmi ham
-     kartadan tashqarida qolmaydi. */
+     kartadan tashqarida qolmaydi.
+     FOLLOW-UP TUZATISH: bu yerdagi 34px YUQORI margin dastlab FAQAT
+     sarlavha OSTIDA sudrash paytida chiqadigan suzuvchi narx yorlig'i
+     (.pr-handle-tip) uchun bo'sh joy qoldirish maqsadida shuncha katta
+     qilingan edi. Sarlavha olib tashlangach bu joy endi haddan tashqari
+     katta ko'rinardi — mijoz "tortib qo'yish, tepaga yaqinlashtirish"
+     so'ragani uchun 22px'ga qisqartirildi (yorliq baribir sig'adi, faqat
+     behuda bo'sh joy qolmaydi). */
   .pr-track-wrap{
-    position:relative;height:34px;margin:34px 2px 10px;
+    position:relative;height:34px;margin:22px 2px 6px;
     touch-action:none; /* mijoz tutqichni sudrayotganda sahifa o'zi skroll bo'lib ketmasin */
   }
   .pr-track{
@@ -1726,6 +1735,69 @@
   .testimonials-scroll::-webkit-scrollbar{display:none;}
 
   /* ==================================================================
+     "BIZNING HAMKORLAR" — mijoz iltimosiga ko'ra sahifaning eng pastida
+     (mashhur raqamlar/mijozlar fikridan keyin, footer'dan oldin)
+     qo'shilgan, TO'XTATIB BO'LMAYDIGAN (qo'l bilan sudrab to'xtatilmaydigan)
+     avtomatik aylanuvchi hamkor logolar lentasi. Mijoz aniq "o'ng tarafga
+     qarab sekin yursin" dedi — shu sabab pastdagi @keyframes translateX(0)
+     dan boshlanib translateX(-50%) ga EMAS, aksincha translateX(-50%) dan
+     translateX(0) ga (ya'ni chapdan o'ngga) harakatlanadi. Lenta oddiy
+     `overflow-x:auto` EMAS — bu ATAYLAB shunday: aks holda mijoz uni
+     barmog'i bilan sudrab to'xtatib qo'ya olardi. Ro'yxat ICHIDA ikki
+     marta takrorlangan (bir xil ro'yxat ketma-ket ikki marta) — shu bilan
+     -50% ga yetganda animatsiya "qaytadan boshidan" sakragani sezilmaydi
+     (uzluksiz, tikuvsiz aylanish illyuziyasi). */
+  .partners-section{max-width:1100px;margin:8px auto 0;padding:8px 0 4px;overflow:hidden;}
+  .partners-title{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--page-text, var(--text));
+    text-align:center;margin-bottom:16px;padding:0 16px;
+  }
+  .partners-track-wrap{
+    overflow:hidden;
+    mask-image:linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  }
+  .partners-track{
+    display:flex;align-items:flex-start;gap:20px;width:max-content;
+    animation:partnersMarquee 32s linear infinite;
+    will-change:transform;
+  }
+  /* Mijoz iltimosiga ko'ra tezlik "o'rtachadan sekinroqqa yaqin" bo'lsin —
+     32s (bir to'liq aylanish) shuncha maqsadga mos, lekin ekran juda tor
+     (ko'p element sig'maydigan) telefonlarda bir oz tezroq his qilinishi
+     mumkin, shu sabab tor ekranlarda animatsiya biroz cho'zilgan. */
+  @media(max-width:420px){ .partners-track{ animation-duration:26s; } }
+  @keyframes partnersMarquee{
+    from{ transform:translateX(-50%); }
+    to{ transform:translateX(0%); }
+  }
+  @media(prefers-reduced-motion:reduce){
+    .partners-track{ animation:none; }
+  }
+  /* Mijoz iltimosiga ko'ra: logolar "juda katta emas, o'rtachaga
+     yaqin kichikroq" bo'lsin — ramka avvalgi 64px'dan 48px'ga
+     qisqartirildi (nom yorlig'i va oraliq ham shunga mos kichraytirildi). */
+  .partner-item{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    flex-shrink:0;width:60px;
+  }
+  .partner-logo-frame{
+    width:48px;height:48px;border-radius:50%;
+    background:var(--panel);border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px -6px rgba(0,0,0,0.35);
+    overflow:hidden;flex-shrink:0;
+  }
+  .partner-logo-frame img{ width:62%;height:62%;object-fit:contain; }
+  .partner-logo-frame.partner-fallback{
+    color:#FFFFFF;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
+  }
+  .partner-name{
+    font-family:'Sora',sans-serif;font-weight:700;font-size:10px;
+    color:var(--muted);text-align:center;white-space:nowrap;
+  }
+
+  /* ==================================================================
      "QO'NG'IROQ VIZUALI" — mijoz raqamni kiritib, iPhone qo'ng'iroq
      ekranida qanday ko'rinishini (kiruvchi qo'ng'iroq + javob berilgan
      holat) haqiqiy animatsiya bilan ko'radi.
@@ -2320,6 +2392,48 @@
     -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   }
   .cash-summary-card .csc-oldprice{font-size:13px;color:var(--muted);text-decoration:line-through;}
+
+  /* ---- YANGI (mijoz so'roviga ko'ra, boshqa ilova namunasidagi oqim
+     asosida qo'shildi): Naqt to'lov ("cash") oqimida
+     previewView bilan formView ORASIGA qo'shilgan ikkita YANGI qadam —
+     "Tarifni tanlang" (#cashTariffView) va "Buyurtma tafsilotlari"
+     (#cashReviewView). Bo'lib to'lash (installment) oqimidagi
+     .hf-tariff-btn bilan BIR XIL vizual til (rang/animatsiya) ishlatiladi,
+     lekin bu yerda mijoz bir nechta rejani solishtirib tanlashi kerak
+     bo'lgani uchun tugma emas, TO'LIQ KARTOCHKA (nom + qisqa tavsif +
+     oylik narx + ixtiyoriy "HIT" nishonchasi) ko'rinishida. State
+     (selectedCashTariff) va DOM elementlari selectedHumansTariff/
+     hfTariffsEl bilan ATAYLAB ARALASHTIRILMAYDI — ikkala oqim bir xil
+     ma'lumot manbasidan (OPERATOR_FINANCING.tariffsByOperator) o'qiydi,
+     lekin bir-biridan mustaqil ishlaydi. ---- */
+  .cash-tariff-list{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px;}
+  .cash-tariff-card{
+    position:relative;text-align:left;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:13px 14px;cursor:pointer;color:var(--text);width:100%;
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), border-color .15s ease, box-shadow .15s ease;
+  }
+  .cash-tariff-card:active{transform:scale(0.98);}
+  .cash-tariff-card.active{
+    border-color:var(--amber);
+    box-shadow:0 6px 16px -6px color-mix(in srgb, var(--amber) 55%, transparent);
+    background:linear-gradient(135deg, color-mix(in srgb, var(--amber) 14%, var(--panel)), color-mix(in srgb, var(--green) 10%, var(--panel)));
+  }
+  .cash-tariff-card .ct-name{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;margin-bottom:4px;}
+  .cash-tariff-card .ct-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;}
+  .cash-tariff-card .ct-price{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;color:var(--amber);}
+  /* HIT nishonchasi — mavjud .rb-ribbon (chegirma foizi) bilan bir xil
+     amber lentacha uslubi, faqat admin panelda ANIQ shu tarifga
+     belgilangan bo'lsa ko'rinadi (qarang: panel-boshqaruv.html finTariffRow). */
+  .cash-tariff-card .ct-badge{
+    position:absolute;top:-8px;right:12px;background:var(--amber);color:var(--bg);
+    font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;letter-spacing:.03em;
+    box-shadow:0 4px 10px -3px color-mix(in srgb, var(--amber) 60%, transparent);
+  }
+  #cashTariffContinueBtn:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+  /* Buyurtma tafsilotlari (#cashReviewView) — mavjud .hf-receipt
+     "chek" uslubini AYNAN shu ko'rinishida qayta ishlatamiz, faqat
+     .humans-fin-view ichida emas, mustaqil qadam sifatida. */
+  #cashReviewView .hf-receipt{position:static;margin-top:12px;}
 
   /* ---- Bo'lib to'lash bo'limidagi har bir bosqich ----
      Mijoz iltimosiga ko'ra: Bosh to'lov / Oylik to'lov / Tarif bosqichlari
@@ -3627,10 +3741,13 @@ html.theme-purple-premium .card button.order-btn{
          ma'lumoti (NUMBERS) kelmagan bo'lsa slayder ko'rsatilmaydi, birinchi
          refreshPriceRangeBounds() muvaffaqiyatli chaqirilganda ochiladi. -->
     <div class="price-range-sec" id="priceRangeSec" style="display:none;">
-      <div class="pr-heading">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4v9.2M9.3 9.6c0-1.1 1.1-1.9 2.7-1.9s2.7.8 2.7 1.9c0 1-.9 1.5-2.4 1.9-1.6.4-2.6.9-2.6 1.9 0 1.1 1.2 1.9 2.7 1.9s2.7-.8 2.7-1.9"/></svg>
-        <span data-i18n="priceRangeTitle">Narx bo'yicha</span>
-      </div>
+      <!-- FOLLOW-UP TUZATISH (mijoz slayder ishga tushgandan keyin bildirgan
+           shikoyati): avval shu yerda "Narx bo'yicha" sarlavhasi (ikonka +
+           matn, .pr-heading) turardi — mijoz "juda ko'p bo'sh joy egallayapti,
+           sarlavha UMUMAN kerak emas, operator kartochkalaridan KEYIN to'g'ridan
+           -to'g'ri slayderning o'zi kelsin" dedi. Shu sabab sarlavha butunlay
+           OLIB TASHLANDI (ikonkasi bilan birga) — pastdagi .pr-track-wrap CSS
+           margin-top qiymati ham shunga mos ravishda kamaytirildi. -->
       <div class="pr-track-wrap" id="prTrackWrap">
         <div class="pr-track"><div class="pr-fill" id="prFill"></div></div>
         <button type="button" class="pr-handle" id="prHandleMin" aria-label="Minimal narx">
@@ -4062,6 +4179,47 @@ html.theme-purple-premium .card button.order-btn{
       </button>
       <button type="button" class="op-preview-cancel" id="previewCancelBtn">Bekor qilish</button>
     </div>
+
+    <!-- YANGI QADAM (mijoz so'roviga ko'ra, boshqa ilova namunasidagi
+         oqim asosida qo'shildi, faqat NAQT to'lov
+         oqimi uchun — Bo'lib to'lashga TEGMAYDI): mijoz raqamni
+         "Rasmiylashtirish"dan keyin, agar to'lov turi naqt bo'lsa VA
+         tanlangan operator uchun admin panelda kamida bitta tarif
+         sozlangan bo'lsa, avval shu oylik tarifni tanlaydi. Agar bunday
+         tarif sozlanmagan bo'lsa (masalan operator uchun umuman tarif
+         kiritilmagan) — showOrderForm() bu qadamni butunlay o'tkazib
+         yuborib, to'g'ridan-to'g'ri #formView'ga o'tadi, hech qanday
+         "qoq yo'l"ga tushib qolmaydi. -->
+    <div id="cashTariffView" style="display:none;">
+      <h2>Tarifni tanlang</h2>
+      <div class="modal-number" id="cashTariffNumberLabel"></div>
+      <div class="cash-tariff-list" id="cashTariffList"></div>
+      <button type="button" class="op-preview-confirm" id="cashTariffContinueBtn" disabled>Davom etish</button>
+      <button type="button" class="op-preview-cancel" id="cashTariffBackBtn">Orqaga</button>
+    </div>
+
+    <!-- YANGI QADAM: tarif tanlangandan keyin, ma'lumot formasi (ism/
+         viloyat/telefon)dan OLDIN — "Buyurtma tafsilotlari" ko'rib chiqish
+         ekrani. Mijoz iltimosiga ko'ra bu yerdagi "To'lanishi kerak" summasi
+         RAQAM NARXI + TARIFNING OYLIK TO'LOVI yig'indisidan iborat (bu
+         raqobatchi namunasidan farqli — u yerda raqamning o'zi bepul,
+         vipraqamlar.uz'da esa raqamning o'z qiymati bor, shu sabab
+         izohlovchi matn ham shunga mos yozilgan, "raqam sizga bepul"
+         degan noto'g'ri taassurot berilmaydi). -->
+    <div id="cashReviewView" style="display:none;">
+      <h2>Buyurtma tafsilotlari</h2>
+      <div class="hf-receipt">
+        <div class="hf-receipt-row"><span>Raqam</span><b id="crNumber"></b></div>
+        <div class="hf-receipt-row"><span>Tarif</span><b id="crTariffName"></b></div>
+        <div class="hf-receipt-row"><span>Abonent to'lovi</span><b id="crTariffPrice"></b></div>
+        <div class="hf-receipt-row"><span>Raqam narxi</span><b id="crNumberPrice"></b></div>
+        <p class="hf-receipt-note">To'lanishi kerak summa raqamning o'z narxini va tanlangan tarifning birinchi oylik abonent to'lovini birlashtiradi — vipraqamlar.uz'da chiroyli raqamning o'zi ham qiymatga ega bo'lgani uchun, bu yerdagi umumiy summa ikkalasining yig'indisidir.</p>
+        <div class="hf-receipt-total"><span>To'lanishi kerak</span><b id="crTotal"></b></div>
+      </div>
+      <button type="button" class="op-preview-confirm" id="cashReviewContinueBtn" style="margin-top:16px;">Davom etish</button>
+      <button type="button" class="op-preview-cancel" id="cashReviewBackBtn">Orqaga</button>
+    </div>
+
     <div id="formView">
       <h2 data-i18n="placeOrder">Buyurtma berish</h2>
       <div class="modal-number" id="modalNumber"></div>
@@ -4240,6 +4398,97 @@ html.theme-purple-premium .card button.order-btn{
   </div>
 </div>
 
+<!-- "BIZNING HAMKORLAR" — mijoz iltimosiga ko'ra sahifaning eng pastida,
+     to'xtatib bo'lmaydigan (mijoz qo'li bilan sudrab to'xtatolmaydigan),
+     o'ngga qarab sekin aylanuvchi hamkor logolar lentasi. Ro'yxat CSS
+     animatsiyasi uzluksiz ko'rinishi uchun ATAYLAB IKKI MARTA ketma-ket
+     takrorlangan (qarang: yuqoridagi .partners-track CSS izohi).
+     ESLATMA: Click, Payme va "Oq" uchun hali HAQIQIY logo fayli yo'q —
+     vaqtincha harf-belgili (fallback) doira ishlatildi, mijoz haqiqiy
+     logo faylini yuborgach assets/partners/ papkasiga qo'yib, shu
+     <img>'larni almashtirish kifoya. -->
+<section class="partners-section" id="partnersSection">
+  <div class="partners-title">Bizning hamkorlar</div>
+  <div class="partners-track-wrap">
+    <div class="partners-track" id="partnersTrack">
+      <!-- 1-nusxa -->
+      <div class="partner-item">
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/click.png" alt="Click"></div>
+        <div class="partner-name">Click</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/payme.png" alt="Payme"></div>
+        <div class="partner-name">Payme</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame"><img src="assets/operators/ucell.png" alt="Ucell"></div>
+        <div class="partner-name">Ucell</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame"><img src="assets/operators/mobiuz.png" alt="Mobiuz"></div>
+        <div class="partner-name">Mobiuz</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/oq.png" alt="Oq"></div>
+        <div class="partner-name">Oq</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame"><img src="assets/operators/beeline.png" alt="Beeline"></div>
+        <div class="partner-name">Beeline</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame"><img src="assets/operators/uzmobile.png" alt="Uzmobile"></div>
+        <div class="partner-name">Uzmobile</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame"><img src="assets/operators/perfektum.svg" alt="Perfectum"></div>
+        <div class="partner-name">Perfectum</div>
+      </div>
+      <div class="partner-item">
+        <div class="partner-logo-frame"><img src="assets/operators/humans.svg" alt="Humans"></div>
+        <div class="partner-name">Humans</div>
+      </div>
+      <!-- 2-nusxa (uzluksiz aylanish uchun, MAZMUNI 1-nusxa bilan AYNAN BIR XIL) -->
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/click.png" alt="Click"></div>
+        <div class="partner-name">Click</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/payme.png" alt="Payme"></div>
+        <div class="partner-name">Payme</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame"><img src="assets/operators/ucell.png" alt="" aria-hidden="true"></div>
+        <div class="partner-name">Ucell</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame"><img src="assets/operators/mobiuz.png" alt="" aria-hidden="true"></div>
+        <div class="partner-name">Mobiuz</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/oq.png" alt="Oq"></div>
+        <div class="partner-name">Oq</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame"><img src="assets/operators/beeline.png" alt="" aria-hidden="true"></div>
+        <div class="partner-name">Beeline</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame"><img src="assets/operators/uzmobile.png" alt="" aria-hidden="true"></div>
+        <div class="partner-name">Uzmobile</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame"><img src="assets/operators/perfektum.svg" alt="" aria-hidden="true"></div>
+        <div class="partner-name">Perfectum</div>
+      </div>
+      <div class="partner-item" aria-hidden="true">
+        <div class="partner-logo-frame"><img src="assets/operators/humans.svg" alt="" aria-hidden="true"></div>
+        <div class="partner-name">Humans</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- SEO uchun: quyidagi matn qidiruv tizimlari (Google) tomonidan
      o'qiladi va indekslanadi, lekin mijozga sahifada KO'RINMAYDI (h1'dagi
      sr-only bilan bir xil usul) — mijoz iltimosiga ko'ra vizual ko'rinishdan
@@ -4405,18 +4654,23 @@ function formatPriceUzs(n){
 // Mijoz iltimosiga ko'ra qo'shilgan NARX ORALIG'I SLAYDERI uchun ALOHIDA,
 // ANCHA QISQA narx formati — yuqoridagi formatPriceUzs() ("1 234 567 so'm")
 // slayder tutqichlari ustidagi kichik yorliqlar/chekka raqamlar uchun juda
-// UZUN bo'lardi. Bu funksiya AYNAN skrinshotdagi uslubda ("490k", "990k",
-// "6,5mln", "20mln") ixcham qiymat qaytaradi — o'nlik qism bo'lsa vergul
-// bilan (o'zbekcha yozuv qoidasi, nuqta bilan emas).
+// UZUN bo'lardi. Bu funksiya IXCHAM qiymat qaytaradi — o'nlik qism bo'lsa
+// vergul bilan (o'zbekcha yozuv qoidasi, nuqta bilan emas).
+// FOLLOW-UP TUZATISH (mijoz slayder ishga tushgandan keyin bildirgan
+// shikoyati): dastlab "490k"/"6,5mln" kabi harf qisqartma ("k") ishlatilgan
+// edi — mijoz buni "k" o'rniga to'liq o'zbekcha so'z "ming" bo'lishi va
+// "ming"/"mln" oldidan BO'SHLIQ turishi kerakligini so'radi ("990k" -> "990
+// ming", "6,5mln" -> "6,5 mln"). "mln" qisqartmasining o'zi haqida shikoyat
+// bo'lmagan, shu sabab u o'zgarishsiz qoldirildi — faqat bo'shliq qo'shildi.
 function formatCompactPriceUz(n){
   const num = Math.max(0, Math.round(Number(n) || 0));
   if(num >= 1000000){
     const millions = Math.round((num / 1000000) * 10) / 10;
     const str = (millions % 1 === 0) ? String(millions) : String(millions).replace('.', ',');
-    return str + 'mln';
+    return str + ' mln';
   }
   if(num >= 1000){
-    return Math.round(num / 1000) + 'k';
+    return Math.round(num / 1000) + ' ming';
   }
   return String(num);
 }
@@ -4811,40 +5065,99 @@ function updateSearchUI(){
    Mijozning JORIY tanlovi (selectedMinPrice/selectedMaxPrice) yangi
    ma'lumot kelgani sabab BEHUDA qayta o'rnatilmaydi — faqat u endi
    haqiqiy oraliqdan tashqarida (noto'g'ri) qolib ketsa tuzatiladi, aks
-   holda mijoz sudrab qo'ygan chegara yo'qolib qolardi. */
-let priceBoundMin = 0;        // katalogdagi ENG ARZON haqiqiy narx
-let priceBoundMax = 0;        // katalogdagi ENG QIMMAT haqiqiy narx
+   holda mijoz sudrab qo'ygan chegara yo'qolib qolardi.
+   FOLLOW-UP TUZATISH (mijoz slayder ishga tushgandan keyin bildirgan aniq
+   shikoyati): "slayder BIR MARTA eng qimmat narxni ushlab qolib, doim
+   o'shanda qotib qolmasin — masalan mijoz 0707 naqshini qidirsa, AYNAN
+   shu qidiruvga mos ENG QIMMAT raqam o'ng chekkada, ENG ARZONI chap
+   chekkada bo'lishi kerak". Ilgari computePriceBoundsPool() har doim
+   BUTUN NUMBERS+LIVE_NUMBERS katalogidan (naqsh/operator qidiruvidan
+   qat'i nazar) hisoblanardi — shu sabab chekkalar hech qachon mijoz
+   NIMA qidirayotganiga qarab o'zgarmasdi. Endi bu funksiya AYNAN
+   getFilteredNumbers() ishlatgan "naqsh + operator mos keladimi" mantig'i
+   bilan BIR XIL umumiy tekshiruvdan (qarang: pastdagi
+   matchesPatternAndOperator) foydalanadi — shu bilan ikkala joy vaqt
+   o'tishi bilan bir-biridan farqlanib qolmaydi. */
+let priceBoundMin = 0;        // JORIY qidiruvga mos raqamlar orasidan ENG ARZON haqiqiy narx
+let priceBoundMax = 0;        // JORIY qidiruvga mos raqamlar orasidan ENG QIMMAT haqiqiy narx
 let selectedMinPrice = 0;     // mijoz chap tutqichni qo'ygan narx
 let selectedMaxPrice = 0;     // mijoz o'ng tutqichni qo'ygan narx
-let priceRangeReady = false;  // hali hech qanday narx ma'lumoti yo'q bo'lsa (bo'sh katalog) slayder yashiriladi
+let priceRangeReady = false;  // joriy qidiruvga mos hech qanday narx ma'lumoti yo'q bo'lsa (bo'sh natija) slayder yashiriladi
 
-// Slayder uchun "pool" — band, "Bugungi aksiya" va "Bo'lib to'lash"
-// raqamlari getFilteredNumbers()dagi asosiy ro'yxatga umuman kirmaydi,
-// shu sabab ular slayder chegaralariga ham ta'sir qilmasligi kerak
-// (aks holda chekkalar mijoz haqiqatan ko'radigan/sotib ola oladigan
-// eng arzon-eng qimmat bilan mos kelmay qolardi). LIVE_NUMBERS ham
-// qo'shiladi — shunda STANDART bo'limida jonli qidiruv natijasi ham
-// darhol to'g'ri chegaraga sig'adi.
+// Berilgan 7 xonali naqsh (pattern) va operator ro'yxatiga (selectedOps)
+// item mos keladimi — YAGONA umumiy tekshiruv. getFilteredNumbers()dagi
+// asosiy natija VA narx oralig'i slayderining chekkalarini hisoblovchi
+// computePriceBoundsPool() ENDI ikkalasi ham AYNAN shu funksiyadan
+// foydalanadi (FOLLOW-UP TUZATISH — mijoz "qidirilgan naqshga mos eng
+// arzon/eng qimmat" so'ragani uchun, ikkala joy alohida-alohida yozilib
+// vaqt o'tishi bilan bir-biridan farqlanib qolmasligi uchun).
+function matchesPatternAndOperator(item, pattern, selectedOps){
+  if(selectedOps.length > 0 && !selectedOps.includes(item.operator)) return false;
+  const local = getLocalDigits(item.number);
+  for(let i = 0; i < 7; i++){
+    if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
+  }
+  return true;
+}
+
+// Slayder uchun "pool" — FOLLOW-UP TUZATISH: endi BUTUN katalog emas,
+// balki mijozning JORIY qidiruviga (raqam katakchalariga kiritilgan
+// naqsh + tanlangan operator/Premium) mos keladigan raqamlarning
+// narxlaridan hisoblanadi — xuddi getFilteredNumbers() natija sifatida
+// ko'rsatadigan to'plamdek, FAQAT narx oralig'i filtrining O'ZI qo'llanmay
+// turib (aks holda bu doiraviy — chegaralarni hisoblash uchun avval
+// chegaralar kerak bo'lib qolardi). Band, "Bugungi aksiya" va "Bo'lib
+// to'lash" raqamlari bu yerga umuman kirmaydi — ular getFilteredNumbers()
+// natijasida ham ko'rinmaydi, shu sabab slayder chekkalariga ta'sir
+// qilmasligi kerak.
 function computePriceBoundsPool(){
+  const pattern = currentPattern();
   const pool = [];
-  NUMBERS.forEach(x=>{
-    if(!x.reserved && x.dailyDeal !== true && !x.installment && typeof x.price === 'number' && x.price > 0) pool.push(x.price);
+
+  if(premiumFilterActive){
+    // Premium yoqilgan bo'lsa — natija ham FAQAT shu (featured) to'plam
+    // ICHIDAN chiqadi, shu sabab slayder ham shu to'plamdagi joriy naqshga
+    // mos raqamlar narxidan hisoblanadi (operatorlar Premium bilan bir-
+    // birini istisno qilgani uchun bu yerda selectedOps har doim bo'sh).
+    premiumShuffledList.forEach(item=>{
+      if(typeof item.price === 'number' && item.price > 0 && matchesPatternAndOperator(item, pattern, [])) pool.push(item.price);
+    });
+    return pool;
+  }
+
+  const selectedOps = selectedOperators;
+  const seen = new Set(); // LIVE_NUMBERS'da bor raqam NUMBERS'da qayta hisoblanmasin
+  LIVE_NUMBERS.forEach(item=>{
+    if(seen.has(item.number)) return;
+    seen.add(item.number);
+    if(typeof item.price === 'number' && item.price > 0 && matchesPatternAndOperator(item, pattern, selectedOps)) pool.push(item.price);
   });
-  LIVE_NUMBERS.forEach(x=>{
-    if(typeof x.price === 'number' && x.price > 0) pool.push(x.price);
+  NUMBERS.forEach(item=>{
+    if(seen.has(item.number)) return;
+    if(item.reserved || item.dailyDeal === true || item.installment) return;
+    if(typeof item.price === 'number' && item.price > 0 && matchesPatternAndOperator(item, pattern, selectedOps)) pool.push(item.price);
   });
   return pool;
 }
 
-function refreshPriceRangeBounds(){
+// forceReset=true bo'lsa — bu "qidiruv o'zgardi" degan ANIQ payt (masalan
+// "Qidirish" bosildi, operator/Premium almashtirildi, "Tozalash" bosildi):
+// tutqichlar YANGI to'plamning ikkala chekkasiga QAYTA O'RNATILADI (mijoz
+// aniq iltimosi — "eng arzoni chap, eng qimmati o'ng chekkada bo'lsin").
+// forceReset bo'lmasa (masalan admin narx yangilagani sabab fon rejimida
+// chaqirilganda) — mijoz sudragan chegara BEHUDA yo'qotilmaydi, faqat
+// endi haqiqiy oraliqdan tashqarida qolib ketsa tuzatiladi.
+function refreshPriceRangeBounds(forceReset){
   const pool = computePriceBoundsPool();
   if(pool.length === 0){ priceRangeReady = false; renderPriceRangeSlider(); return; }
   let newMin = Infinity, newMax = -Infinity;
   pool.forEach(p=>{ if(p < newMin) newMin = p; if(p > newMax) newMax = p; });
   if(newMin === newMax) newMax = newMin + 1; // slayderga bir zumlik "kenglik" berish uchun (bo'lmasa tutqichlar ustma-ust tushib qoladi)
 
-  if(!priceRangeReady){
-    // Birinchi marta hisoblanmoqda — slayder to'liq (cheklanmagan) oraliqdan boshlanadi.
+  if(!priceRangeReady || forceReset){
+    // Birinchi marta hisoblanmoqda, YOKI qidiruv ANIQ o'zgargani sabab
+    // majburiy qayta o'rnatish so'ralgan (forceReset) — slayder YANGI
+    // to'plamning to'liq (cheklanmagan) oraliqdan boshlanadi.
     priceBoundMin = newMin; priceBoundMax = newMax;
     selectedMinPrice = newMin; selectedMaxPrice = newMax;
     priceRangeReady = true;
@@ -5037,10 +5350,10 @@ function getFilteredNumbers(ignoreOperator){
     // ko'rinadi; raqam kiritilgan bo'lsa o'sha naqsh bo'yicha ham (shu
     // Premium to'plam ICHIDA, tasodifiy tartib buzilmasdan) filtrlaydi.
     const premiumFiltered = premiumShuffledList.filter(item=>{
-      const local = getLocalDigits(item.number);
-      for(let i = 0; i < 7; i++){
-        if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
-      }
+      // Naqsh mos kelishi — FOLLOW-UP TUZATISH: bu tekshiruv endi
+      // computePriceBoundsPool() bilan BIR XIL umumiy funksiyadan
+      // (matchesPatternAndOperator) foydalanadi (qarang: yuqorida).
+      if(!matchesPatternAndOperator(item, pattern, [])) return false;
       // Mijoz iltimosiga ko'ra qo'shilgan narx oralig'i slayderi — mijoz
       // tutqichlarni sudragan zahoti (alohida "Qidirish" bosmasdan)
       // Premium ro'yxatini ham DARHOL shu narx oralig'iga cheklaydi, xuddi
@@ -5086,11 +5399,10 @@ function getFilteredNumbers(ignoreOperator){
     // chalkashtirishi mumkin edi.
     if(item.dailyDeal === true) return false;
     if(item.installment) return false;
-    if(selectedOps.length > 0 && !selectedOps.includes(item.operator)) return false;
-    const local = getLocalDigits(item.number);
-    for(let i = 0; i < 7; i++){
-      if(pattern[i] !== '' && local[i] !== pattern[i]) return false;
-    }
+    // Operator + naqsh mos kelishi — FOLLOW-UP TUZATISH: bu tekshiruv endi
+    // computePriceBoundsPool() bilan BIR XIL umumiy funksiyadan
+    // (matchesPatternAndOperator) foydalanadi (qarang: yuqorida).
+    if(!matchesPatternAndOperator(item, pattern, selectedOps)) return false;
     // Mijoz iltimosiga ko'ra: narx oralig'i slayderi bilan sudralgan
     // chegaradan tashqaridagi raqamlar bu yerda ham chiqarib tashlanadi.
     if(!matchesPriceRange(item)) return false;
@@ -6415,6 +6727,10 @@ function toggleStandardOp(name){
     renderStandardOpToggles();
     scrollSelectedOpIntoView(standardOpTogglesEl);
     currentPage = 0;
+    // FOLLOW-UP TUZATISH: operator tanlovi o'zgargani sabab qidiruv
+    // to'plami ham o'zgardi — slayder chekkalari (forceReset=true) YANGI
+    // to'plamning eng arzon/eng qimmatiga qayta o'rnatiladi.
+    refreshPriceRangeBounds(true);
     renderCatalog();
     return;
   }
@@ -6436,6 +6752,9 @@ function toggleStandardOp(name){
   renderStandardOpToggles();
   scrollSelectedOpIntoView(standardOpTogglesEl);
   currentPage = 0;
+  // FOLLOW-UP TUZATISH: operator tanlovi o'zgargani sabab qidiruv to'plami
+  // ham o'zgardi — slayder chekkalari YANGI to'plamga qayta o'rnatiladi.
+  refreshPriceRangeBounds(true);
   renderCatalog();
 }
 
@@ -6523,6 +6842,11 @@ function toggleVipOp(op){
   renderVipOpToggles();
   scrollSelectedOpIntoView(vipOpTogglesEl);
   currentPage = 0;
+  // FOLLOW-UP TUZATISH: operator tanlovi o'zgargani sabab qidiruv to'plami
+  // ham o'zgardi — slayder chekkalari (forceReset=true) YANGI to'plamning
+  // eng arzon/eng qimmatiga qayta o'rnatiladi (mijoz iltimosi: slayder
+  // BUTUN katalogda emas, AYNAN joriy qidiruvda "qotib qolmasin").
+  refreshPriceRangeBounds(true);
   updateSearchUI();
   renderCatalog();
 }
@@ -6543,6 +6867,11 @@ function togglePremiumFilter(){
   renderVipOpToggles();
   scrollSelectedOpIntoView(vipOpTogglesEl);
   currentPage = 0;
+  // FOLLOW-UP TUZATISH: Premium yoqilishi/o'chirilishi ham qidiruv
+  // to'plamini butunlay o'zgartiradi (computePriceBoundsPool() Premium
+  // holatiga qarab boshqa to'plamdan hisoblaydi) — shu sabab slayder
+  // ham shu yerda YANGI to'plamga qayta o'rnatiladi.
+  refreshPriceRangeBounds(true);
   updateSearchUI();
   renderCatalog();
 }
@@ -6861,6 +7190,10 @@ standardSearchBtn.addEventListener('click', ()=>{
     // qilinmaydi (Premium faqat VIP bazadagi "featured" raqamlar) — natija
     // mahalliy naqsh bo'yicha darhol chiqadi.
     currentPage = 0;
+    // FOLLOW-UP TUZATISH: "Qidirish" bosilishi — mijozning qidiruv naqshi
+    // ANIQ shu payt tasdiqlangani, slayder shu YANGI naqshga mos to'plamga
+    // (eng arzon/eng qimmatiga) qayta o'rnatilishi kerak bo'lgan payt.
+    refreshPriceRangeBounds(true);
     renderCatalog();
     return;
   }
@@ -6873,6 +7206,10 @@ standardSearchBtn.addEventListener('click', ()=>{
     setSearchBtnLoading(true);
     setTimeout(()=>{
       ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
+      // FOLLOW-UP TUZATISH: bo'sh naqsh bilan "Qidirish" bosilishi ham
+      // ANIQ qidiruv payti hisoblanadi (pattern/operator endi bo'sh) —
+      // slayder BUTUN katalogning eng arzon/eng qimmatiga qayta o'rnatiladi.
+      refreshPriceRangeBounds(true);
       renderCatalog();
       setSearchBtnLoading(false);
     }, 350);
@@ -6886,6 +7223,12 @@ standardSearchBtn.addEventListener('click', ()=>{
   fetchLiveNumbers().finally(()=>{
     setSearchBtnLoading(false);
     hideSearchOverlay();
+    // FOLLOW-UP TUZATISH (asosiy tuzatish — mijoz shikoyati): "Qidirish"
+    // natijasi (LIVE_NUMBERS) endi tayyor — slayder chekkalari AYNAN shu
+    // qidiruvga mos raqamlarning eng arzon/eng qimmatiga MAJBURIY qayta
+    // o'rnatiladi (forceReset=true), "bir marta eng qimmatga qotib
+    // qolish" muammosi shu yerda hal qilinadi.
+    refreshPriceRangeBounds(true);
   });
 });
 clearSearchBtn.addEventListener('click', ()=>{
@@ -6903,10 +7246,11 @@ clearSearchBtn.addEventListener('click', ()=>{
   LIVE_SEARCH_ERROR = null;
   // Mijoz iltimosiga ko'ra: "Tozalash" bosilganda narx oralig'i slayderi
   // ham boshqa filtrlar kabi o'zining TO'LIQ (cheklanmagan) holatiga
-  // qaytariladi — LIVE_NUMBERS endi bo'sh bo'lgani sabab chegaralar ham
-  // qayta hisoblanadi (odatda faqat VIP katalogiga qarab).
-  refreshPriceRangeBounds();
-  if(priceRangeReady){ selectedMinPrice = priceBoundMin; selectedMaxPrice = priceBoundMax; renderPriceRangeSlider(true); }
+  // qaytariladi — LIVE_NUMBERS endi bo'sh va naqsh/operator ham bo'shatilgan
+  // bo'lgani sabab (forceReset=true) chegaralar BUTUN VIP katalogiga qarab
+  // qayta hisoblanadi va tutqichlar ularning ikkala chekkasiga qaytadi.
+  refreshPriceRangeBounds(true);
+  if(priceRangeReady) renderPriceRangeSlider(true);
   updateSearchUI(); renderCatalog(); digitBoxes[0].focus({ preventScroll: true });
 });
 
@@ -7072,6 +7416,12 @@ const hfScheduleNote    = document.getElementById('hfScheduleNote');
 
 let selectedInstallmentFin = null;      // { down:{6,12,24}, monthly:{6,12,24} } | null
 let selectedHumansTariff = null;   // { name, internet, minutes, sms } | null
+// YANGI (mijoz so'roviga ko'ra, faqat NAQT to'lov oqimi uchun): tanlangan
+// tarif obyekti — yuqoridagi selectedHumansTariff (Bo'lib to'lash oqimi)
+// bilan ATAYLAB ALOHIDA saqlanadi, ikkalasi bir xil manbadan
+// (OPERATOR_FINANCING.tariffsByOperator) o'qisa ham bir-biriga ta'sir
+// qilmasligi kerak.
+let selectedCashTariff = null;     // { name, internet, minutes, sms, price, badge } | null
 let selectedDownPayment = 0;       // tanlangan muddat (6/12/24 oy)ga mos bosh to'lov
 
 // Summasi o'zgarganda (oy tanlansa) raqam ozgina "sakrab" yangilanadi —
@@ -7319,6 +7669,14 @@ function openModal(number, id, priceOverride){
     if(el.id !== 'smsVerifyView') el.style.display = '';
   });
   pendingOrderPayload = null;
+  // YANGI raqam uchun oyna HAR SAFAR ochilganda naqt-tarif tanlash oqimi
+  // 1-qadamdan boshlanishi kerak — aks holda avvalgi raqam uchun tanlangan
+  // tarif shu yerda "yopishib" qolib, noto'g'ri summa hisoblanishi mumkin edi.
+  selectedCashTariff = null;
+  const cashTariffViewReset = document.getElementById('cashTariffView');
+  const cashReviewViewReset = document.getElementById('cashReviewView');
+  if(cashTariffViewReset) cashTariffViewReset.style.display = 'none';
+  if(cashReviewViewReset) cashReviewViewReset.style.display = 'none';
   selectedNumberId = id || null;
   // Avval VIP katalogdan (NUMBERS), topilmasa jonli qidiruv natijalaridan
   // (LIVE_NUMBERS — Standart toifa), u ham bo'lmasa (masalan "Saqlangan
@@ -7457,7 +7815,18 @@ function openModal(number, id, priceOverride){
 // "Rasmiylashtirish" bosilganda — oldindan ko'rishdan to'liq formaga o'tadi.
 // Mijoz iltimosiga ko'ra shu daqiqadan boshlab oyna TO'LIQ EKRAN bo'ladi
 // (oldindan ko'rish qadami esa avvalgidek yarim-ekran bo'lib qoladi).
-function showOrderForm(){
+// Haqiqiy ma'lumot formasini (ism/viloyat/telefon) ochadigan qism —
+// AVVAL to'g'ridan-to'g'ri showOrderForm() ichida edi, endi alohida
+// funksiyaga chiqarildi, chunki endi bu qadamga IKKI xil yo'ldan kelish
+// mumkin: (1) tarif qadami umuman kerak bo'lmasa — to'g'ridan-to'g'ri, yoki
+// (2) yangi "Tarifni tanlang" -> "Buyurtma tafsilotlari" qadamlaridan
+// o'tib kelingandan keyin (qarang: showCashReviewStep pastdagi "Davom
+// etish" tugmasi).
+function showActualOrderForm(){
+  const cashTariffViewEl = document.getElementById('cashTariffView');
+  const cashReviewViewEl = document.getElementById('cashReviewView');
+  if(cashTariffViewEl) cashTariffViewEl.style.display = 'none';
+  if(cashReviewViewEl) cashReviewViewEl.style.display = 'none';
   document.getElementById('previewView').style.display = 'none';
   formView.style.display = 'block';
   const orderModalEl = document.getElementById('orderModal');
@@ -7465,6 +7834,116 @@ function showOrderForm(){
   overlay.classList.add('hf-fullscreen');
   setTimeout(()=>custName.focus(), 250);
 }
+
+// "Rasmiylashtirish" bosilganda — oldindan ko'rishdan keyingi qadamga
+// o'tadi. Mijoz so'roviga ko'ra (boshqa ilova
+// namunasi asosida) YANGI: agar to'lov turi hozircha NAQT (selectedPaymentType
+// har doim openModal'da 'cash'dan boshlanadi — mijoz keyin pastdagi
+// payTabs orqali "Bo'lib to'lash"ga o'tishi mumkin, lekin bu YANGI
+// tarif-qadamlariga TA'SIR QILMAYDI, chunki ular allaqachon shu nuqtada
+// hal qilingan) VA tanlangan operator uchun admin panelda kamida bitta
+// tarif (OPERATOR_FINANCING.tariffsByOperator[selectedOperator]) sozlangan
+// bo'lsa — avval "Tarifni tanlang" qadami ko'rsatiladi. Aks holda (tarif
+// sozlanmagan operatorlar uchun — hech qanday "qoq yo'l"/bo'sh ekran
+// bo'lmasin deb) to'g'ridan-to'g'ri eski xatti-harakat: haqiqiy forma ochiladi.
+function showOrderForm(){
+  const cashTariffs = (OPERATOR_FINANCING.tariffsByOperator && OPERATOR_FINANCING.tariffsByOperator[selectedOperator]) || [];
+  if(selectedPaymentType === 'cash' && cashTariffs.length){
+    showCashTariffStep(cashTariffs);
+    return;
+  }
+  showActualOrderForm();
+}
+
+// ---- YANGI: Naqt to'lov oqimidagi "Tarifni tanlang" qadami ----
+function renderCashTariffs(tariffs){
+  selectedCashTariff = null;
+  const listEl = document.getElementById('cashTariffList');
+  const continueBtn = document.getElementById('cashTariffContinueBtn');
+  if(continueBtn) continueBtn.disabled = true;
+  if(!listEl) return;
+  listEl.innerHTML = tariffs.map((t, idx)=>{
+    // Bu yerdagi maydonlar (internet/minutes/sms) AYNAN Bo'lib to'lash
+    // oqimidagi selectHumansTariff() bilan bir xil obyekt shaklidan
+    // o'qiladi (bitta umumiy ma'lumot manbai — OPERATOR_FINANCING
+    // — ikkala oqim uchun ham), shu sabab qo'shimcha maydon nomi
+    // o'ylab topilmadi, faqat qisqa bir qatorli tavsifga aylantirildi.
+    const descParts = [];
+    if(t.minutes) descParts.push(`Qo'ng'iroqlar: ${t.minutes}`);
+    if(t.internet) descParts.push(String(t.internet));
+    if(t.sms) descParts.push(`${t.sms} SMS`);
+    const desc = descParts.join(' · ');
+    return `<button type="button" class="cash-tariff-card" data-idx="${idx}">` +
+      (t.badge ? `<div class="ct-badge">${escapeHtml(t.badge)}</div>` : '') +
+      `<div class="ct-name">${escapeHtml(t.name || '')}</div>` +
+      (desc ? `<div class="ct-desc">${escapeHtml(desc)}</div>` : '') +
+      `<div class="ct-price">${formatPrice(Number(t.price) || 0)}/oy</div>` +
+    `</button>`;
+  }).join('');
+  listEl.querySelectorAll('.cash-tariff-card').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = Number(btn.dataset.idx);
+      selectedCashTariff = tariffs[idx];
+      listEl.querySelectorAll('.cash-tariff-card').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      if(continueBtn) continueBtn.disabled = false;
+      if(navigator.vibrate) navigator.vibrate(20);
+    });
+  });
+}
+
+function showCashTariffStep(tariffs){
+  renderCashTariffs(tariffs);
+  const numberLabelEl = document.getElementById('cashTariffNumberLabel');
+  if(numberLabelEl) numberLabelEl.textContent = modalNumber.textContent;
+  document.getElementById('previewView').style.display = 'none';
+  document.getElementById('cashReviewView').style.display = 'none';
+  formView.style.display = 'none';
+  document.getElementById('cashTariffView').style.display = 'block';
+  const orderModalEl = document.getElementById('orderModal');
+  if(orderModalEl) orderModalEl.classList.remove('modal-preview');
+  overlay.classList.add('hf-fullscreen');
+}
+
+// "Orqaga" — tarif qadamidan oldindan ko'rish (raqam kartochkasi) qadamiga.
+document.getElementById('cashTariffBackBtn').addEventListener('click', ()=>{
+  document.getElementById('cashTariffView').style.display = 'none';
+  document.getElementById('previewView').style.display = 'block';
+  overlay.classList.remove('hf-fullscreen');
+  const orderModalEl = document.getElementById('orderModal');
+  if(orderModalEl) orderModalEl.classList.add('modal-preview');
+});
+
+// "Davom etish" — tarif tanlangandan keyin "Buyurtma tafsilotlari" ko'rib
+// chiqish qadamiga o'tadi. Mijoz iltimosiga ko'ra HISOB-KITOB: To'lanishi
+// kerak summa = raqamning o'z narxi (selectedPrice) + tanlangan tarifning
+// oylik to'lovi — ATAYLAB shu yerda ko'rsatiladi, mijoz forma to'ldirishdan
+// OLDIN aniq summani ko'rsin.
+document.getElementById('cashTariffContinueBtn').addEventListener('click', ()=>{
+  if(!selectedCashTariff) return;
+  showCashReviewStep();
+});
+
+function showCashReviewStep(){
+  document.getElementById('cashTariffView').style.display = 'none';
+  document.getElementById('cashReviewView').style.display = 'block';
+  document.getElementById('crNumber').textContent = modalNumber.textContent;
+  document.getElementById('crTariffName').textContent = (selectedCashTariff && selectedCashTariff.name) || '';
+  const tariffPrice = selectedCashTariff ? (Number(selectedCashTariff.price) || 0) : 0;
+  document.getElementById('crTariffPrice').textContent = formatPrice(tariffPrice) + '/oy';
+  document.getElementById('crNumberPrice').textContent = formatPrice(selectedPrice);
+  document.getElementById('crTotal').textContent = formatPrice(selectedPrice + tariffPrice);
+}
+
+// "Orqaga" — ko'rib chiqish qadamidan tarif tanlash qadamiga qaytadi
+// (tanlangan tarif saqlanib qoladi, mijoz uni qayta tanlashi shart emas,
+// faqat boshqa reja ko'rmoqchi bo'lsa almashtirishi mumkin).
+document.getElementById('cashReviewBackBtn').addEventListener('click', ()=>{
+  document.getElementById('cashReviewView').style.display = 'none';
+  document.getElementById('cashTariffView').style.display = 'block';
+});
+
+document.getElementById('cashReviewContinueBtn').addEventListener('click', showActualOrderForm);
 
 function closeModal(fromPopstate){
   overlay.classList.remove('open');
@@ -7631,6 +8110,14 @@ async function sendOrderToTelegram(payload, time, orderId){
   if(payload.paymentType === 'installment' && payload.installmentDownPayment !== undefined){
     paymentLine += `\n💰 Bosh to'lov: ${formatPriceUzs(payload.installmentDownPayment)}`;
     if(payload.installmentTariff) paymentLine += `\n📶 Tarif: ${payload.installmentTariff}`;
+  }
+  // YANGI (mijoz so'roviga ko'ra, faqat NAQT to'lov oqimi uchun): agar
+  // mijoz yangi "Tarifni tanlang" qadamida bir tarif tanlagan bo'lsa —
+  // admin buni Telegram xabarida ham ko'rishi kerak (narx allaqachon
+  // payload.price'ga qo'shilgan, bu yerda faqat qaysi tarif va necha
+  // so'm/oy ekani ko'rsatiladi).
+  if(payload.cashTariffName){
+    paymentLine += `\n📶 Tarif: ${payload.cashTariffName} (${formatPriceUzs(payload.cashTariffPrice)}/oy)`;
   }
   const text =
 `🔔 Yangi buyurtma
@@ -7892,6 +8379,15 @@ async function finalizeOrder(payload, smsVerified){
         `<span>Bosh to'lov <b class="sor-count-up" data-target="${Number(payload.installmentDownPayment)||0}">${formatPriceUzs(payload.installmentDownPayment)}</b></span>` +
         (payload.installmentTariff ? `<span>Tarif <b>${escapeHtml(payload.installmentTariff)}</b></span>` : '') +
       `</div>`;
+    }else if(payload.cashTariffName){
+      // YANGI (mijoz so'roviga ko'ra, naqt to'lov + tarif tanlangan
+      // buyurtmalar uchun): xuddi shu .sor-tariff vizual naqshi
+      // qayta ishlatiladi, faqat bo'lib to'lashning bosh to'lov/oylik
+      // qatorlari o'rniga bitta "Tarif" qatori chiqadi.
+      extra = `<div class="sor-tariff">` +
+        `<span>Tarif <b>${escapeHtml(payload.cashTariffName)}</b></span>` +
+        `<span>Abonent to'lovi <b class="sor-count-up" data-target="${Number(payload.cashTariffPrice)||0}">${formatPriceUzs(payload.cashTariffPrice)}</b>/oy</span>` +
+      `</div>`;
     }
     recapEl.innerHTML = `<div class="sor-number">${escapeHtml(payload.number)}</div>${extra}`;
     recapEl.style.display = 'block';
@@ -7924,7 +8420,18 @@ confirmBtn.addEventListener('click', async ()=>{
   confirmLabel.style.display = 'none';
   confirmSpinner.style.display = 'inline-block';
 
-  const finalPrice = Math.max(0, selectedPrice - appliedDiscount);
+  // YANGI (mijoz so'roviga ko'ra, faqat NAQT to'lov oqimi uchun): agar
+  // mijoz "Tarifni tanlang" qadamida biror tarif tanlagan bo'lsa (bu FAQAT
+  // selectedPaymentType === 'cash' bo'lganda mumkin, qarang: showOrderForm),
+  // umumiy narxga o'sha tarifning oylik to'lovi HAM qo'shiladi — HISOB-KITOB
+  // FORMULASI: raqamning o'z narxi + tarif oylik to'lovi. Mijoz keyinchalik
+  // payTabs orqali "Bo'lib to'lash"ga o'tib ketgan bo'lsa (selectedPaymentType
+  // === 'installment' shu tugma bosilgan ONDA), bu qo'shimcha summa
+  // MUTLAQO qo'shilmaydi — installment o'z alohida hisob-kitobini
+  // (selectedDownPayment/selectedMonthlyPayment) ishlatadi.
+  const cashTariffPriceToAdd = (selectedPaymentType === 'cash' && selectedCashTariff)
+    ? (Number(selectedCashTariff.price) || 0) : 0;
+  const finalPrice = Math.max(0, selectedPrice - appliedDiscount) + cashTariffPriceToAdd;
   const payload = {
     number: modalNumber.textContent,
     price: finalPrice,
@@ -7950,6 +8457,13 @@ confirmBtn.addEventListener('click', async ()=>{
       payload.installmentDownPayment = selectedDownPayment;
       if(selectedHumansTariff) payload.installmentTariff = selectedHumansTariff.name;
     }
+  }else if(selectedPaymentType === 'cash' && selectedCashTariff){
+    // Admin (Telegram xabari, buyurtmalar jadvali) va mijozning o'zi
+    // (muvaffaqiyat ekrani, "Buyurtmalarim") tanlangan tarifni ko'rishi
+    // uchun — narxning o'zi allaqachon yuqorida finalPrice'ga qo'shilgan,
+    // bu yerda esa faqat KO'RSATISH uchun nom va summa alohida saqlanadi.
+    payload.cashTariffName = selectedCashTariff.name;
+    payload.cashTariffPrice = cashTariffPriceToAdd;
   }
 
   // SMS tasdiqlashga URINIB KO'RAMIZ — lekin bu hech qachon buyurtmani
@@ -8733,11 +9247,19 @@ function renderOrdersResult(orders){
     const installmentLine = o.paymentType === 'installment'
       ? `<div class="cr-row"><span>${t("To'lov")}</span><b>${t("Bo'lib to'lash")} — ${escapeHtml(o.installmentMonths)} ${t('oyga')}</b></div>`
       : '';
+    // YANGI (mijoz so'roviga ko'ra): naqt to'lov + tarif tanlangan eski
+    // buyurtmalarda ham "Buyurtmalarim" ro'yxatida qaysi tarif tanlangani
+    // ko'rinsin — check-my-orders.js netlify funksiyasi bu maydonlarni
+    // ALLAQACHON qaytaradi (qarang: shu fayl, matches.map).
+    const cashTariffLine = o.cashTariffName
+      ? `<div class="cr-row"><span>${t('Tarif')}</span><b>${escapeHtml(o.cashTariffName)}</b></div>`
+      : '';
     return `
       <div class="cr-summary" style="margin-bottom:12px;">
         <div class="cr-row"><span>${t('Raqam')}</span><b>${escapeHtml(o.number)}</b></div>
         <div class="cr-row"><span>${t('Narxi')}</span><b>${formatPrice(o.price)}</b></div>
         ${installmentLine}
+        ${cashTariffLine}
         <div class="cr-row"><span>${t('Sana')}</span><b>${escapeHtml(o.createdAt)}</b></div>
         <div class="cr-status-banner" style="border-color:${color};color:${color};margin-top:8px;">● ${escapeHtml(statusLabel)}</div>
       </div>`;

@@ -2696,15 +2696,26 @@
       <button type="button" class="op-add" data-add="Humans">+ Qator</button>
     </div>
 
+    <!-- Mijoz so'roviga ko'ra (yangi Naqt to'lov + Tarif tanlash bosqichi,
+         qarang: index.html #cashTariffView) — tarif ro'yxati ENDI faqat
+         Bo'lib to'lash uchun EMAS, Naqt to'lov oqimi ham AYNAN shu
+         tariffsByOperator ma'lumotidan foydalanadi. Shu sabab bu bo'lim
+         endi vipraqamlar.uz haqiqatda ishlatadigan BARCHA operatorlar
+         (Mobiuz/Beeline/Ucell/Humans/Uzmobile/Perfektum — index.html'dagi
+         OPERATOR_PICKER_LIST bilan bir xil) uchun kengaytirildi — avval
+         faqat Humans/Ucell/Beeline'da bor edi. Har bir qatorda YANGI
+         "HIT" katagi ham bor — belgilansa, o'sha tarif saytda alohida
+         (amber lentacha bilan) ajratib ko'rsatiladi. -->
     <div class="op-block">
       <div class="op-head">
-        <span class="op-name">Bo'lib to'lash — Tariflar (Humans)</span>
+        <span class="op-name">Tariflar — Humans</span>
       </div>
-      <p class="op-note">Faqat Humans uchun tarif ro'yxati — mijoz "Bo'lib to'lash"ni tanlaganda
-        shular orasidan birini tanlaydi. Narxi maydoni — shu tarifning oylik summasi, mijoz
-        saytida "hozir to'lanadigan summa"ga qo'shib hisoblanadi.</p>
+      <p class="op-note">Naqt to'lov va Bo'lib to'lash — ikkalasi ham shu ro'yxatdan foydalanadi.
+        Narxi maydoni — shu tarifning oylik summasi (naqt oqimida raqam narxiga QO'SHIB
+        hisoblanadi, bo'lib to'lash oqimida esa "hozir to'lanadigan summa"ga qo'shiladi).
+        "HIT" katagi belgilansa, o'sha tarif saytda ajratib (nishoncha bilan) ko'rsatiladi.</p>
       <table class="op-table">
-        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:32px;"></th></tr></thead>
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:52px;">HIT</th><th style="width:32px;"></th></tr></thead>
         <tbody id="finTariffRows_Humans"></tbody>
       </table>
       <button type="button" class="op-add" data-fin-add="Humans">+ Tarif qo'shish</button>
@@ -2712,11 +2723,11 @@
 
     <div class="op-block">
       <div class="op-head">
-        <span class="op-name">Bo'lib to'lash — Tariflar (Ucell)</span>
+        <span class="op-name">Tariflar — Ucell</span>
       </div>
-      <p class="op-note">Faqat Ucell uchun tarif ro'yxati.</p>
+      <p class="op-note">Faqat Ucell uchun tarif ro'yxati (Naqt to'lov va Bo'lib to'lash ikkalasi ham shu yerdan o'qiydi).</p>
       <table class="op-table">
-        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:32px;"></th></tr></thead>
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:52px;">HIT</th><th style="width:32px;"></th></tr></thead>
         <tbody id="finTariffRows_Ucell"></tbody>
       </table>
       <button type="button" class="op-add" data-fin-add="Ucell">+ Tarif qo'shish</button>
@@ -2724,14 +2735,53 @@
 
     <div class="op-block">
       <div class="op-head">
-        <span class="op-name">Bo'lib to'lash — Tariflar (Beeline)</span>
+        <span class="op-name">Tariflar — Beeline</span>
       </div>
-      <p class="op-note">Faqat Beeline uchun tarif ro'yxati.</p>
+      <p class="op-note">Faqat Beeline uchun tarif ro'yxati (Naqt to'lov va Bo'lib to'lash ikkalasi ham shu yerdan o'qiydi).</p>
       <table class="op-table">
-        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:32px;"></th></tr></thead>
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:52px;">HIT</th><th style="width:32px;"></th></tr></thead>
         <tbody id="finTariffRows_Beeline"></tbody>
       </table>
       <button type="button" class="op-add" data-fin-add="Beeline">+ Tarif qo'shish</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Tariflar — Mobiuz</span>
+      </div>
+      <p class="op-note">Mobiuz'da hozircha Bo'lib to'lash yo'q — bu ro'yxat faqat Naqt to'lov
+        oqimidagi "Tarifni tanlang" qadamida ishlatiladi.</p>
+      <table class="op-table">
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:52px;">HIT</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="finTariffRows_Mobiuz"></tbody>
+      </table>
+      <button type="button" class="op-add" data-fin-add="Mobiuz">+ Tarif qo'shish</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Tariflar — Uzmobile</span>
+      </div>
+      <p class="op-note">Uzmobile'da hozircha Bo'lib to'lash yo'q — bu ro'yxat faqat Naqt to'lov
+        oqimidagi "Tarifni tanlang" qadamida ishlatiladi.</p>
+      <table class="op-table">
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:52px;">HIT</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="finTariffRows_Uzmobile"></tbody>
+      </table>
+      <button type="button" class="op-add" data-fin-add="Uzmobile">+ Tarif qo'shish</button>
+    </div>
+
+    <div class="op-block">
+      <div class="op-head">
+        <span class="op-name">Tariflar — Perfektum</span>
+      </div>
+      <p class="op-note">Perfektum'da hozircha Bo'lib to'lash yo'q — bu ro'yxat faqat Naqt to'lov
+        oqimidagi "Tarifni tanlang" qadamida ishlatiladi.</p>
+      <table class="op-table">
+        <thead><tr><th>Nomi</th><th>Internet</th><th>Daqiqa</th><th>Sms</th><th>Narxi</th><th style="width:52px;">HIT</th><th style="width:32px;"></th></tr></thead>
+        <tbody id="finTariffRows_Perfektum"></tbody>
+      </table>
+      <button type="button" class="op-add" data-fin-add="Perfektum">+ Tarif qo'shish</button>
     </div>
 
     <div class="op-block">
@@ -6497,6 +6547,15 @@ let opData = null;
 // (Humans/Ucell bilan bir xil tizim — operatorPrice bo'yicha bog'lanadi).
 const FIN_OPERATORS = ['Humans', 'Ucell', 'Beeline'];
 
+// YANGI (mijoz so'roviga ko'ra — index.html'dagi Naqt to'lov + Tarif
+// tanlash bosqichi, #cashTariffView): tarif ro'yxati (tariffsByOperator)
+// endi FIN_OPERATORS (faqat Bo'lib to'lash summasi kiritilgan 3 ta
+// operator) bilan CHEKLANMAYDI — sayt haqiqatda ishlatadigan BARCHA
+// operatorlar uchun tarif kiritish mumkin bo'lishi kerak, chunki Naqt
+// to'lov istalgan operatordagi raqamda ishlaydi. Ro'yxat index.html'dagi
+// OPERATOR_PICKER_LIST bilan AYNAN bir xil bo'lishi kerak.
+const TARIFF_OPERATORS = ['Mobiuz', 'Beeline', 'Ucell', 'Humans', 'Uzmobile', 'Perfektum'];
+
 function opRow(name, item, idx){
   const tr = document.createElement('tr');
   const isFin = FIN_OPERATORS.includes(name);
@@ -6664,7 +6723,14 @@ async function loadOperatorSettings(){
    ko'ra: har bir operator (Humans/Ucell/Beeline) uchun tarif reja va
    summasi ENDI ALOHIDA — tariffsByOperator: {Humans:[...], Ucell:[...],
    Beeline:[...]}. */
-let finData = { tariffsByOperator: { Humans: [], Ucell: [], Beeline: [] }, byOperator: { Humans: {}, Ucell: {}, Beeline: {} } };
+// Mijoz so'roviga ko'ra: default obyekt endi TARIFF_OPERATORS'dagi
+// BARCHA operatorlar uchun bo'sh massiv bilan boshlanadi (avval faqat
+// Humans/Ucell/Beeline bor edi) — reduce() orqali qo'lda har birini
+// yozib chiqmaslik uchun.
+function emptyTariffsByOperator(){
+  return TARIFF_OPERATORS.reduce((acc, op)=>{ acc[op] = []; return acc; }, {});
+}
+let finData = { tariffsByOperator: emptyTariffsByOperator(), byOperator: { Humans: {}, Ucell: {}, Beeline: {} } };
 
 function finTariffRow(op, item, idx){
   const tr = document.createElement('tr');
@@ -6674,6 +6740,12 @@ function finTariffRow(op, item, idx){
     '<td><input type="text" data-f="minutes" value="' + escapeHtml(item.minutes || '') + '" placeholder="Cheksiz"></td>' +
     '<td><input type="text" data-f="sms" value="' + escapeHtml(item.sms || '') + '" placeholder="0 ta"></td>' +
     '<td><input type="number" data-f="price" value="' + (item.price ?? 0) + '" placeholder="0"></td>' +
+    // YANGI: "HIT" belgisi — mijoz so'roviga ko'ra (boshqa ilova
+    // namunasidagi amber "HIT" lentachasi) faqat shu katak belgilangan
+    // tarifda ko'rinadi (qarang: index.html #cashTariffView .ct-badge).
+    // Checkbox holati saqlanish uchun alohida data-badge atributiga
+    // EMAS, to'g'ridan-to'g'ri finCollectTariffs() ichida o'qiladi.
+    '<td style="text-align:center;"><input type="checkbox" data-f="badge" ' + (item.badge ? 'checked' : '') + ' title="Belgilangan (HIT)"></td>' +
     '<td><button type="button" class="op-del" title="O\'chirish">×</button></td>';
   tr.querySelector('.op-del').addEventListener('click', ()=>{
     finData.tariffsByOperator[op].splice(idx, 1);
@@ -6688,7 +6760,9 @@ function finRenderTariffs(op){
   (finData.tariffsByOperator[op] || []).forEach((item, i)=> tbody.appendChild(finTariffRow(op, item, i)));
 }
 function finRenderAllTariffs(){
-  FIN_OPERATORS.forEach(op=> finRenderTariffs(op));
+  // Mijoz so'roviga ko'ra: endi FIN_OPERATORS (3 ta) o'rniga
+  // TARIFF_OPERATORS (barcha 6 ta) bo'yicha chiziladi.
+  TARIFF_OPERATORS.forEach(op=> finRenderTariffs(op));
 }
 function finCollectTariffs(op){
   const tbody = document.getElementById('finTariffRows_' + op);
@@ -6696,8 +6770,10 @@ function finCollectTariffs(op){
   const rows = [];
   tbody.querySelectorAll('tr').forEach(tr=>{
     const o = {};
-    tr.querySelectorAll('input').forEach(inp=>{
-      o[inp.dataset.f] = inp.dataset.f === 'price' ? (Number(inp.value) || 0) : inp.value.trim();
+    tr.querySelectorAll('input[data-f]').forEach(inp=>{
+      if(inp.dataset.f === 'price'){ o.price = Number(inp.value) || 0; }
+      else if(inp.dataset.f === 'badge'){ o.badge = inp.checked ? 'HIT' : ''; }
+      else{ o[inp.dataset.f] = inp.value.trim(); }
     });
     if(o.name) rows.push(o);
   });
@@ -6707,8 +6783,13 @@ async function loadOperatorFinancing(){
   try{
     const doc = await db.collection('site_settings').doc('operator_financing').get();
     const d = doc.exists ? (doc.data() || {}) : {};
-    finData.tariffsByOperator = { Humans: [], Ucell: [], Beeline: [] };
-    FIN_OPERATORS.forEach(op=>{
+    // Mijoz so'roviga ko'ra: BARCHA operatorlar (TARIFF_OPERATORS) uchun
+    // bo'sh ro'yxatdan boshlanadi, keyin saqlangan ma'lumot (agar bor
+    // bo'lsa) har biriga alohida qo'yiladi — ESKI Humans/Ucell/Beeline
+    // ma'lumoti YO'QOLMAYDI, faqat yangi operatorlar uchun ham joy
+    // ochiladi (orqaga moslik).
+    finData.tariffsByOperator = emptyTariffsByOperator();
+    TARIFF_OPERATORS.forEach(op=>{
       if(d.tariffsByOperator && Array.isArray(d.tariffsByOperator[op])){
         finData.tariffsByOperator[op] = d.tariffsByOperator[op];
       }
@@ -7305,11 +7386,16 @@ async function opSave(){
     Ucell: opCollectFinancing('Ucell'),
     Beeline: opCollectFinancing('Beeline')
   };
-  finData.tariffsByOperator = {
-    Humans: finCollectTariffs('Humans'),
-    Ucell: finCollectTariffs('Ucell'),
-    Beeline: finCollectTariffs('Beeline')
-  };
+  // Mijoz so'roviga ko'ra: endi BARCHA 6 operator uchun tarif ro'yxati
+  // yig'iladi (avval faqat 3 tasi). MUHIM — pastdagi .set() { merge:false }
+  // bilan yozilgani uchun, agar biror operator shu yerda unutilib qolsa,
+  // uning saqlangan tariflari BUTUNLAY o'chib ketardi; shu sabab
+  // TARIFF_OPERATORS ro'yxatining O'ZIDAN foydalanamiz (qo'lda yozib
+  // adashmaslik uchun).
+  finData.tariffsByOperator = TARIFF_OPERATORS.reduce((acc, op)=>{
+    acc[op] = finCollectTariffs(op);
+    return acc;
+  }, {});
   await db.collection('site_settings').doc('operator_financing').set({
     byOperator: {
       Humans: toArray(finData.byOperator.Humans),
@@ -8769,6 +8855,9 @@ function renderAdminOrders(orders){
             : ''}
           ${o.installmentDownPayment !== undefined
             ? `<div class="oc-row" style="color:var(--amber);"><b>💰 Bosh to'lov:</b> ${formatPrice(o.installmentDownPayment)}${o.installmentTariff ? ' &middot; 📶 Tarif: ' + escapeHtml(o.installmentTariff) : ''}</div>`
+            : ''}
+          ${o.cashTariffName
+            ? `<div class="oc-row" style="color:var(--amber);"><b>📶 Tarif:</b> ${escapeHtml(o.cashTariffName)} (${formatPrice(o.cashTariffPrice || 0)}/oy)</div>`
             : ''}
           <div class="oc-row"><b>Qayerdan:</b> ${escapeHtml(o.source || 'Sayt')}</div>
           <select class="order-status">
