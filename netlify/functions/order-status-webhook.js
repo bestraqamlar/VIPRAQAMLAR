@@ -99,20 +99,32 @@ function mainMenuKeyboard(){
 
 /* ==================================================================
    "KANALGA RAQAM JOYLASH" — admin matn/rasm/video yuboradi, bot buni
-   @vip_raqamlar_uz kanaliga, tagida DOIM ikkita yonma-yon tugma bilan
-   joylaydi: "📱 Raqam tanlash" (mijoz botimizga) va "📸 Instagram"
-   (Instagram sahifamizga). Bu tugmalar Telegram'ning o'zi tomonidan
-   xabarga "yopishtirilgani" uchun, mijoz shu postni boshqa odamga
-   ULASHSA (forward qilsa) ham, ikkala tugma xabar bilan BIRGA ketadi.
-   ================================================================== */
-const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot';
+   @vip_raqamlar_uz kanaliga, tagida DOIM ikkita tugma bilan joylaydi:
+   tepada KATTA, alohida qatorda "📱 Raqam tanlash", pastida "📸 Instagram".
+   Bu tugmalar Telegram'ning o'zi tomonidan xabarga "yopishtirilgani"
+   uchun, mijoz shu postni boshqa odamga ULASHSA (forward qilsa) ham,
+   ikkala tugma xabar bilan BIRGA ketadi.
+
+   MUHIM (mijoz iltimosiga ko'ra): "📱 Raqam tanlash" endi botning
+   O'ZIGA (chatga) olib O'TMAYDI — bosilganda TO'G'RIDAN-TO'G'RI mini
+   ilova (Web App) ochiladi, xuddi mijozga shaxsiy xabarlarda chiqadigan
+   "Open" tugmasi kabi. Kanal/guruh postlarida Telegram HAQIQIY
+   `web_app` tugmasini taqiqlaydi (faqat botning shaxsiy chatida
+   ishlaydi) — shu sabab o'rniga rasmiy "to'g'ridan-to'g'ri havola"
+   usuli ishlatiladi: oddiy `url` tugmasi, lekin manzilga `?startapp=`
+   parametri qo'shilgan. Botda Mini ilova BotFather orqali "Direct
+   link" rejimida sozlangan bo'lishi kerak — aks holda bu havola oddiy
+   bot chatini ochib qo'yishi mumkin (bu holatda BotFather'da botning
+   Mini ilova sozlamasini tekshirish kerak, kod tarafida qo'shimcha
+   ish talab qilinmaydi). */
+const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot?startapp=numbers';
 const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipraqamlar';
 function channelPostButtons(){
   return {
-    inline_keyboard: [[
-      { text: '📱 Raqam tanlash', url: CHANNEL_POST_BOT_LINK },
-      { text: '📸 Instagram', url: CHANNEL_POST_INSTAGRAM_LINK }
-    ]]
+    inline_keyboard: [
+      [{ text: '📱 Raqam tanlash', url: CHANNEL_POST_BOT_LINK }],
+      [{ text: '📸 Instagram', url: CHANNEL_POST_INSTAGRAM_LINK }]
+    ]
   };
 }
 async function getPendingChannelPost(){
