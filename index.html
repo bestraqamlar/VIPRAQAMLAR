@@ -2947,7 +2947,16 @@
   .toast{
     position:fixed;top:-120px;left:50%;transform:translateX(-50%);
     background:var(--green);color:#0a1a12;font-weight:700;font-size:13px;line-height:1.45;
-    padding:13px 18px;border-radius:12px;z-index:200;
+    padding:13px 18px;border-radius:12px;
+    /* MUHIM TOPILGAN XATO: z-index avval 200 edi — bu buyurtma oynasi
+       (.overlay, z-index:220) dan PASTROQ, shu sabab "Tasdiqlash"
+       bosilganda xatolik yuz berib showToast() chaqirilganda (masalan
+       server/tarmoq xatosi), xabar oyna ORQASIDA yashiringan holda
+       chiqar edi — mijozga esa "tugma spinner ko'rsatdi-yu, keyin
+       hech narsa bo'lmadi" bo'lib ko'rinar edi (aslida xabar bor edi,
+       lekin ko'rinmas edi). Endi BARCHA overlay/oynalardan YUQORIDA
+       chiqishi uchun z-index sezilarli oshirildi. */
+    z-index:950;
     max-width:min(92vw, 380px);width:max-content;
     text-align:center;white-space:normal;word-break:break-word;
     box-shadow:0 8px 24px rgba(0,0,0,0.28);
@@ -3539,6 +3548,19 @@
    his qilinadi. #catalogShell (katalogni o'rab turgan konteyner)ga
    position:relative berilgan, shu ichida absolyut joylashadi. */
 .catalog-shell{position:relative;}
+.load-retry-banner{
+  display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:18px 16px;margin:0 0 12px;color:var(--text);font-size:13px;line-height:1.5;
+  animation:locSlideIn .3s ease both;
+}
+.load-retry-banner svg{color:var(--amber);}
+.load-retry-banner button{
+  background:linear-gradient(135deg, var(--amber), #FFD778);color:#241a02;
+  border:none;border-radius:10px;padding:9px 20px;font-weight:800;font-size:13px;
+  cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1);
+}
+.load-retry-banner button:active{transform:scale(0.95);}
 .search-overlay{
   position:absolute;inset:0;z-index:6;border-radius:16px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -3999,6 +4021,19 @@ html.theme-purple-premium .card button.order-btn{
 </div>
 
 <div class="catalog-shell" id="catalogShell">
+<!-- MIJOZ XABAR BERGAN "raqamlar ba'zida umuman ko'rinmaydi" muammosi
+     uchun: agar bazadan ma'lumot yuklashda BIR NECHA marta xato bo'lsa
+     (odatda sekin/beqaror internet yoki tarmoq bloklovi sabab), oldin
+     mijoz shunchaki bo'sh/skelet kartochkalarni ABADIY ko'rib turardi —
+     hech qanday tushuntirish yoki amal qilish imkoniyati bo'lmagani
+     uchun ko'pchilik "sayt ishlamayapti" deb chiqib ketardi. Endi shu
+     holatda ANIQ xabar va "Qayta urinish" tugmasi chiqadi (qarang:
+     loadNumbers() / showLoadRetryBanner() JS). -->
+<div class="load-retry-banner" id="loadRetryBanner" style="display:none;">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+  <span>Internet aloqasi zaif yoki uzilgan. Raqamlar yuklanmayapti.</span>
+  <button type="button" id="loadRetryBtn">Qayta urinish</button>
+</div>
 <div class="catalog" id="catalog"></div>
 </div>
 
@@ -4605,11 +4640,11 @@ html.theme-purple-premium .card button.order-btn{
         <div class="loc-map-wrap">
           <div id="locMap"></div>
         </div>
-        <!-- Mijoz iltimosiga ko'ra: "Turgan joyni aniqlash" endi aniq
-             MATNLI, to'liq kengliqdagi tugma — faqat ikonka bo'lgan
-             (mobil'da matnini ko'rish qiyin bo'lgan) kichik suzuvchi
-             tugma o'rniga. Bosilganda BELGILASH (pin/marker) darhol
-             mijozning HAQIQIY turgan joyiga ko'chib boradi. -->
+        <!-- Mijoz iltimosiga ko'ra: "Turgan joyni aniqlash" — aniq
+             MATNLI, to'liq kengliqdagi tugma. Bosilganda BELGILASH
+             (pin/marker) darhol mijozning HAQIQIY turgan joyiga ko'chib
+             boradi. iPhone (Telegram iOS) uchun ALOHIDA ehtiyot choralari
+             qo'yilgan — qarang: requestUserLocation() (JS). -->
         <button type="button" class="loc-locate-btn" id="locLocateBtn">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
           <span>Turgan joyimni aniqlash</span>
@@ -5089,6 +5124,31 @@ function buildZigzagOrder(list){
 }
 let ZIGZAG_ORDER = [];
 
+// MIJOZ XABAR BERGAN "ba'zida raqamlar umuman ko'rinmaydi, hatto
+// birinchi marta ochilganda ham" muammosi uchun: buning asosiy
+// sababi ehtimoldan yiroq emas — App Check (reCAPTCHA) tokeni ba'zi
+// mintaqalarda/tarmoqlarda (Google xizmatlariga tarmoq muammosi bo'lsa)
+// sekin yoki umuman olinmasligi, yoki oddiy sekin/beqaror internet
+// bo'lishi mumkin. Ikkalasida ham natija bir xil: loadNumbers() qayta-
+// qayta (fonda, sezilmagan holda) urinib turadi, lekin mijoz buni
+// bilmaydi va bo'sh/skelet ekranni ko'rib "sayt ishlamayapti" deb
+// chiqib ketadi. Shu sabab endi 2-marta ketma-ket muvaffaqiyatsiz
+// urinishdan keyin (agar hali umuman ma'lumot bo'lmasa) ANIQ xabar va
+// "Qayta urinish" tugmasi ko'rsatiladi.
+let __numbersLoadFailCount = 0;
+function showLoadRetryBanner(show){
+  const banner = document.getElementById('loadRetryBanner');
+  if(banner) banner.style.display = show ? 'flex' : 'none';
+}
+const __loadRetryBtnEl = document.getElementById('loadRetryBtn');
+if(__loadRetryBtnEl){
+  __loadRetryBtnEl.addEventListener('click', ()=>{
+    if(navigator.vibrate) navigator.vibrate(15);
+    showLoadRetryBanner(false);
+    loadNumbers(2000);
+  });
+}
+
 async function loadNumbers(retryDelay){
   // Avval keshni ko'rsatamiz — sayt darhol raqamlar bilan ochiladi
   let hadCache = false;
@@ -5126,6 +5186,8 @@ async function loadNumbers(retryDelay){
     NUMBERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
     numbersLoaded = true;
+    __numbersLoadFailCount = 0;
+    showLoadRetryBanner(false);
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
     refreshPriceRangeBounds();
     renderCatalog();
@@ -5136,9 +5198,14 @@ async function loadNumbers(retryDelay){
     renderAsosiyHero();
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
+    __numbersLoadFailCount++;
     if(NUMBERS.length === 0){
       // Hali hech qanday ma'lumot yo'q — yuklanish animatsiyasini ko'rsatamiz va qayta urinamiz
       renderCatalog();
+      // 2-marta ketma-ket muvaffaqiyatsiz bo'lsa (va hali hech qanday
+      // kesh/ma'lumot yo'q) — mijozga aniq xabar va qo'lda qayta urinish
+      // imkoniyati beramiz, "bo'sh ekran"da abadiy qolib ketmasin.
+      if(__numbersLoadFailCount >= 2) showLoadRetryBanner(true);
     }
     // Kesh bor-yo'qligidan qat'i nazar — orqa fonda jimgina qayta urinib
     // turamiz (ortib boruvchi interval bilan, 60s'da to'xtaydi). Aks
@@ -7821,54 +7888,28 @@ custRegion.addEventListener('change', ()=>{
   else hideLocPicker();
 });
 
-// MUHIM: sayt Telegram Mini App sifatida ochiladi, u yerda oddiy
-// navigator.geolocation ko'pincha ISHLAMAYDI yoki juda sekin/xato
-// natija beradi (Telegram ilovasining o'zi WebView'ga joylashuvni
-// to'g'ridan-to'g'ri bermaydi). Shuning uchun avval Telegram'ning o'z
-// LocationManager API'sini sinab ko'ramiz, u yo'q yoki ishlamasa —
-// oddiy brauzer geolocation'iga tushamiz (fallback).
+// MUHIM (iPhone'da "Turgan joyimni aniqlash" ishlamasligi sababi
+// TOPILDI): Safari/WebKit (iPhone'dagi barcha brauzerlar, shu jumladan
+// Telegram ilovasi ichidagi WebView ham WebKit'ga asoslangan) qat'iy
+// qoida qo'yadi — navigator.geolocation.getCurrentPosition() FAQAT
+// "user gesture" (bosish) dan TO'G'RIDAN-TO'G'RI, HECH QANDAY async
+// kechikishsiz (await/setTimeout/Promise) chaqirilsa ishlaydi. Android
+// (Chromium asosidagi WebView) bu qoidani unchalik qat'iy talab
+// qilmaydi. Avvalgi kodda avval Telegram LocationManager (async, bir оz
+// kechikish bilan) sinalar, brauzer usuliga FAQAT ShUNDAN KEYIN
+// (kechikib) o'tilar edi — aynan shu kechikish sabab iPhone'da Safari
+// "user gesture" mavjud emas deb hisoblab, so'rovni JIM rad etar edi.
+// YECHIM: endi tugma bosilgan zahoti, ENG BIRINCHI navbatda — HECH
+// QANDAY kechikishsiz — brauzer geolocation'i chaqiriladi (bu iPhone'da
+// ham, Android'da ham ishlaydi, chunki "user gesture" darhol
+// ishlatiladi). Faqat brauzer geolocation API'si UMUMAN mavjud
+// bo'lmasa yoki xato bersa (masalan ba'zi eski WebView'larda haqiqatan
+// ham yo'q bo'lsa) — Telegram'ning o'z LocationManager API'siga
+// (mavjud bo'lsa) ZAXIRA sifatida o'tiladi.
 function requestUserLocation(onSuccess, onError){
-  try{
-    const tg = window.Telegram && window.Telegram.WebApp;
-    if(tg && tg.LocationManager){
-      const lm = tg.LocationManager;
-      const askViaTelegram = ()=>{
-        try{
-          lm.getLocation((locationData)=>{
-            if(locationData && typeof locationData.latitude === 'number'){
-              onSuccess(locationData.latitude, locationData.longitude);
-            }else{
-              requestUserLocationBrowser(onSuccess, onError);
-            }
-          });
-        }catch(e){
-          requestUserLocationBrowser(onSuccess, onError);
-        }
-      };
-      if(lm.isInited){
-        if(lm.isLocationAvailable === false){
-          requestUserLocationBrowser(onSuccess, onError);
-        }else{
-          askViaTelegram();
-        }
-      }else{
-        lm.init(()=>{
-          if(lm.isLocationAvailable === false){
-            requestUserLocationBrowser(onSuccess, onError);
-          }else{
-            askViaTelegram();
-          }
-        });
-        // init() javob bermay qolishi ehtimoliga qarshi — "qotib qolish"
-        // bo'lmasin deb, biroz kutib baribir brauzer usuliga o'tamiz.
-        setTimeout(()=>{
-          if(!lm.isInited) requestUserLocationBrowser(onSuccess, onError);
-        }, 1500);
-      }
-      return;
-    }
-  }catch(e){ /* Telegram SDK yo'q yoki eski versiya — pastga tushamiz */ }
-  requestUserLocationBrowser(onSuccess, onError);
+  requestUserLocationBrowser(onSuccess, ()=>{
+    requestUserLocationTelegram(onSuccess, onError);
+  });
 }
 
 function requestUserLocationBrowser(onSuccess, onError){
@@ -7881,6 +7922,47 @@ function requestUserLocationBrowser(onSuccess, onError){
     ()=> onError(),
     { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
   );
+}
+
+// Telegram Mini App'ning o'z (native) joylashuv ko'prigi — brauzer
+// geolocation'i ishlamagan/yo'q holatlarda ZAXIRA sifatida ishlatiladi.
+// Bu yerda ehtiyotkorlik bilan: eski Telegram versiyalarida bu API
+// noto'g'ri ishlashi (hatto ilovani "qayta yuklab yuborishi") mumkin
+// edi, shu sabab FAQAT tg.isVersionAtLeast('8.0') ni qo'llab-quvvatlasa
+// ishga tushiriladi, va har bir chaqiruv bir marta (settled bayrog'i
+// bilan) natija berishini kafolatlaymiz — ikki marta chaqirilib,
+// ziddiyatli holatga tushib qolmasligi uchun.
+function requestUserLocationTelegram(onSuccess, onError){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const supported = tg && tg.LocationManager && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('8.0');
+    if(!supported){ onError(); return; }
+    const lm = tg.LocationManager;
+    let settled = false;
+    const finish = (fn)=>{ if(settled) return; settled = true; fn(); };
+    const askViaTelegram = ()=>{
+      try{
+        lm.getLocation((locationData)=>{
+          if(locationData && typeof locationData.latitude === 'number'){
+            finish(()=> onSuccess(locationData.latitude, locationData.longitude));
+          }else{
+            finish(onError);
+          }
+        });
+      }catch(e){ finish(onError); }
+    };
+    const runCheck = ()=>{
+      if(lm.isLocationAvailable === false) finish(onError);
+      else askViaTelegram();
+    };
+    if(lm.isInited){
+      runCheck();
+    }else{
+      try{ lm.init(runCheck); }catch(e){ finish(onError); return; }
+      // init() javob bermay "osilib" qolishi ehtimoliga qarshi.
+      setTimeout(()=>{ if(!lm.isInited) finish(onError); }, 1500);
+    }
+  }catch(e){ onError(); }
 }
 
 document.getElementById('locLocateBtn').addEventListener('click', ()=>{
