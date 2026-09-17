@@ -55,7 +55,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const { text, orderId } = JSON.parse(event.body || '{}');
+    const { text, orderId, mapUrl } = JSON.parse(event.body || '{}');
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -68,13 +68,19 @@ exports.handler = async function (event) {
 
     const body = { chat_id: chatId, text };
     if (orderId) {
-      body.reply_markup = {
-        inline_keyboard: [
-          [{ text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` }],
-          [{ text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` }],
-          [{ text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }]
-        ]
-      };
+      const inline_keyboard = [
+        [{ text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` }],
+        [{ text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` }],
+        [{ text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }]
+      ];
+      // YANGI (mijoz so'roviga ko'ra): mijoz saytda xaritada aniq
+      // joylashuvini belgilagan bo'lsa — endi bu oddiy MATN havolasi
+      // sifatida emas, alohida TUGMA sifatida chiqadi, bosilganda
+      // to'g'ridan-to'g'ri Yandex Go ochiladi.
+      if (typeof mapUrl === 'string' && /^https:\/\//.test(mapUrl)) {
+        inline_keyboard.push([{ text: "🗺️ Xaritaga o'tish", url: mapUrl }]);
+      }
+      body.reply_markup = { inline_keyboard };
     }
 
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

@@ -2169,14 +2169,6 @@
     background:#fff;color:#111;border:none;border-radius:20px;
     padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;
   }
-  .reels-mute-btn{
-    position:absolute;top:calc(env(safe-area-inset-top, 0px) + 14px);right:60px;z-index:910;
-    background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border:none;color:#fff;
-    width:34px;height:34px;border-radius:50%;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .reels-mute-btn svg{width:17px;height:17px;}
-  .reels-mute-btn.sound-on{background:rgba(255,255,255,0.32);}
   /* Video bir marta tugaganda, "tepaga surish mumkin" his qildirish uchun
      video biroz tepaga sirg'alib, keyin joyiga qaytadi — Instagram Reels'da
      ham shunga o'xshash imo bo'ladi. */
@@ -3685,6 +3677,67 @@ html.theme-purple-premium .card button.order-btn{
 @media(prefers-reduced-motion:reduce){
   html.theme-purple-premium body::before{ animation:none; }
 }
+
+/* ==================================================================
+   ESKI BRAUZER/QURILMALAR UCHUN ZAXIRA (FALLBACK) — mijoz "sayt sekin
+   yoki eski qurilmalarda noqulay ishlaydi, ba'zi joyda dizayn oddiy
+   oqroq bo'lib qoladi" deb yozgandan keyin tekshirilganda topildi: sayt
+   bo'ylab (tarif/rasrochka kartalari, joylashuv paneli va h.k.) rang
+   uchun CSS color-mix() funksiyasi ko'p ishlatilgan — bu YANGI CSS
+   funksiya (2023 o'rtalaridan keyingi brauzerlarda bor). Eski Android
+   WebView yoki eski Safari'da BU FUNKSIYA UMUMAN TANILMAYDI — natijada
+   BUTUN shu qatordagi qiymat (masalan butun background yoki border-color)
+   BEKOR QILINADI (brauzer uni "noto'g'ri" deb o'tkazib yuboradi), va
+   element belgilangan rangsiz, oddiy tekis (ko'pincha deyarli oq/och)
+   ko'rinishda qolib ketadi — aynan shu "oddiy oqroq" ko'rinish shundan
+   bo'lgan bo'lishi mumkin. Quyida ENG KO'ZGA TASHLANADIGAN joylar uchun
+   — color-mix() ISHLATMAYDIGAN, saytda ALLAQACHON MAVJUD statik
+   o'zgaruvchilar (--amber-soft, --panel-2 va h.k.) asosidagi ZAXIRA
+   qoidalar qo'shildi. Bular FAQAT color-mix()'ni QO'LLAMAYDIGAN eski
+   brauzerlarda ishga tushadi (@supports not) — zamonaviy qurilmalarda
+   hech narsa o'zgarmaydi, sayt xuddi hozirgidek chiroyli ko'rinadi. */
+@supports not (background: color-mix(in srgb, red 50%, blue)){
+  .cash-tariff-card.active{
+    border-color:var(--amber) !important;
+    box-shadow:0 6px 16px -6px rgba(255,176,0,0.4) !important;
+    background:linear-gradient(135deg, var(--amber-soft), var(--panel)) !important;
+  }
+  .pm-option-card.active{
+    border-color:var(--amber) !important;
+    box-shadow:0 6px 18px -8px rgba(255,176,0,0.4) !important;
+    background:linear-gradient(135deg, var(--amber-soft), var(--panel)) !important;
+  }
+  .pm-option-icon{
+    background:var(--amber-soft) !important;color:var(--amber) !important;
+  }
+  .hf-tariff-btn.active{
+    background:linear-gradient(135deg, var(--amber-soft), var(--panel)) !important;
+    border-color:var(--amber) !important;color:var(--amber) !important;
+  }
+  .hf-month-btn.active{
+    background:var(--amber-soft) !important;border-color:var(--amber) !important;color:var(--amber) !important;
+  }
+  .loc-picker{
+    background:var(--panel-2) !important;
+  }
+  .loc-locate-btn{
+    background:var(--amber) !important;
+  }
+  .loc-status-ok svg{ color:var(--green) !important; }
+  #toast{ background:var(--panel) !important; }
+}
+
+/* ==================================================================
+   UMUMIY ISHLASH TEZLIGI OPTIMALLASHTIRISH (mijoz: "interneti sekin
+   bo'lgan odamlarda yoki eski qurilmalarda noqulay ishlaydi") — og'ir
+   "backdrop-filter: blur()" effektlari past quvvatli qurilmalarda GPU'ni
+   qattiq band qilib, butun sahifani "sekinlashtirishi" mumkin. Bu yerda
+   ularni butunlay OLIB TASHLAMAYMIZ (zamonaviy qurilmalarda chiroyli
+   ko'rinadi), lekin qo'llab-quvvatlamaydigan/kuchsiz qurilmalar uchun
+   yengilroq muqobil qoldiramiz. */
+@supports not (backdrop-filter: blur(1px)){
+  .reels-close, .pv-order-btn, .cp-input-modal{ backdrop-filter:none !important; }
+}
 </style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -4062,13 +4115,11 @@ html.theme-purple-premium .card button.order-btn{
 
 <div class="reels-overlay" id="reelsOverlay">
   <button class="reels-close" id="reelsClose">✕</button>
-  <button class="reels-mute-btn" id="reelsMuteBtn" aria-label="Ovoz"></button>
   <div class="reels-track" id="reelsTrack"></div>
 </div>
 
 <div class="reels-overlay" id="pvReelsOverlay">
   <button class="reels-close" id="pvReelsClose">✕</button>
-  <button class="reels-mute-btn" id="pvReelsMuteBtn" aria-label="Ovoz"></button>
   <div class="reels-track" id="pvReelsTrack"></div>
 </div>
 
@@ -4640,76 +4691,76 @@ html.theme-purple-premium .card button.order-btn{
     <div class="partners-track" id="partnersTrack">
       <!-- 1-nusxa -->
       <div class="partner-item">
-        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/click.png" alt="Click"></div>
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/click.png" alt="Click" loading="lazy" decoding="async"></div>
         <div class="partner-name">Click</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/payme.png" alt="Payme"></div>
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/payme.png" alt="Payme" loading="lazy" decoding="async"></div>
         <div class="partner-name">Payme</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame"><img src="assets/operators/ucell.png" alt="Ucell"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/ucell.png" alt="Ucell" loading="lazy" decoding="async"></div>
         <div class="partner-name">Ucell</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame"><img src="assets/operators/mobiuz.png" alt="Mobiuz"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/mobiuz.png" alt="Mobiuz" loading="lazy" decoding="async"></div>
         <div class="partner-name">Mobiuz</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/oq.png" alt="Oq"></div>
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/oq.png" alt="Oq" loading="lazy" decoding="async"></div>
         <div class="partner-name">Oq</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame"><img src="assets/operators/beeline.png" alt="Beeline"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/beeline.png" alt="Beeline" loading="lazy" decoding="async"></div>
         <div class="partner-name">Beeline</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame"><img src="assets/operators/uzmobile.png" alt="Uzmobile"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/uzmobile.png" alt="Uzmobile" loading="lazy" decoding="async"></div>
         <div class="partner-name">Uzmobile</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame"><img src="assets/operators/perfektum.svg" alt="Perfectum"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/perfektum.svg" alt="Perfectum" loading="lazy" decoding="async"></div>
         <div class="partner-name">Perfectum</div>
       </div>
       <div class="partner-item">
-        <div class="partner-logo-frame"><img src="assets/operators/humans.svg" alt="Humans"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/humans.svg" alt="Humans" loading="lazy" decoding="async"></div>
         <div class="partner-name">Humans</div>
       </div>
       <!-- 2-nusxa (uzluksiz aylanish uchun, MAZMUNI 1-nusxa bilan AYNAN BIR XIL) -->
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/click.png" alt="Click"></div>
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/click.png" alt="Click" loading="lazy" decoding="async"></div>
         <div class="partner-name">Click</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/payme.png" alt="Payme"></div>
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/payme.png" alt="Payme" loading="lazy" decoding="async"></div>
         <div class="partner-name">Payme</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame"><img src="assets/operators/ucell.png" alt="" aria-hidden="true"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/ucell.png" alt="" aria-hidden="true" loading="lazy" decoding="async"></div>
         <div class="partner-name">Ucell</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame"><img src="assets/operators/mobiuz.png" alt="" aria-hidden="true"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/mobiuz.png" alt="" aria-hidden="true" loading="lazy" decoding="async"></div>
         <div class="partner-name">Mobiuz</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/oq.png" alt="Oq"></div>
+        <div class="partner-logo-frame" style="background:#FFFFFF;"><img src="assets/partners/oq.png" alt="Oq" loading="lazy" decoding="async"></div>
         <div class="partner-name">Oq</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame"><img src="assets/operators/beeline.png" alt="" aria-hidden="true"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/beeline.png" alt="" aria-hidden="true" loading="lazy" decoding="async"></div>
         <div class="partner-name">Beeline</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame"><img src="assets/operators/uzmobile.png" alt="" aria-hidden="true"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/uzmobile.png" alt="" aria-hidden="true" loading="lazy" decoding="async"></div>
         <div class="partner-name">Uzmobile</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame"><img src="assets/operators/perfektum.svg" alt="" aria-hidden="true"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/perfektum.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"></div>
         <div class="partner-name">Perfectum</div>
       </div>
       <div class="partner-item" aria-hidden="true">
-        <div class="partner-logo-frame"><img src="assets/operators/humans.svg" alt="" aria-hidden="true"></div>
+        <div class="partner-logo-frame"><img src="assets/operators/humans.svg" alt="" aria-hidden="true" loading="lazy" decoding="async"></div>
         <div class="partner-name">Humans</div>
       </div>
     </div>
@@ -6286,7 +6337,7 @@ function renderFeatured(){
     return;
   }
   featuredSection.style.display = 'block';
-  featuredScroll.innerHTML = picks.map(item => {
+  const cardsHtml = picks.map(item => {
     const { head, tail } = splitNumberDisplay(item.number);
     return `
       <div class="featured-card">
@@ -6307,13 +6358,95 @@ function renderFeatured(){
       </div>
     `;
   }).join('');
+  // Mijoz iltimosiga ko'ra: "Bizning hamkorlar" lentasidagi kabi, bu
+  // karusel ham DOIM avtomatik chapga qarab siljib tursin — shu bilan
+  // birga mijoz istalgan payt qo'li bilan teginib, hozirgidek qo'lda
+  // ham siljitib ko'ra olishi kerak. Uzluksiz (tikuvsiz) aylanish
+  // illyuziyasi uchun ro'yxat ICHIDA ikki marta takrorlanadi — shunda
+  // scrollLeft yarmiga (bitta ro'yxat uzunligiga) yetganda 0'ga
+  // "sakratilganda" bir xil kartalar tursin, sezilmaydi.
+  featuredScroll.innerHTML = cardsHtml + cardsHtml;
 
   featuredScroll.querySelectorAll('.featured-heart-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=> toggleFavorite(btn.dataset.id, btn));
+    btn.addEventListener('click', ()=>{
+      const nowFav = toggleFavorite(btn.dataset.id, btn);
+      // Ro'yxat ikki marta takrorlangani uchun, xuddi shu raqamning
+      // IKKINCHI nusxasidagi yurak belgisi ham sinxron yangilanishi kerak.
+      featuredScroll.querySelectorAll(`.featured-heart-btn[data-id="${CSS && CSS.escape ? CSS.escape(btn.dataset.id) : btn.dataset.id}"]`).forEach(other=>{
+        if(other !== btn) other.classList.toggle('active', nowFav);
+      });
+    });
   });
   featuredScroll.querySelectorAll('.featured-btn:not(.reserved-btn)').forEach(btn=>{
     btn.addEventListener('click', ()=> openModal(btn.dataset.number, btn.dataset.id));
   });
+
+  initFeaturedAutoScroll();
+}
+
+/* ==================================================================
+   "MASHHUR RAQAMLAR" AVTOMATIK SILJISH — "Bizning hamkorlar" lentasi
+   kabi doimiy chapga qarab harakatlanadi, lekin bu yerda kontent CSS
+   `overflow-x:auto` orqali qo'lda ham siljitiladigan bo'lgani uchun
+   (hamkorlar lentasidagi kabi sof CSS animatsiya emas), avtomatik
+   harakat requestAnimationFrame yordamida scrollLeft'ni asta-sekin
+   oshirib boradi. Mijoz teginib turgan (yoki hozirgina qo'lda
+   siljitgan) vaqtda avtomatik harakat TO'XTAYDI — teginish tugagach,
+   biroz kutib, yana o'zi yurishda davom etadi.
+   ================================================================== */
+function initFeaturedAutoScroll(){
+  if(!featuredScroll || featuredScroll.__autoScrollInited) return;
+  featuredScroll.__autoScrollInited = true;
+
+  const SPEED_PX_PER_SEC = 26; // "hamkorlar" lentasi bilan bir xil sekin tezlik
+  let paused = false;
+  let resumeTimer = null;
+  let lastTs = null;
+  let rafId = null;
+
+  function pause(){
+    paused = true;
+    if(resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(()=>{ paused = false; }, 1800);
+  }
+
+  featuredScroll.addEventListener('pointerdown', pause, { passive: true });
+  featuredScroll.addEventListener('touchstart', pause, { passive: true });
+  featuredScroll.addEventListener('wheel', pause, { passive: true });
+  featuredScroll.addEventListener('scroll', ()=>{
+    // Mijoz qo'lda siljitganda ham (masalan sichqoncha bilan sudrab)
+    // avtomatik harakat vaqtincha to'xtaydi.
+    if(!paused) return;
+    if(resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(()=>{ paused = false; }, 1800);
+  }, { passive: true });
+
+  function step(ts){
+    rafId = requestAnimationFrame(step);
+    if(lastTs === null) lastTs = ts;
+    const dt = ts - lastTs;
+    lastTs = ts;
+    if(paused) return;
+    if(document.hidden) return;
+    const half = featuredScroll.scrollWidth / 2;
+    if(half <= 0) return;
+    featuredScroll.scrollLeft += SPEED_PX_PER_SEC * (dt / 1000);
+    // Ro'yxat ikki marta takrorlangan — birinchi nusxa oxiriga
+    // yetganda, sezilmaydigan tarzda boshiga qaytariladi (ikkinchi
+    // nusxa bir xil ko'rinishga ega bo'lgani uchun uzluksiz his qilinadi).
+    if(featuredScroll.scrollLeft >= half){
+      featuredScroll.scrollLeft -= half;
+    }
+  }
+  rafId = requestAnimationFrame(step);
+
+  // Mijoz "Prefers reduced motion" tanlagan bo'lsa — avtomatik
+  // harakatni to'xtatib qo'yamiz (qulaylik/health sabablari).
+  try{
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      if(rafId) cancelAnimationFrame(rafId);
+    }
+  }catch(e){}
 }
 
 const dailyDealSection = document.getElementById('dailyDealSection');
@@ -7687,24 +7820,85 @@ custRegion.addEventListener('change', ()=>{
   if(custRegion.value === 'Toshkent shahri') showLocPicker();
   else hideLocPicker();
 });
-document.getElementById('locLocateBtn').addEventListener('click', ()=>{
-  const btn = document.getElementById('locLocateBtn');
+
+// MUHIM: sayt Telegram Mini App sifatida ochiladi, u yerda oddiy
+// navigator.geolocation ko'pincha ISHLAMAYDI yoki juda sekin/xato
+// natija beradi (Telegram ilovasining o'zi WebView'ga joylashuvni
+// to'g'ridan-to'g'ri bermaydi). Shuning uchun avval Telegram'ning o'z
+// LocationManager API'sini sinab ko'ramiz, u yo'q yoki ishlamasa —
+// oddiy brauzer geolocation'iga tushamiz (fallback).
+function requestUserLocation(onSuccess, onError){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if(tg && tg.LocationManager){
+      const lm = tg.LocationManager;
+      const askViaTelegram = ()=>{
+        try{
+          lm.getLocation((locationData)=>{
+            if(locationData && typeof locationData.latitude === 'number'){
+              onSuccess(locationData.latitude, locationData.longitude);
+            }else{
+              requestUserLocationBrowser(onSuccess, onError);
+            }
+          });
+        }catch(e){
+          requestUserLocationBrowser(onSuccess, onError);
+        }
+      };
+      if(lm.isInited){
+        if(lm.isLocationAvailable === false){
+          requestUserLocationBrowser(onSuccess, onError);
+        }else{
+          askViaTelegram();
+        }
+      }else{
+        lm.init(()=>{
+          if(lm.isLocationAvailable === false){
+            requestUserLocationBrowser(onSuccess, onError);
+          }else{
+            askViaTelegram();
+          }
+        });
+        // init() javob bermay qolishi ehtimoliga qarshi — "qotib qolish"
+        // bo'lmasin deb, biroz kutib baribir brauzer usuliga o'tamiz.
+        setTimeout(()=>{
+          if(!lm.isInited) requestUserLocationBrowser(onSuccess, onError);
+        }, 1500);
+      }
+      return;
+    }
+  }catch(e){ /* Telegram SDK yo'q yoki eski versiya — pastga tushamiz */ }
+  requestUserLocationBrowser(onSuccess, onError);
+}
+
+function requestUserLocationBrowser(onSuccess, onError){
   if(!navigator.geolocation){
-    showToast(t("Brauzeringiz joylashuvni aniqlashni qo'llamaydi."), 3000);
+    onError();
     return;
   }
-  btn.classList.add('loc-locating');
   navigator.geolocation.getCurrentPosition(
-    (pos)=>{
+    (pos)=> onSuccess(pos.coords.latitude, pos.coords.longitude),
+    ()=> onError(),
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
+}
+
+document.getElementById('locLocateBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('locLocateBtn');
+  btn.classList.add('loc-locating');
+  requestUserLocation(
+    (lat, lng)=>{
       btn.classList.remove('loc-locating');
-      setCustomerLocation(pos.coords.latitude, pos.coords.longitude);
+      // Mijoz turgan joyi avtomatik aniqlanadi va xarita HAM darhol
+      // o'sha joyga ko'chib, belgilaydigan tugma (marker) ham AVTOMATIK
+      // o'sha nuqtaga o'rnatiladi — qo'shimcha bosish shart emas.
+      setCustomerLocation(lat, lng);
       if(navigator.vibrate) navigator.vibrate(25);
     },
     ()=>{
       btn.classList.remove('loc-locating');
       showToast(t("Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang."), 3200);
-    },
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    }
   );
 });
 document.getElementById('locClearBtn').addEventListener('click', clearCustomerLocation);
@@ -8656,6 +8850,27 @@ window.addEventListener('popstate', ()=>{
 // narsa bosilmaydigan oyna" muammosining asosiy sababi bo'lgan) darhol
 // tozalanadi, va raqamlar ro'yxati eskirgan (kimdir sotib olgan/narx
 // o'zgargan) bo'lishi mumkinligi uchun serverdan qayta so'raladi — mijoz
+// MIJOZ SO'ROVIGA KO'RA: saytdagi BARCHA tugma/tasdiqlash/amal bosilganda
+// mijozga vibratsiya (haptik) signal berilishi kerak. Har bir joyga
+// alohida navigator.vibrate() qo'shish o'rniga — bitta UMUMIY, butun
+// sahifa bo'yicha "click" hodisasini kuzatuvchi handler qo'shildi: u
+// istalgan tugma, link-tugma yoki "role=button" elementga bosilganda
+// avtomatik yengil vibratsiya beradi. Muhim joylarda (masalan, tasdiqlash
+// muvaffaqiyatli bo'lganda) alohida, kuchliroq vibratsiya ham bor edi —
+// ular ham saqlanib qoldi, ikkalasi bir-biriga xalaqit bermaydi.
+(function(){
+  const VIBE_SELECTOR = 'button, .btn, [role="button"], .pm-option-card, .cash-tariff-card, .ic-tab, input[type="submit"]';
+  document.addEventListener('click', function(e){
+    try{
+      if(!navigator.vibrate) return;
+      const target = e.target && e.target.closest ? e.target.closest(VIBE_SELECTOR) : null;
+      if(!target) return;
+      if(target.disabled) return;
+      navigator.vibrate(15);
+    }catch(err){ /* ba'zi brauzerlar vibratsiyani qo'llamaydi — muammo emas */ }
+  }, true);
+})();
+
 // qo'lda sahifani yangilashi shart bo'lmaydi.
 window.addEventListener('pageshow', (e)=>{
   if(!e.persisted) return;
@@ -8762,13 +8977,13 @@ async function sendOrderToTelegram(payload, time, orderId){
     paymentLine += `\n📶 Tarif: ${payload.cashTariffName} (${formatPriceUzs(payload.cashTariffPrice)}/oy)`;
   }
   // YANGI (mijoz so'roviga ko'ra): agar mijoz "Toshkent shahri" uchun
-  // xaritada aniq joylashuvini belgilagan bo'lsa — admin shu havolani
-  // bosib to'g'ridan-to'g'ri Yandex Go'da marshrutni ko'radi. Telegram
-  // oddiy URL'ni o'zi avtomatik bosiladigan havolaga aylantiradi, alohida
-  // formatlash shart emas.
-  let locationLine = '';
+  // xaritada aniq joylashuvini belgilagan bo'lsa — admin xabarida oddiy
+  // MATN havolasi EMAS, alohida bosiladigan TUGMA ("🗺️ Xaritaga o'tish")
+  // chiqadi (qarang: telegram-notify.js'dagi mapUrl ishlovi). Bosilganda
+  // to'g'ridan-to'g'ri Yandex Go ochiladi.
+  let mapUrl = null;
   if(payload.location && typeof payload.location.lat === 'number' && typeof payload.location.lng === 'number'){
-    locationLine = `\n🗺️ Xaritadagi joylashuv: ${buildYandexGoLink(payload.location.lat, payload.location.lng)}`;
+    mapUrl = buildYandexGoLink(payload.location.lat, payload.location.lng);
   }
   const text =
 `🔔 Yangi buyurtma
@@ -8777,7 +8992,7 @@ async function sendOrderToTelegram(payload, time, orderId){
 👤 Mijoz ismi: ${payload.name}
 ☎️ Ishlab turgan raqami: ${payload.phone}
 📍 Manzil: ${payload.region}
-${paymentLine}${locationLine}
+${paymentLine}
 🕐 Vaqti: ${time}
 🌐 Qayerdan: ${payload.source || 'Sayt'}`;
 
@@ -8785,7 +9000,7 @@ ${paymentLine}${locationLine}
     await fetch('/.netlify/functions/telegram-notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
-      body: JSON.stringify({ text, orderId })
+      body: JSON.stringify({ text, orderId, mapUrl })
     });
   }catch(err){ console.error('Telegramga yuborishda xato:', err); }
 }
@@ -9614,16 +9829,15 @@ favoritesOverlay.addEventListener('click', (e)=>{ if(e.target === favoritesOverl
 const installmentOverlay = document.getElementById('installmentOverlay');
 const installmentCatalogGrid = document.getElementById('installmentCatalogGrid');
 
-// Mijoz iltimosiga ko'ra: hammasi birdaniga EMAS, bir vaqtda 8 tadan
-// ko'rsatiladi, pastida "Keyingisi" tugmasi bosilganda YANA 8 tasi
-// (mavjud kartochkalar YO'QOTILMASDAN, ustiga qo'shilib) ochiladi.
-const INSTALLMENT_PAGE_SIZE = 8;
+// BEKOR QILINDI (mijoz iltimosiga ko'ra): ilgari 8 tadan ko'rsatilib,
+// pastida "Keyingisi" tugmasi bosilganda yana 8 tasi ochilardi — mijoz
+// buni noqulay deb topdi ("saytida hammasini chiqaraversin"). Endi
+// BARCHA bo'lib-to'lashga mos raqamlar BIR YO'LA, hech qanday "Keyingisi"
+// tugmasisiz chiziladi.
 let installmentAllPicks = [];
-let installmentShownCount = 0;
 
 function renderInstallmentNumbersList(){
   installmentAllPicks = NUMBERS.filter(item => item.installment === true && !item.reserved);
-  installmentShownCount = 0;
   installmentCatalogGrid.innerHTML = '';
   const oldMoreBtn = document.getElementById('installmentMoreBtn');
   if(oldMoreBtn) oldMoreBtn.remove();
@@ -9631,11 +9845,12 @@ function renderInstallmentNumbersList(){
     installmentCatalogGrid.innerHTML = `<div class="empty-state">${t("Hozircha bo'lib to'lashga raqamlar yo'q.")}</div>`;
     return;
   }
-  appendInstallmentCards(INSTALLMENT_PAGE_SIZE);
+  appendInstallmentCards(installmentAllPicks.length);
 }
 
 function appendInstallmentCards(count){
-  const nextBatch = installmentAllPicks.slice(installmentShownCount, installmentShownCount + count);
+  const startAt = installmentCatalogGrid.children.length;
+  const nextBatch = installmentAllPicks.slice(startAt, startAt + count);
   nextBatch.forEach(item=>{
     const card = document.createElement('div');
     card.className = 'card cs-classic';
@@ -9647,26 +9862,10 @@ function appendInstallmentCards(count){
       if(header) header.insertAdjacentHTML('beforeend', badge);
     }
     // Kartochka .card klassida allaqachon o'zining "cardPopIn" kirish
-    // animatsiyasi bor (base CSS) — shu sabab "Keyingisi" bosilganda
-    // yangi qo'shilgan kartochkalar avtomatik ravishda zamonaviy
-    // paydo bo'lish animatsiyasi bilan ochiladi, qo'shimcha kod shart emas.
+    // animatsiyasi bor (base CSS) — shu sabab har bir kartochka avtomatik
+    // ravishda zamonaviy paydo bo'lish animatsiyasi bilan ochiladi.
     installmentCatalogGrid.appendChild(card);
   });
-  installmentShownCount += nextBatch.length;
-  renderInstallmentMoreButton();
-}
-
-function renderInstallmentMoreButton(){
-  const oldBtn = document.getElementById('installmentMoreBtn');
-  if(oldBtn) oldBtn.remove();
-  if(installmentShownCount >= installmentAllPicks.length) return;
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'installmentMoreBtn';
-  btn.className = 'installment-more-btn';
-  btn.textContent = t('Keyingisi');
-  btn.addEventListener('click', ()=> appendInstallmentCards(INSTALLMENT_PAGE_SIZE));
-  installmentCatalogGrid.insertAdjacentElement('afterend', btn);
 }
 
 // Belgi (sevimlilar) va "Buyurtma berish" — xuddi asosiy katalogdagidek
@@ -10670,63 +10869,38 @@ function takeWarmedVideo(url){
 }
 
 /* ==================================================================
-   REELS OVOZ SOZLAMASI — barcha brauzerlar (telefon HAM, kompyuter HAM)
-   video "autoplay"ni FAQAT ovozsiz (muted) holatda SO'ZSIZ ruxsat beradi;
-   ovoz bilan avtomatik ishga tushirishga esa ko'plab holatlarda
-   (sichqoncha g'ildiragi bilan navigatsiya, ulashilgan havola orqali
-   to'g'ridan-to'g'ri ochilish va h.k. — bularning barchasida "user
-   gesture" bo'lmaydi) brauzer jim ruxsat bermay qo'yadi va video
-   ekranda muzlab qoladi ("ishlamayapti" muammosining asosiy sababi shu
-   edi). Shu sabab endi har bir video AVVAL har doim OVOZSIZ ishga
-   tushiriladi (bu—kafolatlangan ishlaydi), so'ng mijoz avval "ovozni
-   yoqish" tugmasini bir marta bossa, shu tanlovi eslab qolinadi va
-   keyingi barcha videolar ham ovoz bilan davom etadi (Instagram/TikTok
-   Reels'dagi kabi).
+   REELS OVOZ SOZLAMASI — mijoz so'roviga ko'ra endi "ovozni yoqish"
+   tugmasi UMUMAN YO'Q — video HAR DOIM ovoz bilan chiqishga harakat
+   qiladi (Instagram/TikTok'dagi kabi). Reels oyna FAQAT tugma
+   bosilganda ochiladi (bu — haqiqiy "user gesture"), shu sabab darhol
+   OVOZLI play() chaqirilsa ham brauzer odatda ruxsat beradi. Faqat
+   juda kam, alohida holatlarda (masalan sichqoncha g'ildiragi bilan
+   navigatsiya vaqtida) brauzer baribir rad etishi mumkin — shunda
+   video "muzlab qolmasin" deb, JIM holda (ovozsiz) davom etadi, lekin
+   hech qanday tugma yoki belgi ko'rsatilmaydi.
    ================================================================== */
-function getReelsSoundOn(){
-  try{ return localStorage.getItem('raqamuz_reels_sound') === '1'; }catch(e){ return false; }
-}
-function setReelsSoundOn(on){
-  try{ localStorage.setItem('raqamuz_reels_sound', on ? '1' : '0'); }catch(e){}
-}
-window.reelsMuteIconSvg = function(muted){
-  return muted
-    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`
-    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a9 9 0 0 1 0 12"/></svg>`;
-};
-// Video hali "waiting/loading" bo'lmasa ham, muted=false qilishga urinish
-// (masalan wheel bilan navigatsiya paytida) ba'zi brauzerlarda rad
-// etilishi mumkin — shu holatda video OVOZSIZ bo'lsa ham davom etaveradi
-// (hech qachon to'xtab qolmaydi), bu funksiya shuni xavfsiz bajaradi.
-window.applyReelsSoundPreference = function(video){
-  if(!video) return;
-  if(getReelsSoundOn()){
-    try{ video.muted = false; }catch(e){}
-  }
-};
-// Video elementini REELS uslubida ishga tushiradi: har doim AVVAL
-// ovozsiz holda play() chaqiriladi (bu HAR QANDAY brauzerda — telefon
-// ham, kompyuter ham — har doim ruxsat etiladi), muvaffaqiyatli
-// boshlangach, agar mijoz avvalroq "ovozni yoqish"ni tanlagan bo'lsa,
-// o'sha zahoti ovoz ham yoqiladi. Agar play() baribir rad etilsa
-// (masalan video formati brauzerda umuman ochilmasa), slaydda "qayta
-// urinish" (play) tugmasi ko'rsatiladi — video hech qachon sababsiz
-// "muzlab" qolmaydi.
+// Video elementini REELS uslubida ishga tushiradi: DARHOL ovoz bilan
+// play() chaqiriladi. Agar brauzer buni rad etsa (kamdan-kam holat),
+// video jim holda ishga tushiriladi — hech qachon "muzlab" qolmaydi.
 window.playReelsVideo = function(slideEl){
   const video = slideEl && slideEl.querySelector('video');
   if(!video) return;
   slideEl.classList.remove('reels-play-error');
-  video.muted = true;
+  video.muted = false;
   const playPromise = video.play();
   if(playPromise && typeof playPromise.then === 'function'){
-    playPromise.then(()=>{
-      applyReelsSoundPreference(video);
-    }).catch(()=>{
-      // Ovozsiz holda ham ishga tushmadi — odatda format qo'llab-
-      // quvvatlanmasligi yoki tarmoq xatosi sabab bo'ladi. Mijozga
-      // ko'rinadigan "qayta urinish" imkonini beramiz (jim qolib
-      // ketmasin).
-      slideEl.classList.add('reels-play-error');
+    playPromise.catch(()=>{
+      // Ovozli ishga tushmadi (brauzer siyosati) — jim holda urinib
+      // ko'ramiz, video baribir to'xtab qolmasin.
+      try{
+        video.muted = true;
+        const retryPromise = video.play();
+        if(retryPromise && typeof retryPromise.catch === 'function'){
+          retryPromise.catch(()=>{ slideEl.classList.add('reels-play-error'); });
+        }
+      }catch(e){
+        slideEl.classList.add('reels-play-error');
+      }
     });
   }
 };
@@ -10744,7 +10918,6 @@ window.pauseReelsVideo = function(slideEl){
   const overlay = document.getElementById('reelsOverlay');
   const track = document.getElementById('reelsTrack');
   const closeBtn = document.getElementById('reelsClose');
-  const muteBtn = document.getElementById('reelsMuteBtn');
   const retryBtnDelegate = track;
   let videos = [];
   let currentIdx = 0;
@@ -11033,25 +11206,6 @@ window.pauseReelsVideo = function(slideEl){
   const pauseSlideVideo = window.pauseReelsVideo;
   function slideAt(idx){ return track.querySelector(`.reels-slide[data-idx="${idx}"]`); }
 
-  function updateMuteBtn(){
-    if(!muteBtn) return;
-    const on = getReelsSoundOn();
-    muteBtn.innerHTML = reelsMuteIconSvg(!on);
-    muteBtn.classList.toggle('sound-on', on);
-  }
-  if(muteBtn){
-    updateMuteBtn();
-    muteBtn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      // Tugma bosilishi — bu HAQIQIY "user gesture", shu sabab shu
-      // yerda ovozni yoqish har doim ruxsat etiladi (brauzer siyosati).
-      const next = !getReelsSoundOn();
-      setReelsSoundOn(next);
-      updateMuteBtn();
-      const curVideo = slideAt(currentIdx) && slideAt(currentIdx).querySelector('video');
-      if(curVideo) curVideo.muted = !next;
-    });
-  }
   if(retryBtnDelegate){
     retryBtnDelegate.addEventListener('click', (e)=>{
       const btn = e.target.closest('.reels-retry-btn');
@@ -11301,7 +11455,6 @@ window.pauseReelsVideo = function(slideEl){
   const overlay = document.getElementById('pvReelsOverlay');
   const track = document.getElementById('pvReelsTrack');
   const closeBtn = document.getElementById('pvReelsClose');
-  const muteBtn = document.getElementById('pvReelsMuteBtn');
   let items = []; // { videoUrl, number, price, numberId, reserved }
   let currentIdx = 0;
   let isAnimating = false;
@@ -11358,23 +11511,6 @@ window.pauseReelsVideo = function(slideEl){
   const playSlideVideo = window.playReelsVideo;
   const pauseSlideVideo = window.pauseReelsVideo;
 
-  function updateMuteBtn(){
-    if(!muteBtn) return;
-    const on = getReelsSoundOn();
-    muteBtn.innerHTML = reelsMuteIconSvg(!on);
-    muteBtn.classList.toggle('sound-on', on);
-  }
-  if(muteBtn){
-    updateMuteBtn();
-    muteBtn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      const next = !getReelsSoundOn();
-      setReelsSoundOn(next);
-      updateMuteBtn();
-      const curVideo = slideAt(currentIdx) && slideAt(currentIdx).querySelector('video');
-      if(curVideo) curVideo.muted = !next;
-    });
-  }
   track.addEventListener('click', (e)=>{
     const btn = e.target.closest('.reels-retry-btn');
     if(!btn) return;
