@@ -240,8 +240,14 @@ async function searchBeeline(boxes, cfg, limit) {
 let beelineTokenCache = null;
 const BEELINE_TOKEN_TTL = 5 * 60 * 1000;
 
-// MUHIM (401/400 xatolarining haqiqiy sababi shu edi): sync-beeline.js 10 ta
-// raqamni (0..9) BIR VAQTDA, parallel qidiradi. Agar token hali yo'q yoki
+// ESLATMA: quyidagi izoh ESKI dilerlik (RMS) oqimiga tegishli. Hozir fon
+// sinxronizatsiyasi ochiq API'dan foydalanadi va login/parol TALAB QILMAYDI
+// (qarang: sync-beeline-background.js), ya'ni bu muammo endi yuzaga
+// kelmaydi. Quyidagi qulf RMS yo'li hali ham ishlatilishi mumkinligi uchun
+// (masalan Platinum toifalari) saqlanib turibdi.
+//
+// MUHIM (401/400 xatolarining haqiqiy sababi shu edi): eski sync 10 ta
+// raqamni (0..9) BIR VAQTDA, parallel qidirardi. Agar token hali yo'q yoki
 // endigina eskirgan bo'lsa, ESKI kodda HAR BIR parallel so'rov o'zicha
 // alohida login qilishga urinardi — ya'ni bitta dilerlik hisobiga bir necha
 // login so'rovi BIR VAQTDA ketardi. Beeline (ko'p operator API'lari kabi)
@@ -272,6 +278,295 @@ async function getBeelineToken(username, password) {
     }
   })();
   return beelineLoginInFlight;
+}
+
+/* ---------- BEELINE — OCHIQ (PUBLIC) API ---------- */
+//
+// NEGA: yuqoridagi dilerlik (RMS) API'si login/parol talab qiladi, bitta
+// qidiruv uchun 7 ta omborga 7 ta so'rov yuboradi va Beeline tomonida
+// sekin ishlaydi (o'lchangan: keng mask bilan 7-8 soniya). Hisob bloklanish
+// xavfi ham bor edi.
+//
+// Ochiq API — nomer.beeline.uz saytining O'ZI ishlatadigan API. Login/parol
+// KERAK EMAS, faqat "Session-Id" sarlavhasi talab qilinadi.
+//
+// HAMMASI REAL SO'ROV BILAN TASDIQLANGAN (2026-09-17):
+//   1) Sessiya:  GET /msapi/web/rms/v2/categories?language=uz
+//                sarlavha: "E-Sim: true"
+//                -> javob SARLAVHASIDA "session-id" keladi (tanasida emas).
+//                -> tanasida kategoriyalar: [{id:393,name:"Oddiy",price:0}, ...]
+//   2) Qidiruv:  GET /msapi/web/rms/v2/phone-numbers/search
+//                ?categoryId=<id>&hlrId=1&mask=<12 belgi>&includeDetails=true
+//                &language=uz&page=0&size=90
+//                sarlavha: "Session-Id: <sessiya>"
+//                -> {content:[{phoneNumber:"998905988009", categoryId:395,
+//                    phoneNumberPrice:250000.0, categoryNameLocalized:"Silver"}]}
+//
+// ANIQLANGAN CHEKLOVLAR (tekshirilgan, taxmin emas):
+//   - categoryId MAJBURIY. Usiz HTTP 400. Shuning uchun 4 kategoriyaga
+//     4 ta parallel so'rov yuboriladi.
+//   - size 90 dan oshmaydi (size=200 -> HTTP 422).
+//   - page ishlamaydi: page=1 aynan page=0 dagi 90 tani qaytardi
+//     (totalPages doim 1). Ya'ni bir mask + bir kategoriya = MAX 90 ta.
+//   - Ochiq API'da faqat 4 kategoriya bor (0 / 100k / 250k / 500k so'm).
+//     RMS'dagi Platinum (1.5 mln) va undan qimmatlari bu yerda YO'Q.
+//   - Sessiya kamida 10 daqiqa yashaydi (tekshirilgan) — keshlaymiz.
+//   - Parallel yuborilganda goho HTTP 500 qaytadi (5 tadan 2 marta) —
+//     shu sabab bir marta qayta urinish qo'yilgan.
+
+const BEELINE_PUBLIC_BASE = 'https://nomer.beeline.uz/msapi/web/rms/v2';
+
+// Beeline ochiq API'sining O'Z javob vaqti kategoriyaga qarab keskin farq
+// qiladi (real o'lchov, bir xil mask bilan):
+//   393 Oddiy  ~0.3s    394 Bronze ~2.9s
+//   395 Silver ~7-9s    396 Gold   ~5-7s
+// Umumiy DEFAULT_TIMEOUT (6.5s) Silver'ni KESIB tashlaydi — ya'ni eng ko'p
+// sotiladigan toifa natijasiz qolardi. Shu sabab bu API uchun alohida,
+// uzunroq chegara. Mijoz buni KUTMAYDI: qidiruvda Firestore keshi
+// ishlatiladi (qarang: sync-beeline-background.js), bu chegara faqat fon
+// sinxronizatsiyasi va kesh bo'sh qolgan holat uchun.
+const BEELINE_PUBLIC_TIMEOUT = 12000;
+
+// Ochiq API'dagi kategoriyalar. "price" — Beeline'ning O'Z narxi (operator
+// narxi); sotuv narxi admin paneldagi jadval orqali hisoblanadi (toSalePrice).
+// Bu ro'yxat categories endpointidan olingan javobning aynan o'zi.
+const BEELINE_PUBLIC_CATEGORIES = [
+  { id: 393, name: 'Oddiy',  operatorPrice: 0 },
+  { id: 394, name: 'Bronze', operatorPrice: 100000 },
+  { id: 395, name: 'Silver', operatorPrice: 250000 },
+  { id: 396, name: 'Gold',   operatorPrice: 500000 }
+];
+
+// KAMYOB (va shu sababli SEKIN) toifalar — bular fon sinxronizatsiyasida
+// oldindan yig'ilib keshlanadi (qarang: sync-beeline-background.js).
+//
+// Nega aynan shular: Beeline'ning javob vaqti kategoriyadagi raqam soniga
+// TESKARI bog'liq — raqam kam bo'lsa, u butun bazani skanerlab uzoq
+// qidiradi. O'lchangan (bir xil mask, 3 martadan):
+//   393 Oddiy  ~36 000 ta -> 0.3-0.5 s  (keshlanmaydi: tez, hajmi katta)
+//   394 Bronze  ~1 700 ta -> 3.0-3.4 s
+//   395 Silver  ~1 600 ta -> 8.3-9.4 s
+//   396 Gold    ~1 600 ta -> 4.8-4.9 s
+const BEELINE_PUBLIC_RARE_IDS = [394, 395, 396];
+
+// Sessiya keshi. Sessiya bir necha daqiqa amal qiladi, shuning uchun har
+// qidiruvda qaytadan olinmaydi. Bir vaqtda ko'p so'rov kelganda faqat BITTA
+// sessiya so'rovi ketishi uchun "inFlight" qulfi ishlatiladi (xuddi
+// yuqoridagi getBeelineToken kabi).
+let beelinePublicSession = null;
+const BEELINE_PUBLIC_SESSION_TTL = 5 * 60 * 1000;
+let beelinePublicSessionInFlight = null;
+
+async function fetchBeelinePublicSession() {
+  const res = await fetch(BEELINE_PUBLIC_BASE + '/categories?language=uz', {
+    headers: { 'E-Sim': 'true', Language: 'uz' },
+    signal: timeoutSignal(BEELINE_PUBLIC_TIMEOUT)
+  });
+  if (!res.ok) throw new Error('Beeline (ochiq): sessiya olinmadi, HTTP ' + res.status);
+
+  // Sessiya javob SARLAVHASIDA keladi.
+  const sid = res.headers.get('session-id') || res.headers.get('Session-Id');
+  if (!sid) throw new Error('Beeline (ochiq): javobda session-id sarlavhasi yo\'q');
+
+  // Kategoriyalarni ham o'sha javobdan olamiz — narx o'zgarsa, kodga
+  // tegmasdan avtomatik yangilanadi.
+  let categories = BEELINE_PUBLIC_CATEGORIES;
+  try {
+    const list = await res.json();
+    if (Array.isArray(list) && list.length) {
+      categories = list
+        .filter(c => c && c.id !== undefined && c.id !== null)
+        .map(c => ({
+          id: Number(c.id),
+          name: c.name || '',
+          operatorPrice: Number(c.price) || 0
+        }));
+    }
+  } catch (_) { /* javob o'qilmasa — yuqoridagi tasdiqlangan ro'yxat ishlatiladi */ }
+
+  return { sid, categories };
+}
+
+async function getBeelinePublicSession() {
+  if (beelinePublicSession && Date.now() < beelinePublicSession.expiresAt) {
+    return beelinePublicSession;
+  }
+  if (beelinePublicSessionInFlight) return beelinePublicSessionInFlight;
+
+  beelinePublicSessionInFlight = (async () => {
+    try {
+      const { sid, categories } = await fetchBeelinePublicSession();
+      beelinePublicSession = {
+        sid,
+        categories,
+        expiresAt: Date.now() + BEELINE_PUBLIC_SESSION_TTL
+      };
+      return beelinePublicSession;
+    } finally {
+      beelinePublicSessionInFlight = null;
+    }
+  })();
+  return beelinePublicSessionInFlight;
+}
+
+// Ochiq API mask: 12 belgi = "998" + 9 xonali mahalliy qism, noma'lum
+// joyda "*". Beeline kodlari 90/91 — ikkalasi ham "9" bilan boshlanadi,
+// shuning uchun kod o'rniga "9*" qo'yamiz (xuddi RMS'dagi kabi).
+// 7 katak -> "9989*" + 7 = 12 belgi. Tasdiqlangan: mask=99890*****09 ishladi.
+function beelinePublicMask(boxes) {
+  return '9989*' + boxes.map(b => b || '*').join('');
+}
+
+// Bitta kategoriyadan bitta mask bo'yicha raqam olish.
+//
+// Xatolar bilan ishlash: 400/401/403 -> sessiya eskirgan bo'lishi mumkin,
+// yangilab AYNAN shu so'rovni bir marta qayta yuboramiz. 5xx -> Beeline
+// tomonidagi vaqtinchalik xato (parallel so'rovlarda "JWT token invalid"
+// ko'rinishida kuzatilgan), bu ham bir marta qayta uriniladi.
+//
+// Bu funksiya sync-beeline-background.js dan ham chaqiriladi (fon sinxronizatsiyasi),
+// shuning uchun searchBeelinePublic ichida emas, alohida turadi.
+async function beelinePublicFetchCategory(opts, retried) {
+  const sid = opts.sid;
+  const url = BEELINE_PUBLIC_BASE + '/phone-numbers/search'
+    + '?categoryId=' + opts.categoryId
+    + '&hlrId=1'
+    + '&mask=' + encodeURIComponent(opts.mask)
+    + '&includeDetails=true&language=uz&page=0&size=90';
+
+  const res = await fetch(url, {
+    headers: { 'Session-Id': sid, 'E-Sim': 'true' },
+    signal: timeoutSignal(opts.timeout || BEELINE_PUBLIC_TIMEOUT)
+  });
+
+  if (!res.ok) {
+    const retryable = (res.status === 400 || res.status === 401
+      || res.status === 403 || res.status >= 500);
+    if (retryable && !retried) {
+      beelinePublicSession = null;                   // sessiyani yangilaymiz
+      const fresh = await getBeelinePublicSession();
+      return beelinePublicFetchCategory(
+        Object.assign({}, opts, { sid: fresh.sid }), true
+      );
+    }
+    if (res.status === 429) {
+      throw new Error('Beeline: so\'rovlar chegarasi (429) — biroz kuting');
+    }
+    let detail = '';
+    try { detail = (await res.text()).slice(0, 150); } catch (_) {}
+    throw new Error('Beeline kategoriya ' + opts.categoryId + ': HTTP ' + res.status
+      + (detail ? ' — ' + detail : ''));
+  }
+
+  const data = await res.json();
+  return (data.content || []).map(x => {
+    // Narx javobning O'ZIDAN keladi (phoneNumberPrice), kategoriyadan emas
+    // — bu RMS'dan farqi. Javobda bo'lmasa kategoriya narxiga tushamiz.
+    const op = (x.phoneNumberPrice !== undefined && x.phoneNumberPrice !== null)
+      ? Number(x.phoneNumberPrice)
+      : Number(opts.categoryPrice) || 0;
+    return {
+      number: '+' + String(x.phoneNumber).replace(/\D/g, ''),
+      operator: 'Beeline',
+      category: x.categoryNameLocalized || opts.categoryName || '',
+      operatorPrice: op,
+      price: op   // sotuv narxi chaqiruvchi tomonda hisoblanadi
+    };
+  });
+}
+
+// Beeline uchun sotuv narxini aniqlash.
+//
+// MUHIM: bu funksiyasiz "Oddiy" toifadagi raqamlar saytda "0 so'm" bo'lib
+// chiqadi (brauzer sinovida aynan shunday bo'ldi) — chunki ochiq API
+// operator narxini 0 deb qaytaradi va uni shundoq ko'rsatib bo'lmaydi.
+// Eski dilerlik (RMS) yo'lida narx DEFAULT_BEELINE_WAREHOUSES jadvalidagi
+// "salePrice" dan olinardi (Oddiy -> 50 000 so'm), shu xulq saqlanadi.
+//
+// Tartib: 1) adminkadagi narx jadvali, 2) kodagi standart ombor jadvali,
+// 3) ikkalasida ham topilmasa — operator narxi o'z holicha.
+function beelineSalePrice(table, operatorPrice) {
+  if (table && table.length) {
+    const row = table.find(r => Number(r.operatorPrice) === Number(operatorPrice));
+    if (row) return Number(row.salePrice);
+  }
+  const wh = DEFAULT_BEELINE_WAREHOUSES
+    .find(w => Number(w.operatorPrice) === Number(operatorPrice));
+  if (wh && wh.salePrice !== undefined) return Number(wh.salePrice);
+  return Number(operatorPrice) || 0;
+}
+
+async function searchBeelinePublic(boxes, cfg, limit, options) {
+  const opts = options || {};
+  const session = await getBeelinePublicSession();
+  const table = (cfg && cfg.prices && cfg.prices.length) ? cfg.prices : null;
+  const mask = beelinePublicMask(boxes);
+
+  async function fetchCategory(cat) {
+    const items = await beelinePublicFetchCategory({
+      sid: session.sid,
+      categoryId: cat.id,
+      categoryName: cat.name,
+      categoryPrice: cat.operatorPrice,
+      mask
+    });
+    return items.map(x => Object.assign({}, x, {
+      price: beelineSalePrice(table, x.operatorPrice)
+    }));
+  }
+
+  let categories = (session.categories && session.categories.length)
+    ? session.categories
+    : BEELINE_PUBLIC_CATEGORIES;
+
+  // onlyCategoryIds — keshda bor toifalarni qayta so'ramaslik uchun
+  // (api-live-search kamyob toifalarni keshdan oladi, qolganini jonli).
+  if (opts.onlyCategoryIds && opts.onlyCategoryIds.length) {
+    categories = categories.filter(c => opts.onlyCategoryIds.includes(c.id));
+  }
+  if (opts.excludeCategoryIds && opts.excludeCategoryIds.length) {
+    categories = categories.filter(c => !opts.excludeCategoryIds.includes(c.id));
+  }
+  if (!categories.length) return { items: [], errors: [] };
+
+  // MUHIM: ochiq API parallel so'rovni KO'TARMAYDI — 4 ta bir vaqtda
+  // yuborilganda "JWT token invalid" (HTTP 500) qaytadi (o'lchangan:
+  // 2 parallel xatosiz, 4 parallel 1/4 xato, 8 parallel 2/8 xato).
+  // Shu sabab kategoriyalar JUFT-JUFT yuboriladi: xato ham yo'q,
+  // ketma-ketdan ~2 barobar tez.
+  const settled = [];
+  for (let i = 0; i < categories.length; i += 2) {
+    const pair = categories.slice(i, i + 2);
+    const res = await Promise.allSettled(pair.map(cat => fetchCategory(cat)));
+    settled.push(...res);
+  }
+
+  // MUHIM (limitni kategoriyalar orasida ADOLATLI taqsimlash):
+  // natijalar kategoriya tartibida keladi (Oddiy -> Bronze -> Silver -> Gold)
+  // va har biridan 90 tagacha chiqadi. Agar hammasini birlashtirib oddiygina
+  // slice(limit) qilsak, limit=40 da mijoz FAQAT "Oddiy" raqamlarni ko'radi —
+  // Silver va Gold butunlay yo'qoladi (real sinovda aynan shunday bo'ldi).
+  // Shu sabab avval har kategoriyadan navbat bilan bittadan olamiz
+  // (round-robin), shunda har toifadan vakil bo'ladi.
+  const perCategory = settled.map(r => {
+    if (r.status !== 'fulfilled') return [];
+    return r.value.filter(x => matchesBoxes(x.number, boxes));
+  });
+
+  const items = [];
+  const maxLen = perCategory.reduce((mx, arr) => Math.max(mx, arr.length), 0);
+  for (let i = 0; i < maxLen && items.length < limit; i++) {
+    for (let c = 0; c < perCategory.length && items.length < limit; c++) {
+      if (perCategory[c][i]) items.push(perCategory[c][i]);
+    }
+  }
+
+  const errors = [];
+  settled.forEach(r => {
+    if (r.status === 'rejected') errors.push(labelError('Beeline', r.reason));
+  });
+
+  return { items, errors: [...new Set(errors)].slice(0, 3) };
 }
 
 /* ---------- UCELL ---------- */
@@ -527,12 +822,37 @@ async function searchMobiuz(boxes, cfg, limit) {
 
 /* ---------- PERFEKTUM ---------- */
 //
-// POST https://perfectum.uz/numbers/data — kalit/login talab qilmaydi.
-// So'rov: { sku, page, size, cells } — "cells" AYNAN saytdagi 7 katak.
-// Javob: { categories:[{sku,name,price}], numbers:[{number,price}], totalPages }
-// Raqam formati: "(80) 333-34-33" -> 998803333433
+// POST https://perfectum.uz/api/v1/numbers — kalit/login talab qilmaydi.
+//
+// DIQQAT: eski manzil (/numbers/data) endi ISHLAMAYDI — HTTP 404 qaytaradi
+// (tekshirilgan). Perfektum API'ni yangiladi, so'rov va javob formati ham
+// o'zgardi. Quyidagilar real so'rov bilan tasdiqlangan (2026-09-17):
+//
+//   So'rov:  { sku:"", page:1, size:40, mask:"80***0890" }
+//            "mask" — AYNAN 9 belgi: "80" (Perfektum prefiksi) + 7 katak,
+//            noma'lum joyda "*". 8 yoki 10 belgi -> HTTP 422
+//            ("The mask field format is invalid").
+//            Eski format ("cells" massivi) endi qabul qilinmaydi.
+//
+//   Javob:   { data: { categories:[{sku,price}], numbers:[{number,price}],
+//                      page, totalPages } }
+//            Ya'ni hammasi "data" ICHIDA (eski API'da tashqarida edi).
+//
+//   MUHIM: "user-agent" sarlavhasi MAJBURIY — usiz HTTP 403 qaytadi.
+//
+//   Kategoriya nomi: yangi API "name" maydonini BERMAYDI (faqat sku+price).
+//   Shu sabab toifa nomi narx bo'yicha adminkadagi jadvaldan olinadi;
+//   jadval bo'sh bo'lsa nom bo'sh qoladi (raqam va narx baribir to'g'ri).
+//
+// Raqam formati: "(80) 333-34-33" -> 803333433 -> +998803333433
 
-const PERFEKTUM_URL = 'https://perfectum.uz/numbers/data';
+const PERFEKTUM_URL = 'https://perfectum.uz/api/v1/numbers';
+const PERFEKTUM_PREFIX = '80';
+
+// 7 katak -> Perfektum maskasi (9 belgi): "80" + katak (bo'shi "*").
+function perfektumMask(boxes) {
+  return PERFEKTUM_PREFIX + boxes.map(b => b || '*').join('');
+}
 
 async function searchPerfektum(boxes, cfg, limit) {
   const res = await fetch(PERFEKTUM_URL, {
@@ -543,19 +863,24 @@ async function searchPerfektum(boxes, cfg, limit) {
       origin: 'https://perfectum.uz',
       referer: 'https://perfectum.uz/numbers'
     },
-    body: JSON.stringify({ sku: '', page: 1, size: Math.max(limit, 28), cells: boxes.map(b => b || '') }),
+    body: JSON.stringify({
+      sku: '',
+      page: 1,
+      size: Math.max(limit, 28),
+      mask: perfektumMask(boxes)
+    }),
     signal: timeoutSignal()
   });
   if (!res.ok) throw new Error('Perfektum qidiruv: HTTP ' + res.status);
 
-  const data = await res.json();
+  const body = await res.json();
+  const data = (body && body.data) || {};
   const table = (cfg.prices && cfg.prices.length) ? cfg.prices : DEFAULT_PRICES.Perfektum;
 
-  // Kategoriya nomi shu javobning O'ZIDAGI ro'yxatdan olinadi (narx bo'yicha
-  // mos keladigani). Taxmin yo'q — ma'lumot API'ning o'zidan.
-  const byPrice = {};
-  (data.categories || []).forEach(c => {
-    if (c.price !== null && c.price !== undefined) byPrice[Number(c.price)] = c.name;
+  // Toifa nomi narx bo'yicha adminka jadvalidan (yangi API nom bermaydi).
+  const nameByPrice = {};
+  (table || []).forEach(row => {
+    if (row && row.name) nameByPrice[Number(row.operatorPrice)] = row.name;
   });
 
   const items = (data.numbers || [])
@@ -565,7 +890,7 @@ async function searchPerfektum(boxes, cfg, limit) {
       return {
         number: '+998' + digits,
         operator: 'Perfektum',
-        category: byPrice[op] || '',
+        category: nameByPrice[op] || '',
         operatorPrice: op,
         price: toSalePrice(table, op)
       };
@@ -634,12 +959,18 @@ async function searchAll(boxes, config, options) {
   const limit = opts.limit || 40;
   const only = opts.operator;
   const deadline = opts.deadline || 7000;
-  // exclude — kerak bo'lib qolsa deb qoldirilgan umumiy imkoniyat (hozircha
-  // hech bir operator uchun ishlatilmayapti — hammasi, shu jumladan
-  // Beeline, doim jonli so'raladi).
   const exclude = opts.exclude || [];
 
-  const names = Object.keys(ADAPTERS).filter(name => {
+  // adapterOverrides — chaqiruvchi ayrim operator uchun O'ZINING qidiruv
+  // funksiyasini berishi mumkin (imzo bir xil: (boxes, cfg, limit)).
+  // Buning sababi: Beeline'ning kamyob toifalari Firestore keshidan
+  // o'qiladi (qarang: api-live-search.js), Firestore bog'liqligini esa shu
+  // faylga olib kirmaslik kerak — bu fayl faqat operator API'lari bilan
+  // ishlaydi va testda mustaqil ishga tushishi lozim.
+  const overrides = opts.adapterOverrides || {};
+  const adapters = Object.assign({}, ADAPTERS, overrides);
+
+  const names = Object.keys(adapters).filter(name => {
     if (only && only !== name) return false;
     if (exclude.includes(name)) return false;
     const cfg = (config && config[name]) || {};
@@ -649,7 +980,7 @@ async function searchAll(boxes, config, options) {
 
   const results = await Promise.allSettled(names.map(name => {
     const cfg = (config && config[name]) || {};
-    const run = ADAPTERS[name](boxes, cfg, limit)
+    const run = adapters[name](boxes, cfg, limit)
       .then(out => ({ items: out.items, errors: out.errors }));
     return withDeadline(run, deadline, name).then(out => ({ name, items: out.items, errors: out.errors }));
   }));
@@ -710,5 +1041,14 @@ module.exports = {
   localDigits,
   matchesBoxes,
   DEFAULT_PRICES,
-  DEFAULT_BEELINE_WAREHOUSES
+  DEFAULT_BEELINE_WAREHOUSES,
+  // Beeline ochiq (public) API — login/parolsiz. sync-beeline-background.js va
+  // api-live-search.js shulardan foydalanadi.
+  searchBeelinePublic,
+  getBeelinePublicSession,
+  beelinePublicFetchCategory,
+  BEELINE_PUBLIC_CATEGORIES,
+  BEELINE_PUBLIC_RARE_IDS,
+  beelineSalePrice,
+  toSalePrice
 };

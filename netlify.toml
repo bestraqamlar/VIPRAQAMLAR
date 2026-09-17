@@ -25,12 +25,28 @@
 [functions."personal-bot-reminder-check"]
   schedule = "*/5 * * * *"
 
-# ESLATMA: Beeline uchun avval shu yerda "davriy sinxronizatsiya" (har 5
-# daqiqada sync-beeline.js) ishlatilgan edi. Endi Beeline ham boshqa
-# operatorlar kabi HAR DOIM to'g'ridan-to'g'ri jonli API orqali so'raladi
-# (qarang: netlify/functions/api-live-search.js) — shu sabab bu jadval
-# OLIB TASHLANDI. sync-beeline.js fayli o'zi hali loyihada qoladi (ishlatil-
-# maydi), kerak bo'lib qolsa deb.
+# BEELINE — kamyob toifalarni (Bronze/Silver/Gold) fonda yig'ib keshlash.
+#
+# NEGA: Beeline ochiq API'sining javob vaqti kategoriyadagi raqam soniga
+# TESKARI bog'liq (raqam kam bo'lsa — butun bazani skanerlab uzoq qidiradi).
+# O'lchangan: Oddiy 0.3-0.5s, Bronze ~3s, Gold ~5s, Silver 8-9s. To'rtala
+# toifani jonli so'rash 14-17 soniya oladi (ochiq API parallel so'rovni
+# ko'tarmaydi — 4 ta bir vaqtda yuborilsa "JWT token invalid" qaytadi).
+#
+# Shu sabab uchta KAMYOB toifa shu yerda, fonda yig'iladi; mijoz qidirganda
+# ular keshdan bir zumda beriladi. "Oddiy" keshlanmaydi — u allaqachon tez
+# va hajmi juda katta (~36 000 raqam, Firestore 1 MB limitiga sig'maydi).
+#
+# Natija (o'lchangan): jonli qidiruv 14 192 ms -> 359 ms.
+#
+# "-background" qo'shimchasi MAJBURIY: sinxronizatsiya ~80 soniya davom
+# etadi (300 so'rov), oddiy funksiya limiti esa 10 soniya. Background
+# funksiyalarga Netlify 15 daqiqagacha ruxsat beradi.
+#
+# Har 10 daqiqada: raqamlar bazasi tez-tez o'zgarmaydi, lekin sotilgan
+# raqam keshda uzoq qolib ketmasligi kerak.
+[functions."sync-beeline-background"]
+  schedule = "*/10 * * * *"
 
 [functions."personal-bot-evening-reminder"]
   schedule = "0 18 * * *"

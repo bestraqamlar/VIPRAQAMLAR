@@ -16,7 +16,13 @@
 // qiymatlar ishlatiladi — ya'ni sozlamasdan ham ishlayveradi.
 
 const admin = require('firebase-admin');
-const { searchAll, testBeelineLogin } = require('./lib/operators');
+const {
+  searchAll,
+  testBeelineLogin,
+  searchBeelinePublic,
+  matchesBoxes,
+  BEELINE_PUBLIC_RARE_IDS
+} = require('./lib/operators');
 const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
@@ -95,15 +101,109 @@ async function loadConfig(force) {
   return value;
 }
 
-// BEELINE — endi (avvalgi davriy-sinxronizatsiya/kesh tajribasidan keyin)
-// qaytadan boshqa operatorlar (Ucell, Humans, Mobiuz, Perfektum) kabi HAR
-// DOIM TO'G'RIDAN-TO'G'RI, jonli API orqali so'raladi — alohida kesh yoki
-// fon-sinxronizatsiya YO'Q. Avvalgi "400 xatosi" muammosining haqiqiy sababi
-// aniqlandi: bu funksiya (limit) 300 yuborayotgan edi, Beeline esa 100 dan
-// oshiqni umuman qabul qilmaydi (qarang: lib/operators.js va sync-beeline.js
-// izohlari) — endi bu yerda limit hech qachon 100 dan oshmaydi (pastda),
-// shu sabab jonli so'rov endi barqaror ishlashi kerak.
-//
+/* ==================== BEELINE: KESH + JONLI ARALASH ====================
+
+   Beeline ochiq API'sining javob vaqti kategoriyadagi raqam soniga TESKARI
+   bog'liq — raqam kam bo'lsa, u butun bazani skanerlab uzoq qidiradi.
+   Real o'lchov (bir xil mask, 3 martadan):
+
+     393 Oddiy  ~36 000 ta raqam -> 0.3-0.5 s   <- tez
+     394 Bronze  ~1 700 ta       -> 3.0-3.4 s
+     395 Silver  ~1 600 ta       -> 8.3-9.4 s   <- eng sekin
+     396 Gold    ~1 600 ta       -> 4.8-4.9 s
+
+   Bundan tashqari ochiq API parallel so'rovni ko'tarmaydi (4 ta bir vaqtda
+   -> "JWT token invalid"), ya'ni to'rtala toifani jonli so'rash 14-17 soniya.
+
+   YECHIM: uchta kamyob toifa (Bronze/Silver/Gold) fonda oldindan yig'ilib
+   Firestore'ga yoziladi (sync-beeline-background.js), bu yerda esa keshdan
+   O'QILADI. Faqat "Oddiy" jonli so'raladi — u allaqachon tez.
+
+   O'lchangan natija: 14 192 ms -> 359 ms.
+
+   Kesh bo'sh yoki eskirgan bo'lsa (sync hali ishlamagan/yiqilgan) —
+   hammasi jonli so'raladi, ya'ni sayt baribir ishlaydi, faqat sekinroq. */
+
+// Kesh shuncha vaqtdan eski bo'lsa, unga ishonmaymiz va jonli so'raymiz.
+// sync har 10 daqiqada ishlaydi, shuning uchun 35 daqiqa = 3 marta
+// o'tkazib yuborilgan yurishga chidaydi (vaqtinchalik uzilishda kesh
+// baribir ishlatiladi — bo'sh ro'yxatdan ko'ra eskiroq ma'lumot yaxshi).
+const BEELINE_CACHE_MAX_AGE = 35 * 60 * 1000;
+
+let beelineCacheMem = null;
+const BEELINE_CACHE_MEM_TTL = 60 * 1000;
+
+// live_cache/Beeline hujjatini o'qiydi. Konteyner "issiq" turganda
+// Firestore'ga har qidiruvda bormaslik uchun xotirada 1 daqiqa saqlanadi.
+async function loadBeelineCache() {
+  if (beelineCacheMem && beelineCacheMem.expiresAt > Date.now()) {
+    return beelineCacheMem.value;
+  }
+  let value = null;
+  try {
+    const doc = await db.collection('live_cache').doc('Beeline').get();
+    if (doc.exists) {
+      const d = doc.data() || {};
+      const updatedAt = d.updatedAt && d.updatedAt.toMillis ? d.updatedAt.toMillis() : 0;
+      if (Array.isArray(d.items) && d.items.length && updatedAt
+          && (Date.now() - updatedAt) < BEELINE_CACHE_MAX_AGE) {
+        value = {
+          items: d.items,
+          updatedAt,
+          categoryIds: Array.isArray(d.cachedCategoryIds)
+            ? d.cachedCategoryIds
+            : BEELINE_PUBLIC_RARE_IDS
+        };
+      }
+    }
+  } catch (err) {
+    console.error('live_cache/Beeline o\'qilmadi:', err.message);
+  }
+  beelineCacheMem = { value, expiresAt: Date.now() + BEELINE_CACHE_MEM_TTL };
+  return value;
+}
+
+// Beeline uchun adapter: kamyob toifalar keshdan, qolgani jonli.
+// Imzo searchAll kutganidek: (boxes, cfg, limit) -> { items, errors }
+function makeBeelineAdapter(cached) {
+  return async function beelineCachedAdapter(boxes, cfg, limit) {
+    // Kesh yo'q/eskirgan — hammasini jonli so'raymiz (sekinroq, lekin ishlaydi).
+    if (!cached) return searchBeelinePublic(boxes, cfg, limit);
+
+    const fromCacheItems = cached.items.filter(x => matchesBoxes(x.number, boxes));
+
+    // Keshda YO'Q toifalarni jonli so'raymiz (odatda faqat "Oddiy").
+    let liveItems = [];
+    let liveErrors = [];
+    try {
+      const live = await searchBeelinePublic(boxes, cfg, limit, {
+        excludeCategoryIds: cached.categoryIds
+      });
+      liveItems = live.items;
+      liveErrors = live.errors;
+    } catch (err) {
+      // Jonli qism yiqilsa ham keshdagi natija ko'rsatiladi.
+      liveErrors = ['Beeline: ' + err.message];
+    }
+
+    // Kesh va jonli natijalarni ARALASHTIRIB beramiz — aks holda limit
+    // birinchi ro'yxatni to'ldirib, ikkinchisi umuman ko'rinmay qoladi.
+    const merged = [];
+    const seen = new Set();
+    const maxLen = Math.max(fromCacheItems.length, liveItems.length);
+    for (let i = 0; i < maxLen && merged.length < limit; i++) {
+      for (const arr of [liveItems, fromCacheItems]) {
+        const x = arr[i];
+        if (x && !seen.has(x.number) && merged.length < limit) {
+          seen.add(x.number);
+          merged.push(x);
+        }
+      }
+    }
+    return { items: merged, errors: liveErrors };
+  };
+}
+
 // "___1222" yoki "***1222" -> ['','','','1','2','2','2']
 function parseMask(raw) {
   const s = String(raw || '').trim();
@@ -176,7 +276,16 @@ exports.handler = async function (event) {
 
   try {
     const config = await loadConfig();
-    const result = await searchAll(boxes, config, { limit, operator });
+
+    // Beeline — kamyob toifalar Firestore keshidan, "Oddiy" jonli
+    // (qarang: yuqoridagi "BEELINE: KESH + JONLI ARALASH" izohi).
+    const beelineCache = await loadBeelineCache();
+
+    const result = await searchAll(boxes, config, {
+      limit,
+      operator,
+      adapterOverrides: { Beeline: makeBeelineAdapter(beelineCache) }
+    });
 
     // Xato qaytargan operatorlar uchun oxirgi yaxshi natijani qo'shamiz,
     // muvaffaqiyatlilarining natijasini esa keyingi safar uchun saqlaymiz.
