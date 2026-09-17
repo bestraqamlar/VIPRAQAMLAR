@@ -2542,17 +2542,25 @@
   #locMap{width:100%;height:100%;background:#e5e3df;}
   .leaflet-control-attribution{font-size:9px !important;}
   .loc-locate-btn{
-    position:absolute;right:10px;bottom:10px;z-index:500;
-    width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
-    background:var(--panel);color:var(--amber);
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 6px 16px -6px rgba(0,0,0,.5);
-    transition:transform .15s cubic-bezier(.34,1.56,.64,1), background .15s ease;
+    width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(135deg, var(--amber), color-mix(in srgb, var(--amber) 75%, #fff));
+    color:var(--bg);font-family:'Sora',sans-serif;font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    box-shadow:0 8px 18px -8px color-mix(in srgb, var(--amber) 55%, transparent);
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease;
   }
-  .loc-locate-btn:active{transform:scale(.92);}
-  .loc-locate-btn.loc-locating{color:var(--amber);animation:locSpin 1s linear infinite;}
+  .loc-locate-btn:active{transform:scale(.97);}
+  .loc-locate-btn.loc-locating svg{animation:locSpin .9s linear infinite;}
+  .loc-locate-btn.loc-locating{opacity:.85;pointer-events:none;}
   @keyframes locSpin{to{transform:rotate(360deg);}}
   .loc-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;}
+  .loc-delivery-note{
+    display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 11px;border-radius:10px;
+    background:color-mix(in srgb, var(--green) 14%, var(--panel));color:var(--green);
+    font-size:12px;font-weight:700;line-height:1.35;
+    animation:locSlideIn .3s cubic-bezier(.22,1,.36,1) both;
+  }
+  .loc-delivery-note svg{flex:0 0 auto;}
   .loc-status{
     display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);
     transition:color .2s ease;
@@ -4545,16 +4553,28 @@ html.theme-purple-premium .card button.order-btn{
         </div>
         <div class="loc-map-wrap">
           <div id="locMap"></div>
-          <button type="button" class="loc-locate-btn" id="locLocateBtn" title="Joriy joylashuvimni aniqlash">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-          </button>
         </div>
+        <!-- Mijoz iltimosiga ko'ra: "Turgan joyni aniqlash" endi aniq
+             MATNLI, to'liq kengliqdagi tugma — faqat ikonka bo'lgan
+             (mobil'da matnini ko'rish qiyin bo'lgan) kichik suzuvchi
+             tugma o'rniga. Bosilganda BELGILASH (pin/marker) darhol
+             mijozning HAQIQIY turgan joyiga ko'chib boradi. -->
+        <button type="button" class="loc-locate-btn" id="locLocateBtn">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          <span>Turgan joyimni aniqlash</span>
+        </button>
         <div class="loc-picker-footer">
           <div class="loc-status" id="locStatus">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
             <span id="locStatusText">Joylashuv belgilanmagan</span>
           </div>
           <button type="button" class="loc-clear-btn" id="locClearBtn" style="display:none;">Tozalash</button>
+        </div>
+        <!-- Mijoz iltimosiga ko'ra: joylashuv belgilangandan keyin,
+             yetkazib berish muddati haqida aniq ma'lumot chiqadi. -->
+        <div class="loc-delivery-note" id="locDeliveryNote" style="display:none;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Belgilangan joyga 4 soat davomida yetkazib beramiz
         </div>
       </div>
 
@@ -4805,6 +4825,37 @@ function withClientTimeout(promise, ms){
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error('Vaqt tugadi: server javob bermadi')), ms))
   ]);
+}
+
+// MUHIM (mijoz xabar bergan "buyurtma tasdiqlashda ko'p mijozlar
+// muvaffaqiyatsiz bo'lyapti" muammosi uchun qo'shildi): oldin buyurtmani
+// Firestore'ga yozishda BIR MARTA urinish bo'lib, tarmoqdagi eng kichik
+// vaqtinchalik uzilish (ayniqsa mobil operatorlarda tez-tez uchraydi)
+// ham darhol "Buyurtmani yuborishda xatolik" xabarini chiqarib, mijozdan
+// qo'lda "Tasdiqlash"ni QAYTA bosishni talab qilardi — ko'pchilik mijoz
+// buni tushunmay yoki charchab, buyurtmasiz ketib qolgan. Endi shunday
+// vaqtinchalik xatolarda funksiya O'ZI, mijozga sezdirmasdan, yana 2
+// marta (jami 3 urinish) qayta uradi — faqat HAQIQIY holatlar (masalan
+// raqam allaqachon band) darhol, qayta urinishsiz ko'rsatiladi.
+async function withRetryClient(fn, retries, delayMs){
+  retries = retries == null ? 2 : retries;
+  delayMs = delayMs == null ? 900 : delayMs;
+  let lastErr;
+  for(let i = 0; i <= retries; i++){
+    try{
+      return await fn();
+    }catch(err){
+      lastErr = err;
+      // "ALREADY_RESERVED" haqiqiy biznes holati — qayta urinish
+      // natijani o'zgartirmaydi, darhol tashlab yuboramiz.
+      if(err && err.message === 'ALREADY_RESERVED') throw err;
+      if(i < retries){
+        console.error(`Buyurtma yozishda vaqtinchalik xato (${i + 1}-urinish), qayta urinilmoqda:`, err);
+        await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+      }
+    }
+  }
+  throw lastErr;
 }
 
 function getLocalDigits(numberStr){ return numberStr.replace(/\D/g,'').slice(5); }
@@ -7557,15 +7608,20 @@ function updateLocStatus(){
   const statusEl = document.getElementById('locStatus');
   const textEl = document.getElementById('locStatusText');
   const clearBtn = document.getElementById('locClearBtn');
+  const deliveryNote = document.getElementById('locDeliveryNote');
   if(!statusEl || !textEl || !clearBtn) return;
   if(customerLocation){
     statusEl.classList.add('loc-status-ok');
     textEl.textContent = 'Joylashuv belgilandi ✓';
     clearBtn.style.display = 'inline';
+    // Mijoz iltimosiga ko'ra: joylashuv belgilangandan keyin, yetkazib
+    // berish muddati haqida darhol aniq ma'lumot ko'rsatiladi.
+    if(deliveryNote) deliveryNote.style.display = 'flex';
   }else{
     statusEl.classList.remove('loc-status-ok');
     textEl.textContent = 'Joylashuv belgilanmagan';
     clearBtn.style.display = 'none';
+    if(deliveryNote) deliveryNote.style.display = 'none';
   }
 }
 
@@ -8833,7 +8889,10 @@ async function finalizeOrder(payload, smsVerified){
   let orderId = null;
   let blockedReason = null; // 'ALREADY_RESERVED' | 'ERROR' | null (muvaffaqiyatli)
 
-  try{
+  // Yozish logikasining o'zi endi ALOHIDA funksiyaga chiqarilgan —
+  // withRetryClient uni vaqtinchalik xatolarda (masalan mobil tarmoqdagi
+  // qisqa uzilish) mijozga bildirmasdan bir necha marta qayta chaqiradi.
+  async function attemptOrderWrite(){
     if(!isLiveOrder && selectedNumberId){
       const numberRef = db.collection('numbers').doc(selectedNumberId);
       const newOrderRef = db.collection('orders').doc();
@@ -8854,7 +8913,6 @@ async function finalizeOrder(payload, smsVerified){
           reservedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       });
-      orderId = newOrderRef.id;
       const localItem = NUMBERS.find(n => n.id === selectedNumberId);
       if(localItem) localItem.reserved = true;
 
@@ -8865,6 +8923,7 @@ async function finalizeOrder(payload, smsVerified){
           });
         }catch(e){ /* muhim emas — buyurtma baribir qabul qilingan */ }
       }
+      return newOrderRef.id;
     }else if(isLiveOrder){
       const liveKey = (payload.number || '').replace(/\D/g, '');
       const lockRef = liveKey ? db.collection('live_reservations').doc(liveKey) : null;
@@ -8882,7 +8941,7 @@ async function finalizeOrder(payload, smsVerified){
             });
             tx.set(lockRef, { reservedAt: firebase.firestore.FieldValue.serverTimestamp() });
           });
-          orderId = newOrderRef.id;
+          return newOrderRef.id;
         }catch(e){
           if(e && e.message === 'ALREADY_RESERVED') throw e;
           // "live_reservations" uchun Firestore qoidasi hali sozlanmagan
@@ -8894,29 +8953,32 @@ async function finalizeOrder(payload, smsVerified){
             ...payload, numberId: null, status: 'Yangi',
             createdAt: orderTime, createdAtSort: Date.now()
           });
-          orderId = fallbackRef.id;
+          return fallbackRef.id;
         }
       }else{
         const fallbackRef = await db.collection('orders').add({
           ...payload, numberId: null, status: 'Yangi',
           createdAt: orderTime, createdAtSort: Date.now()
         });
-        orderId = fallbackRef.id;
+        return fallbackRef.id;
       }
     }else{
       const fallbackRef = await db.collection('orders').add({
         ...payload, numberId: null, status: 'Yangi',
         createdAt: orderTime, createdAtSort: Date.now()
       });
-      orderId = fallbackRef.id;
+      return fallbackRef.id;
     }
+  }
 
+  try{
+    orderId = await withRetryClient(attemptOrderWrite, 2, 900);
     sendOrderToTelegram(payload, orderTime, orderId);
   }catch(err){
     if(err && err.message === 'ALREADY_RESERVED'){
       blockedReason = 'ALREADY_RESERVED';
     }else{
-      console.error('Buyurtmani bazaga yozishda xato:', err);
+      console.error('Buyurtmani bazaga yozishda xato (3 urinishdan keyin ham):', err);
       blockedReason = 'ERROR';
     }
   }
@@ -9079,13 +9141,21 @@ confirmBtn.addEventListener('click', async ()=>{
   // TO'SMAYDI. Agar SMS yuborish muvaffaqiyatsiz bo'lsa (Eskiz balansi
   // tugagan, tarmoq xatosi va h.k.) — mijoz buni sezmaydi, buyurtma
   // oddiy tarzda (tasdiqlanmagan holatda) qabul qilinadi.
+  //
+  // MUHIM (mijoz xabar bergan "tasdiqlash bosilganda ba'zan uzoq
+  // osilib qolyapti" muammosi uchun): oldin bu so'rovda HECH QANDAY vaqt
+  // chegarasi yo'q edi — agar mobil tarmoq yoki Eskiz.uz sekinlashsa,
+  // "Tasdiqlash" tugmasi mijozga "qotib qolgandek" ko'rinib, minutlab
+  // shu holatda turishi mumkin edi. Endi 7 soniyadan ortiq javob
+  // kelmasa — SMS'siz, avtomatik davom etiladi (xuddi xato holatidagi
+  // kabi), mijoz cheksiz kutib qolmaydi.
   pendingOrderPayload = payload;
   try{
-    const res = await fetch('/.netlify/functions/send-sms-code', {
+    const res = await withClientTimeout(fetch('/.netlify/functions/send-sms-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone: payload.phone })
-    });
+    }), 7000);
     const data = await res.json();
     if(data.ok){
       // SMS ketdi — mijozdan kodni so'raymiz
