@@ -5139,11 +5139,14 @@ let __numbersLoadFailCount = 0;
 function showLoadRetryBanner(show){
   const banner = document.getElementById('loadRetryBanner');
   if(banner) banner.style.display = show ? 'flex' : 'none';
+  // Mijoz iltimosiga ko'ra: "internet ishlamayapti/qayta urinish" xabari
+  // chiqqan zahoti, shu bilan birga ovoz ham chalinadi.
+  if(show && typeof playNotifySound === 'function') playNotifySound('error');
 }
 const __loadRetryBtnEl = document.getElementById('loadRetryBtn');
 if(__loadRetryBtnEl){
   __loadRetryBtnEl.addEventListener('click', ()=>{
-    if(navigator.vibrate) navigator.vibrate(15);
+    hapticFeedback(15);
     showLoadRetryBanner(false);
     loadNumbers(2000);
   });
@@ -5261,6 +5264,10 @@ let __nnToastTimer = null;
 function showNewNumberToast(item, opts){
   const wrap = document.getElementById('newNumberToast');
   if(!wrap || !item || !item.number) return;
+
+  // Mijoz iltimosiga ko'ra: admin yangi raqam joylaganda/aksiya
+  // e'lon qilganda, xabar chiqqan zahoti ovoz ham chalinadi.
+  if(typeof playNotifySound === 'function') playNotifySound('newNumber');
 
   const isDeal = item.dailyDeal === true;
   const isDealUpdate = !!(opts && opts.dealUpdate);
@@ -7358,7 +7365,7 @@ function vibrateDigitTap(){
       return;
     }
   }catch(e){}
-  try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+  try{ hapticFeedback(12); }catch(e){}
 }
 digitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
@@ -7888,50 +7895,132 @@ custRegion.addEventListener('change', ()=>{
   else hideLocPicker();
 });
 
-// MUHIM (iPhone'da "Turgan joyimni aniqlash" ishlamasligi sababi
-// TOPILDI): Safari/WebKit (iPhone'dagi barcha brauzerlar, shu jumladan
-// Telegram ilovasi ichidagi WebView ham WebKit'ga asoslangan) qat'iy
-// qoida qo'yadi — navigator.geolocation.getCurrentPosition() FAQAT
-// "user gesture" (bosish) dan TO'G'RIDAN-TO'G'RI, HECH QANDAY async
-// kechikishsiz (await/setTimeout/Promise) chaqirilsa ishlaydi. Android
-// (Chromium asosidagi WebView) bu qoidani unchalik qat'iy talab
-// qilmaydi. Avvalgi kodda avval Telegram LocationManager (async, bir оz
-// kechikish bilan) sinalar, brauzer usuliga FAQAT ShUNDAN KEYIN
-// (kechikib) o'tilar edi — aynan shu kechikish sabab iPhone'da Safari
-// "user gesture" mavjud emas deb hisoblab, so'rovni JIM rad etar edi.
-// YECHIM: endi tugma bosilgan zahoti, ENG BIRINCHI navbatda — HECH
-// QANDAY kechikishsiz — brauzer geolocation'i chaqiriladi (bu iPhone'da
-// ham, Android'da ham ishlaydi, chunki "user gesture" darhol
-// ishlatiladi). Faqat brauzer geolocation API'si UMUMAN mavjud
-// bo'lmasa yoki xato bersa (masalan ba'zi eski WebView'larda haqiqatan
-// ham yo'q bo'lsa) — Telegram'ning o'z LocationManager API'siga
-// (mavjud bo'lsa) ZAXIRA sifatida o'tiladi.
-function requestUserLocation(onSuccess, onError){
-  requestUserLocationBrowser(onSuccess, ()=>{
-    requestUserLocationTelegram(onSuccess, onError);
-  });
+// MUHIM (iPhone bilan bog'liq IKKINCHI muammo TOPILDI): mijoz xabar
+// berdi — SAYTNING O'ZIDA (oddiy Safari'da, Telegram'siz ochilganda)
+// tugma bosilganda oyna "qotib" qolyapti, LEKIN xuddi shu iPhone'da
+// Telegram Mini App ICHIDA ochilganda a'lo ishlayapti. Sabab: haqiqiy
+// Telegram muhitidan TASHQARIDA ham `telegram-web-app.js` skripti
+// yuklanadi va `window.Telegram.WebApp` ob'ektini yaratadi — lekin bu
+// "soxta"/bog'lanmagan holat, chunki haqiqiy Telegram ilovasi orqa
+// tomonda yo'q. Shunday holatda oldingi kodning "birinchi brauzer,
+// keyin Telegram'ga zaxira" mantiqi TESKARI ishlab ketishi mumkin edi:
+// oddiy Safari'da native "joylashuvga ruxsat" oynasi ekranni band qilib
+// turgan payt (bu — WebKit'ning position:fixed bilan body qulflangan
+// holatda tanish "muzlab qolish" xatosi, xuddi shu faylda boshqa joyda
+// ham hujjatlangan) hech qachon tugamay qolishi mumkin edi.
+// YECHIM (ikki qatlamli himoya):
+//  1) Endi FAQAT haqiqiy Telegram muhitida ekanligimiz initData orqali
+//     TASDIQLANSA (bu maydon faqat HAQIQIY Telegram tomonidan
+//     to'ldiriladi, soxta/bo'sh WebApp obyektida bo'sh bo'ladi) — o'sha
+//     holatda TO'G'RIDAN-TO'G'RI Telegram LocationManager ishlatiladi
+//     (aynan shu YO'L "zo'r ishlayabdi" deb tasdiqlangan). Aks holda
+//     (oddiy sayt/Safari) — FAQAT brauzer geolocation'i ishlatiladi.
+//  2) NIMA BO'LISHIDAN QAT'IY NAZAR — 10 soniyadan keyin BUTUN so'rov
+//     majburiy ravishda "xato" deb yopiladi (watchdog), va bundan
+//     tashqari WebKit'ning "position:fixed qulf + tizim oynasi"
+//     birikmasidan keyingi "muzlab qolish" xatosini oldini olish uchun,
+//     natija kelgan zahoti sahifaga majburiy "reflow" beriladi (xuddi
+//     closeModal()dagi kabi usul). Shu bilan tugma HECH QACHON abadiy
+//     "qotib" qolmaydi.
+function isRealTelegramMiniApp(){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    return !!(tg && typeof tg.initData === 'string' && tg.initData.length > 0);
+  }catch(e){ return false; }
 }
 
+function forceWebkitReflow(){
+  try{
+    void document.body.offsetHeight;
+    requestAnimationFrame(()=>{ void document.body.offsetHeight; });
+  }catch(e){}
+}
+
+// MUHIM (mijoz xabar bergan "vibratsiya Telegram ilovada ishlaydi,
+// saytda ishlamaydi" muammosi uchun): sabab — standart Web Vibration
+// API (navigator.vibrate) iPhone'da (Safari, shu jumladan har qanday
+// oddiy sayt sifatida) HECH QACHON ishlamaydi — bu Apple'ning O'ZI
+// qo'ygan cheklov, hech qanday kod buni "tuzata olmaydi". Lekin HAQIQIY
+// Telegram Mini App ichida ishlaganda, Telegram'ning O'Z (native)
+// HapticFeedback ko'prigi mavjud — bu esa iPhone'da HAM haqiqiy, native
+// vibratsiya beradi (chunki Telegram ilovasining o'zi buni operatsion
+// tizim orqali chaqiradi, brauzer emas). Shu sabab endi: HAQIQIY
+// Telegram muhitida — Telegram.WebApp.HapticFeedback ishlatiladi
+// (iPhone'da ham ishlaydi); oddiy saytda (Android/Chrome) — standart
+// navigator.vibrate() ishlatiladi (Android'da ishlaydi); oddiy saytda
+// iPhone Safari'da — na u, na bu ishlaydi, chunki bu Apple'ning
+// brauzer cheklovi, saytning o'zi bunga ta'sir qila olmaydi.
+function hapticFeedback(msOrPattern){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if(isRealTelegramMiniApp() && tg.HapticFeedback){
+      if(Array.isArray(msOrPattern)){
+        // Uzunroq naqsh — muvaffaqiyat/ogohlantirish signaliga yaqinroq.
+        tg.HapticFeedback.notificationOccurred(msOrPattern.length > 2 ? 'warning' : 'success');
+      }else if(msOrPattern >= 35){
+        tg.HapticFeedback.impactOccurred('heavy');
+      }else if(msOrPattern >= 20){
+        tg.HapticFeedback.impactOccurred('medium');
+      }else{
+        tg.HapticFeedback.impactOccurred('light');
+      }
+      return;
+    }
+  }catch(e){ /* Telegram HapticFeedback yo'q/eski versiya — pastga tushamiz */ }
+  try{ if(navigator.vibrate) navigator.vibrate(msOrPattern); }catch(e){ /* iPhone Safari'da API umuman yo'q — muammo emas */ }
+}
+
+function requestUserLocation(onSuccess, onError){
+  let settled = false;
+  const finish = (fn, a, b)=>{
+    if(settled) return;
+    settled = true;
+    forceWebkitReflow();
+    fn(a, b);
+  };
+  // Watchdog: nima bo'lishidan qat'iy nazar, 10 soniyadan keyin majburiy
+  // "xato" bilan yopiladi — tugma abadiy "qotib" qolishi mumkin emas.
+  const watchdog = setTimeout(()=> finish(onError, 'TIMEOUT'), 10000);
+  const wrappedSuccess = (lat, lng)=>{ clearTimeout(watchdog); finish(onSuccess, lat, lng); };
+  const wrappedError = (reason)=>{ clearTimeout(watchdog); finish(onError, reason); };
+
+  if(isRealTelegramMiniApp()){
+    requestUserLocationTelegram(wrappedSuccess, ()=> requestUserLocationBrowser(wrappedSuccess, wrappedError));
+  }else{
+    requestUserLocationBrowser(wrappedSuccess, wrappedError);
+  }
+}
+
+// MUHIM (mijoz xabar bergan "saytda ishlamayapti" muammosi uchun):
+// eng ehtimolli sabab — mijozning brauzeri (yoki iPhone/Android
+// sozlamalari) ushbu sayt uchun joylashuvga ruxsatni AVVAL rad etgan
+// (masalan oldingi, hali tuzatilmagan versiyada tugma "qotib qolgan"
+// paytda mijoz "Ruxsat berma" bosgan bo'lishi mumkin) — shundan keyin
+// brauzer HECH QACHON qayta so'ramaydi, jimgina rad etib turaveradi, va
+// bu holatni FAQAT mijozning o'zi qurilma sozlamalaridan qo'lda
+// o'zgartirishi mumkin. Shu sabab endi xato turi (kod) ANIQ
+// ushbu funksiyadan tashqariga uzatiladi — chaqiruvchi mijozga TO'G'RI
+// (umumiy emas) xabar ko'rsata oladi.
 function requestUserLocationBrowser(onSuccess, onError){
   if(!navigator.geolocation){
-    onError();
+    onError('UNSUPPORTED');
     return;
   }
-  navigator.geolocation.getCurrentPosition(
-    (pos)=> onSuccess(pos.coords.latitude, pos.coords.longitude),
-    ()=> onError(),
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
-  );
+  try{
+    navigator.geolocation.getCurrentPosition(
+      (pos)=> onSuccess(pos.coords.latitude, pos.coords.longitude),
+      (err)=> onError(err && err.code === 1 ? 'DENIED' : 'ERROR'),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  }catch(e){ onError('ERROR'); }
 }
 
-// Telegram Mini App'ning o'z (native) joylashuv ko'prigi — brauzer
-// geolocation'i ishlamagan/yo'q holatlarda ZAXIRA sifatida ishlatiladi.
-// Bu yerda ehtiyotkorlik bilan: eski Telegram versiyalarida bu API
-// noto'g'ri ishlashi (hatto ilovani "qayta yuklab yuborishi") mumkin
-// edi, shu sabab FAQAT tg.isVersionAtLeast('8.0') ni qo'llab-quvvatlasa
+// Telegram Mini App'ning o'z (native) joylashuv ko'prigi — FAQAT
+// HAQIQIY Telegram muhitida (isRealTelegramMiniApp() orqali tasdiqlangan)
+// ishlatiladi. Eski Telegram versiyalarida bu API noto'g'ri ishlashi
+// mumkinligi uchun FAQAT tg.isVersionAtLeast('8.0') qo'llab-quvvatlansa
 // ishga tushiriladi, va har bir chaqiruv bir marta (settled bayrog'i
-// bilan) natija berishini kafolatlaymiz — ikki marta chaqirilib,
-// ziddiyatli holatga tushib qolmasligi uchun.
+// bilan) natija berishini kafolatlaymiz.
 function requestUserLocationTelegram(onSuccess, onError){
   try{
     const tg = window.Telegram && window.Telegram.WebApp;
@@ -7975,11 +8064,19 @@ document.getElementById('locLocateBtn').addEventListener('click', ()=>{
       // o'sha joyga ko'chib, belgilaydigan tugma (marker) ham AVTOMATIK
       // o'sha nuqtaga o'rnatiladi — qo'shimcha bosish shart emas.
       setCustomerLocation(lat, lng);
-      if(navigator.vibrate) navigator.vibrate(25);
+      hapticFeedback(25);
     },
-    ()=>{
+    (reason)=>{
       btn.classList.remove('loc-locating');
-      showToast(t("Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang."), 3200);
+      // Mijoz aniq nima qilishi kerakligini bilishi uchun — sabab
+      // bo'yicha ANIQROQ xabar (umumiy "aniqlab bo'lmadi" o'rniga).
+      if(reason === 'DENIED'){
+        showToast(t("Joylashuvga ruxsat berilmagan. Brauzer/telefon sozlamalaridan bu sayt uchun joylashuvga ruxsat bering, so'ng qayta urinib ko'ring."), 4500, { errorSound: true });
+      }else if(reason === 'UNSUPPORTED'){
+        showToast(t("Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi. Xaritada qo'lda belgilang."), 3500, { errorSound: true });
+      }else{
+        showToast(t("Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang."), 3200, { errorSound: true });
+      }
     }
   );
 });
@@ -8342,7 +8439,7 @@ let selectedIsLive = false;
 let selectedOperator = '';
 
 function openModal(number, id, priceOverride){
-  if(navigator.vibrate) navigator.vibrate(35);
+  hapticFeedback(35);
   // Mijoz iltimosiga ko'ra: oyna ochiq turgan vaqtida orqa fonda ishlab
   // turgan animatsiyalar (ASOSIY sahifadagi hero-karusel avtomatik
   // almashinuvi, "Bugungi aksiya" taymer sekundomeri) TO'XTATILADI — bular
@@ -8676,7 +8773,7 @@ function renderCashTariffs(tariffs){
       listEl.querySelectorAll('.cash-tariff-card').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       if(continueBtn) continueBtn.disabled = false;
-      if(navigator.vibrate) navigator.vibrate(20);
+      hapticFeedback(20);
     });
   });
 }
@@ -8731,7 +8828,7 @@ document.querySelectorAll('.pm-option-card').forEach(card=>{
     card.classList.add('active');
     const btn = document.getElementById('pmContinueBtn');
     if(btn) btn.disabled = false;
-    if(navigator.vibrate) navigator.vibrate(20);
+    hapticFeedback(20);
   });
 });
 function showPaymentMethodStep(direction){
@@ -8944,11 +9041,10 @@ window.addEventListener('popstate', ()=>{
   const VIBE_SELECTOR = 'button, .btn, [role="button"], .pm-option-card, .cash-tariff-card, .ic-tab, input[type="submit"]';
   document.addEventListener('click', function(e){
     try{
-      if(!navigator.vibrate) return;
       const target = e.target && e.target.closest ? e.target.closest(VIBE_SELECTOR) : null;
       if(!target) return;
       if(target.disabled) return;
-      navigator.vibrate(15);
+      hapticFeedback(15);
     }catch(err){ /* ba'zi brauzerlar vibratsiyani qo'llamaydi — muammo emas */ }
   }, true);
 })();
@@ -8969,6 +9065,38 @@ window.addEventListener('pageshow', (e)=>{
   if(typeof loadNumbers === 'function') loadNumbers();
 });
 
+// MIJOZ SO'ROVIGA KO'RA QO'SHILGAN OVOZLI BILDIRISHNOMALAR — uchta
+// alohida holat uchun uchta alohida ovoz fayli: (1) admin yangi raqam
+// joylaganda/aksiya e'lon qilganda (showNewNumberToast), (2) internet/
+// server xatosi haqidagi ogohlantirish chiqqanda (showToast bilan
+// opts.errorSound=true), (3) buyurtma muvaffaqiyatli "Bron qilindi!"
+// ekrani chiqqanda (finalizeOrder). Ovoz fayllari oldindan (bitta marta)
+// yuklab olinadi — shu bilan chaqirilgan zahoti, kechikishsiz chalinadi.
+const NOTIFY_SOUNDS = {
+  newNumber: new Audio('assets/sounds/notify-new-number.mp3'),
+  error: new Audio('assets/sounds/notify-error.mp3'),
+  success: new Audio('assets/sounds/notify-success.mp3')
+};
+Object.values(NOTIFY_SOUNDS).forEach(a => { try{ a.preload = 'auto'; a.load(); }catch(e){} });
+function playNotifySound(key){
+  try{
+    const base = NOTIFY_SOUNDS[key];
+    if(!base) return;
+    // Ketma-ket tez-tez kelgan bildirishnomalarda (masalan bir nechta
+    // raqam ustma-ust qo'shilsa) oldingi ovoz hali tugamagan bo'lishi
+    // mumkin — shu sabab har safar KLON qilib chalamiz, shunda ovozlar
+    // bir-birini "kesib" qo'ymaydi (ustma-ust, tabiiy eshitiladi).
+    const node = base.cloneNode(true);
+    const playPromise = node.play();
+    if(playPromise && typeof playPromise.catch === 'function'){
+      // Brauzer autoplay siyosati sabab (mijoz sahifada hali umuman
+      // teginmagan bo'lsa) ovoz chalinmasligi mumkin — bu jim,
+      // xavfsiz o'tkazib yuboriladi, sayt ishlashiga ta'sir qilmaydi.
+      playPromise.catch(()=>{});
+    }
+  }catch(e){ /* ovoz ixtiyoriy — muammo bo'lsa ham sayt davom etadi */ }
+}
+
 function showToast(text, duration, opts){
   const toast = document.getElementById('toast');
   if(opts && opts.html) toast.innerHTML = text;
@@ -8976,6 +9104,10 @@ function showToast(text, duration, opts){
   toast.style.background = (opts && opts.bg) ? opts.bg : '';
   toast.style.color = (opts && opts.color) ? opts.color : '';
   toast.classList.add('show');
+  // Mijoz iltimosiga ko'ra: internet/server xatosi kabi ogohlantirish
+  // xabarlari chiqqanda, xabar bilan BIRGA (kechikishsiz) alohida ovoz
+  // ham chalinadi — qarang: opts.errorSound.
+  if(opts && opts.errorSound) playNotifySound('error');
   setTimeout(()=> toast.classList.remove('show'), duration || 3000);
 }
 
@@ -8983,7 +9115,7 @@ document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
   const btn = e.currentTarget;
   btn.classList.add('btn-pressed');
   setTimeout(()=> btn.classList.remove('btn-pressed'), 150);
-  if(navigator.vibrate) navigator.vibrate(40);
+  hapticFeedback(40);
 
   const code = document.getElementById('promoCode').value.trim().toUpperCase();
   const msgEl = document.getElementById('promoMsg');
@@ -9291,18 +9423,27 @@ async function finalizeOrder(payload, smsVerified){
   // aniq sabab bilan ogohlantiramiz, mijoz formada qolib qayta urinishi
   // yoki boshqa raqam tanlashi mumkin.
   if(blockedReason === 'ALREADY_RESERVED'){
-    showToast(t("Kechirasiz, bu raqamni ayni damda boshqa mijoz band qilib ulgurdi. Iltimos, boshqa raqamni tanlang."), 4000);
+    showToast(t("Kechirasiz, bu raqamni ayni damda boshqa mijoz band qilib ulgurdi. Iltimos, boshqa raqamni tanlang."), 4000, { errorSound: true });
     renderCatalog(); renderFeatured(); renderDailyDeal(); renderRecommended(); renderAsosiyPremium(); renderAsosiyHero();
     closeModal();
     return;
   }
   if(blockedReason === 'ERROR'){
-    showToast(t("Buyurtmani yuborishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."), 4200);
+    showToast(t("Buyurtmani yuborishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."), 4200, { errorSound: true });
     return;
   }
 
   formView.style.display = 'none';
   successView.style.display = 'block';
+  // Mijoz iltimosiga ko'ra: "Bron qilindi!" ekrani chiqqan zahoti ovoz
+  // ham chalinadi.
+  playNotifySound('success');
+  // Mijoz xabar bergan "bron qilingandan keyin Yopish tugmasi ishlamaydi"
+  // holatiga qarshi ehtiyot chorasi — iPhone/WebKit ba'zan ko'p qadamli
+  // (xarita, SMS) oqimdan keyin sahifani "muzlatib" qo'yishi mumkin,
+  // shu sabab muvaffaqiyat ekrani ko'rsatilganda ham majburiy reflow
+  // beriladi (qarang: forceWebkitReflow()).
+  forceWebkitReflow();
   // Mijoz iltimosiga ko'ra: buyurtma MUVAFFAQIYATLI tugaganda endi (naqd
   // yoki bo'lib to'lash — farqi yo'q) BUTUN oynaga ochiladi, shaxsiylash-
   // tirilgan ("Hurmatli ...") matn, zamonaviy animatsiya va tovush bilan.
@@ -9356,7 +9497,7 @@ async function finalizeOrder(payload, smsVerified){
     });
   }
 
-  if(navigator.vibrate) navigator.vibrate([40, 60, 80]);
+  hapticFeedback([40, 60, 80]);
   spawnConfetti();
   playSuccessSound();
 
@@ -9372,7 +9513,7 @@ let pendingOrderPayload = null;
 
 confirmBtn.addEventListener('click', async ()=>{
   if(!validate()) return;
-  if(navigator.vibrate) navigator.vibrate(40);
+  hapticFeedback(40);
   confirmBtn.disabled = true;
   confirmLabel.style.display = 'none';
   confirmSpinner.style.display = 'inline-block';
@@ -9478,6 +9619,10 @@ function showSmsVerifyView(phone){
   document.getElementById('smsCodeError').style.display = 'none';
   formView.querySelectorAll(':scope > *:not(#smsVerifyView)').forEach(el => el.style.display = 'none');
   smsView.style.display = 'block';
+  // iPhone'da joylashuv so'rovidan keyingi WebKit "muzlab qolish"
+  // xatosiga o'xshash holatlarning oldini olish uchun — bu yerda ham
+  // (xarita bosqichidan keyingi qadam) majburiy reflow beriladi.
+  forceWebkitReflow();
 }
 
 document.getElementById('smsVerifyBtn').addEventListener('click', async ()=>{
@@ -9498,12 +9643,12 @@ document.getElementById('smsVerifyBtn').addEventListener('click', async ()=>{
     });
     const data = await res.json();
     if(data.ok){
-      if(navigator.vibrate) navigator.vibrate(40);
+      hapticFeedback(40);
       await finalizeOrder(pendingOrderPayload, true);
     }else{
       errEl.textContent = data.error || "Kod noto'g'ri";
       errEl.style.display = 'block';
-      if(navigator.vibrate) navigator.vibrate([30,40,30]);
+      hapticFeedback([30,40,30]);
     }
   }catch(e){
     errEl.textContent = 'Xato yuz berdi, qayta urining';
@@ -10125,7 +10270,7 @@ function renderContractResult(data){
       window.open(url, '_blank');
       setTimeout(()=> URL.revokeObjectURL(url), 60000);
     }catch(err){
-      if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000);
+      if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000, { errorSound: true });
     }
     link.innerHTML = originalText;
   });
@@ -11196,7 +11341,7 @@ window.pauseReelsVideo = function(slideEl){
       // shunda mijoz "like bosdim-u lekin saqlanmadi" holatini ko'rmaydi.
       // Xatoni EKRANDA ham ko'rsatamiz — telefonda konsolni ko'rib bo'lmaydi.
       console.error('Like saqlanmadi:', err);
-      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000, { errorSound: true });
       btn.classList.toggle('liked', alreadyLiked);
       btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${video.likes || 0}</span>`;
     }
@@ -11653,7 +11798,7 @@ window.pauseReelsVideo = function(slideEl){
       saveLikedSet(set);
     }catch(err){
       console.error('Like saqlanmadi:', err);
-      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000, { errorSound: true });
       btn.classList.toggle('liked', alreadyLiked);
       btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${item.likes || 0}</span>`;
     }
@@ -12009,7 +12154,7 @@ setTimeout(()=>{
     if(!btn) return;
     btn.addEventListener('click', ()=>{
       btn.classList.toggle('cp-toggled');
-      if(navigator.vibrate) navigator.vibrate(20);
+      hapticFeedback(20);
     });
   });
 
@@ -12114,7 +12259,7 @@ setTimeout(()=>{
     activeView.style.display = 'flex';
     startCallTimer();
     dynamicIsland.classList.add('show-dot');
-    if(navigator.vibrate) navigator.vibrate(40);
+    hapticFeedback(40);
   }
 
   viewBtn.addEventListener('click', ()=>{
