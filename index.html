@@ -431,6 +431,51 @@
   .mn-tab.active .mn-dot{opacity:1;transform:scale(1);}
   .mn-tab:active{transform:translateY(-1px) scale(0.96);}
 
+  /* ============ TELEGRAM MINI ILOVA — "native ilova" ko'rinishi ============
+     Mijoz iltimosiga ko'ra: sayt Telegram Mini App ichida ochilganda
+     (haqiqiy Telegram muhitida — qarang: isRealTelegramMiniApp() va
+     initTelegramIntegration(), <html> ga 'tg-webapp' klassi qo'shiladi)
+     pastki ASOSIY/VIP/STANDART/RELS bar QAYTA yoqiladi va zamonaviy,
+     "shisha" (glass) uslubida ko'rsatiladi — bu yuqoridagi .main-nav'ni
+     hech qanday tarzda o'zgartirmaydi, faqat Telegram ichida uni qayta
+     ko'rinadigan qiladi (oddiy saytda, brauzerda hamon yashirin qoladi,
+     chunki mijoz buni ATAYLAB olib tashlagan edi — bu o'zgarish FAQAT
+     Telegram ichida qo'shimcha "ilova" tuyg'usi berish uchun).
+     Bar HAR doim active bo'lgan bo'limni ko'rsatib turadi — buni
+     showAppSection()/setNavActive() (JS, o'zgarishsiz) allaqachon
+     boshqaradi, bu yerda faqat TASHQI ko'rinish yangilanadi. */
+  .tg-webapp .main-nav{
+    display:flex !important;
+    background:rgba(231,238,252,0.82);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    backdrop-filter:blur(18px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.5);
+    box-shadow:0 -8px 20px -10px rgba(20,45,110,0.22), 0 18px 40px rgba(20,45,110,0.32);
+  }
+  .tg-webapp body{
+    /* Bar qayta ko'ringanda, oxirgi kartochka/footer uning ostida
+       yashirinib qolmasin deb, joy qaytadan ajratiladi. */
+    padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* Sarlavha (header) ham Telegram ichida bir xil "shisha" uslubida —
+     pastki bar bilan bir butun, zamonaviy ilova chrome'ini hosil qiladi. */
+  .tg-webapp header{
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    backdrop-filter:blur(14px) saturate(140%);
+    background:rgba(18,27,46,0.86);
+  }
+
+  /* Bo'limlar (ASOSIY/VIP/STANDART) orasida almashganda — Telegram
+     ichida, native ilovalardagi kabi yumshoq fade+ko'tarilish animatsiyasi
+     (qarang: JS'dagi tgSectionFade() — showAppSection() ichida chaqiriladi). */
+  .tg-webapp .tg-fade-target{
+    transition:opacity .22s ease, transform .22s cubic-bezier(.22,.8,.3,1);
+  }
+  .tg-webapp .tg-fade-out{
+    opacity:0;
+    transform:translateY(6px);
+  }
+
   @media (min-width:1024px){
     body{padding-bottom:0;}
     /* Pastki bar olib tashlangani sabab header endi ODDIY flex qatorda
@@ -7546,6 +7591,13 @@ function setNavActive(name){
 // yuklanib bo'lgan payt mijoz ASOSIY'da tursa ham bo'lim ko'rinib qolardi.
 window.__isVipSectionActive = function(){ return activeAppSection === 'vip'; };
 
+// Mijoz iltimosiga ko'ra (Telegram Mini App'ni "zamonaviy, ilova kabi"
+// qilish): bo'lim almashganda (ASOSIY/VIP/STANDART) butun sahifa mazmuni
+// bir zumga yumshoq xiralashib (fade), keyin yangi holatda yorishib
+// ochiladi — xuddi native ilovalardagi tab-almashish animatsiyasi kabi.
+// FAQAT haqiqiy Telegram muhitida (tg-webapp) ishlaydi — oddiy saytda
+// (mijoz buni so'ramagan) hech narsa o'zgarmaydi, bo'lim ANIQ bir xilda,
+// darhol (animatsiyasiz) almashadi, xuddi hozirgacha bo'lgani kabi.
 function showAppSection(name){
   if(name === 'rels'){
     // RELS — sahifani ALMASHTIRMAYDI, faqat video oynasini ochadi. Ochilgan
@@ -7559,6 +7611,20 @@ function showAppSection(name){
     return;
   }
 
+  const isTgAppSwitch = document.documentElement.classList.contains('tg-webapp')
+    && document.body && activeAppSection !== name;
+  if(isTgAppSwitch){
+    document.body.classList.add('tg-fade-target', 'tg-fade-out');
+    setTimeout(()=>{
+      applyAppSection(name);
+      requestAnimationFrame(()=>{ document.body.classList.remove('tg-fade-out'); });
+    }, 120);
+  }else{
+    applyAppSection(name);
+  }
+}
+
+function applyAppSection(name){
   activeAppSection = name;
   setNavActive(name);
 
