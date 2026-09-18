@@ -45,6 +45,11 @@
 #
 # Har 10 daqiqada: raqamlar bazasi tez-tez o'zgarmaydi, lekin sotilgan
 # raqam keshda uzoq qolib ketmasligi kerak.
+#
+# ESKI sync-beeline.js (dilerlik/RMS login orqali) fayli loyihada endi
+# ishlatilmaydi (yangi, login talab qilmaydigan "ochiq" API bilan
+# almashtirildi — qarang: lib/operators.js), lekin fayl o'zi hali
+# saqlanadi, kerak bo'lib qolsa deb.
 [functions."sync-beeline-background"]
   schedule = "*/10 * * * *"
 

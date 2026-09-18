@@ -106,19 +106,13 @@ function mainMenuKeyboard(){
    uchun, mijoz shu postni boshqa odamga ULASHSA (forward qilsa) ham,
    ikkala tugma xabar bilan BIRGA ketadi.
 
-   MUHIM (mijoz iltimosiga ko'ra): "Raqam tanlash" endi botning
-   O'ZIGA (chatga) olib O'TMAYDI — bosilganda TO'G'RIDAN-TO'G'RI mini
-   ilova (Web App) ochiladi, xuddi mijozga shaxsiy xabarlarda chiqadigan
-   "Open" tugmasi kabi. Kanal/guruh postlarida Telegram HAQIQIY
-   `web_app` tugmasini taqiqlaydi (faqat botning shaxsiy chatida
-   ishlaydi) — shu sabab o'rniga rasmiy "to'g'ridan-to'g'ri havola"
-   usuli ishlatiladi: oddiy `url` tugmasi, lekin manzilga `?startapp=`
-   parametri qo'shilgan. Botda Mini ilova BotFather orqali "Direct
-   link" rejimida sozlangan bo'lishi kerak — aks holda bu havola oddiy
-   bot chatini ochib qo'yishi mumkin (bu holatda BotFather'da botning
-   Mini ilova sozlamasini tekshirish kerak, kod tarafida qo'shimcha
-   ish talab qilinmaydi). */
-const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot?startapp=numbers';
+   MUHIM (mijoz iltimosiga ko'ra, QAYTA O'ZGARTIRILDI): "Raqam tanlash"
+   endi oddiy botning O'ZIGA (shaxsiy chatga) olib O'TADI — mini ilova
+   (Web App) havolasi EMAS, chunki mijoz xabar berdi: mini ilova ko'plab
+   telefonlarda umuman ochilmayapti. Shu sabab oddiy `url` tugmasi
+   to'g'ridan-to'g'ri bot chatiga (https://t.me/<bot_username>) olib
+   boradi — bu har doim, har qanday telefonda ishlaydi. */
+const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot';
 const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipraqamlar';
 function channelPostButtons(){
   return {

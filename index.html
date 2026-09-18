@@ -45,6 +45,32 @@
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <link rel="dns-prefetch" href="https://firestore.googleapis.com">
 
+<!-- TEZLASHTIRISH (mijoz shikoyati: "sayt darhol ochilmayapti"): Firebase
+     skriptlari sahifaning eng OXIRIDA joylashgan (bu ataylab shunday —
+     shunda statik HTML/katalog o'rni DARHOL ko'rinadi), lekin brauzer
+     ularni odatda FAQAT parser shu qatorga yetganda yuklay boshlaydi.
+     Quyidagi "preload" ko'rsatmalari orqali bu 3 ta fayl sahifa boshidanoq,
+     PARALLEL ravishda (HTML o'qilishi bilan bir vaqtda) yuklana boshlaydi —
+     shunda raqamlar ro'yxati sezilarli tezroq chiqadi. -->
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
+
+<!-- TEZLASHTIRISH (2-qism, ENG MUHIMI): Telegram'ning o'z skripti
+     (telegram-web-app.js) OLDIN <head> ichida, "async"siz (ya'ni TO'LIQ
+     TO'SIB QO'YUVCHI) holda joylashtirilgan edi — bu shuni anglatardiki,
+     agar telegram.org sekin javob bersa yoki ba'zi tarmoqlarda (mobil
+     operator/uy Wi-Fi) bu domenga ulanish sekin/beqaror bo'lsa, BUTUN
+     SAHIFA (hatto oddiy HTML — sarlavha, katalog o'rni, footer) HECH
+     NARSA KO'RSATMAY, ekran to'liq BO'SH turardi — chunki brauzer bu bitta
+     tashqi skript to'liq yuklanib bo'lgunicha, undan KEYINGI HAMMA narsani
+     (butun <body>, ~8000 qatordan ortiq HTML) o'qishni TO'XTATIB turadi.
+     Aynan shu — "sayt darhol ochilmayapti" shikoyatining eng ehtimolli
+     sababi, server tezligiga emas. Pastda skript "async" qilib
+     belgilangan — endi u orqa fonda, sahifani TO'SMASDAN yuklanadi. -->
+<link rel="preconnect" href="https://telegram.org" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VIP RAQAMLAR">
 <meta property="og:title" content="VIP Raqamlar — vipraqamlar.uz | Oltin, Chiroyli va VIP Nomerlar">
@@ -3761,7 +3787,12 @@ html.theme-purple-premium .card button.order-btn{
   .reels-close, .pv-order-btn, .cp-input-modal{ backdrop-filter:none !important; }
 }
 </style>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- MUHIM: "async" — bu skript endi sahifa HTML'ini o'qishni TO'XTATMAYDI,
+     orqa fonda, boshqa hammasi bilan PARALLEL yuklanadi. Telegram'ga
+     bog'liq kod (pastda, asosiy skript blokida) allaqachon try/catch
+     bilan "tg mavjud bo'lmasa ham muammo emas" tarzida yozilgan —
+     shu sabab bu o'zgarish xavfsiz, faqat sahifani tezroq ko'rsatadi. -->
+<script src="https://telegram.org/js/telegram-web-app.js" async></script>
 </head>
 <body>
 
@@ -4838,19 +4869,39 @@ try{ if('scrollRestoration' in history) history.scrollRestoration = 'manual'; }c
    telegram-web-app.js kutubxonasi mavjud bo'ladi (<head>'ga
    qo'shilgan). Oddiy brauzerda ochilganda bu obyekt mavjud
    bo'lmaydi — shuning uchun hammasi try/catch bilan, xatosiz.
-========================================================= */
-try{
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if(tg){
-    tg.ready();
-    tg.expand(); // to'liq ekranga yoyish
-    document.documentElement.classList.add('tg-webapp');
-    try{ tg.setHeaderColor && tg.setHeaderColor('#0B1220'); }catch(e){}
-    try{ tg.setBackgroundColor && tg.setBackgroundColor('#0B1220'); }catch(e){}
-    try{ tg.disableVerticalSwipes && tg.disableVerticalSwipes(); }catch(e){}
-    try{ tg.enableClosingConfirmation && tg.enableClosingConfirmation(); }catch(e){}
-  }
-}catch(e){ /* Telegram tashqarisida ochilgan — muammo emas */ }
+
+   MUHIM (tezlik uchun o'zgartirildi): telegram-web-app.js endi <head>'da
+   "async" bilan yuklanadi (sahifani TO'SMASLIK uchun) — demak bu qatorga
+   yetganda u hali ULGURMAGAN bo'lishi mumkin. Shu sabab bu sozlash
+   alohida funksiyaga o'ralgan va: (1) DARHOL bir marta, (2) agar hali
+   tayyor bo'lmasa — bir necha marta qisqa oraliqlarda QAYTA urinadi
+   (odatda 1-2 marta urinishning o'zidayoq tayyor bo'ladi). tg.ready()/
+   expand() kabi metodlarni qayta chaqirish xavfsiz. */
+function initTelegramIntegration(){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if(tg){
+      tg.ready();
+      tg.expand(); // to'liq ekranga yoyish
+      document.documentElement.classList.add('tg-webapp');
+      try{ tg.setHeaderColor && tg.setHeaderColor('#0B1220'); }catch(e){}
+      try{ tg.setBackgroundColor && tg.setBackgroundColor('#0B1220'); }catch(e){}
+      try{ tg.disableVerticalSwipes && tg.disableVerticalSwipes(); }catch(e){}
+      try{ tg.enableClosingConfirmation && tg.enableClosingConfirmation(); }catch(e){}
+      return true;
+    }
+  }catch(e){ /* Telegram tashqarisida ochilgan — muammo emas */ }
+  return false;
+}
+if(!initTelegramIntegration()){
+  // "async" skript hali yuklanmagan bo'lishi mumkin — bir necha marta
+  // qisqa oraliqda qayta urinamiz (jami ~3 soniya), keyin to'xtatamiz.
+  let __tgTries = 0;
+  const __tgRetry = setInterval(()=>{
+    __tgTries++;
+    if(initTelegramIntegration() || __tgTries >= 15) clearInterval(__tgRetry);
+  }, 200);
+}
 
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -5139,6 +5190,9 @@ let __numbersLoadFailCount = 0;
 function showLoadRetryBanner(show){
   const banner = document.getElementById('loadRetryBanner');
   if(banner) banner.style.display = show ? 'flex' : 'none';
+  // Mijoz iltimosiga ko'ra: "internet ishlamayapti/qayta urinish" xabari
+  // chiqqan zahoti, shu bilan birga ovoz ham chalinadi.
+  if(show && typeof playNotifySound === 'function') playNotifySound('error');
 }
 const __loadRetryBtnEl = document.getElementById('loadRetryBtn');
 if(__loadRetryBtnEl){
@@ -5261,6 +5315,10 @@ let __nnToastTimer = null;
 function showNewNumberToast(item, opts){
   const wrap = document.getElementById('newNumberToast');
   if(!wrap || !item || !item.number) return;
+
+  // Mijoz iltimosiga ko'ra: admin yangi raqam joylaganda/aksiya
+  // e'lon qilganda, xabar chiqqan zahoti ovoz ham chalinadi.
+  if(typeof playNotifySound === 'function') playNotifySound('newNumber');
 
   const isDeal = item.dailyDeal === true;
   const isDealUpdate = !!(opts && opts.dealUpdate);
@@ -6969,93 +7027,36 @@ async function fetchLiveNumbers(retryCount){
   // urinishlar soni QISQARTIRILDI — endi mijozga "Bunday raqam topilmadi"
   // xabari ancha tezroq (taxminan 10-20 soniya ichida) chiqadi.
   const controller = new AbortController();
-  const timeoutId = setTimeout(()=> controller.abort(), 15000);
+  const timeoutId = setTimeout(()=> controller.abort(), 9000);
 
   try{
-    /* PROGRESSIV QIDIRUV — har operator ALOHIDA so'raladi va natijasi
-       KELGAN ZAHOTI ekranga chiqadi.
+    // Operator ATAYLAB ko'rsatilmaydi — barcha operatorlardan bir marta
+    // olinadi, keyin brauzerda filtrlanadi.
+    const url = '/.netlify/functions/api-live-search?limit=40&mask=' + encodeURIComponent(mask);
+    const res = await fetch(url, { signal: controller.signal });
+    if(!res.ok){
+      throw new Error('Server ' + res.status + ' xato qaytardi');
+    }
+    const data = await res.json();
 
-       NEGA: avval hamma operator BITTA so'rovda olinardi va javob ENG
-       SEKIN operator tugagandan keyingina ko'rinardi. Operatorlarning
-       javob vaqti esa juda har xil (real o'lchov):
-           Beeline   ~0.6 s (kamyob toifalar keshdan)
-           Humans    ~0.8 s
-           Perfektum ~1.3 s
-           Mobiuz    ~2.3 s
-       Ya'ni mijoz 0.6 soniyada tayyor bo'lgan natijani ham 2.4 soniya
-       kutib o'tirardi. Endi birinchi natija ~0.6 s da ko'rinadi, qolganlari
-       ustiga qo'shilib boradi.
-
-       Qo'shimcha foyda: bitta operator yiqilsa yoki sekinlashsa, qolganlari
-       baribir ko'rinadi — avval bitta sekin operator HAMMA natijani
-       ushlab turardi. */
-    const seenNumbers = new Set();
-    const collected = [];
-    let anyOk = false;
-    const opErrors = [];
-
-    // Natijani ekranga chizish. Har operator javobidan keyin chaqiriladi.
-    const paint = () => {
-      if(myId !== liveRequestId) return;      // mijoz boshqa raqam terdi
-      LIVE_NUMBERS = collected.slice();
-      liveMask = mask;
-      refreshPriceRangeBounds();
-      renderCatalog();
-      renderVipOpToggles();                   // operator kartochkalaridagi sonlar
-    };
-
-    const one = async (op) => {
-      const url = '/.netlify/functions/api-live-search?limit=40&operator='
-        + encodeURIComponent(op) + '&mask=' + encodeURIComponent(mask);
-      try{
-        const res = await fetch(url, { signal: controller.signal });
-        if(!res.ok) throw new Error('Server ' + res.status);
-        const data = await res.json();
-        if(myId !== liveRequestId) return;
-        if(!data || data.ok !== true){
-          opErrors.push(op + ': ' + ((data && data.error) || 'javob olinmadi'));
-          return;
-        }
-        anyOk = true;
-        if(data.errors && data.errors.length) opErrors.push(...data.errors);
-
-        const items = Array.isArray(data.items) ? data.items : [];
-        let added = false;
-        items.forEach(x => {
-          if(!seenNumbers.has(x.number)){
-            seenNumbers.add(x.number);
-            collected.push(x);
-            added = true;
-          }
-        });
-        if(added){
-          collected.sort((a, b) => a.price - b.price);
-          paint();                            // KELGAN ZAHOTI ko'rsatamiz
-        }
-      }catch(err){
-        if(err && err.name === 'AbortError') throw err;   // umumiy timeout
-        opErrors.push(op + ': ' + (err && err.message ? err.message : 'xato'));
-      }
-    };
-
-    // Hammasi BIR VAQTDA yuboriladi — har biri o'z navbatida ekranga chizadi.
-    await Promise.all(LIVE_OPERATORS.map(one));
-
+    // Mijoz shu orada boshqa raqam terib yuborgan bo'lsa — eski javobni
+    // tashlab yuboramiz, aks holda ekranda noto'g'ri natija qolib ketadi.
     if(myId !== liveRequestId) return;
 
-    if(!anyOk){
+    if(!data || data.ok !== true){
       LIVE_NUMBERS = [];
-      LIVE_SEARCH_ERROR = opErrors.length
-        ? opErrors.join('; ')
-        : "Operatorlardan javob olinmadi";
-      console.error('Jonli qidiruv: hech bir operator javob bermadi', opErrors);
+      LIVE_SEARCH_ERROR = (data && data.error) || "Operatorlardan javob olinmadi";
+      console.error('api-live-search xato javob berdi:', data);
     }else{
-      LIVE_NUMBERS = collected;
+      LIVE_NUMBERS = Array.isArray(data.items) ? data.items : [];
       liveMask = mask;
-      if(opErrors.length){
-        console.warn('Operator xatolari:', opErrors);
-        // Hech narsa topilmagan bo'lsa — sababini ko'rsatamiz.
-        if(LIVE_NUMBERS.length === 0) LIVE_SEARCH_ERROR = opErrors.join('; ');
+      if(data.errors && data.errors.length){
+        console.warn('Operator xatolari:', data.errors);
+        // Barcha operatorlar xato bergan bo'lsa (natija bo'sh), mijozga
+        // ham sababini ko'rsatamiz — jimgina "topilmadi" deb qo'ymaymiz.
+        if(LIVE_NUMBERS.length === 0){
+          LIVE_SEARCH_ERROR = data.errors.join('; ');
+        }
       }
     }
   }catch(err){
@@ -7063,7 +7064,7 @@ async function fetchLiveNumbers(retryCount){
     LIVE_NUMBERS = [];
     liveMask = '';
     LIVE_SEARCH_ERROR = (err && err.name === 'AbortError')
-      ? "Operatorlar javob berishga juda ko'p vaqt oldi."
+      ? "Operatorlar javob berishga juda ko'p vaqt oldi (25 soniyadan ko'p)."
       : ("Tarmoq xatosi: " + (err && err.message ? err.message : 'nomalum'));
     console.error('Jonli qidiruv ishlamadi:', err);
   }finally{
@@ -7979,6 +7980,23 @@ function isRealTelegramMiniApp(){
   }catch(e){ return false; }
 }
 
+// MIJOZ ILTIMOSIGA KO'RA (iPhone'da "Turgan joyimni aniqlash" tugmasi
+// hali ham muammoli bo'lishi mumkinligi sababli): iPhone/iPad'da bu
+// tugma UMUMAN ko'rsatilmaydi — mijoz FAQAT xaritani bosib, qo'lda
+// joyni belgilaydi. Android'da esa avtomatik aniqlash tugmasi odatdagidek
+// ishlashda davom etadi. iPadOS 13+ "MacIntel" deb ko'rinishi mumkinligi
+// uchun, sensorli ekran borligini ham tekshiramiz.
+function isIOSDevice(){
+  try{
+    const ua = navigator.userAgent || '';
+    if(/iPhone|iPad|iPod/i.test(ua)) return true;
+    // iPadOS 13+ ba'zan "MacIntel" platforma deb ko'rinadi — sensorli
+    // ekran (maxTouchPoints > 1) bilan birga bo'lsa, bu ham iPad hisoblanadi.
+    if(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+    return false;
+  }catch(e){ return false; }
+}
+
 function forceWebkitReflow(){
   try{
     void document.body.offsetHeight;
@@ -8121,16 +8139,29 @@ document.getElementById('locLocateBtn').addEventListener('click', ()=>{
       // Mijoz aniq nima qilishi kerakligini bilishi uchun — sabab
       // bo'yicha ANIQROQ xabar (umumiy "aniqlab bo'lmadi" o'rniga).
       if(reason === 'DENIED'){
-        showToast(t("Joylashuvga ruxsat berilmagan. Brauzer/telefon sozlamalaridan bu sayt uchun joylashuvga ruxsat bering, so'ng qayta urinib ko'ring."), 4500);
+        showToast(t("Joylashuvga ruxsat berilmagan. Brauzer/telefon sozlamalaridan bu sayt uchun joylashuvga ruxsat bering, so'ng qayta urinib ko'ring."), 4500, { errorSound: true });
       }else if(reason === 'UNSUPPORTED'){
-        showToast(t("Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi. Xaritada qo'lda belgilang."), 3500);
+        showToast(t("Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi. Xaritada qo'lda belgilang."), 3500, { errorSound: true });
       }else{
-        showToast(t("Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang."), 3200);
+        showToast(t("Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang."), 3200, { errorSound: true });
       }
     }
   );
 });
 document.getElementById('locClearBtn').addEventListener('click', clearCustomerLocation);
+
+// Mijoz iltimosiga ko'ra: iPhone/iPad'da avtomatik aniqlash tugmasi
+// butunlay YASHIRILADI — mijoz faqat xaritani bosib, qo'lda joyni
+// belgilaydi (Android'da tugma odatdagidek qoladi).
+(function applyIOSManualLocationOnly(){
+  try{
+    if(!isIOSDevice()) return;
+    const btn = document.getElementById('locLocateBtn');
+    if(btn) btn.style.display = 'none';
+    const sub = document.querySelector('#locPickerSec .loc-picker-sub');
+    if(sub) sub.textContent = 'Xaritada aniq joyni bosib belgilang (ixtiyoriy)';
+  }catch(e){}
+})();
 
 /* ---- To'lov turi (Naqt / Bo'lib to'lash) va kalkulyator ---- */
 const payTabs          = document.getElementById('payTabs');
@@ -9115,6 +9146,38 @@ window.addEventListener('pageshow', (e)=>{
   if(typeof loadNumbers === 'function') loadNumbers();
 });
 
+// MIJOZ SO'ROVIGA KO'RA QO'SHILGAN OVOZLI BILDIRISHNOMALAR — uchta
+// alohida holat uchun uchta alohida ovoz fayli: (1) admin yangi raqam
+// joylaganda/aksiya e'lon qilganda (showNewNumberToast), (2) internet/
+// server xatosi haqidagi ogohlantirish chiqqanda (showToast bilan
+// opts.errorSound=true), (3) buyurtma muvaffaqiyatli "Bron qilindi!"
+// ekrani chiqqanda (finalizeOrder). Ovoz fayllari oldindan (bitta marta)
+// yuklab olinadi — shu bilan chaqirilgan zahoti, kechikishsiz chalinadi.
+const NOTIFY_SOUNDS = {
+  newNumber: new Audio('assets/sounds/notify-new-number.mp3'),
+  error: new Audio('assets/sounds/notify-error.mp3'),
+  success: new Audio('assets/sounds/notify-success.mp3')
+};
+Object.values(NOTIFY_SOUNDS).forEach(a => { try{ a.preload = 'auto'; a.load(); }catch(e){} });
+function playNotifySound(key){
+  try{
+    const base = NOTIFY_SOUNDS[key];
+    if(!base) return;
+    // Ketma-ket tez-tez kelgan bildirishnomalarda (masalan bir nechta
+    // raqam ustma-ust qo'shilsa) oldingi ovoz hali tugamagan bo'lishi
+    // mumkin — shu sabab har safar KLON qilib chalamiz, shunda ovozlar
+    // bir-birini "kesib" qo'ymaydi (ustma-ust, tabiiy eshitiladi).
+    const node = base.cloneNode(true);
+    const playPromise = node.play();
+    if(playPromise && typeof playPromise.catch === 'function'){
+      // Brauzer autoplay siyosati sabab (mijoz sahifada hali umuman
+      // teginmagan bo'lsa) ovoz chalinmasligi mumkin — bu jim,
+      // xavfsiz o'tkazib yuboriladi, sayt ishlashiga ta'sir qilmaydi.
+      playPromise.catch(()=>{});
+    }
+  }catch(e){ /* ovoz ixtiyoriy — muammo bo'lsa ham sayt davom etadi */ }
+}
+
 function showToast(text, duration, opts){
   const toast = document.getElementById('toast');
   if(opts && opts.html) toast.innerHTML = text;
@@ -9122,6 +9185,10 @@ function showToast(text, duration, opts){
   toast.style.background = (opts && opts.bg) ? opts.bg : '';
   toast.style.color = (opts && opts.color) ? opts.color : '';
   toast.classList.add('show');
+  // Mijoz iltimosiga ko'ra: internet/server xatosi kabi ogohlantirish
+  // xabarlari chiqqanda, xabar bilan BIRGA (kechikishsiz) alohida ovoz
+  // ham chalinadi — qarang: opts.errorSound.
+  if(opts && opts.errorSound) playNotifySound('error');
   setTimeout(()=> toast.classList.remove('show'), duration || 3000);
 }
 
@@ -9437,18 +9504,21 @@ async function finalizeOrder(payload, smsVerified){
   // aniq sabab bilan ogohlantiramiz, mijoz formada qolib qayta urinishi
   // yoki boshqa raqam tanlashi mumkin.
   if(blockedReason === 'ALREADY_RESERVED'){
-    showToast(t("Kechirasiz, bu raqamni ayni damda boshqa mijoz band qilib ulgurdi. Iltimos, boshqa raqamni tanlang."), 4000);
+    showToast(t("Kechirasiz, bu raqamni ayni damda boshqa mijoz band qilib ulgurdi. Iltimos, boshqa raqamni tanlang."), 4000, { errorSound: true });
     renderCatalog(); renderFeatured(); renderDailyDeal(); renderRecommended(); renderAsosiyPremium(); renderAsosiyHero();
     closeModal();
     return;
   }
   if(blockedReason === 'ERROR'){
-    showToast(t("Buyurtmani yuborishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."), 4200);
+    showToast(t("Buyurtmani yuborishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."), 4200, { errorSound: true });
     return;
   }
 
   formView.style.display = 'none';
   successView.style.display = 'block';
+  // Mijoz iltimosiga ko'ra: "Bron qilindi!" ekrani chiqqan zahoti ovoz
+  // ham chalinadi.
+  playNotifySound('success');
   // Mijoz xabar bergan "bron qilingandan keyin Yopish tugmasi ishlamaydi"
   // holatiga qarshi ehtiyot chorasi — iPhone/WebKit ba'zan ko'p qadamli
   // (xarita, SMS) oqimdan keyin sahifani "muzlatib" qo'yishi mumkin,
@@ -10281,7 +10351,7 @@ function renderContractResult(data){
       window.open(url, '_blank');
       setTimeout(()=> URL.revokeObjectURL(url), 60000);
     }catch(err){
-      if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000);
+      if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000, { errorSound: true });
     }
     link.innerHTML = originalText;
   });
@@ -11352,7 +11422,7 @@ window.pauseReelsVideo = function(slideEl){
       // shunda mijoz "like bosdim-u lekin saqlanmadi" holatini ko'rmaydi.
       // Xatoni EKRANDA ham ko'rsatamiz — telefonda konsolni ko'rib bo'lmaydi.
       console.error('Like saqlanmadi:', err);
-      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000, { errorSound: true });
       btn.classList.toggle('liked', alreadyLiked);
       btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${video.likes || 0}</span>`;
     }
@@ -11809,7 +11879,7 @@ window.pauseReelsVideo = function(slideEl){
       saveLikedSet(set);
     }catch(err){
       console.error('Like saqlanmadi:', err);
-      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000);
+      if(window.showToast) showToast('Like saqlanmadi: ' + (err.message || err.code || "noma'lum xato"), 6000, { errorSound: true });
       btn.classList.toggle('liked', alreadyLiked);
       btn.innerHTML = heartSvg(alreadyLiked) + `<span class="reels-like-count">${item.likes || 0}</span>`;
     }
