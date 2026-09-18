@@ -431,38 +431,85 @@
   .mn-tab.active .mn-dot{opacity:1;transform:scale(1);}
   .mn-tab:active{transform:translateY(-1px) scale(0.96);}
 
-  /* ============ TELEGRAM MINI ILOVA — "native ilova" ko'rinishi ============
-     Mijoz iltimosiga ko'ra: sayt Telegram Mini App ichida ochilganda
-     (haqiqiy Telegram muhitida — qarang: isRealTelegramMiniApp() va
-     initTelegramIntegration(), <html> ga 'tg-webapp' klassi qo'shiladi)
-     pastki ASOSIY/VIP/STANDART/RELS bar QAYTA yoqiladi va zamonaviy,
-     "shisha" (glass) uslubida ko'rsatiladi — bu yuqoridagi .main-nav'ni
-     hech qanday tarzda o'zgartirmaydi, faqat Telegram ichida uni qayta
-     ko'rinadigan qiladi (oddiy saytda, brauzerda hamon yashirin qoladi,
-     chunki mijoz buni ATAYLAB olib tashlagan edi — bu o'zgarish FAQAT
-     Telegram ichida qo'shimcha "ilova" tuyg'usi berish uchun).
-     Bar HAR doim active bo'lgan bo'limni ko'rsatib turadi — buni
-     showAppSection()/setNavActive() (JS, o'zgarishsiz) allaqachon
-     boshqaradi, bu yerda faqat TASHQI ko'rinish yangilanadi. */
-  .tg-webapp .main-nav{
-    display:flex !important;
-    background:rgba(231,238,252,0.82);
-    -webkit-backdrop-filter:blur(18px) saturate(160%);
-    backdrop-filter:blur(18px) saturate(160%);
-    border:1px solid rgba(255,255,255,0.5);
-    box-shadow:0 -8px 20px -10px rgba(20,45,110,0.22), 0 18px 40px rgba(20,45,110,0.32);
+  /* ============ TELEGRAM MINI ILOVA — BUTUNLAY ALOHIDA, YANGI DIZAYN
+     ============
+     MUHIM (mijoz aniq talab qildi): bu ENDI oddiy saytning "qayta
+     bo'yalgan" versiyasi EMAS — mijoz yuborgan "Obuna+" namunasi
+     uslubida (juda to'q/deyarli qora fon, minimal bezak, bitta yorqin
+     neon-ko'k urg'u rangi) BUTUNLAY ALOHIDA rang tizimi. Buning uchun
+     saytning O'ZI ishlatadigan CSS o'zgaruvchilari (--amber,
+     --accent-grad-1/2, --panel va h.k.) FAQAT shu html.tg-webapp
+     doirasida QAYTA belgilanadi — bu degani: raqam kartochkalari,
+     tugmalar, belgilar (badge) kabi O'NLAB joyda alohida-alohida CSS
+     yozib chiqmasdan, ular BUTUN saytda ALLAQACHON shu o'zgaruvchilarni
+     ishlatgani uchun, HAMMASI avtomatik yangi (ko'k, to'q, minimal)
+     ko'rinishga o'tadi. Bu — xatosiz, ishonchli yo'l (JS/render kodiga
+     HECH TEGILMAYDI, faqat ranglar manbai almashtiriladi). Oddiy saytda
+     (brauzerda) bu o'zgaruvchilar avvalgidek (oltin/amber) qoladi —
+     :root.tg-webapp faqat <html> ga shu klass qo'shilgan paytda ishga
+     tushadi (qarang: initTelegramIntegration()). */
+  :root.tg-webapp{
+    --bg:#020305;
+    --page-bg:var(--bg);
+    --panel:#111318;
+    --panel-2:#191c22;
+    --line:#26292f;
+    --text:#F2F4F8;
+    --muted:#8A8F99;
+    --amber:#4F8CFF;
+    --amber-soft:rgba(79,140,255,0.16);
+    --accent-grad-1:#4F8CFF;
+    --accent-grad-2:#7C6CF0;
+    --accent-gradient:linear-gradient(120deg, #4F8CFF, #7C6CF0);
+    --btn-bg:#4F8CFF;
   }
+  /* "Minimal" — fondagi sekin suzuvchi rang-barang nurlar (bodyGlowDrift)
+     va kartalardagi "nafas oluvchi"/rangin animatsiyalar Telegram ichida
+     O'CHIRILADI — juda toza, sokin, deyarli qora fon qoladi (faqat bitta
+     juda xira ko'k nur, chuqurlik hissi uchun). */
   .tg-webapp body{
+    animation:none !important;
+    background-image:radial-gradient(ellipse 70vw 50vh at 50% -10%, rgba(79,140,255,0.10), transparent 60%) !important;
     /* Bar qayta ko'ringanda, oxirgi kartochka/footer uning ostida
        yashirinib qolmasin deb, joy qaytadan ajratiladi. */
     padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
-  /* Sarlavha (header) ham Telegram ichida bir xil "shisha" uslubida —
+  .tg-webapp .card::before{ display:none; } /* rangin "oqib turuvchi" tepa chiziq olib tashlandi — minimalizm */
+  .tg-webapp .card{
+    animation:cardPopIn .35s ease forwards !important;
+    box-shadow:0 4px 18px rgba(0,0,0,0.45) !important;
+  }
+  .tg-webapp .card:hover, .tg-webapp .card:focus-within{
+    box-shadow:0 10px 26px rgba(79,140,255,0.22) !important;
+    transform:translateY(-3px);
+  }
+  /* Mijoz iltimosiga ko'ra: pastki navigatsiya ENDI oddiy saytdagi eski
+     och-ko'k barning "qayta bo'yalgani" EMAS — to'q, shisha (glass)
+     uslubidagi, minimal, alohida element. */
+  .tg-webapp .main-nav{
+    display:flex !important;
+    background:rgba(15,17,22,0.86);
+    -webkit-backdrop-filter:blur(22px) saturate(140%);
+    backdrop-filter:blur(22px) saturate(140%);
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 -8px 24px -10px rgba(0,0,0,0.5), 0 18px 40px rgba(0,0,0,0.55);
+  }
+  .tg-webapp .mn-tab{ color:var(--muted); }
+  .tg-webapp .mn-tab.active{
+    color:#fff;
+    background:linear-gradient(160deg, rgba(79,140,255,0.32), rgba(124,108,240,0.20));
+    border-color:rgba(79,140,255,0.55);
+    box-shadow:0 5px 16px -6px rgba(79,140,255,0.55), inset 0 0 0 1px rgba(79,140,255,0.25);
+  }
+  .tg-webapp .mn-tab.active svg{ filter:drop-shadow(0 0 5px rgba(79,140,255,0.55)); }
+  .tg-webapp .mn-tab .mn-dot{ background:#4F8CFF; }
+  /* Sarlavha (header) ham bir xil to'q, minimal "shisha" uslubida —
      pastki bar bilan bir butun, zamonaviy ilova chrome'ini hosil qiladi. */
   .tg-webapp header{
-    -webkit-backdrop-filter:blur(14px) saturate(140%);
-    backdrop-filter:blur(14px) saturate(140%);
-    background:rgba(18,27,46,0.86);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    backdrop-filter:blur(16px) saturate(140%);
+    background:rgba(8,9,12,0.9);
+    border-bottom-color:var(--line);
   }
 
   /* Bo'limlar (ASOSIY/VIP/STANDART) orasida almashganda — Telegram
@@ -495,33 +542,68 @@
   }
   .tg-greeting-hello{font-family:'Sora',sans-serif;font-weight:800;font-size:16.5px;color:var(--text);}
   .tg-greeting-sub{font-size:12px;color:var(--muted);margin-top:2px;}
-  .tg-quick-actions{
-    display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;
+  /* Obuna+ namunasidagi bo'lim sarlavhasi (masalan "Tezkor harakatlar",
+     "Bo'limlar") — kichik, katta harfli, xira rangli matn. */
+  .tg-section-title{
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;
+    color:var(--muted);text-transform:uppercase;letter-spacing:.4px;
+    margin:0 16px 8px;
   }
-  .tg-quick-btn{
-    display:flex;align-items:center;gap:8px;
-    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
-    padding:11px 10px;color:var(--text);font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;
-    cursor:pointer;transition:transform .15s ease, border-color .15s ease, background .15s ease;
+  /* Yagona, ichida bo'linish chiziqlari bo'lgan ro'yxat-kartochka —
+     Obuna+'dagi "To'lov usullari / Yordam / ..." ro'yxatiga o'xshash:
+     har bir qator rangli ikonka-doira + sarlavha(+izoh) + chevron (›). */
+  .tg-action-card{
+    margin:0 16px 14px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;
   }
-  .tg-quick-btn:active{transform:scale(0.96);}
-  .tg-quick-btn:hover{border-color:var(--amber);background:var(--amber-soft);}
-  .tg-quick-icon{font-size:16px;flex-shrink:0;}
+  .tg-action-row{
+    width:100%;display:flex;align-items:center;gap:12px;
+    padding:13px 14px;background:transparent;border:none;border-bottom:1px solid var(--line);
+    color:var(--text);text-align:left;cursor:pointer;text-decoration:none;
+    font-family:inherit;
+  }
+  .tg-action-row:last-child{border-bottom:none;}
+  .tg-action-row:active{background:var(--panel-2);}
+  .tg-action-icon{
+    width:36px;height:36px;border-radius:11px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+  }
+  .tg-action-icon svg{width:18px;height:18px;}
+  .tg-action-icon-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
+  .tg-action-icon-purple{background:rgba(124,108,240,0.18);color:#9C8CFF;}
+  .tg-action-icon-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
+  .tg-action-icon-amber{background:rgba(255,171,64,0.18);color:#FFAB40;}
+  .tg-action-icon-gray{background:var(--panel-2);color:var(--muted);}
+  .tg-action-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .tg-action-title{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;color:var(--text);}
+  .tg-action-sub{font-size:11.5px;color:var(--muted);}
+  .tg-action-chevron{font-size:19px;line-height:1;color:var(--muted);flex-shrink:0;}
 
   .profil-block{margin:0 16px 14px;}
   .profil-block-title{
     font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;
     color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;
   }
-  .profil-lang-row{display:flex;gap:8px;}
-  .profil-lang-btn{
-    flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
-    padding:10px;color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;
+  /* Segmentlangan pill-tanlagich (Til / Mavzu) — Obuna+ uslubida:
+     bitta yumaloq idish, faol variant rangli "kapsula" bilan ajralib turadi. */
+  .seg-pill{
+    display:flex;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:12px;padding:3px;gap:3px;
+  }
+  .seg-pill-option{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+    text-align:center;padding:8px 6px;border-radius:9px;background:transparent;border:none;
+    color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:12px;
     cursor:pointer;transition:all .15s ease;
   }
-  .profil-lang-btn.active{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);}
-  .profil-links{padding-top:0 !important;}
-  .profil-links a{background:var(--panel);}
+  .seg-pill-option.active{
+    background:linear-gradient(135deg, var(--accent-grad-1), var(--accent-grad-2));
+    color:#fff;box-shadow:0 3px 10px rgba(79,140,255,0.35);
+  }
+  .tg-profil-footer{
+    text-align:center;color:var(--muted);font-size:11px;
+    margin:18px 0 6px;letter-spacing:.3px;
+  }
 
   @media (min-width:1024px){
     body{padding-bottom:0;}
@@ -4030,26 +4112,49 @@ html.theme-purple-premium .card button.order-btn{
        salomlashuv + "Tezkor harakatlar" qatori — FAQAT haqiqiy Telegram
        muhitida ko'rinadi (qarang: CSS'dagi .tg-webapp .tg-greeting va JS
        renderTgGreeting()). Oddiy saytda bu blok umuman ko'rinmaydi. -->
-  <div class="tg-greeting" id="tgGreeting" style="display:none;">
-    <div class="tg-greeting-row">
-      <div class="tg-greeting-avatar" id="tgGreetingAvatar">👤</div>
-      <div>
-        <div class="tg-greeting-hello" id="tgGreetingHello">Salom!</div>
-        <div class="tg-greeting-sub">VIP Raqamlar ilovasiga xush kelibsiz</div>
+  <div id="tgGreeting" style="display:none;">
+    <div class="tg-greeting">
+      <div class="tg-greeting-row">
+        <div class="tg-greeting-avatar" id="tgGreetingAvatar">👤</div>
+        <div>
+          <div class="tg-greeting-hello" id="tgGreetingHello">Salom!</div>
+          <div class="tg-greeting-sub">VIP Raqamlar ilovasiga xush kelibsiz</div>
+        </div>
       </div>
     </div>
-    <div class="tg-quick-actions">
-      <button type="button" class="tg-quick-btn" id="tgQuickCatalog">
-        <span class="tg-quick-icon">🔍</span><span>Raqam qidirish</span>
+    <div class="tg-section-title">Tezkor harakatlar</div>
+    <div class="tg-action-card">
+      <button type="button" class="tg-action-row" id="tgQuickCatalog">
+        <span class="tg-action-icon tg-action-icon-blue">🔍</span>
+        <span class="tg-action-text">
+          <span class="tg-action-title">Raqam qidirish</span>
+          <span class="tg-action-sub">Katalog bo'yicha qidiruv</span>
+        </span>
+        <span class="tg-action-chevron">&rsaquo;</span>
       </button>
-      <button type="button" class="tg-quick-btn" id="tgQuickSale">
-        <span class="tg-quick-icon">🎁</span><span>Bugungi aksiya</span>
+      <button type="button" class="tg-action-row" id="tgQuickSale">
+        <span class="tg-action-icon tg-action-icon-amber">🎁</span>
+        <span class="tg-action-text">
+          <span class="tg-action-title">Bugungi aksiya</span>
+          <span class="tg-action-sub">Kunlik chegirmali raqamlar</span>
+        </span>
+        <span class="tg-action-chevron">&rsaquo;</span>
       </button>
-      <button type="button" class="tg-quick-btn" id="tgQuickInstallment">
-        <span class="tg-quick-icon">💳</span><span>Bo'lib to'lash</span>
+      <button type="button" class="tg-action-row" id="tgQuickInstallment">
+        <span class="tg-action-icon tg-action-icon-green">💳</span>
+        <span class="tg-action-text">
+          <span class="tg-action-title">Bo'lib to'lash</span>
+          <span class="tg-action-sub">Muddatli to'lov bilan raqamlar</span>
+        </span>
+        <span class="tg-action-chevron">&rsaquo;</span>
       </button>
-      <button type="button" class="tg-quick-btn" id="tgQuickContact">
-        <span class="tg-quick-icon">📞</span><span>Bog'lanish</span>
+      <button type="button" class="tg-action-row" id="tgQuickContact">
+        <span class="tg-action-icon tg-action-icon-purple">📞</span>
+        <span class="tg-action-text">
+          <span class="tg-action-title">Bog'lanish</span>
+          <span class="tg-action-sub">Call Markaz bilan aloqa</span>
+        </span>
+        <span class="tg-action-chevron">&rsaquo;</span>
       </button>
     </div>
   </div>
@@ -4094,46 +4199,71 @@ html.theme-purple-premium .card button.order-btn{
 
   <div class="profil-block">
     <div class="profil-block-title">Til</div>
-    <div class="profil-lang-row">
-      <button type="button" class="profil-lang-btn active" id="profilLangUz" data-lang="uz">O'zbekcha</button>
-      <button type="button" class="profil-lang-btn" id="profilLangRu" data-lang="ru">Русский</button>
+    <div class="seg-pill" id="profilLangPill">
+      <button type="button" class="seg-pill-option active" id="profilLangUz" data-lang="uz">O'zbekcha</button>
+      <button type="button" class="seg-pill-option" id="profilLangRu" data-lang="ru">Русский</button>
     </div>
   </div>
 
-  <div class="drawer-links profil-links">
-    <a href="#" id="profilMyOrders">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-      <span>Buyurtmalarim va shartnomalarim</span>
+  <!-- "Mavzu" — Obuna+ namunasidagi kabi segmentlangan tugma. ESLATMA:
+       saytda hozircha FAQAT bitta (tungi/neon-ko'k) mavzu mavjud — "Tizim"
+       va "Yorug'" variantlari hali real ranglarni almashtirmaydi, bosilganda
+       shunchaki tushuntirish xabari chiqadi (qarang: JS'dagi profilThemePill
+       ishlovchisi). Kelajakda haqiqiy yorug' mavzu qo'shilsa, shu yerga ulash oson. -->
+  <div class="profil-block">
+    <div class="profil-block-title">Mavzu</div>
+    <div class="seg-pill" id="profilThemePill">
+      <button type="button" class="seg-pill-option" data-theme="system">Tizim</button>
+      <button type="button" class="seg-pill-option" data-theme="light">Yorug'</button>
+      <button type="button" class="seg-pill-option active" data-theme="dark">Tungi</button>
+    </div>
+  </div>
+
+  <div class="tg-section-title">Bo'limlar</div>
+  <div class="tg-action-card profil-links" id="profilLinksCard">
+    <a href="#" class="tg-action-row" id="profilMyOrders">
+      <span class="tg-action-icon tg-action-icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Buyurtmalarim va shartnomalarim</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilFavorites">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-      <span>Savatdagi raqamlar</span>
+    <a href="#" class="tg-action-row" id="profilFavorites">
+      <span class="tg-action-icon tg-action-icon-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Savatdagi raqamlar</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilInstallmentNumbers">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg>
-      <span>Bo'lib to'lashga raqamlar</span>
+    <a href="#" class="tg-action-row" id="profilInstallmentNumbers">
+      <span class="tg-action-icon tg-action-icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Bo'lib to'lashga raqamlar</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilBot">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg>
-      <span>Bot orqali raqam tanlash</span>
+    <a href="#" class="tg-action-row" id="profilBot">
+      <span class="tg-action-icon tg-action-icon-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Bot orqali raqam tanlash</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilContact">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      <span>Call Markaz</span>
+    <a href="#" class="tg-action-row" id="profilContact">
+      <span class="tg-action-icon tg-action-icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Call Markaz</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilTelegram">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg>
-      <span>Telegram kanal</span>
+    <a href="#" class="tg-action-row" id="profilTelegram">
+      <span class="tg-action-icon tg-action-icon-blue"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Telegram kanal</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilInstagram">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
-      <span>Instagram kanal</span>
+    <a href="#" class="tg-action-row" id="profilInstagram">
+      <span class="tg-action-icon tg-action-icon-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Instagram kanal</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
-    <a href="#" id="profilVacancy">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg>
-      <span>Vakansiya</span>
+    <a href="#" class="tg-action-row" id="profilVacancy">
+      <span class="tg-action-icon tg-action-icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
+      <span class="tg-action-text"><span class="tg-action-title">Vakansiya</span></span>
+      <span class="tg-action-chevron">&rsaquo;</span>
     </a>
   </div>
+
+  <div class="tg-profil-footer">VIP Raqamlar &middot; Mini App</div>
 </section>
 
 <section class="daily-deal-section" id="dailyDealSection" style="display:none;">
@@ -7946,6 +8076,31 @@ function syncProfilLangButtons(){
   });
 });
 syncProfilLangButtons();
+
+// "Mavzu" segmenti — hozircha faqat KO'RINISH: saytda bitta (tungi/neon-
+// ko'k) mavzu bor, shu sabab "Tizim"/"Yorug'" bosilganda haqiqiy rang
+// almashtirilmaydi, faqat tushuntirish xabari ko'rsatiladi (yangi, sinovdan
+// o'tmagan mantiq yozmaslik uchun ataylab shunday qilingan).
+(function(){
+  const pill = document.getElementById('profilThemePill');
+  if(!pill) return;
+  pill.querySelectorAll('.seg-pill-option').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const theme = btn.dataset.theme;
+      pill.querySelectorAll('.seg-pill-option').forEach(b=> b.classList.toggle('active', b === btn));
+      if(theme !== 'dark'){
+        const msg = "Hozircha faqat tungi mavzu mavjud. Tez orada qo'shamiz!";
+        try{
+          if(window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.showAlert === 'function'){
+            window.Telegram.WebApp.showAlert(msg);
+          } else {
+            alert(msg);
+          }
+        }catch(e){}
+      }
+    });
+  });
+})();
 
 // RELS video oynasi yopilganda — nav ko'rsatkichi avvalgi (haqiqiy) bo'limga qaytadi
 const reelsOverlayEl = document.getElementById('reelsOverlay');
