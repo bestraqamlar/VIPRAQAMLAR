@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>VIP Raqamlar — Mini App</title>
+<!--
+  MUHIM: bu fayl MIJOZLAR SAYTI (index.html) BILAN HECH QANDAY ALOQASI YO'Q —
+  butunlay ALOHIDA, "0 dan" qurilgan Telegram Mini App. index.html'ga bu
+  loyihada SIRA tegilmagan va tegilmaydi ham. Ikkalasi faqat BIR XIL
+  Firebase bazasi (raqamlar, buyurtmalar) va bir xil Netlify funksiyalarini
+  (backend) ISHLATADI — bu xavfsiz, chunki backend allaqachon sinovdan
+  o'tgan, faqat old tomon (HTML/CSS/JS ko'rinishi) mustaqil va yangi.
+
+  Dizayn namunasi: mijoz yuborgan "Obuna+" Telegram Mini App skrinshotlari
+  (to'q fon, minimal, neon-ko'k urg'u, segmentlangan pill tugmalar, yagona
+  ro'yxat-kartochka + chevron qatorlar, pastda suzuvchi pill navigatsiya).
+-->
+<link rel="icon" type="image/png" sizes="256x256" href="assets/logo-circle.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="preconnect" href="https://telegram.org" crossorigin>
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
+<!-- "async" — sahifa darhol ko'rinishi uchun (telegram-web-app.js yuklanishini
+     KUTMAYDI), qarang: pastdagi initTelegram() qayta urinish mexanizmi. -->
+<script src="https://telegram.org/js/telegram-web-app.js" async></script>
+<!-- MUHIM: mavzu (dark/light) CSS chizilishidan OLDIN, sinxron tarzda
+     tanlanadi — aks holda birinchi kadrda noto'g'ri rang miltillab
+     ko'rinib ketadi ("flash"). Saqlangan tanlov bo'lmasa — standart
+     TUNGI (dark) bilan boshlanadi. -->
+<script>
+(function(){
+  try{
+    var choice = localStorage.getItem('vipTgTheme') || 'dark';
+    var resolved = choice;
+    if(choice === 'system'){
+      resolved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', resolved);
+  }catch(e){ document.documentElement.setAttribute('data-theme', 'dark'); }
+})();
+</script>
+<style>
+  /* ===== MAVZU (Tizim/Yorug'/Tungi) — HAQIQIY ikkita palitra, JS
+     <html data-theme="dark|light"> atributini qo'yadi. "Tizim" tanlansa
+     JS qurilma sozlamasiga (prefers-color-scheme) qarab ikkalasidan
+     birini avtomatik tanlaydi va real vaqtda kuzatib turadi. ===== */
+  :root, :root[data-theme="dark"]{
+    --bg:#020305;
+    --panel:#111318;
+    --panel-2:#191c22;
+    --line:#26292f;
+    --text:#F2F4F8;
+    --muted:#8A8F99;
+    --accent:#4F8CFF;
+    --accent-2:#7C6CF0;
+    --accent-soft:rgba(79,140,255,0.16);
+    --green:#2ECC81;
+    --amber:#FFAB40;
+    --danger:#FF5C5C;
+    --safe-b:env(safe-area-inset-bottom, 0px);
+    --safe-t:env(safe-area-inset-top, 0px);
+    --bg-glow:rgba(79,140,255,0.12);
+    --nav-bg:rgba(17,19,24,0.88);
+    --nav-border:rgba(255,255,255,0.08);
+  }
+  :root[data-theme="light"]{
+    --bg:#F3F5FA;
+    --panel:#FFFFFF;
+    --panel-2:#F0F2F8;
+    --line:#E2E6F0;
+    --text:#12141B;
+    --muted:#6B7280;
+    --accent:#3B72E0;
+    --accent-2:#7C6CF0;
+    --accent-soft:rgba(59,114,224,0.12);
+    --green:#1FA968;
+    --amber:#E08A00;
+    --danger:#E0453B;
+    --bg-glow:rgba(59,114,224,0.10);
+    --nav-bg:rgba(255,255,255,0.86);
+    --nav-border:rgba(20,45,110,0.10);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    background-image:radial-gradient(ellipse 70vw 50vh at 50% -10%, var(--bg-glow), transparent 60%);
+    transition:background-color .2s ease, color .2s ease;
+    color:var(--text);
+    font-family:'Nunito',sans-serif;
+    min-height:100vh;
+    padding-bottom:calc(92px + var(--safe-b));
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.sora{font-family:'Sora',sans-serif;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+
+  /* ===== Boshlang'ich yuklanish skeleti — sahifa DARHOL ko'rinadi,
+     Firestore ma'lumoti orqa fonda keladi (mijoz "tez ochilishi" talab
+     qilgan, avvalgi saytdagi tajriba shu yerga ham qo'llanildi). ===== */
+  #bootSpinner{
+    position:fixed;inset:0;z-index:999;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .25s ease;
+  }
+  #bootSpinner.hide{opacity:0;pointer-events:none;}
+  .boot-ring{width:38px;height:38px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  header.app-top{
+    padding:calc(14px + var(--safe-t)) 16px 10px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .app-top img{width:26px;height:26px;border-radius:7px;}
+  .app-top .wordmark{font-weight:800;font-size:15px;letter-spacing:.2px;}
+  .app-top .wordmark b{color:var(--accent);}
+
+  main{padding-top:2px;}
+  .tg-screen{display:none;padding-bottom:10px;}
+  .tg-screen.active{display:block;animation:screenIn .22s cubic-bezier(.22,.8,.3,1);}
+  @keyframes screenIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ===== Umumiy komponentlar ===== */
+  .greeting-card{
+    margin:0 16px 14px;background:linear-gradient(150deg, var(--panel) 0%, var(--panel-2) 100%);
+    border:1px solid var(--line);border-radius:16px;padding:16px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .greeting-avatar{
+    width:46px;height:46px;border-radius:50%;flex-shrink:0;overflow:hidden;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;
+    box-shadow:0 4px 14px rgba(124,108,240,0.35);
+  }
+  .greeting-avatar img{width:100%;height:100%;object-fit:cover;}
+  .greeting-hello{font-weight:800;font-size:16px;}
+  .greeting-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  .section-title{
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.4px;margin:0 16px 8px;
+  }
+  .ticket-card{
+    margin:0 16px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:22px 16px;text-align:center;
+  }
+  .ticket-card .ticket-emoji{font-size:30px;margin-bottom:8px;}
+  .ticket-card .ticket-msg{color:var(--muted);font-size:13px;margin-bottom:12px;}
+  .ticket-card .ticket-btn{
+    background:var(--accent-soft);border:1px solid rgba(79,140,255,0.4);color:var(--accent);
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;padding:9px 16px;border-radius:10px;cursor:pointer;
+  }
+
+  .action-card{margin:0 16px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+  .action-row{
+    width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;
+    background:transparent;border:none;border-bottom:1px solid var(--line);
+    color:var(--text);text-align:left;cursor:pointer;text-decoration:none;font-family:inherit;
+  }
+  .action-row:last-child{border-bottom:none;}
+  .action-row:active{background:var(--panel-2);}
+  .action-icon{width:36px;height:36px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .action-icon svg{width:18px;height:18px;}
+  .ic-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
+  .ic-purple{background:rgba(124,108,240,0.18);color:#9C8CFF;}
+  .ic-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
+  .ic-amber{background:rgba(255,171,64,0.18);color:#FFAB40;}
+  .ic-gray{background:var(--panel-2);color:var(--muted);}
+  .action-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .action-title{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;}
+  .action-sub{font-size:11.5px;color:var(--muted);}
+  .action-chevron{font-size:19px;line-height:1;color:var(--muted);flex-shrink:0;}
+
+  .seg-pill{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;}
+  .seg-pill-option{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;border-radius:9px;
+    background:transparent;border:none;color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:12px;
+    cursor:pointer;transition:all .15s ease;
+  }
+  .seg-pill-option.active{background:linear-gradient(135deg, var(--accent), var(--accent-2));color:#fff;box-shadow:0 3px 10px rgba(79,140,255,0.35);}
+  .profile-block{margin:0 16px 14px;}
+
+  .footer-note{text-align:center;color:var(--muted);font-size:11px;margin:18px 0 6px;letter-spacing:.3px;}
+
+  /* ===== Katalog ===== */
+  .catalog-search-wrap{margin:0 16px 10px;}
+  .catalog-search{
+    display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+    border-radius:13px;padding:11px 14px;
+  }
+  .catalog-search svg{width:17px;height:17px;color:var(--muted);flex-shrink:0;}
+  .catalog-search input{
+    flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14.5px;font-family:'Sora',sans-serif;
+    letter-spacing:.5px;
+  }
+  .catalog-search input::placeholder{color:var(--muted);font-family:'Nunito',sans-serif;letter-spacing:0;}
+  .op-chip-row{display:flex;gap:7px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;}
+  .op-chip-row::-webkit-scrollbar{display:none;}
+  .op-chip{
+    flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 13px;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
+  }
+  .op-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:8px;}
+  .num-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .num-card-main{flex:1;min-width:0;}
+  .num-card-number{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;letter-spacing:.3px;}
+  .num-card-meta{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11.5px;color:var(--muted);}
+  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .num-card-price{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;color:var(--green);white-space:nowrap;}
+  .num-card-btn{
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;padding:9px 12px;border-radius:10px;cursor:pointer;flex-shrink:0;
+  }
+  .num-card-btn:active{transform:scale(0.95);}
+  .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;}
+  .catalog-loading .boot-ring{margin:0 auto 12px;}
+
+  /* ===== Modal (Buyurtmalarim) ===== */
+  .modal-overlay{
+    position:fixed;inset:0;z-index:500;background:rgba(2,3,5,0.72);backdrop-filter:blur(4px);
+    display:none;align-items:flex-end;justify-content:center;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-sheet{
+    width:100%;max-width:480px;background:var(--panel);border:1px solid var(--line);border-bottom:none;
+    border-radius:20px 20px 0 0;padding:18px 16px calc(20px + var(--safe-b));
+    max-height:80vh;overflow-y:auto;animation:sheetUp .22s cubic-bezier(.22,.8,.3,1);
+  }
+  @keyframes sheetUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px;}
+  .modal-title{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;margin-bottom:4px;}
+  .modal-sub{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+  .modal-close{position:absolute;top:14px;right:16px;background:var(--panel-2);border:1px solid var(--line);width:30px;height:30px;border-radius:50%;color:var(--muted);cursor:pointer;font-size:15px;}
+  .field-label{font-size:11.5px;color:var(--muted);font-weight:700;margin:0 2px 6px;}
+  .field-input{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:12px 14px;
+    color:var(--text);font-size:14px;font-family:'Nunito',sans-serif;margin-bottom:12px;outline:none;
+  }
+  .field-input:focus{border-color:var(--accent);}
+  .modal-submit{
+    width:100%;background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;
+  }
+  .modal-error{color:var(--danger);font-size:12.5px;margin:-4px 0 12px;display:none;}
+  .order-result-row{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13px;}
+  .order-result-row .or-num{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;margin-bottom:4px;}
+  .order-result-row .or-line{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:2px 0;}
+  .order-result-row .or-line b{color:var(--text);font-weight:700;}
+
+  /* ===== Pastki suzuvchi pill navigatsiya ===== */
+  .bottom-nav{
+    position:fixed;left:14px;right:14px;bottom:calc(12px + var(--safe-b));z-index:60;
+    display:flex;background:var(--nav-bg);-webkit-backdrop-filter:blur(20px) saturate(140%);
+    backdrop-filter:blur(20px) saturate(140%);border:1px solid var(--nav-border);border-radius:20px;
+    padding:6px;box-shadow:0 -6px 20px -8px rgba(0,0,0,0.35), 0 16px 36px rgba(0,0,0,0.28);
+  }
+  .bn-tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    padding:8px 4px;border-radius:14px;background:none;border:none;color:var(--muted);cursor:pointer;
+  }
+  .bn-tab svg{width:21px;height:21px;}
+  .bn-tab span{font-family:'Sora',sans-serif;font-weight:700;font-size:10px;}
+  .bn-tab.active{color:#fff;background:linear-gradient(160deg, rgba(79,140,255,0.32), rgba(124,108,240,0.20));}
+  .bn-tab.active svg{filter:drop-shadow(0 0 5px rgba(79,140,255,0.55));}
+</style>
+</head>
+<body>
+
+<div id="bootSpinner"><div class="boot-ring"></div></div>
+
+<header class="app-top">
+  <img src="assets/logo-circle.png?v=2" alt="VIP Raqamlar">
+  <div class="wordmark">VIP <b>Raqamlar</b></div>
+</header>
+
+<main>
+  <!-- ================= BOSH SAHIFA ================= -->
+  <section class="tg-screen active" id="screen-home">
+    <div class="greeting-card">
+      <div class="greeting-avatar" id="homeAvatar">👤</div>
+      <div>
+        <div class="greeting-hello" id="homeHello">Salom!</div>
+        <div class="greeting-sub" data-i18n="homeGreetingSub">VIP Raqamlar mini ilovasiga xush kelibsiz</div>
+      </div>
+    </div>
+
+    <div class="section-title" data-i18n="activeOrdersTitle">Faol buyurtmalar</div>
+    <div class="ticket-card">
+      <div class="ticket-emoji">🎫</div>
+      <div class="ticket-msg" data-i18n="ticketMsg">Hali buyurtmalaringizni ko'rmadingiz</div>
+      <button class="ticket-btn" id="homeCheckOrdersBtn" data-i18n="ticketBtn">Tekshirish</button>
+    </div>
+
+    <div class="section-title" data-i18n="quickActionsTitle">Tezkor harakatlar</div>
+    <div class="action-card">
+      <button type="button" class="action-row" id="qaCatalog">
+        <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="qaCatalogTitle">Raqam qidirish</span><span class="action-sub" data-i18n="qaCatalogSub">Katalog bo'yicha qidiruv</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="qaBot">
+        <span class="action-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="qaBotTitle">Bot orqali buyurtma</span><span class="action-sub" data-i18n="qaBotSub">To'liq buyurtma jarayoni</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="qaOrders">
+        <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="qaOrdersTitle">Buyurtmalarim</span><span class="action-sub" data-i18n="qaOrdersSub">Telefon orqali qidirish</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="qaContact">
+        <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="qaContactTitle">Bog'lanish</span><span class="action-sub" data-i18n="qaContactSub">Call Markaz bilan aloqa</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+    </div>
+
+    <div class="section-title" data-i18n="helpTitle">Yordam</div>
+    <div class="action-card">
+      <a href="#" class="action-row" id="qaSupport">
+        <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="supportTitle">Qo'llab-quvvatlash</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= KATALOG ================= -->
+  <section class="tg-screen" id="screen-catalog">
+    <div class="catalog-search-wrap">
+      <div class="catalog-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="tel" inputmode="numeric" id="catalogSearchInput" data-i18n-ph="catalogPlaceholder" placeholder="Raqam qidirish (masalan 90 123)" maxlength="13">
+      </div>
+    </div>
+    <div class="op-chip-row" id="opChipRow">
+      <button type="button" class="op-chip active" data-op="" data-i18n="chipAll">Barchasi</button>
+      <button type="button" class="op-chip" data-op="Beeline">Beeline</button>
+      <button type="button" class="op-chip" data-op="Ucell">Ucell</button>
+      <button type="button" class="op-chip" data-op="Uzmobile">Uzmobile</button>
+      <button type="button" class="op-chip" data-op="Mobiuz">Mobiuz</button>
+      <button type="button" class="op-chip" data-op="Humans">Humans</button>
+      <button type="button" class="op-chip" data-op="Perfektum">Perfektum</button>
+    </div>
+    <div class="catalog-list" id="catalogList">
+      <div class="catalog-loading" id="catalogLoading"><div class="boot-ring"></div><span data-i18n="catalogLoadingText">Raqamlar yuklanmoqda…</span></div>
+    </div>
+  </section>
+
+  <!-- ================= PROFIL ================= -->
+  <section class="tg-screen" id="screen-profile">
+    <div class="greeting-card">
+      <div class="greeting-avatar" id="profAvatar">👤</div>
+      <div>
+        <div class="greeting-hello" id="profHello">Mijoz</div>
+        <div class="greeting-sub" data-i18n="profGreetingSub">Profil va sozlamalar</div>
+      </div>
+    </div>
+
+    <div class="profile-block">
+      <div class="section-title" style="margin:0 0 8px;" data-i18n="langTitle">Til</div>
+      <div class="seg-pill" id="langPill">
+        <button type="button" class="seg-pill-option active" data-lang="uz">O'zbekcha</button>
+        <button type="button" class="seg-pill-option" data-lang="ru">Русский</button>
+        <button type="button" class="seg-pill-option" data-lang="en">English</button>
+      </div>
+    </div>
+
+    <div class="profile-block">
+      <div class="section-title" style="margin:0 0 8px;" data-i18n="themeTitle">Mavzu</div>
+      <div class="seg-pill" id="themePill">
+        <button type="button" class="seg-pill-option" data-theme="system" data-i18n="themeSystem">Tizim</button>
+        <button type="button" class="seg-pill-option" data-theme="light" data-i18n="themeLight">Yorug'</button>
+        <button type="button" class="seg-pill-option active" data-theme="dark" data-i18n="themeDark">Tungi</button>
+      </div>
+    </div>
+
+    <div class="section-title" data-i18n="sectionsTitle">Bo'limlar</div>
+    <div class="action-card">
+      <button type="button" class="action-row" id="profOrders">
+        <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="qaOrdersTitle">Buyurtmalarim</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="profBot">
+        <span class="action-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="profBotTitle">Bot orqali raqam tanlash</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <a href="#" class="action-row" id="profContact">
+        <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="qaContactTitle">Call Markaz</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </a>
+      <a href="#" class="action-row" id="profTelegram">
+        <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="profTelegramTitle">Telegram kanal</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </a>
+      <a href="#" class="action-row" id="profInstagram">
+        <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="profInstagramTitle">Instagram kanal</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </a>
+    </div>
+
+    <div class="footer-note" data-i18n="footerNote">VIP Raqamlar &middot; Mini App</div>
+  </section>
+</main>
+
+<!-- ================= Buyurtmalarim modali ================= -->
+<div class="modal-overlay" id="ordersModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="ordersModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="qaOrdersTitle">Buyurtmalarim</div>
+    <div class="modal-sub" data-i18n="modalSub">Xavfsizlik uchun telefon raqamingiz VA sotib olingan/buyurtma berilgan raqamning oxirgi 4 raqami kerak.</div>
+    <div id="ordersFormView">
+      <div class="field-label" data-i18n="fieldPhone">Telefon raqami</div>
+      <input class="field-input" id="ordersPhoneInput" type="tel" inputmode="numeric" placeholder="+998 90 123 45 67" maxlength="19">
+      <div class="field-label" data-i18n="fieldLast4">Raqamning oxirgi 4 ta raqami</div>
+      <input class="field-input" id="ordersLast4Input" type="tel" inputmode="numeric" placeholder="1234" maxlength="4">
+      <div class="modal-error" id="ordersError"></div>
+      <button class="modal-submit" id="ordersSubmitBtn"><span id="ordersSubmitLabel" data-i18n="submitSearch">Qidirish</span></button>
+    </div>
+    <div id="ordersResultView" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ================= Pastki navigatsiya ================= -->
+<nav class="bottom-nav" id="bottomNav">
+  <button type="button" class="bn-tab active" data-screen="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+    <span data-i18n="navHome">Asosiy</span>
+  </button>
+  <button type="button" class="bn-tab" data-screen="catalog">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <span data-i18n="navCatalog">Raqamlar</span>
+  </button>
+  <button type="button" class="bn-tab" data-screen="profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+    <span data-i18n="navProfile">Profil</span>
+  </button>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
+<script>
+/* =========================================================
+   TELEGRAM WEBAPP ULASH — telegram-web-app.js "async" bilan
+   yuklangani sabab hali tayyor bo'lmasligi mumkin, shu sabab
+   bir necha marta qayta urinamiz (index.html'dagi bilan bir xil
+   naqsh, sinovdan o'tgan). Bu yerda hech qanday tema/rang
+   o'zgartirish YO'Q — butun sahifaning o'zi allaqachon mustaqil
+   neon-ko'k dizaynda, saytga tegishli emas.
+   ========================================================= */
+let __tg = null;
+function initTelegram(){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if(tg){
+      __tg = tg;
+      tg.ready();
+      tg.expand();
+      try{ tg.disableVerticalSwipes && tg.disableVerticalSwipes(); }catch(e){}
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+if(!initTelegram()){
+  let tries = 0;
+  const retry = setInterval(()=>{
+    tries++;
+    if(initTelegram() || tries >= 15) clearInterval(retry);
+  }, 200);
+}
+
+/* =========================================================
+   FIREBASE — mijozlar saytidagi (index.html) BILAN AYNAN BIR
+   XIL konfiguratsiya va App Check kaliti (bitta umumiy baza).
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAZVM_C5tRYe77j4OvQtrBhV3dpEZAxk_A",
+  authDomain: "vip-raqamlar.firebaseapp.com",
+  projectId: "vip-raqamlar",
+  storageBucket: "vip-raqamlar.firebasestorage.app",
+  messagingSenderId: "872049914686",
+  appId: "1:872049914686:web:32fd7945238fdbf5eeb26f",
+  measurementId: "G-SB37FEXJ0F"
+};
+firebase.initializeApp(firebaseConfig);
+firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
+const db = firebase.firestore();
+try{ db.settings({ experimentalAutoDetectLongPolling: true }); }catch(e){}
+async function getAppCheckHeaders(){
+  try{
+    const t = await firebase.appCheck().getToken();
+    return { 'X-Firebase-AppCheck': t.token };
+  }catch(e){ return {}; }
+}
+
+const BOT_LINK = 'https://t.me/vipraqambot';
+const OPERATOR_COLORS = {
+  Mobiuz:'#C0392B', Beeline:'#B8860B', Ucell:'#8E5BA6', Uzmobile:'#2E63C7', Humans:'#A8791B', Perfektum:'#D9541F'
+};
+
+/* =========================================================
+   TIL (uz/ru/en) — HAQIQIY, ishlaydigan tarjima. Mijoz "tez orada
+   emas, ishlat" dedi — shu sabab bu safar chinakam almashtiradi,
+   soxta xabar YO'Q. Tanlov qurilmada saqlanadi (localStorage), shu
+   sabab keyingi safar ilova ochilganda ham eslab qoladi.
+   ========================================================= */
+const TRANSLATIONS = {
+  uz: {
+    homeGreetingSub: "VIP Raqamlar mini ilovasiga xush kelibsiz",
+    helloPlain: "Salom!",
+    helloName: "Salom, {name}!",
+    defaultUser: "Mijoz",
+    activeOrdersTitle: "Faol buyurtmalar",
+    ticketMsg: "Hali buyurtmalaringizni ko'rmadingiz",
+    ticketBtn: "Tekshirish",
+    quickActionsTitle: "Tezkor harakatlar",
+    qaCatalogTitle: "Raqam qidirish", qaCatalogSub: "Katalog bo'yicha qidiruv",
+    qaBotTitle: "Bot orqali buyurtma", qaBotSub: "To'liq buyurtma jarayoni",
+    qaOrdersTitle: "Buyurtmalarim", qaOrdersSub: "Telefon orqali qidirish",
+    qaContactTitle: "Bog'lanish", qaContactSub: "Call Markaz bilan aloqa",
+    helpTitle: "Yordam", supportTitle: "Qo'llab-quvvatlash",
+    catalogPlaceholder: "Raqam qidirish (masalan 90 123)",
+    chipAll: "Barchasi",
+    catalogLoadingText: "Raqamlar yuklanmoqda…",
+    catalogLoadError: "Raqamlarni yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring.",
+    catalogEmpty: "Bunday raqam topilmadi.",
+    orderBtn: "Buyurtma",
+    profGreetingSub: "Profil va sozlamalar",
+    langTitle: "Til", themeTitle: "Mavzu",
+    themeSystem: "Tizim", themeLight: "Yorug'", themeDark: "Tungi",
+    sectionsTitle: "Bo'limlar",
+    profBotTitle: "Bot orqali raqam tanlash",
+    profTelegramTitle: "Telegram kanal", profInstagramTitle: "Instagram kanal",
+    footerNote: "VIP Raqamlar · Mini App",
+    modalSub: "Xavfsizlik uchun telefon raqamingiz VA sotib olingan/buyurtma berilgan raqamning oxirgi 4 raqami kerak.",
+    fieldPhone: "Telefon raqami", fieldLast4: "Raqamning oxirgi 4 ta raqami",
+    submitSearch: "Qidirish", submitSearching: "Qidirilmoqda…",
+    errIncomplete: "Telefon raqami va oxirgi 4 raqamni to'liq kiriting",
+    errNotFound: "Bu ma'lumotlarga tegishli buyurtma topilmadi.",
+    errGeneric: "Xato: ",
+    resultPrice: "Narxi", resultStatus: "Holati", backBtn: "Orqaga",
+    navHome: "Asosiy", navCatalog: "Raqamlar", navProfile: "Profil",
+    priceSuffix: "so'm",
+    selectedNumberAlert: "Tanlangan raqam: {number}\n\nBuyurtmani yakunlash uchun botga o'tasiz."
+  },
+  ru: {
+    homeGreetingSub: "Добро пожаловать в мини-приложение VIP Raqamlar",
+    helloPlain: "Привет!",
+    helloName: "Привет, {name}!",
+    defaultUser: "Клиент",
+    activeOrdersTitle: "Активные заказы",
+    ticketMsg: "У вас пока нет заказов",
+    ticketBtn: "Проверить",
+    quickActionsTitle: "Быстрые действия",
+    qaCatalogTitle: "Поиск номера", qaCatalogSub: "Поиск по каталогу",
+    qaBotTitle: "Заказ через бота", qaBotSub: "Полный процесс заказа",
+    qaOrdersTitle: "Мои заказы", qaOrdersSub: "Поиск по номеру телефона",
+    qaContactTitle: "Связаться", qaContactSub: "Связь с колл-центром",
+    helpTitle: "Помощь", supportTitle: "Поддержка",
+    catalogPlaceholder: "Поиск номера (например 90 123)",
+    chipAll: "Все",
+    catalogLoadingText: "Загрузка номеров…",
+    catalogLoadError: "Не удалось загрузить номера. Проверьте интернет и попробуйте снова.",
+    catalogEmpty: "Такой номер не найден.",
+    orderBtn: "Заказать",
+    profGreetingSub: "Профиль и настройки",
+    langTitle: "Язык", themeTitle: "Тема",
+    themeSystem: "Система", themeLight: "Светлая", themeDark: "Тёмная",
+    sectionsTitle: "Разделы",
+    profBotTitle: "Выбор номера через бота",
+    profTelegramTitle: "Telegram канал", profInstagramTitle: "Instagram канал",
+    footerNote: "VIP Raqamlar · Mini App",
+    modalSub: "Для безопасности нужен ваш номер телефона И последние 4 цифры купленного/заказанного номера.",
+    fieldPhone: "Номер телефона", fieldLast4: "Последние 4 цифры номера",
+    submitSearch: "Искать", submitSearching: "Поиск…",
+    errIncomplete: "Введите номер телефона и последние 4 цифры полностью",
+    errNotFound: "Заказ с такими данными не найден.",
+    errGeneric: "Ошибка: ",
+    resultPrice: "Цена", resultStatus: "Статус", backBtn: "Назад",
+    navHome: "Главная", navCatalog: "Номера", navProfile: "Профиль",
+    priceSuffix: "сум",
+    selectedNumberAlert: "Выбранный номер: {number}\n\nДля завершения заказа перейдите в бот."
+  },
+  en: {
+    homeGreetingSub: "Welcome to the VIP Raqamlar mini app",
+    helloPlain: "Hello!",
+    helloName: "Hello, {name}!",
+    defaultUser: "Customer",
+    activeOrdersTitle: "Active orders",
+    ticketMsg: "You don't have any orders yet",
+    ticketBtn: "Check",
+    quickActionsTitle: "Quick actions",
+    qaCatalogTitle: "Search numbers", qaCatalogSub: "Search the catalog",
+    qaBotTitle: "Order via bot", qaBotSub: "Full order process",
+    qaOrdersTitle: "My orders", qaOrdersSub: "Search by phone number",
+    qaContactTitle: "Contact", qaContactSub: "Reach the call center",
+    helpTitle: "Help", supportTitle: "Support",
+    catalogPlaceholder: "Search a number (e.g. 90 123)",
+    chipAll: "All",
+    catalogLoadingText: "Loading numbers…",
+    catalogLoadError: "Couldn't load numbers. Check your connection and try again.",
+    catalogEmpty: "No matching number found.",
+    orderBtn: "Order",
+    profGreetingSub: "Profile and settings",
+    langTitle: "Language", themeTitle: "Theme",
+    themeSystem: "System", themeLight: "Light", themeDark: "Dark",
+    sectionsTitle: "Sections",
+    profBotTitle: "Choose a number via bot",
+    profTelegramTitle: "Telegram channel", profInstagramTitle: "Instagram channel",
+    footerNote: "VIP Raqamlar · Mini App",
+    modalSub: "For security we need your phone number AND the last 4 digits of the purchased/ordered number.",
+    fieldPhone: "Phone number", fieldLast4: "Last 4 digits of the number",
+    submitSearch: "Search", submitSearching: "Searching…",
+    errIncomplete: "Enter the full phone number and last 4 digits",
+    errNotFound: "No order found for this information.",
+    errGeneric: "Error: ",
+    resultPrice: "Price", resultStatus: "Status", backBtn: "Back",
+    navHome: "Home", navCatalog: "Numbers", navProfile: "Profile",
+    priceSuffix: "UZS",
+    selectedNumberAlert: "Selected number: {number}\n\nYou'll be taken to the bot to finish the order."
+  }
+};
+let currentLang = 'uz';
+function t(key, vars){
+  let str = (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS.uz[key] || key;
+  if(vars){
+    Object.keys(vars).forEach(k=>{ str = str.replace('{' + k + '}', vars[k]); });
+  }
+  return str;
+}
+function saveLangChoice(lang){
+  try{ localStorage.setItem('vipTgLang', lang); }catch(e){}
+  try{ __tg && __tg.CloudStorage && __tg.CloudStorage.setItem && __tg.CloudStorage.setItem('vipTgLang', lang, function(){}); }catch(e){}
+}
+function loadLangChoice(){
+  try{ return localStorage.getItem('vipTgLang') || 'uz'; }catch(e){ return 'uz'; }
+}
+function applyLanguage(lang, persist){
+  currentLang = TRANSLATIONS[lang] ? lang : 'uz';
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('#langPill .seg-pill-option').forEach(b=> b.classList.toggle('active', b.dataset.lang === currentLang));
+  renderGreeting();
+  renderCatalog();
+  if(persist) saveLangChoice(currentLang);
+}
+
+/* =========================================================
+   MAVZU (Tizim/Yorug'/Tungi) — HAQIQIY almashtiradi (CSS
+   o'zgaruvchilari <html data-theme> orqali), soxta xabar YO'Q.
+   "Tizim" tanlansa qurilma sozlamasini kuzatib, real vaqtda
+   o'zgaradi.
+   ========================================================= */
+let currentThemeChoice = 'dark';
+function systemPrefersDark(){
+  try{ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return true; }
+}
+function resolveTheme(choice){
+  if(choice === 'system') return systemPrefersDark() ? 'dark' : 'light';
+  return choice === 'light' ? 'light' : 'dark';
+}
+function saveThemeChoice(choice){
+  try{ localStorage.setItem('vipTgTheme', choice); }catch(e){}
+  try{ __tg && __tg.CloudStorage && __tg.CloudStorage.setItem && __tg.CloudStorage.setItem('vipTgTheme', choice, function(){}); }catch(e){}
+}
+function loadThemeChoice(){
+  try{ return localStorage.getItem('vipTgTheme') || 'dark'; }catch(e){ return 'dark'; }
+}
+function applyTheme(choice, persist){
+  currentThemeChoice = choice;
+  document.documentElement.setAttribute('data-theme', resolveTheme(choice));
+  document.querySelectorAll('#themePill .seg-pill-option').forEach(b=> b.classList.toggle('active', b.dataset.theme === choice));
+  if(persist) saveThemeChoice(choice);
+}
+try{
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+      if(currentThemeChoice === 'system') applyTheme('system', false);
+    });
+  }
+}catch(e){}
+
+function formatPrice(n){
+  const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
+  return num + ' ' + t('priceSuffix');
+}
+function openBot(){
+  try{
+    if(__tg && typeof __tg.openTelegramLink === 'function'){ __tg.openTelegramLink(BOT_LINK); return; }
+  }catch(e){}
+  window.open(BOT_LINK, '_blank');
+}
+function openExternal(url){
+  if(!url || url === '#') return;
+  try{
+    if(__tg && typeof __tg.openLink === 'function'){ __tg.openLink(url); return; }
+  }catch(e){}
+  window.open(url, '_blank');
+}
+function tgAlert(msg){
+  try{
+    if(__tg && typeof __tg.showAlert === 'function'){ __tg.showAlert(msg); return; }
+  }catch(e){}
+  alert(msg);
+}
+
+/* =========================================================
+   EKRANLAR ORASIDA O'TISH (Asosiy / Raqamlar / Profil)
+   ========================================================= */
+function switchScreen(name){
+  document.querySelectorAll('.tg-screen').forEach(s=>{
+    s.classList.toggle('active', s.id === 'screen-' + name);
+  });
+  document.querySelectorAll('.bn-tab').forEach(b=>{
+    b.classList.toggle('active', b.dataset.screen === name);
+  });
+  window.scrollTo({ top:0, behavior:'auto' });
+}
+document.querySelectorAll('.bn-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchScreen(btn.dataset.screen));
+});
+
+/* =========================================================
+   SALOMLASHUV — Telegram foydalanuvchi ismi/rasmi (bor bo'lsa)
+   ========================================================= */
+function getTgUser(){
+  try{
+    return (__tg && __tg.initDataUnsafe && __tg.initDataUnsafe.user) || null;
+  }catch(e){ return null; }
+}
+function renderGreeting(){
+  const u = getTgUser();
+  const name = u && u.first_name ? String(u.first_name).trim() : '';
+  const helloTxt = name ? t('helloName', { name: name }) : t('helloPlain');
+  const initial = name ? name.charAt(0).toUpperCase() : '👤';
+  const photo = u && u.photo_url ? u.photo_url : '';
+
+  const homeHello = document.getElementById('homeHello');
+  const homeAvatar = document.getElementById('homeAvatar');
+  const profHello = document.getElementById('profHello');
+  const profAvatar = document.getElementById('profAvatar');
+  if(homeHello) homeHello.textContent = helloTxt;
+  if(profHello) profHello.textContent = name || t('defaultUser');
+  [homeAvatar, profAvatar].forEach(el=>{
+    if(!el) return;
+    el.innerHTML = photo ? `<img src="${photo}" alt="">` : initial;
+  });
+}
+renderGreeting();
+let __greetTries = 0;
+const __greetRetry = setInterval(()=>{
+  __greetTries++;
+  renderGreeting();
+  if(getTgUser() || __greetTries >= 15) clearInterval(__greetRetry);
+}, 200);
+
+/* =========================================================
+   "Bosh sahifa" tezkor harakatlar + Yordam
+   ========================================================= */
+document.getElementById('qaCatalog').addEventListener('click', ()=> switchScreen('catalog'));
+document.getElementById('qaBot').addEventListener('click', openBot);
+document.getElementById('qaOrders').addEventListener('click', ()=> openOrdersModal());
+document.getElementById('homeCheckOrdersBtn').addEventListener('click', ()=> openOrdersModal());
+document.getElementById('qaContact').addEventListener('click', ()=> openExternal(SITE_LINKS.contactLink));
+document.getElementById('qaSupport').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.contactLink); });
+
+/* =========================================================
+   Profil — Til / Mavzu — HAQIQIY ishlaydi (qarang: yuqoridagi
+   applyLanguage()/applyTheme()), tanlov qurilmada saqlanadi.
+   ========================================================= */
+document.querySelectorAll('#langPill .seg-pill-option').forEach(btn=>{
+  btn.addEventListener('click', ()=> applyLanguage(btn.dataset.lang, true));
+});
+document.querySelectorAll('#themePill .seg-pill-option').forEach(btn=>{
+  btn.addEventListener('click', ()=> applyTheme(btn.dataset.theme, true));
+});
+document.getElementById('profOrders').addEventListener('click', ()=> openOrdersModal());
+document.getElementById('profBot').addEventListener('click', openBot);
+document.getElementById('profContact').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.contactLink); });
+document.getElementById('profTelegram').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.telegramLink); });
+document.getElementById('profInstagram').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.instagramLink); });
+
+/* =========================================================
+   Sayt sozlamalaridan (site_settings/general) bog'lanish
+   havolalarini olish — index.html BILAN BIR XIL hujjat, shu
+   sabab admin panelda bittasini o'zgartirsa ikkalasida ham
+   yangilanadi.
+   ========================================================= */
+const SITE_LINKS = { telegramLink:'#', instagramLink:'#', contactLink:'#' };
+async function loadSiteLinks(){
+  try{
+    const doc = await db.collection('site_settings').doc('general').get();
+    if(doc.exists){
+      const s = doc.data();
+      if(s.telegramLink) SITE_LINKS.telegramLink = s.telegramLink;
+      if(s.instagramLink) SITE_LINKS.instagramLink = s.instagramLink;
+      if(s.contactLink) SITE_LINKS.contactLink = s.contactLink;
+    }
+  }catch(e){ /* jim — havolalar shunchaki bo'sh qoladi */ }
+}
+loadSiteLinks();
+
+/* =========================================================
+   KATALOG — Firestore'dagi 'numbers' (VIP baza) ustidan
+   qidiruv/filtr. index.html'dagi bilan BIR XIL kolleksiya,
+   lekin bu yerda SODDA, faqat o'qish uchun ishlatiladi —
+   buyurtma berish bosqichi tasdiqlangan, tayyor botga
+   yuboriladi (xavfli, moliyaviy mantiqni qayta yozmaslik
+   uchun ataylab shunday).
+   ========================================================= */
+let NUMBERS = [];
+// null = hali urinilmagan/yuklanmoqda, true = muvaffaqiyatli, false = xato
+let numbersLoaded = null;
+let catalogFilterText = '';
+let catalogFilterOp = '';
+
+async function loadNumbers(){
+  try{
+    const snap = await db.collection('numbers').limit(4000).get();
+    NUMBERS = [];
+    snap.forEach(doc=>{
+      const d = doc.data();
+      if(d.reserved) return; // band qilingan raqamlar ko'rsatilmaydi
+      NUMBERS.push({ id: doc.id, number: d.number, price: d.price, operator: d.operator });
+    });
+    numbersLoaded = true;
+  }catch(e){
+    numbersLoaded = false;
+  }
+  renderCatalog();
+  const boot = document.getElementById('bootSpinner');
+  if(boot) boot.classList.add('hide');
+}
+loadNumbers();
+
+function renderCatalog(){
+  const listEl = document.getElementById('catalogList');
+  if(numbersLoaded === null){
+    listEl.innerHTML = '<div class="catalog-loading"><div class="boot-ring"></div>' + escapeHtml(t('catalogLoadingText')) + '</div>';
+    return;
+  }
+  if(numbersLoaded === false){
+    listEl.innerHTML = '<div class="catalog-loading">' + escapeHtml(t('catalogLoadError')) + '</div>';
+    return;
+  }
+  const digits = catalogFilterText.replace(/\D/g,'');
+  let items = NUMBERS;
+  if(catalogFilterOp) items = items.filter(n=> n.operator === catalogFilterOp);
+  if(digits) items = items.filter(n=> String(n.number || '').replace(/\D/g,'').includes(digits));
+  items = items.slice(0, 60);
+
+  if(items.length === 0){
+    listEl.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('catalogEmpty')) + '</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(n=>{
+    const color = OPERATOR_COLORS[n.operator] || '#6b7280';
+    return `
+      <div class="num-card">
+        <div class="num-card-main">
+          <div class="num-card-number">${escapeHtml(n.number || '')}</div>
+          <div class="num-card-meta"><span class="num-card-op-dot" style="background:${color};"></span>${escapeHtml(n.operator || '')}</div>
+        </div>
+        <div class="num-card-price">${formatPrice(n.price)}</div>
+        <button type="button" class="num-card-btn" data-number="${escapeHtml(n.number || '')}">${escapeHtml(t('orderBtn'))}</button>
+      </div>
+    `;
+  }).join('');
+  listEl.querySelectorAll('.num-card-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tgAlert(t('selectedNumberAlert', { number: btn.dataset.number }));
+      openBot();
+    });
+  });
+}
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+document.getElementById('catalogSearchInput').addEventListener('input', (e)=>{
+  catalogFilterText = e.target.value;
+  renderCatalog();
+});
+document.querySelectorAll('.op-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.op-chip').forEach(c=> c.classList.toggle('active', c===chip));
+    catalogFilterOp = chip.dataset.op || '';
+    renderCatalog();
+  });
+});
+
+/* =========================================================
+   "Buyurtmalarim" modali — check-my-orders.js AYNAN index.html
+   ishlatgani bilan bir xil kontraktda chaqiriladi (telefon +
+   oxirgi 4 raqam -> {ok, orders:[...]}), yangi backend YO'Q.
+   ========================================================= */
+const ordersModal = document.getElementById('ordersModal');
+function openOrdersModal(){
+  document.getElementById('ordersFormView').style.display = 'block';
+  document.getElementById('ordersResultView').style.display = 'none';
+  document.getElementById('ordersError').style.display = 'none';
+  ordersModal.classList.add('open');
+}
+function closeOrdersModal(){ ordersModal.classList.remove('open'); }
+document.getElementById('ordersModalClose').addEventListener('click', closeOrdersModal);
+ordersModal.addEventListener('click', (e)=>{ if(e.target === ordersModal) closeOrdersModal(); });
+
+document.getElementById('ordersSubmitBtn').addEventListener('click', async ()=>{
+  const phoneVal = document.getElementById('ordersPhoneInput').value.replace(/\D/g,'');
+  const last4Val = document.getElementById('ordersLast4Input').value.replace(/\D/g,'');
+  const errEl = document.getElementById('ordersError');
+  errEl.style.display = 'none';
+  if(!phoneVal || phoneVal.length < 9 || last4Val.length !== 4){
+    errEl.textContent = t('errIncomplete');
+    errEl.style.display = 'block';
+    return;
+  }
+  const label = document.getElementById('ordersSubmitLabel');
+  label.textContent = t('submitSearching');
+  try{
+    const res = await fetch('/.netlify/functions/check-my-orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ phone: phoneVal, lastDigits: last4Val })
+    });
+    const result = await res.json();
+    if(!result.ok || !result.orders || result.orders.length === 0){
+      errEl.textContent = result.error || t('errNotFound');
+      errEl.style.display = 'block';
+    }else{
+      renderOrdersResult(result.orders);
+      document.getElementById('ordersFormView').style.display = 'none';
+      document.getElementById('ordersResultView').style.display = 'block';
+    }
+  }catch(err){
+    errEl.textContent = t('errGeneric') + (err && err.message ? err.message : 'unknown');
+    errEl.style.display = 'block';
+  }
+  label.textContent = t('submitSearch');
+});
+function renderOrdersResult(orders){
+  const wrap = document.getElementById('ordersResultView');
+  wrap.innerHTML = orders.map(o=>`
+    <div class="order-result-row">
+      <div class="or-num">${escapeHtml(o.number || '')}</div>
+      <div class="or-line"><span>${escapeHtml(t('resultPrice'))}</span><b>${formatPrice(o.price)}</b></div>
+      <div class="or-line"><span>${escapeHtml(t('resultStatus'))}</span><b>${escapeHtml(o.status || '')}</b></div>
+    </div>
+  `).join('') + '<button class="modal-submit" id="ordersBackBtn" style="margin-top:6px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);">' + escapeHtml(t('backBtn')) + '</button>';
+  document.getElementById('ordersBackBtn').addEventListener('click', ()=>{
+    document.getElementById('ordersFormView').style.display = 'block';
+    wrap.style.display = 'none';
+  });
+}
+
+/* Xavfsizlik to'ri — agar Firestore juda sekin/umuman javob bermasa,
+   6 soniyadan keyin baribir yuklanish ekranini yopamiz (mijoz
+   "ochilmayapti" deb qolib ketmasin uchun). */
+setTimeout(()=>{
+  const boot = document.getElementById('bootSpinner');
+  if(boot && !boot.classList.contains('hide')) boot.classList.add('hide');
+}, 6000);
+
+/* Saqlangan til/mavzu tanlovini qo'llash (localStorage'da bor bo'lsa) —
+   BUTUN skript (barcha funksiya/o'zgaruvchilar, jumladan renderCatalog
+   ishlatadigan "numbersLoaded") allaqachon e'lon qilingandan KEYIN
+   chaqiriladi — shu sabab bu chaqiruv fayl OXIRIDA. "persist" berilmaydi,
+   chunki tanlov ALLAQACHON saqlangan, qayta yozish shart emas. Mavzu
+   uchun <html data-theme> allaqachon <head>dagi bloklovchi skript orqali
+   TO'G'RI qo'yilgan (miltillamaslik uchun) — bu yerda faqat JS holati
+   (pill faollik, matnlar) sinxronlanadi. */
+applyLanguage(loadLangChoice(), false);
+applyTheme(loadThemeChoice(), false);
+</script>
+</body>
+</html>

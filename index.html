@@ -431,179 +431,6 @@
   .mn-tab.active .mn-dot{opacity:1;transform:scale(1);}
   .mn-tab:active{transform:translateY(-1px) scale(0.96);}
 
-  /* ============ TELEGRAM MINI ILOVA — BUTUNLAY ALOHIDA, YANGI DIZAYN
-     ============
-     MUHIM (mijoz aniq talab qildi): bu ENDI oddiy saytning "qayta
-     bo'yalgan" versiyasi EMAS — mijoz yuborgan "Obuna+" namunasi
-     uslubida (juda to'q/deyarli qora fon, minimal bezak, bitta yorqin
-     neon-ko'k urg'u rangi) BUTUNLAY ALOHIDA rang tizimi. Buning uchun
-     saytning O'ZI ishlatadigan CSS o'zgaruvchilari (--amber,
-     --accent-grad-1/2, --panel va h.k.) FAQAT shu html.tg-webapp
-     doirasida QAYTA belgilanadi — bu degani: raqam kartochkalari,
-     tugmalar, belgilar (badge) kabi O'NLAB joyda alohida-alohida CSS
-     yozib chiqmasdan, ular BUTUN saytda ALLAQACHON shu o'zgaruvchilarni
-     ishlatgani uchun, HAMMASI avtomatik yangi (ko'k, to'q, minimal)
-     ko'rinishga o'tadi. Bu — xatosiz, ishonchli yo'l (JS/render kodiga
-     HECH TEGILMAYDI, faqat ranglar manbai almashtiriladi). Oddiy saytda
-     (brauzerda) bu o'zgaruvchilar avvalgidek (oltin/amber) qoladi —
-     :root.tg-webapp faqat <html> ga shu klass qo'shilgan paytda ishga
-     tushadi (qarang: initTelegramIntegration()). */
-  :root.tg-webapp{
-    --bg:#020305;
-    --page-bg:var(--bg);
-    --panel:#111318;
-    --panel-2:#191c22;
-    --line:#26292f;
-    --text:#F2F4F8;
-    --muted:#8A8F99;
-    --amber:#4F8CFF;
-    --amber-soft:rgba(79,140,255,0.16);
-    --accent-grad-1:#4F8CFF;
-    --accent-grad-2:#7C6CF0;
-    --accent-gradient:linear-gradient(120deg, #4F8CFF, #7C6CF0);
-    --btn-bg:#4F8CFF;
-  }
-  /* "Minimal" — fondagi sekin suzuvchi rang-barang nurlar (bodyGlowDrift)
-     va kartalardagi "nafas oluvchi"/rangin animatsiyalar Telegram ichida
-     O'CHIRILADI — juda toza, sokin, deyarli qora fon qoladi (faqat bitta
-     juda xira ko'k nur, chuqurlik hissi uchun). */
-  .tg-webapp body{
-    animation:none !important;
-    background-image:radial-gradient(ellipse 70vw 50vh at 50% -10%, rgba(79,140,255,0.10), transparent 60%) !important;
-    /* Bar qayta ko'ringanda, oxirgi kartochka/footer uning ostida
-       yashirinib qolmasin deb, joy qaytadan ajratiladi. */
-    padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  .tg-webapp .card::before{ display:none; } /* rangin "oqib turuvchi" tepa chiziq olib tashlandi — minimalizm */
-  .tg-webapp .card{
-    animation:cardPopIn .35s ease forwards !important;
-    box-shadow:0 4px 18px rgba(0,0,0,0.45) !important;
-  }
-  .tg-webapp .card:hover, .tg-webapp .card:focus-within{
-    box-shadow:0 10px 26px rgba(79,140,255,0.22) !important;
-    transform:translateY(-3px);
-  }
-  /* Mijoz iltimosiga ko'ra: pastki navigatsiya ENDI oddiy saytdagi eski
-     och-ko'k barning "qayta bo'yalgani" EMAS — to'q, shisha (glass)
-     uslubidagi, minimal, alohida element. */
-  .tg-webapp .main-nav{
-    display:flex !important;
-    background:rgba(15,17,22,0.86);
-    -webkit-backdrop-filter:blur(22px) saturate(140%);
-    backdrop-filter:blur(22px) saturate(140%);
-    border:1px solid rgba(255,255,255,0.08);
-    box-shadow:0 -8px 24px -10px rgba(0,0,0,0.5), 0 18px 40px rgba(0,0,0,0.55);
-  }
-  .tg-webapp .mn-tab{ color:var(--muted); }
-  .tg-webapp .mn-tab.active{
-    color:#fff;
-    background:linear-gradient(160deg, rgba(79,140,255,0.32), rgba(124,108,240,0.20));
-    border-color:rgba(79,140,255,0.55);
-    box-shadow:0 5px 16px -6px rgba(79,140,255,0.55), inset 0 0 0 1px rgba(79,140,255,0.25);
-  }
-  .tg-webapp .mn-tab.active svg{ filter:drop-shadow(0 0 5px rgba(79,140,255,0.55)); }
-  .tg-webapp .mn-tab .mn-dot{ background:#4F8CFF; }
-  /* Sarlavha (header) ham bir xil to'q, minimal "shisha" uslubida —
-     pastki bar bilan bir butun, zamonaviy ilova chrome'ini hosil qiladi. */
-  .tg-webapp header{
-    -webkit-backdrop-filter:blur(16px) saturate(140%);
-    backdrop-filter:blur(16px) saturate(140%);
-    background:rgba(8,9,12,0.9);
-    border-bottom-color:var(--line);
-  }
-
-  /* Bo'limlar (ASOSIY/VIP/STANDART) orasida almashganda — Telegram
-     ichida, native ilovalardagi kabi yumshoq fade+ko'tarilish animatsiyasi
-     (qarang: JS'dagi tgSectionFade() — showAppSection() ichida chaqiriladi). */
-  .tg-webapp .tg-fade-target{
-    transition:opacity .22s ease, transform .22s cubic-bezier(.22,.8,.3,1);
-  }
-  .tg-webapp .tg-fade-out{
-    opacity:0;
-    transform:translateY(6px);
-  }
-
-  /* ============ Telegram Mini App — "Bosh sahifa" salomlashuv +
-     tezkor harakatlar, va "Profil" bo'limi (0 dan qurilgan, Obuna+
-     shablon namunasi asosida) ============ */
-  .tg-greeting{
-    background:linear-gradient(150deg, var(--panel) 0%, var(--panel-2) 100%);
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:16px;
-    margin:0 16px 14px;
-  }
-  .tg-greeting-row{display:flex;align-items:center;gap:12px;}
-  .tg-greeting-avatar{
-    width:46px;height:46px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(135deg, var(--accent-grad-1), var(--accent-grad-2));
-    display:flex;align-items:center;justify-content:center;font-size:20px;
-    box-shadow:0 4px 14px rgba(139,92,246,0.35);
-  }
-  .tg-greeting-hello{font-family:'Sora',sans-serif;font-weight:800;font-size:16.5px;color:var(--text);}
-  .tg-greeting-sub{font-size:12px;color:var(--muted);margin-top:2px;}
-  /* Obuna+ namunasidagi bo'lim sarlavhasi (masalan "Tezkor harakatlar",
-     "Bo'limlar") — kichik, katta harfli, xira rangli matn. */
-  .tg-section-title{
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;
-    color:var(--muted);text-transform:uppercase;letter-spacing:.4px;
-    margin:0 16px 8px;
-  }
-  /* Yagona, ichida bo'linish chiziqlari bo'lgan ro'yxat-kartochka —
-     Obuna+'dagi "To'lov usullari / Yordam / ..." ro'yxatiga o'xshash:
-     har bir qator rangli ikonka-doira + sarlavha(+izoh) + chevron (›). */
-  .tg-action-card{
-    margin:0 16px 14px;background:var(--panel);border:1px solid var(--line);
-    border-radius:16px;overflow:hidden;
-  }
-  .tg-action-row{
-    width:100%;display:flex;align-items:center;gap:12px;
-    padding:13px 14px;background:transparent;border:none;border-bottom:1px solid var(--line);
-    color:var(--text);text-align:left;cursor:pointer;text-decoration:none;
-    font-family:inherit;
-  }
-  .tg-action-row:last-child{border-bottom:none;}
-  .tg-action-row:active{background:var(--panel-2);}
-  .tg-action-icon{
-    width:36px;height:36px;border-radius:11px;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;font-size:17px;
-  }
-  .tg-action-icon svg{width:18px;height:18px;}
-  .tg-action-icon-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
-  .tg-action-icon-purple{background:rgba(124,108,240,0.18);color:#9C8CFF;}
-  .tg-action-icon-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
-  .tg-action-icon-amber{background:rgba(255,171,64,0.18);color:#FFAB40;}
-  .tg-action-icon-gray{background:var(--panel-2);color:var(--muted);}
-  .tg-action-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-  .tg-action-title{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;color:var(--text);}
-  .tg-action-sub{font-size:11.5px;color:var(--muted);}
-  .tg-action-chevron{font-size:19px;line-height:1;color:var(--muted);flex-shrink:0;}
-
-  .profil-block{margin:0 16px 14px;}
-  .profil-block-title{
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;
-    color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;
-  }
-  /* Segmentlangan pill-tanlagich (Til / Mavzu) — Obuna+ uslubida:
-     bitta yumaloq idish, faol variant rangli "kapsula" bilan ajralib turadi. */
-  .seg-pill{
-    display:flex;background:var(--panel-2);border:1px solid var(--line);
-    border-radius:12px;padding:3px;gap:3px;
-  }
-  .seg-pill-option{
-    flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
-    text-align:center;padding:8px 6px;border-radius:9px;background:transparent;border:none;
-    color:var(--muted);font-family:'Sora',sans-serif;font-weight:700;font-size:12px;
-    cursor:pointer;transition:all .15s ease;
-  }
-  .seg-pill-option.active{
-    background:linear-gradient(135deg, var(--accent-grad-1), var(--accent-grad-2));
-    color:#fff;box-shadow:0 3px 10px rgba(79,140,255,0.35);
-  }
-  .tg-profil-footer{
-    text-align:center;color:var(--muted);font-size:11px;
-    margin:18px 0 6px;letter-spacing:.3px;
-  }
 
   @media (min-width:1024px){
     body{padding-bottom:0;}
@@ -3979,34 +3806,9 @@ html.theme-purple-premium .card button.order-btn{
 </div>
 
 <header>
-  <!-- MUHIM: bu bar oddiy saytda HAMON yashirin (mijoz iltimosiga ko'ra,
-       yuqorida .main-nav{display:none!important}) — FAQAT Telegram Mini
-       App ichida (.tg-webapp) ko'rinadi (qarang: yuqoridagi CSS). Shu
-       sabab bu yerda tugmalar ATAYLAB 3 taga tushirildi — "0 dan qayta
-       qurish" so'ralganda mijoz aynan shu (Bosh sahifa/Katalog/Profil)
-       tuzilmani tasdiqladi (Obuna+ shablon namunasi asosida). STANDART
-       endi alohida tab EMAS — Katalog ichida (#catalogModeTabs, qidiruv
-       kartasining ichida) tugma bilan almashtiriladi (allaqachon shunday
-       ishlagan); RELS esa header'dagi alohida video tugmasidan
-       (#premiumVideoBanner) ochiladi — shu sabab ular pastki barda
-       qaytarilmadi, mijoz uchun tabda ortiqcha tirbandlik bo'lmasin deb. -->
-  <nav class="main-nav" id="mainNav" aria-label="Bo'limlar">
-    <button type="button" class="mn-tab" data-section="asosiy">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-      <span>Bosh sahifa</span>
-      <span class="mn-dot"></span>
-    </button>
-    <button type="button" class="mn-tab" data-section="vip">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <span>Katalog</span>
-      <span class="mn-dot"></span>
-    </button>
-    <button type="button" class="mn-tab" data-section="profil">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
-      <span>Profil</span>
-      <span class="mn-dot"></span>
-    </button>
-  </nav>
+  <!-- Pastki ASOSIY/VIP/STANDART/RELS bar mijoz iltimosiga ko'ra olib
+       tashlangan (yuqorida .main-nav{display:none!important}). HTML/JS
+       xavfsizlik uchun boshqa joyda umuman ishlatilmaydi. -->
   <button class="header-reels-btn-wrap" id="premiumVideoBanner" style="display:flex;" aria-label="Video reels">
     <span class="hrb-ring">
       <svg class="hrb-play" viewBox="0 0 24 24" width="12" height="12">
@@ -4108,56 +3910,6 @@ html.theme-purple-premium .card button.order-btn{
 </aside>
 
 <section class="asosiy-section" id="asosiySection" style="display:none;">
-  <!-- YANGI (Telegram Mini App uchun, "0 dan" ilova ko'rinishi): shaxsiy
-       salomlashuv + "Tezkor harakatlar" qatori — FAQAT haqiqiy Telegram
-       muhitida ko'rinadi (qarang: CSS'dagi .tg-webapp .tg-greeting va JS
-       renderTgGreeting()). Oddiy saytda bu blok umuman ko'rinmaydi. -->
-  <div id="tgGreeting" style="display:none;">
-    <div class="tg-greeting">
-      <div class="tg-greeting-row">
-        <div class="tg-greeting-avatar" id="tgGreetingAvatar">👤</div>
-        <div>
-          <div class="tg-greeting-hello" id="tgGreetingHello">Salom!</div>
-          <div class="tg-greeting-sub">VIP Raqamlar ilovasiga xush kelibsiz</div>
-        </div>
-      </div>
-    </div>
-    <div class="tg-section-title">Tezkor harakatlar</div>
-    <div class="tg-action-card">
-      <button type="button" class="tg-action-row" id="tgQuickCatalog">
-        <span class="tg-action-icon tg-action-icon-blue">🔍</span>
-        <span class="tg-action-text">
-          <span class="tg-action-title">Raqam qidirish</span>
-          <span class="tg-action-sub">Katalog bo'yicha qidiruv</span>
-        </span>
-        <span class="tg-action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="tg-action-row" id="tgQuickSale">
-        <span class="tg-action-icon tg-action-icon-amber">🎁</span>
-        <span class="tg-action-text">
-          <span class="tg-action-title">Bugungi aksiya</span>
-          <span class="tg-action-sub">Kunlik chegirmali raqamlar</span>
-        </span>
-        <span class="tg-action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="tg-action-row" id="tgQuickInstallment">
-        <span class="tg-action-icon tg-action-icon-green">💳</span>
-        <span class="tg-action-text">
-          <span class="tg-action-title">Bo'lib to'lash</span>
-          <span class="tg-action-sub">Muddatli to'lov bilan raqamlar</span>
-        </span>
-        <span class="tg-action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="tg-action-row" id="tgQuickContact">
-        <span class="tg-action-icon tg-action-icon-purple">📞</span>
-        <span class="tg-action-text">
-          <span class="tg-action-title">Bog'lanish</span>
-          <span class="tg-action-sub">Call Markaz bilan aloqa</span>
-        </span>
-        <span class="tg-action-chevron">&rsaquo;</span>
-      </button>
-    </div>
-  </div>
   <div class="asosiy-hero" id="asosiyHero">
     <div class="asosiy-hero-track" id="asosiyHeroTrack"></div>
     <div class="asosiy-hero-dots" id="asosiyHeroDots"></div>
@@ -4178,92 +3930,6 @@ html.theme-purple-premium .card button.order-btn{
     </div>
     <div class="catalog" id="asosiyPremiumGrid"></div>
   </div>
-</section>
-
-<!-- YANGI: "Profil" bo'limi — FAQAT Telegram Mini App ichida pastki
-     menyudan ochiladi (data-section="profil", qarang: applyAppSection()).
-     Bu yerda hech qanday YANGI backend/logika YO'Q — mavjud, allaqachon
-     ishlayotgan tugmalarga (yon menyudagi #openMyOrdersHub, #openFavorites
-     Link va h.k.) shunchaki DELEGATSIYA qilinadi (.click() orqali), shu
-     sabab xatolik xavfi minimal. -->
-<section class="asosiy-section" id="profilSection" style="display:none;">
-  <div class="tg-greeting">
-    <div class="tg-greeting-row">
-      <div class="tg-greeting-avatar" id="profilAvatar">👤</div>
-      <div>
-        <div class="tg-greeting-hello" id="profilHello">Mijoz</div>
-        <div class="tg-greeting-sub">Profil va sozlamalar</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="profil-block">
-    <div class="profil-block-title">Til</div>
-    <div class="seg-pill" id="profilLangPill">
-      <button type="button" class="seg-pill-option active" id="profilLangUz" data-lang="uz">O'zbekcha</button>
-      <button type="button" class="seg-pill-option" id="profilLangRu" data-lang="ru">Русский</button>
-    </div>
-  </div>
-
-  <!-- "Mavzu" — Obuna+ namunasidagi kabi segmentlangan tugma. ESLATMA:
-       saytda hozircha FAQAT bitta (tungi/neon-ko'k) mavzu mavjud — "Tizim"
-       va "Yorug'" variantlari hali real ranglarni almashtirmaydi, bosilganda
-       shunchaki tushuntirish xabari chiqadi (qarang: JS'dagi profilThemePill
-       ishlovchisi). Kelajakda haqiqiy yorug' mavzu qo'shilsa, shu yerga ulash oson. -->
-  <div class="profil-block">
-    <div class="profil-block-title">Mavzu</div>
-    <div class="seg-pill" id="profilThemePill">
-      <button type="button" class="seg-pill-option" data-theme="system">Tizim</button>
-      <button type="button" class="seg-pill-option" data-theme="light">Yorug'</button>
-      <button type="button" class="seg-pill-option active" data-theme="dark">Tungi</button>
-    </div>
-  </div>
-
-  <div class="tg-section-title">Bo'limlar</div>
-  <div class="tg-action-card profil-links" id="profilLinksCard">
-    <a href="#" class="tg-action-row" id="profilMyOrders">
-      <span class="tg-action-icon tg-action-icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Buyurtmalarim va shartnomalarim</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilFavorites">
-      <span class="tg-action-icon tg-action-icon-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Savatdagi raqamlar</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilInstallmentNumbers">
-      <span class="tg-action-icon tg-action-icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Bo'lib to'lashga raqamlar</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilBot">
-      <span class="tg-action-icon tg-action-icon-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Bot orqali raqam tanlash</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilContact">
-      <span class="tg-action-icon tg-action-icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Call Markaz</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilTelegram">
-      <span class="tg-action-icon tg-action-icon-blue"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Telegram kanal</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilInstagram">
-      <span class="tg-action-icon tg-action-icon-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Instagram kanal</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-    <a href="#" class="tg-action-row" id="profilVacancy">
-      <span class="tg-action-icon tg-action-icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
-      <span class="tg-action-text"><span class="tg-action-title">Vakansiya</span></span>
-      <span class="tg-action-chevron">&rsaquo;</span>
-    </a>
-  </div>
-
-  <div class="tg-profil-footer">VIP Raqamlar &middot; Mini App</div>
 </section>
 
 <section class="daily-deal-section" id="dailyDealSection" style="display:none;">
@@ -5199,9 +4865,6 @@ function initTelegramIntegration(){
     if(tg){
       tg.ready();
       tg.expand(); // to'liq ekranga yoyish
-      document.documentElement.classList.add('tg-webapp');
-      try{ tg.setHeaderColor && tg.setHeaderColor('#0B1220'); }catch(e){}
-      try{ tg.setBackgroundColor && tg.setBackgroundColor('#0B1220'); }catch(e){}
       try{ tg.disableVerticalSwipes && tg.disableVerticalSwipes(); }catch(e){}
       try{ tg.enableClosingConfirmation && tg.enableClosingConfirmation(); }catch(e){}
       return true;
@@ -7863,12 +7526,6 @@ function setNavActive(name){
 window.__isVipSectionActive = function(){ return activeAppSection === 'vip'; };
 
 // Mijoz iltimosiga ko'ra (Telegram Mini App'ni "zamonaviy, ilova kabi"
-// qilish): bo'lim almashganda (ASOSIY/VIP/STANDART) butun sahifa mazmuni
-// bir zumga yumshoq xiralashib (fade), keyin yangi holatda yorishib
-// ochiladi — xuddi native ilovalardagi tab-almashish animatsiyasi kabi.
-// FAQAT haqiqiy Telegram muhitida (tg-webapp) ishlaydi — oddiy saytda
-// (mijoz buni so'ramagan) hech narsa o'zgarmaydi, bo'lim ANIQ bir xilda,
-// darhol (animatsiyasiz) almashadi, xuddi hozirgacha bo'lgani kabi.
 function showAppSection(name){
   if(name === 'rels'){
     // RELS — sahifani ALMASHTIRMAYDI, faqat video oynasini ochadi. Ochilgan
@@ -7882,17 +7539,7 @@ function showAppSection(name){
     return;
   }
 
-  const isTgAppSwitch = document.documentElement.classList.contains('tg-webapp')
-    && document.body && activeAppSection !== name;
-  if(isTgAppSwitch){
-    document.body.classList.add('tg-fade-target', 'tg-fade-out');
-    setTimeout(()=>{
-      applyAppSection(name);
-      requestAnimationFrame(()=>{ document.body.classList.remove('tg-fade-out'); });
-    }, 120);
-  }else{
-    applyAppSection(name);
-  }
+  applyAppSection(name);
 }
 
 function applyAppSection(name){
@@ -7902,17 +7549,6 @@ function applyAppSection(name){
   const isAsosiy = name === 'asosiy';
   const isVip = name === 'vip';
   const isStandard = name === 'standard';
-  const isProfil = name === 'profil';
-
-  // YANGI: "Profil" bo'limi (faqat Telegram Mini App'da). Mavjud
-  // ASOSIY/VIP/STANDART mantig'iga tegmasdan, shunchaki uni ham
-  // yashirish/ko'rsatish ro'yxatiga qo'shiladi.
-  const profilSectionEl2 = document.getElementById('profilSection');
-  if(profilSectionEl2) profilSectionEl2.style.display = isProfil ? '' : 'none';
-  const tgGreetingEl = document.getElementById('tgGreeting');
-  if(tgGreetingEl){
-    tgGreetingEl.style.display = (isAsosiy && document.documentElement.classList.contains('tg-webapp')) ? '' : 'none';
-  }
 
   asosiySectionEl.style.display = isAsosiy ? '' : 'none';
   searchCardEl.style.display = (isVip || isStandard) ? '' : 'none';
@@ -7971,137 +7607,6 @@ function applyAppSection(name){
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
-mainNav.querySelectorAll('.mn-tab').forEach(btn=>{
-  btn.addEventListener('click', ()=> showAppSection(btn.dataset.section));
-});
-
-/* ==================================================================
-   TELEGRAM MINI APP — "Bosh sahifa" salomlashuvi va "Profil" bo'limi
-   (mijoz iltimosiga ko'ra, Obuna+ shablon namunasi asosida 0 dan
-   qurildi). Hech qanday YANGI backend so'rovi YO'Q — "Profil"dagi
-   barcha tugmalar mavjud, allaqachon ishlayotgan elementlarga (yon
-   menyu/hub) DELEGATSIYA qiladi (.click() orqali), shu sabab xato
-   chiqish ehtimoli minimal.
-   ================================================================== */
-function getTelegramUserFirstName(){
-  try{
-    const tg = window.Telegram && window.Telegram.WebApp;
-    const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-    if(u && u.first_name) return String(u.first_name).trim();
-  }catch(e){}
-  return '';
-}
-function renderTgGreeting(){
-  const name = getTelegramUserFirstName();
-  const helloTxt = name ? `Salom, ${name}!` : 'Salom!';
-  const initial = name ? name.charAt(0).toUpperCase() : '👤';
-  const helloEl = document.getElementById('tgGreetingHello');
-  const avatarEl = document.getElementById('tgGreetingAvatar');
-  if(helloEl) helloEl.textContent = helloTxt;
-  if(avatarEl) avatarEl.textContent = initial;
-  const profilHelloEl = document.getElementById('profilHello');
-  const profilAvatarEl = document.getElementById('profilAvatar');
-  if(profilHelloEl) profilHelloEl.textContent = name || 'Mijoz';
-  if(profilAvatarEl) profilAvatarEl.textContent = initial;
-  // Bosh sahifadagi salomlashuv bloki faqat tg-webapp'da ko'rinadi —
-  // applyAppSection() buni allaqachon boshqaradi, shu yerda faqat
-  // MATNni yangilaymiz, ko'rinishga tegmaymiz.
-}
-renderTgGreeting();
-// telegram-web-app.js "async" yuklangani sabab (tezlik uchun, qarang:
-// <head>) mijoz ismi birinchi chaqiruvda hali tayyor bo'lmasligi mumkin —
-// initTelegramIntegration() qayta urinishlari bilan bir vaqtda, biz ham
-// bir necha marta qayta chizamiz.
-let __tgGreetingTries = 0;
-const __tgGreetingRetry = setInterval(()=>{
-  __tgGreetingTries++;
-  renderTgGreeting();
-  if(getTelegramUserFirstName() || __tgGreetingTries >= 15) clearInterval(__tgGreetingRetry);
-}, 200);
-
-// "Tezkor harakatlar" (Bosh sahifa) — mavjud bo'limlarga/tugmalarga olib boradi.
-function clickIfExists(id){ const el = document.getElementById(id); if(el) el.click(); }
-const tgQuickCatalogBtn = document.getElementById('tgQuickCatalog');
-if(tgQuickCatalogBtn) tgQuickCatalogBtn.addEventListener('click', ()=> showAppSection('vip'));
-const tgQuickSaleBtn = document.getElementById('tgQuickSale');
-if(tgQuickSaleBtn) tgQuickSaleBtn.addEventListener('click', ()=>{
-  showAppSection('vip');
-  setTimeout(()=>{
-    const dd = document.getElementById('dailyDealSection');
-    if(dd) dd.scrollIntoView({ behavior:'smooth', block:'start' });
-  }, 260);
-});
-const tgQuickInstallmentBtn = document.getElementById('tgQuickInstallment');
-if(tgQuickInstallmentBtn) tgQuickInstallmentBtn.addEventListener('click', ()=> clickIfExists('openInstallmentNumbersLink'));
-const tgQuickContactBtn = document.getElementById('tgQuickContact');
-if(tgQuickContactBtn) tgQuickContactBtn.addEventListener('click', ()=> clickIfExists('drawerContact'));
-
-// "Profil" bo'limidagi ro'yxat — har biri MAVJUD, ishlab turgan
-// elementga delegatsiya qiladi (yangi logika yozilmadi).
-const PROFIL_DELEGATES = {
-  profilMyOrders: 'openMyOrdersHub',
-  profilFavorites: 'openFavoritesLink',
-  profilInstallmentNumbers: 'openInstallmentNumbersLink',
-  profilBot: 'drawerBotLink',
-  profilContact: 'drawerContact',
-  profilTelegram: 'drawerTelegram',
-  profilInstagram: 'drawerInstagram',
-  profilVacancy: 'openVacancyDrawerLink'
-};
-Object.keys(PROFIL_DELEGATES).forEach(profilId=>{
-  const btn = document.getElementById(profilId);
-  if(!btn) return;
-  btn.addEventListener('click', (e)=>{
-    e.preventDefault();
-    clickIfExists(PROFIL_DELEGATES[profilId]);
-  });
-});
-
-// Profildagi til tugmalari — mavjud setLanguage() funksiyasiga
-// chaqiradi (yangi til mantig'i YO'Q), va ikkala joydagi (header +
-// profil) "active" ko'rinishini bir-biriga sinxronlaydi.
-function syncProfilLangButtons(){
-  const lang = window.currentLangMode || 'uz';
-  const uzBtn = document.getElementById('profilLangUz');
-  const ruBtn = document.getElementById('profilLangRu');
-  if(uzBtn) uzBtn.classList.toggle('active', lang === 'uz');
-  if(ruBtn) ruBtn.classList.toggle('active', lang === 'ru');
-}
-['profilLangUz','profilLangRu'].forEach(id=>{
-  const btn = document.getElementById(id);
-  if(!btn) return;
-  btn.addEventListener('click', ()=>{
-    if(typeof setLanguage === 'function') setLanguage(btn.dataset.lang);
-    syncProfilLangButtons();
-  });
-});
-syncProfilLangButtons();
-
-// "Mavzu" segmenti — hozircha faqat KO'RINISH: saytda bitta (tungi/neon-
-// ko'k) mavzu bor, shu sabab "Tizim"/"Yorug'" bosilganda haqiqiy rang
-// almashtirilmaydi, faqat tushuntirish xabari ko'rsatiladi (yangi, sinovdan
-// o'tmagan mantiq yozmaslik uchun ataylab shunday qilingan).
-(function(){
-  const pill = document.getElementById('profilThemePill');
-  if(!pill) return;
-  pill.querySelectorAll('.seg-pill-option').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const theme = btn.dataset.theme;
-      pill.querySelectorAll('.seg-pill-option').forEach(b=> b.classList.toggle('active', b === btn));
-      if(theme !== 'dark'){
-        const msg = "Hozircha faqat tungi mavzu mavjud. Tez orada qo'shamiz!";
-        try{
-          if(window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.showAlert === 'function'){
-            window.Telegram.WebApp.showAlert(msg);
-          } else {
-            alert(msg);
-          }
-        }catch(e){}
-      }
-    });
-  });
-})();
-
 // RELS video oynasi yopilganda — nav ko'rsatkichi avvalgi (haqiqiy) bo'limga qaytadi
 const reelsOverlayEl = document.getElementById('reelsOverlay');
 const reelsCloseBtnEl = document.getElementById('reelsClose');
@@ -8121,15 +7626,14 @@ document.addEventListener('keydown', (e)=>{
   }
 });
 
-// Boshlang'ich holat: saytga birinchi kirganda HAR DOIM VIP bo'limi ochiladi.
+// Boshlang'ich holat: saytga (shu jumladan Telegram Mini App ichida ham)
+// birinchi kirganda HAR DOIM VIP bo'limi ochiladi — oddiy sayt bilan
+// AYNAN bir xil xatti-harakat.
 // setCatalogMode('vip') catalogMode allaqachon 'vip' bo'lgani uchun hech
 // narsa qilmay chiqib ketadi (ichidagi "if(catalogMode===mode) return"),
 // shu sabab operator kartochkalari shu yerda ALOHIDA, qo'lda chiziladi.
-// MUHIM: Telegram Mini App ichida esa (tg-webapp) — endi HAR DOIM "Bosh
-// sahifa" (shaxsiy salomlashuv + tezkor harakatlar) bilan ochiladi, oddiy
-// saytda (mijoz bunga tegmagan) hamon VIP bilan ochiladi, avvalgidek.
 renderVipOpToggles();
-showAppSection(document.documentElement.classList.contains('tg-webapp') ? 'asosiy' : 'vip');
+showAppSection('vip');
 // TELEFON "ORQAGA" TUGMASI/HARAKATI — brauzer (ayniqsa iPhone Safari va
 // Android Chrome) sahifani qayta yuklamasdan, "bfcache"dan (avvalgi holati
 // muzlatilgan holda) tiklashi mumkin. Agar shu payt biror modal ochiq
