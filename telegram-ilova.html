@@ -59,6 +59,7 @@
     --accent-2:#7C6CF0;
     --accent-soft:rgba(79,140,255,0.16);
     --green:#2ECC81;
+    --green-soft:rgba(46,204,129,0.15);
     --amber:#FFAB40;
     --danger:#FF5C5C;
     --safe-b:env(safe-area-inset-bottom, 0px);
@@ -66,6 +67,10 @@
     --bg-glow:rgba(79,140,255,0.12);
     --nav-bg:rgba(17,19,24,0.88);
     --nav-border:rgba(255,255,255,0.08);
+    --glass-bg:rgba(25,28,34,0.5);
+    --glass-bg-2:rgba(25,28,34,0.28);
+    --glass-border:rgba(255,255,255,0.09);
+    --glass-highlight:rgba(255,255,255,0.05);
   }
   :root[data-theme="light"]{
     --bg:#F3F5FA;
@@ -78,11 +83,16 @@
     --accent-2:#7C6CF0;
     --accent-soft:rgba(59,114,224,0.12);
     --green:#1FA968;
+    --green-soft:rgba(31,169,104,0.13);
     --amber:#E08A00;
     --danger:#E0453B;
     --bg-glow:rgba(59,114,224,0.10);
     --nav-bg:rgba(255,255,255,0.86);
     --nav-border:rgba(20,45,110,0.10);
+    --glass-bg:rgba(255,255,255,0.55);
+    --glass-bg-2:rgba(255,255,255,0.32);
+    --glass-border:rgba(20,45,110,0.09);
+    --glass-highlight:rgba(255,255,255,0.6);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
@@ -206,23 +216,133 @@
     font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
   }
   .op-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
-  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:8px;}
+  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:9px;}
+  /* ---- Raqam kartochkasi: zamonaviy "shisha" (glassmorphism) ko'rinish —
+       shaffof fon + blur, operator rangida nozik chap chiziq, mijoz
+       so'roviga ko'ra raqam/narx AVVALGIDAN KICHIKROQ, lekin aniq
+       kontrast bilan (o'qishga oson bo'lsin uchun). ---- */
   .num-card{
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
-    display:flex;align-items:center;gap:10px;
+    position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;
+    padding:11px 13px 11px 16px;display:flex;align-items:center;gap:9px;overflow:hidden;
+    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 6px 18px -10px rgba(0,0,0,0.35);
+    transition:transform .12s ease, background .15s ease;
+  }
+  .num-card:active{transform:scale(0.985);}
+  .num-card::before{
+    content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;
+    background:var(--op-color, var(--accent));opacity:.85;
   }
   .num-card-main{flex:1;min-width:0;}
-  .num-card-number{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;letter-spacing:.3px;}
-  .num-card-meta{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11.5px;color:var(--muted);}
-  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-  .num-card-price{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;color:var(--green);white-space:nowrap;}
+  .num-card-number{
+    font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.1px;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .num-card-meta{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10.5px;color:var(--muted);font-weight:600;}
+  .num-card-op-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .num-card-price{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:11px;color:var(--green);white-space:nowrap;
+    background:var(--green-soft);padding:4px 8px;border-radius:8px;letter-spacing:.1px;
+  }
   .num-card-btn{
     background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;padding:9px 12px;border-radius:10px;cursor:pointer;flex-shrink:0;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11px;padding:9px 12px;border-radius:10px;cursor:pointer;flex-shrink:0;
+    box-shadow:0 4px 12px -4px rgba(79,140,255,0.55);
   }
   .num-card-btn:active{transform:scale(0.95);}
   .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;}
   .catalog-loading .boot-ring{margin:0 auto 12px;}
+  .num-card-fav{
+    background:none;border:none;color:var(--muted);cursor:pointer;flex-shrink:0;padding:4px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .num-card-fav svg{width:17px;height:17px;transition:transform .15s ease;}
+  .num-card-fav.active{color:var(--danger);}
+  .num-card-fav.active svg{transform:scale(1.12);}
+  .num-card-fav:active svg{transform:scale(0.85);}
+  .live-badge{
+    display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;
+    font-size:9.5px;font-weight:800;padding:2px 6px;margin-left:6px;letter-spacing:.3px;text-transform:uppercase;vertical-align:middle;
+  }
+  /* ---- Jonli qidiruv paneli: 7 shaffof katakcha + keng "Qidirish" tugmasi ---- */
+  .live-search-panel{margin:0 16px 12px;padding:14px 14px 12px;background:var(--panel);border:1px solid var(--line);border-radius:16px;}
+  .live-search-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.2px;}
+  .live-digit-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px;}
+  .live-digit-box{
+    width:100%;max-width:34px;aspect-ratio:1/1.15;background:transparent;border:1.6px dashed var(--line);
+    border-radius:10px;text-align:center;color:var(--text);font-family:'Sora',sans-serif;font-weight:800;
+    font-size:16px;outline:none;flex:1 1 0;min-width:0;transition:border-color .15s ease,background .15s ease;
+  }
+  .live-digit-box::placeholder{color:var(--muted);opacity:.32;font-weight:600;}
+  .live-digit-box.filled{border-style:solid;border-color:var(--accent);background:var(--accent-soft);}
+  .live-digit-box:focus{border-style:solid;border-color:var(--accent);}
+  .live-dash{color:var(--muted);opacity:.5;font-weight:700;flex-shrink:0;}
+  .live-search-btn{
+    width:100%;background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:9px;position:relative;overflow:hidden;
+  }
+  .live-search-btn:active{transform:scale(0.98);}
+  .live-search-btn:disabled{opacity:.75;cursor:not-allowed;}
+  .live-search-btn .lsb-icon svg{width:17px;height:17px;display:block;}
+  .live-search-btn .lsb-spinner{
+    width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.35);border-top-color:#fff;
+    animation:lsbSpin .7s linear infinite;
+  }
+  @keyframes lsbSpin{to{transform:rotate(360deg);}}
+  /* Pastdan chiqib keladigan "Qidirilmoqda..." holati — zamonaviy radar-animatsiyali ikonka bilan */
+  .live-status-row{
+    margin:0 16px 12px;padding:12px 14px;background:var(--panel);border:1px solid var(--accent);border-radius:14px;
+    font-size:12.5px;color:var(--text);font-weight:700;display:flex;align-items:center;gap:12px;
+    animation:liveStatusUp .28s cubic-bezier(.22,.8,.3,1);
+  }
+  @keyframes liveStatusUp{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .live-radar{position:relative;width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .live-radar svg{width:12px;height:12px;color:var(--accent);position:relative;z-index:2;}
+  .live-radar::before, .live-radar::after{
+    content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);
+    animation:radarPulse 1.6s ease-out infinite;
+  }
+  .live-radar::after{animation-delay:.8s;}
+  @keyframes radarPulse{
+    0%{transform:scale(0.4);opacity:.9;}
+    100%{transform:scale(1.9);opacity:0;}
+  }
+
+  /* ===== Sevimlilar / Vakansiya ro'yxat kartochkalari (order-result-row
+     bilan bir xil oilaga tegishli, kengaytirilgan) ===== */
+  .fav-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;}
+  .fav-row-main{flex:1;min-width:0;}
+  .fav-row-number{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;}
+  .fav-row-price{font-size:12px;color:var(--green);margin-top:2px;font-weight:700;}
+  .fav-row-remove{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 6px;flex-shrink:0;}
+  .fav-row-order{
+    background:var(--accent-soft);border:1px solid rgba(79,140,255,0.4);color:var(--accent);
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11px;padding:7px 10px;border-radius:9px;cursor:pointer;flex-shrink:0;
+  }
+  .vac-card{background:var(--panel-2);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:9px;}
+  .vac-card-title{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;margin-bottom:3px;}
+  .vac-card-desc{font-size:12.5px;color:var(--muted);margin-bottom:8px;line-height:1.4;}
+  .vac-card-salary{font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:var(--green);margin-bottom:10px;}
+  .vac-card-apply{
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12px;padding:9px 14px;border-radius:10px;cursor:pointer;
+  }
+  .contract-status-banner{border-radius:12px;padding:11px 14px;margin-bottom:12px;font-family:'Sora',sans-serif;font-weight:700;font-size:13px;}
+  .contract-progress-track{background:var(--panel-2);border-radius:8px;height:8px;overflow:hidden;margin-bottom:14px;}
+  .contract-progress-fill{background:linear-gradient(90deg, var(--accent), var(--green));height:100%;border-radius:8px;transition:width .3s ease;}
+  .contract-months-grid{display:grid;grid-template-columns:repeat(6, 1fr);gap:6px;margin-bottom:14px;}
+  .contract-month-chip{
+    aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11px;border:1px solid var(--line);
+  }
+  .cm-paid{background:rgba(46,196,129,0.18);color:var(--green);border-color:rgba(46,196,129,0.4);}
+  .cm-overdue{background:rgba(255,92,92,0.18);color:var(--danger);border-color:rgba(255,92,92,0.4);}
+  .cm-pending{background:var(--panel-2);color:var(--muted);}
+  .contract-pdf-btn{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    font-family:'Sora',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:11px;cursor:pointer;
+  }
 
   /* ===== Modal (Buyurtmalarim) ===== */
   .modal-overlay{
@@ -251,6 +371,13 @@
     font-family:'Sora',sans-serif;font-weight:800;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;
   }
   .modal-error{color:var(--danger);font-size:12.5px;margin:-4px 0 12px;display:none;}
+  .modal-submit:disabled{opacity:.65;cursor:not-allowed;}
+  .order-preview-card{
+    background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .order-preview-card .opc-number{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;}
+  .order-preview-card .opc-price{font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--green);}
   .order-result-row{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13px;}
   .order-result-row .or-num{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;margin-bottom:4px;}
   .order-result-row .or-line{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:2px 0;}
@@ -351,6 +478,43 @@
       <button type="button" class="op-chip" data-op="Humans">Humans</button>
       <button type="button" class="op-chip" data-op="Perfektum">Perfektum</button>
     </div>
+    <!-- "Bo'lib to'lash" — Firestore'dagi 'numbers' kolleksiyasining
+         'installment' (bool) maydoni bo'yicha filtr — index.html'dagi
+         #openInstallmentNumbersLink BILAN BIR XIL mantiq. Operator
+         chiplaridan MUSTAQIL yoqiladi/o'chiriladi (ikkalasi birga
+         ishlaydi: masalan "Beeline" + "Bo'lib to'lash"). -->
+    <div class="op-chip-row" style="padding-top:0;">
+      <button type="button" class="op-chip" id="installmentChip">💳 <span data-i18n="chipInstallment">Bo'lib to'lash</span></button>
+    </div>
+    <!-- "Jonli qidiruv" — index.html'dagi #numberBuilder/api-live-search.js
+         BILAN BIR XIL: 7 ta ALOHIDA katakcha (3-2-2 guruhlangan, "xxx-xx-xx"
+         ko'rinishida), har biriga bittadan mahalliy raqam xonasi kiritiladi,
+         bo'sh qolgan katakchalar '_' (wildcard) sifatida so'raladi. Mijoz
+         "Qidirish"ni bosgandagina operatorlarning jonli bazasidan so'raladi
+         (avtomatik, har harf terilganda EMAS). -->
+    <div class="live-search-panel">
+      <div class="live-search-label" data-i18n="liveSearchLabel">Jonli qidiruv — operatorlar bazasidan</div>
+      <div class="live-digit-row" id="liveDigitRow">
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="0">
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="1">
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="2">
+        <span class="live-dash">-</span>
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="3">
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="4">
+        <span class="live-dash">-</span>
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="5">
+        <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="6">
+      </div>
+      <button type="button" class="live-search-btn" id="liveSearchBtn">
+        <span class="lsb-icon" id="lsbIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <span class="lsb-spinner" id="lsbSpinner" style="display:none;"></span>
+        <span data-i18n="liveSearchBtn" id="lsbLabel">Qidirish</span>
+      </button>
+    </div>
+    <div class="live-status-row" id="liveStatusRow" style="display:none;">
+      <div class="live-radar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+      <span data-i18n="liveSearching">Jonli raqamlar qidirilmoqda…</span>
+    </div>
     <div class="catalog-list" id="catalogList">
       <div class="catalog-loading" id="catalogLoading"><div class="boot-ring"></div><span data-i18n="catalogLoadingText">Raqamlar yuklanmoqda…</span></div>
     </div>
@@ -389,6 +553,26 @@
       <button type="button" class="action-row" id="profOrders">
         <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
         <span class="action-text"><span class="action-title" data-i18n="qaOrdersTitle">Buyurtmalarim</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="profContracts">
+        <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h1"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="contractsTitle">Shartnomalarim</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="profFavorites">
+        <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="favoritesTitle">Sevimli raqamlarim</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="profInstallment">
+        <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="installmentTitle">Bo'lib to'lashga raqamlar</span></span>
+        <span class="action-chevron">&rsaquo;</span>
+      </button>
+      <button type="button" class="action-row" id="profVacancies">
+        <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
+        <span class="action-text"><span class="action-title" data-i18n="vacanciesTitle">Vakansiyalar</span></span>
         <span class="action-chevron">&rsaquo;</span>
       </button>
       <button type="button" class="action-row" id="profBot">
@@ -433,6 +617,117 @@
       <button class="modal-submit" id="ordersSubmitBtn"><span id="ordersSubmitLabel" data-i18n="submitSearch">Qidirish</span></button>
     </div>
     <div id="ordersResultView" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ================= Sevimli raqamlarim (Savat) modali —
+     index.html'dagi BILAN BIR XIL localStorage kaliti ('vip_favorites'),
+     shu sabab saytda va bu yerda qo'shilgan sevimlilar bir-biriga mos
+     keladi. ================= -->
+<div class="modal-overlay" id="favoritesModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="favoritesModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="favoritesTitle">Sevimli raqamlarim</div>
+    <div class="modal-sub" data-i18n="favoritesSub">Yurak belgisini bosib, raqamlarni shu ro'yxatga saqlashingiz mumkin.</div>
+    <div id="favoritesListView"></div>
+  </div>
+</div>
+
+<!-- ================= Shartnomalarim modali — check-contract-status.js
+     AYNAN index.html ishlatgani bilan bir xil kontraktda. ================= -->
+<div class="modal-overlay" id="contractsModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="contractsModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="contractsTitle">Shartnomalarim</div>
+    <div class="modal-sub" data-i18n="contractsSub">Shartnoma raqamingiz VA unga bog'langan telefon raqamini kiriting.</div>
+    <div id="contractsFormView">
+      <div class="field-label" data-i18n="fieldContractId">Shartnoma raqami</div>
+      <input class="field-input" id="contractIdInput" type="text" placeholder="VR-00123" maxlength="30" style="text-transform:uppercase;">
+      <div class="field-label" data-i18n="fieldPhone">Telefon raqami</div>
+      <input class="field-input" id="contractPhoneInput" type="tel" inputmode="numeric" placeholder="+998 90 123 45 67" maxlength="19">
+      <div class="modal-error" id="contractsError"></div>
+      <button class="modal-submit" id="contractsSubmitBtn"><span id="contractsSubmitLabel" data-i18n="submitSearch">Qidirish</span></button>
+    </div>
+    <div id="contractsResultView" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ================= Vakansiyalar modali — index.html'dagi 'vacancies'
+     va 'job_applications' kolleksiyalari BILAN BIR XIL. ================= -->
+<div class="modal-overlay" id="vacanciesModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="vacanciesModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="vacanciesTitle">Vakansiyalar</div>
+    <div id="vacanciesListView"></div>
+    <div id="vacancyApplyView" style="display:none;">
+      <div class="field-label" data-i18n="fieldFullName">Ism familiyangiz</div>
+      <input class="field-input" id="vacancyNameInput" type="text" maxlength="80">
+      <div class="field-label" data-i18n="fieldPhone">Telefon raqami</div>
+      <input class="field-input" id="vacancyPhoneInput" type="tel" inputmode="numeric" placeholder="+998 90 123 45 67" maxlength="19">
+      <div class="field-label" data-i18n="fieldExperience">Ish tajribangiz (qisqacha)</div>
+      <input class="field-input" id="vacancyExperienceInput" type="text" maxlength="200">
+      <label style="display:flex;align-items:flex-start;gap:8px;margin:2px 2px 14px;font-size:12px;color:var(--muted);">
+        <input type="checkbox" id="vacancyConsentInput" style="margin-top:2px;">
+        <span data-i18n="fieldConsent">Ma'lumotlarim ish uchun murojaat sifatida ko'rib chiqilishiga roziman</span>
+      </label>
+      <div class="modal-error" id="vacancyError"></div>
+      <button class="modal-submit" id="vacancySubmitBtn" disabled><span id="vacancySubmitLabel" data-i18n="submitApply">Ariza topshirish</span></button>
+    </div>
+    <div id="vacancySuccessView" style="display:none;text-align:center;padding:20px 4px;">
+      <div style="font-size:34px;margin-bottom:10px;">✅</div>
+      <div class="modal-title" style="font-size:15px;" data-i18n="applySuccess">Arizangiz qabul qilindi!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Buyurtma berish modali —
+     index.html'dagi finalizeOrder() BILAN BIR XIL Firestore yozuv
+     mantig'i (band qilish tranzaksiyasi / live_reservations qulfi),
+     lekin soddalashtirilgan (tarif/bo'lib-to'lash bosqichlarisiz —
+     bular admin tomonidan sozlangan operator tariflariga bog'liq
+     bo'lgani sabab bu yerda ishlatilmaydi). ENDI BOTGA
+     O'TKAZIB YUBORILMAYDI — mijoz aytganidek, xuddi sayt kabi
+     buyurtma to'g'ridan-to'g'ri shu yerda yakunlanadi. ================= -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="orderModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div id="orderFormView">
+      <div class="modal-title" data-i18n="orderModalTitle">Buyurtmani rasmiylashtirish</div>
+      <div class="order-preview-card" id="orderPreviewCard"></div>
+      <div class="field-label" data-i18n="fieldFullName">Ism familiyangiz</div>
+      <input class="field-input" id="orderNameInput" type="text" maxlength="120">
+      <div class="field-label" data-i18n="fieldRegion">Viloyatingiz</div>
+      <select class="field-input" id="orderRegionInput">
+        <option value="" data-i18n="regionChoose">Tanlang</option>
+        <option>Toshkent shahri</option>
+        <option>Toshkent viloyati</option>
+        <option>Andijon</option>
+        <option>Farg'ona</option>
+        <option>Namangan</option>
+        <option>Samarqand</option>
+        <option>Buxoro</option>
+        <option>Xorazm</option>
+        <option>Navoiy</option>
+        <option>Qashqadaryo</option>
+        <option>Surxondaryo</option>
+        <option>Jizzax</option>
+        <option>Sirdaryo</option>
+        <option>Qoraqalpog'iston</option>
+      </select>
+      <div class="field-label" data-i18n="fieldPhone">Telefon raqami</div>
+      <input class="field-input" id="orderPhoneInput" type="tel" inputmode="numeric" placeholder="+998 90 123 45 67" maxlength="19">
+      <div class="modal-error" id="orderError"></div>
+      <button class="modal-submit" id="orderSubmitBtn"><span id="orderSubmitLabel" data-i18n="orderSubmitBtn">Buyurtma berish</span></button>
+    </div>
+    <div id="orderSuccessView" style="display:none;text-align:center;padding:20px 4px;">
+      <div style="font-size:34px;margin-bottom:10px;">✅</div>
+      <div class="modal-title" style="font-size:15px;" data-i18n="orderSuccessTitle">Buyurtma qabul qilindi!</div>
+      <div class="modal-sub" data-i18n="orderSuccessSub">Tez orada operatorlarimiz siz bilan bog'lanadi.</div>
+    </div>
   </div>
 </div>
 
@@ -558,7 +853,49 @@ const TRANSLATIONS = {
     resultPrice: "Narxi", resultStatus: "Holati", backBtn: "Orqaga",
     navHome: "Asosiy", navCatalog: "Raqamlar", navProfile: "Profil",
     priceSuffix: "so'm",
-    selectedNumberAlert: "Tanlangan raqam: {number}\n\nBuyurtmani yakunlash uchun botga o'tasiz."
+    selectedNumberAlert: "Tanlangan raqam: {number}\n\nBuyurtmani yakunlash uchun botga o'tasiz.",
+    chipInstallment: "Bo'lib to'lash",
+    liveSearchLabel: "Jonli qidiruv — operatorlar bazasidan",
+    liveSearchBtn: "Qidirish",
+    liveSearching: "Jonli raqamlar qidirilmoqda…",
+    liveBadge: "Jonli",
+    liveEmptyMask: "Kamida bitta raqam kiriting",
+    favoritesTitle: "Sevimli raqamlarim",
+    favoritesSub: "Yurak belgisini bosib, raqamlarni shu ro'yxatga saqlashingiz mumkin.",
+    favEmpty: "Hali sevimli raqam qo'shmadingiz.",
+    favOrderBtn: "Buyurtma",
+    installmentTitle: "Bo'lib to'lashga raqamlar",
+    contractsTitle: "Shartnomalarim",
+    contractsSub: "Shartnoma raqamingiz VA unga bog'langan telefon raqamini kiriting.",
+    fieldContractId: "Shartnoma raqami",
+    errContractIncomplete: "Shartnoma raqami va telefon raqamini to'liq kiriting",
+    errContractNotFound: "Shartnoma topilmadi. Ma'lumotlarni tekshiring.",
+    contractCustomer: "Mijoz", contractNumber: "Raqam", contractMonthly: "Oylik to'lov", contractMonths: "Muddat",
+    contractStatusActive: "Faol", contractStatusTrouble: "Muammo bor", contractStatusCancelling: "Bekor qilinmoqda",
+    contractStatusCancelled: "Bekor qilingan", contractStatusCompleted: "Yakunlangan",
+    downloadPdf: "PDF shartnomani yuklab olish",
+    vacanciesTitle: "Vakansiyalar",
+    vacanciesEmpty: "Hozircha ochiq vakansiya yo'q.",
+    vacancyApplyBtn: "Ariza topshirish",
+    fieldFullName: "Ism familiyangiz",
+    fieldExperience: "Ish tajribangiz (qisqacha)",
+    fieldConsent: "Ma'lumotlarim ish uchun murojaat sifatida ko'rib chiqilishiga roziman",
+    submitApply: "Ariza topshirish",
+    submitSending: "Yuborilmoqda…",
+    applySuccess: "Arizangiz qabul qilindi!",
+    perMonth: "/oy",
+    orderModalTitle: "Buyurtmani rasmiylashtirish",
+    orderNumberLabel: "Tanlangan raqam",
+    fieldRegion: "Viloyatingiz",
+    regionChoose: "Tanlang",
+    errRegion: "Viloyatni tanlang",
+    errName: "Ismingizni kiriting",
+    errPhone: "Telefon raqamini to'liq kiriting",
+    orderSubmitBtn: "Buyurtma berish",
+    orderSuccessTitle: "Buyurtma qabul qilindi!",
+    orderSuccessSub: "Tez orada operatorlarimiz siz bilan bog'lanadi.",
+    orderErrorReserved: "Afsuski, bu raqam boshqa mijoz tomonidan band qilindi.",
+    orderErrorGeneric: "Buyurtmani yuborishda xato yuz berdi. Qayta urinib ko'ring."
   },
   ru: {
     homeGreetingSub: "Добро пожаловать в мини-приложение VIP Raqamlar",
@@ -596,7 +933,49 @@ const TRANSLATIONS = {
     resultPrice: "Цена", resultStatus: "Статус", backBtn: "Назад",
     navHome: "Главная", navCatalog: "Номера", navProfile: "Профиль",
     priceSuffix: "сум",
-    selectedNumberAlert: "Выбранный номер: {number}\n\nДля завершения заказа перейдите в бот."
+    selectedNumberAlert: "Выбранный номер: {number}\n\nДля завершения заказа перейдите в бот.",
+    chipInstallment: "Рассрочка",
+    liveSearchLabel: "Живой поиск — по базе операторов",
+    liveSearchBtn: "Искать",
+    liveSearching: "Идёт поиск живых номеров…",
+    liveBadge: "Live",
+    liveEmptyMask: "Введите хотя бы одну цифру",
+    favoritesTitle: "Избранные номера",
+    favoritesSub: "Нажмите на сердечко, чтобы сохранить номер в этот список.",
+    favEmpty: "Вы ещё не добавили избранные номера.",
+    favOrderBtn: "Заказать",
+    installmentTitle: "Номера в рассрочку",
+    contractsTitle: "Мои договоры",
+    contractsSub: "Введите номер договора И привязанный к нему номер телефона.",
+    fieldContractId: "Номер договора",
+    errContractIncomplete: "Введите номер договора и телефон полностью",
+    errContractNotFound: "Договор не найден. Проверьте данные.",
+    contractCustomer: "Клиент", contractNumber: "Номер", contractMonthly: "Ежемесячный платёж", contractMonths: "Срок",
+    contractStatusActive: "Активен", contractStatusTrouble: "Есть проблема", contractStatusCancelling: "Отменяется",
+    contractStatusCancelled: "Отменён", contractStatusCompleted: "Завершён",
+    downloadPdf: "Скачать PDF договора",
+    vacanciesTitle: "Вакансии",
+    vacanciesEmpty: "Пока нет открытых вакансий.",
+    vacancyApplyBtn: "Откликнуться",
+    fieldFullName: "Ваше имя и фамилия",
+    fieldExperience: "Опыт работы (кратко)",
+    fieldConsent: "Согласен(на), что мои данные будут рассмотрены как отклик на вакансию",
+    submitApply: "Отправить отклик",
+    submitSending: "Отправка…",
+    applySuccess: "Ваш отклик принят!",
+    perMonth: "/мес",
+    orderModalTitle: "Оформление заказа",
+    orderNumberLabel: "Выбранный номер",
+    fieldRegion: "Ваш регион",
+    regionChoose: "Выбрать",
+    errRegion: "Выберите регион",
+    errName: "Введите ваше имя",
+    errPhone: "Введите номер телефона полностью",
+    orderSubmitBtn: "Оформить заказ",
+    orderSuccessTitle: "Заказ принят!",
+    orderSuccessSub: "Наши операторы скоро свяжутся с вами.",
+    orderErrorReserved: "К сожалению, этот номер уже заказан другим клиентом.",
+    orderErrorGeneric: "Ошибка при отправке заказа. Попробуйте снова."
   },
   en: {
     homeGreetingSub: "Welcome to the VIP Raqamlar mini app",
@@ -634,7 +1013,49 @@ const TRANSLATIONS = {
     resultPrice: "Price", resultStatus: "Status", backBtn: "Back",
     navHome: "Home", navCatalog: "Numbers", navProfile: "Profile",
     priceSuffix: "UZS",
-    selectedNumberAlert: "Selected number: {number}\n\nYou'll be taken to the bot to finish the order."
+    selectedNumberAlert: "Selected number: {number}\n\nYou'll be taken to the bot to finish the order.",
+    chipInstallment: "Installment",
+    liveSearchLabel: "Live search — from operator databases",
+    liveSearchBtn: "Search",
+    liveSearching: "Searching live numbers…",
+    liveBadge: "Live",
+    liveEmptyMask: "Enter at least one digit",
+    favoritesTitle: "My favorite numbers",
+    favoritesSub: "Tap the heart icon to save a number to this list.",
+    favEmpty: "You haven't added any favorites yet.",
+    favOrderBtn: "Order",
+    installmentTitle: "Installment-eligible numbers",
+    contractsTitle: "My contracts",
+    contractsSub: "Enter your contract number AND the phone number linked to it.",
+    fieldContractId: "Contract number",
+    errContractIncomplete: "Enter the full contract number and phone number",
+    errContractNotFound: "Contract not found. Check your details.",
+    contractCustomer: "Customer", contractNumber: "Number", contractMonthly: "Monthly payment", contractMonths: "Term",
+    contractStatusActive: "Active", contractStatusTrouble: "Issue", contractStatusCancelling: "Cancelling",
+    contractStatusCancelled: "Cancelled", contractStatusCompleted: "Completed",
+    downloadPdf: "Download contract PDF",
+    vacanciesTitle: "Vacancies",
+    vacanciesEmpty: "No open vacancies right now.",
+    vacancyApplyBtn: "Apply",
+    fieldFullName: "Your full name",
+    fieldExperience: "Work experience (brief)",
+    fieldConsent: "I agree that my information will be reviewed as a job application",
+    submitApply: "Submit application",
+    submitSending: "Sending…",
+    applySuccess: "Your application has been received!",
+    perMonth: "/mo",
+    orderModalTitle: "Complete your order",
+    orderNumberLabel: "Selected number",
+    fieldRegion: "Your region",
+    regionChoose: "Choose",
+    errRegion: "Please choose a region",
+    errName: "Please enter your name",
+    errPhone: "Please enter a full phone number",
+    orderSubmitBtn: "Place order",
+    orderSuccessTitle: "Order received!",
+    orderSuccessSub: "Our team will contact you shortly.",
+    orderErrorReserved: "Sorry, this number was just reserved by another customer.",
+    orderErrorGeneric: "Something went wrong sending the order. Please try again."
   }
 };
 let currentLang = 'uz';
@@ -660,6 +1081,8 @@ function applyLanguage(lang, persist){
   document.querySelectorAll('#langPill .seg-pill-option').forEach(b=> b.classList.toggle('active', b.dataset.lang === currentLang));
   renderGreeting();
   renderCatalog();
+  if(typeof renderFavoritesModal === 'function') renderFavoritesModal();
+  if(typeof VACANCIES !== 'undefined' && VACANCIES.length && typeof renderVacanciesList === 'function') renderVacanciesList();
   if(persist) saveLangChoice(currentLang);
 }
 
@@ -831,6 +1254,101 @@ let NUMBERS = [];
 let numbersLoaded = null;
 let catalogFilterText = '';
 let catalogFilterOp = '';
+let catalogFilterInstallment = false;
+
+/* =========================================================
+   JONLI QIDIRUV (Live search) — index.html'dagi #numberBuilder va
+   api-live-search.js BILAN BIR XIL kontrakt: 7 ta ALOHIDA katakcha
+   (currentPattern() bilan bir xil g'oya), mijoz "Qidirish"ni
+   bosgandagina GET /.netlify/functions/api-live-search?limit=40&mask=
+   so'raladi (avtomatik, har harf terilganda EMAS). Auth/App Check
+   SHART EMAS.
+   ========================================================= */
+let LIVE_NUMBERS = [];
+let liveMask = '';
+let liveRequestId = 0;
+let liveLoading = false;
+const liveDigitBoxes = Array.from(document.querySelectorAll('.live-digit-box'));
+
+// index.html'dagi currentPattern()/mask bilan BIR XIL: har bir
+// katakchaning qiymati (yoki bo'sh bo'lsa '_') ketma-ket birlashtiriladi.
+function currentLivePattern(){ return liveDigitBoxes.map(box=> box.value.trim()); }
+function buildLiveMask(){ return currentLivePattern().map(d=> d || '_').join(''); }
+
+liveDigitBoxes.forEach((box, idx)=>{
+  box.addEventListener('input', ()=>{
+    box.value = box.value.replace(/\D/g,'').slice(0,1);
+    box.classList.toggle('filled', box.value !== '');
+    if(box.value !== '' && idx < liveDigitBoxes.length - 1){ liveDigitBoxes[idx+1].focus({ preventScroll: true }); }
+  });
+  box.addEventListener('keydown', (e)=>{
+    if(e.key === 'Backspace' && box.value === '' && idx > 0){ liveDigitBoxes[idx-1].focus({ preventScroll: true }); }
+    if(e.key === 'Enter') fetchLiveNumbers();
+  });
+});
+
+async function fetchLiveNumbers(){
+  const mask = buildLiveMask();
+  if(!mask.replace(/_/g,'')){
+    tgAlert(t('liveEmptyMask'));
+    return;
+  }
+  if(mask === liveMask) return; // shu mask uchun natija allaqachon bor
+
+  const myId = ++liveRequestId;
+  liveLoading = true;
+  const btn = document.getElementById('liveSearchBtn');
+  const icon = document.getElementById('lsbIcon');
+  const spinner = document.getElementById('lsbSpinner');
+  const statusRow = document.getElementById('liveStatusRow');
+  btn.disabled = true;
+  icon.style.display = 'none';
+  spinner.style.display = 'inline-block';
+  statusRow.style.display = 'flex';
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=> controller.abort(), 9000);
+  try{
+    const url = '/.netlify/functions/api-live-search?limit=40&mask=' + encodeURIComponent(mask);
+    const res = await fetch(url, { signal: controller.signal });
+    const data = await res.json();
+    if(myId !== liveRequestId) return; // mijoz shu orada boshqasini terdi
+    if(data && data.ok === true){
+      // Server ID'ni "live:+998901234567" shaklida qaytaradi — "+" belgisi
+      // FAV_ID_PATTERN'ga (sevimlilar uchun ruxsat etilgan belgilar to'plami)
+      // to'g'ri kelmaydi, aks holda yurak bosilganda hech narsa saqlanmay,
+      // jimgina ishlamay qolardi. Shu sabab ID shu yerda tozalanadi (faqat
+      // "live:" prefiksi + raqamning o'zi, "+" va bo'shliqlarsiz).
+      LIVE_NUMBERS = Array.isArray(data.items) ? data.items.map(x=> Object.assign({}, x, {
+        id: 'live:' + String(x.number || '').replace(/[^A-Za-z0-9_-]/g, '')
+      })) : [];
+      liveMask = mask;
+    }else{
+      LIVE_NUMBERS = [];
+    }
+  }catch(err){
+    if(myId !== liveRequestId) return;
+    LIVE_NUMBERS = [];
+    liveMask = '';
+    // Mijozga texnik xato ko'rsatilmaydi — statik VIP baza baribir ishlaydi,
+    // jonli natija shunchaki bo'sh qoladi (index.html'dagi kabi "jim" xatti-harakat).
+  }finally{
+    clearTimeout(timeoutId);
+    if(myId === liveRequestId){
+      liveLoading = false;
+      btn.disabled = false;
+      icon.style.display = '';
+      spinner.style.display = 'none';
+      statusRow.style.display = 'none';
+      renderCatalog();
+    }
+  }
+}
+document.getElementById('liveSearchBtn').addEventListener('click', fetchLiveNumbers);
+
+function findItemById(id){
+  return NUMBERS.find(x=> x.id === id) || LIVE_NUMBERS.find(x=> x.id === id) || getFavLiveData()[id];
+}
 
 async function loadNumbers(){
   try{
@@ -839,13 +1357,14 @@ async function loadNumbers(){
     snap.forEach(doc=>{
       const d = doc.data();
       if(d.reserved) return; // band qilingan raqamlar ko'rsatilmaydi
-      NUMBERS.push({ id: doc.id, number: d.number, price: d.price, operator: d.operator });
+      NUMBERS.push({ id: doc.id, number: d.number, price: d.price, operator: d.operator, installment: !!d.installment });
     });
     numbersLoaded = true;
   }catch(e){
     numbersLoaded = false;
   }
   renderCatalog();
+  renderFavoritesModal(); // sevimlilar orasida NUMBERS'dan topiladigan bo'lsa, narxi/operatori endi to'g'ri ko'rinsin
   const boot = document.getElementById('bootSpinner');
   if(boot) boot.classList.add('hide');
 }
@@ -864,30 +1383,56 @@ function renderCatalog(){
   const digits = catalogFilterText.replace(/\D/g,'');
   let items = NUMBERS;
   if(catalogFilterOp) items = items.filter(n=> n.operator === catalogFilterOp);
+  if(catalogFilterInstallment) items = items.filter(n=> n.installment === true);
   if(digits) items = items.filter(n=> String(n.number || '').replace(/\D/g,'').includes(digits));
   items = items.slice(0, 60);
 
-  if(items.length === 0){
+  // Jonli (operator API) natijalari — bir xil filtrlar (operator/bo'lib
+  // to'lash) qo'llanadi, lekin ID'lari boshqacha ('live:' prefiksi) va
+  // Firestore'da saqlanmagan bo'lgani uchun alohida ro'yxatdan qo'shiladi.
+  let liveItems = LIVE_NUMBERS;
+  if(catalogFilterOp) liveItems = liveItems.filter(n=> n.operator === catalogFilterOp);
+  if(catalogFilterInstallment) liveItems = liveItems.filter(n=> n.installment === true);
+  liveItems = liveItems.slice(0, 40);
+
+  const allItems = liveItems.concat(items);
+
+  if(allItems.length === 0){
     listEl.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('catalogEmpty')) + '</div>';
     return;
   }
-  listEl.innerHTML = items.map(n=>{
+  listEl.innerHTML = allItems.map(n=>{
     const color = OPERATOR_COLORS[n.operator] || '#6b7280';
+    const favActive = isFavoriteId(n.id);
+    const heartFill = favActive ? 'currentColor' : 'none';
+    const liveBadge = n.live ? ('<span class="live-badge">' + escapeHtml(t('liveBadge')) + '</span>') : '';
     return `
-      <div class="num-card">
+      <div class="num-card" style="--op-color:${color};">
         <div class="num-card-main">
-          <div class="num-card-number">${escapeHtml(n.number || '')}</div>
+          <div class="num-card-number">${escapeHtml(n.number || '')}${liveBadge}</div>
           <div class="num-card-meta"><span class="num-card-op-dot" style="background:${color};"></span>${escapeHtml(n.operator || '')}</div>
         </div>
+        <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
+          <svg viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        </button>
         <div class="num-card-price">${formatPrice(n.price)}</div>
-        <button type="button" class="num-card-btn" data-number="${escapeHtml(n.number || '')}">${escapeHtml(t('orderBtn'))}</button>
+        <button type="button" class="num-card-btn" data-id="${escapeHtml(n.id)}">${escapeHtml(t('orderBtn'))}</button>
       </div>
     `;
   }).join('');
   listEl.querySelectorAll('.num-card-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      tgAlert(t('selectedNumberAlert', { number: btn.dataset.number }));
-      openBot();
+      const item = findItemById(btn.dataset.id);
+      if(item) openOrderModal(item);
+    });
+  });
+  listEl.querySelectorAll('.num-card-fav').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.favId;
+      const item = findItemById(id);
+      toggleFavorite(id, item);
+      renderCatalog();
+      renderFavoritesModal();
     });
   });
 }
@@ -898,12 +1443,294 @@ document.getElementById('catalogSearchInput').addEventListener('input', (e)=>{
   catalogFilterText = e.target.value;
   renderCatalog();
 });
-document.querySelectorAll('.op-chip').forEach(chip=>{
+document.querySelectorAll('#opChipRow .op-chip').forEach(chip=>{
   chip.addEventListener('click', ()=>{
-    document.querySelectorAll('.op-chip').forEach(c=> c.classList.toggle('active', c===chip));
+    document.querySelectorAll('#opChipRow .op-chip').forEach(c=> c.classList.toggle('active', c===chip));
     catalogFilterOp = chip.dataset.op || '';
     renderCatalog();
   });
+});
+const installmentChipEl = document.getElementById('installmentChip');
+if(installmentChipEl){
+  installmentChipEl.addEventListener('click', ()=>{
+    catalogFilterInstallment = !catalogFilterInstallment;
+    installmentChipEl.classList.toggle('active', catalogFilterInstallment);
+    renderCatalog();
+  });
+}
+
+/* =========================================================
+   BUYURTMA BERISH — mijoz iltimosiga ko'ra ENDI BOTGA
+   O'TKAZIB YUBORILMAYDI. index.html'dagi finalizeOrder() BILAN
+   BIR XIL Firestore yozuv mantig'i: VIP (haqiqiy 'numbers'
+   hujjatiga ega) raqamlar uchun tranzaksiya ichida "band qilish"
+   + buyurtma yozish; STANDART (jonli, id "live:" bilan boshlanadigan)
+   raqamlar uchun 'live_reservations' qulfi orqali. Tarif/bo'lib
+   to'lash bosqichlari (operatorga bog'liq, admin sozlaydigan)
+   ATAYLAB qo'shilmagan — bu yerdagi maqsad oddiy, to'g'ridan-to'g'ri
+   "Naqt to'lov" buyurtmasi, xuddi saytdagi eng oddiy oqim kabi.
+   ========================================================= */
+const orderModal = document.getElementById('orderModal');
+const orderFormView = document.getElementById('orderFormView');
+const orderSuccessView = document.getElementById('orderSuccessView');
+const orderNameInput = document.getElementById('orderNameInput');
+const orderRegionInput = document.getElementById('orderRegionInput');
+const orderPhoneInput = document.getElementById('orderPhoneInput');
+const orderErrorEl = document.getElementById('orderError');
+const orderSubmitBtn = document.getElementById('orderSubmitBtn');
+const orderSubmitLabel = document.getElementById('orderSubmitLabel');
+let __pendingOrderItem = null;
+
+function openOrderModal(item){
+  __pendingOrderItem = item;
+  orderErrorEl.style.display = 'none';
+  orderNameInput.value = '';
+  orderRegionInput.value = '';
+  orderPhoneInput.value = '+998';
+  orderFormView.style.display = 'block';
+  orderSuccessView.style.display = 'none';
+  orderSubmitBtn.disabled = false;
+  orderSubmitLabel.textContent = t('orderSubmitBtn');
+  document.getElementById('orderPreviewCard').innerHTML =
+    '<span class="opc-number">' + escapeHtml(item.number || '') + '</span>' +
+    '<span class="opc-price">' + formatPrice(item.price) + '</span>';
+  orderModal.classList.add('open');
+}
+function closeOrderModal(){ orderModal.classList.remove('open'); }
+document.getElementById('orderModalClose').addEventListener('click', closeOrderModal);
+
+function removeOrderedItemFromLists(id){
+  NUMBERS = NUMBERS.filter(n=> n.id !== id);
+  LIVE_NUMBERS = LIVE_NUMBERS.filter(n=> n.id !== id);
+}
+
+async function attemptOrderWrite(item, payload){
+  const isLiveOrder = String(item.id || '').startsWith('live:');
+  if(!isLiveOrder){
+    const numberRef = db.collection('numbers').doc(item.id);
+    const newOrderRef = db.collection('orders').doc();
+    await db.runTransaction(async (tx)=>{
+      const numSnap = await tx.get(numberRef);
+      if(numSnap.exists && numSnap.data().reserved === true){
+        throw new Error('ALREADY_RESERVED');
+      }
+      tx.set(newOrderRef, Object.assign({}, payload, {
+        numberId: item.id, status: 'Yangi', createdAt: new Date().toLocaleString('uz-UZ'), createdAtSort: Date.now()
+      }));
+      tx.update(numberRef, { reserved: true, reservedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+    return newOrderRef.id;
+  }else{
+    const liveKey = (payload.number || '').replace(/\D/g, '');
+    const lockRef = liveKey ? db.collection('live_reservations').doc(liveKey) : null;
+    const newOrderRef = db.collection('orders').doc();
+    if(lockRef){
+      try{
+        await db.runTransaction(async (tx)=>{
+          const lockSnap = await tx.get(lockRef);
+          if(lockSnap.exists){ throw new Error('ALREADY_RESERVED'); }
+          tx.set(newOrderRef, Object.assign({}, payload, {
+            numberId: null, status: 'Yangi', createdAt: new Date().toLocaleString('uz-UZ'), createdAtSort: Date.now()
+          }));
+          tx.set(lockRef, { reservedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        });
+        return newOrderRef.id;
+      }catch(e){
+        if(e && e.message === 'ALREADY_RESERVED') throw e;
+        // 'live_reservations' uchun qoida hali sozlanmagan bo'lishi mumkin —
+        // qulfsiz, oddiy usulda baribir yoziladi (mijoz to'sqinliksiz davom etadi).
+        const fallbackRef = await db.collection('orders').add(Object.assign({}, payload, {
+          numberId: null, status: 'Yangi', createdAt: new Date().toLocaleString('uz-UZ'), createdAtSort: Date.now()
+        }));
+        return fallbackRef.id;
+      }
+    }
+    const fallbackRef = await db.collection('orders').add(Object.assign({}, payload, {
+      numberId: null, status: 'Yangi', createdAt: new Date().toLocaleString('uz-UZ'), createdAtSort: Date.now()
+    }));
+    return fallbackRef.id;
+  }
+}
+
+async function sendOrderToTelegramNotify(payload, orderId){
+  const text = "🔔 Yangi buyurtma (Telegram mini ilova)\n\n"
+    + "📱 Buyurtma raqami: " + payload.number + "\n"
+    + "👤 Mijoz ismi: " + payload.name + "\n"
+    + "☎️ Ishlab turgan raqami: " + payload.phone + "\n"
+    + "📍 Manzil: " + payload.region + "\n"
+    + "💵 To'lov turi: Naqt to'lov\n"
+    + "🌐 Qayerdan: Telegram mini ilova";
+  try{
+    await fetch('/.netlify/functions/telegram-notify', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, await getAppCheckHeaders()),
+      body: JSON.stringify({ text, orderId })
+    });
+  }catch(e){ /* muhim emas — buyurtma allaqachon qabul qilingan */ }
+}
+
+orderSubmitBtn.addEventListener('click', async ()=>{
+  const item = __pendingOrderItem;
+  if(!item) return;
+  const name = orderNameInput.value.trim();
+  const region = orderRegionInput.value;
+  const phone = orderPhoneInput.value.trim();
+  orderErrorEl.style.display = 'none';
+  if(!name){ orderErrorEl.textContent = t('errName'); orderErrorEl.style.display = 'block'; return; }
+  if(!region){ orderErrorEl.textContent = t('errRegion'); orderErrorEl.style.display = 'block'; return; }
+  if(phone.replace(/\D/g,'').length < 9){ orderErrorEl.textContent = t('errPhone'); orderErrorEl.style.display = 'block'; return; }
+
+  orderSubmitBtn.disabled = true;
+  orderSubmitLabel.textContent = t('submitSending');
+
+  const payload = {
+    number: item.number || '', price: typeof item.price === 'number' ? item.price : 0,
+    name, region, phone,
+    phoneNormalized: phone.replace(/\D/g,'').slice(-9),
+    source: 'Telegram mini ilova', paymentType: 'cash',
+    operator: item.operator || '',
+    catalogType: String(item.id || '').startsWith('live:') ? 'Standart' : 'VIP'
+  };
+
+  let orderId = null, blockedReason = null;
+  const MAX_ATTEMPTS = 2;
+  for(let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++){
+    try{
+      orderId = await attemptOrderWrite(item, payload);
+      break;
+    }catch(err){
+      if(err && err.message === 'ALREADY_RESERVED'){ blockedReason = 'ALREADY_RESERVED'; break; }
+      if(attempt === MAX_ATTEMPTS){ blockedReason = 'ERROR'; console.error('Buyurtma yozishda xato:', err); }
+    }
+  }
+
+  if(blockedReason === 'ALREADY_RESERVED'){
+    orderErrorEl.textContent = t('orderErrorReserved');
+    orderErrorEl.style.display = 'block';
+    orderSubmitBtn.disabled = false;
+    orderSubmitLabel.textContent = t('orderSubmitBtn');
+    removeOrderedItemFromLists(item.id);
+    renderCatalog();
+    return;
+  }
+  if(blockedReason === 'ERROR'){
+    orderErrorEl.textContent = t('orderErrorGeneric');
+    orderErrorEl.style.display = 'block';
+    orderSubmitBtn.disabled = false;
+    orderSubmitLabel.textContent = t('orderSubmitBtn');
+    return;
+  }
+
+  sendOrderToTelegramNotify(payload, orderId);
+  removeOrderedItemFromLists(item.id);
+  renderCatalog();
+  renderFavoritesModal();
+  orderFormView.style.display = 'none';
+  orderSuccessView.style.display = 'block';
+  try{ hapticFeedback && hapticFeedback(); }catch(e){}
+});
+
+function hapticFeedback(){
+  try{ __tg && __tg.HapticFeedback && __tg.HapticFeedback.notificationOccurred('success'); }catch(e){}
+}
+
+/* =========================================================
+   SEVIMLI RAQAMLAR (Savat) — index.html BILAN BIR XIL
+   localStorage kaliti/shakli ('vip_favorites' — ID massivi,
+   'vip_favorites_live_data' — jonli qidiruvdan qo'shilgan
+   itemlar uchun snapshot), shu sabab ikkala joyda ham (sayt +
+   mini ilova) sevimlilar bir xil ko'rinadi.
+   ========================================================= */
+const FAV_KEY = 'vip_favorites';
+const FAV_LIVE_DATA_KEY = 'vip_favorites_live_data';
+const FAV_MAX_ITEMS = 20;
+const FAV_ID_PATTERN = /^[A-Za-z0-9_:-]{1,80}$/;
+function getFavorites(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+    return Array.isArray(raw) ? raw.filter(id=> typeof id === 'string' && FAV_ID_PATTERN.test(id)) : [];
+  }catch(e){ return []; }
+}
+function saveFavorites(list){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify(list.slice(0, FAV_MAX_ITEMS))); }catch(e){}
+}
+function isFavoriteId(id){ return getFavorites().includes(id); }
+function getFavLiveData(){
+  try{ return JSON.parse(localStorage.getItem(FAV_LIVE_DATA_KEY) || '{}'); }catch(e){ return {}; }
+}
+function saveFavLiveData(map){
+  try{ localStorage.setItem(FAV_LIVE_DATA_KEY, JSON.stringify(map)); }catch(e){}
+}
+function toggleFavorite(id, item){
+  if(!id || !FAV_ID_PATTERN.test(id)) return;
+  let list = getFavorites();
+  if(list.includes(id)){
+    list = list.filter(x=> x !== id);
+  }else{
+    if(list.length >= FAV_MAX_ITEMS){
+      tgAlert('Ko\'pi bilan ' + FAV_MAX_ITEMS + ' ta raqamni saqlash mumkin.');
+      return;
+    }
+    list.push(id);
+    if(item){
+      const liveData = getFavLiveData();
+      liveData[id] = { id: item.id, number: item.number, price: item.price, operator: item.operator };
+      saveFavLiveData(liveData);
+    }
+  }
+  saveFavorites(list);
+}
+function renderFavoritesModal(){
+  const wrap = document.getElementById('favoritesListView');
+  if(!wrap) return;
+  const ids = getFavorites();
+  if(ids.length === 0){
+    wrap.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('favEmpty')) + '</div>';
+    return;
+  }
+  const liveData = getFavLiveData();
+  wrap.innerHTML = ids.map(id=>{
+    const item = NUMBERS.find(x=> x.id === id) || liveData[id];
+    if(!item) return '';
+    return `
+      <div class="fav-row">
+        <div class="fav-row-main">
+          <div class="fav-row-number">${escapeHtml(item.number || '')}</div>
+          <div class="fav-row-price">${formatPrice(item.price)}</div>
+        </div>
+        <button type="button" class="fav-row-order" data-fav-id="${escapeHtml(id)}">${escapeHtml(t('favOrderBtn'))}</button>
+        <button type="button" class="fav-row-remove" data-fav-id="${escapeHtml(id)}">✕</button>
+      </div>
+    `;
+  }).join('') || '<div class="catalog-empty">' + escapeHtml(t('favEmpty')) + '</div>';
+  wrap.querySelectorAll('.fav-row-order').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const item = findItemById(btn.dataset.favId);
+      if(item) openOrderModal(item);
+    });
+  });
+  wrap.querySelectorAll('.fav-row-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      toggleFavorite(btn.dataset.favId);
+      renderFavoritesModal();
+      renderCatalog();
+    });
+  });
+}
+const favoritesModal = document.getElementById('favoritesModal');
+function openFavoritesModal(){ renderFavoritesModal(); favoritesModal.classList.add('open'); }
+function closeFavoritesModal(){ favoritesModal.classList.remove('open'); }
+document.getElementById('favoritesModalClose').addEventListener('click', closeFavoritesModal);
+favoritesModal.addEventListener('click', (e)=>{ if(e.target === favoritesModal) closeFavoritesModal(); });
+document.getElementById('profFavorites').addEventListener('click', openFavoritesModal);
+
+/* "Bo'lib to'lashga raqamlar" — Katalogga o'tib, installment chipini
+   yoqadi (real filtr, index.html'dagi mantiq bilan bir xil). */
+document.getElementById('profInstallment').addEventListener('click', ()=>{
+  switchScreen('catalog');
+  if(!catalogFilterInstallment && installmentChipEl){
+    installmentChipEl.click();
+  }
 });
 
 /* =========================================================
@@ -969,6 +1796,243 @@ function renderOrdersResult(orders){
     wrap.style.display = 'none';
   });
 }
+
+/* =========================================================
+   SHARTNOMALARIM — check-contract-status.js AYNAN index.html
+   ishlatgani bilan bir xil kontraktda chaqiriladi (shartnoma ID
+   + telefon -> {ok, data:{customerName, number, totalMonths,
+   monthlyPayment, contractStatus, payments:[{month,status,
+   dueDate}]}}), yangi backend YO'Q. PDF yuklash ham index.html
+   BILAN BIR XIL generate-contract-pdf funksiyasiga chaqiradi.
+   ========================================================= */
+const CONTRACT_STATUS_KEY_MAP = {
+  active: 'contractStatusActive', trouble: 'contractStatusTrouble', cancelling: 'contractStatusCancelling',
+  cancelled: 'contractStatusCancelled', completed: 'contractStatusCompleted'
+};
+/* MUHIM: CSS color-mix() eski Telegram WebView'larda (ayrim Android
+   versiyalari) qo'llab-quvvatlanmasligi mumkin — shu sabab tayyor
+   rgba() fon ranglari ishlatiladi, dinamik aralashtirish EMAS. */
+const CONTRACT_STATUS_STYLE = {
+  active:     { text:'var(--green)',  bg:'rgba(46,196,129,0.16)' },
+  trouble:    { text:'var(--amber)',  bg:'rgba(255,171,64,0.16)' },
+  cancelling: { text:'var(--amber)',  bg:'rgba(255,171,64,0.16)' },
+  cancelled:  { text:'var(--danger)', bg:'rgba(255,92,92,0.16)' },
+  completed:  { text:'var(--accent)', bg:'rgba(79,140,255,0.16)' }
+};
+const contractsModal = document.getElementById('contractsModal');
+let __lastContractId = '';
+function openContractsModal(){
+  document.getElementById('contractsFormView').style.display = 'block';
+  document.getElementById('contractsResultView').style.display = 'none';
+  document.getElementById('contractsResultView').innerHTML = '';
+  document.getElementById('contractsError').style.display = 'none';
+  contractsModal.classList.add('open');
+}
+function closeContractsModal(){ contractsModal.classList.remove('open'); }
+document.getElementById('contractsModalClose').addEventListener('click', closeContractsModal);
+contractsModal.addEventListener('click', (e)=>{ if(e.target === contractsModal) closeContractsModal(); });
+document.getElementById('profContracts').addEventListener('click', openContractsModal);
+
+document.getElementById('contractsSubmitBtn').addEventListener('click', async ()=>{
+  const idVal = document.getElementById('contractIdInput').value.trim().toUpperCase();
+  const phoneVal = document.getElementById('contractPhoneInput').value.replace(/\D/g,'');
+  const errEl = document.getElementById('contractsError');
+  errEl.style.display = 'none';
+  if(!idVal || !phoneVal || phoneVal.length < 9){
+    errEl.textContent = t('errContractIncomplete');
+    errEl.style.display = 'block';
+    return;
+  }
+  const label = document.getElementById('contractsSubmitLabel');
+  label.textContent = t('submitSearching');
+  try{
+    const res = await fetch('/.netlify/functions/check-contract-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ contractId: idVal, phone: phoneVal })
+    });
+    const result = await res.json();
+    if(!result.ok || !result.data){
+      errEl.textContent = result.error || t('errContractNotFound');
+      errEl.style.display = 'block';
+    }else{
+      __lastContractId = idVal; // MUHIM: index.html'dagi bug'ni TAKRORLAMAYMIZ —
+      // result.data'da contractId yo'q, shu sabab QIDIRGAN idVal'ni ishlatamiz.
+      renderContractResult(result.data);
+      document.getElementById('contractsFormView').style.display = 'none';
+      document.getElementById('contractsResultView').style.display = 'block';
+    }
+  }catch(err){
+    errEl.textContent = t('errGeneric') + (err && err.message ? err.message : 'unknown');
+    errEl.style.display = 'block';
+  }
+  label.textContent = t('submitSearch');
+});
+
+function renderContractResult(data){
+  const wrap = document.getElementById('contractsResultView');
+  const payments = Array.isArray(data.payments) ? data.payments : [];
+  const paidCount = payments.filter(p=> p.status === 'paid').length;
+  const totalCount = payments.length || data.totalMonths || 0;
+  const pct = totalCount ? Math.round((paidCount / totalCount) * 100) : 0;
+  const statusKey = CONTRACT_STATUS_KEY_MAP[data.contractStatus] ? data.contractStatus : 'active';
+  const statusStyle = CONTRACT_STATUS_STYLE[statusKey] || CONTRACT_STATUS_STYLE.active;
+  const monthsHtml = payments.map(p=>{
+    const now = Date.now();
+    let cls = 'cm-pending';
+    if(p.status === 'paid') cls = 'cm-paid';
+    else if(p.dueDate && p.dueDate < now) cls = 'cm-overdue';
+    return `<div class="contract-month-chip ${cls}">${escapeHtml(p.month)}</div>`;
+  }).join('');
+  wrap.innerHTML = `
+    <div class="contract-status-banner" style="background:${statusStyle.bg};color:${statusStyle.text};">
+      ${escapeHtml(t(CONTRACT_STATUS_KEY_MAP[statusKey]))}
+    </div>
+    <div class="order-result-row" style="margin-bottom:14px;">
+      <div class="or-line"><span>${escapeHtml(t('contractCustomer'))}</span><b>${escapeHtml(data.customerName || '')}</b></div>
+      <div class="or-line"><span>${escapeHtml(t('contractNumber'))}</span><b>${escapeHtml(data.number || '')}</b></div>
+      <div class="or-line"><span>${escapeHtml(t('contractMonthly'))}</span><b>${formatPrice(data.monthlyPayment)}</b></div>
+      <div class="or-line"><span>${escapeHtml(t('contractMonths'))}</span><b>${escapeHtml(data.totalMonths)}</b></div>
+    </div>
+    ${totalCount ? `<div class="contract-progress-track"><div class="contract-progress-fill" style="width:${pct}%;"></div></div>` : ''}
+    ${monthsHtml ? `<div class="contract-months-grid">${monthsHtml}</div>` : ''}
+    <button type="button" class="contract-pdf-btn" id="contractPdfBtn">${escapeHtml(t('downloadPdf'))}</button>
+    <button class="modal-submit" id="contractsBackBtn" style="margin-top:8px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);">${escapeHtml(t('backBtn'))}</button>
+  `;
+  document.getElementById('contractsBackBtn').addEventListener('click', ()=>{
+    document.getElementById('contractsFormView').style.display = 'block';
+    wrap.style.display = 'none';
+  });
+  document.getElementById('contractPdfBtn').addEventListener('click', async ()=>{
+    const phoneVal = document.getElementById('contractPhoneInput').value.replace(/\D/g,'');
+    try{
+      const res = await fetch('/.netlify/functions/generate-contract-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
+        body: JSON.stringify({ contractId: __lastContractId, phone: phoneVal })
+      });
+      const result = await res.json();
+      if(!result.ok || !result.pdfBase64){
+        tgAlert(result.error || t('errGeneric'));
+        return;
+      }
+      const byteChars = atob(result.pdfBase64);
+      const byteNumbers = new Array(byteChars.length);
+      for(let i=0;i<byteChars.length;i++) byteNumbers[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      // MUHIM: bu blob: URL faqat shu sahifa kontekstida ishlaydi — Telegram
+      // tg.openLink() TASHQI brauzerga ochadi, u yerda blob ko'rinmay qoladi.
+      // Shu sabab ataylab window.open (shu WebView ichida) ishlatiladi.
+      window.open(url, '_blank');
+    }catch(err){
+      tgAlert(t('errGeneric') + (err && err.message ? err.message : 'unknown'));
+    }
+  });
+}
+
+/* =========================================================
+   VAKANSIYALAR — Firestore 'vacancies' (active==true) kolleksiyasi
+   va 'job_applications' ga yozish — index.html BILAN BIR XIL
+   maydon nomlari.
+   ========================================================= */
+const vacanciesModal = document.getElementById('vacanciesModal');
+let VACANCIES = [];
+let __selectedVacancy = null;
+function openVacanciesModal(){
+  document.getElementById('vacanciesListView').style.display = 'block';
+  document.getElementById('vacancyApplyView').style.display = 'none';
+  document.getElementById('vacancySuccessView').style.display = 'none';
+  vacanciesModal.classList.add('open');
+  loadVacancies();
+}
+function closeVacanciesModal(){ vacanciesModal.classList.remove('open'); }
+document.getElementById('vacanciesModalClose').addEventListener('click', closeVacanciesModal);
+vacanciesModal.addEventListener('click', (e)=>{ if(e.target === vacanciesModal) closeVacanciesModal(); });
+document.getElementById('profVacancies').addEventListener('click', openVacanciesModal);
+
+async function loadVacancies(){
+  const wrap = document.getElementById('vacanciesListView');
+  wrap.innerHTML = '<div class="catalog-loading"><div class="boot-ring"></div>' + escapeHtml(t('catalogLoadingText')) + '</div>';
+  try{
+    const snap = await db.collection('vacancies').where('active', '==', true).get();
+    VACANCIES = [];
+    snap.forEach(doc=> VACANCIES.push({ id: doc.id, ...doc.data() }));
+    VACANCIES.sort((a,b)=> (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
+  }catch(e){
+    VACANCIES = [];
+  }
+  renderVacanciesList();
+}
+function renderVacanciesList(){
+  const wrap = document.getElementById('vacanciesListView');
+  if(VACANCIES.length === 0){
+    wrap.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('vacanciesEmpty')) + '</div>';
+    return;
+  }
+  wrap.innerHTML = VACANCIES.map(v=>`
+    <div class="vac-card">
+      <div class="vac-card-title">${escapeHtml(v.title || '')}</div>
+      <div class="vac-card-desc">${escapeHtml(v.description || '')}</div>
+      ${(v.salaryMin || v.salaryMax) ? `<div class="vac-card-salary">${formatPrice(v.salaryMin)} – ${formatPrice(v.salaryMax)}${escapeHtml(t('perMonth'))}</div>` : ''}
+      <button type="button" class="vac-card-apply" data-vacancy-id="${escapeHtml(v.id)}">${escapeHtml(t('vacancyApplyBtn'))}</button>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('.vac-card-apply').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      __selectedVacancy = VACANCIES.find(v=> v.id === btn.dataset.vacancyId) || null;
+      document.getElementById('vacanciesListView').style.display = 'none';
+      document.getElementById('vacancyApplyView').style.display = 'block';
+      document.getElementById('vacancyNameInput').value = '';
+      document.getElementById('vacancyPhoneInput').value = '';
+      document.getElementById('vacancyExperienceInput').value = '';
+      document.getElementById('vacancyConsentInput').checked = false;
+      document.getElementById('vacancySubmitBtn').disabled = true;
+      document.getElementById('vacancyError').style.display = 'none';
+    });
+  });
+}
+document.getElementById('vacancyConsentInput').addEventListener('change', (e)=>{
+  document.getElementById('vacancySubmitBtn').disabled = !e.target.checked;
+});
+document.getElementById('vacancySubmitBtn').addEventListener('click', async ()=>{
+  if(!__selectedVacancy) return;
+  const name = document.getElementById('vacancyNameInput').value.trim();
+  const phone = document.getElementById('vacancyPhoneInput').value.trim();
+  const experience = document.getElementById('vacancyExperienceInput').value.trim();
+  const consent = document.getElementById('vacancyConsentInput').checked;
+  const errEl = document.getElementById('vacancyError');
+  errEl.style.display = 'none';
+  if(!name || !phone || !consent){
+    errEl.textContent = t('errIncomplete');
+    errEl.style.display = 'block';
+    return;
+  }
+  const label = document.getElementById('vacancySubmitLabel');
+  label.textContent = t('submitSending');
+  try{
+    await db.collection('job_applications').add({
+      vacancyId: __selectedVacancy.id,
+      vacancyTitle: __selectedVacancy.title || '',
+      fullName: name, phone, experience,
+      consentGiven: true, status: 'new',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    try{
+      await fetch('/.netlify/functions/telegram-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await getAppCheckHeaders()) },
+        body: JSON.stringify({ text: `Yangi vakansiya arizasi (Mini App)\nVakansiya: ${__selectedVacancy.title || ''}\nIsm: ${name}\nTelefon: ${phone}\nTajriba: ${experience}` })
+      });
+    }catch(e){ /* faqat admin xabari, xato bo'lsa ham arizani buzmaydi */ }
+    document.getElementById('vacancyApplyView').style.display = 'none';
+    document.getElementById('vacancySuccessView').style.display = 'block';
+  }catch(err){
+    errEl.textContent = t('errGeneric') + (err && err.message ? err.message : 'unknown');
+    errEl.style.display = 'block';
+  }
+  label.textContent = t('submitApply');
+});
 
 /* Xavfsizlik to'ri — agar Firestore juda sekin/umuman javob bermasa,
    6 soniyadan keyin baribir yuklanish ekranini yopamiz (mijoz
