@@ -95,15 +95,62 @@ service cloud.firestore {
             ));
     }
 
+    // XAVFSIZLIK: 'price' maydoni mijoz brauzeridan (Firestore Client SDK
+    // orqali, index.html'dagi finalizeOrder()'dan) to'g'ridan-to'g'ri
+    // yoziladi — brauzer konsolidan buni o'zgartirib, qimmat VIP raqamni
+    // "0 so'm"ga yoki juda arzon narxga "buyurtma qilib" yozib qo'yish
+    // NAZARIY jihatdan mumkin edi. Buning oldini olish uchun: agar
+    // buyurtma haqiqiy 'numbers' hujjatiga bog'liq bo'lsa (numberId bor —
+    // VIP raqamlar uchun har doim shunday), buyurtmadagi narx O'SHA
+    // RAQAMNING HAQIQIY BAZADAGI NARXIDAN OSHIB KETOLMAYDI (past bo'lishi —
+    // masalan promo-kod chegirmasi bilan — hamon mumkin, chunki bu qonuniy
+    // holat). "Standart" (jonli, operatordan qidirilgan) raqamlarda
+    // haqiqiy 'numbers' hujjati yo'q — ular uchun bu tekshiruv o'tkazib
+    // yuboriladi (numberId == null bo'ladi).
+    function orderPriceOk(data){
+      // YANGI (mijoz so'roviga ko'ra qo'shilgan Naqt to'lov + Tarif
+      // tanlash bosqichi — index.html'dagi confirmBtn payload'iga
+      // qarang): endi VIP raqam uchun yozilayotgan buyurtma narxi
+      // (data.price) ATAYLAB katalogdagi narxdan (numbers/{id}.price)
+      // OSHIQROQ bo'lishi mumkin — chunki mijoz tarif tanlagan bo'lsa,
+      // yakuniy narxga tanlangan tarifning oylik to'lovi HAM qo'shiladi
+      // (raqam narxi + tarif narxi). Shu sabab ruxsat etilgan yuqori
+      // chegara endi "katalog narxi + e'lon qilingan tarif narxi"
+      // (data.cashTariffPrice, agar mavjud bo'lsa) ga teng — tarif
+      // tanlanmagan (eski) buyurtmalar uchun bu qo'shimcha 0 bo'lib,
+      // avvalgi cheklov (price <= katalog narxi) o'zgarishsiz qoladi.
+      return !(data.keys().hasAny(['numberId']))
+        || data.numberId == null
+        || !(data.numberId is string)
+        || !exists(/databases/$(database)/documents/numbers/$(data.numberId))
+        || data.price <= get(/databases/$(database)/documents/numbers/$(data.numberId)).data.price
+             + ((data.keys().hasAny(['cashTariffPrice']) && data.cashTariffPrice is number) ? data.cashTariffPrice : 0);
+    }
+
     match /orders/{doc} {
       // Hujjat hajmi cheklangan (spam/keraksiz katta yozuvlarning oldini
       // olish uchun) — public foydalanuvchi FAQAT yangi buyurtma yarata
       // oladi, boshqa hech narsa qila olmaydi.
-      allow create: if request.resource.data.keys().size() <= 20
+      // MUHIM: "location" (Toshkent shahri uchun mijoz xaritada belgilagan
+      // aniq joylashuv) maydoni qo'shilgani sabab field-son chegarasi
+      // 20'dan 24'ga oshirildi (avvalgi chegara, ba'zi kombinatsiyalarda
+      // — masalan bo'lib to'lash + joylashuv — aynan 20ga tegib turgan
+      // edi, keyingi kichik qo'shimchalar uchun ozroq joy qoldirildi).
+      // "location" mavjud bo'lsa — u albatta {lat, lng} raqamlardan
+      // iborat, haqiqiy dunyo koordinatalari chegarasida bo'lishi shart
+      // (soxta/haddan tashqari katta qiymatlar yozilmasin).
+      allow create: if request.resource.data.keys().size() <= 24
         && request.resource.data.status == 'Yangi'
         && request.resource.data.name is string && request.resource.data.name.size() < 200
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
-        && request.resource.data.region is string && request.resource.data.region.size() < 300;
+        && request.resource.data.region is string && request.resource.data.region.size() < 300
+        && request.resource.data.price is number && request.resource.data.price >= 0
+        && (!request.resource.data.keys().hasAny(['location'])
+            || (request.resource.data.location.lat is number
+                && request.resource.data.location.lat >= -90 && request.resource.data.location.lat <= 90
+                && request.resource.data.location.lng is number
+                && request.resource.data.location.lng >= -180 && request.resource.data.location.lng <= 180))
+        && orderPriceOk(request.resource.data);
       allow read, update, delete: if hasPerm('orders');
     }
 
@@ -188,13 +235,36 @@ service cloud.firestore {
       allow write: if hasPerm('zakaz');
     }
 
+    // XAVFSIZLIK (xuddi orderPriceOk() kabi): 'fullPrice'/'salePrice'
+    // maydonlari ham mijoz brauzeridan to'g'ridan-to'g'ri yoziladi
+    // (index.html'dagi "Zakaz qilish" bo'limi). Narx kategoriyasi hujjati
+    // 'number_price_categories' to'plamida "{operator}_{pattern}" ID
+    // bilan saqlanadi (qarang: coPriceBtn ishlov beruvchisi) — shu
+    // hujjatdagi HAQIQIY 'fullPrice'dan oshib ketolmasligi tekshiriladi
+    // (past bo'lishi mumkin emas — bu yerda chegirma "aksiya" alohida,
+    // admin tomonidan belgilanadi, mijoz o'zi tanlamaydi).
+    function customOrderPriceOk(data){
+      let catId = data.operator + '_' + data.pattern;
+      return !exists(/databases/$(database)/documents/number_price_categories/$(catId))
+        || (
+          (!data.keys().hasAny(['fullPrice']) || data.fullPrice <= get(/databases/$(database)/documents/number_price_categories/$(catId)).data.fullPrice)
+          && (!data.keys().hasAny(['salePrice']) || data.salePrice <= get(/databases/$(database)/documents/number_price_categories/$(catId)).data.fullPrice)
+        );
+    }
+
     match /custom_orders/{doc} {
-      allow create: if request.resource.data.keys().size() <= 20
+      // MUHIM: "Zakaz qilish" endi operator, to'liq narx, oylik tarif,
+      // aksiya, bo'lib to'lash va "nomiga chiqadimi" kabi ko'proq
+      // ma'lumotni birga saqlaydi (saytdan HAM, Telegram botdan HAM) —
+      // shu sabab maydonlar chegarasi (avval 20) ko'tarildi.
+      allow create: if request.resource.data.keys().size() <= 30
         && request.resource.data.status == 'Yangi'
         && request.resource.data.name is string && request.resource.data.name.size() < 200
         && request.resource.data.phone is string && request.resource.data.phone.size() < 50
         && request.resource.data.region is string && request.resource.data.region.size() < 300
-        && request.resource.data.pattern is string && request.resource.data.pattern.size() == 4;
+        && request.resource.data.pattern is string && request.resource.data.pattern.size() == 4
+        && request.resource.data.operator is string
+        && customOrderPriceOk(request.resource.data);
       allow read, update, delete: if hasPerm('zakaz');
     }
 
@@ -211,6 +281,15 @@ service cloud.firestore {
     // shartnoma qo'shilganda mos raqam avtomatik "yopiq" bo'ladi.
     match /personal_numbers/{doc} {
       allow read, write: if hasPerm('personalbase');
+    }
+
+    // "Vazifalar" — admin o'zining shaxsiy ish/dedlayn ro'yxati (vazifa
+    // matni, muddati, "muhim" belgisi, bajarilgan/bajarilmagan holati).
+    // Netlify funksiyasi (admin-tasks-check-background.js) bu yerga Admin
+    // SDK orqali yozadi (qoidalardan mustasno) — 5 soat qolganda Telegram
+    // ogohlantirish yuborilgach "notified5h" belgisini qo'yish uchun.
+    match /admin_tasks/{doc} {
+      allow read, write: if hasPerm('vazifalar');
     }
 
     // credit_contracts — ILGARI shu yerda "hasPerm('credit')" bilan
@@ -261,6 +340,40 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // "Vakansiya" — saytdagi ochiq ish o'rinlari. Mijoz sayti bu
+    // kolleksiyani to'g'ridan-to'g'ri Client SDK orqali o'qiydi (menyu →
+    // "Vakansiya"), shu sabab o'qish HAMMAGA ochiq — lekin yozish faqat
+    // "Vakansiya" bo'limiga ruxsati bor adminlarga.
+    match /vacancies/{doc} {
+      allow read: if true;
+      allow write: if hasPerm('vakansiya');
+    }
+
+    // "job_applications" — nomzodlar ariza formasi orqali ANONIM
+    // yuboradigan murojaatlar. 'orders' kolleksiyasidagi kabi qat'iy
+    // sxema bilan cheklanadi (spam/keraksiz maydonlarning oldini olish
+    // uchun): faqat ko'rsatilgan maydonlar, holat har doim 'new' bo'lib
+    // yaratiladi, VA shaxsiy ma'lumotlarni qayta ishlashga rozilik
+    // (consentGiven) albatta TRUE bo'lishi shart — bu "qonuniy tarzda"
+    // ma'lumot yig'ish talabining Firestore darajasidagi kafolati.
+    // createdAt soxtalashtirib bo'lmasin deb aynan server vaqtiga teng
+    // bo'lishi shart (xuddi 'active_sessions.lastSeen' kabi).
+    // O'qish/yangilash/o'chirish faqat "Vakansiya" bo'limiga ruxsati bor
+    // adminlarga — mijoz o'z arizasini boshqa yo'l bilan ko'ra olmaydi.
+    match /job_applications/{doc} {
+      allow create: if request.resource.data.keys().hasOnly(
+            ['vacancyId', 'vacancyTitle', 'fullName', 'phone', 'experience', 'consentGiven', 'createdAt', 'status'])
+        && request.resource.data.status == 'new'
+        && request.resource.data.consentGiven == true
+        && request.resource.data.vacancyId is string && request.resource.data.vacancyId.size() < 200
+        && request.resource.data.vacancyTitle is string && request.resource.data.vacancyTitle.size() < 200
+        && request.resource.data.fullName is string && request.resource.data.fullName.size() > 0 && request.resource.data.fullName.size() < 200
+        && request.resource.data.phone is string && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() < 50
+        && request.resource.data.experience is string && request.resource.data.experience.size() < 3000
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if hasPerm('vakansiya');
+    }
+
     match /video_testimonials/{doc} {
       allow read: if true;
       allow create, delete: if hasPerm('videos');
@@ -283,6 +396,11 @@ service cloud.firestore {
     // olinmagan yo'llarni to'liq YOPIQ qiladi — "request.auth != null"
     // kabi umumiy qoida bilan OCHIB QO'YISH XATO bo'lardi):
     // bot_sessions, known_customers_tgmenu, known_customers, admin_list,
+    // order_lookup_rate_limits (— check-my-orders.js'dagi IP bo'yicha
+    // soatlik so'rov cheklovi hisoblagichi), order_create_rate_limits (—
+    // api-create-order.js'dagi IP bo'yicha soatlik buyurtma cheklovi
+    // hisoblagichi), sms_verifications_ip (— send-sms-code.js'dagi IP
+    // bo'yicha soatlik SMS cheklovi hisoblagichi),
     // admin_ai_pending_actions, watch_notify_recipients (— "Baza raqam"
     // uchun qo'shimcha Telegram bildirishnoma ID'lari — qarang:
     // admin-number-watch.js), number_watches (— "Baza raqam" kuzatuvi:

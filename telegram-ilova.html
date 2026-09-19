@@ -225,6 +225,71 @@
   .action-sub{font-size:11.5px;color:var(--muted);}
   .action-chevron{font-size:19px;line-height:1;color:var(--muted);flex-shrink:0;}
 
+  /* ===== Bosh sahifa — yangi ("MyUZTELECOM" namunasi asosida) =====
+     Yuqori o'ng burchakdagi "Kirish"/profil chip, avtomatik-almashinuvchi
+     banner (raqam+tarif+narx) va 2x2 tezkor ikonka katakchalari. ===== */
+  .app-top-left{display:flex;align-items:center;gap:8px;}
+  .home-id-chip{display:flex;align-items:center;}
+  .home-login-btn{
+    display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:none;cursor:pointer;
+    background:linear-gradient(135deg, #ff5f8f, var(--accent));color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
+  }
+  .home-login-btn svg{width:14px;height:14px;flex-shrink:0;}
+  .home-login-btn:active{transform:scale(0.96);}
+  .home-profile-chip{
+    display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:20px;
+    background:var(--panel-2);border:1px solid var(--line);
+  }
+  .home-profile-chip .home-profile-avatar{
+    width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;
+    background:linear-gradient(135deg, #ff5f8f, var(--accent));display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;color:#fff;
+  }
+  .home-profile-chip .home-profile-avatar img{width:100%;height:100%;object-fit:cover;}
+  .home-profile-chip span{
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;max-width:110px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+
+  .home-banner{
+    margin:14px 16px 10px;border-radius:22px;padding:18px 18px 16px;position:relative;overflow:hidden;
+    min-height:150px;background:var(--glass-bg);border:1px solid var(--glass-border);
+    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 14px 30px -14px rgba(0,0,0,0.35);
+  }
+  .home-banner-pill{
+    display:inline-flex;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px;
+  }
+  .home-banner-body{transition:opacity .22s ease, transform .22s ease;}
+  .home-banner-body.fading{opacity:0;transform:translateY(6px);}
+  .home-banner-number{font-family:'Sora',sans-serif;font-weight:800;font-size:23px;letter-spacing:.3px;margin-bottom:6px;}
+  .home-banner-tariff{font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:700;}
+  .home-banner-price-row{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+  .home-banner-price{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);}
+  .home-banner-old-price{font-size:12.5px;color:var(--muted);text-decoration:line-through;}
+  .home-banner-dots{display:flex;justify-content:center;gap:5px;margin-bottom:16px;}
+  .home-banner-dot{width:6px;height:6px;border-radius:3px;background:var(--line);transition:width .3s ease, background .3s ease;}
+  .home-banner-dot.active{width:18px;background:var(--accent);}
+
+  .home-grid{margin:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .home-grid-cell{
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;
+    display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:92px;
+    cursor:pointer;text-align:left;font-family:inherit;color:var(--text);transition:transform .1s ease;
+  }
+  .home-grid-cell:active{transform:scale(0.97);}
+  .home-grid-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .home-grid-icon svg{width:19px;height:19px;}
+  .home-grid-label{font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;line-height:1.3;}
+  .hg-pink{background:rgba(255,95,143,0.18);color:#ff5f8f;}
+  .hg-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
+  .hg-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
+  .hg-gray{background:var(--panel-2);color:var(--muted);}
+  .home-grid-cell-disabled{opacity:.55;cursor:default;}
+  .home-grid-cell-disabled:active{transform:none;}
+
   .seg-pill{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;}
   .seg-pill-option{
     flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;border-radius:9px;
@@ -455,6 +520,10 @@
   .bn-tab span{font-family:'Sora',sans-serif;font-weight:700;font-size:10px;}
   .bn-tab.active{color:#fff;background:linear-gradient(135deg, rgba(255,95,143,0.32), rgba(79,140,255,0.28));}
   .bn-tab.active svg{filter:drop-shadow(0 0 5px rgba(79,140,255,0.55));}
+  /* Modal/varaq ochiq paytda navigatsiya KO'RINMAS bo'ladi ("huddi boshqa
+     ilovalar kabi"), lekin joyi (fixed, bottom) HECH QACHON o'zgarmaydi —
+     faqat shaffoflik/bosilish o'chadi, keyin aynan o'sha joyda qaytadi. */
+  .bottom-nav.nav-hidden{opacity:0;pointer-events:none;transition:opacity .18s ease;}
 </style>
 </head>
 <body>
@@ -462,59 +531,64 @@
 <div id="bootSpinner"><div class="boot-ring"></div></div>
 
 <header class="app-top">
-  <img src="assets/logo-circle.png?v=2" alt="VIP Raqamlar">
-  <div class="wordmark">VIP <b>Raqamlar</b></div>
+  <div class="app-top-left">
+    <img src="assets/logo-circle.png?v=2" alt="VIP Raqamlar">
+    <div class="wordmark">VIP <b>Raqamlar</b></div>
+  </div>
+  <!-- Yuqori o'ng burchak: mijoz namunasidagi "Kirish" xuddi shu joyda —
+       Telegram foydalanuvchisi aniqlansa (odatda mini-ilovada doim shunday),
+       "Kirish" o'rniga profil chip (rasm/ism) ko'rsatiladi, joy o'zgarmaydi. -->
+  <div class="home-id-chip" id="homeIdChip">
+    <button type="button" class="home-login-btn" id="homeLoginBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      <span data-i18n="loginBtn">Kirish</span>
+    </button>
+    <div class="home-profile-chip" id="homeProfileChip" hidden>
+      <div class="home-profile-avatar" id="homeAvatar">👤</div>
+      <span id="homeHello">Mijoz</span>
+    </div>
+  </div>
 </header>
 
 <main>
-  <!-- ================= BOSH SAHIFA ================= -->
+  <!-- ================= BOSH SAHIFA — 0 dan qayta qurilgan
+       ("MyUZTELECOM" namunasi asosida): qidiruv paneli yo'q, o'rniga
+       har 6 soniyada avtomatik almashadigan "Tavsiya etiladi" banneri
+       (raqam + tarif + narx/eski narx), keyin 2x2 tezkor ikonka
+       katakchalari. ================= -->
   <section class="tg-screen active" id="screen-home">
-    <div class="greeting-card">
-      <div class="greeting-avatar" id="homeAvatar">👤</div>
-      <div>
-        <div class="greeting-hello" id="homeHello">Salom!</div>
-        <div class="greeting-sub" data-i18n="homeGreetingSub">VIP Raqamlar mini ilovasiga xush kelibsiz</div>
+    <div class="home-banner" id="homeBanner">
+      <div class="home-banner-pill" data-i18n="bannerRecommended">Tavsiya etiladi</div>
+      <div class="home-banner-body" id="homeBannerBody">
+        <div class="home-banner-number" id="homeBannerNumber">—</div>
+        <div class="home-banner-tariff" id="homeBannerTariff"></div>
+        <div class="home-banner-price-row">
+          <div class="home-banner-price" id="homeBannerPrice"></div>
+          <div class="home-banner-old-price" id="homeBannerOldPrice"></div>
+        </div>
       </div>
     </div>
+    <div class="home-banner-dots" id="homeBannerDots"></div>
 
-    <div class="section-title" data-i18n="activeOrdersTitle">Faol buyurtmalar</div>
-    <div class="ticket-card">
-      <div class="ticket-emoji">🎫</div>
-      <div class="ticket-msg" data-i18n="ticketMsg">Hali buyurtmalaringizni ko'rmadingiz</div>
-      <button class="ticket-btn" id="homeCheckOrdersBtn" data-i18n="ticketBtn">Tekshirish</button>
-    </div>
-
-    <div class="section-title" data-i18n="quickActionsTitle">Tezkor harakatlar</div>
-    <div class="action-card">
-      <button type="button" class="action-row" id="qaCatalog">
-        <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="qaCatalogTitle">Raqam qidirish</span><span class="action-sub" data-i18n="qaCatalogSub">Katalog bo'yicha qidiruv</span></span>
-        <span class="action-chevron">&rsaquo;</span>
+    <div class="home-grid">
+      <button type="button" class="home-grid-cell" id="qaCatalog">
+        <span class="home-grid-icon hg-pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <span class="home-grid-label" data-i18n="qaCatalogTitle">Raqam tanlash</span>
       </button>
-      <button type="button" class="action-row" id="qaBot">
-        <span class="action-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="qaBotTitle">Bot orqali buyurtma</span><span class="action-sub" data-i18n="qaBotSub">To'liq buyurtma jarayoni</span></span>
-        <span class="action-chevron">&rsaquo;</span>
+      <button type="button" class="home-grid-cell" id="qaInstallmentHome">
+        <span class="home-grid-icon hg-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg></span>
+        <span class="home-grid-label" data-i18n="installmentTitle">Bo'lib to'lashga raqamlar</span>
       </button>
-      <button type="button" class="action-row" id="qaOrders">
-        <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="qaOrdersTitle">Buyurtmalarim</span><span class="action-sub" data-i18n="qaOrdersSub">Telefon orqali qidirish</span></span>
-        <span class="action-chevron">&rsaquo;</span>
+      <button type="button" class="home-grid-cell" id="qaOrdersHome">
+        <span class="home-grid-icon hg-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+        <span class="home-grid-label" data-i18n="qaOrdersTitle">Buyurtmalarim</span>
       </button>
-      <button type="button" class="action-row" id="qaContact">
-        <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="qaContactTitle">Bog'lanish</span><span class="action-sub" data-i18n="qaContactSub">Call Markaz bilan aloqa</span></span>
-        <span class="action-chevron">&rsaquo;</span>
+      <!-- Hali ishlab chiqilmagan bo'lim — mijoz ATAYLAB bosilmaydigan,
+           funksiyasiz joy-tutuvchi qilib qoldirishni so'radi. -->
+      <button type="button" class="home-grid-cell home-grid-cell-disabled" id="qaProgress" disabled>
+        <span class="home-grid-icon hg-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+        <span class="home-grid-label" data-i18n="qaProgressTitle">MyUZTELECOM jarayonda...</span>
       </button>
-    </div>
-
-    <div class="section-title" data-i18n="helpTitle">Yordam</div>
-    <div class="action-card">
-      <a href="#" class="action-row" id="qaSupport">
-        <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="supportTitle">Qo'llab-quvvatlash</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </a>
     </div>
   </section>
 
@@ -941,11 +1015,14 @@ const TRANSLATIONS = {
     ticketMsg: "Hali buyurtmalaringizni ko'rmadingiz",
     ticketBtn: "Tekshirish",
     quickActionsTitle: "Tezkor harakatlar",
-    qaCatalogTitle: "Raqam qidirish", qaCatalogSub: "Katalog bo'yicha qidiruv",
+    qaCatalogTitle: "Raqam tanlash", qaCatalogSub: "Katalog bo'yicha qidiruv",
     qaBotTitle: "Bot orqali buyurtma", qaBotSub: "To'liq buyurtma jarayoni",
     qaOrdersTitle: "Buyurtmalarim", qaOrdersSub: "Telefon orqali qidirish",
     qaContactTitle: "Bog'lanish", qaContactSub: "Call Markaz bilan aloqa",
     helpTitle: "Yordam", supportTitle: "Qo'llab-quvvatlash",
+    loginBtn: "Kirish",
+    bannerRecommended: "Tavsiya etiladi",
+    qaProgressTitle: "MyUZTELECOM jarayonda...",
     catalogPlaceholder: "Raqam qidirish (masalan 90 123)",
     chipAll: "Barchasi",
     catalogLoadingText: "Raqamlar yuklanmoqda…",
@@ -1021,11 +1098,14 @@ const TRANSLATIONS = {
     ticketMsg: "У вас пока нет заказов",
     ticketBtn: "Проверить",
     quickActionsTitle: "Быстрые действия",
-    qaCatalogTitle: "Поиск номера", qaCatalogSub: "Поиск по каталогу",
+    qaCatalogTitle: "Выбор номера", qaCatalogSub: "Поиск по каталогу",
     qaBotTitle: "Заказ через бота", qaBotSub: "Полный процесс заказа",
     qaOrdersTitle: "Мои заказы", qaOrdersSub: "Поиск по номеру телефона",
     qaContactTitle: "Связаться", qaContactSub: "Связь с колл-центром",
     helpTitle: "Помощь", supportTitle: "Поддержка",
+    loginBtn: "Войти",
+    bannerRecommended: "Рекомендуется",
+    qaProgressTitle: "MyUZTELECOM в процессе...",
     catalogPlaceholder: "Поиск номера (например 90 123)",
     chipAll: "Все",
     catalogLoadingText: "Загрузка номеров…",
@@ -1101,11 +1181,14 @@ const TRANSLATIONS = {
     ticketMsg: "You don't have any orders yet",
     ticketBtn: "Check",
     quickActionsTitle: "Quick actions",
-    qaCatalogTitle: "Search numbers", qaCatalogSub: "Search the catalog",
+    qaCatalogTitle: "Choose a number", qaCatalogSub: "Search the catalog",
     qaBotTitle: "Order via bot", qaBotSub: "Full order process",
     qaOrdersTitle: "My orders", qaOrdersSub: "Search by phone number",
     qaContactTitle: "Contact", qaContactSub: "Reach the call center",
     helpTitle: "Help", supportTitle: "Support",
+    loginBtn: "Log in",
+    bannerRecommended: "Recommended",
+    qaProgressTitle: "MyUZTELECOM in progress...",
     catalogPlaceholder: "Search a number (e.g. 90 123)",
     chipAll: "All",
     catalogLoadingText: "Loading numbers…",
@@ -1320,7 +1403,6 @@ function getTgUser(){
 function renderGreeting(){
   const u = getTgUser();
   const name = u && u.first_name ? String(u.first_name).trim() : '';
-  const helloTxt = name ? t('helloName', { name: name }) : t('helloPlain');
   const initial = name ? name.charAt(0).toUpperCase() : '👤';
   const photo = u && u.photo_url ? u.photo_url : '';
 
@@ -1328,12 +1410,22 @@ function renderGreeting(){
   const homeAvatar = document.getElementById('homeAvatar');
   const profHello = document.getElementById('profHello');
   const profAvatar = document.getElementById('profAvatar');
-  if(homeHello) homeHello.textContent = helloTxt;
+  if(homeHello) homeHello.textContent = name || t('defaultUser');
   if(profHello) profHello.textContent = name || t('defaultUser');
   [homeAvatar, profAvatar].forEach(el=>{
     if(!el) return;
     el.innerHTML = photo ? `<img src="${photo}" alt="">` : initial;
   });
+
+  // Yuqori o'ng burchak: Telegram foydalanuvchisi topilsa (mini-ilova
+  // ichida odatda DOIM shunday) — "Kirish" o'rniga profil chip ko'rsatiladi,
+  // joyi (eng tepada, o'ng tomonda) o'zgarmaydi.
+  const loginBtn = document.getElementById('homeLoginBtn');
+  const profChip = document.getElementById('homeProfileChip');
+  if(loginBtn && profChip){
+    loginBtn.hidden = !!u;
+    profChip.hidden = !u;
+  }
 }
 renderGreeting();
 let __greetTries = 0;
@@ -1344,14 +1436,37 @@ const __greetRetry = setInterval(()=>{
 }, 200);
 
 /* =========================================================
-   "Bosh sahifa" tezkor harakatlar + Yordam
+   "Bosh sahifa" tezkor harakatlar (yangi 2x2 katakcha) — Bog'lanish/
+   Qo'llab-quvvatlash endi Profil bo'limida (profContact/o'sha yerda
+   allaqachon bor), bu yerda qaytarilmaydi (mijoz "hammasini olib
+   tashla, 0 dan qilamiz" dedi).
    ========================================================= */
 document.getElementById('qaCatalog').addEventListener('click', ()=> switchScreen('catalog'));
-document.getElementById('qaBot').addEventListener('click', openBot);
-document.getElementById('qaOrders').addEventListener('click', ()=> openOrdersModal());
-document.getElementById('homeCheckOrdersBtn').addEventListener('click', ()=> openOrdersModal());
-document.getElementById('qaContact').addEventListener('click', ()=> openExternal(SITE_LINKS.contactLink));
-document.getElementById('qaSupport').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.contactLink); });
+document.getElementById('qaInstallmentHome').addEventListener('click', ()=>{
+  switchScreen('catalog');
+  if(!catalogFilterInstallment && installmentChipEl) installmentChipEl.click();
+});
+document.getElementById('qaOrdersHome').addEventListener('click', ()=> openOrdersModal());
+// "MyUZTELECOM jarayonda..." — mijoz ATAYLAB bosilmaydigan, funksiyasiz
+// joy-tutuvchi qilib qoldirishni so'radi (id="qaProgress", disabled).
+
+/* =========================================================
+   MODAL OCHIQ PAYTDA PASTKI NAVIGATSIYANI YASHIRISH — mijoz: "agar
+   boshqa amal bajarilsa korinmay turadi, huddi boshqa ilovalar kabi".
+   DIQQAT: bu FAQAT ko'rinishni (opacity) o'zgartiradi — joyi (fixed,
+   bottom) hech qachon o'zgarmaydi, modal yopilgach aynan o'sha joyda
+   qaytadan paydo bo'ladi.
+   ========================================================= */
+function updateBottomNavVisibility(){
+  const nav = document.getElementById('bottomNav');
+  if(!nav) return;
+  const anyOpen = !!document.querySelector('.modal-overlay.open');
+  nav.classList.toggle('nav-hidden', anyOpen);
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  new MutationObserver(updateBottomNavVisibility).observe(overlay, { attributes:true, attributeFilter:['class'] });
+});
+updateBottomNavVisibility();
 
 /* =========================================================
    Profil — Til / Mavzu — HAQIQIY ishlaydi (qarang: yuqoridagi
@@ -1519,10 +1634,77 @@ async function loadNumbers(){
   }
   renderCatalog();
   renderFavoritesModal(); // sevimlilar orasida NUMBERS'dan topiladigan bo'lsa, narxi/operatori endi to'g'ri ko'rinsin
+  refreshHomeBannerItems(); // Bosh sahifa banneri — eng qimmat (VIP) raqamlar endi haqiqiy ma'lumot bilan
   const boot = document.getElementById('bootSpinner');
   if(boot) boot.classList.add('hide');
 }
 loadNumbers();
+
+/* =========================================================
+   BOSH SAHIFA BANNERI — "Tavsiya etiladi": eng qimmat (VIP) raqamlardan
+   bir nechtasi har 6 soniyada avtomatik almashib turadi, yumshoq
+   fade-animatsiya bilan. DIQQAT: "eski narx" maydoni Firestore'da admin
+   tomonidan alohida saqlanmagani sabab (hozircha bunday maydon yo'q),
+   ko'rgazmali chegirma sifatida joriy narxdan ~18% yuqori qilib
+   hisoblanadi (faqat vizual, haqiqiy narxga ta'sir qilmaydi).
+   ========================================================= */
+let homeBannerItems = [];
+let homeBannerIdx = 0;
+let homeBannerTimer = null;
+
+function computeOldPrice(price){
+  const p = Number(price) || 0;
+  if(!p) return 0;
+  return Math.round(p * 1.18 / 10000) * 10000;
+}
+function renderHomeBannerFrame(){
+  const numberEl = document.getElementById('homeBannerNumber');
+  const tariffEl = document.getElementById('homeBannerTariff');
+  const priceEl = document.getElementById('homeBannerPrice');
+  const oldPriceEl = document.getElementById('homeBannerOldPrice');
+  if(!numberEl) return;
+  const item = homeBannerItems[homeBannerIdx];
+  if(!item){
+    numberEl.textContent = '—';
+    if(tariffEl) tariffEl.textContent = '';
+    if(priceEl) priceEl.textContent = '';
+    if(oldPriceEl) oldPriceEl.textContent = '';
+    return;
+  }
+  numberEl.textContent = item.number || '';
+  if(tariffEl) tariffEl.textContent = item.operator || '';
+  if(priceEl) priceEl.textContent = formatPrice(item.price);
+  const oldPrice = computeOldPrice(item.price);
+  if(oldPriceEl) oldPriceEl.textContent = oldPrice ? formatPrice(oldPrice) : '';
+}
+function renderHomeBannerDots(){
+  const dotsEl = document.getElementById('homeBannerDots');
+  if(!dotsEl) return;
+  if(homeBannerItems.length <= 1){ dotsEl.innerHTML = ''; return; }
+  dotsEl.innerHTML = homeBannerItems.map((_, i)=>
+    `<div class="home-banner-dot${i === homeBannerIdx ? ' active' : ''}"></div>`
+  ).join('');
+}
+function refreshHomeBannerItems(){
+  homeBannerItems = NUMBERS.slice().sort((a,b)=> (b.price||0) - (a.price||0)).slice(0, 6);
+  if(homeBannerIdx >= homeBannerItems.length) homeBannerIdx = 0;
+  renderHomeBannerFrame();
+  renderHomeBannerDots();
+}
+function rotateHomeBanner(){
+  if(homeBannerItems.length <= 1) return;
+  const bodyEl = document.getElementById('homeBannerBody');
+  if(bodyEl) bodyEl.classList.add('fading');
+  setTimeout(()=>{
+    homeBannerIdx = (homeBannerIdx + 1) % homeBannerItems.length;
+    renderHomeBannerFrame();
+    renderHomeBannerDots();
+    if(bodyEl) bodyEl.classList.remove('fading');
+  }, 220);
+}
+refreshHomeBannerItems();
+if(homeBannerTimer) clearInterval(homeBannerTimer);
+homeBannerTimer = setInterval(rotateHomeBanner, 6000);
 
 function renderCatalog(){
   const listEl = document.getElementById('catalogList');
