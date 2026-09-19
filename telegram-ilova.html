@@ -163,16 +163,18 @@
     margin:0 -0px;padding-left:0;padding-right:0;
   }
   .tg-screen{display:none;padding-bottom:10px;}
-  .tg-screen.active{display:block;animation:screenIn .26s cubic-bezier(.22,.8,.3,1);}
-  @keyframes screenIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  /* Mijoz: "hozir tez va qattiq, yumshoq-sekin animatsiya bilan chiqsin"
+     dedi — o'tish animatsiyalari sekinlashtirildi va silliqlashtirildi. */
+  .tg-screen.active{display:block;animation:screenIn .42s cubic-bezier(.22,.85,.32,1);}
+  @keyframes screenIn{from{opacity:0;transform:translateY(16px) scale(0.985);}to{opacity:1;transform:translateY(0) scale(1);}}
   /* Eski ekran chiqib ketayotgan payt — oqim tashqarisida (absolute), shu
      sabab yangisi bilan bir vaqtda ko'rinsa ham sahifa balandligi
      sakramaydi, faqat yumshoq crossfade his qilinadi. */
   .tg-screen.screen-out{
     display:block;position:absolute;left:0;right:0;top:0;pointer-events:none;
-    animation:screenOut .2s ease forwards;
+    animation:screenOut .34s cubic-bezier(.4,0,.2,1) forwards;
   }
-  @keyframes screenOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-6px);}}
+  @keyframes screenOut{from{opacity:1;transform:translateY(0) scale(1);}to{opacity:0;transform:translateY(-10px) scale(0.985);}}
 
   /* ===== Umumiy komponentlar ===== */
   .greeting-card{
@@ -226,25 +228,19 @@
   .action-chevron{font-size:19px;line-height:1;color:var(--muted);flex-shrink:0;}
 
   /* ===== Bosh sahifa — yangi ("MyUZTELECOM" namunasi asosida) =====
-     Yuqori o'ng burchakdagi "Kirish"/profil chip, avtomatik-almashinuvchi
-     banner (raqam+tarif+narx) va 2x2 tezkor ikonka katakchalari. ===== */
+     Yuqori o'ng burchakdagi profil chip (mijoz: "Kirish"ni olib tashla,
+     profil aynan burchakka o'tsin"), avtomatik/qo'lda-siljiydigan banner
+     (raqam+tarif+narx) va 2x2 tezkor ikonka katakchalari. ===== */
   .app-top-left{display:flex;align-items:center;gap:8px;}
-  .home-id-chip{display:flex;align-items:center;}
-  .home-login-btn{
-    display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:none;cursor:pointer;
-    background:linear-gradient(135deg, #ff5f8f, var(--accent));color:#fff;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
-  }
-  .home-login-btn svg{width:14px;height:14px;flex-shrink:0;}
-  .home-login-btn:active{transform:scale(0.96);}
+  .home-id-chip{display:flex;align-items:center;margin-left:auto;}
   .home-profile-chip{
-    display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:20px;
+    display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:20px;
     background:var(--panel-2);border:1px solid var(--line);
   }
   .home-profile-chip .home-profile-avatar{
-    width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;
+    width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;
     background:linear-gradient(135deg, #ff5f8f, var(--accent));display:flex;align-items:center;justify-content:center;
-    font-size:12px;font-weight:800;color:#fff;
+    font-size:12.5px;font-weight:800;color:#fff;
   }
   .home-profile-chip .home-profile-avatar img{width:100%;height:100%;object-fit:cover;}
   .home-profile-chip span{
@@ -252,37 +248,51 @@
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
 
+  /* Banner: mijoz "zamonaviy, kozga tashlanib turadigan, raqam ham kozga
+     tashlanib turadigan" dedi — kattaroq, yorqinroq, aniq soyali kartochka.
+     Qo'l bilan chapga/o'ngga surish (pointer drag) + avtomatik o'ngdan
+     chapga siljish (6 soniyada) + ustiga bosilsa darhol buyurtma oynasi. */
   .home-banner{
-    margin:14px 16px 10px;border-radius:22px;padding:18px 18px 16px;position:relative;overflow:hidden;
-    min-height:150px;background:var(--glass-bg);border:1px solid var(--glass-border);
-    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
-    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 14px 30px -14px rgba(0,0,0,0.35);
+    margin:14px 16px 10px;border-radius:24px;padding:20px 20px 18px;position:relative;overflow:hidden;
+    min-height:168px;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:pan-y;
+    background:linear-gradient(155deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
+    border:1.5px solid var(--accent-soft);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 0 0 5px var(--accent-soft), 0 16px 34px -14px rgba(0,0,0,0.45);
   }
+  .home-banner:active{cursor:grabbing;}
   .home-banner-pill{
-    display:inline-flex;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);
-    font-family:'Sora',sans-serif;font-weight:800;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px;
+    display:inline-flex;padding:6px 12px;border-radius:9px;background:var(--accent-soft);color:var(--accent);
+    font-family:'Sora',sans-serif;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;
   }
-  .home-banner-body{transition:opacity .22s ease, transform .22s ease;}
-  .home-banner-body.fading{opacity:0;transform:translateY(6px);}
-  .home-banner-number{font-family:'Sora',sans-serif;font-weight:800;font-size:23px;letter-spacing:.3px;margin-bottom:6px;}
-  .home-banner-tariff{font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:700;}
-  .home-banner-price-row{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
-  .home-banner-price{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);}
-  .home-banner-old-price{font-size:12.5px;color:var(--muted);text-decoration:line-through;}
+  .home-banner-body{transition:opacity .28s ease, transform .28s cubic-bezier(.22,.8,.3,1);pointer-events:none;}
+  .home-banner-body.slide-out{opacity:0;transform:translateX(-26px);}
+  .home-banner-body.slide-in{opacity:0;transform:translateX(26px);}
+  .home-banner-number{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:29px;letter-spacing:.3px;margin-bottom:7px;
+    background:linear-gradient(90deg, #fff, #cfe0ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  :root[data-theme="light"] .home-banner-number{background:linear-gradient(90deg, var(--text), var(--accent));-webkit-background-clip:text;background-clip:text;}
+  .home-banner-tariff{font-size:12.5px;color:var(--muted);margin-bottom:13px;font-weight:700;}
+  .home-banner-price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .home-banner-price{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--text);}
+  .home-banner-old-price{font-size:13px;color:var(--muted);text-decoration:line-through;}
   .home-banner-dots{display:flex;justify-content:center;gap:5px;margin-bottom:16px;}
   .home-banner-dot{width:6px;height:6px;border-radius:3px;background:var(--line);transition:width .3s ease, background .3s ease;}
-  .home-banner-dot.active{width:18px;background:var(--accent);}
+  .home-banner-dot.active{width:20px;background:var(--accent);}
 
-  .home-grid{margin:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  /* Katakchalar — mijoz "kattaroq qil, kattalashsa ham bir-biriga yaqin
+     tursin" dedi: o'lcham oshdi, orasidagi bo'shliq esa qisqartirildi. */
+  .home-grid{margin:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .home-grid-cell{
-    background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;
-    display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:92px;
+    background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;
+    display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-height:118px;
     cursor:pointer;text-align:left;font-family:inherit;color:var(--text);transition:transform .1s ease;
   }
   .home-grid-cell:active{transform:scale(0.97);}
-  .home-grid-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .home-grid-icon svg{width:19px;height:19px;}
-  .home-grid-label{font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;line-height:1.3;}
+  .home-grid-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .home-grid-icon svg{width:23px;height:23px;}
+  .home-grid-label{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;line-height:1.3;}
   .hg-pink{background:rgba(255,95,143,0.18);color:#ff5f8f;}
   .hg-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
   .hg-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
@@ -360,15 +370,19 @@
     0%{transform:scale(0.4);opacity:.9;}
     100%{transform:scale(1.9);opacity:0;}
   }
-  .op-chip-row{display:flex;gap:7px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;}
+  .op-chip-row{display:flex;gap:8px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;}
   .op-chip-row::-webkit-scrollbar{display:none;}
+  /* Mijoz: "kompaniyalar aniq-tiniq korinsin" — chip matni kattalashtirildi,
+     har biriga mos raqamlar soni qo'shildi (op-chip-count). */
   .op-chip{
-    flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 13px;
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
-    transition:transform .1s ease;
+    flex-shrink:0;background:var(--panel-2);border:1.5px solid var(--line);border-radius:11px;padding:9px 15px;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--text);cursor:pointer;white-space:nowrap;
+    transition:transform .1s ease;display:flex;align-items:center;gap:5px;
   }
   .op-chip:active{transform:scale(0.94);}
   .op-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .op-chip-count{font-weight:700;font-size:11.5px;color:var(--muted);}
+  .op-chip.active .op-chip-count{color:var(--accent);opacity:.8;}
   .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:14px;}
   /* ---- "Neon Shisha" kartochka dizayni — mijoz 10 ta variant orasidan
        aynan shuni tanladi ("1 chi dizaynni qil, bir-birga xuddi shunday
@@ -401,7 +415,9 @@
   }
   .num-card-btn svg{width:15px;height:15px;flex-shrink:0;}
   .num-card-btn:active{transform:scale(0.96);}
-  .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;}
+  /* Mijoz: klaviatura ochiq paytda "topilmadi" matni pastki menyuga
+     yopishib qolmasin dedi — qo'shimcha bo'shliq qoldirildi. */
+  .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;margin-bottom:110px;}
   .catalog-loading .boot-ring{margin:0 auto 12px;}
   .num-card-fav{
     width:34px;height:34px;border-radius:50%;flex-shrink:0;padding:0;
@@ -461,9 +477,9 @@
   .modal-sheet{
     width:100%;max-width:480px;background:var(--panel);border:1px solid var(--line);border-bottom:none;
     border-radius:20px 20px 0 0;padding:18px 16px calc(20px + var(--safe-b));
-    max-height:80vh;overflow-y:auto;animation:sheetUp .22s cubic-bezier(.22,.8,.3,1);
+    max-height:80vh;overflow-y:auto;animation:sheetUp .36s cubic-bezier(.22,.85,.32,1);
   }
-  @keyframes sheetUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  @keyframes sheetUp{from{transform:translateY(38px);opacity:0;}to{transform:translateY(0);opacity:1;}}
   .modal-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px;}
   .modal-title{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;margin-bottom:4px;}
   .modal-sub{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
@@ -486,6 +502,28 @@
   }
   .order-preview-card .opc-number{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;}
   .order-preview-card .opc-price{font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--green);}
+
+  /* ===== Bo'lib to'lashga raqamlar — yangi oyna ===== */
+  .installment-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:8px;cursor:pointer;
+  }
+  .installment-row:active{transform:scale(0.98);}
+  .installment-row .ir-number{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;}
+  .installment-row .ir-teaser{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .installment-row .ir-chevron{font-size:19px;color:var(--muted);flex-shrink:0;}
+  .ic-back-btn{background:none;border:none;color:var(--accent);font-family:'Sora',sans-serif;font-weight:700;font-size:13px;cursor:pointer;padding:4px 0;}
+  .ic-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0 14px;}
+  .ic-tab{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 4px;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;color:var(--text);cursor:pointer;
+  }
+  .ic-tab.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .ic-monthly-row{
+    display:flex;align-items:center;justify-content:space-between;background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:12px;padding:12px 14px;margin-bottom:14px;font-family:'Sora',sans-serif;font-weight:700;font-size:13px;
+  }
+  .ic-monthly-row b{font-size:16px;color:var(--accent);}
   .order-result-row{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13px;}
   .order-result-row .or-num{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;margin-bottom:4px;}
   .order-result-row .or-line{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:2px 0;}
@@ -535,15 +573,11 @@
     <img src="assets/logo-circle.png?v=2" alt="VIP Raqamlar">
     <div class="wordmark">VIP <b>Raqamlar</b></div>
   </div>
-  <!-- Yuqori o'ng burchak: mijoz namunasidagi "Kirish" xuddi shu joyda —
-       Telegram foydalanuvchisi aniqlansa (odatda mini-ilovada doim shunday),
-       "Kirish" o'rniga profil chip (rasm/ism) ko'rsatiladi, joy o'zgarmaydi. -->
+  <!-- Yuqori o'ng burchak, eng chekkada: mijoz "Kirish"ni olib tashla,
+       profil egasining joyi shu bo'lsin dedi — endi Telegram
+       foydalanuvchisi (ism/rasm) doim shu yerda ko'rinadi. -->
   <div class="home-id-chip" id="homeIdChip">
-    <button type="button" class="home-login-btn" id="homeLoginBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-      <span data-i18n="loginBtn">Kirish</span>
-    </button>
-    <div class="home-profile-chip" id="homeProfileChip" hidden>
+    <div class="home-profile-chip" id="homeProfileChip">
       <div class="home-profile-avatar" id="homeAvatar">👤</div>
       <span id="homeHello">Mijoz</span>
     </div>
@@ -627,22 +661,17 @@
       <div class="live-radar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
       <span data-i18n="liveSearching">Jonli raqamlar qidirilmoqda…</span>
     </div>
+    <!-- Mijoz: "Bo'lib to'lash"ni Raqamlar bo'limidan olib tashla (asosiyda
+         allaqachon bor) — endi faqat operator chiplarigina qoladi, har
+         birining yonida shu operatordan nechta raqam borligi ko'rinadi. -->
     <div class="op-chip-row" id="opChipRow">
       <button type="button" class="op-chip active" data-op="" data-i18n="chipAll">Barchasi</button>
-      <button type="button" class="op-chip" data-op="Beeline">Beeline</button>
-      <button type="button" class="op-chip" data-op="Ucell">Ucell</button>
-      <button type="button" class="op-chip" data-op="Uzmobile">Uzmobile</button>
-      <button type="button" class="op-chip" data-op="Mobiuz">Mobiuz</button>
-      <button type="button" class="op-chip" data-op="Humans">Humans</button>
-      <button type="button" class="op-chip" data-op="Perfektum">Perfektum</button>
-    </div>
-    <!-- "Bo'lib to'lash" — Firestore'dagi 'numbers' kolleksiyasining
-         'installment' (bool) maydoni bo'yicha filtr — index.html'dagi
-         #openInstallmentNumbersLink BILAN BIR XIL mantiq. Operator
-         chiplaridan MUSTAQIL yoqiladi/o'chiriladi (ikkalasi birga
-         ishlaydi: masalan "Beeline" + "Bo'lib to'lash"). -->
-    <div class="op-chip-row" style="padding-top:0;">
-      <button type="button" class="op-chip" id="installmentChip">💳 <span data-i18n="chipInstallment">Bo'lib to'lash</span></button>
+      <button type="button" class="op-chip" data-op="Beeline">Beeline<span class="op-chip-count" data-count-for="Beeline"></span></button>
+      <button type="button" class="op-chip" data-op="Ucell">Ucell<span class="op-chip-count" data-count-for="Ucell"></span></button>
+      <button type="button" class="op-chip" data-op="Uzmobile">Uzmobile<span class="op-chip-count" data-count-for="Uzmobile"></span></button>
+      <button type="button" class="op-chip" data-op="Mobiuz">Mobiuz<span class="op-chip-count" data-count-for="Mobiuz"></span></button>
+      <button type="button" class="op-chip" data-op="Humans">Humans<span class="op-chip-count" data-count-for="Humans"></span></button>
+      <button type="button" class="op-chip" data-op="Perfektum">Perfektum<span class="op-chip-count" data-count-for="Perfektum"></span></button>
     </div>
     <div class="catalog-list" id="catalogList">
       <div class="catalog-loading" id="catalogLoading"><div class="boot-ring"></div><span data-i18n="catalogLoadingText">Raqamlar yuklanmoqda…</span></div>
@@ -856,6 +885,39 @@
       <div style="font-size:34px;margin-bottom:10px;">✅</div>
       <div class="modal-title" style="font-size:15px;" data-i18n="orderSuccessTitle">Buyurtma qabul qilindi!</div>
       <div class="modal-sub" data-i18n="orderSuccessSub">Tez orada operatorlarimiz siz bilan bog'lanadi.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Bo'lib to'lashga raqamlar — BUTUNLAY YANGI OYNA
+     (mijoz: "bolib tolash bosilganda umuman boshqa yangi oyna ochilsin").
+     Sayt (index.html)dagi ESKI VIP-baza %-ustama tizimi bilan BIR XIL:
+     site_settings/general hujjatidagi installmentRates (6/12/24/36 oy)
+     narxga qo'shiladi, oylik to'lov = narx*(1+foiz/100)/oy soni. ================= -->
+<div class="modal-overlay" id="installmentModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="installmentModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div id="installmentListView">
+      <div class="modal-title" data-i18n="installmentModalTitle">Bo'lib to'lashga raqamlar</div>
+      <div class="modal-sub" data-i18n="installmentModalSub">Raqamni tanlang, muddatni belgilang — oylik to'lov darhol hisoblanadi.</div>
+      <div id="installmentListItems"></div>
+    </div>
+    <div id="installmentDetailView" style="display:none;">
+      <button type="button" class="ic-back-btn" id="installmentBackBtn">&larr; <span data-i18n="installmentBack">Orqaga</span></button>
+      <div class="order-preview-card" id="installmentPreviewCard" style="margin-top:10px;"></div>
+      <div class="field-label" data-i18n="installmentPickMonths" style="margin-top:14px;">Muddatni tanlang</div>
+      <div class="ic-tabs" id="icTabs">
+        <button type="button" class="ic-tab" data-months="36">36 oy</button>
+        <button type="button" class="ic-tab" data-months="24">24 oy</button>
+        <button type="button" class="ic-tab" data-months="12">12 oy</button>
+        <button type="button" class="ic-tab" data-months="6">6 oy</button>
+      </div>
+      <div class="ic-monthly-row">
+        <span data-i18n="installmentMonthlyLabel">Oylik to'lov</span>
+        <b id="icMonthlyValue">0 so'm</b>
+      </div>
+      <button class="modal-submit" id="installmentOrderBtn" data-i18n="installmentOrderBtn">Shu shart bilan buyurtma berish</button>
     </div>
   </div>
 </div>
@@ -1076,6 +1138,14 @@ const TRANSLATIONS = {
     submitSending: "Yuborilmoqda…",
     applySuccess: "Arizangiz qabul qilindi!",
     perMonth: "/oy",
+    monthsShort: "oy",
+    installmentModalTitle: "Bo'lib to'lashga raqamlar",
+    installmentModalSub: "Raqamni tanlang, muddatni belgilang — oylik to'lov darhol hisoblanadi.",
+    installmentEmpty: "Hozircha bo'lib to'lashga raqam yo'q.",
+    installmentPickMonths: "Muddatni tanlang",
+    installmentMonthlyLabel: "Oylik to'lov",
+    installmentOrderBtn: "Shu shart bilan buyurtma berish",
+    installmentBack: "Orqaga",
     orderModalTitle: "Buyurtmani rasmiylashtirish",
     orderNumberLabel: "Tanlangan raqam",
     fieldRegion: "Viloyatingiz",
@@ -1159,6 +1229,14 @@ const TRANSLATIONS = {
     submitSending: "Отправка…",
     applySuccess: "Ваш отклик принят!",
     perMonth: "/мес",
+    monthsShort: "мес",
+    installmentModalTitle: "Номера в рассрочку",
+    installmentModalSub: "Выберите номер и срок — ежемесячный платёж рассчитается сразу.",
+    installmentEmpty: "Пока нет номеров в рассрочку.",
+    installmentPickMonths: "Выберите срок",
+    installmentMonthlyLabel: "Ежемесячный платёж",
+    installmentOrderBtn: "Заказать на этих условиях",
+    installmentBack: "Назад",
     orderModalTitle: "Оформление заказа",
     orderNumberLabel: "Выбранный номер",
     fieldRegion: "Ваш регион",
@@ -1242,6 +1320,14 @@ const TRANSLATIONS = {
     submitSending: "Sending…",
     applySuccess: "Your application has been received!",
     perMonth: "/mo",
+    monthsShort: "mo",
+    installmentModalTitle: "Installment numbers",
+    installmentModalSub: "Pick a number and a term — the monthly payment is calculated instantly.",
+    installmentEmpty: "No installment-eligible numbers yet.",
+    installmentPickMonths: "Choose a term",
+    installmentMonthlyLabel: "Monthly payment",
+    installmentOrderBtn: "Order on these terms",
+    installmentBack: "Back",
     orderModalTitle: "Complete your order",
     orderNumberLabel: "Selected number",
     fieldRegion: "Your region",
@@ -1361,7 +1447,7 @@ function switchScreen(name){
   if(current){
     current.classList.remove('active');
     current.classList.add('screen-out');
-    setTimeout(()=> current.classList.remove('screen-out'), 200);
+    setTimeout(()=> current.classList.remove('screen-out'), 340);
   }
   next.classList.add('active');
   document.querySelectorAll('.bn-tab').forEach(b=>{
@@ -1416,16 +1502,6 @@ function renderGreeting(){
     if(!el) return;
     el.innerHTML = photo ? `<img src="${photo}" alt="">` : initial;
   });
-
-  // Yuqori o'ng burchak: Telegram foydalanuvchisi topilsa (mini-ilova
-  // ichida odatda DOIM shunday) — "Kirish" o'rniga profil chip ko'rsatiladi,
-  // joyi (eng tepada, o'ng tomonda) o'zgarmaydi.
-  const loginBtn = document.getElementById('homeLoginBtn');
-  const profChip = document.getElementById('homeProfileChip');
-  if(loginBtn && profChip){
-    loginBtn.hidden = !!u;
-    profChip.hidden = !u;
-  }
 }
 renderGreeting();
 let __greetTries = 0;
@@ -1442,10 +1518,7 @@ const __greetRetry = setInterval(()=>{
    tashla, 0 dan qilamiz" dedi).
    ========================================================= */
 document.getElementById('qaCatalog').addEventListener('click', ()=> switchScreen('catalog'));
-document.getElementById('qaInstallmentHome').addEventListener('click', ()=>{
-  switchScreen('catalog');
-  if(!catalogFilterInstallment && installmentChipEl) installmentChipEl.click();
-});
+document.getElementById('qaInstallmentHome').addEventListener('click', ()=> openInstallmentModal());
 document.getElementById('qaOrdersHome').addEventListener('click', ()=> openOrdersModal());
 // "MyUZTELECOM jarayonda..." — mijoz ATAYLAB bosilmaydigan, funksiyasiz
 // joy-tutuvchi qilib qoldirishni so'radi (id="qaProgress", disabled).
@@ -1626,7 +1699,14 @@ async function loadNumbers(){
     snap.forEach(doc=>{
       const d = doc.data();
       if(d.reserved) return; // band qilingan raqamlar ko'rsatilmaydi
-      NUMBERS.push({ id: doc.id, number: d.number, price: d.price, operator: d.operator, installment: !!d.installment });
+      NUMBERS.push({
+        id: doc.id, number: d.number, price: d.price, operator: d.operator,
+        installment: !!d.installment,
+        // Admin panelda mavjud haqiqiy maydonlar (index.html BILAN BIR XIL
+        // 'numbers' kolleksiyasi) — "Tavsiya etiladi" banneri endi shu
+        // haqiqiy 'featured'/'oldPrice' ma'lumotidan foydalanadi.
+        featured: !!d.featured, oldPrice: typeof d.oldPrice === 'number' ? d.oldPrice : 0
+      });
     });
     numbersLoaded = true;
   }catch(e){
@@ -1641,22 +1721,20 @@ async function loadNumbers(){
 loadNumbers();
 
 /* =========================================================
-   BOSH SAHIFA BANNERI — "Tavsiya etiladi": eng qimmat (VIP) raqamlardan
-   bir nechtasi har 6 soniyada avtomatik almashib turadi, yumshoq
-   fade-animatsiya bilan. DIQQAT: "eski narx" maydoni Firestore'da admin
-   tomonidan alohida saqlanmagani sabab (hozircha bunday maydon yo'q),
-   ko'rgazmali chegirma sifatida joriy narxdan ~18% yuqori qilib
-   hisoblanadi (faqat vizual, haqiqiy narxga ta'sir qilmaydi).
+   BOSH SAHIFA BANNERI — "Tavsiya etiladi": admin 'featured' deb
+   belgilagan (yoki bo'lmasa eng qimmat) VIP raqamlar har 6 soniyada
+   O'NGDAN CHAPGA siljib almashadi; mijoz o'zi ham barmog'i bilan
+   chapga/o'ngga surishi mumkin (pointer drag); ustiga bosilsa darhol
+   o'sha raqamga buyurtma oynasi ochiladi. "Eski narx" — Firestore'dagi
+   HAQIQIY admin maydoni (d.oldPrice), hech narsa o'ylab topilmaydi.
    ========================================================= */
 let homeBannerItems = [];
 let homeBannerIdx = 0;
 let homeBannerTimer = null;
+let homeBannerDragStartX = 0;
+let homeBannerDragDX = 0;
+let homeBannerDragging = false;
 
-function computeOldPrice(price){
-  const p = Number(price) || 0;
-  if(!p) return 0;
-  return Math.round(p * 1.18 / 10000) * 10000;
-}
 function renderHomeBannerFrame(){
   const numberEl = document.getElementById('homeBannerNumber');
   const tariffEl = document.getElementById('homeBannerTariff');
@@ -1671,11 +1749,11 @@ function renderHomeBannerFrame(){
     if(oldPriceEl) oldPriceEl.textContent = '';
     return;
   }
-  numberEl.textContent = item.number || '';
+  numberEl.textContent = formatPhoneDisplay(item.number || '');
   if(tariffEl) tariffEl.textContent = item.operator || '';
   if(priceEl) priceEl.textContent = formatPrice(item.price);
-  const oldPrice = computeOldPrice(item.price);
-  if(oldPriceEl) oldPriceEl.textContent = oldPrice ? formatPrice(oldPrice) : '';
+  const hasOldPrice = item.oldPrice && item.oldPrice > item.price;
+  if(oldPriceEl) oldPriceEl.textContent = hasOldPrice ? formatPrice(item.oldPrice) : '';
 }
 function renderHomeBannerDots(){
   const dotsEl = document.getElementById('homeBannerDots');
@@ -1686,27 +1764,110 @@ function renderHomeBannerDots(){
   ).join('');
 }
 function refreshHomeBannerItems(){
-  homeBannerItems = NUMBERS.slice().sort((a,b)=> (b.price||0) - (a.price||0)).slice(0, 6);
+  // Avval admin "Tavsiya etiladi" (featured) deb belgilagan raqamlar,
+  // ular bo'lmasa eng qimmat (VIP) raqamlar ko'rsatiladi.
+  const featured = NUMBERS.filter(n=> n.featured === true);
+  const pool = featured.length ? featured : NUMBERS.slice();
+  homeBannerItems = pool.slice().sort((a,b)=> (b.price||0) - (a.price||0)).slice(0, 8);
   if(homeBannerIdx >= homeBannerItems.length) homeBannerIdx = 0;
   renderHomeBannerFrame();
   renderHomeBannerDots();
 }
-function rotateHomeBanner(){
+// direction: 1 = keyingisiga (o'ngdan chapga), -1 = oldingisiga (chapdan o'ngga)
+function goToHomeBannerIndex(direction){
   if(homeBannerItems.length <= 1) return;
   const bodyEl = document.getElementById('homeBannerBody');
-  if(bodyEl) bodyEl.classList.add('fading');
+  if(!bodyEl) return;
+  bodyEl.classList.add('slide-out');
+  bodyEl.style.transform = 'translateX(' + (direction > 0 ? '-26px' : '26px') + ')';
   setTimeout(()=>{
-    homeBannerIdx = (homeBannerIdx + 1) % homeBannerItems.length;
+    homeBannerIdx = (homeBannerIdx + direction + homeBannerItems.length) % homeBannerItems.length;
     renderHomeBannerFrame();
     renderHomeBannerDots();
-    if(bodyEl) bodyEl.classList.remove('fading');
-  }, 220);
+    bodyEl.classList.remove('slide-out');
+    bodyEl.classList.add('slide-in');
+    bodyEl.style.transform = 'translateX(' + (direction > 0 ? '26px' : '-26px') + ')';
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        bodyEl.classList.remove('slide-in');
+        bodyEl.style.transform = '';
+      });
+    });
+  }, 240);
 }
+function rotateHomeBanner(){ goToHomeBannerIndex(1); }
 refreshHomeBannerItems();
 if(homeBannerTimer) clearInterval(homeBannerTimer);
 homeBannerTimer = setInterval(rotateHomeBanner, 6000);
 
+// Mijoz: "ozi qoli bilan ham bemalol otkazsa bolsin onga-chapga, ustiga
+// bossa buyurtma berishga otilsin" — qo'lda surish (pointer) + tap-to-order.
+(function setupHomeBannerGestures(){
+  const bannerEl = document.getElementById('homeBanner');
+  const bodyEl = document.getElementById('homeBannerBody');
+  if(!bannerEl || !bodyEl) return;
+  function resetAutoTimer(){
+    if(homeBannerTimer) clearInterval(homeBannerTimer);
+    homeBannerTimer = setInterval(rotateHomeBanner, 6000);
+  }
+  bannerEl.addEventListener('pointerdown', (e)=>{
+    homeBannerDragging = true;
+    homeBannerDragStartX = e.clientX;
+    homeBannerDragDX = 0;
+    bodyEl.style.transition = 'none';
+    try{ bannerEl.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  bannerEl.addEventListener('pointermove', (e)=>{
+    if(!homeBannerDragging) return;
+    homeBannerDragDX = e.clientX - homeBannerDragStartX;
+    bodyEl.style.transform = 'translateX(' + homeBannerDragDX + 'px)';
+  });
+  function endDrag(e){
+    if(!homeBannerDragging) return;
+    homeBannerDragging = false;
+    bodyEl.style.transition = '';
+    const dx = homeBannerDragDX;
+    homeBannerDragDX = 0;
+    if(Math.abs(dx) > 36){
+      bodyEl.style.transform = '';
+      goToHomeBannerIndex(dx < 0 ? 1 : -1);
+      resetAutoTimer();
+    }else{
+      bodyEl.style.transform = '';
+      if(Math.abs(dx) < 6){
+        // Bu haqiqiy surish emas, oddiy bosish — shu raqamga buyurtma oynasi.
+        const item = homeBannerItems[homeBannerIdx];
+        if(item) openOrderModal(item);
+      }
+    }
+  }
+  bannerEl.addEventListener('pointerup', endDrag);
+  bannerEl.addEventListener('pointercancel', endDrag);
+})();
+
+// Mijoz: "raqam qidirilganda jonli baza deb aytilmasin" — endi "Jonli"
+// belgisi hech qachon ko'rsatilmaydi (mijozga barchasi bir xil ko'rinadi).
+// Va: "server dan kelayotgani ham +998 xx-xxx-xx-xx qilib korsatilsin" —
+// statik VA jonli raqamlar uchun bitta umumiy chiroyli format.
+function formatPhoneDisplay(raw){
+  const digits = String(raw || '').replace(/\D/g, '');
+  const local = digits.length > 9 ? digits.slice(-9) : digits;
+  if(local.length !== 9) return raw || '';
+  return '+998 ' + local.slice(0,2) + '-' + local.slice(2,5) + '-' + local.slice(5,7) + '-' + local.slice(7,9);
+}
+// Mijoz: "qaysi kompaniyadan nechta chiqqani tepada kompaniya yoniga
+// yozilsin" — statik VIP katalogdagi soni (real, Firestore'dan).
+function renderOpChipCounts(){
+  const counts = {};
+  NUMBERS.forEach(n=>{ counts[n.operator] = (counts[n.operator] || 0) + 1; });
+  document.querySelectorAll('.op-chip-count').forEach(el=>{
+    const op = el.dataset.countFor;
+    const c = counts[op] || 0;
+    el.textContent = c ? ('(' + c + ')') : '';
+  });
+}
 function renderCatalog(){
+  renderOpChipCounts();
   const listEl = document.getElementById('catalogList');
   if(numbersLoaded === null){
     listEl.innerHTML = '<div class="catalog-loading"><div class="boot-ring"></div>' + escapeHtml(t('catalogLoadingText')) + '</div>';
@@ -1741,12 +1902,13 @@ function renderCatalog(){
     const color = OPERATOR_COLORS[n.operator] || '#6b7280';
     const favActive = isFavoriteId(n.id);
     const heartFill = favActive ? 'currentColor' : 'none';
-    const liveBadge = n.live ? ('<span class="live-badge">' + escapeHtml(t('liveBadge')) + '</span>') : '';
+    // Mijoz: mijozga bu qayerdan kelganini (statik/jonli) aytilmasin — belgi
+    // hech qachon ko'rsatilmaydi, hammasi bir xil "+998 xx-xxx-xx-xx" bo'lib chiqadi.
     return `
       <div class="num-card" style="--op-color:${color};">
         <div class="num-card-top">
           <div class="num-card-main">
-            <div class="num-card-number">${escapeHtml(n.number || '')}${liveBadge}</div>
+            <div class="num-card-number">${escapeHtml(formatPhoneDisplay(n.number || ''))}</div>
             <div class="num-card-meta"><span class="num-card-op-dot" style="background:${color};"></span>${escapeHtml(n.operator || '')}</div>
           </div>
           <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
@@ -1819,9 +1981,11 @@ const orderErrorEl = document.getElementById('orderError');
 const orderSubmitBtn = document.getElementById('orderSubmitBtn');
 const orderSubmitLabel = document.getElementById('orderSubmitLabel');
 let __pendingOrderItem = null;
+let __pendingInstallment = null; // { months, monthly } | null — bo'lib to'lash oynasidan kelsa
 
-function openOrderModal(item){
+function openOrderModal(item, installmentInfo){
   __pendingOrderItem = item;
+  __pendingInstallment = installmentInfo || null;
   orderErrorEl.style.display = 'none';
   orderNameInput.value = '';
   orderRegionInput.value = '';
@@ -1830,9 +1994,11 @@ function openOrderModal(item){
   orderSuccessView.style.display = 'none';
   orderSubmitBtn.disabled = false;
   orderSubmitLabel.textContent = t('orderSubmitBtn');
+  const priceHtml = __pendingInstallment
+    ? '<span class="opc-price">' + formatPrice(__pendingInstallment.monthly) + '<small style="font-weight:700;opacity:.75;"> / ' + __pendingInstallment.months + ' ' + escapeHtml(t('monthsShort')) + '</small></span>'
+    : '<span class="opc-price">' + formatPrice(item.price) + '</span>';
   document.getElementById('orderPreviewCard').innerHTML =
-    '<span class="opc-number">' + escapeHtml(item.number || '') + '</span>' +
-    '<span class="opc-price">' + formatPrice(item.price) + '</span>';
+    '<span class="opc-number">' + escapeHtml(formatPhoneDisplay(item.number || '')) + '</span>' + priceHtml;
   orderModal.classList.add('open');
 }
 function closeOrderModal(){ orderModal.classList.remove('open'); }
@@ -1892,12 +2058,15 @@ async function attemptOrderWrite(item, payload){
 }
 
 async function sendOrderToTelegramNotify(payload, orderId){
+  const payLine = payload.paymentType === 'installment'
+    ? ("💳 To'lov turi: Bo'lib to'lash — " + payload.installmentMonths + " oyga, oyiga " + formatPrice(payload.monthlyPayment) + "dan")
+    : "💵 To'lov turi: Naqt to'lov";
   const text = "🔔 Yangi buyurtma (Telegram mini ilova)\n\n"
     + "📱 Buyurtma raqami: " + payload.number + "\n"
     + "👤 Mijoz ismi: " + payload.name + "\n"
     + "☎️ Ishlab turgan raqami: " + payload.phone + "\n"
     + "📍 Manzil: " + payload.region + "\n"
-    + "💵 To'lov turi: Naqt to'lov\n"
+    + payLine + "\n"
     + "🌐 Qayerdan: Telegram mini ilova";
   try{
     await fetch('/.netlify/functions/telegram-notify', {
@@ -1926,10 +2095,15 @@ orderSubmitBtn.addEventListener('click', async ()=>{
     number: item.number || '', price: typeof item.price === 'number' ? item.price : 0,
     name, region, phone,
     phoneNormalized: phone.replace(/\D/g,'').slice(-9),
-    source: 'Telegram mini ilova', paymentType: 'cash',
+    source: 'Telegram mini ilova',
+    paymentType: __pendingInstallment ? 'installment' : 'cash',
     operator: item.operator || '',
     catalogType: String(item.id || '').startsWith('live:') ? 'Standart' : 'VIP'
   };
+  if(__pendingInstallment){
+    payload.installmentMonths = __pendingInstallment.months;
+    payload.monthlyPayment = __pendingInstallment.monthly;
+  }
 
   let orderId = null, blockedReason = null;
   const MAX_ATTEMPTS = 2;
@@ -1966,9 +2140,114 @@ orderSubmitBtn.addEventListener('click', async ()=>{
   removeOrderedItemFromLists(item.id);
   renderCatalog();
   renderFavoritesModal();
+  refreshHomeBannerItems();
   orderFormView.style.display = 'none';
   orderSuccessView.style.display = 'block';
   successFeedback();
+});
+
+/* =========================================================
+   BO'LIB TO'LASHGA RAQAMLAR — mijoz: "bolib tolash bosilganda umuman
+   boshqa yangi oyna ochilsin, huddi vip raqam saytida bolib tolash bor
+   ediku huddi shu narxi bilan tortsin". Sayt (index.html)dagi ESKI
+   VIP-baza %-ustama tizimi bilan BIR XIL: site_settings/general
+   hujjatidagi installmentRates (6/12/24/36 oy uchun foiz, mijozga
+   ko'rinmaydi) narxga qo'shiladi — oylik = narx*(1+foiz/100)/oy soni,
+   1000 so'mgacha yaxlitlab yuqoriga.
+   ========================================================= */
+let installmentRates = { 6: 5, 12: 10, 24: 20, 36: 30 };
+async function loadInstallmentRatesFromSettings(){
+  try{
+    const doc = await db.collection('site_settings').doc('general').get();
+    if(!doc.exists) return;
+    const s = doc.data() || {};
+    if(s.installmentRates && typeof s.installmentRates === 'object'){
+      installmentRates = {
+        6: Number(s.installmentRates[6]) || 0,
+        12: Number(s.installmentRates[12]) || 0,
+        24: Number(s.installmentRates[24]) || 0,
+        36: Number(s.installmentRates[36]) || 0
+      };
+    }
+  }catch(e){ /* standart foizlar bilan davom etiladi */ }
+}
+loadInstallmentRatesFromSettings();
+
+const installmentModal = document.getElementById('installmentModal');
+const installmentListView = document.getElementById('installmentListView');
+const installmentDetailView = document.getElementById('installmentDetailView');
+const installmentListItems = document.getElementById('installmentListItems');
+let __pendingInstallmentItem = null;
+let __installmentMonths = 6;
+
+function computeInstallmentMonthly(price, months){
+  const rate = installmentRates[months] || 0;
+  const total = (Number(price) || 0) * (1 + rate / 100);
+  return Math.ceil(total / months / 1000) * 1000;
+}
+function openInstallmentModal(){
+  installmentListView.style.display = 'block';
+  installmentDetailView.style.display = 'none';
+  const eligible = NUMBERS.filter(n=> n.installment === true);
+  if(!eligible.length){
+    installmentListItems.innerHTML = '<div class="catalog-empty" style="margin-bottom:0;">' + escapeHtml(t('installmentEmpty')) + '</div>';
+  }else{
+    installmentListItems.innerHTML = eligible.map(n=>{
+      const teaser = formatPrice(computeInstallmentMonthly(n.price, 6));
+      return `
+        <div class="installment-row" data-id="${escapeHtml(n.id)}">
+          <div>
+            <div class="ir-number">${escapeHtml(formatPhoneDisplay(n.number || ''))}</div>
+            <div class="ir-teaser">${escapeHtml(formatPrice(n.price))} · ${teaser}${escapeHtml(t('perMonth'))} (6 ${escapeHtml(t('monthsShort'))})</div>
+          </div>
+          <span class="ir-chevron">&rsaquo;</span>
+        </div>`;
+    }).join('');
+    installmentListItems.querySelectorAll('.installment-row').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const item = findItemById(row.dataset.id);
+        if(item) openInstallmentDetail(item);
+      });
+    });
+  }
+  installmentModal.classList.add('open');
+}
+function closeInstallmentModal(){ installmentModal.classList.remove('open'); }
+document.getElementById('installmentModalClose').addEventListener('click', closeInstallmentModal);
+document.getElementById('installmentBackBtn').addEventListener('click', ()=>{
+  installmentDetailView.style.display = 'none';
+  installmentListView.style.display = 'block';
+});
+
+function openInstallmentDetail(item){
+  __pendingInstallmentItem = item;
+  __installmentMonths = 6;
+  document.getElementById('installmentPreviewCard').innerHTML =
+    '<span class="opc-number">' + escapeHtml(formatPhoneDisplay(item.number || '')) + '</span>' +
+    '<span class="opc-price">' + escapeHtml(formatPrice(item.price)) + '</span>';
+  document.querySelectorAll('#icTabs .ic-tab').forEach(btn=>{
+    btn.classList.toggle('active', Number(btn.dataset.months) === __installmentMonths);
+  });
+  updateInstallmentMonthly();
+  installmentListView.style.display = 'none';
+  installmentDetailView.style.display = 'block';
+}
+function updateInstallmentMonthly(){
+  const monthly = computeInstallmentMonthly(__pendingInstallmentItem.price, __installmentMonths);
+  document.getElementById('icMonthlyValue').textContent = formatPrice(monthly);
+}
+document.querySelectorAll('#icTabs .ic-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    __installmentMonths = Number(btn.dataset.months);
+    document.querySelectorAll('#icTabs .ic-tab').forEach(b=> b.classList.toggle('active', b === btn));
+    updateInstallmentMonthly();
+  });
+});
+document.getElementById('installmentOrderBtn').addEventListener('click', ()=>{
+  if(!__pendingInstallmentItem) return;
+  const monthly = computeInstallmentMonthly(__pendingInstallmentItem.price, __installmentMonths);
+  closeInstallmentModal();
+  openOrderModal(__pendingInstallmentItem, { months: __installmentMonths, monthly });
 });
 
 /* =========================================================
@@ -2063,14 +2342,9 @@ document.getElementById('favoritesModalClose').addEventListener('click', closeFa
 favoritesModal.addEventListener('click', (e)=>{ if(e.target === favoritesModal) closeFavoritesModal(); });
 document.getElementById('profFavorites').addEventListener('click', openFavoritesModal);
 
-/* "Bo'lib to'lashga raqamlar" — Katalogga o'tib, installment chipini
-   yoqadi (real filtr, index.html'dagi mantiq bilan bir xil). */
-document.getElementById('profInstallment').addEventListener('click', ()=>{
-  switchScreen('catalog');
-  if(!catalogFilterInstallment && installmentChipEl){
-    installmentChipEl.click();
-  }
-});
+/* "Bo'lib to'lashga raqamlar" — endi alohida kalkulyatorli oyna
+   (installmentModal) ochiladi, katalogga o'tkazib yubormaydi. */
+document.getElementById('profInstallment').addEventListener('click', ()=> openInstallmentModal());
 
 /* =========================================================
    "Buyurtmalarim" modali — check-my-orders.js AYNAN index.html
