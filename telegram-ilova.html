@@ -130,10 +130,18 @@
   .app-top .wordmark{font-weight:800;font-size:15px;letter-spacing:.2px;}
   .app-top .wordmark b{color:var(--accent);}
 
-  main{padding-top:2px;}
+  main{padding-top:2px;position:relative;}
   .tg-screen{display:none;padding-bottom:10px;}
-  .tg-screen.active{display:block;animation:screenIn .22s cubic-bezier(.22,.8,.3,1);}
-  @keyframes screenIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .tg-screen.active{display:block;animation:screenIn .26s cubic-bezier(.22,.8,.3,1);}
+  @keyframes screenIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  /* Eski ekran chiqib ketayotgan payt — oqim tashqarisida (absolute), shu
+     sabab yangisi bilan bir vaqtda ko'rinsa ham sahifa balandligi
+     sakramaydi, faqat yumshoq crossfade his qilinadi. */
+  .tg-screen.screen-out{
+    display:block;position:absolute;left:0;right:0;top:0;pointer-events:none;
+    animation:screenOut .2s ease forwards;
+  }
+  @keyframes screenOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-6px);}}
 
   /* ===== Umumiy komponentlar ===== */
   .greeting-card{
@@ -198,95 +206,43 @@
   .footer-note{text-align:center;color:var(--muted);font-size:11px;margin:18px 0 6px;letter-spacing:.3px;}
 
   /* ===== Katalog ===== */
-  .catalog-search-wrap{margin:0 16px 10px;}
-  .catalog-search{
-    display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
-    border-radius:13px;padding:11px 14px;
+  /* ---- Qidiruv "hero" paneli — YAGONA raqam kiritish joyi (avvalgi
+       alohida oddiy matn maydoni olib tashlandi: mijoz "ikkita qidiruv
+       joyi tartibsiz ko'rinadi" dedi). Katta, diqqatni tortadigan,
+       gradient chegarali kartochka — mijoz "kichik, kattaroq qil" dedi. ---- */
+  .search-hero{
+    margin:0 16px 14px;padding:18px 16px 16px;border-radius:22px;position:relative;overflow:hidden;
+    background:linear-gradient(165deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
+    border:1.5px solid var(--accent-soft);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 0 0 5px var(--accent-soft), 0 10px 28px -14px rgba(0,0,0,0.4);
   }
-  .catalog-search svg{width:17px;height:17px;color:var(--muted);flex-shrink:0;}
-  .catalog-search input{
-    flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14.5px;font-family:'Sora',sans-serif;
-    letter-spacing:.5px;
+  .search-hero-label{
+    display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--muted);
+    margin-bottom:14px;letter-spacing:.2px;font-family:'Sora',sans-serif;text-transform:uppercase;
   }
-  .catalog-search input::placeholder{color:var(--muted);font-family:'Nunito',sans-serif;letter-spacing:0;}
-  .op-chip-row{display:flex;gap:7px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;}
-  .op-chip-row::-webkit-scrollbar{display:none;}
-  .op-chip{
-    flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 13px;
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
-  }
-  .op-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
-  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:9px;}
-  /* ---- Raqam kartochkasi: zamonaviy "shisha" (glassmorphism) ko'rinish —
-       shaffof fon + blur, operator rangida nozik chap chiziq, mijoz
-       so'roviga ko'ra raqam/narx AVVALGIDAN KICHIKROQ, lekin aniq
-       kontrast bilan (o'qishga oson bo'lsin uchun). ---- */
-  .num-card{
-    position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;
-    padding:11px 13px 11px 16px;display:flex;align-items:center;gap:9px;overflow:hidden;
-    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
-    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 6px 18px -10px rgba(0,0,0,0.35);
-    transition:transform .12s ease, background .15s ease;
-  }
-  .num-card:active{transform:scale(0.985);}
-  .num-card::before{
-    content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;
-    background:var(--op-color, var(--accent));opacity:.85;
-  }
-  .num-card-main{flex:1;min-width:0;}
-  .num-card-number{
-    font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.1px;color:var(--text);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  }
-  .num-card-meta{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10.5px;color:var(--muted);font-weight:600;}
-  .num-card-op-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-  .num-card-price{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:11px;color:var(--green);white-space:nowrap;
-    background:var(--green-soft);padding:4px 8px;border-radius:8px;letter-spacing:.1px;
-  }
-  .num-card-btn{
-    background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11px;padding:9px 12px;border-radius:10px;cursor:pointer;flex-shrink:0;
-    box-shadow:0 4px 12px -4px rgba(79,140,255,0.55);
-  }
-  .num-card-btn:active{transform:scale(0.95);}
-  .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;}
-  .catalog-loading .boot-ring{margin:0 auto 12px;}
-  .num-card-fav{
-    background:none;border:none;color:var(--muted);cursor:pointer;flex-shrink:0;padding:4px;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .num-card-fav svg{width:17px;height:17px;transition:transform .15s ease;}
-  .num-card-fav.active{color:var(--danger);}
-  .num-card-fav.active svg{transform:scale(1.12);}
-  .num-card-fav:active svg{transform:scale(0.85);}
-  .live-badge{
-    display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;
-    font-size:9.5px;font-weight:800;padding:2px 6px;margin-left:6px;letter-spacing:.3px;text-transform:uppercase;vertical-align:middle;
-  }
-  /* ---- Jonli qidiruv paneli: 7 shaffof katakcha + keng "Qidirish" tugmasi ---- */
-  .live-search-panel{margin:0 16px 12px;padding:14px 14px 12px;background:var(--panel);border:1px solid var(--line);border-radius:16px;}
-  .live-search-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.2px;}
-  .live-digit-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px;}
+  .search-hero-label svg{width:15px;height:15px;color:var(--accent);flex-shrink:0;}
+  .live-digit-row{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:16px;}
   .live-digit-box{
-    width:100%;max-width:34px;aspect-ratio:1/1.15;background:transparent;border:1.6px dashed var(--line);
-    border-radius:10px;text-align:center;color:var(--text);font-family:'Sora',sans-serif;font-weight:800;
-    font-size:16px;outline:none;flex:1 1 0;min-width:0;transition:border-color .15s ease,background .15s ease;
+    width:100%;max-width:42px;aspect-ratio:1/1.05;background:var(--panel-2);border:1.8px solid var(--line);
+    border-radius:13px;text-align:center;color:var(--text);font-family:'Sora',sans-serif;font-weight:800;
+    font-size:21px;outline:none;flex:1 1 0;min-width:0;transition:border-color .15s ease,background .15s ease,transform .1s ease;
   }
-  .live-digit-box::placeholder{color:var(--muted);opacity:.32;font-weight:600;}
-  .live-digit-box.filled{border-style:solid;border-color:var(--accent);background:var(--accent-soft);}
-  .live-digit-box:focus{border-style:solid;border-color:var(--accent);}
-  .live-dash{color:var(--muted);opacity:.5;font-weight:700;flex-shrink:0;}
+  .live-digit-box::placeholder{color:var(--muted);opacity:.28;font-weight:600;}
+  .live-digit-box.filled{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);transform:scale(1.03);}
+  .live-digit-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .live-dash{color:var(--muted);opacity:.45;font-weight:800;flex-shrink:0;font-size:18px;}
   .live-search-btn{
     width:100%;background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;padding:14px;border-radius:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:9px;position:relative;overflow:hidden;
+    box-shadow:0 8px 20px -8px rgba(79,140,255,0.6);
   }
   .live-search-btn:active{transform:scale(0.98);}
   .live-search-btn:disabled{opacity:.75;cursor:not-allowed;}
-  .live-search-btn .lsb-icon svg{width:17px;height:17px;display:block;}
+  .live-search-btn .lsb-icon svg{width:18px;height:18px;display:block;}
   .live-search-btn .lsb-spinner{
-    width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.35);border-top-color:#fff;
+    width:17px;height:17px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.35);border-top-color:#fff;
     animation:lsbSpin .7s linear infinite;
   }
   @keyframes lsbSpin{to{transform:rotate(360deg);}}
@@ -307,6 +263,68 @@
   @keyframes radarPulse{
     0%{transform:scale(0.4);opacity:.9;}
     100%{transform:scale(1.9);opacity:0;}
+  }
+  .op-chip-row{display:flex;gap:7px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;}
+  .op-chip-row::-webkit-scrollbar{display:none;}
+  .op-chip{
+    flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 13px;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
+    transition:transform .1s ease;
+  }
+  .op-chip:active{transform:scale(0.94);}
+  .op-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:12px;}
+  /* ---- Raqam kartochkasi — mijoz iltimosiga ko'ra KATTAROQ, USTUN
+       (vertikal) tuzilishda: yuqorida raqam+yurakcha, o'rtada operator,
+       pastda ESA to'liq kengliкdagi "Buyurtma berish" tugmasi — zamonaviy
+       "mahsulot kartochkasi" ko'rinishida. Shaffof "shisha" fon saqlanadi. ---- */
+  .num-card{
+    position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;
+    padding:16px 17px 15px;overflow:hidden;
+    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 10px 24px -14px rgba(0,0,0,0.4);
+    transition:transform .12s ease;
+  }
+  .num-card:active{transform:scale(0.985);}
+  .num-card::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+    background:var(--op-color, var(--accent));opacity:.9;
+  }
+  .num-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .num-card-number{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:.2px;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .num-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11.5px;color:var(--muted);font-weight:700;}
+  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .num-card-bottom{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;
+    padding-top:13px;border-top:1px solid var(--glass-border);
+  }
+  .num-card-price{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--green);white-space:nowrap;
+    background:var(--green-soft);padding:6px 11px;border-radius:10px;letter-spacing:.1px;flex-shrink:0;
+  }
+  .num-card-btn{
+    flex:1;background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;padding:12px 14px;border-radius:12px;cursor:pointer;
+    box-shadow:0 6px 16px -6px rgba(79,140,255,0.6);display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .num-card-btn svg{width:15px;height:15px;flex-shrink:0;}
+  .num-card-btn:active{transform:scale(0.96);}
+  .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;}
+  .catalog-loading .boot-ring{margin:0 auto 12px;}
+  .num-card-fav{
+    background:none;border:none;color:var(--muted);cursor:pointer;flex-shrink:0;padding:4px;margin:-4px -4px 0 0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .num-card-fav svg{width:20px;height:20px;transition:transform .15s ease;}
+  .num-card-fav.active{color:var(--danger);}
+  .num-card-fav.active svg{transform:scale(1.12);}
+  .num-card-fav:active svg{transform:scale(0.85);}
+  .live-badge{
+    display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;
+    font-size:9.5px;font-weight:800;padding:2px 6px;margin-left:6px;letter-spacing:.3px;text-transform:uppercase;vertical-align:middle;
   }
 
   /* ===== Sevimlilar / Vakansiya ro'yxat kartochkalari (order-result-row
@@ -383,18 +401,28 @@
   .order-result-row .or-line{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:2px 0;}
   .order-result-row .or-line b{color:var(--text);font-weight:700;}
 
-  /* ===== Pastki suzuvchi pill navigatsiya ===== */
+  /* ===== Pastki suzuvchi pill navigatsiya =====
+     MUHIM (mijoz shikoyati): mobil klaviatura ochilganda "position:fixed"
+     elementlar ba'zi brauzerlarda (ayniqsa Android WebView) viewport
+     balandligi qisqarganda YUQORIGA "sakrab" ketadi. Buning oldini olish
+     uchun pastda JS orqali (pinBottomNav()) VisualViewport API bilan
+     navigatsiya HAR DOIM haqiqiy ko'rinadigan pastki chegaraga
+     "mixlanadi" — klaviatura ochiq/yopiqligidan qat'iy nazar joyidan
+     jilmaydi. `transition` shu harakatni ham silliqlaydi. */
   .bottom-nav{
     position:fixed;left:14px;right:14px;bottom:calc(12px + var(--safe-b));z-index:60;
     display:flex;background:var(--nav-bg);-webkit-backdrop-filter:blur(20px) saturate(140%);
     backdrop-filter:blur(20px) saturate(140%);border:1px solid var(--nav-border);border-radius:20px;
     padding:6px;box-shadow:0 -6px 20px -8px rgba(0,0,0,0.35), 0 16px 36px rgba(0,0,0,0.28);
+    transition:transform .18s ease;
   }
   .bn-tab{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
     padding:8px 4px;border-radius:14px;background:none;border:none;color:var(--muted);cursor:pointer;
+    transition:background .22s ease, color .18s ease, transform .12s ease;
   }
-  .bn-tab svg{width:21px;height:21px;}
+  .bn-tab:active{transform:scale(0.92);}
+  .bn-tab svg{width:21px;height:21px;transition:filter .2s ease;}
   .bn-tab span{font-family:'Sora',sans-serif;font-weight:700;font-size:10px;}
   .bn-tab.active{color:#fff;background:linear-gradient(160deg, rgba(79,140,255,0.32), rgba(124,108,240,0.20));}
   .bn-tab.active svg{filter:drop-shadow(0 0 5px rgba(79,140,255,0.55));}
@@ -463,37 +491,18 @@
 
   <!-- ================= KATALOG ================= -->
   <section class="tg-screen" id="screen-catalog">
-    <div class="catalog-search-wrap">
-      <div class="catalog-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="tel" inputmode="numeric" id="catalogSearchInput" data-i18n-ph="catalogPlaceholder" placeholder="Raqam qidirish (masalan 90 123)" maxlength="13">
+    <!-- Katta, diqqatga sazovor qidiruv paneli — YAGONA raqam kiritish joyi
+         (avvalgi alohida oddiy matn maydoni OLIB TASHLANDI: ikkita qidiruv
+         joyi "tartibsiz" ko'rinardi). Katakchalarga yozilgan raqamlar
+         DARHOL VIP katalogni filtrlaydi; "Qidirish" tugmasi esa QO'SHIMCHA
+         ravishda operatorlarning jonli bazasidan ham so'raydi
+         (index.html'dagi #numberBuilder/api-live-search.js BILAN BIR XIL
+         kontrakt: 7 ta katakcha, bo'sh joylar '_' wildcard). -->
+    <div class="search-hero">
+      <div class="search-hero-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span data-i18n="liveSearchLabel">Raqam qidirish</span>
       </div>
-    </div>
-    <div class="op-chip-row" id="opChipRow">
-      <button type="button" class="op-chip active" data-op="" data-i18n="chipAll">Barchasi</button>
-      <button type="button" class="op-chip" data-op="Beeline">Beeline</button>
-      <button type="button" class="op-chip" data-op="Ucell">Ucell</button>
-      <button type="button" class="op-chip" data-op="Uzmobile">Uzmobile</button>
-      <button type="button" class="op-chip" data-op="Mobiuz">Mobiuz</button>
-      <button type="button" class="op-chip" data-op="Humans">Humans</button>
-      <button type="button" class="op-chip" data-op="Perfektum">Perfektum</button>
-    </div>
-    <!-- "Bo'lib to'lash" — Firestore'dagi 'numbers' kolleksiyasining
-         'installment' (bool) maydoni bo'yicha filtr — index.html'dagi
-         #openInstallmentNumbersLink BILAN BIR XIL mantiq. Operator
-         chiplaridan MUSTAQIL yoqiladi/o'chiriladi (ikkalasi birga
-         ishlaydi: masalan "Beeline" + "Bo'lib to'lash"). -->
-    <div class="op-chip-row" style="padding-top:0;">
-      <button type="button" class="op-chip" id="installmentChip">💳 <span data-i18n="chipInstallment">Bo'lib to'lash</span></button>
-    </div>
-    <!-- "Jonli qidiruv" — index.html'dagi #numberBuilder/api-live-search.js
-         BILAN BIR XIL: 7 ta ALOHIDA katakcha (3-2-2 guruhlangan, "xxx-xx-xx"
-         ko'rinishida), har biriga bittadan mahalliy raqam xonasi kiritiladi,
-         bo'sh qolgan katakchalar '_' (wildcard) sifatida so'raladi. Mijoz
-         "Qidirish"ni bosgandagina operatorlarning jonli bazasidan so'raladi
-         (avtomatik, har harf terilganda EMAS). -->
-    <div class="live-search-panel">
-      <div class="live-search-label" data-i18n="liveSearchLabel">Jonli qidiruv — operatorlar bazasidan</div>
       <div class="live-digit-row" id="liveDigitRow">
         <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="0">
         <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="1">
@@ -514,6 +523,23 @@
     <div class="live-status-row" id="liveStatusRow" style="display:none;">
       <div class="live-radar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
       <span data-i18n="liveSearching">Jonli raqamlar qidirilmoqda…</span>
+    </div>
+    <div class="op-chip-row" id="opChipRow">
+      <button type="button" class="op-chip active" data-op="" data-i18n="chipAll">Barchasi</button>
+      <button type="button" class="op-chip" data-op="Beeline">Beeline</button>
+      <button type="button" class="op-chip" data-op="Ucell">Ucell</button>
+      <button type="button" class="op-chip" data-op="Uzmobile">Uzmobile</button>
+      <button type="button" class="op-chip" data-op="Mobiuz">Mobiuz</button>
+      <button type="button" class="op-chip" data-op="Humans">Humans</button>
+      <button type="button" class="op-chip" data-op="Perfektum">Perfektum</button>
+    </div>
+    <!-- "Bo'lib to'lash" — Firestore'dagi 'numbers' kolleksiyasining
+         'installment' (bool) maydoni bo'yicha filtr — index.html'dagi
+         #openInstallmentNumbersLink BILAN BIR XIL mantiq. Operator
+         chiplaridan MUSTAQIL yoqiladi/o'chiriladi (ikkalasi birga
+         ishlaydi: masalan "Beeline" + "Bo'lib to'lash"). -->
+    <div class="op-chip-row" style="padding-top:0;">
+      <button type="button" class="op-chip" id="installmentChip">💳 <span data-i18n="chipInstallment">Bo'lib to'lash</span></button>
     </div>
     <div class="catalog-list" id="catalogList">
       <div class="catalog-loading" id="catalogLoading"><div class="boot-ring"></div><span data-i18n="catalogLoadingText">Raqamlar yuklanmoqda…</span></div>
@@ -811,6 +837,66 @@ const OPERATOR_COLORS = {
 };
 
 /* =========================================================
+   VIBRATSIYA + OVOZ — mijoz iltimosiga ko'ra: HAR BIR tugma/chip/
+   navigatsiya bosilganda zamonaviy ilovalardagidek darhol seziladigan
+   his-tuyg'u (haptic + engil "tik" ovozi) berilsin. Telegram
+   HapticFeedback mavjud bo'lsa o'shandan foydalaniladi (eng tabiiy
+   tuyg'u), aks holda oddiy brauzer vibratsiyasiga (navigator.vibrate)
+   qaytiladi. Ovoz — Web Audio API orqali JUDA qisqa, past ovozli "blip"
+   (audio fayl shart emas, hech qanday tarmoq so'rovisiz ishlaydi).
+   ========================================================= */
+function haptic(type){
+  try{
+    if(__tg && __tg.HapticFeedback){
+      if(type === 'success' || type === 'error' || type === 'warning') __tg.HapticFeedback.notificationOccurred(type);
+      else if(type === 'selection') __tg.HapticFeedback.selectionChanged();
+      else __tg.HapticFeedback.impactOccurred(type || 'light');
+      return;
+    }
+  }catch(e){}
+  try{
+    if(navigator.vibrate){
+      if(type === 'success') navigator.vibrate([16, 40, 16]);
+      else if(type === 'error') navigator.vibrate([26, 50, 26]);
+      else navigator.vibrate(10);
+    }
+  }catch(e){}
+}
+let __audioCtx = null;
+function playTone(freq, dur, vol){
+  try{
+    if(!__audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      __audioCtx = new Ctx();
+    }
+    if(__audioCtx.state === 'suspended') __audioCtx.resume();
+    const t0 = __audioCtx.currentTime;
+    const osc = __audioCtx.createOscillator();
+    const gain = __audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol || 0.05, t0 + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (dur || 0.08));
+    osc.connect(gain); gain.connect(__audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + (dur || 0.08) + 0.02);
+  }catch(e){}
+}
+function tapFeedback(){ haptic('light'); playTone(720, 0.055, 0.045); }
+function successFeedback(){ haptic('success'); playTone(880, 0.09, 0.05); setTimeout(()=> playTone(1180, 0.11, 0.05), 90); }
+function errorFeedback(){ haptic('error'); playTone(200, 0.16, 0.05); }
+
+// Barcha tugma/chip/tab bosilganda — DELEGATSIYA orqali, alohida-alohida
+// ulash shart emas. Capture bosqichida ishlaydi, shu sabab asosiy click
+// ishlovchilardan OLDIN chaqiriladi va ularga xalaqit bermaydi.
+document.addEventListener('click', function(e){
+  const el = e.target.closest('button, .bn-tab, a.action-row');
+  if(el && !el.disabled) tapFeedback();
+}, true);
+
+/* =========================================================
    TIL (uz/ru/en) — HAQIQIY, ishlaydigan tarjima. Mijoz "tez orada
    emas, ishlat" dedi — shu sabab bu safar chinakam almashtiradi,
    soxta xabar YO'Q. Tanlov qurilmada saqlanadi (localStorage), shu
@@ -855,7 +941,7 @@ const TRANSLATIONS = {
     priceSuffix: "so'm",
     selectedNumberAlert: "Tanlangan raqam: {number}\n\nBuyurtmani yakunlash uchun botga o'tasiz.",
     chipInstallment: "Bo'lib to'lash",
-    liveSearchLabel: "Jonli qidiruv — operatorlar bazasidan",
+    liveSearchLabel: "Raqam qidirish",
     liveSearchBtn: "Qidirish",
     liveSearching: "Jonli raqamlar qidirilmoqda…",
     liveBadge: "Jonli",
@@ -935,7 +1021,7 @@ const TRANSLATIONS = {
     priceSuffix: "сум",
     selectedNumberAlert: "Выбранный номер: {number}\n\nДля завершения заказа перейдите в бот.",
     chipInstallment: "Рассрочка",
-    liveSearchLabel: "Живой поиск — по базе операторов",
+    liveSearchLabel: "Поиск номера",
     liveSearchBtn: "Искать",
     liveSearching: "Идёт поиск живых номеров…",
     liveBadge: "Live",
@@ -1015,7 +1101,7 @@ const TRANSLATIONS = {
     priceSuffix: "UZS",
     selectedNumberAlert: "Selected number: {number}\n\nYou'll be taken to the bot to finish the order.",
     chipInstallment: "Installment",
-    liveSearchLabel: "Live search — from operator databases",
+    liveSearchLabel: "Search a number",
     liveSearchBtn: "Search",
     liveSearching: "Searching live numbers…",
     liveBadge: "Live",
@@ -1149,9 +1235,23 @@ function tgAlert(msg){
    EKRANLAR ORASIDA O'TISH (Asosiy / Raqamlar / Profil)
    ========================================================= */
 function switchScreen(name){
-  document.querySelectorAll('.tg-screen').forEach(s=>{
-    s.classList.toggle('active', s.id === 'screen-' + name);
-  });
+  const next = document.getElementById('screen-' + name);
+  const current = document.querySelector('.tg-screen.active');
+  if(!next || current === next) return;
+  // Tez-tez (ketma-ket) bosilganda eski animatsiya qoldig'i qolib
+  // ketmasligi uchun — barcha "chiqib ketayotgan" belgilarni tozalab
+  // boshlaymiz.
+  document.querySelectorAll('.tg-screen.screen-out').forEach(s=> s.classList.remove('screen-out'));
+  // Yumshoq o'tish: eski ekran BIR ZUMGA (position:absolute, oqim
+  // tashqarisida) so'nib-yo'qoladi, shu bilan bir vaqtda yangisi
+  // paydo bo'ladi — mijoz "qattiq kesilib qolish" o'rniga silliq
+  // crossfade ko'radi, sahifa balandligi sakramaydi.
+  if(current){
+    current.classList.remove('active');
+    current.classList.add('screen-out');
+    setTimeout(()=> current.classList.remove('screen-out'), 200);
+  }
+  next.classList.add('active');
   document.querySelectorAll('.bn-tab').forEach(b=>{
     b.classList.toggle('active', b.dataset.screen === name);
   });
@@ -1160,6 +1260,28 @@ function switchScreen(name){
 document.querySelectorAll('.bn-tab').forEach(btn=>{
   btn.addEventListener('click', ()=> switchScreen(btn.dataset.screen));
 });
+
+/* =========================================================
+   PASTKI NAVIGATSIYANI "MIXLASH" — mijoz shikoyati: klaviatura
+   ochilganda pastki menyu tepaga sakrab ketardi. VisualViewport
+   API mavjud bo'lsa, navigatsiya HAR DOIM haqiqiy ko'rinadigan
+   pastki chegaraga aniq moslashtiriladi (klaviatura ochiq bo'lsa
+   ham joyidan jilmaydi, faqat klaviatura ustida ko'rinib turadi —
+   sakrash/tebranish YO'Q, CSS transition orqali silliq).
+   ========================================================= */
+function pinBottomNav(){
+  const nav = document.getElementById('bottomNav');
+  if(!nav || !window.visualViewport) return;
+  const vv = window.visualViewport;
+  function update(){
+    const gap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    nav.style.transform = gap > 1 ? ('translateY(-' + gap + 'px)') : '';
+  }
+  vv.addEventListener('resize', update);
+  vv.addEventListener('scroll', update);
+  update();
+}
+pinBottomNav();
 
 /* =========================================================
    SALOMLASHUV — Telegram foydalanuvchi ismi/rasmi (bor bo'lsa)
@@ -1275,11 +1397,17 @@ const liveDigitBoxes = Array.from(document.querySelectorAll('.live-digit-box'));
 function currentLivePattern(){ return liveDigitBoxes.map(box=> box.value.trim()); }
 function buildLiveMask(){ return currentLivePattern().map(d=> d || '_').join(''); }
 
+// Katakchalarga yozilgan raqamlar YAGONA qidiruv manbai — DARHOL statik
+// VIP katalogni filtrlaydi (avvalgi alohida matn maydoni o'rnini bosadi),
+// "Qidirish" tugmasi esa qo'shimcha ravishda jonli operator bazasidan so'raydi.
 liveDigitBoxes.forEach((box, idx)=>{
   box.addEventListener('input', ()=>{
     box.value = box.value.replace(/\D/g,'').slice(0,1);
     box.classList.toggle('filled', box.value !== '');
+    if(box.value !== ''){ haptic('selection'); }
     if(box.value !== '' && idx < liveDigitBoxes.length - 1){ liveDigitBoxes[idx+1].focus({ preventScroll: true }); }
+    catalogFilterText = liveDigitBoxes.map(b=> b.value).join('');
+    renderCatalog();
   });
   box.addEventListener('keydown', (e)=>{
     if(e.key === 'Backspace' && box.value === '' && idx > 0){ liveDigitBoxes[idx-1].focus({ preventScroll: true }); }
@@ -1408,15 +1536,22 @@ function renderCatalog(){
     const liveBadge = n.live ? ('<span class="live-badge">' + escapeHtml(t('liveBadge')) + '</span>') : '';
     return `
       <div class="num-card" style="--op-color:${color};">
-        <div class="num-card-main">
-          <div class="num-card-number">${escapeHtml(n.number || '')}${liveBadge}</div>
-          <div class="num-card-meta"><span class="num-card-op-dot" style="background:${color};"></span>${escapeHtml(n.operator || '')}</div>
+        <div class="num-card-top">
+          <div class="num-card-main">
+            <div class="num-card-number">${escapeHtml(n.number || '')}${liveBadge}</div>
+            <div class="num-card-meta"><span class="num-card-op-dot" style="background:${color};"></span>${escapeHtml(n.operator || '')}</div>
+          </div>
+          <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
+            <svg viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </button>
         </div>
-        <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
-          <svg viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-        </button>
-        <div class="num-card-price">${formatPrice(n.price)}</div>
-        <button type="button" class="num-card-btn" data-id="${escapeHtml(n.id)}">${escapeHtml(t('orderBtn'))}</button>
+        <div class="num-card-bottom">
+          <div class="num-card-price">${formatPrice(n.price)}</div>
+          <button type="button" class="num-card-btn" data-id="${escapeHtml(n.id)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            ${escapeHtml(t('orderBtn'))}
+          </button>
+        </div>
       </div>
     `;
   }).join('');
@@ -1439,10 +1574,6 @@ function renderCatalog(){
 function escapeHtml(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-document.getElementById('catalogSearchInput').addEventListener('input', (e)=>{
-  catalogFilterText = e.target.value;
-  renderCatalog();
-});
 document.querySelectorAll('#opChipRow .op-chip').forEach(chip=>{
   chip.addEventListener('click', ()=>{
     document.querySelectorAll('#opChipRow .op-chip').forEach(c=> c.classList.toggle('active', c===chip));
@@ -1611,6 +1742,7 @@ orderSubmitBtn.addEventListener('click', async ()=>{
     orderSubmitLabel.textContent = t('orderSubmitBtn');
     removeOrderedItemFromLists(item.id);
     renderCatalog();
+    errorFeedback();
     return;
   }
   if(blockedReason === 'ERROR'){
@@ -1618,6 +1750,7 @@ orderSubmitBtn.addEventListener('click', async ()=>{
     orderErrorEl.style.display = 'block';
     orderSubmitBtn.disabled = false;
     orderSubmitLabel.textContent = t('orderSubmitBtn');
+    errorFeedback();
     return;
   }
 
@@ -1627,12 +1760,8 @@ orderSubmitBtn.addEventListener('click', async ()=>{
   renderFavoritesModal();
   orderFormView.style.display = 'none';
   orderSuccessView.style.display = 'block';
-  try{ hapticFeedback && hapticFeedback(); }catch(e){}
+  successFeedback();
 });
-
-function hapticFeedback(){
-  try{ __tg && __tg.HapticFeedback && __tg.HapticFeedback.notificationOccurred('success'); }catch(e){}
-}
 
 /* =========================================================
    SEVIMLI RAQAMLAR (Savat) — index.html BILAN BIR XIL
@@ -1669,6 +1798,7 @@ function toggleFavorite(id, item){
   }else{
     if(list.length >= FAV_MAX_ITEMS){
       tgAlert('Ko\'pi bilan ' + FAV_MAX_ITEMS + ' ta raqamni saqlash mumkin.');
+      errorFeedback();
       return;
     }
     list.push(id);
@@ -1679,6 +1809,7 @@ function toggleFavorite(id, item){
     }
   }
   saveFavorites(list);
+  haptic('selection');
 }
 function renderFavoritesModal(){
   const wrap = document.getElementById('favoritesListView');
@@ -1757,6 +1888,7 @@ document.getElementById('ordersSubmitBtn').addEventListener('click', async ()=>{
   if(!phoneVal || phoneVal.length < 9 || last4Val.length !== 4){
     errEl.textContent = t('errIncomplete');
     errEl.style.display = 'block';
+    errorFeedback();
     return;
   }
   const label = document.getElementById('ordersSubmitLabel');
@@ -1771,10 +1903,12 @@ document.getElementById('ordersSubmitBtn').addEventListener('click', async ()=>{
     if(!result.ok || !result.orders || result.orders.length === 0){
       errEl.textContent = result.error || t('errNotFound');
       errEl.style.display = 'block';
+      errorFeedback();
     }else{
       renderOrdersResult(result.orders);
       document.getElementById('ordersFormView').style.display = 'none';
       document.getElementById('ordersResultView').style.display = 'block';
+      successFeedback();
     }
   }catch(err){
     errEl.textContent = t('errGeneric') + (err && err.message ? err.message : 'unknown');
@@ -1841,6 +1975,7 @@ document.getElementById('contractsSubmitBtn').addEventListener('click', async ()
   if(!idVal || !phoneVal || phoneVal.length < 9){
     errEl.textContent = t('errContractIncomplete');
     errEl.style.display = 'block';
+    errorFeedback();
     return;
   }
   const label = document.getElementById('contractsSubmitLabel');
@@ -1855,10 +1990,12 @@ document.getElementById('contractsSubmitBtn').addEventListener('click', async ()
     if(!result.ok || !result.data){
       errEl.textContent = result.error || t('errContractNotFound');
       errEl.style.display = 'block';
+      errorFeedback();
     }else{
       __lastContractId = idVal; // MUHIM: index.html'dagi bug'ni TAKRORLAMAYMIZ —
       // result.data'da contractId yo'q, shu sabab QIDIRGAN idVal'ni ishlatamiz.
       renderContractResult(result.data);
+      successFeedback();
       document.getElementById('contractsFormView').style.display = 'none';
       document.getElementById('contractsResultView').style.display = 'block';
     }
@@ -2006,6 +2143,7 @@ document.getElementById('vacancySubmitBtn').addEventListener('click', async ()=>
   if(!name || !phone || !consent){
     errEl.textContent = t('errIncomplete');
     errEl.style.display = 'block';
+    errorFeedback();
     return;
   }
   const label = document.getElementById('vacancySubmitLabel');
@@ -2027,9 +2165,11 @@ document.getElementById('vacancySubmitBtn').addEventListener('click', async ()=>
     }catch(e){ /* faqat admin xabari, xato bo'lsa ham arizani buzmaydi */ }
     document.getElementById('vacancyApplyView').style.display = 'none';
     document.getElementById('vacancySuccessView').style.display = 'block';
+    successFeedback();
   }catch(err){
     errEl.textContent = t('errGeneric') + (err && err.message ? err.message : 'unknown');
     errEl.style.display = 'block';
+    errorFeedback();
   }
   label.textContent = t('submitApply');
 });
