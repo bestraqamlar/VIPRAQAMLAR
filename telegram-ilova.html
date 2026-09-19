@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>VIP Raqamlar — Mini App</title>
 <!--
   MUHIM: bu fayl MIJOZLAR SAYTI (index.html) BILAN HECH QANDAY ALOQASI YO'Q —
@@ -49,7 +49,7 @@
      JS qurilma sozlamasiga (prefers-color-scheme) qarab ikkalasidan
      birini avtomatik tanlaydi va real vaqtda kuzatib turadi. ===== */
   :root, :root[data-theme="dark"]{
-    --bg:#020305;
+    --bg:#0d0f1a;
     --panel:#111318;
     --panel-2:#191c22;
     --line:#26292f;
@@ -71,6 +71,13 @@
     --glass-bg-2:rgba(25,28,34,0.28);
     --glass-border:rgba(255,255,255,0.09);
     --glass-highlight:rgba(255,255,255,0.05);
+    --bg-glow-2:rgba(27,35,64,0.9);
+    /* "10-dizayn — Rangbarang shisha": mijoz tanlagan umumiy ilova
+       ko'rinishi — to'q fon ustida uchta xira rangli "blob" porlash
+       (pushti/ko'k/yashil), butun ilova bo'ylab bir xilda ko'rinadi. */
+    --blob-1:rgba(255,95,143,0.24);
+    --blob-2:rgba(79,140,255,0.26);
+    --blob-3:rgba(46,204,129,0.2);
   }
   :root[data-theme="light"]{
     --bg:#F3F5FA;
@@ -93,12 +100,24 @@
     --glass-bg-2:rgba(255,255,255,0.32);
     --glass-border:rgba(20,45,110,0.09);
     --glass-highlight:rgba(255,255,255,0.6);
+    --bg-glow-2:rgba(59,114,224,0.06);
+    --blob-1:transparent;
+    --blob-2:transparent;
+    --blob-3:transparent;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--bg);
-    background-image:radial-gradient(ellipse 70vw 50vh at 50% -10%, var(--bg-glow), transparent 60%);
+    /* "Rangbarang shisha" — mijoz tanlagan 10-dizayn: to'q fon ustida
+       uchta xira rangli porlash (pushti yuqori-chapda, ko'k
+       yuqori-o'ngda, yashil pastda) — butun ilova bo'ylab bir xil
+       "shisha" muhitini yaratadi. Yorug' mavzuda bular shaffof. */
+    background-image:
+      radial-gradient(circle at 6% -4%, var(--blob-1), transparent 32%),
+      radial-gradient(circle at 104% 22%, var(--blob-2), transparent 34%),
+      radial-gradient(circle at -6% 84%, var(--blob-3), transparent 32%),
+      radial-gradient(ellipse 70vw 50vh at 50% -10%, var(--bg-glow), transparent 60%);
     transition:background-color .2s ease, color .2s ease;
     color:var(--text);
     font-family:'Nunito',sans-serif;
@@ -128,9 +147,21 @@
   }
   .app-top img{width:26px;height:26px;border-radius:7px;}
   .app-top .wordmark{font-weight:800;font-size:15px;letter-spacing:.2px;}
-  .app-top .wordmark b{color:var(--accent);}
+  .app-top .wordmark b{
+    background:linear-gradient(90deg, #ff8fae, var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
 
   main{padding-top:2px;position:relative;}
+  /* Katalog ekrani — 1-dizayn ("Neon Shisha") tanlanganda, mijoz
+     namunadagi orqa fon (to'q ko'k-binafsha porlash) ham bir xil
+     bo'lishini so'radi — shu sabab bu ekranga alohida chuqur fon
+     qo'shildi, kartochkalarning "shisha" effekti shu fon ustida yanada
+     yorqin ko'rinadi. */
+  #screen-catalog{
+    background:radial-gradient(circle at 30% 0%, var(--bg-glow-2), transparent 55%);
+    margin:0 -0px;padding-left:0;padding-right:0;
+  }
   .tg-screen{display:none;padding-bottom:10px;}
   .tg-screen.active{display:block;animation:screenIn .26s cubic-bezier(.22,.8,.3,1);}
   @keyframes screenIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
@@ -151,7 +182,7 @@
   }
   .greeting-avatar{
     width:46px;height:46px;border-radius:50%;flex-shrink:0;overflow:hidden;
-    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    background:linear-gradient(135deg, #ff5f8f, var(--accent));
     display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;
     box-shadow:0 4px 14px rgba(124,108,240,0.35);
   }
@@ -273,52 +304,46 @@
   }
   .op-chip:active{transform:scale(0.94);}
   .op-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
-  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:12px;}
-  /* ---- Raqam kartochkasi — mijoz iltimosiga ko'ra KATTAROQ, USTUN
-       (vertikal) tuzilishda: yuqorida raqam+yurakcha, o'rtada operator,
-       pastda ESA to'liq kengliкdagi "Buyurtma berish" tugmasi — zamonaviy
-       "mahsulot kartochkasi" ko'rinishida. Shaffof "shisha" fon saqlanadi. ---- */
+  .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:14px;}
+  /* ---- "Neon Shisha" kartochka dizayni — mijoz 10 ta variant orasidan
+       aynan shuni tanladi ("1 chi dizaynni qil, bir-birga xuddi shunday
+       qil"), fon/soyalari bilan birga (#screen-catalog fonига qarang). ---- */
   .num-card{
-    position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;
-    padding:16px 17px 15px;overflow:hidden;
+    position:relative;border-radius:22px;padding:18px 19px 16px;overflow:hidden;
+    background:linear-gradient(145deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02));
     -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
-    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 10px 24px -14px rgba(0,0,0,0.4);
+    border:1px solid rgba(140,160,255,0.35);
+    box-shadow:0 0 0 1px rgba(140,160,255,0.08), 0 0 30px rgba(90,110,255,0.22), 0 14px 30px -10px rgba(0,0,0,0.5);
     transition:transform .12s ease;
   }
   .num-card:active{transform:scale(0.985);}
-  .num-card::before{
-    content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-    background:var(--op-color, var(--accent));opacity:.9;
-  }
   .num-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
   .num-card-number{
     font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:.2px;color:var(--text);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .num-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11.5px;color:var(--muted);font-weight:700;}
-  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-  .num-card-bottom{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;
-    padding-top:13px;border-top:1px solid var(--glass-border);
-  }
+  .num-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11.5px;color:#9db2ff;font-weight:700;}
+  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px var(--op-color, var(--accent));}
+  .num-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;}
   .num-card-price{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--green);white-space:nowrap;
-    background:var(--green-soft);padding:6px 11px;border-radius:10px;letter-spacing:.1px;flex-shrink:0;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;flex-shrink:0;
   }
   .num-card-btn{
-    flex:1;background:linear-gradient(135deg, var(--accent), var(--accent-2));border:none;color:#fff;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;padding:12px 14px;border-radius:12px;cursor:pointer;
-    box-shadow:0 6px 16px -6px rgba(79,140,255,0.6);display:flex;align-items:center;justify-content:center;gap:6px;
+    background:linear-gradient(135deg, #8fa2ff, #6ee7ff);border:none;color:#0b0e1a;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;padding:11px 18px;border-radius:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;
+    box-shadow:0 6px 16px -6px rgba(110,231,255,0.5);
   }
   .num-card-btn svg{width:15px;height:15px;flex-shrink:0;}
   .num-card-btn:active{transform:scale(0.96);}
   .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;}
   .catalog-loading .boot-ring{margin:0 auto 12px;}
   .num-card-fav{
-    background:none;border:none;color:var(--muted);cursor:pointer;flex-shrink:0;padding:4px;margin:-4px -4px 0 0;
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;padding:0;
+    border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#c9d2ff;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
   }
-  .num-card-fav svg{width:20px;height:20px;transition:transform .15s ease;}
+  .num-card-fav svg{width:17px;height:17px;transition:transform .15s ease;}
   .num-card-fav.active{color:var(--danger);}
   .num-card-fav.active svg{transform:scale(1.12);}
   .num-card-fav:active svg{transform:scale(0.85);}
@@ -402,19 +427,23 @@
   .order-result-row .or-line b{color:var(--text);font-weight:700;}
 
   /* ===== Pastki suzuvchi pill navigatsiya =====
-     MUHIM (mijoz shikoyati): mobil klaviatura ochilganda "position:fixed"
-     elementlar ba'zi brauzerlarda (ayniqsa Android WebView) viewport
-     balandligi qisqarganda YUQORIGA "sakrab" ketadi. Buning oldini olish
-     uchun pastda JS orqali (pinBottomNav()) VisualViewport API bilan
-     navigatsiya HAR DOIM haqiqiy ko'rinadigan pastki chegaraga
-     "mixlanadi" — klaviatura ochiq/yopiqligidan qat'iy nazar joyidan
-     jilmaydi. `transition` shu harakatni ham silliqlaydi. */
+     MIJOZ TALABI: bu menyu HAR DOIM, HAR QANDAY holatda — klaviatura
+     ochilganda ham — pastda O'Z JOYIDA tursin, umuman joyi
+     o'zgarmasin (yuqoriga sakrab chiqib ko'rinib qolmasin). Shu sabab
+     endi ikkita himoya qatlami bor: (1) <head>dagi viewport meta
+     `interactive-widget=resizes-content` — zamonaviy brauzer/WebView
+     klaviatura ochilganda sahifa balandligini qisqartiradi, shu bilan
+     "position:fixed; bottom:0" haqiqiy pastki chegaraga yopishgan
+     holda qoladi, hech qayerga "suzib chiqmaydi"; (2) JS orqali hech
+     qanday translateY/harakat QO'SHILMAYDI — menyu shunchaki o'z CSS
+     joyida qotib turadi. Eski loyihada klaviatura ustida "suzib"
+     ko'rinishi uchun JS bilan yuqoriga surilar edi — mijoz buni
+     "sakrash" deb hisoblab, buni butunlay olib tashlashni so'radi. */
   .bottom-nav{
     position:fixed;left:14px;right:14px;bottom:calc(12px + var(--safe-b));z-index:60;
     display:flex;background:var(--nav-bg);-webkit-backdrop-filter:blur(20px) saturate(140%);
     backdrop-filter:blur(20px) saturate(140%);border:1px solid var(--nav-border);border-radius:20px;
     padding:6px;box-shadow:0 -6px 20px -8px rgba(0,0,0,0.35), 0 16px 36px rgba(0,0,0,0.28);
-    transition:transform .18s ease;
   }
   .bn-tab{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
@@ -424,7 +453,7 @@
   .bn-tab:active{transform:scale(0.92);}
   .bn-tab svg{width:21px;height:21px;transition:filter .2s ease;}
   .bn-tab span{font-family:'Sora',sans-serif;font-weight:700;font-size:10px;}
-  .bn-tab.active{color:#fff;background:linear-gradient(160deg, rgba(79,140,255,0.32), rgba(124,108,240,0.20));}
+  .bn-tab.active{color:#fff;background:linear-gradient(135deg, rgba(255,95,143,0.32), rgba(79,140,255,0.28));}
   .bn-tab.active svg{filter:drop-shadow(0 0 5px rgba(79,140,255,0.55));}
 </style>
 </head>
@@ -1262,24 +1291,21 @@ document.querySelectorAll('.bn-tab').forEach(btn=>{
 });
 
 /* =========================================================
-   PASTKI NAVIGATSIYANI "MIXLASH" — mijoz shikoyati: klaviatura
-   ochilganda pastki menyu tepaga sakrab ketardi. VisualViewport
-   API mavjud bo'lsa, navigatsiya HAR DOIM haqiqiy ko'rinadigan
-   pastki chegaraga aniq moslashtiriladi (klaviatura ochiq bo'lsa
-   ham joyidan jilmaydi, faqat klaviatura ustida ko'rinib turadi —
-   sakrash/tebranish YO'Q, CSS transition orqali silliq).
+   PASTKI NAVIGATSIYA — MIJOZ ANIQ SO'RADI: "hardoim pastda tursin,
+   joyi umuman o'zgarmasin, klaviatura ochilganda ham ko'rinmay
+   (ya'ni yuqoriga suzib chiqmay) pastda o'z joyida turaversin".
+   Shu sabab BU YERDA ATAYLAB HECH QANDAY JS bilan navigatsiyani
+   surish/translateY qilish YO'Q — u faqat CSS'dagi
+   "position:fixed; bottom:..." holatida qat'iy qotib turadi.
+   Klaviatura ochilganda sahifa haqiqiy balandligini qisqartirishi
+   uchun <head>dagi viewport meta'ga
+   `interactive-widget=resizes-content` qo'shildi — shu orqali
+   zamonaviy brauzer/WebView'larda "fixed" element pastki chegaradan
+   umuman joyini o'zgartirmaydi.
    ========================================================= */
 function pinBottomNav(){
-  const nav = document.getElementById('bottomNav');
-  if(!nav || !window.visualViewport) return;
-  const vv = window.visualViewport;
-  function update(){
-    const gap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-    nav.style.transform = gap > 1 ? ('translateY(-' + gap + 'px)') : '';
-  }
-  vv.addEventListener('resize', update);
-  vv.addEventListener('scroll', update);
-  update();
+  // Ataylab bo'sh — mijoz talabiga ko'ra navigatsiya JS orqali
+  // HECH QACHON harakatlantirilmaydi, faqat CSS holatida qoladi.
 }
 pinBottomNav();
 
