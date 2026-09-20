@@ -27,12 +27,6 @@
 <!-- "async" — sahifa darhol ko'rinishi uchun (telegram-web-app.js yuklanishini
      KUTMAYDI), qarang: pastdagi initTelegram() qayta urinish mexanizmi. -->
 <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-<!-- Mijoz: "Toshkent shahri" tanlanganda buyurtma formasida aniq manzilni
-     xaritada belgilash — index.html'dagi BILAN BIR XIL, Leaflet +
-     OpenStreetMap (bepul, API kalit shart emas). Faqat "Toshkent shahri"
-     tanlanganda kerak bo'lgani uchun "defer" bilan yuklanadi. -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <!-- MUHIM: mavzu (dark/light) CSS chizilishidan OLDIN, sinxron tarzda
      tanlanadi — aks holda birinchi kadrda noto'g'ri rang miltillab
      ko'rinib ketadi ("flash"). Saqlangan tanlov bo'lmasa — standart
@@ -310,12 +304,18 @@
        matn emas, BUTUN katta kartochka (fon/gradient/"Tavsiya etiladi"
        yorlig'i bilan birga) chiqib ketadi va yangi raqam bilan YANGI
        kartochka kirib keladi — haqiqiy "karta almashish" effekti. */
-    transition:opacity .38s ease, transform .38s cubic-bezier(.22,.8,.3,1);
+    /* Mijoz: "animatsiya kerak emas, ozi shunchaki otib keyingisi kirsin" —
+       avvalgi variantda o'tish yarmida kartochka opacity:0 bo'lib TO'LIQ
+       ko'rinmay qolar edi (haqiqiy bo'sh kadr chizilardi). Endi opacity
+       UMUMAN animatsiya qilinmaydi — kartochka doim to'liq ko'rinadi,
+       faqat oddiy va tez transform (joylashuv) bilan chapga/o'ngga
+       "o'tib" ketadi va keyingisi o'z joyidan kiradi. */
+    transition:transform .22s cubic-bezier(.4,0,.2,1);
   }
   .home-banner:active{cursor:grabbing;}
   .home-banner.banner-dragging{cursor:grabbing;}
-  .home-banner.slide-out{opacity:0;transform:translateX(-64px) scale(0.96);}
-  .home-banner.slide-in{opacity:0;transform:translateX(64px) scale(0.96);}
+  .home-banner.slide-out{transform:translateX(-100%);}
+  .home-banner.slide-in{transform:translateX(100%);}
   .home-banner-pill{
     display:inline-flex;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,0.2);color:#fff;
     font-family:'Sora',sans-serif;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;
@@ -415,7 +415,7 @@
      lekin ICHKI hamma narsa (padding, katakchalar, tugma, matn)
      sezilarli darajada kattalashtirildi. */
   .search-hero{
-    margin:0 16px 14px;padding:24px 18px 22px;border-radius:24px;position:relative;overflow:hidden;
+    margin:0 16px 14px;padding:24px 13px 22px;border-radius:24px;position:relative;overflow:hidden;
     background:linear-gradient(165deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
     border:1.5px solid var(--accent-soft);
     -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
@@ -430,7 +430,7 @@
      bilan bir xil bo'lsin, ya'ni cho'zilsin" — endi max-width chegarasi
      OLIB TASHLANDI, shu sabab katakchalar qatori tugma bilan bir xil
      kenglikda (chekkadan-chekkaga) cho'ziladi va o'zi ham kattalashadi. */
-  .live-digit-row{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:20px;}
+  .live-digit-row{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:20px;}
   /* Mijoz: "raqamlar bo'limidagi kataklarni ham zamonaviy qil, ajralib
      turishi uchun" — endi katakcha fondan aniq soya bilan ajraladi.
      Mijoz keyin: "raqamlar yarmi ko'rinmayabdi, shu katakchalarni
@@ -440,9 +440,10 @@
      Endi o'lcham me'yorida (haqiqiy to'rtburchak), glow yumshatilgan
      va scale OLIB TASHLANGAN — raqam har doim to'liq, aniq ko'rinadi. */
   .live-digit-box{
-    width:100%;aspect-ratio:1/1.1;background:var(--panel);border:1.8px solid var(--line);
-    border-radius:16px;text-align:center;color:var(--text);font-family:'Sora',sans-serif;font-weight:800;
-    line-height:1;font-size:25px;outline:none;flex:1 1 0;min-width:0;transition:border-color .15s ease,background .15s ease;
+    width:100%;aspect-ratio:1/1.02;background:var(--panel);border:1.8px solid var(--line);
+    border-radius:10px;text-align:center;color:var(--text);font-family:'Sora',sans-serif;font-weight:800;
+    line-height:1;font-size:22px;outline:none;flex:1 1 0;min-width:0;padding:0 1px;
+    transition:border-color .15s ease,background .15s ease;
     box-shadow:0 8px 18px -12px rgba(0,0,0,0.4), 0 2px 6px -3px rgba(0,0,0,0.22);
   }
   .live-digit-box::placeholder{color:var(--muted);opacity:.38;font-weight:600;}
@@ -691,58 +692,58 @@
   }
 
   /* =========================================================
-     TOSHKENT — "Aniq manzilni belgilash" xaritasi. Mijoz: "buyurtma
-     bosganda Toshkent shaharni tanlasa, tagidan xarita chiqsin, joyimni
-     aniqlash tugmasi bilan, va Yandex taksiga o'tish tugmasi ham
-     bo'lsin" — index.html'dagi (sayt) BILAN AYNAN BIR XIL Leaflet +
-     OpenStreetMap yechimi va admin bilan bir xil ma'lumot shakli
-     (payload.location = {lat,lng}), faqat bu yerda dizayn shu ilovaning
-     "shisha" uslubiga moslashtirilgan. color-mix() ATAYLAB
-     ISHLATILMAGAN (yuqoridagi eslatmalarga qarang — ba'zi Telegram
-     WebView'larda ishlamasligi mumkin), fiksirlangan rgba/var()
-     qiymatlar bilan almashtirilgan.
+     TOSHKENT — "Turgan joyimni aniqlash". Mijoz: "yandex karta emas,
+     uning o'rniga turgan joyimni aniqlash tugmasi bo'lsin, bossa
+     avtomatik aniqlasin — yandex kartaga o'tish esa faqat Telegram
+     ADMIN botida bo'lsin" — shu sabab bu yerda ENDI interaktiv xarita
+     YO'Q, faqat bitta zamonaviy tugma (holat bo'yicha o'zgaradigan:
+     oddiy → aniqlanmoqda (spinner) → aniqlandi (yashil, belgi)).
+     color-mix() ATAYLAB ISHLATILMAGAN (yuqoridagi eslatmalarga
+     qarang), fiksirlangan rgba/var() qiymatlar bilan almashtirilgan.
      ========================================================= */
   @keyframes locSlideIn{from{opacity:0;transform:translateY(-10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
   .loc-picker{
-    margin:2px 0 16px;padding:14px 14px 12px;border-radius:16px;
-    background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--amber);
+    position:relative;overflow:hidden;
+    margin:2px 0 16px;padding:18px 16px 16px;border-radius:18px;
+    background:var(--panel-2);border:1px solid var(--line);
     animation:locSlideIn .38s cubic-bezier(.22,1,.36,1) both;
+  }
+  .loc-picker::before{
+    content:'';position:absolute;top:0;left:18px;right:18px;height:2.5px;border-radius:0 0 3px 3px;
+    background:var(--amber);opacity:.6;
   }
   .loc-picker-title{
     display:flex;align-items:center;gap:7px;font-family:'Sora',sans-serif;
     font-weight:800;font-size:13.5px;color:var(--text);
   }
   .loc-picker-title svg{color:var(--amber);flex:0 0 auto;}
-  .loc-picker-sub{font-size:11.5px;color:var(--muted);margin:4px 0 12px;line-height:1.4;}
-  .loc-map-wrap{
-    position:relative;height:200px;border-radius:14px;overflow:hidden;
-    border:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,.45);
-  }
-  #locMap{width:100%;height:100%;background:#e5e3df;}
-  .leaflet-control-attribution{font-size:9px !important;}
+  .loc-picker-sub{font-size:11.5px;color:var(--muted);margin:4px 0 2px;line-height:1.4;}
   .loc-locate-btn{
-    width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:none;cursor:pointer;
+    width:100%;margin-top:14px;padding:13px 16px;border-radius:14px;border:none;cursor:pointer;
     background:linear-gradient(135deg, var(--amber), var(--accent-2));
-    color:#1a1200;font-family:'Sora',sans-serif;font-weight:800;font-size:13px;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    box-shadow:0 8px 18px -8px var(--amber-soft);
-    transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease;
+    color:#1a1200;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    box-shadow:0 10px 22px -10px var(--amber-soft);
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, background .2s ease, color .2s ease;
   }
+  .loc-locate-btn .loc-locate-ic{
+    width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.12);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .loc-locate-btn .loc-ic-check{display:none;}
   .loc-locate-btn:active{transform:scale(.97);}
-  .loc-locate-btn.loc-locating svg{animation:locSpin .9s linear infinite;}
-  .loc-locate-btn.loc-locating{opacity:.85;pointer-events:none;}
+  .loc-locate-btn.loc-locating{opacity:.9;pointer-events:none;}
+  .loc-locate-btn.loc-locating .loc-ic-target{animation:locSpin .9s linear infinite;}
   @keyframes locSpin{to{transform:rotate(360deg);}}
-  /* Mijoz: "buyurtmaga kirganda Yandex taksiga o'tish tugmasi ham
-     tursin" — joylashuv belgilangach, mijozning O'ZI ham bevosita
-     shu manzilga Yandex Go orqali borishi mumkin. */
-  .loc-taxi-btn{
-    width:100%;margin-top:8px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;
-    background:var(--panel);color:var(--text);font-family:'Sora',sans-serif;font-weight:800;font-size:13px;
-    display:none;align-items:center;justify-content:center;gap:8px;
+  /* Joylashuv muvaffaqiyatli aniqlangach — tugma yashil rangga
+     o'tadi, ikonka nishonchadan "✓" belgisiga almashadi. */
+  .loc-locate-btn.loc-located{
+    background:var(--green-soft);color:var(--green);box-shadow:none;
   }
-  .loc-taxi-btn.show{display:flex;}
-  .loc-taxi-btn:active{transform:scale(.97);}
-  .loc-taxi-btn svg{color:#FFCC00;flex:0 0 auto;}
+  .loc-locate-btn.loc-located .loc-locate-ic{background:rgba(46,204,129,0.2);}
+  .loc-locate-btn.loc-located .loc-ic-target{display:none;}
+  .loc-locate-btn.loc-located .loc-ic-check{display:block;animation:locCheckPop .35s cubic-bezier(.34,1.56,.64,1) both;}
+  @keyframes locCheckPop{from{transform:scale(0.5);opacity:0;}to{transform:scale(1);opacity:1;}}
   .loc-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;}
   .loc-delivery-note{
     display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 11px;border-radius:10px;
@@ -760,24 +761,6 @@
   .loc-clear-btn{
     background:none;border:none;color:var(--danger);font-size:11.5px;font-weight:700;
     cursor:pointer;text-decoration:underline;padding:4px;
-  }
-  .loc-pin{width:30px;height:30px;position:relative;animation:locPinDrop .45s cubic-bezier(.34,1.56,.64,1) both;}
-  @keyframes locPinDrop{from{transform:translateY(-22px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-  .loc-pin-dot{
-    width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-    background:linear-gradient(135deg, var(--amber), #ffd27a);
-    box-shadow:0 4px 10px -3px rgba(0,0,0,.55);
-    display:flex;align-items:center;justify-content:center;
-  }
-  .loc-pin-dot::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--bg);transform:rotate(45deg);}
-  .loc-pin-pulse{
-    position:absolute;left:50%;top:50%;width:14px;height:14px;border-radius:50%;
-    background:var(--amber);opacity:.5;transform:translate(-50%,-50%);
-    animation:locPinPulse 1.8s ease-out infinite;
-  }
-  @keyframes locPinPulse{
-    0%{transform:translate(-50%,-50%) scale(1);opacity:.5;}
-    100%{transform:translate(-50%,-50%) scale(3.2);opacity:0;}
   }
   .order-preview-card .opc-number{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;}
   .order-preview-card .opc-price{font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--green);}
@@ -1246,27 +1229,23 @@
         <option>Qoraqalpog'iston</option>
       </select>
 
-      <!-- Mijoz: "Toshkent shahar" tanlanganda tagidan xarita chiqsin,
-           joyimni aniqlash tugmasi ham bo'lsin — index.html (sayt)
-           BILAN BIR XIL, faqat ilova dizayniga moslashtirilgan. -->
+      <!-- Mijoz: "Toshkent shahar" tanlanganda "turgan joyimni aniqlash"
+           tugmasi chiqsin (xarita EMAS — soddaroq, faqat bitta tugma);
+           Yandex xaritaga o'tish esa faqat Telegram ADMIN botida. -->
       <div class="loc-picker" id="locPickerSec" style="display:none;">
         <div class="loc-picker-head">
           <div class="loc-picker-title">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             <span data-i18n="locTitle">Aniq manzilingizni belgilang</span>
           </div>
-          <div class="loc-picker-sub" id="locPickerSub" data-i18n="locSub">Xaritada joyni bosing yoki tugma bilan avtomatik aniqlang (ixtiyoriy)</div>
-        </div>
-        <div class="loc-map-wrap">
-          <div id="locMap"></div>
+          <div class="loc-picker-sub" id="locPickerSub" data-i18n="locSub">Joylashuvingizni avtomatik aniqlash uchun tugmani bosing (ixtiyoriy)</div>
         </div>
         <button type="button" class="loc-locate-btn" id="locLocateBtn">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-          <span data-i18n="locLocateBtn">Turgan joyimni aniqlash</span>
-        </button>
-        <button type="button" class="loc-taxi-btn" id="locTaxiBtn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11m-14 0a2 2 0 0 0-2 2v4h2m14-6a2 2 0 0 1 2 2v4h-2m-14 0v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2m10 0v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2m-14 0h14"/></svg>
-          <span data-i18n="locTaxiBtn">Yandex taksida borish</span>
+          <span class="loc-locate-ic">
+            <svg class="loc-ic-target" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <svg class="loc-ic-check" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4.5 4.5L19 7"/></svg>
+          </span>
+          <span id="locLocateLabel" data-i18n="locLocateBtn">Turgan joyimni aniqlash</span>
         </button>
         <div class="loc-picker-footer">
           <div class="loc-status" id="locStatus">
@@ -1507,17 +1486,15 @@ const TRANSLATIONS = {
     modalSub: "Xavfsizlik uchun telefon raqamingiz VA sotib olingan/buyurtma berilgan raqamning oxirgi 4 raqami kerak.",
     fieldPhone: "Telefon raqami", fieldLast4: "Raqamning oxirgi 4 ta raqami",
     locTitle: "Aniq manzilingizni belgilang",
-    locSub: "Xaritada joyni bosing yoki tugma bilan avtomatik aniqlang (ixtiyoriy)",
-    locSubIOS: "Xaritada aniq joyni bosib belgilang (ixtiyoriy)",
+    locSub: "Joylashuvingizni avtomatik aniqlash uchun tugmani bosing (ixtiyoriy)",
     locLocateBtn: "Turgan joyimni aniqlash",
-    locTaxiBtn: "Yandex taksida borish",
     locStatusEmpty: "Joylashuv belgilanmagan",
     locStatusOk: "Joylashuv belgilandi ✓",
     locClear: "Tozalash",
     locDeliveryNote: "Belgilangan joyga 4 soat davomida yetkazib beramiz",
     locDenied: "Joylashuvga ruxsat berilmagan. Telefon sozlamalaridan bu ilova uchun joylashuvga ruxsat bering, so'ng qayta urinib ko'ring.",
-    locUnsupported: "Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi. Xaritada qo'lda belgilang.",
-    locError: "Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang.",
+    locUnsupported: "Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi.",
+    locError: "Joylashuvni aniqlab bo'lmadi. Birozdan so'ng qayta urinib ko'ring.",
     submitSearch: "Qidirish", submitSearching: "Qidirilmoqda…",
     errIncomplete: "Telefon raqami va oxirgi 4 raqamni to'liq kiriting",
     errNotFound: "Bu ma'lumotlarga tegishli buyurtma topilmadi.",
@@ -1617,17 +1594,15 @@ const TRANSLATIONS = {
     modalSub: "Для безопасности нужен ваш номер телефона И последние 4 цифры купленного/заказанного номера.",
     fieldPhone: "Номер телефона", fieldLast4: "Последние 4 цифры номера",
     locTitle: "Укажите точный адрес",
-    locSub: "Нажмите на карту или определите автоматически (необязательно)",
-    locSubIOS: "Отметьте точное место на карте (необязательно)",
+    locSub: "Нажмите на кнопку, чтобы определить местоположение автоматически (необязательно)",
     locLocateBtn: "Определить моё местоположение",
-    locTaxiBtn: "Поехать на Яндекс Такси",
     locStatusEmpty: "Местоположение не указано",
     locStatusOk: "Местоположение указано ✓",
     locClear: "Очистить",
     locDeliveryNote: "Доставим по указанному адресу в течение 4 часов",
     locDenied: "Доступ к геолокации запрещён. Разрешите доступ в настройках телефона и попробуйте снова.",
-    locUnsupported: "Ваше устройство не поддерживает автоопределение. Отметьте на карте вручную.",
-    locError: "Не удалось определить местоположение. Отметьте на карте вручную.",
+    locUnsupported: "Ваше устройство не поддерживает автоопределение.",
+    locError: "Не удалось определить местоположение. Попробуйте ещё раз чуть позже.",
     submitSearch: "Искать", submitSearching: "Поиск…",
     errIncomplete: "Введите номер телефона и последние 4 цифры полностью",
     errNotFound: "Заказ с такими данными не найден.",
@@ -2328,24 +2303,28 @@ function goToHomeBannerIndex(direction){
   // faqat ichidagi matn EMAS.
   const cardEl = document.getElementById('homeBanner');
   if(!cardEl) return;
-  const exitX = direction > 0 ? -64 : 64;
-  const enterX = direction > 0 ? 64 : -64;
+  // Mijoz: "animatsiya kerak emas, ozi shunchaki otib keyingisi kirsin" —
+  // endi opacity animatsiya qilinmaydi (hech qachon to'liq ko'rinmay
+  // qolmaydi), faqat oddiy, tez transform bilan kartochka butunlay
+  // chetga "o'tib" ketadi va yangisi qarama-qarshi tomondan kiradi.
+  const exitX = direction > 0 ? '-100%' : '100%';
+  const enterX = direction > 0 ? '100%' : '-100%';
   cardEl.classList.add('slide-out');
-  cardEl.style.transform = 'translateX(' + exitX + 'px) scale(0.96)';
+  cardEl.style.transform = 'translateX(' + exitX + ')';
   setTimeout(()=>{
     homeBannerIdx = (homeBannerIdx + direction + homeBannerItems.length) % homeBannerItems.length;
     renderHomeBannerFrame();
     renderHomeBannerDots();
     cardEl.classList.remove('slide-out');
     cardEl.classList.add('slide-in');
-    cardEl.style.transform = 'translateX(' + enterX + 'px) scale(0.96)';
+    cardEl.style.transform = 'translateX(' + enterX + ')';
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
         cardEl.classList.remove('slide-in');
         cardEl.style.transform = '';
       });
     });
-  }, 260);
+  }, 220);
 }
 function rotateHomeBanner(){ goToHomeBannerIndex(1); }
 refreshHomeBannerItems();
@@ -2683,101 +2662,59 @@ function closeOrderModal(){ orderModal.classList.remove('open'); }
 document.getElementById('orderModalClose').addEventListener('click', closeOrderModal);
 
 /* =========================================================
-   TOSHKENT — "Aniq manzilni belgilash" xaritasi. index.html
-   (sayt) dagi bilan BIR XIL mantiq va BIR XIL ma'lumot shakli
-   (payload.location = {lat,lng}, admin xabarida "Yandex Go'ga
-   o'tish" tugmasi — telegram-notify.js'dagi mapUrl orqali,
-   HECH QANDAY server o'zgarishi kerak emas). Qo'shimcha: mijozning
-   O'ZI ham "Yandex taksida borish" tugmasi bilan bevosita shu
-   manzilga yo'l ola oladi (index.html'da bu yo'q edi, ATAYLAB
-   shu ilovaga qo'shildi).
+   TOSHKENT — "Turgan joyimni aniqlash". Mijoz: "yandex karta
+   emas, uning o'rniga turgan joyimni aniqlash tugmasi bo'lsin,
+   bossa avtomatik aniqlasin — yandex kartaga o'tish esa faqat
+   Telegram ADMIN botida bo'lsin (mijoz bergan joyni yandex'da
+   ochish uchun)" — shu sabab mijoz tarafida endi HECH QANDAY
+   interaktiv xarita (Leaflet/OSM) YO'Q, faqat bitta tugma: bosilsa
+   qurilma GPS orqali joylashuvni avtomatik aniqlaydi va shu
+   koordinata (payload.location = {lat,lng}) admin bilan BIR XIL
+   shaklda buyurtmaga qo'shiladi. buildYandexGoLink() FAQAT admin
+   xabaridagi "Xaritaga o'tish" tugmasi uchun ishlatiladi (server
+   tarafga o'zgarish kerak emas — telegram-notify.js'dagi mapUrl
+   kontrakti bilan bir xil).
    ========================================================= */
-const TASHKENT_CENTER = [41.311081, 69.240562];
 let customerLocation = null;
-let locMap = null, locMarker = null, locMapInited = false;
 
 function buildYandexGoLink(lat, lng){
   return `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lng}&appmetrica_tracking_id=1178268795219780156`;
-}
-function createLocPinIcon(){
-  return L.divIcon({
-    className: '',
-    html: '<div class="loc-pin"><div class="loc-pin-pulse"></div><div class="loc-pin-dot"></div></div>',
-    iconSize: [30, 30], iconAnchor: [15, 27]
-  });
 }
 function updateLocStatus(){
   const statusEl = document.getElementById('locStatus');
   const textEl = document.getElementById('locStatusText');
   const clearBtn = document.getElementById('locClearBtn');
   const deliveryNote = document.getElementById('locDeliveryNote');
-  const taxiBtn = document.getElementById('locTaxiBtn');
+  const locateBtn = document.getElementById('locLocateBtn');
+  const locateLabel = document.getElementById('locLocateLabel');
   if(!statusEl || !textEl || !clearBtn) return;
   if(customerLocation){
     statusEl.classList.add('loc-status-ok');
     textEl.textContent = t('locStatusOk');
     clearBtn.style.display = 'inline';
     if(deliveryNote) deliveryNote.style.display = 'flex';
-    if(taxiBtn) taxiBtn.classList.add('show');
+    if(locateBtn) locateBtn.classList.add('loc-located');
+    if(locateLabel) locateLabel.textContent = t('locStatusOk');
   }else{
     statusEl.classList.remove('loc-status-ok');
     textEl.textContent = t('locStatusEmpty');
     clearBtn.style.display = 'none';
     if(deliveryNote) deliveryNote.style.display = 'none';
-    if(taxiBtn) taxiBtn.classList.remove('show');
+    if(locateBtn) locateBtn.classList.remove('loc-located');
+    if(locateLabel) locateLabel.textContent = t('locLocateBtn');
   }
 }
-function setCustomerLocation(lat, lng, opts){
+function setCustomerLocation(lat, lng){
   customerLocation = { lat, lng };
-  if(locMap){
-    if(locMarker){
-      locMarker.setLatLng([lat, lng]);
-    }else{
-      locMarker = L.marker([lat, lng], { icon: createLocPinIcon(), draggable: true }).addTo(locMap);
-      locMarker.on('dragend', ()=>{
-        const p = locMarker.getLatLng();
-        customerLocation = { lat: p.lat, lng: p.lng };
-        updateLocStatus();
-      });
-    }
-    if(!(opts && opts.skipView)){
-      locMap.setView([lat, lng], Math.max(locMap.getZoom(), 15), { animate: true });
-    }
-  }
   updateLocStatus();
 }
 function clearCustomerLocation(){
   customerLocation = null;
-  if(locMarker && locMap){ locMap.removeLayer(locMarker); locMarker = null; }
   updateLocStatus();
-}
-function initLocMapIfNeeded(){
-  if(locMapInited) return;
-  if(typeof L === 'undefined'){
-    // Leaflet hali yuklanmagan bo'lishi mumkin (sekin internet) — biroz
-    // kutib qayta urinamiz, xaritasiz oyna "qotib" qolmasin.
-    setTimeout(initLocMapIfNeeded, 300);
-    return;
-  }
-  locMapInited = true;
-  locMap = L.map('locMap', { zoomControl: true, attributionControl: true }).setView(TASHKENT_CENTER, 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '© OpenStreetMap'
-  }).addTo(locMap);
-  locMap.on('click', (e)=> setCustomerLocation(e.latlng.lat, e.latlng.lng));
 }
 function showLocPicker(){
   const sec = document.getElementById('locPickerSec');
-  if(!sec) return;
-  sec.style.display = 'block';
-  setTimeout(()=>{
-    initLocMapIfNeeded();
-    if(locMap) locMap.invalidateSize();
-    // Xarita paydo bo'lgach, mijoz uni darhol ko'rishi uchun forma
-    // pastroqqa (xarita ko'rinadigan joyga) yumshoq siljitiladi.
-    const sheet = orderModal && orderModal.querySelector('.modal-sheet');
-    if(sheet) sheet.scrollTop = sheet.scrollHeight;
-  }, 60);
+  if(sec) sec.style.display = 'block';
 }
 function hideLocPicker(){
   const sec = document.getElementById('locPickerSec');
@@ -2790,14 +2727,6 @@ orderRegionInput.addEventListener('change', ()=>{
 
 function isRealTelegramMiniApp(){
   try{ return !!(__tg && typeof __tg.initData === 'string' && __tg.initData.length > 0); }catch(e){ return false; }
-}
-function isIOSDevice(){
-  try{
-    const ua = navigator.userAgent || '';
-    if(/iPhone|iPad|iPod/i.test(ua)) return true;
-    if(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
-    return false;
-  }catch(e){ return false; }
 }
 function forceWebkitReflow(){
   try{ void document.body.offsetHeight; requestAnimationFrame(()=>{ void document.body.offsetHeight; }); }catch(e){}
@@ -2873,26 +2802,6 @@ if(locLocateBtnEl){
 }
 const locClearBtnEl = document.getElementById('locClearBtn');
 if(locClearBtnEl) locClearBtnEl.addEventListener('click', clearCustomerLocation);
-const locTaxiBtnEl = document.getElementById('locTaxiBtn');
-if(locTaxiBtnEl){
-  locTaxiBtnEl.addEventListener('click', ()=>{
-    if(!customerLocation) return;
-    haptic('light');
-    openExternal(buildYandexGoLink(customerLocation.lat, customerLocation.lng));
-  });
-}
-// Mijoz: iPhone'da avtomatik aniqlash tugmasi (real Telegram muhitidan
-// tashqarida, oddiy Safari'da) muammoli bo'lishi mumkin — index.html'da
-// sinovdan o'tgan xuddi shu ehtiyot chorasi: iOS'da tugma yashiriladi,
-// mijoz faqat xaritani bosib qo'lda belgilaydi.
-(function applyIOSManualLocationOnly(){
-  try{
-    if(!isIOSDevice()) return;
-    if(locLocateBtnEl) locLocateBtnEl.style.display = 'none';
-    const sub = document.getElementById('locPickerSub');
-    if(sub) sub.textContent = t('locSubIOS');
-  }catch(e){}
-})();
 
 function removeOrderedItemFromLists(id){
   NUMBERS = NUMBERS.filter(n=> n.id !== id);
