@@ -1674,6 +1674,58 @@
 .wt-item-actions button.wt-del{color:#e74c3c;}
 .wt-empty{color:var(--muted);font-size:13px;padding:16px;text-align:center;}
 
+/* ---- UZEX auksion bo'limi (faqat adminka) ---- */
+.uzx-mask{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.uzx-box{
+  width:42px;height:50px;text-align:center;font-size:19px;font-weight:700;
+  font-family:'Sora',sans-serif;color:var(--text);background:var(--panel-2);
+  border:1.5px solid var(--line);border-radius:10px;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.uzx-box::placeholder{color:var(--muted);opacity:.45;font-weight:400;}
+.uzx-box:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);}
+.uzx-box.filled{border-color:var(--green);color:var(--green);}
+.uzx-sep{width:9px;height:2px;background:var(--line);border-radius:2px;flex:none;}
+.uzx-hint-small{color:var(--muted);font-size:12px;margin-top:9px;}
+.uzx-status{color:var(--muted);font-size:13px;margin-left:4px;}
+.uzx-status.err{color:var(--red);}
+.uzx-status.ok{color:var(--green);}
+
+.uzx-result{
+  background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:6px;overflow:hidden;
+}
+.uzx-table{width:100%;border-collapse:collapse;font-size:13px;}
+.uzx-table th{
+  text-align:left;padding:11px 12px;color:var(--muted);font-weight:600;font-size:12px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid rgba(255,255,255,.08);
+  position:sticky;top:0;background:var(--card,#161a20);
+}
+.uzx-table td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);}
+.uzx-table tr:last-child td{border-bottom:none;}
+.uzx-table tbody tr{animation:wtFadeIn .18s ease both;}
+.uzx-table tbody tr:hover{background:rgba(255,255,255,.03);}
+.uzx-num{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;}
+.uzx-price{color:var(--amber);font-weight:700;white-space:nowrap;}
+.uzx-date{color:var(--muted);font-size:12px;white-space:nowrap;}
+.uzx-date b{color:var(--text);font-weight:600;}
+.uzx-seller{
+  display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);white-space:nowrap;
+}
+.uzx-left{font-size:11px;color:var(--muted);margin-top:2px;}
+.uzx-left.soon{color:var(--red);font-weight:600;}
+.uzx-scroll{max-height:62vh;overflow:auto;border-radius:12px;}
+.uzx-count{
+  padding:10px 14px;color:var(--muted);font-size:12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.uzx-count b{color:var(--text);}
+@media(max-width:760px){
+  .uzx-box{width:34px;height:44px;font-size:16px;}
+  .uzx-table th:nth-child(4),.uzx-table td:nth-child(4){display:none;}
+}
+
 @keyframes wtFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes wtPulse{0%,100%{box-shadow:0 0 0 0 rgba(51,226,140,.5);}50%{box-shadow:0 0 0 5px rgba(51,226,140,0);}}
 
@@ -1770,6 +1822,7 @@
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
       <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
       <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
+      <button class="tab" data-tab="uzex"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span class="tab-label">UZEX auksion</span></button>
       <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
       <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
 
@@ -2890,6 +2943,50 @@
 
     <div class="wt-list" id="wtList">
       <div class="wt-empty">Hozircha kuzatuv yo'q</div>
+    </div>
+  </div>
+
+  <!-- UZEX AUKSION — faqat admin uchun. Saytga CHIQARILMAYDI.
+       UZEX birjasida (mobilraqam.uzex.uz) hozir savdoda turgan raqamlarni
+       mask bo'yicha qidiradi va ro'yxat qilib ko'rsatadi. -->
+  <div class="pane" id="paneUzex">
+    <div class="wt-hint">
+      🏛️ UZEX birjasida (mobilraqam.uzex.uz) hozir <b>auksionda turgan</b> raqamlarni qidiradi.
+      Bu ma'lumot faqat shu panelda ko'rinadi — saytga chiqarilmaydi.
+      Katakchalarga kerakli raqamlarni yozing, bo'sh qoldirilgan joy "istalgan raqam" degani.
+    </div>
+
+    <div class="wt-form">
+      <div class="wt-form-title"><span class="wt-form-title-ico">🔎</span> Raqam qidirish</div>
+
+      <div class="wt-row wt-row-block">
+        <label class="wt-block-label">📱 Raqam (operator kodi bilan)</label>
+        <div class="uzx-mask" id="uzxMask">
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="0" placeholder="x">
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="1" placeholder="x">
+          <span class="uzx-sep"></span>
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="2" placeholder="x">
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="3" placeholder="x">
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="4" placeholder="x">
+          <span class="uzx-sep"></span>
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="5" placeholder="x">
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="6" placeholder="x">
+          <span class="uzx-sep"></span>
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="7" placeholder="x">
+          <input class="uzx-box" maxlength="1" inputmode="numeric" data-i="8" placeholder="x">
+        </div>
+        <div class="uzx-hint-small">Masalan: oxirgi uchtasiga <b>4 4 4</b> yozsangiz — <b>...444</b> bilan tugaydigan barcha raqamlar chiqadi.</div>
+      </div>
+
+      <div class="wt-row">
+        <button type="button" class="btn" id="uzxSearchBtn">🔎 Qidirish</button>
+        <button type="button" class="btn btn-ghost" id="uzxClearBtn">Tozalash</button>
+        <span class="uzx-status" id="uzxStatus"></span>
+      </div>
+    </div>
+
+    <div class="uzx-result" id="uzxResult">
+      <div class="wt-empty">Raqam kiritib "Qidirish"ni bosing</div>
     </div>
   </div>
 
@@ -4885,7 +4982,14 @@ function applyAccessControl(whoami){
     document.querySelectorAll('.tab[data-tab]').forEach(tab => {
       const key = tab.dataset.tab;
       if(key === 'management') return; // allaqachon yashirilgan
-      const allowed = perms[key] === 1 || perms[key] === true;
+      // "UZEX auksion" alohida ruxsat sifatida yaratilmagan — u "Baza raqam"
+      // (watch) bilan bir xil turdagi qidiruv vositasi, shuning uchun
+      // SERVER TOMONI ham aynan shu ruxsatni tekshiradi
+      // (admin-uzex-search.js -> requireAdmin(..., {feature:'watch'})).
+      // Ikkalasi bir xil kalitga bog'langani muhim: aks holda menyuda
+      // ko'rinib, serverda rad etiladigan bo'lim paydo bo'lardi.
+      const permKey = (key === 'uzex') ? 'watch' : key;
+      const allowed = perms[permKey] === 1 || perms[permKey] === true;
       tab.style.display = allowed ? '' : 'none';
     });
     // Agar hozir faol bo'lim (odatda "Raqamlar") shu adminga yopiq bo'lsa —
@@ -4955,7 +5059,7 @@ document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
 });
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -7074,6 +7178,152 @@ document.getElementById('wtBulkDelBtn').addEventListener('click', async ()=>{
     loadWatchList();
   }catch(err){ alert('Xato: ' + err.message); }
   finally{ btn.disabled = false; }
+});
+
+/* ==================================================================
+   UZEX AUKSION — faqat shu panelda. Saytga CHIQARILMAYDI.
+
+   UZEX birjasida (mobilraqam.uzex.uz) hozir savdoda turgan raqamlarni
+   mask bo'yicha qidiradi. So'rov SERVER orqali ketadi
+   (netlify/functions/admin-uzex-search.js) — chunki UZEX API'si
+   brauzerdan CORS bilan bloklanadi va "user-agent" sarlavhasini talab
+   qiladi (brauzer uni o'zgartirishga ruxsat bermaydi).
+   ================================================================== */
+
+const uzxBoxes = Array.from(document.querySelectorAll('#uzxMask .uzx-box'));
+
+// Katakchalar orasida avtomatik o'tish (raqam kiritilsa keyingisiga).
+uzxBoxes.forEach((box, idx) => {
+  box.addEventListener('input', () => {
+    box.value = box.value.replace(/\D/g, '').slice(0, 1);
+    box.classList.toggle('filled', box.value !== '');
+    if (box.value && idx < uzxBoxes.length - 1) uzxBoxes[idx + 1].focus();
+  });
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !box.value && idx > 0) uzxBoxes[idx - 1].focus();
+    if (e.key === 'ArrowLeft' && idx > 0) uzxBoxes[idx - 1].focus();
+    if (e.key === 'ArrowRight' && idx < uzxBoxes.length - 1) uzxBoxes[idx + 1].focus();
+    if (e.key === 'Enter') document.getElementById('uzxSearchBtn').click();
+  });
+  box.addEventListener('focus', () => box.select());
+});
+
+// Katakchalardan 9 belgilik mask yasaydi: bo'sh katak = "x" (istalgan raqam).
+function uzxBuildMask(){
+  return uzxBoxes.map(b => (b.value || 'x')).join('');
+}
+
+// "2026-09-17T16:59:36" -> "17.09.2026, 16:59" (Toshkent vaqti).
+// UZEX sanani vaqt mintaqasisiz beradi — u allaqachon mahalliy vaqt,
+// shuning uchun qo'shimcha siljitish QILINMAYDI.
+function uzxFmtDate(iso){
+  if(!iso) return '—';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if(!m) return '—';
+  return `${m[3]}.${m[2]}.${m[1]}, <b>${m[4]}:${m[5]}</b>`;
+}
+
+// Savdo tugashiga qancha qolgani ("2 kun 5 soat" / "3 soat 20 daq").
+function uzxLeftText(endIso){
+  if(!endIso) return '';
+  const m = String(endIso).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):?(\d{2})?/);
+  if(!m) return '';
+  const end = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0));
+  const diff = end.getTime() - Date.now();
+  if(diff <= 0) return 'tugagan';
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const mi = Math.floor((diff % 3600000) / 60000);
+  if(d > 0) return d + ' kun ' + h + ' soat qoldi';
+  if(h > 0) return h + ' soat ' + mi + ' daq qoldi';
+  return mi + ' daqiqa qoldi';
+}
+
+// Raqamni chiroyli ko'rinishga keltirish: +998901234567 -> +998 90 123 45 67
+function uzxFmtNumber(n){
+  const d = String(n || '').replace(/\D/g, '');
+  if(d.length !== 12) return String(n || '');
+  return '+' + d.slice(0,3) + ' ' + d.slice(3,5) + ' ' + d.slice(5,8)
+    + ' ' + d.slice(8,10) + ' ' + d.slice(10,12);
+}
+
+function uzxSetStatus(text, kind){
+  const el = document.getElementById('uzxStatus');
+  el.textContent = text || '';
+  el.className = 'uzx-status' + (kind ? ' ' + kind : '');
+}
+
+async function uzxSearch(){
+  const btn = document.getElementById('uzxSearchBtn');
+  const box = document.getElementById('uzxResult');
+  const mask = uzxBuildMask();
+
+  btn.disabled = true;
+  uzxSetStatus('Qidirilmoqda...');
+  box.innerHTML = '<div class="wt-empty">Qidirilmoqda...</div>';
+
+  try{
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/admin-uzex-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify({ mask })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || ('Server ' + res.status));
+
+    const items = data.items || [];
+    if(!items.length){
+      uzxSetStatus('Topilmadi', 'err');
+      box.innerHTML = '<div class="wt-empty">Bu naqsh bo\'yicha auksionda raqam yo\'q</div>';
+      return;
+    }
+
+    uzxSetStatus(items.length + ' ta topildi', 'ok');
+
+    const rows = items.map(x => {
+      const left = uzxLeftText(x.endDate);
+      const soon = /daqiqa|soat/.test(left) && !/kun/.test(left);
+      return `<tr>
+        <td><span class="uzx-num">${escapeHtml(uzxFmtNumber(x.number))}</span></td>
+        <td><span class="uzx-price">${formatPrice(x.price)}</span></td>
+        <td><span class="uzx-date">${uzxFmtDate(x.startDate)}</span></td>
+        <td>
+          <span class="uzx-date">${uzxFmtDate(x.endDate)}</span>
+          <div class="uzx-left${soon ? ' soon' : ''}">${escapeHtml(left)}</div>
+        </td>
+        <td><span class="uzx-seller">${escapeHtml(x.seller || '—')}</span></td>
+      </tr>`;
+    }).join('');
+
+    const more = data.totalFound && data.totalFound > items.length
+      ? ` (UZEX'da jami <b>${data.totalFound}</b> ta)` : '';
+
+    box.innerHTML = `
+      <div class="uzx-count">Topildi: <b>${items.length}</b> ta${more} — eng arzonidan boshlab</div>
+      <div class="uzx-scroll">
+        <table class="uzx-table">
+          <thead><tr>
+            <th>Raqam</th><th>Narx</th><th>Boshlanishi</th><th>Tugashi</th><th>Sotuvchi</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }catch(err){
+    uzxSetStatus('Xato', 'err');
+    box.innerHTML = `<div class="wt-empty">Xato: ${escapeHtml(err.message)}</div>`;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('uzxSearchBtn').addEventListener('click', uzxSearch);
+document.getElementById('uzxClearBtn').addEventListener('click', () => {
+  uzxBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+  uzxSetStatus('');
+  document.getElementById('uzxResult').innerHTML =
+    '<div class="wt-empty">Raqam kiritib "Qidirish"ni bosing</div>';
+  uzxBoxes[0].focus();
 });
 
 async function loadWatchList(){

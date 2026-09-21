@@ -21,6 +21,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
 <link rel="preconnect" href="https://telegram.org" crossorigin>
+<!-- Mijoz: "xarita tursin, xaritadaham belgilash mumkin bolsin, veb saytimga
+     qilgansan-ku huddi shunga oxshab" — Leaflet + OpenStreetMap xaritasi
+     mijozlar saytidagi (index.html) bilan bir xil naqshda qaytarildi. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
@@ -494,24 +499,20 @@
     animation:lsbSpin .7s linear infinite;position:relative;z-index:1;
   }
   @keyframes lsbSpin{to{transform:rotate(360deg);}}
-  /* Pastdan chiqib keladigan "Qidirilmoqda..." holati — zamonaviy radar-animatsiyali ikonka bilan */
+  /* Mijoz: "'qidirilmoqda' deb yozilib turgani lekin tagida 'topilmadi'
+     deb chalkash chiqib qolyabdi — shuni olib tashla, o'sha joyga faqat
+     aylanib turadigan qidiruv ikonkasini qo'y" — endi matn/pill/radar-puls
+     YO'Q, faqat kichkina, o'zi aylanadigan bitta ikonka. */
   .live-status-row{
-    margin:0 16px 12px;padding:12px 14px;background:var(--panel);border:1px solid var(--accent);border-radius:14px;
-    font-size:12.5px;color:var(--text);font-weight:700;display:flex;align-items:center;gap:12px;
-    animation:liveStatusUp .28s cubic-bezier(.22,.8,.3,1);
+    margin:0 0 12px;display:flex;align-items:center;justify-content:center;
+    animation:liveStatusUp .2s ease both;
   }
-  @keyframes liveStatusUp{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-  .live-radar{position:relative;width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-  .live-radar svg{width:12px;height:12px;color:var(--accent);position:relative;z-index:2;}
-  .live-radar::before, .live-radar::after{
-    content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);
-    animation:radarPulse 1.6s ease-out infinite;
+  @keyframes liveStatusUp{from{opacity:0;}to{opacity:1;}}
+  .live-radar{
+    width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    animation:lsbSpin .8s linear infinite;
   }
-  .live-radar::after{animation-delay:.8s;}
-  @keyframes radarPulse{
-    0%{transform:scale(0.4);opacity:.9;}
-    100%{transform:scale(1.9);opacity:0;}
-  }
+  .live-radar svg{width:18px;height:18px;color:var(--accent);}
   .op-chip-row{display:flex;gap:8px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;}
   .op-chip-row::-webkit-scrollbar{display:none;}
   /* Mijoz: "kompaniyalar aniq-tiniq korinsin" — chip matni kattalashtirildi,
@@ -717,17 +718,25 @@
     font-weight:800;font-size:13.5px;color:var(--text);
   }
   .loc-picker-title svg{color:var(--amber);flex:0 0 auto;}
-  .loc-picker-sub{font-size:11.5px;color:var(--muted);margin:4px 0 2px;line-height:1.4;}
+  .loc-picker-sub{font-size:11.5px;color:var(--muted);margin:4px 0 12px;line-height:1.4;}
+  /* Mijoz: "xarita tursin, pastida kichikroq turgan joyimni aniqlash
+     tugmasi bolsin" — xarita ustunlik qiladi, tugma endi ENDI kichikroq
+     va ikkinchi darajali ko'rinishda (xaritadan pastda). */
+  .loc-map-wrap{
+    position:relative;height:190px;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:0 10px 24px -14px rgba(0,0,0,0.45);
+  }
+  #locMap{width:100%;height:100%;background:#e5e3df;}
+  .leaflet-control-attribution{font-size:9px !important;}
   .loc-locate-btn{
-    width:100%;margin-top:14px;padding:13px 16px;border-radius:14px;border:none;cursor:pointer;
-    background:linear-gradient(135deg, var(--amber), var(--accent-2));
-    color:#1a1200;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    box-shadow:0 10px 22px -10px var(--amber-soft);
-    transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, background .2s ease, color .2s ease;
+    width:100%;margin-top:10px;padding:9px 14px;border-radius:12px;border:none;cursor:pointer;
+    background:var(--panel);border:1.3px solid var(--amber-soft);
+    color:var(--amber);font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), background .2s ease, color .2s ease, border-color .2s ease;
   }
   .loc-locate-btn .loc-locate-ic{
-    width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.12);flex-shrink:0;
+    width:22px;height:22px;border-radius:50%;background:var(--amber-soft);flex-shrink:0;
     display:flex;align-items:center;justify-content:center;position:relative;
   }
   .loc-locate-btn .loc-ic-check{display:none;}
@@ -738,12 +747,33 @@
   /* Joylashuv muvaffaqiyatli aniqlangach — tugma yashil rangga
      o'tadi, ikonka nishonchadan "✓" belgisiga almashadi. */
   .loc-locate-btn.loc-located{
-    background:var(--green-soft);color:var(--green);box-shadow:none;
+    background:var(--green-soft);color:var(--green);border-color:transparent;
   }
   .loc-locate-btn.loc-located .loc-locate-ic{background:rgba(46,204,129,0.2);}
   .loc-locate-btn.loc-located .loc-ic-target{display:none;}
   .loc-locate-btn.loc-located .loc-ic-check{display:block;animation:locCheckPop .35s cubic-bezier(.34,1.56,.64,1) both;}
   @keyframes locCheckPop{from{transform:scale(0.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+  /* Xaritadagi maxsus "pin" belgisi (Leaflet divIcon) — brend rangida,
+     tashlanganda sakrab tushadigan animatsiya bilan. color-mix() ATAYLAB
+     ISHLATILMAGAN, fiksirlangan rgba/gradient qiymatlar bilan. */
+  .loc-pin{width:30px;height:30px;position:relative;animation:locPinDrop .45s cubic-bezier(.34,1.56,.64,1) both;}
+  @keyframes locPinDrop{from{transform:translateY(-22px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .loc-pin-dot{
+    width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    background:linear-gradient(135deg, var(--amber), var(--accent-2));
+    box-shadow:0 4px 10px -3px rgba(0,0,0,.55);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .loc-pin-dot::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--bg);transform:rotate(45deg);}
+  .loc-pin-pulse{
+    position:absolute;left:50%;top:50%;width:14px;height:14px;border-radius:50%;
+    background:var(--amber);opacity:.5;transform:translate(-50%,-50%);
+    animation:locPinPulse 1.8s ease-out infinite;
+  }
+  @keyframes locPinPulse{
+    0%{transform:translate(-50%,-50%) scale(1);opacity:.5;}
+    100%{transform:translate(-50%,-50%) scale(3.2);opacity:0;}
+  }
   .loc-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;}
   .loc-delivery-note{
     display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 11px;border-radius:10px;
@@ -780,6 +810,32 @@
     background:var(--panel-2);border:1px solid var(--line);
     padding:4px 9px;border-radius:8px;flex-shrink:0;
   }
+  /* Mijoz: "bo'lib to'lash kartochkasi ochilganda raqamlar kartochkasi
+     kichkina va tushunarsiz — zamonaviy, tushunarli, rasmiy qilib zor
+     qilib chiqar" — bo'lib to'lash bo'limidagi tanlangan raqam kartochkasi
+     endi ANCHA KATTA, aniq label bilan (rasmiy hujjat/chek ko'rinishida),
+     raqam katta va aniq, operator alohida ajratilgan qatorda. */
+  .order-preview-card.opc-installment{
+    flex-direction:column;align-items:stretch;gap:0;
+    padding:18px 18px 16px;border-radius:16px;position:relative;overflow:hidden;
+    background:linear-gradient(165deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
+    border:1.5px solid var(--accent-soft);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 10px 24px -14px rgba(0,0,0,0.4);
+  }
+  .opc-installment .opc-eyebrow{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+  }
+  .opc-installment .opc-eyebrow-label{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);
+  }
+  .opc-installment .opc-top-row{display:flex;align-items:center;gap:12px;}
+  .opc-installment .opc-icon{width:42px;height:42px;}
+  .opc-installment .opc-icon svg{width:21px;height:21px;}
+  .opc-installment .opc-number{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:21px;letter-spacing:.2px;color:var(--text);
+    flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .opc-installment .opc-op-tag{font-size:11.5px;padding:5px 11px;}
 
   /* ===== Bo'lib to'lashga raqamlar — mijoz: "bo'lim juda oddiy va
      noqulay edi, JUDAYAM zamonaviy bo'lsin, naxt summasi yozilmasin"
@@ -1000,7 +1056,6 @@
     </div>
     <div class="live-status-row" id="liveStatusRow" style="display:none;">
       <div class="live-radar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-      <span data-i18n="liveSearching">Raqamlar qidirilmoqda…</span>
     </div>
     <!-- Mijoz: "Bo'lib to'lash"ni Raqamlar bo'limidan olib tashla (asosiyda
          allaqachon bor) — endi faqat operator chiplarigina qoladi, har
@@ -1118,6 +1173,15 @@
       <div class="boot-ring" style="margin:0 auto 14px;"></div>
       <div style="color:var(--muted);font-size:13px;font-weight:600;" data-i18n="ordersAutoLoading">Buyurtmalaringiz yuklanmoqda…</div>
     </div>
+    <!-- Mijoz: "mijoz o'zi profiliga kirib turibdi-ku, so'rash tugmasini
+         olib tashla, agar buyurtma yo'q bo'lsa 'sizda buyurtma yo'q'
+         desin" — Telegram ichida telefon/4-raqam SO'RALMAYDI, shu
+         Telegram profiliga hech qanday buyurtma topilmasa shu holat
+         ko'rsatiladi (forma emas). -->
+    <div id="ordersEmptyView" style="display:none;text-align:center;padding:44px 20px;">
+      <div style="font-size:36px;margin-bottom:10px;">🛍️</div>
+      <div style="color:var(--text);font-size:14px;font-weight:800;font-family:'Sora',sans-serif;" data-i18n="ordersEmpty">Hali birorta buyurtma bermadingiz.</div>
+    </div>
     <div id="ordersFormView">
       <div class="field-label" data-i18n="fieldPhone">Telefon raqami</div>
       <input class="field-input" id="ordersPhoneInput" type="tel" inputmode="numeric" placeholder="+998 90 123 45 67" maxlength="19">
@@ -1229,8 +1293,10 @@
         <option>Qoraqalpog'iston</option>
       </select>
 
-      <!-- Mijoz: "Toshkent shahar" tanlanganda "turgan joyimni aniqlash"
-           tugmasi chiqsin (xarita EMAS — soddaroq, faqat bitta tugma);
+      <!-- Mijoz: "Toshkent shahar" tanlanganda xarita chiqsin (mijozlar
+           saytidagi kabi) — mijoz xaritani bosib O'ZI ham joy belgilashi
+           mumkin, yoki pastdagi kichik tugma bilan avtomatik aniqlashi
+           mumkin (bossa belgi xaritada o'sha joyga avtomatik keladi).
            Yandex xaritaga o'tish esa faqat Telegram ADMIN botida. -->
       <div class="loc-picker" id="locPickerSec" style="display:none;">
         <div class="loc-picker-head">
@@ -1238,7 +1304,10 @@
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             <span data-i18n="locTitle">Aniq manzilingizni belgilang</span>
           </div>
-          <div class="loc-picker-sub" id="locPickerSub" data-i18n="locSub">Joylashuvingizni avtomatik aniqlash uchun tugmani bosing (ixtiyoriy)</div>
+          <div class="loc-picker-sub" id="locPickerSub" data-i18n="locSub">Xaritada joyni bosing yoki tugma bilan avtomatik aniqlang (ixtiyoriy)</div>
+        </div>
+        <div class="loc-map-wrap">
+          <div id="locMap"></div>
         </div>
         <button type="button" class="loc-locate-btn" id="locLocateBtn">
           <span class="loc-locate-ic">
@@ -1289,7 +1358,7 @@
     </div>
     <div id="installmentDetailView" style="display:none;">
       <button type="button" class="ic-back-btn" id="installmentBackBtn">&larr; <span data-i18n="installmentBack">Orqaga</span></button>
-      <div class="order-preview-card" id="installmentPreviewCard" style="margin-top:10px;"></div>
+      <div class="order-preview-card opc-installment" id="installmentPreviewCard" style="margin-top:10px;"></div>
       <div class="field-label" data-i18n="installmentPickMonths" style="margin-top:14px;">Muddatni tanlang</div>
       <div class="ic-tabs" id="icTabs">
         <button type="button" class="ic-tab" data-months="36">36 oy</button>
@@ -1486,15 +1555,15 @@ const TRANSLATIONS = {
     modalSub: "Xavfsizlik uchun telefon raqamingiz VA sotib olingan/buyurtma berilgan raqamning oxirgi 4 raqami kerak.",
     fieldPhone: "Telefon raqami", fieldLast4: "Raqamning oxirgi 4 ta raqami",
     locTitle: "Aniq manzilingizni belgilang",
-    locSub: "Joylashuvingizni avtomatik aniqlash uchun tugmani bosing (ixtiyoriy)",
+    locSub: "Xaritada joyni bosing yoki tugma bilan avtomatik aniqlang (ixtiyoriy)",
     locLocateBtn: "Turgan joyimni aniqlash",
     locStatusEmpty: "Joylashuv belgilanmagan",
     locStatusOk: "Joylashuv belgilandi ✓",
     locClear: "Tozalash",
     locDeliveryNote: "Belgilangan joyga 4 soat davomida yetkazib beramiz",
     locDenied: "Joylashuvga ruxsat berilmagan. Telefon sozlamalaridan bu ilova uchun joylashuvga ruxsat bering, so'ng qayta urinib ko'ring.",
-    locUnsupported: "Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi.",
-    locError: "Joylashuvni aniqlab bo'lmadi. Birozdan so'ng qayta urinib ko'ring.",
+    locUnsupported: "Qurilmangiz avtomatik joylashuvni qo'llab-quvvatlamaydi. Xaritada qo'lda belgilang.",
+    locError: "Joylashuvni aniqlab bo'lmadi. Xaritada qo'lda belgilang.",
     submitSearch: "Qidirish", submitSearching: "Qidirilmoqda…",
     errIncomplete: "Telefon raqami va oxirgi 4 raqamni to'liq kiriting",
     errNotFound: "Bu ma'lumotlarga tegishli buyurtma topilmadi.",
@@ -1543,6 +1612,7 @@ const TRANSLATIONS = {
     monthsShort: "oy",
     installmentModalTitle: "Bo'lib to'lashga raqamlar",
     installmentModalSub: "Raqamni tanlang, muddatni belgilang — oylik to'lov darhol hisoblanadi.",
+    installmentSelectedNumber: "Tanlangan raqam",
     installmentEmpty: "Hozircha bo'lib to'lashga raqam yo'q.",
     installmentPickMonths: "Muddatni tanlang",
     installmentMonthlyLabel: "Oylik to'lov",
@@ -1594,15 +1664,15 @@ const TRANSLATIONS = {
     modalSub: "Для безопасности нужен ваш номер телефона И последние 4 цифры купленного/заказанного номера.",
     fieldPhone: "Номер телефона", fieldLast4: "Последние 4 цифры номера",
     locTitle: "Укажите точный адрес",
-    locSub: "Нажмите на кнопку, чтобы определить местоположение автоматически (необязательно)",
+    locSub: "Нажмите на карту или определите автоматически (необязательно)",
     locLocateBtn: "Определить моё местоположение",
     locStatusEmpty: "Местоположение не указано",
     locStatusOk: "Местоположение указано ✓",
     locClear: "Очистить",
     locDeliveryNote: "Доставим по указанному адресу в течение 4 часов",
     locDenied: "Доступ к геолокации запрещён. Разрешите доступ в настройках телефона и попробуйте снова.",
-    locUnsupported: "Ваше устройство не поддерживает автоопределение.",
-    locError: "Не удалось определить местоположение. Попробуйте ещё раз чуть позже.",
+    locUnsupported: "Ваше устройство не поддерживает автоопределение. Отметьте на карте вручную.",
+    locError: "Не удалось определить местоположение. Отметьте на карте вручную.",
     submitSearch: "Искать", submitSearching: "Поиск…",
     errIncomplete: "Введите номер телефона и последние 4 цифры полностью",
     errNotFound: "Заказ с такими данными не найден.",
@@ -1651,6 +1721,7 @@ const TRANSLATIONS = {
     monthsShort: "мес",
     installmentModalTitle: "Номера в рассрочку",
     installmentModalSub: "Выберите номер и срок — ежемесячный платёж рассчитается сразу.",
+    installmentSelectedNumber: "Выбранный номер",
     installmentEmpty: "Пока нет номеров в рассрочку.",
     installmentPickMonths: "Выберите срок",
     installmentMonthlyLabel: "Ежемесячный платёж",
@@ -2110,11 +2181,20 @@ async function fetchLiveNumbers(){
   // bo'lgach, ro'yxatning ENG YUQORISIGA qo'shiladi.
   catalogRandomActive = false;
   catalogFilterPattern = currentLivePattern();
+  // Mijoz: "tepada 'qidirilmoqda' turgan bo'lsa ham, pastda 'raqam
+  // topilmadi' deb chiqib qoladi" — bu yergacha `liveLoading` HALI
+  // yoqilmagan edi, shu sabab pastdagi birinchi renderCatalog() (jonli
+  // natija hali kelmasdan turib) statik ro'yxatda mos kelmasa darhol
+  // "topilmadi" deb yozardi. Endi jonli qidiruv HAQIQATDA boshlanishidan
+  // OLDIN, agar u haqiqatan ham so'ralishi kerak bo'lsa, `liveLoading`
+  // shu yerda o'rnatiladi — shunda birinchi render HAM to'g'ri "hali
+  // qidirilyapti" holatini biladi.
+  const willFetchLive = mask !== liveMask;
+  liveLoading = willFetchLive;
   renderCatalog();
-  if(mask === liveMask) return; // shu mask uchun jonli natija allaqachon bor
+  if(!willFetchLive) return; // shu mask uchun jonli natija allaqachon bor
 
   const myId = ++liveRequestId;
-  liveLoading = true;
   const btn = document.getElementById('liveSearchBtn');
   const icon = document.getElementById('lsbIcon');
   const spinner = document.getElementById('lsbSpinner');
@@ -2317,7 +2397,19 @@ function goToHomeBannerIndex(direction){
     renderHomeBannerDots();
     cardEl.classList.remove('slide-out');
     cardEl.classList.add('slide-in');
+    // MUHIM TUZATISH: bu yergacha `transition` HALI YOQIQ edi, shu sabab
+    // pastdagi transform o'zgarishi (enterX ga) CSS orqali ESKI holatdan
+    // (-100%/100%, ya'ni chiqib ketgan joyidan) YANGI holatga (qarama-qarshi
+    // tomon) ANIMATSIYA qilib "sirg'alib o'tardi" — go'yo eski kartochka
+    // "oxiriga borib, qaytib kelib" yangi raqam bilan o'rtadan o'tayotgandek
+    // ko'rinardi. Mijoz: "bir-biriga umuman aralashmasin, instagram post
+    // o'tgandek bo'lsin" — endi bu SAKRASH (transition:none) bilan DARHOL,
+    // hech qanday ko'rinadigan harakatsiz amalga oshiriladi, keyin ANIQ
+    // BITTA yo'nalishda (enterX'dan 0'ga) tekis kiradi.
+    cardEl.style.transition = 'none';
     cardEl.style.transform = 'translateX(' + enterX + ')';
+    void cardEl.offsetWidth; // reflow — sakrashni "muhrlab" qo'yadi
+    cardEl.style.transition = '';
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
         cardEl.classList.remove('slide-in');
@@ -2547,6 +2639,12 @@ function renderCatalog(){
   const allItems = liveItems.concat(items);
 
   if(allItems.length === 0){
+    // Mijoz: "tepada 'qidirilmoqda' turgan bo'lsa ham, pastda 'raqam
+    // topilmadi' deb chiqib qoladi" — sabab: jonli (operator) qidiruv
+    // hali JAVOB bermagan bo'lsa ham, statik ro'yxatda mos kelmasa,
+    // "topilmadi" darhol ko'rsatilardi. Endi jonli qidiruv HALI DAVOM
+    // ETAYOTGAN bo'lsa, natija tayyor bo'lguncha bu xabar chiqarilmaydi.
+    if(liveLoading){ listEl.innerHTML = ''; return; }
     listEl.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('catalogEmpty')) + '</div>';
     return;
   }
@@ -2662,23 +2760,31 @@ function closeOrderModal(){ orderModal.classList.remove('open'); }
 document.getElementById('orderModalClose').addEventListener('click', closeOrderModal);
 
 /* =========================================================
-   TOSHKENT — "Turgan joyimni aniqlash". Mijoz: "yandex karta
-   emas, uning o'rniga turgan joyimni aniqlash tugmasi bo'lsin,
-   bossa avtomatik aniqlasin — yandex kartaga o'tish esa faqat
-   Telegram ADMIN botida bo'lsin (mijoz bergan joyni yandex'da
-   ochish uchun)" — shu sabab mijoz tarafida endi HECH QANDAY
-   interaktiv xarita (Leaflet/OSM) YO'Q, faqat bitta tugma: bosilsa
-   qurilma GPS orqali joylashuvni avtomatik aniqlaydi va shu
-   koordinata (payload.location = {lat,lng}) admin bilan BIR XIL
-   shaklda buyurtmaga qo'shiladi. buildYandexGoLink() FAQAT admin
-   xabaridagi "Xaritaga o'tish" tugmasi uchun ishlatiladi (server
-   tarafga o'zgarish kerak emas — telegram-notify.js'dagi mapUrl
-   kontrakti bilan bir xil).
+   TOSHKENT — "Aniq manzilingizni belgilang". Mijoz: "xarita tursin,
+   mijozlar saytiga (index.html) o'xshab bo'lsin — mijoz o'zi ham
+   xaritada joy belgilashi mumkin bo'lsin, pastida esa kichikroq
+   'turgan joyimni aniqlash' tugmasi bo'lib, bossa xaritada belgi
+   avtomatik o'sha joyga kelsin." Yandex kartaga o'tish (buildYandexGoLink)
+   esa hamon FAQAT Telegram ADMIN botidagi xabarda ishlatiladi — server
+   tarafga o'zgarish kerak emas (telegram-notify.js'dagi mapUrl kontrakti
+   bilan bir xil), mijoz tarafida Yandex tugmasi yo'q.
    ========================================================= */
+const TASHKENT_CENTER = [41.311081, 69.240562];
 let customerLocation = null;
+let locMap = null;
+let locMarker = null;
+let locMapInited = false;
 
 function buildYandexGoLink(lat, lng){
   return `https://3.redirect.appmetrica.yandex.com/route?end-lat=${lat}&end-lon=${lng}&appmetrica_tracking_id=1178268795219780156`;
+}
+function createLocPinIcon(){
+  return L.divIcon({
+    className: '',
+    html: '<div class="loc-pin"><div class="loc-pin-pulse"></div><div class="loc-pin-dot"></div></div>',
+    iconSize: [30, 30],
+    iconAnchor: [15, 27]
+  });
 }
 function updateLocStatus(){
   const statusEl = document.getElementById('locStatus');
@@ -2704,17 +2810,56 @@ function updateLocStatus(){
     if(locateLabel) locateLabel.textContent = t('locLocateBtn');
   }
 }
-function setCustomerLocation(lat, lng){
+function setCustomerLocation(lat, lng, opts){
   customerLocation = { lat, lng };
+  if(locMap){
+    if(locMarker){
+      locMarker.setLatLng([lat, lng]);
+    }else{
+      locMarker = L.marker([lat, lng], { icon: createLocPinIcon(), draggable: true }).addTo(locMap);
+      locMarker.on('dragend', ()=>{
+        const p = locMarker.getLatLng();
+        customerLocation = { lat: p.lat, lng: p.lng };
+        updateLocStatus();
+      });
+    }
+    if(!(opts && opts.skipView)){
+      locMap.setView([lat, lng], Math.max(locMap.getZoom(), 15), { animate: true });
+    }
+  }
   updateLocStatus();
 }
 function clearCustomerLocation(){
   customerLocation = null;
+  if(locMarker && locMap){ locMap.removeLayer(locMarker); locMarker = null; }
   updateLocStatus();
+}
+function initLocMapIfNeeded(){
+  if(locMapInited) return;
+  if(typeof L === 'undefined'){
+    // Leaflet hali (sekin internetda) yuklanmagan bo'lishi mumkin —
+    // biroz kutib qayta urinamiz, xaritasiz oyna "qotib" qolmasin.
+    setTimeout(initLocMapIfNeeded, 300);
+    return;
+  }
+  locMapInited = true;
+  locMap = L.map('locMap', { zoomControl: true, attributionControl: true }).setView(TASHKENT_CENTER, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(locMap);
+  locMap.on('click', (e)=> setCustomerLocation(e.latlng.lat, e.latlng.lng));
 }
 function showLocPicker(){
   const sec = document.getElementById('locPickerSec');
-  if(sec) sec.style.display = 'block';
+  if(!sec) return;
+  sec.style.display = 'block';
+  // Leaflet xarita o'lchamini KONTEYNER ko'rinadigan bo'lgandan keyin
+  // hisoblashi kerak — aks holda xarita "yarim bo'sh" ko'rinadi.
+  setTimeout(()=>{
+    initLocMapIfNeeded();
+    if(locMap) locMap.invalidateSize();
+  }, 60);
 }
 function hideLocPicker(){
   const sec = document.getElementById('locPickerSec');
@@ -2906,6 +3051,15 @@ orderSubmitBtn.addEventListener('click', async ()=>{
     operator: item.operator || '',
     catalogType: String(item.id || '').startsWith('live:') ? 'Standart' : 'VIP'
   };
+  // Mijoz: "mijoz o'zi profiliga kirib turibdi-ku, o'zi avtomatik chiqarib
+  // bersin" — "Buyurtmalarim" endi telefon/4-raqam SO'RAMASDAN, aynan shu
+  // Telegram foydalanuvchisiga tegishli buyurtmalarni topishi uchun,
+  // buyurtmaga Telegram foydalanuvchi ID'si ham yoziladi (qarang:
+  // check-my-orders-telegram.js — initData serverda tasdiqlanadi).
+  const __tgUserForOrder = getTgUser();
+  if(__tgUserForOrder && __tgUserForOrder.id){
+    payload.telegramUserId = String(__tgUserForOrder.id);
+  }
   if(__pendingInstallment){
     payload.installmentMonths = __pendingInstallment.months;
     payload.monthlyPayment = __pendingInstallment.monthly;
@@ -3076,9 +3230,12 @@ function openInstallmentDetail(item){
   // ENDI umuman ko'rsatilmaydi, faqat raqamning o'zi + operator.
   const color = OPERATOR_COLORS[item.operator] || '#6b7280';
   document.getElementById('installmentPreviewCard').innerHTML =
-    '<span class="opc-icon" style="--op-color:' + color + ';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg></span>' +
-    '<span class="opc-number">' + escapeHtml(formatPhoneDisplay(item.number || '')) + '</span>' +
-    '<span class="opc-op-tag">' + escapeHtml(item.operator || '') + '</span>';
+    '<div class="opc-eyebrow"><span class="opc-eyebrow-label">' + escapeHtml(t('installmentSelectedNumber')) + '</span></div>' +
+    '<div class="opc-top-row">' +
+      '<span class="opc-icon" style="--op-color:' + color + ';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg></span>' +
+      '<span class="opc-number">' + escapeHtml(formatPhoneDisplay(item.number || '')) + '</span>' +
+      '<span class="opc-op-tag">' + escapeHtml(item.operator || '') + '</span>' +
+    '</div>';
   document.querySelectorAll('#icTabs .ic-tab').forEach(btn=>{
     btn.classList.toggle('active', Number(btn.dataset.months) === __installmentMonths);
   });
@@ -3234,20 +3391,53 @@ async function fetchMyOrders(phone, last4){
   });
   return res.json();
 }
+// Mijoz: "mijoz o'zi profiliga kirib turibdi-ku, o'zi avtomatik chiqarib
+// bersin, so'rash tugmasini olib tashla" — Telegram Mini App ichida
+// bo'lsak, initData (Telegram tomonidan kriptografik imzolangan) serverga
+// yuboriladi va u yerda tasdiqlanadi (qarang: check-my-orders-telegram.js),
+// hech qanday telefon/4-raqam kiritish shart emas.
+async function fetchMyOrdersByTelegram(){
+  const res = await fetch('/.netlify/functions/check-my-orders-telegram', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData: (__tg && __tg.initData) || '' })
+  });
+  return res.json();
+}
 function showOrdersView(name){
-  ['ordersAutoLoadingView','ordersFormView','ordersResultView'].forEach(id=>{
+  ['ordersAutoLoadingView','ordersFormView','ordersResultView','ordersEmptyView'].forEach(id=>{
     document.getElementById(id).style.display = (id === name) ? 'block' : 'none';
   });
   // "Xavfsizlik uchun..." tushuntirish matni faqat FORMA ko'rinishida
   // mantiqiy — avtomatik yuklash/natija holatida ortiqcha va chalg'ituvchi.
   document.getElementById('ordersModalSub').style.display = (name === 'ordersFormView') ? 'block' : 'none';
 }
-// Mijoz: "har bir mijoz o'zini eslab qolgan holda, Buyurtmalarim ochilsa
-// o'zi avtomatik o'sha odamniki chiqarsin" — shu qurilmada avval buyurtma
-// berilgan bo'lsa, forma UMUMAN ko'rsatilmaydi, darhol avtomatik yuklanadi.
+// Mijoz: "mijoz o'zi profiliga kirib turibdi-ku, o'zi avtomatik chiqarib
+// bersin, so'rash tugmasini olib tashla, agar buyurtma yo'q bo'lsa 'sizda
+// buyurtma yo'q' desin" — haqiqiy Telegram Mini App ichida forma UMUMAN
+// ko'rsatilmaydi, Telegram profili orqali avtomatik izlanadi. Faqat
+// Telegram tashqarisida (masalan test/brauzer, initData yo'q) eski
+// telefon+4-raqam oqimiga qaytiladi.
 async function openOrdersModal(){
   document.getElementById('ordersError').style.display = 'none';
   ordersModal.classList.add('open');
+
+  if(isRealTelegramMiniApp() && __tg && __tg.initData){
+    showOrdersView('ordersAutoLoadingView');
+    try{
+      const result = await fetchMyOrdersByTelegram();
+      if(result.ok && result.orders && result.orders.length > 0){
+        renderOrdersResult(result.orders, false, true);
+        showOrdersView('ordersResultView');
+      }else{
+        showOrdersView('ordersEmptyView');
+      }
+    }catch(e){
+      showOrdersView('ordersEmptyView');
+    }
+    return;
+  }
+
   const cred = getMyOrdersLookupCredential();
   if(!cred){
     showOrdersView('ordersFormView');
@@ -3308,9 +3498,9 @@ document.getElementById('ordersSubmitBtn').addEventListener('click', async ()=>{
 // isAuto = true bo'lsa, "Orqaga" o'rniga "Boshqa ma'lumot bilan qidirish"
 // ko'rsatiladi (chunki forma tashlab ketilgan — bosilsa, mavjud
 // eslab qolingan ma'lumot o'chirilib, forma ochiladi).
-function renderOrdersResult(orders, isAuto){
+function renderOrdersResult(orders, isAuto, isTelegramIdentity){
   const wrap = document.getElementById('ordersResultView');
-  wrap.innerHTML = orders.map(o=>{
+  const rowsHtml = orders.map(o=>{
     const style = ORDER_STATUS_STYLE[o.status] || { text:'var(--muted)', bg:'var(--panel-2)', descKey:'' };
     const desc = style.descKey ? t(style.descKey) : '';
     return `
@@ -3322,11 +3512,20 @@ function renderOrdersResult(orders, isAuto){
       <div class="or-line"><span>${escapeHtml(t('resultPrice'))}</span><b>${formatPrice(o.paymentType === 'installment' && o.monthlyPayment ? o.monthlyPayment : o.price)}${o.paymentType === 'installment' && o.installmentMonths ? ' / ' + o.installmentMonths + ' ' + escapeHtml(t('monthsShort')) : ''}</b></div>
       ${desc ? `<div class="or-status-desc">${escapeHtml(desc)}</div>` : ''}
     </div>`;
-  }).join('') + '<button class="modal-submit" id="ordersBackBtn" style="margin-top:10px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);box-shadow:none;">' + escapeHtml(isAuto ? t('ordersSearchOther') : t('backBtn')) + '</button>';
-  document.getElementById('ordersBackBtn').addEventListener('click', ()=>{
-    if(isAuto){ try{ localStorage.removeItem('vip_tg_orders_lookup'); }catch(e){} }
-    showOrdersView('ordersFormView');
-  });
+  }).join('');
+  // Mijoz: "mijoz o'zi profiliga kirib turibdi-ku, so'rash tugmasini olib
+  // tashla" — Telegram-profil orqali avtomatik topilgan natijada qidiruv
+  // formasiga qaytadigan tugma UMUMAN kerak emas (qidirish shart emas,
+  // yopish uchun tepadagi ✕ yetarli).
+  wrap.innerHTML = rowsHtml + (isTelegramIdentity ? '' :
+    '<button class="modal-submit" id="ordersBackBtn" style="margin-top:10px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);box-shadow:none;">' + escapeHtml(isAuto ? t('ordersSearchOther') : t('backBtn')) + '</button>');
+  const backBtn = document.getElementById('ordersBackBtn');
+  if(backBtn){
+    backBtn.addEventListener('click', ()=>{
+      if(isAuto){ try{ localStorage.removeItem('vip_tg_orders_lookup'); }catch(e){} }
+      showOrdersView('ordersFormView');
+    });
+  }
 }
 
 /* =========================================================
