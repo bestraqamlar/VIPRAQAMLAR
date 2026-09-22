@@ -91,13 +91,23 @@ exports.handler = async function (event) {
   const startPrice = Number(input.startPrice) > 0 ? Number(input.startPrice) : 1;
   const endPrice = Number(input.endPrice) > 0 ? Number(input.endPrice) : 300000000;
 
-  try {
+  // XAVFSIZLIK/BARQARORLIK: UZEX ba'zan (ayniqsa ko'p so'rov ketganda)
+  // bir zumlik xato/vaqtinchalik javob bermaslik holatini ko'rsatishi
+  // mumkin — endi bitta so'rov o'rniga, birinchisi muvaffaqiyatsiz
+  // bo'lsa (tarmoq xatosi yoki HTTP xato), 900ms kutib YANA BIR MARTA
+  // avtomatik qayta so'raladi, darhol xato qaytarish o'rniga.
+  async function callUzex() {
     const res = await fetch(UZEX_URL, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         'user-agent': UZEX_UA,
-        accept: 'application/json'
+        accept: 'application/json',
+        'accept-language': 'ru-RU,ru;q=0.9,uz;q=0.8,en;q=0.7',
+        // Ba'zi API'lar "brauzerdan kelmoqda" deb ishonishi uchun shu
+        // ikki sarlavhani ham tekshiradi — zarar qilmaydi, faqat foyda.
+        origin: 'https://mobilraqam.uzex.uz',
+        referer: 'https://mobilraqam.uzex.uz/'
       },
       body: JSON.stringify({
         from: 0,
@@ -112,11 +122,23 @@ exports.handler = async function (event) {
       }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT)
     });
-
     if (!res.ok) {
       let detail = '';
       try { detail = (await res.text()).slice(0, 150); } catch (_) {}
-      throw new Error('UZEX javob bermadi (HTTP ' + res.status + ')' + (detail ? ': ' + detail : ''));
+      const err = new Error('UZEX javob bermadi (HTTP ' + res.status + ')' + (detail ? ': ' + detail : ''));
+      err.httpStatus = res.status;
+      throw err;
+    }
+    return res;
+  }
+
+  try {
+    let res;
+    try {
+      res = await callUzex();
+    } catch (firstErr) {
+      await new Promise(r => setTimeout(r, 900));
+      res = await callUzex();
     }
 
     const data = await res.json();

@@ -1726,6 +1726,63 @@
   .uzx-table th:nth-child(4),.uzx-table td:nth-child(4){display:none;}
 }
 
+/* Mijoz: "narx bo'yicha qidirish ham qo'y" */
+.uzx-price-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.uzx-price-input{
+  flex:1 1 160px;min-width:140px;background:var(--panel-2);border:1.5px solid var(--line);
+  border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Sora',sans-serif;font-weight:600;
+  font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.uzx-price-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);}
+.uzx-price-dash{color:var(--muted);flex:none;}
+
+/* Mijoz: "har bir chiroyli kartochkada narxi bilan va qachon tugashigacha
+   jonli soat qo'yamiz" — natija endi jadval EMAS, har biri o'z narxi va
+   soniyama-soniya yangilanadigan chiziq bilan "tugashiga qoldi" hisoblagichi
+   bo'lgan kartochkalar to'ri (grid). */
+.uzx-cards{
+  display:grid;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));gap:12px;padding:4px;
+}
+.uzx-card{
+  position:relative;overflow:hidden;background:var(--panel-2);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:8px;
+  animation:wtFadeIn .18s ease both;transition:transform .12s ease,border-color .12s ease;
+}
+.uzx-card:hover{transform:translateY(-2px);border-color:var(--amber-soft, rgba(255,171,64,.4));}
+.uzx-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, var(--amber), var(--green));opacity:.7;
+}
+.uzx-card-num{
+  font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);letter-spacing:.2px;
+}
+.uzx-card-price{
+  font-family:'Sora',sans-serif;font-weight:800;font-size:19px;color:var(--amber);
+}
+.uzx-card-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);}
+.uzx-card-seller{
+  display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);white-space:nowrap;
+  max-width:120px;overflow:hidden;text-overflow:ellipsis;
+}
+/* Jonli hisoblagich — har soniya yangilanadi (qarang: uzxTickTimers() JS). */
+.uzx-card-timer{
+  display:flex;align-items:center;gap:6px;margin-top:2px;padding:8px 10px;border-radius:10px;
+  background:rgba(255,255,255,.05);font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
+  color:var(--text);letter-spacing:.4px;
+}
+.uzx-card-timer .uzx-timer-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;
+  animation:uzxDotPulse 1.4s ease-in-out infinite;
+}
+.uzx-card-timer.soon{background:rgba(231,76,60,.14);color:#ff8a80;}
+.uzx-card-timer.soon .uzx-timer-dot{background:#ff5c5c;}
+.uzx-card-timer.ended{background:rgba(255,255,255,.04);color:var(--muted);}
+.uzx-card-timer.ended .uzx-timer-dot{animation:none;background:var(--muted);}
+@keyframes uzxDotPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.7);}}
+.uzx-card-dates{font-size:11px;color:var(--muted);line-height:1.5;}
+.uzx-card-dates b{color:var(--text);font-weight:600;}
+
 @keyframes wtFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes wtPulse{0%,100%{box-shadow:0 0 0 0 rgba(51,226,140,.5);}50%{box-shadow:0 0 0 5px rgba(51,226,140,0);}}
 
@@ -2978,6 +3035,18 @@
         <div class="uzx-hint-small">Masalan: oxirgi uchtasiga <b>4 4 4</b> yozsangiz — <b>...444</b> bilan tugaydigan barcha raqamlar chiqadi.</div>
       </div>
 
+      <!-- Mijoz: "narx bo'yicha qidirish ham qo'y" — raqam maskasi bilan
+           BIRGA ishlaydi (ikkalasi ham ixtiyoriy, bo'sh qoldirsa cheklov
+           qo'yilmaydi). -->
+      <div class="wt-row wt-row-block">
+        <label class="wt-block-label">💰 Narx oralig'i (so'm)</label>
+        <div class="uzx-price-row">
+          <input type="number" class="uzx-price-input" id="uzxPriceMin" placeholder="Dan (masalan 1 000 000)" min="0">
+          <span class="uzx-price-dash">—</span>
+          <input type="number" class="uzx-price-input" id="uzxPriceMax" placeholder="Gacha (masalan 50 000 000)" min="0">
+        </div>
+      </div>
+
       <div class="wt-row">
         <button type="button" class="btn" id="uzxSearchBtn">🔎 Qidirish</button>
         <button type="button" class="btn btn-ghost" id="uzxClearBtn">Tozalash</button>
@@ -2986,7 +3055,7 @@
     </div>
 
     <div class="uzx-result" id="uzxResult">
-      <div class="wt-empty">Raqam kiritib "Qidirish"ni bosing</div>
+      <div class="wt-empty">Raqam yoki narx kiritib "Qidirish"ni bosing</div>
     </div>
   </div>
 
@@ -5097,6 +5166,12 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
     if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
     if(tab.dataset.tab === 'aksiya'){ renderAksiyaTab(); }
+    // UZEX jonli hisoblagichi faqat shu bo'lim OCHIQ turganda ishlashi
+    // kerak — boshqa har qanday bo'limga o'tilganda (yoki UZEX'ga
+    // QAYTA kirilganda, eski hisoblagich ikki marta yugurmasin deb)
+    // to'xtatiladi; yangi qidiruv natijasi kelganda uzxSearch() uni
+    // qaytadan ishga tushiradi.
+    uzxStopTimer();
 
     // Mobil ekranda menyudan bo'lim tanlansa, sidebar avtomatik yopiladi
     const shellEl = document.querySelector('.admin-shell');
@@ -7223,20 +7298,55 @@ function uzxFmtDate(iso){
   return `${m[3]}.${m[2]}.${m[1]}, <b>${m[4]}:${m[5]}</b>`;
 }
 
-// Savdo tugashiga qancha qolgani ("2 kun 5 soat" / "3 soat 20 daq").
-function uzxLeftText(endIso){
-  if(!endIso) return '';
+// "2026-09-17T16:59:36" -> shu lahzadan tugashigacha qolgan millisekund.
+// UZEX sanani vaqt mintaqasisiz beradi — u allaqachon mahalliy vaqt.
+function uzxParseEndMs(endIso){
+  if(!endIso) return null;
   const m = String(endIso).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):?(\d{2})?/);
-  if(!m) return '';
-  const end = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0));
-  const diff = end.getTime() - Date.now();
-  if(diff <= 0) return 'tugagan';
+  if(!m) return null;
+  return new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0)).getTime();
+}
+// Mijoz: "qachon tugashigacha JONLI soat qo'yamiz" — bu funksiya HAR
+// safar (soniyasiga bir marta) chaqirilib, "01 kun 04:22:07 qoldi" kabi
+// tik-tak yuruvchi matn qaytaradi (qarang: uzxTickTimers()).
+function uzxLeftLive(endMs){
+  if(endMs == null) return { text: '—', cls: '' };
+  const diff = endMs - Date.now();
+  if(diff <= 0) return { text: 'Tugadi', cls: 'ended' };
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const mi = Math.floor((diff % 3600000) / 60000);
-  if(d > 0) return d + ' kun ' + h + ' soat qoldi';
-  if(h > 0) return h + ' soat ' + mi + ' daq qoldi';
-  return mi + ' daqiqa qoldi';
+  const s = Math.floor((diff % 60000) / 1000);
+  const pad = (n)=> String(n).padStart(2, '0');
+  const soon = diff < 3 * 3600000; // 3 soatdan kam qoldi — qizil rang bilan ogohlantiriladi
+  const text = d > 0
+    ? `${d} kun ${pad(h)}:${pad(mi)}:${pad(s)}`
+    : `${pad(h)}:${pad(mi)}:${pad(s)}`;
+  return { text, cls: soon ? 'soon' : '' };
+}
+let __uzxTimerInterval = null;
+// Mijoz: "jonli soat qo'yamiz" — barcha ochiq kartochkalardagi
+// hisoblagichlarni har soniyada yangilaydi. Faqat UZEX bo'limi ochiq
+// va natija bor paytda ishlaydi (qarang: uzxStartTimer()/uzxStopTimer()).
+function uzxTickTimers(){
+  const els = document.querySelectorAll('.uzx-card-timer[data-end]');
+  if(!els.length){ uzxStopTimer(); return; }
+  els.forEach(el=>{
+    const endMs = Number(el.dataset.end);
+    const { text, cls } = uzxLeftLive(endMs);
+    const textEl = el.querySelector('.uzx-timer-text');
+    if(textEl) textEl.textContent = text;
+    el.classList.remove('soon', 'ended');
+    if(cls) el.classList.add(cls);
+  });
+}
+function uzxStartTimer(){
+  uzxStopTimer();
+  uzxTickTimers();
+  __uzxTimerInterval = setInterval(uzxTickTimers, 1000);
+}
+function uzxStopTimer(){
+  if(__uzxTimerInterval){ clearInterval(__uzxTimerInterval); __uzxTimerInterval = null; }
 }
 
 // Raqamni chiroyli ko'rinishga keltirish: +998901234567 -> +998 90 123 45 67
@@ -7257,43 +7367,70 @@ async function uzxSearch(){
   const btn = document.getElementById('uzxSearchBtn');
   const box = document.getElementById('uzxResult');
   const mask = uzxBuildMask();
+  // Mijoz: "narx bo'yicha qidirish ham qo'y" — ixtiyoriy, bo'sh qoldirilsa
+  // cheklov qo'yilmaydi (backend standart 1 / 300 000 000 qabul qiladi).
+  const priceMinRaw = document.getElementById('uzxPriceMin').value;
+  const priceMaxRaw = document.getElementById('uzxPriceMax').value;
+  const startPrice = priceMinRaw ? Number(priceMinRaw) : undefined;
+  const endPrice = priceMaxRaw ? Number(priceMaxRaw) : undefined;
 
+  uzxStopTimer();
   btn.disabled = true;
   uzxSetStatus('Qidirilmoqda...');
   box.innerHTML = '<div class="wt-empty">Qidirilmoqda...</div>';
 
-  try{
+  // Mijoz: "UZEX ishlamayabdi" — UZEX'ning o'zi ba'zan bir zumlik
+  // ishlamay qolishi (yoki tarmoq xatosi) mumkin, shu sabab endi bitta
+  // muvaffaqiyatsiz urinishdan keyin (1 soniya kutib) yana bir marta
+  // avtomatik qayta uriniladi, darhol xato ko'rsatish o'rniga.
+  async function attemptFetch(){
     const idToken = await firebase.auth().currentUser.getIdToken();
     const res = await fetch('/.netlify/functions/admin-uzex-search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-      body: JSON.stringify({ mask })
+      body: JSON.stringify({ mask, startPrice, endPrice })
     });
-    const data = await res.json();
+    const data = await res.json().catch(()=> ({}));
     if(!res.ok || !data.ok) throw new Error(data.error || ('Server ' + res.status));
+    return data;
+  }
+
+  try{
+    let data;
+    try{
+      data = await attemptFetch();
+    }catch(firstErr){
+      uzxSetStatus('Qayta urinilmoqda...');
+      await new Promise(r=> setTimeout(r, 1000));
+      data = await attemptFetch();
+    }
 
     const items = data.items || [];
     if(!items.length){
       uzxSetStatus('Topilmadi', 'err');
-      box.innerHTML = '<div class="wt-empty">Bu naqsh bo\'yicha auksionda raqam yo\'q</div>';
+      box.innerHTML = '<div class="wt-empty">Bu shartlar bo\'yicha auksionda raqam yo\'q</div>';
       return;
     }
 
     uzxSetStatus(items.length + ' ta topildi', 'ok');
 
-    const rows = items.map(x => {
-      const left = uzxLeftText(x.endDate);
-      const soon = /daqiqa|soat/.test(left) && !/kun/.test(left);
-      return `<tr>
-        <td><span class="uzx-num">${escapeHtml(uzxFmtNumber(x.number))}</span></td>
-        <td><span class="uzx-price">${formatPrice(x.price)}</span></td>
-        <td><span class="uzx-date">${uzxFmtDate(x.startDate)}</span></td>
-        <td>
-          <span class="uzx-date">${uzxFmtDate(x.endDate)}</span>
-          <div class="uzx-left${soon ? ' soon' : ''}">${escapeHtml(left)}</div>
-        </td>
-        <td><span class="uzx-seller">${escapeHtml(x.seller || '—')}</span></td>
-      </tr>`;
+    const cards = items.map(x => {
+      const endMs = uzxParseEndMs(x.endDate);
+      const { text, cls } = uzxLeftLive(endMs);
+      return `
+      <div class="uzx-card">
+        <div class="uzx-card-num">${escapeHtml(uzxFmtNumber(x.number))}</div>
+        <div class="uzx-card-price">${formatPrice(x.price)}</div>
+        <div class="uzx-card-timer${cls ? ' ' + cls : ''}" data-end="${endMs || ''}">
+          <span class="uzx-timer-dot"></span>
+          <span class="uzx-timer-text">${escapeHtml(text)}</span>
+          <span style="font-weight:600;font-size:11px;color:var(--muted);margin-left:auto;">qoldi</span>
+        </div>
+        <div class="uzx-card-row">
+          <span class="uzx-card-seller" title="${escapeHtml(x.seller || '')}">${escapeHtml(x.seller || '—')}</span>
+        </div>
+        <div class="uzx-card-dates">Boshlandi: <b>${uzxFmtDate(x.startDate)}</b></div>
+      </div>`;
     }).join('');
 
     const more = data.totalFound && data.totalFound > items.length
@@ -7301,17 +7438,12 @@ async function uzxSearch(){
 
     box.innerHTML = `
       <div class="uzx-count">Topildi: <b>${items.length}</b> ta${more} — eng arzonidan boshlab</div>
-      <div class="uzx-scroll">
-        <table class="uzx-table">
-          <thead><tr>
-            <th>Raqam</th><th>Narx</th><th>Boshlanishi</th><th>Tugashi</th><th>Sotuvchi</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
+      <div class="uzx-cards">${cards}</div>`;
+
+    uzxStartTimer();
   }catch(err){
     uzxSetStatus('Xato', 'err');
-    box.innerHTML = `<div class="wt-empty">Xato: ${escapeHtml(err.message)}</div>`;
+    box.innerHTML = `<div class="wt-empty">Xato: ${escapeHtml(err.message)}<br><span style="font-size:11px;opacity:.75;">Agar bu birinchi marta ko'rinayotgan bo'lsa — yangi funksiya hali GitHub/Netlify'ga yuklanmagan bo'lishi mumkin.</span></div>`;
   }finally{
     btn.disabled = false;
   }
@@ -7320,9 +7452,12 @@ async function uzxSearch(){
 document.getElementById('uzxSearchBtn').addEventListener('click', uzxSearch);
 document.getElementById('uzxClearBtn').addEventListener('click', () => {
   uzxBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+  document.getElementById('uzxPriceMin').value = '';
+  document.getElementById('uzxPriceMax').value = '';
   uzxSetStatus('');
+  uzxStopTimer();
   document.getElementById('uzxResult').innerHTML =
-    '<div class="wt-empty">Raqam kiritib "Qidirish"ni bosing</div>';
+    '<div class="wt-empty">Raqam yoki narx kiritib "Qidirish"ni bosing</div>';
   uzxBoxes[0].focus();
 });
 
