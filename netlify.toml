@@ -91,6 +91,12 @@
 [functions."uzex-watch-check-background"]
   schedule = "*/10 * * * *"
 
+# Saqlangan UZEX raqamlari — savdo tugashiga 3 soat va 1 soat qolganda
+# Telegram orqali ogohlantiradi (batafsili izoh funksiya faylida). Har
+# 5 daqiqada tekshiradi — bu darajadagi aniqlik yetarli.
+[functions."uzex-saved-expiry-check-background"]
+  schedule = "*/5 * * * *"
+
 # "Vazifalar" (admin dedlayn) kuzatuvi — tugashiga 5 soatdan kam qolgan
 # va hali bajarilmagan har bir vazifa uchun Telegram orqali BIR MARTA
 # ogohlantirish yuboradi (panel yopiq bo'lsa ham). Har 5 daqiqada tekshi-

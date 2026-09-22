@@ -54,10 +54,15 @@
      JS qurilma sozlamasiga (prefers-color-scheme) qarab ikkalasidan
      birini avtomatik tanlaydi va real vaqtda kuzatib turadi. ===== */
   :root, :root[data-theme="dark"]{
-    --bg:#0d0f1a;
-    --panel:#111318;
-    --panel-2:#191c22;
-    --line:#26292f;
+    /* Mijoz: "asosiy va raqamlar bo'limining orqa foni ochroq, zamonaviy
+       rang bo'lsin — kartochkalar hali ham ajralib turmayabdi" — asosiy
+       fon (--bg) sal ko'tarildi (to'liq qora-ko'kdan — yumshoqroq,
+       zamonaviyroq to'q ko'kka), shu bilan kartochkalar fondan aniqroq
+       ajraladi. */
+    --bg:#141a2e;
+    --panel:#161c30;
+    --panel-2:#1d2438;
+    --line:#2c3350;
     --text:#F2F4F8;
     --muted:#8A8F99;
     --accent:#4F8CFF;
@@ -77,7 +82,7 @@
     --glass-bg-2:rgba(25,28,34,0.28);
     --glass-border:rgba(255,255,255,0.09);
     --glass-highlight:rgba(255,255,255,0.05);
-    --bg-glow-2:rgba(27,35,64,0.9);
+    --bg-glow-2:rgba(42,52,92,0.75);
     /* "10-dizayn — Rangbarang shisha": mijoz tanlagan umumiy ilova
        ko'rinishi — to'q fon ustida uchta xira rangli "blob" porlash
        (pushti/ko'k/yashil), butun ilova bo'ylab bir xilda ko'rinadi. */
@@ -87,9 +92,9 @@
     /* Mijoz: "orqa va kartochka foni bir xil, kartochka ajralib turishi
        kerak, zamonaviy rang qil" — Bosh sahifa kartochkalari endi
        fondan aniq ajralib turadigan, o'zining zamonaviy rangiga ega. */
-    --home-banner-bg:linear-gradient(135deg, #223066 0%, #3d3f9e 48%, #7c3aed 100%);
-    --home-card-bg:linear-gradient(160deg, #262c4e 0%, #151831 100%);
-    --card-border:rgba(148,168,255,0.28);
+    --home-banner-bg:linear-gradient(135deg, #2a3670 0%, #43459f 48%, #7c3aed 100%);
+    --home-card-bg:linear-gradient(160deg, #2c3358 0%, #1e2444 100%);
+    --card-border:rgba(148,168,255,0.32);
     /* Mijoz: "orqa foni to'q ko'k bo'lsin" — endi to'ldirilgan katakcha
        oq emas, to'q ko'k fon bilan chiqadi (matn oq, aniq ko'rinadi). */
     --digit-filled-bg:#15234f;
@@ -591,23 +596,30 @@
   .num-card-price{
     font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;flex-shrink:0;
   }
-  /* Mijoz: "buyurtma tugmasi juda oddiy, ikonkasini va kartochkasini
-     zamonaviy qil" — endi tugma ichida alohida "shisha" doira ichida
-     ikonka + yorqinroq gradient + bosilganda yengil "shine" effekti. */
+  /* Mijoz: "raqamlar bo'limida buyurtma tugmasini zamonaviy rang va
+     animatsiya qo'sh" — endi to'q-ko'kdan-binafshaga o'tuvchi yorqinroq
+     gradient, doimiy yumshoq "shine" o'tish animatsiyasi (qidiruv
+     tugmasidagi bilan bir xil uslub) va bosilganda jonliroq kichrayish. */
   .num-card-btn{
     position:relative;overflow:hidden;
-    background:linear-gradient(135deg, #8fa2ff 0%, #6ee7ff 100%);border:none;color:#0b0e1a;
+    background:linear-gradient(135deg, #4F8CFF 0%, #7C6CF0 55%, #a86bff 100%);border:none;color:#fff;
     font-family:'Sora',sans-serif;font-weight:800;font-size:13px;padding:9px 16px 9px 9px;border-radius:16px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;
-    box-shadow:0 8px 18px -8px rgba(110,231,255,0.55), 0 0 0 1px rgba(255,255,255,0.25) inset;
+    box-shadow:0 8px 18px -8px rgba(124,108,240,0.55), 0 0 0 1px rgba(255,255,255,0.2) inset;
     transition:transform .12s ease, box-shadow .15s ease;
   }
+  .num-card-btn::before{
+    content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,0.4), transparent);
+    transform:skewX(-18deg);animation:lsbShine 3.6s ease-in-out infinite;
+  }
   .num-card-btn-ic{
-    width:24px;height:24px;border-radius:50%;flex-shrink:0;
-    background:rgba(11,14,26,0.14);display:flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:50%;flex-shrink:0;position:relative;z-index:1;
+    background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;
   }
   .num-card-btn svg{width:14px;height:14px;flex-shrink:0;}
-  .num-card-btn:active{transform:scale(0.95);box-shadow:0 4px 10px -6px rgba(110,231,255,0.5);}
+  .num-card-btn span{position:relative;z-index:1;}
+  .num-card-btn:active{transform:scale(0.93);box-shadow:0 4px 10px -6px rgba(124,108,240,0.6);}
   /* Mijoz: klaviatura ochiq paytda "topilmadi" matni pastki menyuga
      yopishib qolmasin dedi — qo'shimcha bo'shliq qoldirildi. */
   .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;margin-bottom:110px;}
@@ -639,7 +651,6 @@
   :root[data-theme="light"] .num-card-fav{
     border:1px solid var(--line);background:var(--panel-2);color:#7A88B5;
   }
-  :root[data-theme="light"] .num-card-btn{color:#0b1a3a;}
   .num-card-fav:active svg{transform:scale(0.85);}
   .live-badge{
     display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;
@@ -1987,14 +1998,14 @@ function switchScreen(name){
   const next = document.getElementById('screen-' + name);
   const current = document.querySelector('.tg-screen.active');
   if(!next || current === next) return;
-  // Mijoz: "tez-tez bosilganda ekran otilmay qotib qolgandek
-  // ko'rinadi" — endi almashtirish boshlanishi bilan darhol zagruska
-  // (aylanuvchi halqa) ko'rsatiladi, menyu va profil header o'z
-  // joyida statik qoladi; ekran tayyor bo'lgach (bir necha animatsiya
-  // kadridan keyin) zagruska yumshoq yo'qoladi — hech qachon "qotib
-  // qolgan" his qilinmaydi.
+  // Mijoz: "kinopkalar bosganda yumshoq animatsiya bilan o'tsin, hozir
+  // juda qattiq va qotib o'tyapti" — sabab: har bir bosishda darhol
+  // to'liq ekranni yopib turadigan zagruska (spinner) chaqirilardi —
+  // bu real hech narsa yuklanmayotgan (barcha ekranlar allaqachon DOM'da
+  // tayyor) holatda ham "qattiq miltillash" his qildirar edi. Endi
+  // zagruska UMUMAN chaqirilmaydi — faqat pastdagi silliq crossfade
+  // (screenIn/screenOut) animatsiyasining o'zi ko'rinadi.
   clearTimeout(__screenVeilTimer);
-  showScreenVeil();
   // Tez-tez (ketma-ket) bosilganda eski animatsiya qoldig'i qolib
   // ketmasligi uchun — barcha "chiqib ketayotgan" belgilarni tozalab
   // boshlaymiz.
@@ -2013,11 +2024,6 @@ function switchScreen(name){
     b.classList.toggle('active', b.dataset.screen === name);
   });
   window.scrollTo({ top:0, behavior:'auto' });
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      __screenVeilTimer = setTimeout(hideScreenVeil, 120);
-    });
-  });
 }
 document.querySelectorAll('.bn-tab').forEach(btn=>{
   btn.addEventListener('click', ()=> switchScreen(btn.dataset.screen));
@@ -2794,7 +2800,7 @@ function renderCatalog(){
           <div class="num-card-price">${formatPrice(n.price)}</div>
           <button type="button" class="num-card-btn" data-id="${escapeHtml(n.id)}">
             <span class="num-card-btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4.5 4.5L19 7"/></svg></span>
-            ${escapeHtml(t('orderBtn'))}
+            <span>${escapeHtml(t('orderBtn'))}</span>
           </button>
         </div>
       </div>

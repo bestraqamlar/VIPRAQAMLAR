@@ -1701,7 +1701,6 @@
   padding:10px 12px;color:var(--text);font-size:13.5px;outline:none;transition:border-color .15s ease;
 }
 .uzx-text-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);}
-.uzx-ai-section .ai-chat-box{min-height:140px;max-height:280px;}
 .uzx-mask{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .uzx-box{
   width:42px;height:50px;text-align:center;font-size:19px;font-weight:700;
@@ -3131,21 +3130,6 @@
       </div>
     </div>
 
-    <div class="uzx-section uzx-ai-section">
-      <div class="uzx-section-title"><span class="uzx-section-ico">🤖</span> UZEX AI yordamchi</div>
-      <div class="ai-hint">
-        Masalan: <i>"oxiri 4444 bilan tugagan raqamlar bormi"</i>, <i>"5 mln dan arzon raqamlarni ko'rsat"</i>,
-        <i>"shu raqam chiqsa menga xabar ber"</i>, <i>"nimalarni kuzatyapman"</i>.
-        Bu — bosh sahifadagi AI Yordamchi bilan bir xil aqlli yordamchi, faqat shu yerga qulaylik uchun qo'yilgan.
-      </div>
-      <div class="ai-chat-box uzx-ai-chat-box" id="uzxAiChatBox">
-        <div class="ai-msg ai-msg-bot">Salom! UZEX auksioni bo'yicha savol bering — qidirib beraman, kerak bo'lsa kuzatuvga ham qo'yaman.</div>
-      </div>
-      <div class="ai-input-row">
-        <input type="text" id="uzxAiChatInput" placeholder="Masalan: oxiri 4444 bo'lgan raqam bormi...">
-        <button id="uzxAiChatSendBtn">Yuborish</button>
-      </div>
-    </div>
   </div>
 
   <div class="pane" id="paneVakansiya">
@@ -7652,111 +7636,6 @@ document.getElementById('uzxSavedRefreshBtn').addEventListener('click', uzxLoadS
    ulanadi, faqat qulaylik uchun UZEX bo'limining o'ziga qo'yilgan
    (mijoz: "chekasiga chat ai ni qo'sh"). Umumiy AI konteynerdan MUSTAQIL
    o'z suhbat tarixiga ega. ---- */
-const uzxAiChatBox = document.getElementById('uzxAiChatBox');
-const uzxAiChatInput = document.getElementById('uzxAiChatInput');
-const uzxAiChatSendBtn = document.getElementById('uzxAiChatSendBtn');
-let uzxAiConversation = [];
-
-function uzxAiAddBubble(text, cls){
-  const div = document.createElement('div');
-  div.className = 'ai-msg ' + cls;
-  div.textContent = text;
-  uzxAiChatBox.appendChild(div);
-  uzxAiChatBox.scrollTop = uzxAiChatBox.scrollHeight;
-  return div;
-}
-function uzxAiAddResultsList(title, items, total){
-  const box = document.createElement('div');
-  box.className = 'ai-results';
-  const header = document.createElement('div');
-  header.className = 'ai-msg-system';
-  header.style.textAlign = 'left';
-  header.style.marginBottom = '4px';
-  header.textContent = `${title} — jami: ${total} ta` + (items.length < total ? ` (birinchi ${items.length} tasi ko'rsatilmoqda)` : '');
-  box.appendChild(header);
-  items.forEach(it=>{
-    const row = document.createElement('div');
-    row.className = 'ai-results-row';
-    row.innerHTML = `<span class="ai-results-num">${escapeHtml(it.number || '')} ${it.label ? '· ' + escapeHtml(it.label) : ''}</span><span class="ai-results-price">${it.price ? formatPrice(it.price) : ''}</span>`;
-    box.appendChild(row);
-  });
-  uzxAiChatBox.appendChild(box);
-  uzxAiChatBox.scrollTop = uzxAiChatBox.scrollHeight;
-}
-async function uzxAiCallServer(payload){
-  const user = firebase.auth().currentUser;
-  if(!user) throw new Error('Tizimga kirilmagan.');
-  const idToken = await user.getIdToken();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(()=> controller.abort(), 28000);
-  let res;
-  try{
-    res = await fetch('/.netlify/functions/admin-ai-assistant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-  }catch(err){
-    if(err.name === 'AbortError') throw new Error("So'rov juda uzoq davom etdi. Iltimos, xabarni qisqaroq qilib qayta yozing.");
-    throw new Error('Internet aloqasida muammo: ' + err.message);
-  }finally{ clearTimeout(timeoutId); }
-  const rawText = await res.text();
-  let data;
-  try{ data = JSON.parse(rawText); }
-  catch(e){ throw new Error("Server javobi noto'g'ri formatda keldi."); }
-  if(!res.ok){
-    const errMsg = typeof data.error === 'string' ? data.error : (data.error && data.error.message) || 'Server xatosi';
-    throw new Error(errMsg);
-  }
-  return data;
-}
-function uzxAiHandleResponse(data){
-  uzxAiConversation = data.messages || uzxAiConversation;
-  if(data.status === 'done'){
-    if(data.resultsList && Array.isArray(data.resultsList.items) && data.resultsList.items.length){
-      uzxAiAddResultsList(data.resultsList.title, data.resultsList.items, data.resultsList.total);
-    }
-    if(data.reply) uzxAiAddBubble(data.reply, 'ai-msg-bot');
-    return;
-  }
-  // Xavfli amallar (o'chirish/narx o'zgartirish) UZEX mavzusiga aloqador
-  // emas, lekin agar admin shu chatda tasodifan boshqa mavzuda so'rasa
-  // ham (masalan "bazadagi ... o'chir"), tasdiqlash oynasi umumiy
-  // AI Yordamchi bo'limida ko'rsatilishi kerak — shu sabab bu yerda
-  // shunchaki ogohlantirib qo'yamiz.
-  if(data.status === 'confirm_required'){
-    uzxAiAddBubble('Bu amal tasdiqlashni talab qiladi — "AI Yordamchi" bo\'limiga o\'tib, shu yerdan tasdiqlang.', 'ai-msg-bot');
-  }
-}
-async function uzxAiSendMessage(){
-  const text = uzxAiChatInput.value.trim();
-  if(!text) return;
-  uzxAiAddBubble(text, 'ai-msg-user');
-  uzxAiChatInput.value = '';
-  uzxAiChatInput.disabled = true;
-  uzxAiChatSendBtn.disabled = true;
-  const typing = document.createElement('div');
-  typing.className = 'ai-typing';
-  typing.innerHTML = '<span class="ai-typing-dot"></span><span class="ai-typing-dot"></span><span class="ai-typing-dot"></span>';
-  uzxAiChatBox.appendChild(typing);
-  uzxAiChatBox.scrollTop = uzxAiChatBox.scrollHeight;
-  try{
-    const data = await uzxAiCallServer({ messages: uzxAiConversation, userMessage: text });
-    typing.remove();
-    uzxAiHandleResponse(data);
-  }catch(err){
-    typing.remove();
-    uzxAiAddBubble('Xato: ' + err.message, 'ai-msg-error');
-  }finally{
-    uzxAiChatInput.disabled = false;
-    uzxAiChatSendBtn.disabled = false;
-    uzxAiChatInput.focus();
-  }
-}
-uzxAiChatSendBtn.addEventListener('click', uzxAiSendMessage);
-uzxAiChatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') uzxAiSendMessage(); });
-
 async function loadWatchList(){
   const list = document.getElementById('wtList');
   list.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
