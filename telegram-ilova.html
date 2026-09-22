@@ -201,8 +201,16 @@
      bo'lishini so'radi — shu sabab bu ekranga alohida chuqur fon
      qo'shildi, kartochkalarning "shisha" effekti shu fon ustida yanada
      yorqin ko'rinadi. */
+  /* Mijoz rasm yuborib "kartochka va orqa fonni ko'rib shablon ol" dedi —
+     rasmda kartochkalar UCHUN EMAS, BUTUN ekran uchun binafsha-siyoh
+     gradient fon bor edi (yuqorida yorqinroq, pastga tushgan sari
+     to'qlashadi). Avval faqat kartochkaning o'zi shu rangga o'zgargan
+     edi, EKRAN foni eski (to'q ko'k) qolib ketgan edi — endi ekran foni
+     ham AYNAN shu shablon bo'yicha. */
   #screen-catalog{
-    background:radial-gradient(circle at 30% 0%, var(--bg-glow-2), transparent 55%);
+    background:
+      radial-gradient(ellipse 100vw 55vh at 50% -12%, rgba(160,80,255,0.55), transparent 62%),
+      linear-gradient(180deg, #3d1a72 0%, #2a1257 40%, #170b38 72%, #0f0722 100%);
     margin:0 -0px;padding-left:0;padding-right:0;
   }
   .tg-screen{display:none;padding-bottom:10px;}
@@ -254,29 +262,34 @@
     font-family:'Sora',sans-serif;font-weight:700;font-size:12.5px;padding:9px 16px;border-radius:10px;cursor:pointer;
   }
 
-  /* Har bir qator endi O'ZINING alohida, soyali kartochkasi — avvalgi
-     "bitta ramka ichida chiziqlar bilan bo'lingan ro'yxat" o'rniga. */
+  /* Mijoz rasm yuborib "profil bo'limini shunday qilamiz, bir qator
+     emas, shunga o'xshab qilamiz" dedi (1Fit ilovasining 2 ustunli
+     kategoriya katakchalari namunasi) — avvalgi "bitta qatorli ro'yxat"
+     o'rniga endi 2 USTUNLI katakcha (tile) grid: har birida rangli
+     ikonka belgisi, sarlavha va past qatorda kichik izoh matni. */
   .action-card{margin:0 16px 14px;background:transparent;border:none;box-shadow:none;overflow:visible;}
-  .action-row{
-    width:100%;display:flex;align-items:center;gap:12px;padding:14px;
-    background:var(--home-card-bg);border:1px solid var(--line);border-radius:15px;margin-bottom:9px;
+  .action-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  }
+  .action-tile{
+    display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:15px 14px 14px;
+    background:var(--home-card-bg);border:1px solid var(--line);border-radius:16px;
     color:var(--text);text-align:left;cursor:pointer;text-decoration:none;font-family:inherit;
     box-shadow:0 10px 22px -15px rgba(0,0,0,0.45), 0 2px 8px -4px rgba(0,0,0,0.26);
-    transition:transform .1s ease;
+    transition:transform .12s ease, box-shadow .15s ease;
   }
-  .action-row:last-child{margin-bottom:0;}
-  .action-row:active{background:var(--panel-2);transform:scale(0.98);}
-  .action-icon{width:36px;height:36px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
-  .action-icon svg{width:18px;height:18px;}
+  .action-tile:active{background:var(--panel-2);transform:scale(0.96);}
+  .action-icon{width:38px;height:38px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .action-icon svg{width:19px;height:19px;}
   .ic-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
   .ic-purple{background:rgba(124,108,240,0.18);color:#9C8CFF;}
   .ic-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
   .ic-amber{background:rgba(255,171,64,0.18);color:#FFAB40;}
   .ic-gray{background:var(--panel-2);color:var(--muted);}
-  .action-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-  .action-title{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;}
-  .action-sub{font-size:11.5px;color:var(--muted);}
-  .action-chevron{font-size:19px;line-height:1;color:var(--muted);flex-shrink:0;}
+  .action-text{width:100%;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .action-title{font-family:'Sora',sans-serif;font-weight:700;font-size:13px;line-height:1.25;}
+  .action-sub{font-size:11px;color:var(--muted);font-weight:600;}
+  .action-chevron{display:none;}
 
   /* ===== Bosh sahifa — yangi ("MyUZTELECOM" namunasi asosida) =====
      Yuqori o'ng burchakdagi profil chip (mijoz: "Kirish"ni olib tashla,
@@ -307,6 +320,13 @@
      tursin" — qattiq ramka/halqa (border + ring-shadow) OLIB TASHLANDI,
      o'rniga faqat tabiiy, boshqa kartochkalar kabi soya (elevation)
      qoldi, shu bilan fonga "qo'shilib ketadi". */
+  /* Mijoz: "birinchi karta otayotganda orqasidan srazi kelavaersin, hozir
+     otkazvorgandan keyin chiqib kelyabdi" — endi chiqayotgan va kirib
+     kelayotgan kartochkalar BIR VAQTDA, bitta "konveyer" harakati kabi
+     almashadi (pastga qarang: goToHomeBannerIndex() kiruvchi kartochka
+     uchun haqiqiy DOM nusxa/clone yaratadi, shu joy ustiga qo'yiladi).
+     Shu sabab tashqi konteynerga position:relative kerak. */
+  .home-banner-viewport{position:relative;}
   .home-banner{
     margin:14px 16px 10px;border-radius:24px;padding:20px 20px 18px;position:relative;overflow:hidden;
     min-height:168px;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:pan-y;
@@ -316,13 +336,7 @@
        matn emas, BUTUN katta kartochka (fon/gradient/"Tavsiya etiladi"
        yorlig'i bilan birga) chiqib ketadi va yangi raqam bilan YANGI
        kartochka kirib keladi — haqiqiy "karta almashish" effekti. */
-    /* Mijoz: "animatsiya kerak emas, ozi shunchaki otib keyingisi kirsin" —
-       avvalgi variantda o'tish yarmida kartochka opacity:0 bo'lib TO'LIQ
-       ko'rinmay qolar edi (haqiqiy bo'sh kadr chizilardi). Endi opacity
-       UMUMAN animatsiya qilinmaydi — kartochka doim to'liq ko'rinadi,
-       faqat oddiy va tez transform (joylashuv) bilan chapga/o'ngga
-       "o'tib" ketadi va keyingisi o'z joyidan kiradi. */
-    transition:transform .22s cubic-bezier(.4,0,.2,1);
+    transition:transform .34s cubic-bezier(.4,0,.2,1);
     /* DIQQAT: faqat opacity animatsiya qilinadi (transform EMAS) — JS
        slayd effekti xuddi shu (.home-banner) elementning transform'ini
        boshqaradi, ikkalasi bir vaqtda ishlasa to'qnashib qolardi. */
@@ -331,8 +345,10 @@
   @keyframes bannerFadeIn{from{opacity:0;}to{opacity:1;}}
   .home-banner:active{cursor:grabbing;}
   .home-banner.banner-dragging{cursor:grabbing;}
-  .home-banner.slide-out{transform:translateX(-100%);}
-  .home-banner.slide-in{transform:translateX(100%);}
+  /* Kirib kelayotgan (clone) kartochka — asl kartochka ustiga, aynan
+     shu joyga qo'yiladi, shu bilan ikkalasi bitta joyda, bir vaqtda
+     harakatlanadi (uzluksiz, bo'shliqsiz almashinuv). */
+  .home-banner-incoming{position:absolute;top:0;left:0;right:0;z-index:2;pointer-events:none;}
   .home-banner-pill{
     display:inline-flex;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,0.2);color:#fff;
     font-family:'Sora',sans-serif;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;
@@ -555,15 +571,17 @@
   }
   .op-chip.active .op-chip-count{color:#fff;background:var(--accent);opacity:.9;}
   .catalog-list{margin:0 16px;display:flex;flex-direction:column;gap:14px;}
-  /* ---- "Neon Shisha" kartochka dizayni — mijoz 10 ta variant orasidan
-       aynan shuni tanladi ("1 chi dizaynni qil, bir-birga xuddi shunday
-       qil"), fon/soyalari bilan birga (#screen-catalog fonига qarang). ---- */
+  /* ---- "Avtomobil raqami" (plate) uslubidagi yangi kartochka dizayni —
+       mijoz rasm yuborib "shu ko'rinishga o'zgartiramiz" dedi: to'q
+       binafsha-siyohrang gradient fon, telefon raqami OQ, davlat raqam
+       belgisi (plate) uslubidagi rangli katakchada, narx pastda yirik
+       oq matn bilan, kichik operator belgisi va o'ng tomonda bosilishini
+       bildiruvchi strelka (>). ---- */
   .num-card{
-    position:relative;border-radius:22px;padding:18px 19px 16px;overflow:hidden;
-    background:linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02)), var(--home-card-bg);
-    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
-    border:1px solid var(--card-border);
-    box-shadow:0 0 0 1px rgba(140,160,255,0.08), 0 0 30px rgba(90,110,255,0.22), 0 16px 34px -12px rgba(0,0,0,0.6), 0 4px 14px -6px rgba(0,0,0,0.4);
+    position:relative;border-radius:22px;padding:16px 16px 15px;overflow:hidden;
+    background:linear-gradient(155deg, #4a2f82 0%, #35226b 45%, #241350 100%);
+    border:1px solid rgba(190,160,255,0.22);
+    box-shadow:0 0 0 1px rgba(190,160,255,0.06), 0 18px 34px -14px rgba(20,8,50,0.65), 0 4px 14px -6px rgba(20,8,50,0.5);
     transition:transform .12s ease;
     /* Mijoz: "raqam qidirish bo'limi ham juda zerikarli" — har bir
        kartochka ro'yxatga chiqqanda yengil pastdan-yuqoriga chiqadi.
@@ -571,17 +589,41 @@
        kichraytirish (scale) animatsiyadan keyin ham normal ishlayveradi. */
     animation:cardPopIn .3s cubic-bezier(.22,.85,.32,1) backwards;
   }
+  .num-card::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 8% -10%, rgba(255,255,255,0.16), transparent 55%);
+  }
   .num-card:nth-child(1){animation-delay:.02s;}
   .num-card:nth-child(2){animation-delay:.06s;}
   .num-card:nth-child(3){animation-delay:.10s;}
   .num-card:nth-child(4){animation-delay:.14s;}
   .num-card:nth-child(5){animation-delay:.18s;}
   .num-card:active{transform:scale(0.985);}
-  .num-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
-  .num-card-number{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:.2px;color:var(--text);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  .num-card-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .num-card-top-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  /* "Davlat raqam belgisi" (plate) — OQ, dumaloq burchakli katakcha,
+     ichida qora/quyuq-ko'k qalin raqam matni va kichik O'zbekiston
+     bayrog'i (dekorativ uslub — bu rasmiy hujjat emas, faqat vizual
+     shablon). */
+  /* Mijoz: "raqam orqasidagi oq fon kerak emas" — plastinka (plate)
+     endi ALOHIDA oq katakcha EMAS, faqat kartochka foni ustida to'g'ridan
+     -to'g'ri turadi (fon YO'Q), raqam matni esa OQ (kartochka to'q
+     binafsha-siyoh fon bo'lgani uchun shunday ko'rinadi). */
+  .num-card-plate{
+    display:inline-flex;align-items:center;gap:0;background:transparent;
+    max-width:calc(100% - 40px);
   }
+  .num-card-plate-dot{color:#fff;font-weight:900;font-size:15px;opacity:.5;margin:0 5px;flex-shrink:0;}
+  .num-card-plate-num{
+    font-family:'Sora',sans-serif;font-weight:800;font-size:17px;letter-spacing:.4px;color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-shadow:0 2px 10px rgba(0,0,0,0.25);
+  }
+  .num-card-chevron{
+    flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.10);
+  }
+  .num-card-chevron svg{width:14px;height:14px;}
   .num-card-meta{
     display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:#c3ccff;font-weight:800;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.10);border-radius:8px;padding:4px 9px 4px 7px;
@@ -589,13 +631,21 @@
   }
   .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px var(--op-color, var(--accent));background:var(--op-color, var(--accent));}
   .num-card-bottom{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding-top:14px;
-    border-top:1px solid rgba(255,255,255,0.08);
+    position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:13px;
+    border-top:1px solid rgba(255,255,255,0.14);
   }
-  :root[data-theme="light"] .num-card-bottom{border-top-color:rgba(20,45,110,0.08);}
+  .num-card-price-col{display:flex;flex-direction:column;gap:5px;min-width:0;}
   .num-card-price{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;flex-shrink:0;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:#fff;white-space:nowrap;flex-shrink:0;
   }
+  /* Mijoz rasmida har kartada kichik ikonka+son ("ko'rish soni" kabi)
+     "stat" qatori bor edi — bizda ko'rish sonini kuzatish yo'q, shu
+     sabab AYNAN o'sha vizual uslub operator nomini ko'rsatish uchun
+     ishlatiladi (soxta raqam o'ylab topilmaydi). */
+  .num-card-stat{
+    display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:rgba(255,255,255,0.65);
+  }
+  .num-card-stat svg{width:13px;height:13px;flex-shrink:0;}
   /* Mijoz: "raqamlar bo'limida buyurtma tugmasini zamonaviy rang va
      animatsiya qo'sh" — endi to'q-ko'kdan-binafshaga o'tuvchi yorqinroq
      gradient, doimiy yumshoq "shine" o'tish animatsiyasi (qidiruv
@@ -631,26 +681,21 @@
   }
   .cl-search-spin svg{width:20px;height:20px;color:var(--accent);}
   .num-card-fav{
-    width:34px;height:34px;border-radius:50%;flex-shrink:0;padding:0;
-    border:1px solid rgba(255,255,255,0.24);background:rgba(255,255,255,0.10);color:#dce2ff;cursor:pointer;
+    width:30px;height:30px;border-radius:50%;flex-shrink:0;padding:0;
+    border:1px solid rgba(255,255,255,0.24);background:rgba(255,255,255,0.10);color:#e4e1ff;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
   }
-  .num-card-fav svg{width:17px;height:17px;transition:transform .15s ease;}
-  .num-card-fav.active{color:var(--danger);}
+  .num-card-fav svg{width:15px;height:15px;transition:transform .15s ease;}
+  .num-card-fav.active{color:#ff6b8a;}
   .num-card-fav.active svg{transform:scale(1.12);}
   /* Mijoz: "oq rang tanlaganda kartochka fon bilan qo'shilib ketyabdi" —
      "Neon Shisha" kartochka qorong'u fon uchun mo'ljallangan edi (oq/shaffof
      shisha effekti), och rejimda esa oq sahifa ustida deyarli ko'rinmas edi.
      Och rejim uchun aniq, quyuq soyali OQ kartochka. */
-  :root[data-theme="light"] .num-card{
-    background:linear-gradient(160deg, #ffffff 0%, #f7f9ff 100%);
-    border:1px solid var(--line);
-    box-shadow:0 0 0 1px rgba(20,45,110,0.05), 0 16px 32px -14px rgba(30,50,110,0.22), 0 4px 14px -6px rgba(30,50,110,0.14);
-  }
-  :root[data-theme="light"] .num-card-meta{color:#3d4d8a;background:rgba(20,45,110,0.06);border-color:rgba(20,45,110,0.08);}
-  :root[data-theme="light"] .num-card-fav{
-    border:1px solid var(--line);background:var(--panel-2);color:#7A88B5;
-  }
+  /* Mijoz rasm yuborib aynan shu binafsha-siyoh "plate" dizaynni tanladi —
+     bu endi BRANDED kartochka uslubi, mavzu (och/tungi) rejimidan
+     qat'iy nazar bir xil ko'rinadi (xuddi bosh sahifadagi banner kabi),
+     shu sabab och rejim uchun alohida oq fon endi YO'Q. */
   .num-card-fav:active svg{transform:scale(0.85);}
   .live-badge{
     display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;
@@ -1080,14 +1125,16 @@
        (raqam + tarif + narx/eski narx), keyin 2x2 tezkor ikonka
        katakchalari. ================= -->
   <section class="tg-screen active" id="screen-home">
-    <div class="home-banner" id="homeBanner">
-      <div class="home-banner-pill" data-i18n="bannerRecommended">Tavsiya etiladi</div>
-      <div class="home-banner-inner" id="homeBannerBody">
-        <div class="home-banner-number" id="homeBannerNumber">—</div>
-        <div class="home-banner-tariff" id="homeBannerTariff"></div>
-        <div class="home-banner-price-row">
-          <div class="home-banner-price" id="homeBannerPrice"></div>
-          <div class="home-banner-old-price" id="homeBannerOldPrice"></div>
+    <div class="home-banner-viewport">
+      <div class="home-banner" id="homeBanner">
+        <div class="home-banner-pill" data-i18n="bannerRecommended">Tavsiya etiladi</div>
+        <div class="home-banner-inner" id="homeBannerBody">
+          <div class="home-banner-number" id="homeBannerNumber">—</div>
+          <div class="home-banner-tariff" id="homeBannerTariff"></div>
+          <div class="home-banner-price-row">
+            <div class="home-banner-price" id="homeBannerPrice"></div>
+            <div class="home-banner-old-price" id="homeBannerOldPrice"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1198,51 +1245,71 @@
 
     <div class="section-title" data-i18n="sectionsTitle">Bo'limlar</div>
     <div class="action-card">
-      <button type="button" class="action-row" id="profOrders">
-        <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="qaOrdersTitle">Buyurtmalarim</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="action-row" id="profContracts">
-        <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h1"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="contractsTitle">Shartnomalarim</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="action-row" id="profFavorites">
-        <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="favoritesTitle">Sevimli raqamlarim</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="action-row" id="profInstallment">
-        <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="installmentTitle">Bo'lib to'lashga raqamlar</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="action-row" id="profVacancies">
-        <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="vacanciesTitle">Vakansiyalar</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </button>
-      <button type="button" class="action-row" id="profBot">
-        <span class="action-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="profBotTitle">Bot orqali raqam tanlash</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </button>
-      <a href="#" class="action-row" id="profContact">
-        <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="qaContactTitle">Call Markaz</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </a>
-      <a href="#" class="action-row" id="profTelegram">
-        <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="profTelegramTitle">Telegram kanal</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </a>
-      <a href="#" class="action-row" id="profInstagram">
-        <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
-        <span class="action-text"><span class="action-title" data-i18n="profInstagramTitle">Instagram kanal</span></span>
-        <span class="action-chevron">&rsaquo;</span>
-      </a>
+      <div class="action-grid">
+        <button type="button" class="action-tile" id="profOrders">
+          <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="qaOrdersTitle">Buyurtmalarim</span>
+            <span class="action-sub" data-i18n="profOrdersSub">Tarixni ko'rish</span>
+          </span>
+        </button>
+        <button type="button" class="action-tile" id="profContracts">
+          <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h1"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="contractsTitle">Shartnomalarim</span>
+            <span class="action-sub" data-i18n="profContractsSub">Hujjatlar</span>
+          </span>
+        </button>
+        <button type="button" class="action-tile" id="profFavorites">
+          <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="favoritesTitle">Sevimli raqamlarim</span>
+            <span class="action-sub" data-i18n="profFavoritesSub">Saqlanganlar</span>
+          </span>
+        </button>
+        <button type="button" class="action-tile" id="profInstallment">
+          <span class="action-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="installmentTitle">Bo'lib to'lashga raqamlar</span>
+            <span class="action-sub" data-i18n="profInstallmentSub">Imkoniyat</span>
+          </span>
+        </button>
+        <button type="button" class="action-tile" id="profVacancies">
+          <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="vacanciesTitle">Vakansiyalar</span>
+            <span class="action-sub" data-i18n="profVacanciesSub">Ish o'rinlari</span>
+          </span>
+        </button>
+        <button type="button" class="action-tile" id="profBot">
+          <span class="action-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="profBotTitle">Bot orqali raqam tanlash</span>
+            <span class="action-sub" data-i18n="profBotSub">Tezkor</span>
+          </span>
+        </button>
+        <a href="#" class="action-tile" id="profContact">
+          <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="qaContactTitle">Call Markaz</span>
+            <span class="action-sub" data-i18n="profContactSub">Bog'lanish</span>
+          </span>
+        </a>
+        <a href="#" class="action-tile" id="profTelegram">
+          <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="profTelegramTitle">Telegram kanal</span>
+            <span class="action-sub" data-i18n="profTelegramSub">Yangiliklar</span>
+          </span>
+        </a>
+        <a href="#" class="action-tile" id="profInstagram">
+          <span class="action-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+          <span class="action-text">
+            <span class="action-title" data-i18n="profInstagramTitle">Instagram kanal</span>
+            <span class="action-sub" data-i18n="profInstagramSub">Postlar</span>
+          </span>
+        </a>
+      </div>
     </div>
 
     <div class="footer-note" data-i18n="footerNote">VIP Raqamlar &middot; Mini App</div>
@@ -1621,7 +1688,7 @@ function errorFeedback(){ haptic('error'); }
 // ulash shart emas. Capture bosqichida ishlaydi, shu sabab asosiy click
 // ishlovchilardan OLDIN chaqiriladi va ularga xalaqit bermaydi.
 document.addEventListener('click', function(e){
-  const el = e.target.closest('button, .bn-tab, a.action-row');
+  const el = e.target.closest('button, .bn-tab, a.action-tile');
   if(el && !el.disabled) tapFeedback();
 }, true);
 
@@ -1665,6 +1732,12 @@ const TRANSLATIONS = {
     sectionsTitle: "Bo'limlar",
     profBotTitle: "Bot orqali raqam tanlash",
     profTelegramTitle: "Telegram kanal", profInstagramTitle: "Instagram kanal",
+    // Mijoz: "profil bo'limini 2 ustunli katakcha qilamiz" — har bir
+    // katakchadagi kichik izoh matni (1Fit namunasidagi "count" o'rniga).
+    profOrdersSub: "Tarixni ko'rish", profContractsSub: "Hujjatlar",
+    profFavoritesSub: "Saqlanganlar", profInstallmentSub: "Imkoniyat",
+    profVacanciesSub: "Ish o'rinlari", profBotSub: "Tezkor",
+    profContactSub: "Bog'lanish", profTelegramSub: "Yangiliklar", profInstagramSub: "Postlar",
     footerNote: "VIP Raqamlar · Mini App",
     modalSub: "Xavfsizlik uchun telefon raqamingiz VA sotib olingan/buyurtma berilgan raqamning oxirgi 4 raqami kerak.",
     fieldPhone: "Telefon raqami", fieldLast4: "Raqamning oxirgi 4 ta raqami",
@@ -1778,6 +1851,10 @@ const TRANSLATIONS = {
     sectionsTitle: "Разделы",
     profBotTitle: "Выбор номера через бота",
     profTelegramTitle: "Telegram канал", profInstagramTitle: "Instagram канал",
+    profOrdersSub: "Смотреть историю", profContractsSub: "Документы",
+    profFavoritesSub: "Сохранённые", profInstallmentSub: "Возможность",
+    profVacanciesSub: "Вакансии", profBotSub: "Быстро",
+    profContactSub: "Связаться", profTelegramSub: "Новости", profInstagramSub: "Посты",
     footerNote: "VIP Raqamlar · Mini App",
     modalSub: "Для безопасности нужен ваш номер телефона И последние 4 цифры купленного/заказанного номера.",
     fieldPhone: "Номер телефона", fieldLast4: "Последние 4 цифры номера",
@@ -2445,14 +2522,18 @@ let homeBannerTimer = null;
 let homeBannerDragStartX = 0;
 let homeBannerDragDX = 0;
 let homeBannerDragging = false;
+let homeBannerTransitioning = false;
 
-function renderHomeBannerFrame(){
-  const numberEl = document.getElementById('homeBannerNumber');
-  const tariffEl = document.getElementById('homeBannerTariff');
-  const priceEl = document.getElementById('homeBannerPrice');
-  const oldPriceEl = document.getElementById('homeBannerOldPrice');
+// root ichida (ID emas, KLASS bo'yicha) matnlarni to'ldiradi — shu bilan
+// bitta funksiya ham asosiy kartochka (#homeBanner), ham vaqtincha
+// yaratiladigan "kirib kelayotgan" clone kartochka uchun ishlatiladi.
+function fillBannerNode(root, item){
+  if(!root) return;
+  const numberEl = root.querySelector('.home-banner-number');
+  const tariffEl = root.querySelector('.home-banner-tariff');
+  const priceEl = root.querySelector('.home-banner-price');
+  const oldPriceEl = root.querySelector('.home-banner-old-price');
   if(!numberEl) return;
-  const item = homeBannerItems[homeBannerIdx];
   if(!item){
     numberEl.textContent = '—';
     if(tariffEl) tariffEl.textContent = '';
@@ -2465,6 +2546,9 @@ function renderHomeBannerFrame(){
   if(priceEl) priceEl.textContent = formatPrice(item.price);
   const hasOldPrice = item.oldPrice && item.oldPrice > item.price;
   if(oldPriceEl) oldPriceEl.textContent = hasOldPrice ? formatPrice(item.oldPrice) : '';
+}
+function renderHomeBannerFrame(){
+  fillBannerNode(document.getElementById('homeBanner'), homeBannerItems[homeBannerIdx]);
 }
 function renderHomeBannerDots(){
   const dotsEl = document.getElementById('homeBannerDots');
@@ -2495,47 +2579,55 @@ function refreshHomeBannerItems(){
 // (avtomatik aylanish doim shu holatda) — avvalgidek chapga chiqadi,
 // o'ngdan kiradi; oldingisiga (mijoz o'ngga surganda) — ANIQ TESKARISI:
 // o'ngga chiqadi, chapdan kiradi — qo'l harakati bilan uzluksiz mos keladi.
+// Mijoz: "birinchi karta otayotganda orqasidan srazi kelavaersin hozir
+// otkazvorgandan keyin chiqib kelyabdi va uda oddiy sen zamonaviy
+// animatsiya qosh" — eskisida chiqish tugagach (220ms KUTIB), keyingina
+// yangi kartochka o'z joyiga "sakrab" kirar edi — shu oraliqda ko'rinadigan
+// bo'shliq/pauza bor edi. Endi kirib kelayotgan kartochka uchun HAQIQIY
+// DOM nusxa (clone) darhol yaratiladi, eskisi ustiga (.home-banner-viewport
+// ichida, position:absolute bilan) qo'yiladi va IKKALASI BIR VAQTDA — eskisi
+// chiqib, yangisi qarama-qarshi tomondan kirib — harakatlanadi. Natijada
+// hech qanday kutish/bo'shliq bo'lmaydi, "konveyer lentasi" kabi uzluksiz.
 function goToHomeBannerIndex(direction){
   if(homeBannerItems.length <= 1) return;
-  // Mijoz: "butun kartochka chiqib-kirsin" — endi butun tashqi kartochka
-  // (fon/gradient/"Tavsiya etiladi" yorlig'i bilan birga) harakatlanadi,
-  // faqat ichidagi matn EMAS.
+  if(homeBannerTransitioning) return; // ikkita o'tish bir-biriga aralashmasin
   const cardEl = document.getElementById('homeBanner');
-  if(!cardEl) return;
-  // Mijoz: "animatsiya kerak emas, ozi shunchaki otib keyingisi kirsin" —
-  // endi opacity animatsiya qilinmaydi (hech qachon to'liq ko'rinmay
-  // qolmaydi), faqat oddiy, tez transform bilan kartochka butunlay
-  // chetga "o'tib" ketadi va yangisi qarama-qarshi tomondan kiradi.
+  const viewport = cardEl && cardEl.parentElement;
+  if(!cardEl || !viewport) return;
+  homeBannerTransitioning = true;
+
   const exitX = direction > 0 ? '-100%' : '100%';
   const enterX = direction > 0 ? '100%' : '-100%';
-  cardEl.classList.add('slide-out');
+  const nextIdx = (homeBannerIdx + direction + homeBannerItems.length) % homeBannerItems.length;
+
+  const cloneEl = cardEl.cloneNode(true);
+  cloneEl.removeAttribute('id');
+  // cloneNode(true) ichki ID'larni ham nusxalaydi — shu bilan sahifada
+  // vaqtincha bir xil ID ikki marta paydo bo'lmasligi uchun tozalanadi.
+  cloneEl.querySelectorAll('[id]').forEach(el=> el.removeAttribute('id'));
+  cloneEl.classList.add('home-banner-incoming');
+  cloneEl.style.animation = 'none';
+  cloneEl.style.transition = 'none';
+  cloneEl.style.transform = 'translateX(' + enterX + ')';
+  fillBannerNode(cloneEl, homeBannerItems[nextIdx]);
+  viewport.appendChild(cloneEl);
+  void cloneEl.offsetWidth; // reflow — boshlang'ich (chetdagi) holatni "muhrlaydi"
+
+  cloneEl.style.transition = '';
   cardEl.style.transform = 'translateX(' + exitX + ')';
+  cloneEl.style.transform = 'translateX(0)';
+
   setTimeout(()=>{
-    homeBannerIdx = (homeBannerIdx + direction + homeBannerItems.length) % homeBannerItems.length;
+    homeBannerIdx = nextIdx;
     renderHomeBannerFrame();
     renderHomeBannerDots();
-    cardEl.classList.remove('slide-out');
-    cardEl.classList.add('slide-in');
-    // MUHIM TUZATISH: bu yergacha `transition` HALI YOQIQ edi, shu sabab
-    // pastdagi transform o'zgarishi (enterX ga) CSS orqali ESKI holatdan
-    // (-100%/100%, ya'ni chiqib ketgan joyidan) YANGI holatga (qarama-qarshi
-    // tomon) ANIMATSIYA qilib "sirg'alib o'tardi" — go'yo eski kartochka
-    // "oxiriga borib, qaytib kelib" yangi raqam bilan o'rtadan o'tayotgandek
-    // ko'rinardi. Mijoz: "bir-biriga umuman aralashmasin, instagram post
-    // o'tgandek bo'lsin" — endi bu SAKRASH (transition:none) bilan DARHOL,
-    // hech qanday ko'rinadigan harakatsiz amalga oshiriladi, keyin ANIQ
-    // BITTA yo'nalishda (enterX'dan 0'ga) tekis kiradi.
     cardEl.style.transition = 'none';
-    cardEl.style.transform = 'translateX(' + enterX + ')';
-    void cardEl.offsetWidth; // reflow — sakrashni "muhrlab" qo'yadi
+    cardEl.style.transform = '';
+    void cardEl.offsetWidth; // reflow — asl kartochkani sezilmasdan joyiga qaytaradi
     cardEl.style.transition = '';
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        cardEl.classList.remove('slide-in');
-        cardEl.style.transform = '';
-      });
-    });
-  }, 220);
+    cloneEl.remove();
+    homeBannerTransitioning = false;
+  }, 340);
 }
 function rotateHomeBanner(){ goToHomeBannerIndex(1); }
 refreshHomeBannerItems();
@@ -2785,19 +2877,33 @@ function renderCatalog(){
     const heartFill = favActive ? 'currentColor' : 'none';
     // Mijoz: mijozga bu qayerdan kelganini (statik/jonli) aytilmasin — belgi
     // hech qachon ko'rsatilmaydi, hammasi bir xil "+998 xx-xxx-xx-xx" bo'lib chiqadi.
+    const phoneDisplay = formatPhoneDisplay(n.number || '');
+    // "Plate" (davlat raqam belgisi) uslubidagi guruhlash — mijoz yuborgan
+    // rasmdagi kabi ("70 003 ZZZ" uslubida bo'sh joy bilan ajratilgan).
+    const plateText = phoneDisplay.replace('+998 ', '').split('-').join(' ');
     return `
       <div class="num-card" style="--op-color:${color};">
         <div class="num-card-top">
-          <div class="num-card-main">
-            <div class="num-card-number">${escapeHtml(formatPhoneDisplay(n.number || ''))}</div>
-            <div class="num-card-meta"><span class="num-card-op-dot" style="background:${color};"></span>${escapeHtml(n.operator || '')}</div>
+          <div class="num-card-plate">
+            <span class="num-card-plate-dot">&middot;</span>
+            <span class="num-card-plate-num">${escapeHtml(plateText)}</span>
+            <span class="num-card-plate-dot">&middot;</span>
           </div>
-          <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
-            <svg viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-          </button>
+          <div class="num-card-top-actions">
+            <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
+              <svg viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            </button>
+            <span class="num-card-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </div>
         </div>
         <div class="num-card-bottom">
-          <div class="num-card-price">${formatPrice(n.price)}</div>
+          <div class="num-card-price-col">
+            <div class="num-card-price">${formatPrice(n.price)}</div>
+            <div class="num-card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="2.3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
+              ${escapeHtml(n.operator || '')}
+            </div>
+          </div>
           <button type="button" class="num-card-btn" data-id="${escapeHtml(n.id)}">
             <span class="num-card-btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4.5 4.5L19 7"/></svg></span>
             <span>${escapeHtml(t('orderBtn'))}</span>
