@@ -7408,7 +7408,20 @@ async function uzxSearch(){
     const items = data.items || [];
     if(!items.length){
       uzxSetStatus('Topilmadi', 'err');
-      box.innerHTML = '<div class="wt-empty">Bu shartlar bo\'yicha auksionda raqam yo\'q</div>';
+      // Mijoz: "haqiqatdan API'dan raqam kelyabdimi ko'r" — agar UZEX'dan
+      // xom ma'lumot kelgan-u, lekin bizning tozalashimizdan keyin 0 ta
+      // chiqqan bo'lsa (masalan UZEX maydon nomlarini o'zgartirgan
+      // bo'lsa), server buni `data.debug` orqali ko'rsatadi — shu holatda
+      // sababni JIM yashirmasdan, aniq ko'rsatamiz.
+      if(data.debug){
+        box.innerHTML = `<div class="wt-empty">
+          UZEX'dan ${escapeHtml(String(data.debug.rawSampleKeys ? 'ma\'lumot keldi, lekin kutilgan formatda emas' : 'javob keldi'))}.<br>
+          <span style="font-size:11px;opacity:.8;">Kelgan maydonlar: ${escapeHtml((data.debug.rawSampleKeys||[]).join(', '))}</span><br>
+          <span style="font-size:10.5px;opacity:.6;word-break:break-all;">${escapeHtml(data.debug.rawSample || '')}</span>
+        </div>`;
+      }else{
+        box.innerHTML = '<div class="wt-empty">Bu shartlar bo\'yicha auksionda raqam yo\'q (UZEX\'dan bo\'sh natija keldi)</div>';
+      }
       return;
     }
 

@@ -88,7 +88,8 @@
        kerak, zamonaviy rang qil" — Bosh sahifa kartochkalari endi
        fondan aniq ajralib turadigan, o'zining zamonaviy rangiga ega. */
     --home-banner-bg:linear-gradient(135deg, #223066 0%, #3d3f9e 48%, #7c3aed 100%);
-    --home-card-bg:linear-gradient(160deg, #1c2138 0%, #12152a 100%);
+    --home-card-bg:linear-gradient(160deg, #262c4e 0%, #151831 100%);
+    --card-border:rgba(148,168,255,0.28);
     /* Mijoz: "orqa foni to'q ko'k bo'lsin" — endi to'ldirilgan katakcha
        oq emas, to'q ko'k fon bilan chiqadi (matn oq, aniq ko'rinadi). */
     --digit-filled-bg:#15234f;
@@ -122,6 +123,7 @@
     --blob-3:transparent;
     --home-banner-bg:linear-gradient(135deg, #cfe0ff 0%, #dccdfb 55%, #ffd0e6 100%);
     --home-card-bg:#FFFFFF;
+    --card-border:rgba(20,45,110,0.14);
     /* Mijoz: "kunduzgi (yorug') mavzuga o'tganda katakka yozilgan raqam
        umuman ko'rinmayabdi" — sabab: to'ldirilgan katakcha OQ fon +
        OQ matn edi (faqat to'q fonda ko'rinardi). Yorug' mavzuda endi
@@ -138,9 +140,9 @@
        yuqori-o'ngda, yashil pastda) — butun ilova bo'ylab bir xil
        "shisha" muhitini yaratadi. Yorug' mavzuda bular shaffof. */
     background-image:
-      radial-gradient(circle at 6% -4%, var(--blob-1), transparent 32%),
-      radial-gradient(circle at 104% 22%, var(--blob-2), transparent 34%),
-      radial-gradient(circle at -6% 84%, var(--blob-3), transparent 32%),
+      radial-gradient(circle at 6% -4%, var(--blob-1), transparent 52%),
+      radial-gradient(circle at 104% 22%, var(--blob-2), transparent 55%),
+      radial-gradient(circle at -6% 84%, var(--blob-3), transparent 52%),
       radial-gradient(ellipse 70vw 50vh at 50% -10%, var(--bg-glow), transparent 60%);
     transition:background-color .2s ease, color .2s ease;
     color:var(--text);
@@ -353,11 +355,11 @@
      turishi kerak" — katakchalarga ham (banner kabi) soya qo'shildi. */
   .home-grid-cell{
     position:relative;overflow:hidden;
-    background:var(--home-card-bg);border:1px solid var(--line);border-radius:20px;padding:18px;
+    background:var(--home-card-bg);border:1px solid var(--card-border);border-radius:20px;padding:18px;
     display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-height:118px;
     cursor:pointer;text-align:left;font-family:inherit;color:var(--text);
     transition:transform .1s ease, box-shadow .15s ease, border-color .15s ease;
-    box-shadow:0 12px 26px -16px rgba(0,0,0,0.45), 0 3px 10px -5px rgba(0,0,0,0.28);
+    box-shadow:0 14px 28px -16px rgba(0,0,0,0.55), 0 4px 12px -5px rgba(0,0,0,0.35);
   }
   /* Mijoz: "to'q menyuda kartochkalar zamonaviy emas" — har bir katakcha
      endi o'zining ikonka rangida yengil "urg'u chizig'i" (accent stripe)
@@ -379,9 +381,13 @@
   #qaInstallmentHome{--hg-accent:#4F8CFF;box-shadow:0 12px 26px -16px rgba(79,140,255,0.35), 0 3px 10px -5px rgba(0,0,0,0.28);}
   #qaOrdersHome{--hg-accent:#2ECC81;box-shadow:0 12px 26px -16px rgba(46,196,129,0.35), 0 3px 10px -5px rgba(0,0,0,0.28);}
   #qaProgress{--hg-accent:var(--line);}
-  .home-grid-cell-disabled{opacity:.55;cursor:default;}
+  .home-grid-cell-disabled{opacity:.65;cursor:default;}
   .home-grid-cell-disabled:active{transform:none;}
   .home-grid-cell-disabled::before{opacity:.25;}
+  .home-grid-soon{
+    position:absolute;top:12px;right:12px;font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;
+    color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:3px 7px;
+  }
   /* Mijoz: "oq menyuga o'tganda kartochkalar bir xilroq bo'lib turibdi,
      ajralib turmayabdi" — endi (boshqa kartochkalar — num-card — kabi)
      yorug' mavzuda ANIQ, quyuq soyali OQ kartochka, orqa fondan yaqqol
@@ -537,10 +543,10 @@
        qil"), fon/soyalari bilan birga (#screen-catalog fonига qarang). ---- */
   .num-card{
     position:relative;border-radius:22px;padding:18px 19px 16px;overflow:hidden;
-    background:linear-gradient(145deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02));
+    background:linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02)), var(--home-card-bg);
     -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
-    border:1px solid rgba(140,160,255,0.35);
-    box-shadow:0 0 0 1px rgba(140,160,255,0.08), 0 0 30px rgba(90,110,255,0.22), 0 14px 30px -10px rgba(0,0,0,0.5);
+    border:1px solid var(--card-border);
+    box-shadow:0 0 0 1px rgba(140,160,255,0.08), 0 0 30px rgba(90,110,255,0.22), 0 16px 34px -12px rgba(0,0,0,0.6), 0 4px 14px -6px rgba(0,0,0,0.4);
     transition:transform .12s ease;
   }
   .num-card:active{transform:scale(0.985);}
@@ -549,9 +555,17 @@
     font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:.2px;color:var(--text);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .num-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11.5px;color:#9db2ff;font-weight:700;}
-  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px var(--op-color, var(--accent));}
-  .num-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;}
+  .num-card-meta{
+    display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:#c3ccff;font-weight:800;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.10);border-radius:8px;padding:4px 9px 4px 7px;
+    text-transform:uppercase;letter-spacing:.3px;
+  }
+  .num-card-op-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px var(--op-color, var(--accent));background:var(--op-color, var(--accent));}
+  .num-card-bottom{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding-top:14px;
+    border-top:1px solid rgba(255,255,255,0.08);
+  }
+  :root[data-theme="light"] .num-card-bottom{border-top-color:rgba(20,45,110,0.08);}
   .num-card-price{
     font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;flex-shrink:0;
   }
@@ -578,7 +592,7 @@
   .catalog-loading .boot-ring{margin:0 auto 12px;}
   .num-card-fav{
     width:34px;height:34px;border-radius:50%;flex-shrink:0;padding:0;
-    border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#c9d2ff;cursor:pointer;
+    border:1px solid rgba(255,255,255,0.24);background:rgba(255,255,255,0.10);color:#dce2ff;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
   }
   .num-card-fav svg{width:17px;height:17px;transition:transform .15s ease;}
@@ -593,7 +607,7 @@
     border:1px solid var(--line);
     box-shadow:0 0 0 1px rgba(20,45,110,0.05), 0 16px 32px -14px rgba(30,50,110,0.22), 0 4px 14px -6px rgba(30,50,110,0.14);
   }
-  :root[data-theme="light"] .num-card-meta{color:#5B6B9E;}
+  :root[data-theme="light"] .num-card-meta{color:#3d4d8a;background:rgba(20,45,110,0.06);border-color:rgba(20,45,110,0.08);}
   :root[data-theme="light"] .num-card-fav{
     border:1px solid var(--line);background:var(--panel-2);color:#7A88B5;
   }
@@ -1015,6 +1029,7 @@
       <!-- Hali ishlab chiqilmagan bo'lim — mijoz ATAYLAB bosilmaydigan,
            funksiyasiz joy-tutuvchi qilib qoldirishni so'radi. -->
       <button type="button" class="home-grid-cell home-grid-cell-disabled" id="qaProgress" disabled>
+        <span class="home-grid-soon" data-i18n="qaProgressSoon">Tez orada</span>
         <span class="home-grid-icon hg-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
         <span class="home-grid-label" data-i18n="qaProgressTitle">MyUZTELECOM jarayonda...</span>
       </button>
@@ -1539,6 +1554,7 @@ const TRANSLATIONS = {
     loginBtn: "Kirish",
     bannerRecommended: "Tavsiya etiladi",
     qaProgressTitle: "MyUZTELECOM jarayonda...",
+    qaProgressSoon: "Tez orada",
     catalogPlaceholder: "Raqam qidirish (masalan 90 123)",
     chipAll: "Barchasi",
     catalogLoadingText: "Raqamlar yuklanmoqda…",
@@ -1648,6 +1664,7 @@ const TRANSLATIONS = {
     loginBtn: "Войти",
     bannerRecommended: "Рекомендуется",
     qaProgressTitle: "MyUZTELECOM в процессе...",
+    qaProgressSoon: "Скоро",
     catalogPlaceholder: "Поиск номера (например 90 123)",
     chipAll: "Все",
     catalogLoadingText: "Загрузка номеров…",

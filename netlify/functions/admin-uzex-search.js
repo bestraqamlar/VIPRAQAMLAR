@@ -30,7 +30,29 @@
 // Ko'rinishidan UZEX ularni sotuvchi guruhlari bo'yicha qo'llaydi. Shu
 // sabab biz keng oraliq so'rab, keraklisini SHU YERDA kesamiz.
 
+// MUHIM TUZATISH: bu fayl avval Firebase Admin SDK'ni HECH QACHON
+// ishga tushirmagan edi (admin.initializeApp() chaqirilmagan) — Netlify
+// har bir funksiyani ALOHIDA to'plam (bundle) sifatida joylashtirgani
+// uchun, boshqa funksiyalarda ishga tushirilgan bo'lishi bu yerga
+// UMUMAN ta'sir qilmaydi. Natijada requireAdmin() ichidagi
+// `admin.auth().verifyIdToken()` HAR DOIM ("default Firebase app
+// mavjud emas" xato bilan) muvaffaqiyatsiz tugardi — token chindan ham
+// yaroqli bo'lsa ham — va bu chalkash "Token yaroqsiz, muddati o'tgan
+// yoki hisob to'xtatilgan" xabari sifatida ko'rinardi. Boshqa barcha
+// admin-*.js fayllaridagi BIR XIL naqsh bilan endi bu yerda ham
+// to'g'rilandi.
+const admin = require('firebase-admin');
 const { requireAdmin } = require('./lib/adminAuth');
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+    })
+  });
+}
 
 const UZEX_URL = 'https://api-mobilraqam.uzex.uz/api/Lot/Filter';
 const UZEX_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
@@ -141,27 +163,62 @@ exports.handler = async function (event) {
       res = await callUzex();
     }
 
-    const data = await res.json();
-    const raw = Array.isArray(data.items) ? data.items : [];
+    const rawText = await res.text();
+    let data;
+    try { data = JSON.parse(rawText); } catch (e) { data = {}; }
+
+    // MUHIM TASHXIS: UZEX javobi turli shaklda kelishi mumkin (masalan
+    // {items:[...]}, {Items:[...]}, {data:{items:[...]}} va h.k.) —
+    // avval FAQAT `data.items` tekshirilar edi, agar UZEX buni
+    // o'zgartirgan bo'lsa, natija JIM ravishda bo'sh qaytardi (xato
+    // ko'rsatilmasdan). Endi bir nechta odatiy variant sinab ko'riladi.
+    const raw = Array.isArray(data.items) ? data.items
+      : Array.isArray(data.Items) ? data.Items
+      : Array.isArray(data.result) ? data.result
+      : (data.data && Array.isArray(data.data.items)) ? data.data.items
+      : [];
+
+    // Har bir maydonni bir nechta mumkin bo'lgan nom variant bilan o'qiydi
+    // (UZEX camelCase yoki PascalCase'ga o'tgan bo'lsa ham ishlashi uchun).
+    function pick(obj, ...keys) {
+      for (const k of keys) { if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k]; }
+      return '';
+    }
 
     const items = raw.slice(0, MAX_ITEMS).map(x => {
-      const digits = String((x.number_Prefix || '') + (x.number_Code || '') + (x.number_Body || ''))
+      const prefix = pick(x, 'number_Prefix', 'numberPrefix', 'Number_Prefix');
+      const code = pick(x, 'number_Code', 'numberCode', 'Number_Code');
+      const body = pick(x, 'number_Body', 'numberBody', 'Number_Body');
+      const singleNumber = pick(x, 'number', 'phoneNumber', 'fullNumber');
+      const digits = String(prefix + code + body || singleNumber)
         .replace(/\D/g, '');
+      // 9 xona = operator kodisiz raqam (masalan 901234567), ba'zan
+      // to'liq 12 xonali ("998901234567") kelishi ham mumkin.
+      const num9 = digits.length === 12 ? digits.slice(3) : digits;
       return {
-        number: digits.length === 9 ? '+998' + digits : '+998' + digits,
-        prefix: String(x.number_Prefix || ''),
-        price: Number(x.start_Price) || 0,
-        startDate: x.start_Date || null,
-        endDate: x.end_Date || null,
-        seller: x.seller_Company_Name || '',
+        number: '+998' + num9,
+        prefix: String(prefix || ''),
+        price: Number(pick(x, 'start_Price', 'startPrice', 'Start_Price')) || 0,
+        startDate: pick(x, 'start_Date', 'startDate', 'Start_Date') || null,
+        endDate: pick(x, 'end_Date', 'endDate', 'End_Date') || null,
+        seller: pick(x, 'seller_Company_Name', 'sellerCompanyName', 'Seller_Company_Name'),
         lotId: x.id || null,
         // UZEX lot sahifasiga havola uchun (adminda kerak bo'lsa ishlatiladi)
-        displayId: String(x.display_Id || '').trim()
+        displayId: String(pick(x, 'display_Id', 'displayId', 'Display_Id')).trim()
       };
     }).filter(x => x.number.replace(/\D/g, '').length === 12);
 
     // Eng arzonidan boshlab — adminka ro'yxati shu tartibda ko'rsatiladi.
     items.sort((a, b) => a.price - b.price);
+
+    // MUHIM TASHXIS: agar UZEX'dan xom ma'lumot kelgan bo'lsa-yu, lekin
+    // bizning "tozalashimizdan" keyin 0 ta chiqsa (masalan UZEX maydon
+    // nomlarini o'zgartirgan bo'lsa) — buni JIM o'tkazib yubormaymiz,
+    // birinchi xom elementning haqiqiy kalitlarini debug sifatida
+    // qaytaramiz, shunda muammoni ANIQ ko'rib, tezda tuzatish mumkin.
+    const debugInfo = (raw.length > 0 && items.length === 0)
+      ? { rawSampleKeys: Object.keys(raw[0] || {}), rawSample: JSON.stringify(raw[0]).slice(0, 500) }
+      : undefined;
 
     return {
       statusCode: 200,
@@ -173,7 +230,8 @@ exports.handler = async function (event) {
         // UZEX'ning o'zi ko'rsatgan umumiy topilma soni (biz kesganimizdan
         // ko'p bo'lishi mumkin) — adminkada "416 tadan 338 tasi" deb
         // ko'rsatish uchun.
-        totalFound: raw.length ? (Number(raw[0].records) || items.length) : 0,
+        totalFound: raw.length ? (Number(pick(raw[0], 'records', 'Records')) || items.length) : 0,
+        debug: debugInfo,
         items
       })
     };
