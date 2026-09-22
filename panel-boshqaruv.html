@@ -1674,7 +1674,34 @@
 .wt-item-actions button.wt-del{color:#e74c3c;}
 .wt-empty{color:var(--muted);font-size:13px;padding:16px;text-align:center;}
 
-/* ---- UZEX auksion bo'limi (faqat adminka) ---- */
+/* ---- UZEX auksion bo'limi (faqat adminka) ----
+   Mijoz: "dizayni juda tartibsiz va tushunib bo'lmaydi, oson va zamonaviy
+   qilib chiq" — endi bo'lim aniq nomlangan kartochkalarga (qidiruv /
+   natijalar / saqlanganlar / AI) bo'lingan, har biri o'z sarlavhasi bilan
+   fondan aniq ajralib turadi. */
+.uzx-section{
+  background:var(--panel-2);border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  padding:16px 16px 18px;margin-bottom:14px;
+}
+.uzx-section-title{
+  display:flex;align-items:center;gap:8px;font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
+  margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);
+}
+.uzx-section-ico{font-size:16px;}
+.uzx-section-refresh{
+  margin-left:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:inherit;
+  border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;
+}
+.uzx-section-refresh:hover{background:rgba(255,255,255,.1);}
+.uzx-filter-grid{
+  display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:2px;
+}
+.uzx-text-input{
+  width:100%;background:var(--panel);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;
+  padding:10px 12px;color:var(--text);font-size:13.5px;outline:none;transition:border-color .15s ease;
+}
+.uzx-text-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);}
+.uzx-ai-section .ai-chat-box{min-height:140px;max-height:280px;}
 .uzx-mask{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .uzx-box{
   width:42px;height:50px;text-align:center;font-size:19px;font-weight:700;
@@ -1782,6 +1809,26 @@
 @keyframes uzxDotPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.7);}}
 .uzx-card-dates{font-size:11px;color:var(--muted);line-height:1.5;}
 .uzx-card-dates b{color:var(--text);font-weight:600;}
+.uzx-card-save{
+  margin-top:2px;align-self:flex-start;display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);
+  border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .12s ease,border-color .12s ease,color .12s ease;
+}
+.uzx-card-save:hover{background:rgba(255,255,255,.1);}
+.uzx-card-save.saved{background:rgba(46,204,113,.14);border-color:rgba(46,204,113,.4);color:#2ecc71;}
+.uzx-saved-row{
+  display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid rgba(255,255,255,.08);
+  border-radius:11px;padding:10px 12px;margin-bottom:8px;
+}
+.uzx-saved-row:last-child{margin-bottom:0;}
+.uzx-saved-main{flex:1;min-width:0;}
+.uzx-saved-num{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;}
+.uzx-saved-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.uzx-saved-remove{
+  background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 6px;flex:none;
+}
+.uzx-saved-remove:hover{color:#e74c3c;}
 
 @keyframes wtFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes wtPulse{0%,100%{box-shadow:0 0 0 0 rgba(51,226,140,.5);}50%{box-shadow:0 0 0 5px rgba(51,226,140,0);}}
@@ -3008,13 +3055,13 @@
        mask bo'yicha qidiradi va ro'yxat qilib ko'rsatadi. -->
   <div class="pane" id="paneUzex">
     <div class="wt-hint">
-      🏛️ UZEX birjasida (mobilraqam.uzex.uz) hozir <b>auksionda turgan</b> raqamlarni qidiradi.
-      Bu ma'lumot faqat shu panelda ko'rinadi — saytga chiqarilmaydi.
-      Katakchalarga kerakli raqamlarni yozing, bo'sh qoldirilgan joy "istalgan raqam" degani.
+      🏛️ UZEX birjasida (mobilraqam.uzex.uz) hozir <b>auksionda turgan</b>, <b>faqat jismoniy shaxslarga
+      tegishli</b> raqamlarni qidiradi (yuridik shaxs lotlar chiqarilmaydi). Bu ma'lumot faqat shu panelda
+      ko'rinadi — saytga chiqarilmaydi. Bir martada eng ko'pi <b>2000 tagacha</b> natija ko'rsatiladi.
     </div>
 
-    <div class="wt-form">
-      <div class="wt-form-title"><span class="wt-form-title-ico">🔎</span> Raqam qidirish</div>
+    <div class="uzx-section">
+      <div class="uzx-section-title"><span class="uzx-section-ico">🔎</span> Raqam qidirish</div>
 
       <div class="wt-row wt-row-block">
         <label class="wt-block-label">📱 Raqam (operator kodi bilan)</label>
@@ -3038,12 +3085,26 @@
       <!-- Mijoz: "narx bo'yicha qidirish ham qo'y" — raqam maskasi bilan
            BIRGA ishlaydi (ikkalasi ham ixtiyoriy, bo'sh qoldirsa cheklov
            qo'yilmaydi). -->
-      <div class="wt-row wt-row-block">
-        <label class="wt-block-label">💰 Narx oralig'i (so'm)</label>
-        <div class="uzx-price-row">
-          <input type="number" class="uzx-price-input" id="uzxPriceMin" placeholder="Dan (masalan 1 000 000)" min="0">
-          <span class="uzx-price-dash">—</span>
-          <input type="number" class="uzx-price-input" id="uzxPriceMax" placeholder="Gacha (masalan 50 000 000)" min="0">
+      <div class="uzx-filter-grid">
+        <div class="wt-row wt-row-block">
+          <label class="wt-block-label">💰 Narx oralig'i (so'm)</label>
+          <div class="uzx-price-row">
+            <input type="number" class="uzx-price-input" id="uzxPriceMin" placeholder="Dan" min="0">
+            <span class="uzx-price-dash">—</span>
+            <input type="number" class="uzx-price-input" id="uzxPriceMax" placeholder="Gacha" min="0">
+          </div>
+        </div>
+        <div class="wt-row wt-row-block">
+          <label class="wt-block-label">🏢 Sotuvchi kompaniya</label>
+          <input type="text" class="uzx-text-input" id="uzxSeller" placeholder="Masalan: Uztelecom">
+        </div>
+        <div class="wt-row wt-row-block">
+          <label class="wt-block-label">📅 Savdo sanasi (dan — gacha)</label>
+          <div class="uzx-price-row">
+            <input type="date" class="uzx-price-input" id="uzxDateFrom">
+            <span class="uzx-price-dash">—</span>
+            <input type="date" class="uzx-price-input" id="uzxDateTo">
+          </div>
         </div>
       </div>
 
@@ -3054,8 +3115,36 @@
       </div>
     </div>
 
-    <div class="uzx-result" id="uzxResult">
-      <div class="wt-empty">Raqam yoki narx kiritib "Qidirish"ni bosing</div>
+    <div class="uzx-section">
+      <div class="uzx-section-title"><span class="uzx-section-ico">📋</span> Natijalar</div>
+      <div class="uzx-result" id="uzxResult">
+        <div class="wt-empty">Raqam yoki narx kiritib "Qidirish"ni bosing</div>
+      </div>
+    </div>
+
+    <div class="uzx-section">
+      <div class="uzx-section-title"><span class="uzx-section-ico">💾</span> Saqlangan raqamlar
+        <button type="button" class="uzx-section-refresh" id="uzxSavedRefreshBtn" title="Yangilash">↻</button>
+      </div>
+      <div class="uzx-result" id="uzxSavedResult">
+        <div class="wt-empty">Hali hech narsa saqlanmagan</div>
+      </div>
+    </div>
+
+    <div class="uzx-section uzx-ai-section">
+      <div class="uzx-section-title"><span class="uzx-section-ico">🤖</span> UZEX AI yordamchi</div>
+      <div class="ai-hint">
+        Masalan: <i>"oxiri 4444 bilan tugagan raqamlar bormi"</i>, <i>"5 mln dan arzon raqamlarni ko'rsat"</i>,
+        <i>"shu raqam chiqsa menga xabar ber"</i>, <i>"nimalarni kuzatyapman"</i>.
+        Bu — bosh sahifadagi AI Yordamchi bilan bir xil aqlli yordamchi, faqat shu yerga qulaylik uchun qo'yilgan.
+      </div>
+      <div class="ai-chat-box uzx-ai-chat-box" id="uzxAiChatBox">
+        <div class="ai-msg ai-msg-bot">Salom! UZEX auksioni bo'yicha savol bering — qidirib beraman, kerak bo'lsa kuzatuvga ham qo'yaman.</div>
+      </div>
+      <div class="ai-input-row">
+        <input type="text" id="uzxAiChatInput" placeholder="Masalan: oxiri 4444 bo'lgan raqam bormi...">
+        <button id="uzxAiChatSendBtn">Yuborish</button>
+      </div>
     </div>
   </div>
 
@@ -5153,6 +5242,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
     if(tab.dataset.tab === 'watch'){ loadWatchList(); }
+    if(tab.dataset.tab === 'uzex'){ uzxLoadSaved(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
     if(tab.dataset.tab === 'premiumvideo'){ loadPremiumVideoList(); }
@@ -7373,6 +7463,11 @@ async function uzxSearch(){
   const priceMaxRaw = document.getElementById('uzxPriceMax').value;
   const startPrice = priceMinRaw ? Number(priceMinRaw) : undefined;
   const endPrice = priceMaxRaw ? Number(priceMaxRaw) : undefined;
+  // Mijoz: "kompaniya bo'yicha ham, vaqt bo'yicha ham qidirish mumkin
+  // bo'lsin" — ixtiyoriy qo'shimcha filtrlar.
+  const seller = document.getElementById('uzxSeller').value.trim() || undefined;
+  const dateFrom = document.getElementById('uzxDateFrom').value || undefined;
+  const dateTo = document.getElementById('uzxDateTo').value || undefined;
 
   uzxStopTimer();
   btn.disabled = true;
@@ -7388,7 +7483,7 @@ async function uzxSearch(){
     const res = await fetch('/.netlify/functions/admin-uzex-search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-      body: JSON.stringify({ mask, startPrice, endPrice })
+      body: JSON.stringify({ mask, startPrice, endPrice, seller, dateFrom, dateTo })
     });
     const data = await res.json().catch(()=> ({}));
     if(!res.ok || !data.ok) throw new Error(data.error || ('Server ' + res.status));
@@ -7427,7 +7522,7 @@ async function uzxSearch(){
 
     uzxSetStatus(items.length + ' ta topildi', 'ok');
 
-    const cards = items.map(x => {
+    const cards = items.map((x, idx) => {
       const endMs = uzxParseEndMs(x.endDate);
       const { text, cls } = uzxLeftLive(endMs);
       return `
@@ -7443,6 +7538,7 @@ async function uzxSearch(){
           <span class="uzx-card-seller" title="${escapeHtml(x.seller || '')}">${escapeHtml(x.seller || '—')}</span>
         </div>
         <div class="uzx-card-dates">Boshlandi: <b>${uzxFmtDate(x.startDate)}</b></div>
+        <button type="button" class="uzx-card-save" data-uzx-idx="${idx}">💾 Saqlash</button>
       </div>`;
     }).join('');
 
@@ -7454,6 +7550,30 @@ async function uzxSearch(){
       <div class="uzx-cards">${cards}</div>`;
 
     uzxStartTimer();
+
+    box.querySelectorAll('.uzx-card-save').forEach(saveBtn=>{
+      saveBtn.addEventListener('click', async ()=>{
+        const item = items[Number(saveBtn.dataset.uzxIdx)];
+        if(!item) return;
+        saveBtn.disabled = true;
+        try{
+          const idToken = await firebase.auth().currentUser.getIdToken();
+          const res = await fetch('/.netlify/functions/admin-uzex-save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+            body: JSON.stringify({ action: 'save', item })
+          });
+          const d = await res.json().catch(()=> ({}));
+          if(!res.ok || !d.ok) throw new Error(d.error || ('Server ' + res.status));
+          saveBtn.textContent = '✓ Saqlandi';
+          saveBtn.classList.add('saved');
+          uzxLoadSaved();
+        }catch(err){
+          saveBtn.disabled = false;
+          alert('Saqlab bo\'lmadi: ' + err.message);
+        }
+      });
+    });
   }catch(err){
     uzxSetStatus('Xato', 'err');
     box.innerHTML = `<div class="wt-empty">Xato: ${escapeHtml(err.message)}<br><span style="font-size:11px;opacity:.75;">Agar bu birinchi marta ko'rinayotgan bo'lsa — yangi funksiya hali GitHub/Netlify'ga yuklanmagan bo'lishi mumkin.</span></div>`;
@@ -7467,12 +7587,175 @@ document.getElementById('uzxClearBtn').addEventListener('click', () => {
   uzxBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
   document.getElementById('uzxPriceMin').value = '';
   document.getElementById('uzxPriceMax').value = '';
+  document.getElementById('uzxSeller').value = '';
+  document.getElementById('uzxDateFrom').value = '';
+  document.getElementById('uzxDateTo').value = '';
   uzxSetStatus('');
   uzxStopTimer();
   document.getElementById('uzxResult').innerHTML =
     '<div class="wt-empty">Raqam yoki narx kiritib "Qidirish"ni bosing</div>';
   uzxBoxes[0].focus();
 });
+
+/* ---- UZEX "Saqlangan raqamlar" ro'yxati ---- */
+async function uzxLoadSaved(){
+  const box = document.getElementById('uzxSavedResult');
+  if(!box) return;
+  box.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
+  try{
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/admin-uzex-save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify({ action: 'list' })
+    });
+    const d = await res.json().catch(()=> ({}));
+    if(!res.ok || !d.ok) throw new Error(d.error || ('Server ' + res.status));
+    const items = d.items || [];
+    if(!items.length){
+      box.innerHTML = '<div class="wt-empty">Hali hech narsa saqlanmagan</div>';
+      return;
+    }
+    box.innerHTML = items.map(it => `
+      <div class="uzx-saved-row" data-uzx-saved-id="${escapeHtml(it.id)}">
+        <div class="uzx-saved-main">
+          <div class="uzx-saved-num">${escapeHtml(uzxFmtNumber(it.number))} — ${formatPrice(it.price || 0)}</div>
+          <div class="uzx-saved-meta">${escapeHtml(it.seller || 'Sotuvchi ko\'rsatilmagan')}</div>
+        </div>
+        <button type="button" class="uzx-saved-remove" title="O'chirish">✕</button>
+      </div>`).join('');
+    box.querySelectorAll('.uzx-saved-remove').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const row = btn.closest('[data-uzx-saved-id]');
+        const id = row && row.dataset.uzxSavedId;
+        if(!id) return;
+        btn.disabled = true;
+        try{
+          const idToken2 = await firebase.auth().currentUser.getIdToken();
+          await fetch('/.netlify/functions/admin-uzex-save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken2 },
+            body: JSON.stringify({ action: 'unsave', id })
+          });
+          row.remove();
+        }catch(err){ btn.disabled = false; alert('O\'chirib bo\'lmadi: ' + err.message); }
+      });
+    });
+  }catch(err){
+    box.innerHTML = `<div class="wt-empty">Xato: ${escapeHtml(err.message)}</div>`;
+  }
+}
+document.getElementById('uzxSavedRefreshBtn').addEventListener('click', uzxLoadSaved);
+
+/* ---- UZEX bo'limiga o'rnatilgan mini AI chat — bosh sahifadagi
+   "AI Yordamchi" (admin-ai-assistant.js) bilan AYNAN BIR XIL serverga
+   ulanadi, faqat qulaylik uchun UZEX bo'limining o'ziga qo'yilgan
+   (mijoz: "chekasiga chat ai ni qo'sh"). Umumiy AI konteynerdan MUSTAQIL
+   o'z suhbat tarixiga ega. ---- */
+const uzxAiChatBox = document.getElementById('uzxAiChatBox');
+const uzxAiChatInput = document.getElementById('uzxAiChatInput');
+const uzxAiChatSendBtn = document.getElementById('uzxAiChatSendBtn');
+let uzxAiConversation = [];
+
+function uzxAiAddBubble(text, cls){
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + cls;
+  div.textContent = text;
+  uzxAiChatBox.appendChild(div);
+  uzxAiChatBox.scrollTop = uzxAiChatBox.scrollHeight;
+  return div;
+}
+function uzxAiAddResultsList(title, items, total){
+  const box = document.createElement('div');
+  box.className = 'ai-results';
+  const header = document.createElement('div');
+  header.className = 'ai-msg-system';
+  header.style.textAlign = 'left';
+  header.style.marginBottom = '4px';
+  header.textContent = `${title} — jami: ${total} ta` + (items.length < total ? ` (birinchi ${items.length} tasi ko'rsatilmoqda)` : '');
+  box.appendChild(header);
+  items.forEach(it=>{
+    const row = document.createElement('div');
+    row.className = 'ai-results-row';
+    row.innerHTML = `<span class="ai-results-num">${escapeHtml(it.number || '')} ${it.label ? '· ' + escapeHtml(it.label) : ''}</span><span class="ai-results-price">${it.price ? formatPrice(it.price) : ''}</span>`;
+    box.appendChild(row);
+  });
+  uzxAiChatBox.appendChild(box);
+  uzxAiChatBox.scrollTop = uzxAiChatBox.scrollHeight;
+}
+async function uzxAiCallServer(payload){
+  const user = firebase.auth().currentUser;
+  if(!user) throw new Error('Tizimga kirilmagan.');
+  const idToken = await user.getIdToken();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=> controller.abort(), 28000);
+  let res;
+  try{
+    res = await fetch('/.netlify/functions/admin-ai-assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+  }catch(err){
+    if(err.name === 'AbortError') throw new Error("So'rov juda uzoq davom etdi. Iltimos, xabarni qisqaroq qilib qayta yozing.");
+    throw new Error('Internet aloqasida muammo: ' + err.message);
+  }finally{ clearTimeout(timeoutId); }
+  const rawText = await res.text();
+  let data;
+  try{ data = JSON.parse(rawText); }
+  catch(e){ throw new Error("Server javobi noto'g'ri formatda keldi."); }
+  if(!res.ok){
+    const errMsg = typeof data.error === 'string' ? data.error : (data.error && data.error.message) || 'Server xatosi';
+    throw new Error(errMsg);
+  }
+  return data;
+}
+function uzxAiHandleResponse(data){
+  uzxAiConversation = data.messages || uzxAiConversation;
+  if(data.status === 'done'){
+    if(data.resultsList && Array.isArray(data.resultsList.items) && data.resultsList.items.length){
+      uzxAiAddResultsList(data.resultsList.title, data.resultsList.items, data.resultsList.total);
+    }
+    if(data.reply) uzxAiAddBubble(data.reply, 'ai-msg-bot');
+    return;
+  }
+  // Xavfli amallar (o'chirish/narx o'zgartirish) UZEX mavzusiga aloqador
+  // emas, lekin agar admin shu chatda tasodifan boshqa mavzuda so'rasa
+  // ham (masalan "bazadagi ... o'chir"), tasdiqlash oynasi umumiy
+  // AI Yordamchi bo'limida ko'rsatilishi kerak — shu sabab bu yerda
+  // shunchaki ogohlantirib qo'yamiz.
+  if(data.status === 'confirm_required'){
+    uzxAiAddBubble('Bu amal tasdiqlashni talab qiladi — "AI Yordamchi" bo\'limiga o\'tib, shu yerdan tasdiqlang.', 'ai-msg-bot');
+  }
+}
+async function uzxAiSendMessage(){
+  const text = uzxAiChatInput.value.trim();
+  if(!text) return;
+  uzxAiAddBubble(text, 'ai-msg-user');
+  uzxAiChatInput.value = '';
+  uzxAiChatInput.disabled = true;
+  uzxAiChatSendBtn.disabled = true;
+  const typing = document.createElement('div');
+  typing.className = 'ai-typing';
+  typing.innerHTML = '<span class="ai-typing-dot"></span><span class="ai-typing-dot"></span><span class="ai-typing-dot"></span>';
+  uzxAiChatBox.appendChild(typing);
+  uzxAiChatBox.scrollTop = uzxAiChatBox.scrollHeight;
+  try{
+    const data = await uzxAiCallServer({ messages: uzxAiConversation, userMessage: text });
+    typing.remove();
+    uzxAiHandleResponse(data);
+  }catch(err){
+    typing.remove();
+    uzxAiAddBubble('Xato: ' + err.message, 'ai-msg-error');
+  }finally{
+    uzxAiChatInput.disabled = false;
+    uzxAiChatSendBtn.disabled = false;
+    uzxAiChatInput.focus();
+  }
+}
+uzxAiChatSendBtn.addEventListener('click', uzxAiSendMessage);
+uzxAiChatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') uzxAiSendMessage(); });
 
 async function loadWatchList(){
   const list = document.getElementById('wtList');

@@ -83,6 +83,14 @@
 [functions."number-watch-check-background"]
   schedule = "* * * * *"
 
+# UZEX auksion kuzatuvi — admin AI yordamchiga "shu raqam/shartlar
+# chiqsa aytib ber" deyilganda yaratilgan kuzatuvlarni tekshiradi
+# (batafsili izoh funksiya faylida). UZEX tashqi API'siga kam-kam
+# murojaat qilish uchun har 10 daqiqada ishga tushadi (kuzatuvning o'zi
+# ham o'z intervaliga qarab, tez-tez emas, navbat bilan tekshiriladi).
+[functions."uzex-watch-check-background"]
+  schedule = "*/10 * * * *"
+
 # "Vazifalar" (admin dedlayn) kuzatuvi — tugashiga 5 soatdan kam qolgan
 # va hali bajarilmagan har bir vazifa uchun Telegram orqali BIR MARTA
 # ogohlantirish yuboradi (panel yopiq bo'lsa ham). Har 5 daqiqada tekshi-

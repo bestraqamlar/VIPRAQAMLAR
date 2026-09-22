@@ -318,7 +318,12 @@
        faqat oddiy va tez transform (joylashuv) bilan chapga/o'ngga
        "o'tib" ketadi va keyingisi o'z joyidan kiradi. */
     transition:transform .22s cubic-bezier(.4,0,.2,1);
+    /* DIQQAT: faqat opacity animatsiya qilinadi (transform EMAS) — JS
+       slayd effekti xuddi shu (.home-banner) elementning transform'ini
+       boshqaradi, ikkalasi bir vaqtda ishlasa to'qnashib qolardi. */
+    animation:bannerFadeIn .4s ease both;
   }
+  @keyframes bannerFadeIn{from{opacity:0;}to{opacity:1;}}
   .home-banner:active{cursor:grabbing;}
   .home-banner.banner-dragging{cursor:grabbing;}
   .home-banner.slide-out{transform:translateX(-100%);}
@@ -370,24 +375,30 @@
     background:var(--hg-accent, var(--accent));opacity:.6;
   }
   .home-grid-cell:active{transform:scale(0.97);}
+  /* Mijoz: "hozir oddiy bo'lib turibdi, zamonaviy animatsiya qo'sh" —
+     har bir katakcha sahifa ochilganda birma-bir (kaskad) paydo bo'ladi. */
+  /* fill-mode "backwards" (EMAS "both"/"forwards") — aks holda animatsiya
+     tugagandan keyin ham CSS "animatsiya effekti" transformni ushlab
+     turib, :active bosilganda kutilgan kichraytirish (scale) ishlamay
+     qolardi. */
+  .home-grid-cell{animation:cardPopIn .34s cubic-bezier(.22,.85,.32,1) backwards;}
+  .home-grid-cell:nth-child(1){animation-delay:.04s;}
+  .home-grid-cell:nth-child(2){animation-delay:.09s;}
+  .home-grid-cell:nth-child(3){animation-delay:.14s;}
+  .home-grid-cell:nth-child(4){animation-delay:.19s;}
+  @keyframes cardPopIn{from{opacity:0;transform:translateY(14px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
   .home-grid-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .home-grid-icon svg{width:23px;height:23px;}
   .home-grid-label{font-family:'Sora',sans-serif;font-weight:800;font-size:13.5px;line-height:1.3;}
   .hg-pink{background:rgba(255,95,143,0.18);color:#ff5f8f;}
   .hg-blue{background:rgba(79,140,255,0.18);color:#4F8CFF;}
   .hg-green{background:rgba(46,196,129,0.18);color:#2ECC81;}
+  .hg-amber{background:rgba(255,171,64,0.18);color:#FFAB40;}
   .hg-gray{background:var(--panel-2);color:var(--muted);}
   #qaCatalog{--hg-accent:#ff5f8f;box-shadow:0 12px 26px -16px rgba(255,95,143,0.35), 0 3px 10px -5px rgba(0,0,0,0.28);}
   #qaInstallmentHome{--hg-accent:#4F8CFF;box-shadow:0 12px 26px -16px rgba(79,140,255,0.35), 0 3px 10px -5px rgba(0,0,0,0.28);}
   #qaOrdersHome{--hg-accent:#2ECC81;box-shadow:0 12px 26px -16px rgba(46,196,129,0.35), 0 3px 10px -5px rgba(0,0,0,0.28);}
-  #qaProgress{--hg-accent:var(--line);}
-  .home-grid-cell-disabled{opacity:.65;cursor:default;}
-  .home-grid-cell-disabled:active{transform:none;}
-  .home-grid-cell-disabled::before{opacity:.25;}
-  .home-grid-soon{
-    position:absolute;top:12px;right:12px;font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;
-    color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:3px 7px;
-  }
+  #qaDeal{--hg-accent:#FFAB40;box-shadow:0 12px 26px -16px rgba(255,171,64,0.35), 0 3px 10px -5px rgba(0,0,0,0.28);}
   /* Mijoz: "oq menyuga o'tganda kartochkalar bir xilroq bo'lib turibdi,
      ajralib turmayabdi" — endi (boshqa kartochkalar — num-card — kabi)
      yorug' mavzuda ANIQ, quyuq soyali OQ kartochka, orqa fondan yaqqol
@@ -400,6 +411,7 @@
   :root[data-theme="light"] #qaCatalog{box-shadow:0 0 0 1px rgba(255,95,143,0.12), 0 16px 32px -14px rgba(255,95,143,0.28), 0 4px 14px -6px rgba(30,50,110,0.1);}
   :root[data-theme="light"] #qaInstallmentHome{box-shadow:0 0 0 1px rgba(79,140,255,0.12), 0 16px 32px -14px rgba(79,140,255,0.28), 0 4px 14px -6px rgba(30,50,110,0.1);}
   :root[data-theme="light"] #qaOrdersHome{box-shadow:0 0 0 1px rgba(46,196,129,0.12), 0 16px 32px -14px rgba(46,196,129,0.28), 0 4px 14px -6px rgba(30,50,110,0.1);}
+  :root[data-theme="light"] #qaDeal{box-shadow:0 0 0 1px rgba(255,171,64,0.14), 0 16px 32px -14px rgba(255,171,64,0.3), 0 4px 14px -6px rgba(30,50,110,0.1);}
 
   .seg-pill{
     display:flex;background:var(--home-card-bg);border:1px solid var(--line);border-radius:14px;padding:4px;gap:3px;
@@ -451,7 +463,7 @@
      Endi o'lcham me'yorida (haqiqiy to'rtburchak), glow yumshatilgan
      va scale OLIB TASHLANGAN — raqam har doim to'liq, aniq ko'rinadi. */
   .live-digit-box{
-    width:100%;aspect-ratio:1/1.02;background:var(--panel);border:1.8px solid var(--line);
+    width:100%;aspect-ratio:1/1.35;background:var(--panel);border:1.8px solid var(--line);
     border-radius:10px;text-align:center;color:var(--text);font-family:'Sora',sans-serif;font-weight:800;
     line-height:1;font-size:22px;outline:none;flex:1 1 0;min-width:0;padding:0 1px;
     transition:border-color .15s ease,background .15s ease;
@@ -476,7 +488,7 @@
      joy olyapti, ozroq kichraytir" — balandligi ENDI me'yorlashtirildi. */
   .live-search-btn{
     width:100%;background:linear-gradient(135deg, #0c7d47 0%, #14a862 45%, #22d47c 100%);border:none;color:#fff;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;letter-spacing:.2px;padding:14px;border-radius:16px;cursor:pointer;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:15px;letter-spacing:.2px;padding:10px;border-radius:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:11px;position:relative;overflow:hidden;
     box-shadow:0 1px 0 rgba(255,255,255,0.22) inset, 0 -14px 22px -14px rgba(0,0,0,0.28) inset, 0 10px 24px -8px rgba(15,157,88,0.55), 0 3px 10px -4px rgba(15,157,88,0.4);
     transition:transform .12s ease, box-shadow .18s ease;
@@ -495,10 +507,10 @@
   .live-search-btn:disabled{opacity:.75;cursor:not-allowed;}
   .live-search-btn:disabled::before{display:none;}
   .live-search-btn .lsb-icon{
-    display:flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;width:25px;height:25px;border-radius:50%;
     background:rgba(255,255,255,0.2);flex-shrink:0;position:relative;z-index:1;
   }
-  .live-search-btn .lsb-icon svg{width:16px;height:16px;display:block;}
+  .live-search-btn .lsb-icon svg{width:14px;height:14px;display:block;}
   .live-search-btn #lsbLabel{position:relative;z-index:1;}
   .live-search-btn .lsb-spinner{
     width:19px;height:19px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.35);border-top-color:#fff;
@@ -548,7 +560,17 @@
     border:1px solid var(--card-border);
     box-shadow:0 0 0 1px rgba(140,160,255,0.08), 0 0 30px rgba(90,110,255,0.22), 0 16px 34px -12px rgba(0,0,0,0.6), 0 4px 14px -6px rgba(0,0,0,0.4);
     transition:transform .12s ease;
+    /* Mijoz: "raqam qidirish bo'limi ham juda zerikarli" — har bir
+       kartochka ro'yxatga chiqqanda yengil pastdan-yuqoriga chiqadi.
+       fill-mode "backwards" (EMAS "both") — shunda :active bosilganda
+       kichraytirish (scale) animatsiyadan keyin ham normal ishlayveradi. */
+    animation:cardPopIn .3s cubic-bezier(.22,.85,.32,1) backwards;
   }
+  .num-card:nth-child(1){animation-delay:.02s;}
+  .num-card:nth-child(2){animation-delay:.06s;}
+  .num-card:nth-child(3){animation-delay:.10s;}
+  .num-card:nth-child(4){animation-delay:.14s;}
+  .num-card:nth-child(5){animation-delay:.18s;}
   .num-card:active{transform:scale(0.985);}
   .num-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
   .num-card-number{
@@ -590,6 +612,12 @@
      yopishib qolmasin dedi — qo'shimcha bo'shliq qoldirildi. */
   .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;margin-bottom:110px;}
   .catalog-loading .boot-ring{margin:0 auto 12px;}
+  .catalog-loading-search{padding:56px 20px;}
+  .cl-search-spin{
+    display:inline-flex;width:40px;height:40px;border-radius:50%;align-items:center;justify-content:center;
+    background:var(--accent-soft);animation:lsbSpin .8s linear infinite;
+  }
+  .cl-search-spin svg{width:20px;height:20px;color:var(--accent);}
   .num-card-fav{
     width:34px;height:34px;border-radius:50%;flex-shrink:0;padding:0;
     border:1px solid rgba(255,255,255,0.24);background:rgba(255,255,255,0.10);color:#dce2ff;cursor:pointer;
@@ -875,6 +903,47 @@
   .installment-row .ir-teaser b{font-family:'Sora',sans-serif;font-weight:800;color:var(--green);font-size:13px;margin-right:2px;}
   .installment-row .ir-teaser-months{opacity:.8;}
   .installment-row .ir-chevron{font-size:22px;color:var(--muted);flex-shrink:0;}
+
+  /* ===== "Aksiyadagi raqamlar" kartochkalari — index.html'dagi
+     "Bugungi aksiya"ga o'xshash, lekin mini ilovaning "Neon Shisha"
+     uslubida: gradient urg'u chizig'i, chegirma nishoni va jonli
+     hisoblagich. ===== */
+  .deal-card{
+    position:relative;overflow:hidden;background:var(--home-card-bg);border:1px solid var(--card-border);
+    border-radius:18px;padding:16px 17px;margin-bottom:12px;cursor:pointer;
+    box-shadow:0 12px 26px -16px rgba(0,0,0,0.5), 0 3px 10px -5px rgba(0,0,0,0.3);
+    transition:transform .12s ease;
+    animation:dealCardIn .28s cubic-bezier(.22,.85,.32,1) backwards;
+  }
+  .deal-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, #FFAB40, var(--op-color, var(--accent)));opacity:.85;
+  }
+  .deal-card:active{transform:scale(0.98);}
+  .deal-card-badge{
+    position:absolute;top:14px;right:15px;background:linear-gradient(135deg, #ff5f8f, #ff8a40);color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:11.5px;padding:4px 9px;border-radius:8px;
+    box-shadow:0 4px 10px -4px rgba(255,95,143,0.5);
+  }
+  .deal-card-num{font-family:'Sora',sans-serif;font-weight:800;font-size:16.5px;color:var(--text);margin-bottom:8px;padding-right:50px;}
+  .deal-card-price-row{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+  .deal-card-price{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);}
+  .deal-card-oldprice{font-size:13px;color:var(--muted);text-decoration:line-through;}
+  .deal-card-inst{margin-top:6px;font-size:12px;color:var(--muted);font-weight:600;}
+  .deal-card-inst b{font-family:'Sora',sans-serif;font-weight:800;color:var(--green);font-size:13px;}
+  .deal-card-timer{
+    margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;
+    background:rgba(255,171,64,0.14);color:#FFAB40;font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;
+    letter-spacing:.3px;
+  }
+  .deal-card-timer::before{content:'';width:6px;height:6px;border-radius:50%;background:#FFAB40;animation:uzxDotPulseTg 1.4s ease-in-out infinite;}
+  @keyframes uzxDotPulseTg{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.7);}}
+  @keyframes dealCardIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .deal-card:nth-child(1){animation-delay:.02s;}
+  .deal-card:nth-child(2){animation-delay:.06s;}
+  .deal-card:nth-child(3){animation-delay:.10s;}
+  .deal-card:nth-child(4){animation-delay:.14s;}
+  .deal-card:nth-child(5){animation-delay:.18s;}
   .ic-back-btn{
     background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:11px;
     font-family:'Sora',sans-serif;font-weight:700;font-size:13px;cursor:pointer;padding:8px 13px;margin-bottom:4px;
@@ -1026,12 +1095,12 @@
         <span class="home-grid-icon hg-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
         <span class="home-grid-label" data-i18n="qaOrdersTitle">Buyurtmalarim</span>
       </button>
-      <!-- Hali ishlab chiqilmagan bo'lim — mijoz ATAYLAB bosilmaydigan,
-           funksiyasiz joy-tutuvchi qilib qoldirishni so'radi. -->
-      <button type="button" class="home-grid-cell home-grid-cell-disabled" id="qaProgress" disabled>
-        <span class="home-grid-soon" data-i18n="qaProgressSoon">Tez orada</span>
-        <span class="home-grid-icon hg-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
-        <span class="home-grid-label" data-i18n="qaProgressTitle">MyUZTELECOM jarayonda...</span>
+      <!-- Mijoz: "MyUZTELECOM o'rniga Aksiyadagi Raqamlar qilamiz" — endi
+           bu katakcha admin "Aksiya" bo'limidan kelgan (index.html'dagi
+           "Bugungi aksiya" bilan bir xil) raqamlar oynasini ochadi. -->
+      <button type="button" class="home-grid-cell" id="qaDeal">
+        <span class="home-grid-icon hg-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41L12 22l-9-9V4a1 1 0 0 1 1-1h9z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>
+        <span class="home-grid-label" data-i18n="qaDealTitle">Aksiyadagi raqamlar</span>
       </button>
     </div>
   </section>
@@ -1064,7 +1133,7 @@
         <input class="live-digit-box" maxlength="1" inputmode="numeric" pattern="[0-9]" placeholder="x" data-idx="6">
       </div>
       <button type="button" class="live-search-btn" id="liveSearchBtn">
-        <span class="lsb-icon" id="lsbIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <span class="lsb-icon" id="lsbIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.6-4.6"/><path d="M10.5 7.5v6M7.5 10.5h6" stroke-width="2"/></svg></span>
         <span class="lsb-spinner" id="lsbSpinner" style="display:none;"></span>
         <span data-i18n="liveSearchBtn" id="lsbLabel">Qidirish</span>
       </button>
@@ -1390,6 +1459,21 @@
   </div>
 </div>
 
+<!-- ================= "Aksiyadagi raqamlar" — index.html'dagi "Bugungi
+     aksiya" bo'limi bilan AYNAN bir xil ma'lumot (admin "Aksiya"
+     bo'limidan keladi: dailyDeal:true, oldPrice, dealExpiresAt,
+     bo'lib to'lash bo'lsa dealMonthly6/12/24). Bosh sahifadagi
+     "Aksiyadagi raqamlar" katakchasi shu oynani ochadi. ================= -->
+<div class="modal-overlay modal-full" id="dealModal">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="modal-close" id="dealModalClose">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="dealModalTitle">Aksiyadagi raqamlar</div>
+    <div class="modal-sub" data-i18n="dealModalSub">Bugungi chegirmali raqamlar — miqdor cheklangan.</div>
+    <div id="dealListItems"></div>
+  </div>
+</div>
+
 <!-- ================= Pastki navigatsiya ================= -->
 <nav class="bottom-nav" id="bottomNav">
   <button type="button" class="bn-tab active" data-screen="home">
@@ -1553,8 +1637,11 @@ const TRANSLATIONS = {
     helpTitle: "Yordam", supportTitle: "Qo'llab-quvvatlash",
     loginBtn: "Kirish",
     bannerRecommended: "Tavsiya etiladi",
-    qaProgressTitle: "MyUZTELECOM jarayonda...",
-    qaProgressSoon: "Tez orada",
+    qaDealTitle: "Aksiyadagi raqamlar",
+    dealModalTitle: "Aksiyadagi raqamlar",
+    dealModalSub: "Bugungi chegirmali raqamlar — miqdor cheklangan.",
+    dealEmpty: "Hozircha aksiyada raqam yo'q.",
+    dealMonthlyFrom: "dan",
     catalogPlaceholder: "Raqam qidirish (masalan 90 123)",
     chipAll: "Barchasi",
     catalogLoadingText: "Raqamlar yuklanmoqda…",
@@ -1663,8 +1750,11 @@ const TRANSLATIONS = {
     helpTitle: "Помощь", supportTitle: "Поддержка",
     loginBtn: "Войти",
     bannerRecommended: "Рекомендуется",
-    qaProgressTitle: "MyUZTELECOM в процессе...",
-    qaProgressSoon: "Скоро",
+    qaDealTitle: "Акционные номера",
+    dealModalTitle: "Акционные номера",
+    dealModalSub: "Сегодняшние номера со скидкой — количество ограничено.",
+    dealEmpty: "Пока нет номеров по акции.",
+    dealMonthlyFrom: "от",
     catalogPlaceholder: "Поиск номера (например 90 123)",
     chipAll: "Все",
     catalogLoadingText: "Загрузка номеров…",
@@ -2001,8 +2091,7 @@ const __greetRetry = setInterval(()=>{
 document.getElementById('qaCatalog').addEventListener('click', ()=> switchScreen('catalog'));
 document.getElementById('qaInstallmentHome').addEventListener('click', ()=> openInstallmentModal());
 document.getElementById('qaOrdersHome').addEventListener('click', ()=> openOrdersModal());
-// "MyUZTELECOM jarayonda..." — mijoz ATAYLAB bosilmaydigan, funksiyasiz
-// joy-tutuvchi qilib qoldirishni so'radi (id="qaProgress", disabled).
+document.getElementById('qaDeal').addEventListener('click', ()=> openDealModal());
 
 /* =========================================================
    MODAL OCHIQ PAYTDA PASTKI NAVIGATSIYANI YASHIRISH — mijoz: "agar
@@ -2288,7 +2377,14 @@ async function loadNumbers(){
         // Admin panelda mavjud haqiqiy maydonlar (index.html BILAN BIR XIL
         // 'numbers' kolleksiyasi) — "Tavsiya etiladi" banneri endi shu
         // haqiqiy 'featured'/'oldPrice' ma'lumotidan foydalanadi.
-        featured: !!d.featured, oldPrice: typeof d.oldPrice === 'number' ? d.oldPrice : 0
+        featured: !!d.featured, oldPrice: typeof d.oldPrice === 'number' ? d.oldPrice : 0,
+        // "Aksiyadagi raqamlar" — index.html'dagi "Bugungi aksiya" bilan
+        // AYNAN BIR XIL maydonlar (admin "Aksiya" bo'limidan keladi).
+        dailyDeal: !!d.dailyDeal,
+        dealExpiresAt: typeof d.dealExpiresAt === 'number' ? d.dealExpiresAt : 0,
+        dealMonthly6: Number(d.dealMonthly6) || 0,
+        dealMonthly12: Number(d.dealMonthly12) || 0,
+        dealMonthly24: Number(d.dealMonthly24) || 0
       });
     });
     numbersLoaded = true;
@@ -2655,13 +2751,25 @@ function renderCatalog(){
 
   const allItems = liveItems.concat(items);
 
+  // Mijoz: "birinchi qidirganda topib bermayapti, yana bossa keyingisida
+  // chiqadi" — sabab: jonli (server) qidiruv hali javob bermagan bo'lsa
+  // ham, o'zimizning statik bazadagi mos kelgan raqamlar DARHOL alohida
+  // ko'rsatilar edi, keyin jonli natija kelganda ro'yxat "sakrab"
+  // to'ldirilardi — mijozga bu "birinchi urinish ishlamadi" bo'lib
+  // ko'rinardi. Endi jonli qidiruv HALI DAVOM ETAYOTGAN bo'lsa (hatto
+  // o'zimizning bazamizda mos raqam bo'lsa ham), katta raqam ro'yxati
+  // turadigan aynan shu joyda faqat aylanib turadigan qidiruv ikonkasi
+  // ko'rsatiladi — hech qanday qisman/eskirgan natija chiqmaydi.
+  // Ikkala manba (o'zimiz + server) tayyor bo'lgach, HAMMASI BIRDANIGA
+  // (bitta renderCatalog() chaqiruvida) chiqadi.
+  if(liveLoading){
+    listEl.innerHTML = '<div class="catalog-loading catalog-loading-search">' +
+      '<span class="cl-search-spin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>' +
+      '</div>';
+    return;
+  }
+
   if(allItems.length === 0){
-    // Mijoz: "tepada 'qidirilmoqda' turgan bo'lsa ham, pastda 'raqam
-    // topilmadi' deb chiqib qoladi" — sabab: jonli (operator) qidiruv
-    // hali JAVOB bermagan bo'lsa ham, statik ro'yxatda mos kelmasa,
-    // "topilmadi" darhol ko'rsatilardi. Endi jonli qidiruv HALI DAVOM
-    // ETAYOTGAN bo'lsa, natija tayyor bo'lguncha bu xabar chiqarilmaydi.
-    if(liveLoading){ listEl.innerHTML = ''; return; }
     listEl.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('catalogEmpty')) + '</div>';
     return;
   }
@@ -3278,6 +3386,88 @@ document.getElementById('installmentOrderBtn').addEventListener('click', ()=>{
   closeInstallmentModal();
   openOrderModal(__pendingInstallmentItem, { months: __installmentMonths, monthly });
 });
+
+/* =========================================================
+   "AKSIYADAGI RAQAMLAR" — index.html'dagi "Bugungi aksiya" bilan
+   AYNAN bir xil ma'lumot manbasi (admin "Aksiya" bo'limi): dailyDeal
+   true bo'lgan, muddati (dealExpiresAt) hali o'tmagan raqamlar. Har
+   bir kartochkada eski/yangi narx va (agar admin dealMonthly6/12/24
+   kiritgan bo'lsa) "X so'mdan / X oy" bo'lib to'lash taklifi ham
+   ko'rsatiladi — mijoz: "bo'lib to'lashga bo'lsa shunga qarab".
+   ========================================================= */
+const dealModal = document.getElementById('dealModal');
+const dealListItems = document.getElementById('dealListItems');
+let __dealTimerInterval = null;
+
+function dealBestInstallment(item){
+  if(item.dealMonthly24 > 0) return { months: 24, monthly: item.dealMonthly24 };
+  if(item.dealMonthly12 > 0) return { months: 12, monthly: item.dealMonthly12 };
+  if(item.dealMonthly6 > 0) return { months: 6, monthly: item.dealMonthly6 };
+  return null;
+}
+function dealTimeLeftText(expiresAt){
+  if(!expiresAt) return '';
+  let diff = expiresAt - Date.now();
+  if(diff < 0) diff = 0;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  return (h > 99 ? h : String(h).padStart(2,'0')) + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+function dealStopTimer(){
+  if(__dealTimerInterval){ clearInterval(__dealTimerInterval); __dealTimerInterval = null; }
+}
+function dealStartTimer(){
+  dealStopTimer();
+  __dealTimerInterval = setInterval(()=>{
+    const els = dealListItems.querySelectorAll('.deal-card-timer[data-expires]');
+    if(!els.length){ dealStopTimer(); return; }
+    els.forEach(el=>{
+      const exp = Number(el.dataset.expires);
+      if(Date.now() >= exp){ openDealModal(); return; } // muddati tugadi — ro'yxat qayta chiziladi
+      el.textContent = dealTimeLeftText(exp);
+    });
+  }, 1000);
+}
+function openDealModal(){
+  dealStopTimer();
+  const now = Date.now();
+  const picks = NUMBERS.filter(n=> n.dailyDeal === true && (!n.dealExpiresAt || n.dealExpiresAt > now));
+  if(!picks.length){
+    dealListItems.innerHTML = '<div class="catalog-empty" style="margin-bottom:0;">' + escapeHtml(t('dealEmpty')) + '</div>';
+  }else{
+    dealListItems.innerHTML = picks.map(item=>{
+      const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+      const discountPct = hasDiscount ? Math.round((1 - item.price / item.oldPrice) * 100) : 0;
+      const inst = dealBestInstallment(item);
+      const color = OPERATOR_COLORS[item.operator] || '#6b7280';
+      return `
+        <div class="deal-card" data-id="${escapeHtml(item.id)}" style="--op-color:${color};">
+          ${hasDiscount ? `<div class="deal-card-badge">-${discountPct}%</div>` : ''}
+          <div class="deal-card-num">${escapeHtml(formatPhoneDisplay(item.number || ''))}</div>
+          <div class="deal-card-price-row">
+            <span class="deal-card-price">${formatPrice(item.price)}</span>
+            ${hasDiscount ? `<span class="deal-card-oldprice">${formatPrice(item.oldPrice)}</span>` : ''}
+          </div>
+          ${inst ? `<div class="deal-card-inst"><b>${formatPrice(inst.monthly)}</b> ${escapeHtml(t('dealMonthlyFrom'))} / ${inst.months} ${escapeHtml(t('monthsShort'))}</div>` : ''}
+          ${item.dealExpiresAt ? `<div class="deal-card-timer" data-expires="${item.dealExpiresAt}">${dealTimeLeftText(item.dealExpiresAt)}</div>` : ''}
+        </div>`;
+    }).join('');
+    dealListItems.querySelectorAll('.deal-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const item = findItemById(card.dataset.id);
+        if(!item) return;
+        closeDealModal();
+        if(item.installment){ openInstallmentModal(); openInstallmentDetail(item); }
+        else openOrderModal(item);
+      });
+    });
+    dealStartTimer();
+  }
+  dealModal.classList.add('open');
+}
+function closeDealModal(){ dealModal.classList.remove('open'); dealStopTimer(); }
+document.getElementById('dealModalClose').addEventListener('click', closeDealModal);
 
 /* =========================================================
    SEVIMLI RAQAMLAR (Savat) — index.html BILAN BIR XIL

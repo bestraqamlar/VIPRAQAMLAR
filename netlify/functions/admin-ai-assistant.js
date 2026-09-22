@@ -31,6 +31,7 @@
 
 const admin = require('firebase-admin');
 const { requireAdmin } = require('./lib/adminAuth');
+const { searchUzex } = require('./lib/uzexClient');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -93,6 +94,11 @@ const SYSTEM_PROMPT = `Sen VIP RAQAMLAR (070.uz) saytining admin paneli uchun ic
 - get_numbers_stats — bazadagi raqamlar bo'yicha umumiy hisobot: jami nechta raqam, umumiy summasi, o'rtacha narxi, operator/tag bo'yicha taqsimot, eng qimmat yoki eng arzon N ta raqam
 - get_order_stats — buyurtmalar statistikasi: status bo'yicha son (Yangi/Bog'lanildi/Yakunlandi/Bekor qilindi), berilgan davr (bugun/hafta/oy/hammasi) uchun, xohlasa so'nggi buyurtmalar ro'yxati bilan
 - get_credit_info — kredit (bo'lib to'lash) shartnomalari haqida: kimning qarzi (kechikkan to'lovi) borligi, umumiy statistika (jami shartnoma, qarzdorlik summasi, oylik tushum), yoki mijoz ismi/shartnoma ID bo'yicha qidirish
+- search_uzex_auction — UZEX (mobilraqam.uzex.uz) davlat auksionida HOZIR sotuvda turgan raqamlarni qidirish. Bu bizning bazamiz EMAS — tashqi auksion. Natija FAQAT jismoniy shaxslarga tegishli lotlar (yuridik hech qachon chiqmaydi).
+- create_uzex_watch — UZEX'da hali topilmagan raqam/shart uchun doimiy kuzatuv o'rnatish: mos raqam kelajakda paydo bo'lsa, tizim adminga avtomatik Telegram orqali xabar beradi.
+- list_uzex_watches — hozir faol UZEX kuzatuvlari ro'yxati.
+- delete_uzex_watch — bitta UZEX kuzatuvini to'xtatish/o'chirish.
+- save_uzex_number — UZEX'dan topilgan bitta raqamni umumiy "Saqlanganlar" ro'yxatiga qo'shish.
 
 Qoidalar:
 1. Qidirish so'ralsa — search_numbers. Natijadagi ID'lar keyingi "o'chir" yoki "narxini o'zgartir" buyrug'ida ishlatiladi. Agar hali hech narsa qidirilmagan bo'lsa, avval search_numbers bilan qidir, keyin natijadagi ID'lar bilan kerakli vositani chaqir.
@@ -104,7 +110,11 @@ Qoidalar:
 7. "Kimning qarzi bor", "qarzdorlar kim", "kredit bo'yicha kim to'lamayapti" kabi savollar — get_credit_info, onlyDebtors:true bilan chaqir. "Kredit bo'limida nima bor", "jami qancha kredit shartnomasi bor", "oylik tushum qancha" kabi umumiy savollar — get_credit_info, filtrsiz yoki mos filtr bilan chaqir. Aniq mijoz haqida so'ralsa — customerName yoki contractId bilan qidir.
 8. Har bir javobing qisqa, aniq va o'zbek tilida bo'lsin, summalarni "so'm" bilan o'qilishi qulay tarzda yoz (masalan 1 250 000 so'm).
 9. delete_numbers yoki update_numbers_price chaqirilgandan keyin, tizim buni avtomatik ravishda adminga tasdiqlash uchun ko'rsatadi — sen bu haqda alohida ogohlantirish yozishing shart emas, shunchaki vositani chaqir.
-10. Agar so'rov noaniq bo'lsa (masalan qaysi raqamlar yoki qanday narx nazarda tutilgani aniq bo'lmasa), vosita chaqirmasdan aniqlashtiruvchi savol ber.`;
+10. Agar so'rov noaniq bo'lsa (masalan qaysi raqamlar yoki qanday narx nazarda tutilgani aniq bo'lmasa), vosita chaqirmasdan aniqlashtiruvchi savol ber.
+11. "UZEX'da/auksionda ... raqam bormi", "auksionda oxiri ... bo'lgan raqam qidir" kabi so'rovlar — search_uzex_auction. Mask 9 ta belgi, HAR BIR noma'lum xona uchun "x": masalan oxiri "444" kerak bo'lsa "xxxxxx444", boshi "91" bilan boshlanishi kerak bo'lsa "91xxxxxxx", umuman chegarasiz qidiruv uchun "xxxxxxxxx". Bir nechta narsa (masalan ham oxiri, ham narx) so'ralsa, mask va priceMin/priceMax'ni birga ber.
+12. "Shu raqam/shart chiqsa menga xabar ber", "kuzatib tur", "topilsa aytib ber" kabi so'rovlar — create_uzex_watch (avval search_uzex_auction bilan hozircha yo'qligini tekshirib ko'rishing shart emas, to'g'ridan-to'g'ri kuzatuv qo'y). Har doim qisqa label bilan chaqir (masalan "oxiri 4444").
+13. "Qanday kuzatuvlarim bor", "nimalarni kuzatyapman" — list_uzex_watches. "Shu kuzatuvni bekor qil/o'chir" — delete_uzex_watch (kerakli ID avval list_uzex_watches natijasidan olinadi).
+14. "Shu raqamni saqlab qo'y" (UZEX natijasidan) — save_uzex_number, aynan shu raqamning number/price/seller maydonlarini ber (oldingi search_uzex_auction natijasidan oling).`;
 
 const TOOLS = [
   {
@@ -219,6 +229,69 @@ const TOOLS = [
         contractId: { type: 'string', description: "Shartnoma ID (masalan 7XQ2M) bo'yicha qidirish" },
         contractStatus: { type: 'string', enum: ['active', 'trouble', 'cancelling', 'cancelled', 'completed'] }
       }
+    }
+  },
+  {
+    name: 'search_uzex_auction',
+    description:
+      "UZEX (mobilraqam.uzex.uz) davlat auksionida HOZIR sotuvda turgan raqamlarni qidiradi — bu bizning bazamiz EMAS, tashqi auksion. Natijada FAQAT jismoniy shaxslarga tegishli lotlar qaytadi (yuridik shaxslarniki hech qachon ko'rsatilmaydi). Raqam POZITSION 9 xonali mask bilan qidiriladi.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        mask: { type: 'string', description: "9 ta belgi, noma'lum har bir xona uchun 'x' (masalan 'xxxxxx444' yoki '91xxxxxxx'). Chegarasiz qidiruv uchun 'xxxxxxxxx'." },
+        priceMin: { type: 'number' },
+        priceMax: { type: 'number' },
+        seller: { type: 'string', description: "Sotuvchi kompaniya nomi bo'yicha qisman moslik" },
+        dateFrom: { type: 'string', description: "Savdo boshlanish sanasi shu kundan keyin (YYYY-MM-DD)" },
+        dateTo: { type: 'string', description: "Savdo boshlanish sanasi shu kungacha (YYYY-MM-DD)" }
+      },
+      required: ['mask']
+    }
+  },
+  {
+    name: 'create_uzex_watch',
+    description:
+      "UZEX auksionida hali topilmagan, lekin admin so'ragan shart(lar)ga mos raqam KELAJAKDA paydo bo'lsa, avtomatik tekshirib Telegram orqali darhol xabar beradigan doimiy kuzatuv yaratadi. Xavfsiz — hech narsani o'chirmaydi/o'zgartirmaydi, tasdiqsiz bajariladi.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        mask: { type: 'string', description: "9 ta belgi, kuzatiladigan naqsh" },
+        priceMin: { type: 'number' },
+        priceMax: { type: 'number' },
+        seller: { type: 'string' },
+        label: { type: 'string', description: "Kuzatuvning qisqa nomi (ro'yxatda va Telegram xabarida ko'rsatiladi)" },
+        note: { type: 'string', description: "Qo'shimcha izoh, topilganda Telegram xabarida ko'rsatiladi" }
+      },
+      required: ['mask']
+    }
+  },
+  {
+    name: 'list_uzex_watches',
+    description: "Hozir faol turgan barcha UZEX kuzatuvlari ro'yxatini qaytaradi (ID, naqsh, holat).",
+    input_schema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'delete_uzex_watch',
+    description: "Berilgan ID bo'yicha UZEX kuzatuvini to'xtatadi/o'chiradi. ID avval list_uzex_watches natijasidan olinishi kerak.",
+    input_schema: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+      required: ['id']
+    }
+  },
+  {
+    name: 'save_uzex_number',
+    description: "UZEX qidiruvidan (search_uzex_auction) topilgan bitta raqamni umumiy 'Saqlanganlar' ro'yxatiga qo'shadi.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        number: { type: 'string' },
+        price: { type: 'number' },
+        seller: { type: 'string' },
+        startDate: { type: 'string' },
+        endDate: { type: 'string' }
+      },
+      required: ['number']
     }
   }
 ];
@@ -473,6 +546,80 @@ async function execCreditInfo(input) {
   };
 }
 
+const UZEX_WATCHES_COLLECTION = 'uzex_watches';
+const UZEX_SAVED_COLLECTION = 'uzex_saved_numbers';
+
+async function execSearchUzex(input) {
+  const out = await searchUzex({
+    mask: input.mask,
+    startPrice: input.priceMin,
+    endPrice: input.priceMax,
+    seller: input.seller,
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    limit: 100
+  });
+  return {
+    total: out.totalFound || out.items.length,
+    returned: out.items.length,
+    items: out.items.map(it => ({ number: it.number, price: it.price, seller: it.seller, startDate: it.startDate, endDate: it.endDate }))
+  };
+}
+
+async function execCreateUzexWatch(input, adminUid) {
+  const doc = {
+    mask: String(input.mask || '').trim(),
+    priceMin: typeof input.priceMin === 'number' ? input.priceMin : null,
+    priceMax: typeof input.priceMax === 'number' ? input.priceMax : null,
+    sellerQuery: input.seller || null,
+    label: input.label || input.mask || 'Kuzatuv',
+    note: input.note || null,
+    active: true,
+    createdByUid: adminUid,
+    createdAt: admin.firestore.Timestamp.now(),
+    intervalMinutes: 15,
+    checkCount: 0,
+    notifiedNumbers: {}
+  };
+  const ref = await db.collection(UZEX_WATCHES_COLLECTION).add(doc);
+  return { id: ref.id, label: doc.label, mask: doc.mask };
+}
+
+async function execListUzexWatches() {
+  const snap = await db.collection(UZEX_WATCHES_COLLECTION).where('active', '==', true).get();
+  return {
+    total: snap.size,
+    watches: snap.docs.map(d => {
+      const w = d.data();
+      return { id: d.id, label: w.label, mask: w.mask, priceMin: w.priceMin, priceMax: w.priceMax, seller: w.sellerQuery, checkCount: w.checkCount || 0 };
+    })
+  };
+}
+
+async function execDeleteUzexWatch(input) {
+  const id = input.id;
+  if (!id) return { ok: false, error: "ID ko'rsatilmagan" };
+  await db.collection(UZEX_WATCHES_COLLECTION).doc(String(id)).update({ active: false }).catch(async () => {
+    await db.collection(UZEX_WATCHES_COLLECTION).doc(String(id)).delete();
+  });
+  return { ok: true, id };
+}
+
+async function execSaveUzexNumber(input, adminUid) {
+  const digits = String(input.number || '').replace(/\D/g, '');
+  if (!digits) return { ok: false, error: "Raqam noto'g'ri" };
+  await db.collection(UZEX_SAVED_COLLECTION).doc(digits).set({
+    number: input.number || '',
+    price: Number(input.price) || 0,
+    seller: input.seller || '',
+    startDate: input.startDate || null,
+    endDate: input.endDate || null,
+    savedAt: admin.firestore.Timestamp.now(),
+    savedByUid: adminUid
+  }, { merge: true });
+  return { ok: true, number: input.number };
+}
+
 async function callClaude(messages) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -664,6 +811,28 @@ exports.handler = async function (event) {
               }))
             };
           }
+        } else if (toolUse.name === 'search_uzex_auction') {
+          toolResult = await execSearchUzex(toolUse.input || {});
+          resultsList = {
+            title: '🏛️ UZEX auksion natijasi',
+            total: toolResult.total,
+            items: toolResult.items.map(it => ({ number: it.number, price: it.price, label: it.seller || '' }))
+          };
+        } else if (toolUse.name === 'create_uzex_watch') {
+          toolResult = await execCreateUzexWatch(toolUse.input || {}, adminUid);
+        } else if (toolUse.name === 'list_uzex_watches') {
+          toolResult = await execListUzexWatches();
+          if (toolResult.watches && toolResult.watches.length) {
+            resultsList = {
+              title: '🎯 Faol UZEX kuzatuvlari',
+              total: toolResult.watches.length,
+              items: toolResult.watches.map(w => ({ number: w.mask, price: 0, label: w.label + (w.id ? ' · ID: ' + w.id : '') }))
+            };
+          }
+        } else if (toolUse.name === 'delete_uzex_watch') {
+          toolResult = await execDeleteUzexWatch(toolUse.input || {});
+        } else if (toolUse.name === 'save_uzex_number') {
+          toolResult = await execSaveUzexNumber(toolUse.input || {}, adminUid);
         } else {
           toolResult = { error: "Noma'lum vosita: " + toolUse.name };
         }
