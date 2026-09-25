@@ -224,10 +224,23 @@ document.documentElement.setAttribute('data-theme', 'dark');
     min-height:100vh;
     margin:0 -0px;padding-left:0;padding-right:0;
   }
-  .tg-screen{display:none;padding-bottom:10px;}
+  .tg-screen{display:none;padding-bottom:10px;position:relative;}
   /* Mijoz: "hozir tez va qattiq, yumshoq-sekin animatsiya bilan chiqsin"
-     dedi — o'tish animatsiyalari sekinlashtirildi va silliqlashtirildi. */
+     dedi — o'tish animatsiyalari sekinlashtirildi va silliqlashtirildi.
+     Keyin: "boshqa bo'limga o'tganda qattiq ochyabdi, o'rniga birinchi
+     marta kirgandagi 'tavsiya etiladi' zagruskasiga o'xshab OQ
+     animatsiya bilan yumshoq ochsin" — endi yangi ekran kirganda ustidan
+     yengil OQ nur sirg'alib o'tadi (bir martalik, zagruska shimmer bilan
+     bir xil "til"), shu bilan o'tish "qattiq popup" emas, "yumshoq
+     yoritilib ochiladigan" his qiladi. */
   .tg-screen.active{display:block;animation:screenIn .42s cubic-bezier(.22,.85,.32,1);}
+  .tg-screen.active::after{
+    content:'';position:absolute;inset:0;z-index:5;pointer-events:none;
+    background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.10) 48%, rgba(255,255,255,0.22) 52%, transparent 70%);
+    background-size:260% 100%;background-position:130% 0;
+    animation:screenSheen .55s cubic-bezier(.22,.85,.32,1) both;
+  }
+  @keyframes screenSheen{from{background-position:130% 0;opacity:1;}to{background-position:-30% 0;opacity:0;}}
   @keyframes screenIn{from{opacity:0;transform:translateY(16px) scale(0.985);}to{opacity:1;transform:translateY(0) scale(1);}}
   /* Eski ekran chiqib ketayotgan payt — oqim tashqarisida (absolute), shu
      sabab yangisi bilan bir vaqtda ko'rinsa ham sahifa balandligi
@@ -551,12 +564,16 @@ document.documentElement.setAttribute('data-theme', 'dark');
      qil" — oldin ICHKI qalin rang-berilgan halqa (0 0 0 5px accent-soft)
      TASHQI kartochka chegarasi bilan "qo'sh ramka" bo'lib ko'rinardi.
      Endi faqat bitta nozik, shaffof chegara qoldi — toza, zamonaviy. */
+  /* Mijoz: "ramkasi hali ham bilinib qolyapti, rangini bir xil qilvoraver"
+     — chegara (border) VA ichki "highlight" chizig'i BUTUNLAY olib
+     tashlandi, endi panel atrofida hech qanday ko'zga tashlanadigan
+     halqa/chegara yo'q — faqat yumshoq soya bilan ekrandan sal
+     ajraladi, rangi esa ekran foniga uyg'un. */
   .search-hero{
     margin:0 16px 14px;padding:24px 13px 22px;border-radius:24px;position:relative;overflow:hidden;
     background:linear-gradient(165deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
-    border:1px solid rgba(255,255,255,0.12);
     -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
-    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 10px 28px -14px rgba(0,0,0,0.4);
+    box-shadow:0 10px 28px -14px rgba(0,0,0,0.4);
   }
   .search-hero-label{
     display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--muted);
@@ -793,6 +810,11 @@ document.documentElement.setAttribute('data-theme', 'dark');
   .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;margin-bottom:110px;}
   .catalog-loading .boot-ring{margin:0 auto 12px;}
   .catalog-loading-search{padding:56px 20px;}
+  /* Cheksiz scroll: ro'yxat pastida ko'rinadigan kichik "yana yuklanmoqda"
+     belgisi — IntersectionObserver shu elementni ko'rgach avtomatik
+     ko'proq raqam qo'shadi (qarang: setupCatalogLoadMoreObserver()). */
+  .catalog-load-more{display:flex;align-items:center;justify-content:center;padding:18px 0 6px;}
+  .catalog-load-more .cl-search-spin{width:26px;height:26px;border-width:2.5px;}
   /* Mijoz: aylanib turgan lupa SVG'si o'rniga endi haqiqiy, zamonaviy
      "loading ring" halqasi (boshqa joylardagi bilan bir xil uslub). */
   .cl-search-spin{
@@ -2434,6 +2456,27 @@ let catalogFilterInstallment = false;
 // tasodifiy tartib (har "Qidirish" bosilganda qayta aralashtiriladi).
 let catalogRandomActive = false;
 let catalogRandomOrder = null;
+// Mijoz: "ko'p mos raqam bo'lsa ham faqat bir nechtasini ko'rsatyapti,
+// pastga tushganda zagruska bo'lib yangi raqamlar chiqaversin" — cheksiz
+// scroll (bosqichma-bosqich ko'proq ko'rsatish) holati.
+const CATALOG_PAGE_SIZE = 24;
+let catalogRenderLimit = CATALOG_PAGE_SIZE;
+let lastCatalogFilterSignature = '';
+let catalogLoadMoreObserver = null;
+function setupCatalogLoadMoreObserver(){
+  if(catalogLoadMoreObserver) catalogLoadMoreObserver.disconnect();
+  const sentinel = document.getElementById('catalogLoadMore');
+  if(!sentinel) return;
+  catalogLoadMoreObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        catalogRenderLimit += CATALOG_PAGE_SIZE;
+        renderCatalog();
+      }
+    });
+  }, { root:null, rootMargin:'200px 0px', threshold:0 });
+  catalogLoadMoreObserver.observe(sentinel);
+}
 
 /* =========================================================
    JONLI QIDIRUV (Live search) — index.html'dagi #numberBuilder va
@@ -2543,14 +2586,37 @@ async function fetchLiveNumbers(){
   spinner.style.display = 'inline-block';
   statusRow.style.display = 'flex';
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(()=> controller.abort(), 9000);
+  // Mijoz: "raqam kiritib Qidirish bosilsa SRAZI serverdagi raqamni
+  // chiqarmayabdi, yana bir marta bosilsa keyin chiqadi" — sabab
+  // aniqlandi: operator serverlari (ayniqsa Beeline) BA'ZAN 10-12
+  // soniyagacha javob berishi mumkin (pastdagi lib/operators.js'da
+  // qayd etilgan), lekin bizning frontend faqat 9 soniyadan keyin
+  // "abort" qilib, jim natijasiz qolardi — mijoz shuni "ishlamadi" deb
+  // qabul qilardi, keyingi bosishda esa (server keshi/oxirgi yaxshi
+  // natija tufayli) tezroq javob kelib "endi ishladi" bo'lib ko'rinardi.
+  // Endi: (1) kutish vaqti 20 soniyagacha uzaytirildi, (2) birinchi
+  // urinish muvaffaqiyatsiz bo'lsa (xato/abort), foydalanuvchiga
+  // BILDIRMASDAN, ILOVANING O'ZI avtomatik yana bir marta so'raydi —
+  // shu bilan "ikkinchi marta bosish" ehtiyoji butunlay yo'qoladi.
+  async function attemptFetch(timeoutMs){
+    const controller = new AbortController();
+    const timeoutId = setTimeout(()=> controller.abort(), timeoutMs);
+    try{
+      const url = '/.netlify/functions/api-live-search?limit=100&mask=' + encodeURIComponent(mask);
+      const res = await fetch(url, { signal: controller.signal });
+      const data = await res.json();
+      return (data && data.ok === true) ? data : null;
+    }catch(err){
+      return null;
+    }finally{
+      clearTimeout(timeoutId);
+    }
+  }
   try{
-    const url = '/.netlify/functions/api-live-search?limit=40&mask=' + encodeURIComponent(mask);
-    const res = await fetch(url, { signal: controller.signal });
-    const data = await res.json();
+    let data = await attemptFetch(20000);
+    if(!data && myId === liveRequestId) data = await attemptFetch(20000); // jim ichki qayta urinish
     if(myId !== liveRequestId) return; // mijoz shu orada boshqasini terdi
-    if(data && data.ok === true){
+    if(data){
       // Server ID'ni "live:+998901234567" shaklida qaytaradi — "+" belgisi
       // FAV_ID_PATTERN'ga (sevimlilar uchun ruxsat etilgan belgilar to'plami)
       // to'g'ri kelmaydi, aks holda yurak bosilganda hech narsa saqlanmay,
@@ -2562,15 +2628,11 @@ async function fetchLiveNumbers(){
       liveMask = mask;
     }else{
       LIVE_NUMBERS = [];
+      liveMask = '';
+      // Mijozga texnik xato ko'rsatilmaydi — statik VIP baza baribir ishlaydi,
+      // jonli natija shunchaki bo'sh qoladi (index.html'dagi kabi "jim" xatti-harakat).
     }
-  }catch(err){
-    if(myId !== liveRequestId) return;
-    LIVE_NUMBERS = [];
-    liveMask = '';
-    // Mijozga texnik xato ko'rsatilmaydi — statik VIP baza baribir ishlaydi,
-    // jonli natija shunchaki bo'sh qoladi (index.html'dagi kabi "jim" xatti-harakat).
   }finally{
-    clearTimeout(timeoutId);
     if(myId === liveRequestId){
       liveLoading = false;
       btn.disabled = false;
@@ -2993,7 +3055,11 @@ function renderCatalog(){
   if(catalogFilterOp) items = items.filter(n=> n.operator === catalogFilterOp);
   if(catalogFilterInstallment) items = items.filter(n=> n.installment === true);
   if(hasPattern) items = items.filter(n=> matchesCatalogPattern(n.number, catalogFilterPattern));
-  items = items.slice(0, 60);
+  // Mijoz: "0101 kabi qidirsa ko'p mos raqam bo'lsa ham faqat ozginasi
+  // ko'rsatilyapti" — cheklov ancha KATTALASHTIRILDI (60→150), qolgani
+  // pastdagi "cheksiz scroll" (bosqichma-bosqich ko'proq ko'rsatish)
+  // orqali hal qilinadi.
+  items = items.slice(0, 150);
 
   // Jonli (operator API) natijalari — bir xil filtrlar (operator/bo'lib
   // to'lash) qo'llanadi, lekin ID'lari boshqacha ('live:' prefiksi) va
@@ -3001,7 +3067,7 @@ function renderCatalog(){
   let liveItems = LIVE_NUMBERS;
   if(catalogFilterOp) liveItems = liveItems.filter(n=> n.operator === catalogFilterOp);
   if(catalogFilterInstallment) liveItems = liveItems.filter(n=> n.installment === true);
-  liveItems = liveItems.slice(0, 40);
+  liveItems = liveItems.slice(0, 100);
 
   const allItems = liveItems.concat(items);
 
@@ -3027,7 +3093,26 @@ function renderCatalog(){
     listEl.innerHTML = '<div class="catalog-empty">' + escapeHtml(t('catalogEmpty')) + '</div>';
     return;
   }
-  listEl.innerHTML = allItems.map(n=>{
+
+  // Mijoz: "0101 kabi qidirsa ko'p raqam bo'lsa ham faqat bir nechtasini
+  // ko'rsatyapti, hammasini ko'rsatishi kerak — pastga tushganda
+  // zagruska bo'lib, yangi raqamlar chiqaversin" — endi HAMMASI bir
+  // zumda DOM'ga chiqarilmaydi (yuzlab kartochka sekinlik qilishi
+  // mumkin), o'rniga bosqichma-bosqich (24 tadan) ko'rsatiladi va
+  // foydalanuvchi pastga scroll qilganda IntersectionObserver orqali
+  // avtomatik yana 24 tasi qo'shiladi — cheksiz scroll effekti.
+  const filterSignature = JSON.stringify([
+    catalogFilterPattern.join(''), catalogFilterOp, catalogFilterInstallment,
+    catalogRandomActive, LIVE_NUMBERS.length, NUMBERS.length
+  ]);
+  if(filterSignature !== lastCatalogFilterSignature){
+    lastCatalogFilterSignature = filterSignature;
+    catalogRenderLimit = CATALOG_PAGE_SIZE;
+  }
+  const visibleItems = allItems.slice(0, catalogRenderLimit);
+  const hasMore = allItems.length > visibleItems.length;
+
+  listEl.innerHTML = visibleItems.map(n=>{
     const color = OPERATOR_COLORS[n.operator] || '#6b7280';
     const favActive = isFavoriteId(n.id);
     const heartFill = favActive ? 'currentColor' : 'none';
@@ -3058,13 +3143,18 @@ function renderCatalog(){
             </div>
           </div>
           <button type="button" class="num-card-btn" data-id="${escapeHtml(n.id)}">
-            <span class="num-card-btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l.9 11.1a2 2 0 0 1-2 2.15H7.6a2 2 0 0 1-2-2.15L6.5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span>
+            <span class="num-card-btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M14.2 8l3.3 3.3-6.3 6.3H7.9v-3.3z"/></svg></span>
             <span>${escapeHtml(t('orderBtn'))}</span>
           </button>
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') + (hasMore ? '<div class="catalog-load-more" id="catalogLoadMore"><span class="cl-search-spin"></span></div>' : '');
+  if(hasMore){
+    setupCatalogLoadMoreObserver();
+  }else if(catalogLoadMoreObserver){
+    catalogLoadMoreObserver.disconnect();
+  }
   listEl.querySelectorAll('.num-card-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const item = findItemById(btn.dataset.id);
