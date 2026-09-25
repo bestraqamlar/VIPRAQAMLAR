@@ -32,21 +32,11 @@
 <!-- "async" — sahifa darhol ko'rinishi uchun (telegram-web-app.js yuklanishini
      KUTMAYDI), qarang: pastdagi initTelegram() qayta urinish mexanizmi. -->
 <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-<!-- MUHIM: mavzu (dark/light) CSS chizilishidan OLDIN, sinxron tarzda
-     tanlanadi — aks holda birinchi kadrda noto'g'ri rang miltillab
-     ko'rinib ketadi ("flash"). Saqlangan tanlov bo'lmasa — standart
-     TUNGI (dark) bilan boshlanadi. -->
+<!-- Mijoz: "profildan mavzu bo'limini olib tashla, doim qorong'u rejimda
+     bo'ladi" — ilova endi FAQAT qorong'u (dark) rejimda ishlaydi,
+     foydalanuvchi/tizim tanlovi endi o'qilmaydi va saqlanmaydi. -->
 <script>
-(function(){
-  try{
-    var choice = localStorage.getItem('vipTgTheme') || 'dark';
-    var resolved = choice;
-    if(choice === 'system'){
-      resolved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-    }
-    document.documentElement.setAttribute('data-theme', resolved);
-  }catch(e){ document.documentElement.setAttribute('data-theme', 'dark'); }
-})();
+document.documentElement.setAttribute('data-theme', 'dark');
 </script>
 <style>
   /* ===== MAVZU (Tizim/Yorug'/Tungi) — HAQIQIY ikkita palitra, JS
@@ -375,7 +365,12 @@
     margin:0;border-radius:24px;padding:20px 20px 18px;position:relative;overflow:hidden;
     min-height:168px;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:pan-y;
     background:var(--home-banner-bg);
-    box-shadow:0 1px 0 rgba(255,255,255,0.12) inset, 0 18px 38px -16px rgba(0,0,0,0.5), 0 4px 16px -6px rgba(0,0,0,0.32);
+    /* Mijoz: "tavsiya etiladi kartochka ramkasini zamonaviy qil" — endi
+       nozik yorug' ramka (border) + burchakdagi yumshoq porlash (::after)
+       qo'shildi, shu bilan kartochka "quruq" emas, zamonaviy shisha-panel
+       (glass panel) ko'rinishida chiqadi. */
+    border:1px solid rgba(255,255,255,0.18);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.05), 0 1px 0 rgba(255,255,255,0.12) inset, 0 18px 38px -16px rgba(0,0,0,0.5), 0 4px 16px -6px rgba(0,0,0,0.32);
     /* Mijoz: "butun kartochka chiqib-kirsin" — endi almashtirishda ICHKI
        matn emas, BUTUN katta kartochka (fon/gradient/"Tavsiya etiladi"
        yorlig'i bilan birga) chiqib ketadi va yangi raqam bilan YANGI
@@ -402,6 +397,16 @@
      shu joyga qo'yiladi, shu bilan ikkalasi bitta joyda, bir vaqtda
      harakatlanadi (uzluksiz, bo'shliqsiz almashinuv). */
   .home-banner-incoming{position:absolute;top:0;left:0;right:0;z-index:2;pointer-events:none;}
+  /* Zamonaviy ramka uchun burchakdagi yumshoq nur (highlight) — boshqa
+     "branded" kartochkalarda (num-card va h.k.) ishlatilgan uslub bilan
+     bir xil til. Shine (::before) bilan to'qnashmasligi uchun pastroq
+     z-index va pointer-events:none. */
+  .home-banner::after{
+    content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 8% -10%, rgba(255,255,255,0.18), transparent 55%);
+    border-radius:inherit;
+  }
+  .home-banner-pill, .home-banner-inner, .home-banner-dots{position:relative;z-index:1;}
   .home-banner-pill{
     display:inline-flex;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,0.2);color:#fff;
     font-family:'Sora',sans-serif;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;
@@ -413,10 +418,36 @@
      animatsiya BUTUN tashqi kartochkaga (.home-banner) qo'llanadi (yuqoriga
      qarang), bu ichki blok esa shunchaki oddiy, o'z fon/ramka/animatsiyasi
      bo'lmagan matn konteyneri. */
-  .home-banner-inner{ pointer-events:none; }
+  .home-banner-inner{ pointer-events:none; transition:opacity .35s ease; }
+  /* Bosh sahifa banneri hali ma'lumot bilan to'ldirilmagan paytdagi
+     ("is-loading") skelet ko'rinishi — mijoz: "o'sha kartochka oqish
+     bashara, huddi zagruska bo'layotgandek bo'lib tursin". Haqiqiy matn
+     (.home-banner-inner) shaffof qilinadi, o'rniga och rangli "shimmer"
+     chiziqlar chiqadi. */
+  .home-banner-skel{ display:none; position:absolute; left:20px; right:20px; top:52px; pointer-events:none; }
+  .home-banner.is-loading .home-banner-inner{ opacity:0; }
+  .home-banner.is-loading .home-banner-skel{ display:block; }
+  .hbs-line{
+    height:14px;border-radius:7px;margin-bottom:10px;
+    background:linear-gradient(90deg, rgba(255,255,255,0.14) 25%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.14) 75%);
+    background-size:200% 100%;animation:hbsShimmer 1.4s ease-in-out infinite;
+  }
+  .hbs-line-1{width:58%;height:18px;}
+  .hbs-line-2{width:34%;height:11px;}
+  .hbs-line-3{width:44%;height:15px;margin-bottom:0;}
+  @keyframes hbsShimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+  /* Mijoz: "kichikroq qurilmada ochilganda 0 li kop raqamlar (masalan
+     +998 90-000-00-00 kabi) pastga tushib ketyabdi, ilova qulayligi
+     buzilyabdi" — sabab: font-size QOTIB QOLGAN (29px) edi, tor ekranda
+     matn konteynerga sig'may, avtomatik keyingi qatorga tushib ketardi.
+     Endi font-size clamp() bilan ekran kengligiga QARAB o'zi kichrayadi
+     (juda keng ekranda hali ham 29px, juda tor ekranda 20px'gacha
+     tushadi) va white-space:nowrap bilan HECH QACHON ikkinchi qatorga
+     tushmaydi — doim bitta tekis qatorda, chiroyli ko'rinadi. */
   .home-banner-number{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:29px;letter-spacing:.3px;margin-bottom:7px;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(19px, 6.6vw, 29px);letter-spacing:.2px;margin-bottom:7px;
     background:linear-gradient(90deg, #fff, #cfe0ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+    white-space:nowrap;overflow:hidden;text-overflow:clip;
   }
   :root[data-theme="light"] .home-banner-number{background:linear-gradient(90deg, var(--text), var(--accent));-webkit-background-clip:text;background-clip:text;}
   .home-banner-tariff{font-size:12.5px;color:var(--muted);margin-bottom:13px;font-weight:700;}
@@ -515,12 +546,17 @@
      (chap-o'ng margin) O'ZGARMAYDI (ekran chekkasidan chiqib ketmaydi),
      lekin ICHKI hamma narsa (padding, katakchalar, tugma, matn)
      sezilarli darajada kattalashtirildi. */
+  /* Mijoz: "chekasidagi ramka kerak emas, katta kartochkada allaqachon
+     ramka bor, faqat 7 ta katak va Qidirish qolsin, zamonaviy qulay
+     qil" — oldin ICHKI qalin rang-berilgan halqa (0 0 0 5px accent-soft)
+     TASHQI kartochka chegarasi bilan "qo'sh ramka" bo'lib ko'rinardi.
+     Endi faqat bitta nozik, shaffof chegara qoldi — toza, zamonaviy. */
   .search-hero{
     margin:0 16px 14px;padding:24px 13px 22px;border-radius:24px;position:relative;overflow:hidden;
     background:linear-gradient(165deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
-    border:1.5px solid var(--accent-soft);
+    border:1px solid rgba(255,255,255,0.12);
     -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
-    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 0 0 5px var(--accent-soft), 0 10px 28px -14px rgba(0,0,0,0.4);
+    box-shadow:0 1px 0 var(--glass-highlight) inset, 0 10px 28px -14px rgba(0,0,0,0.4);
   }
   .search-hero-label{
     display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--muted);
@@ -678,17 +714,19 @@
     display:inline-flex;align-items:center;gap:0;background:transparent;
     max-width:calc(100% - 40px);
   }
-  .num-card-plate-dot{color:#fff;font-weight:900;font-size:15px;opacity:.5;margin:0 5px;flex-shrink:0;}
+  /* Mijoz: "barcha raqamlarni qurilmaga qarab narxdan katta qilish kerak,
+     ikkalasi bir xil ko'zga tushmasin — birinchi raqam, keyin narx" —
+     endi raqam matni clamp() bilan ekran kengligiga QARAB kattalashadi
+     (tor ekranda ham, keng ekranda ham narxdan aniq YIRIKROQ turadi). */
   .num-card-plate-num{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:17px;letter-spacing:.4px;color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(19px, 5.6vw, 23px);letter-spacing:.3px;color:#fff;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     text-shadow:0 2px 10px rgba(0,0,0,0.25);
   }
-  .num-card-chevron{
-    flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.10);
-  }
-  .num-card-chevron svg{width:14px;height:14px;}
+  /* Mijoz: "raqam kartochka chekasida saqlash (yurak) yonidagi strelkani
+     olib tashla" — .num-card-chevron elementi HTML shablondan ham
+     (pastda) olib tashlandi, CSS qoidasi endi keraksiz, shu sabab olib
+     tashlandi. */
   .num-card-meta{
     display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:#c3ccff;font-weight:800;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.10);border-radius:8px;padding:4px 9px 4px 7px;
@@ -701,7 +739,7 @@
   }
   .num-card-price-col{display:flex;flex-direction:column;gap:5px;min-width:0;}
   .num-card-price{
-    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:#fff;white-space:nowrap;flex-shrink:0;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;color:#fff;white-space:nowrap;flex-shrink:0;
   }
   /* Mijoz rasmida har kartada kichik ikonka+son ("ko'rish soni" kabi)
      "stat" qatori bor edi — bizda ko'rish sonini kuzatish yo'q, shu
@@ -713,16 +751,29 @@
   .num-card-stat{
     display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:rgba(255,255,255,0.65);
   }
-  /* Mijoz: "raqamlar bo'limida buyurtma tugmasini zamonaviy rang va
-     animatsiya qo'sh" — endi to'q-ko'kdan-binafshaga o'tuvchi yorqinroq
-     gradient, doimiy yumshoq "shine" o'tish animatsiyasi (qidiruv
-     tugmasidagi bilan bir xil uslub) va bosilganda jonliroq kichrayish. */
+  /* Mijoz: "buyurtma tugmasini tortburchakroq qil, ramkasiga rangli
+     zamonaviy animatsiya qo'sh, ranginiham zamonaviy qil" — endi:
+     (1) burchaklar KAMROQ yumaloq (10px, oldin 16px edi) — dumaloq
+     "pill" emas, tortburchaksimon ko'rinish; (2) ramka (border) o'zi
+     AYLANIB turadigan rang-barang (ko'k→binafsha→pushti→ko'k) conic-
+     gradient halqa — @property bilan --btn-angle burchagi animatsiya
+     qilinadi, ramka doimiy "yugurib" turadi; (3) tugma ichki foni ham
+     yangi, quyuqroq zamonaviy binafsha-pushti gradient. */
+  @property --btn-angle{
+    syntax:'<angle>';inherits:false;initial-value:0deg;
+  }
+  @keyframes numBtnBorderSpin{ to{ --btn-angle:360deg; } }
   .num-card-btn{
     position:relative;overflow:hidden;
-    background:linear-gradient(135deg, #4F8CFF 0%, #7C6CF0 55%, #a86bff 100%);border:none;color:#fff;
-    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;padding:9px 16px 9px 9px;border-radius:16px;cursor:pointer;
+    border-radius:10px;border:2px solid transparent;
+    background:
+      linear-gradient(135deg, #6D3CF2 0%, #9A3FF0 48%, #E23FD6 100%) padding-box,
+      conic-gradient(from var(--btn-angle), #4F8CFF, #9A3FF0, #FF5FB8, #4F8CFF) border-box;
+    animation:numBtnBorderSpin 3.2s linear infinite;
+    color:#fff;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:13px;padding:9px 16px 9px 9px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;
-    box-shadow:0 8px 18px -8px rgba(124,108,240,0.55), 0 0 0 1px rgba(255,255,255,0.2) inset;
+    box-shadow:0 8px 18px -8px rgba(154,63,240,0.55);
     transition:transform .12s ease, box-shadow .15s ease;
   }
   .num-card-btn::before{
@@ -731,12 +782,12 @@
     transform:skewX(-18deg);animation:lsbShine 3.6s ease-in-out infinite;
   }
   .num-card-btn-ic{
-    width:24px;height:24px;border-radius:50%;flex-shrink:0;position:relative;z-index:1;
+    width:24px;height:24px;border-radius:8px;flex-shrink:0;position:relative;z-index:1;
     background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;
   }
   .num-card-btn svg{width:14px;height:14px;flex-shrink:0;}
   .num-card-btn span{position:relative;z-index:1;}
-  .num-card-btn:active{transform:scale(0.93);box-shadow:0 4px 10px -6px rgba(124,108,240,0.6);}
+  .num-card-btn:active{transform:scale(0.93);box-shadow:0 4px 10px -6px rgba(154,63,240,0.6);}
   /* Mijoz: klaviatura ochiq paytda "topilmadi" matni pastki menyuga
      yopishib qolmasin dedi — qo'shimcha bo'shliq qoldirildi. */
   .catalog-empty, .catalog-loading{text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;margin-bottom:110px;}
@@ -811,7 +862,13 @@
     position:fixed;inset:0;z-index:500;background:rgba(2,3,5,0.72);backdrop-filter:blur(4px);
     display:none;align-items:flex-end;justify-content:center;
   }
-  .modal-overlay.open{display:flex;}
+  /* Mijoz: "boshqa oynaga o'tkanda darrov qattiq ochyabdi, o'rniga
+     yumshoq ochsin" — oldin overlay bir zumda (display:none->flex)
+     "qattiq" paydo bo'lardi. Endi orqa fon ham yumshoq fade-in bilan
+     ko'rinadi, ichidagi varaq (.modal-sheet) o'zining sheetUp
+     animatsiyasi bilan birga uyg'un chiqadi. */
+  .modal-overlay.open{display:flex;animation:modalOverlayIn .26s ease both;}
+  @keyframes modalOverlayIn{from{opacity:0;}to{opacity:1;}}
   .modal-sheet{
     width:100%;max-width:480px;background:var(--panel);border:1px solid var(--line);border-bottom:none;
     border-radius:20px 20px 0 0;padding:18px 16px calc(20px + var(--safe-b));
@@ -1035,7 +1092,7 @@
   }
   .installment-row .ir-icon svg{width:20px;height:20px;}
   .installment-row .ir-main{position:relative;flex:1;min-width:0;}
-  .installment-row .ir-number{font-family:'Sora',sans-serif;font-weight:800;font-size:14.5px;color:#fff;}
+  .installment-row .ir-number{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(15.5px, 4.4vw, 18px);color:#fff;}
   .installment-row .ir-teaser{font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px;font-weight:600;}
   .installment-row .ir-teaser b{font-family:'Sora',sans-serif;font-weight:800;color:#fff;font-size:13px;margin-right:2px;}
   .installment-row .ir-teaser-months{opacity:.8;}
@@ -1072,9 +1129,12 @@
     font-family:'Sora',sans-serif;font-weight:800;font-size:11.5px;padding:4px 9px;border-radius:8px;
     box-shadow:0 4px 10px -4px rgba(255,95,143,0.5);
   }
-  .deal-card-num{position:relative;font-family:'Sora',sans-serif;font-weight:800;font-size:16.5px;color:#fff;margin-bottom:8px;padding-right:50px;}
+  /* Mijoz: "raqam narxdan katta bo'lsin" — oldin narx (18px) raqamdan
+     (16.5px) KATTAROQ edi, aksincha bo'lishi kerak edi. Endi raqam
+     clamp() bilan ekranga qarab kattalashadi va narxdan aniq yirikroq. */
+  .deal-card-num{position:relative;font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(18px, 5.2vw, 21px);color:#fff;margin-bottom:8px;padding-right:50px;}
   .deal-card-price-row{position:relative;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
-  .deal-card-price{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:#fff;}
+  .deal-card-price{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#fff;}
   .deal-card-oldprice{font-size:13px;color:rgba(255,255,255,0.55);text-decoration:line-through;}
   .deal-card-inst{position:relative;margin-top:6px;font-size:12px;color:rgba(255,255,255,0.65);font-weight:600;}
   .deal-card-inst b{font-family:'Sora',sans-serif;font-weight:800;color:#7CE8A4;font-size:13px;}
@@ -1164,15 +1224,27 @@
     backdrop-filter:blur(20px) saturate(140%);border:1px solid var(--nav-border);border-radius:20px;
     padding:6px;box-shadow:0 -6px 20px -8px rgba(0,0,0,0.35), 0 16px 36px rgba(0,0,0,0.28);
   }
+  /* Mijoz: "raqamlar tugmasidagi orqa fon (ochroq fon) boshqa tugmaga
+     bosilganda yumshoq shisha bo'lib yumshoq o'tsin, zamonaviy bo'lsin"
+     — oldin fon rangi bir zumda (qattiq) almashardi. Endi transition
+     uzunroq va yumshoqroq egri chiziq (cubic-bezier) bilan, ustiga
+     shisha (glass) effekti — blur+saturate — qo'shildi, shu bilan faol
+     bo'lim belgisi "erib" o'tadi, qattiq sakramaydi. */
   .bn-tab{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-    padding:8px 4px;border-radius:14px;background:none;border:none;color:var(--muted);cursor:pointer;
-    transition:background .22s ease, color .18s ease, transform .12s ease;
+    padding:8px 4px;border-radius:14px;background:none;border:1px solid transparent;color:var(--muted);cursor:pointer;
+    transition:background .4s cubic-bezier(.22,.85,.32,1), border-color .4s ease, color .22s ease, transform .12s ease;
   }
   .bn-tab:active{transform:scale(0.92);}
   .bn-tab svg{width:21px;height:21px;transition:filter .2s ease;}
   .bn-tab span{font-family:'Sora',sans-serif;font-weight:700;font-size:10px;}
-  .bn-tab.active{color:#fff;background:linear-gradient(135deg, rgba(255,95,143,0.32), rgba(79,140,255,0.28));}
+  .bn-tab.active{
+    color:#fff;
+    background:linear-gradient(135deg, rgba(255,95,143,0.24), rgba(79,140,255,0.22));
+    border-color:rgba(255,255,255,0.14);
+    -webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%);
+    box-shadow:0 1px 0 rgba(255,255,255,0.14) inset;
+  }
   .bn-tab.active svg{filter:drop-shadow(0 0 5px rgba(79,140,255,0.55));}
   /* Mijoz: "shunaqa joylar saytni qayerida bo'lsa hammasini to'g'irla" —
      pastki menyudagi FAOL bo'lim ham oq matn + juda xira (shaffof)
@@ -1217,7 +1289,14 @@
        katakchalari. ================= -->
   <section class="tg-screen active" id="screen-home">
     <div class="home-banner-viewport">
-      <div class="home-banner" id="homeBanner">
+      <!-- Mijoz: "ilovani birinchi ochganda darrov raqam yuklanmay, o'rniga
+           '—' turibdi, unaqa bo'lmasin, o'sha vaqtgacha kartochka OQISH
+           (och rangli) BASHARA — zagruska bo'layotgandek — bo'lib tursin"
+           — endi ma'lumot hali kelmagan bo'lsa (is-loading klassi) matn
+           o'rniga yumshoq "shimmer" skelet chiziqlar ko'rsatiladi;
+           fillBannerNode() haqiqiy ma'lumot bilan to'ldirilganda bu klass
+           avtomatik olib tashlanadi (pastga qarang). -->
+      <div class="home-banner is-loading" id="homeBanner">
         <div class="home-banner-pill" data-i18n="bannerRecommended">Tavsiya etiladi</div>
         <div class="home-banner-inner" id="homeBannerBody">
           <div class="home-banner-number" id="homeBannerNumber">—</div>
@@ -1226,6 +1305,11 @@
             <div class="home-banner-price" id="homeBannerPrice"></div>
             <div class="home-banner-old-price" id="homeBannerOldPrice"></div>
           </div>
+        </div>
+        <div class="home-banner-skel" aria-hidden="true">
+          <div class="hbs-line hbs-line-1"></div>
+          <div class="hbs-line hbs-line-2"></div>
+          <div class="hbs-line hbs-line-3"></div>
         </div>
       </div>
     </div>
@@ -1325,14 +1409,11 @@
       </div>
     </div>
 
-    <div class="profile-block">
-      <div class="section-title" style="margin:0 0 8px;" data-i18n="themeTitle">Mavzu</div>
-      <div class="seg-pill" id="themePill">
-        <button type="button" class="seg-pill-option" data-theme="system" data-i18n="themeSystem">Tizim</button>
-        <button type="button" class="seg-pill-option" data-theme="light" data-i18n="themeLight">Yorug'</button>
-        <button type="button" class="seg-pill-option active" data-theme="dark" data-i18n="themeDark">Tungi</button>
-      </div>
-    </div>
+    <!-- Mijoz: "profil bo'limidan mavzu bo'limini hammasini olib tashla,
+         doim qorong'u rejimda bo'ladi" — mavzu tanlash bloki (Tizim/
+         Yorug'/Tungi) butunlay OLIB TASHLANDI, ilova endi doim faqat
+         qorong'u (dark) rejimda ishlaydi (pastda applyTheme('dark')
+         qattiq belgilangan, foydalanuvchi tanlovi endi o'qilmaydi). -->
 
     <div class="section-title" data-i18n="sectionsTitle">Bo'limlar</div>
     <div class="action-card">
@@ -1372,25 +1453,14 @@
             <span class="action-sub" data-i18n="profVacanciesSub">Ish o'rinlari</span>
           </span>
         </button>
-        <button type="button" class="action-tile" id="profBot">
-          <span class="action-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M9 18h6"/></svg></span>
-          <span class="action-text">
-            <span class="action-title" data-i18n="profBotTitle">Bot orqali raqam tanlash</span>
-            <span class="action-sub" data-i18n="profBotSub">Tezkor</span>
-          </span>
-        </button>
+        <!-- Mijoz: "profil bo'limidan telegram kanal va bot orqali raqam
+             tanlashni olib tashla" — ikkala tugma (profBot, profTelegram)
+             butunlay OLIB TASHLANDI. -->
         <a href="#" class="action-tile" id="profContact">
           <span class="action-icon ic-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
           <span class="action-text">
             <span class="action-title" data-i18n="qaContactTitle">Call Markaz</span>
             <span class="action-sub" data-i18n="profContactSub">Bog'lanish</span>
-          </span>
-        </a>
-        <a href="#" class="action-tile" id="profTelegram">
-          <span class="action-icon ic-blue"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.7 10.9c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.2-.4-1.7-1.1-1.4z"/></svg></span>
-          <span class="action-text">
-            <span class="action-title" data-i18n="profTelegramTitle">Telegram kanal</span>
-            <span class="action-sub" data-i18n="profTelegramSub">Yangiliklar</span>
           </span>
         </a>
         <a href="#" class="action-tile" id="profInstagram">
@@ -2064,21 +2134,16 @@ function applyLanguage(lang, persist){
    "Tizim" tanlansa qurilma sozlamasini kuzatib, real vaqtda
    o'zgaradi.
    ========================================================= */
+// Mijoz: "profildan mavzu bo'limini olib tashla, doim qorong'u rejimda
+// bo'ladi" — endi tanlov mavjud emas, ilova QATTIQ ravishda faqat
+// "dark" holatda ishlaydi. Funksiya nomlari pastdagi eski chaqiruvlar
+// bilan mosligi uchun saqlab qolindi, lekin endi doim 'dark' qaytaradi.
 let currentThemeChoice = 'dark';
-function systemPrefersDark(){
-  try{ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return true; }
-}
 function resolveTheme(choice){
-  if(choice === 'system') return systemPrefersDark() ? 'dark' : 'light';
-  return choice === 'light' ? 'light' : 'dark';
+  return 'dark';
 }
-function saveThemeChoice(choice){
-  try{ localStorage.setItem('vipTgTheme', choice); }catch(e){}
-  try{ __tg && __tg.CloudStorage && __tg.CloudStorage.setItem && __tg.CloudStorage.setItem('vipTgTheme', choice, function(){}); }catch(e){}
-}
-function loadThemeChoice(){
-  try{ return localStorage.getItem('vipTgTheme') || 'dark'; }catch(e){ return 'dark'; }
-}
+function saveThemeChoice(choice){}
+function loadThemeChoice(){ return 'dark'; }
 // Mijoz: "raqamlar bo'limining eng tepasi qizil bo'lib qoldi, ko'k
 // bo'lishi kerak" — sabab: Telegram ilovaning yuqori (header) va fon
 // rangini o'zi hech qanday ko'rsatma bo'lmasa standart/xato rangda
@@ -2096,19 +2161,10 @@ function syncTelegramChrome(){
   }catch(e){}
 }
 function applyTheme(choice, persist){
-  currentThemeChoice = choice;
-  document.documentElement.setAttribute('data-theme', resolveTheme(choice));
-  document.querySelectorAll('#themePill .seg-pill-option').forEach(b=> b.classList.toggle('active', b.dataset.theme === choice));
-  if(persist) saveThemeChoice(choice);
+  currentThemeChoice = 'dark';
+  document.documentElement.setAttribute('data-theme', 'dark');
   syncTelegramChrome();
 }
-try{
-  if(window.matchMedia){
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
-      if(currentThemeChoice === 'system') applyTheme('system', false);
-    });
-  }
-}catch(e){}
 
 function formatPrice(n){
   const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
@@ -2321,19 +2377,15 @@ document.addEventListener('focusout', (e)=>{
 updateBottomNavVisibility();
 
 /* =========================================================
-   Profil — Til / Mavzu — HAQIQIY ishlaydi (qarang: yuqoridagi
-   applyLanguage()/applyTheme()), tanlov qurilmada saqlanadi.
+   Profil — Til — HAQIQIY ishlaydi (qarang: yuqoridagi
+   applyLanguage()), tanlov qurilmada saqlanadi. Mavzu tanlovi
+   mijoz talabi bilan OLIB TASHLANDI — ilova doim "dark".
    ========================================================= */
 document.querySelectorAll('#langPill .seg-pill-option').forEach(btn=>{
   btn.addEventListener('click', ()=> applyLanguage(btn.dataset.lang, true));
 });
-document.querySelectorAll('#themePill .seg-pill-option').forEach(btn=>{
-  btn.addEventListener('click', ()=> applyTheme(btn.dataset.theme, true));
-});
 document.getElementById('profOrders').addEventListener('click', ()=> openOrdersModal());
-document.getElementById('profBot').addEventListener('click', openBot);
 document.getElementById('profContact').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.contactLink); });
-document.getElementById('profTelegram').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.telegramLink); });
 document.getElementById('profInstagram').addEventListener('click', (e)=>{ e.preventDefault(); openExternal(SITE_LINKS.instagramLink); });
 
 /* =========================================================
@@ -2637,6 +2689,9 @@ function fillBannerNode(root, item){
     if(tariffEl) tariffEl.textContent = '';
     if(priceEl) priceEl.textContent = '';
     if(oldPriceEl) oldPriceEl.textContent = '';
+    // Mijoz: hali ma'lumot yo'q bo'lsa — skelet ("zagruska") holati
+    // ko'rinishda qolaveradi.
+    root.classList.add('is-loading');
     return;
   }
   numberEl.textContent = formatPhoneDisplay(item.number || '');
@@ -2644,6 +2699,9 @@ function fillBannerNode(root, item){
   if(priceEl) priceEl.textContent = formatPrice(item.price);
   const hasOldPrice = item.oldPrice && item.oldPrice > item.price;
   if(oldPriceEl) oldPriceEl.textContent = hasOldPrice ? formatPrice(item.oldPrice) : '';
+  // Haqiqiy ma'lumot keldi — skelet ("oqish bashara") holati yumshoq
+  // opacity o'tishi bilan yo'q qilinadi, haqiqiy matn ko'rinadi.
+  root.classList.remove('is-loading');
 }
 function renderHomeBannerFrame(){
   fillBannerNode(document.getElementById('homeBanner'), homeBannerItems[homeBannerIdx]);
@@ -2983,15 +3041,12 @@ function renderCatalog(){
       <div class="num-card" style="--op-color:${color};">
         <div class="num-card-top">
           <div class="num-card-plate">
-            <span class="num-card-plate-dot">&middot;</span>
             <span class="num-card-plate-num">${escapeHtml(plateText)}</span>
-            <span class="num-card-plate-dot">&middot;</span>
           </div>
           <div class="num-card-top-actions">
             <button type="button" class="num-card-fav${favActive ? ' active' : ''}" data-fav-id="${escapeHtml(n.id)}" aria-label="favorite">
               <svg viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
             </button>
-            <span class="num-card-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
           </div>
         </div>
         <div class="num-card-bottom">
@@ -3663,13 +3718,19 @@ function openDealModal(){
           ${item.dealExpiresAt ? `<div class="deal-card-timer" data-expires="${item.dealExpiresAt}">${dealTimeLeftText(item.dealExpiresAt)}</div>` : ''}
         </div>`;
     }).join('');
+    // Mijoz: "bo'lib to'lash bo'limini faqat bo'lib to'lashga, aksiya
+    // bo'limini faqat aksiyaga ko'rsat" — ya'ni ikkala bo'lim bir-biriga
+    // ARALASHMASIN. Oldin: agar aksiyadagi raqam "installment" belgisiga
+    // ham ega bo'lsa, aksiya oynasi yopilib, o'rniga BO'LIB TO'LASH oynasi
+    // ochilib ketardi — bu aksiya bo'limini "buzardi". Endi aksiya
+    // bo'limida bosilgan HAR QANDAY kartochka faqat shu yerning o'z
+    // buyurtma oynasini ochadi, boshqa bo'limga hech qachon o'tmaydi.
     dealListItems.querySelectorAll('.deal-card').forEach(card=>{
       card.addEventListener('click', ()=>{
         const item = findItemById(card.dataset.id);
         if(!item) return;
         closeDealModal();
-        if(item.installment){ openInstallmentModal(); openInstallmentDetail(item); }
-        else openOrderModal(item);
+        openOrderModal(item);
       });
     });
     dealStartTimer();
