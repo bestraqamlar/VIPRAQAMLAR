@@ -1921,6 +1921,7 @@
       <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
       <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
       <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
+      <button class="tab" data-tab="statistika"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></span><span class="tab-label">Statistika</span></button>
       <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
       <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
@@ -2772,6 +2773,81 @@
 
     <button type="button" class="fin-recent-title fin-recent-toggle" id="finRecentToggle">🧾 So'nggi amallar <span class="fin-recent-arrow" id="finRecentArrow">▾</span></button>
     <div id="finRecentList" style="display:none;"><div class="empty-admin">Yuklanmoqda...</div></div>
+  </div>
+
+  <!-- "STATISTIKA" — Instagram (Chatplace) faolligi bo'yicha hisobot.
+       MUHIM: Chatplace'ning tashqi dasturlar uchun ochiq/hujjatlashtirilgan
+       API'si topilmadi, shu sabab bu bo'lim to'g'ridan-to'g'ri (avtomatik)
+       Chatplace'ga ulanolmaydi. Buning o'rniga: raqamlar oxirgi marta
+       Firestore'ga ("adminStats/instagram" hujjati) YOZILGAN holatda
+       ko'rsatiladi ("oxirgi yangilanish" vaqti bilan birga). Yangi
+       raqamlarni olish uchun Claude'dan (suhbatda) "Instagram statistikasini
+       yangila" deb so'rang — u Chatplace'dan jonli ma'lumot o'qib, tayyor
+       JSON beradi, shuni pastdagi "Qo'lda yangilash" qutisiga joylab
+       "Saqlash"ni bossangiz bo'ldi. -->
+  <div class="pane" id="paneStatistika">
+    <div class="mgmt-hint" id="igsUpdatedBanner">Hali yangilanmagan.</div>
+    <div class="fin-cards">
+      <div class="fin-card fin-card-income">
+        <div class="fin-card-ico">💬</div>
+        <div class="fin-card-body">
+          <span class="fin-card-label">Bugun yozganlar</span>
+          <b class="fin-card-value" id="igsTodayMessages">0</b>
+          <span class="fin-card-sub">Instagram'da murojaat qilgan kishilar</span>
+        </div>
+      </div>
+      <div class="fin-card fin-card-progress">
+        <div class="fin-card-ico">✅</div>
+        <div class="fin-card-body">
+          <span class="fin-card-label">Javob berilganlar</span>
+          <b class="fin-card-value" id="igsTodayReplied">0</b>
+          <span class="fin-card-sub">avtojavob yuborilgan (bugun)</span>
+        </div>
+      </div>
+      <div class="fin-card fin-card-expense">
+        <div class="fin-card-ico">🏁</div>
+        <div class="fin-card-body">
+          <span class="fin-card-label">Silkadan o'tganlar</span>
+          <b class="fin-card-value" id="igsTodayConverted">0</b>
+          <span class="fin-card-sub">to'liq javob zanjirini oxirigacha oldi (bugun)</span>
+        </div>
+      </div>
+      <div class="fin-card fin-card-income">
+        <div class="fin-card-ico">🟢</div>
+        <div class="fin-card-body">
+          <span class="fin-card-label">Faol chatlar</span>
+          <b class="fin-card-value" id="igsActiveChats">0</b>
+          <span class="fin-card-sub">hozirgi holat</span>
+        </div>
+      </div>
+      <div class="fin-card fin-card-progress">
+        <div class="fin-card-ico">👥</div>
+        <div class="fin-card-body">
+          <span class="fin-card-label">Jami mijozlar</span>
+          <b class="fin-card-value" id="igsTotalClients">0</b>
+          <span class="fin-card-sub">bot bilan yozishgan (jami)</span>
+        </div>
+      </div>
+      <div class="fin-card fin-card-expense">
+        <div class="fin-card-ico">🎬</div>
+        <div class="fin-card-body">
+          <span class="fin-card-label">Shu hafta yuklangan video</span>
+          <b class="fin-card-value" id="igsWeekVideos">0</b>
+          <span class="fin-card-sub">Reels/post</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="fin-recent-title" style="cursor:default;">🎥 Video orqali kelgan obunachilar</h3>
+    <div id="igsVideoList"><div class="empty-admin">Hali ma'lumot yo'q — har yangi video/Reels uchun alohida avtomatika (izoh/DM trigger) sozlangach, shu yerda ko'rina boshlaydi.</div></div>
+
+    <button type="button" class="fin-recent-title fin-recent-toggle" id="igsManualToggle">✏️ Qo'lda yangilash <span class="fin-recent-arrow" id="igsManualArrow">▾</span></button>
+    <div id="igsManualBox" style="display:none;">
+      <div class="mgmt-hint">Claude'dan "Instagram statistikasini yangila" deb so'rang — u beradigan JSON'ni shu yerga joylab, "Saqlash"ni bosing.</div>
+      <textarea id="igsManualJson" rows="6" placeholder='{"today":{"messages":4,"replied":4,"converted":0},"activeChats":3,"totalClients":2,"weekVideos":0,"videos":[]}' style="width:100%;box-sizing:border-box;margin:8px 0;padding:10px;border-radius:8px;background:var(--panel-2,#141414);border:1px solid var(--line,#333);color:var(--text);font-family:monospace;font-size:12.5px;"></textarea>
+      <button type="button" class="fin-confirm-btn fin-confirm-income" id="igsManualSaveBtn">✅ Saqlash</button>
+      <div class="settings-msg" id="igsManualMsg"></div>
+    </div>
   </div>
 
   <div class="pane" id="paneSessions">
@@ -5201,7 +5277,7 @@ document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
 });
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', statistika:'Statistika', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -5236,6 +5312,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
       if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
     }
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
+    if(tab.dataset.tab === 'statistika'){ loadInstagramStats(); }
     if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
     if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
@@ -5970,6 +6047,106 @@ async function loadFinanceSummary(){
   }catch(err){
     list.innerHTML = '<div class="empty-admin">Xato: ' + escapeHtml(err.message) + '</div>';
   }
+}
+
+/* ==================================================================
+   "STATISTIKA" — Instagram (Chatplace) faolligi. Yuqoridagi izohga
+   qarang: bu yerda ko'rsatiladigan raqamlar Chatplace'dan TO'G'RIDAN-
+   TO'G'RI emas, balki Firestore'dagi so'nggi saqlangan holatdan
+   ("adminStats/instagram") o'qiladi — Claude buni suhbatda so'ralganda
+   yangilaydi (pastdagi "Qo'lda yangilash" qutisi orqali).
+   ================================================================== */
+async function igsCall(action, extra){
+  const idToken = await firebase.auth().currentUser.getIdToken();
+  const res = await fetch('/.netlify/functions/admin-instagram-stats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+    body: JSON.stringify(Object.assign({ action }, extra || {}))
+  });
+  const data = await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+function igsFormatTime(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2,'0');
+  return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function igsRenderVideoList(videos){
+  const box = document.getElementById('igsVideoList');
+  if(!videos || videos.length === 0){
+    box.innerHTML = '<div class="empty-admin">Hali ma\'lumot yo\'q — har yangi video/Reels uchun alohida avtomatika (izoh/DM trigger) sozlangach, shu yerda ko\'rina boshlaydi.</div>';
+    return;
+  }
+  box.innerHTML = videos.map(v => `
+    <div class="fin-tx-row">
+      <div class="fin-tx-cat">${escapeHtml(v.title || v.mediaId || 'Video')}</div>
+      <div class="fin-tx-amount">+${Number(v.subscribers || 0)} obunachi</div>
+    </div>
+  `).join('');
+}
+
+function igsRender(snap){
+  const s = snap || {};
+  const today = s.today || {};
+  document.getElementById('igsTodayMessages').textContent = today.messages || 0;
+  document.getElementById('igsTodayReplied').textContent = today.replied || 0;
+  document.getElementById('igsTodayConverted').textContent = today.converted || 0;
+  document.getElementById('igsActiveChats').textContent = s.activeChats || 0;
+  document.getElementById('igsTotalClients').textContent = s.totalClients || 0;
+  document.getElementById('igsWeekVideos').textContent = s.weekVideos || 0;
+  igsRenderVideoList(s.videos);
+  const banner = document.getElementById('igsUpdatedBanner');
+  banner.textContent = s.updatedAt ? ('🕓 Oxirgi yangilanish: ' + igsFormatTime(s.updatedAt)) : 'Hali yangilanmagan — pastdagi "Qo\'lda yangilash" orqali birinchi ma\'lumotni kiriting.';
+}
+
+async function loadInstagramStats(){
+  try{
+    const data = await igsCall('get');
+    igsRender(data.stats);
+  }catch(err){
+    document.getElementById('igsUpdatedBanner').textContent = 'Xato: ' + err.message;
+  }
+}
+
+const igsManualToggleBtn = document.getElementById('igsManualToggle');
+if(igsManualToggleBtn){
+  igsManualToggleBtn.addEventListener('click', ()=>{
+    const box = document.getElementById('igsManualBox');
+    const arrow = document.getElementById('igsManualArrow');
+    const open = box.style.display !== 'none';
+    box.style.display = open ? 'none' : '';
+    if(arrow) arrow.textContent = open ? '▾' : '▴';
+  });
+}
+const igsManualSaveBtn = document.getElementById('igsManualSaveBtn');
+if(igsManualSaveBtn){
+  igsManualSaveBtn.addEventListener('click', async ()=>{
+    const msg = document.getElementById('igsManualMsg');
+    const raw = document.getElementById('igsManualJson').value.trim();
+    let parsed;
+    try{
+      parsed = JSON.parse(raw);
+    }catch(e){
+      msg.textContent = "JSON noto'g'ri formatda: " + e.message;
+      msg.className = 'settings-msg bad';
+      return;
+    }
+    igsManualSaveBtn.disabled = true;
+    try{
+      const data = await igsCall('save', { stats: parsed });
+      igsRender(data.stats);
+      msg.textContent = 'Saqlandi ✅';
+      msg.className = 'settings-msg ok';
+    }catch(err){
+      msg.textContent = 'Xato: ' + err.message;
+      msg.className = 'settings-msg bad';
+    }
+    igsManualSaveBtn.disabled = false;
+  });
 }
 
 /* ---- Daromad/Xarajat forma ochish-yopish ---- */
@@ -7714,7 +7891,7 @@ const MGMT_FEATURE_LABELS = {
   watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
-  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya'
+  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya', statistika:'📊 Statistika'
 };
 const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
 
