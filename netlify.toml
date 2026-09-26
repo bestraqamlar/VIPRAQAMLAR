@@ -25,6 +25,13 @@
 [functions."personal-bot-reminder-check"]
   schedule = "*/5 * * * *"
 
+# "STATISTIKA" bo'limi (admin panel) uchun Instagram/Chatplace raqamlarini
+# har 30 daqiqada avtomatik yangilab, Firestore'ga ("adminStats/instagram")
+# yozadi — batafsili izoh: netlify/functions/instagram-stats-sync-background.js.
+# CHATPLACE_API_KEY muhit o'zgaruvchisi Netlify sozlamalarida qo'shilishi shart.
+[functions."instagram-stats-sync-background"]
+  schedule = "*/30 * * * *"
+
 # BEELINE — kamyob toifalarni (Bronze/Silver/Gold) fonda yig'ib keshlash.
 #
 # NEGA: Beeline ochiq API'sining javob vaqti kategoriyadagi raqam soniga

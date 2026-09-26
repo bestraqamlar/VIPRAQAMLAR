@@ -2776,17 +2776,16 @@
   </div>
 
   <!-- "STATISTIKA" — Instagram (Chatplace) faolligi bo'yicha hisobot.
-       MUHIM: Chatplace'ning tashqi dasturlar uchun ochiq/hujjatlashtirilgan
-       API'si topilmadi, shu sabab bu bo'lim to'g'ridan-to'g'ri (avtomatik)
-       Chatplace'ga ulanolmaydi. Buning o'rniga: raqamlar oxirgi marta
-       Firestore'ga ("adminStats/instagram" hujjati) YOZILGAN holatda
-       ko'rsatiladi ("oxirgi yangilanish" vaqti bilan birga). Yangi
-       raqamlarni olish uchun Claude'dan (suhbatda) "Instagram statistikasini
-       yangila" deb so'rang — u Chatplace'dan jonli ma'lumot o'qib, tayyor
-       JSON beradi, shuni pastdagi "Qo'lda yangilash" qutisiga joylab
-       "Saqlash"ni bossangiz bo'ldi. -->
+       AVTOMATIK: netlify/functions/instagram-stats-sync-background.js
+       Netlify tomonidan har 30 daqiqada o'zi ishga tushib, Chatplace'dan
+       o'qib, Firestore'ga ("adminStats/instagram") yozadi — admin hech
+       narsa qilishi shart emas, panel har doim shu hujjatning so'nggi
+       holatini ko'rsatadi. Pastdagi "Qo'lda kiritish" faqat ZAXIRA — agar
+       avtomatik sinxronizatsiya xato bersa (masalan Chatplace API manzili
+       hali noto'g'ri bo'lsa), shu yerda "lastError" xabari ko'rinadi. -->
   <div class="pane" id="paneStatistika">
     <div class="mgmt-hint" id="igsUpdatedBanner">Hali yangilanmagan.</div>
+    <div class="mgmt-hint" id="igsErrorBanner" style="display:none;background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.3);"></div>
     <div class="fin-cards">
       <div class="fin-card fin-card-income">
         <div class="fin-card-ico">💬</div>
@@ -2841,9 +2840,9 @@
     <h3 class="fin-recent-title" style="cursor:default;">🎥 Video orqali kelgan obunachilar</h3>
     <div id="igsVideoList"><div class="empty-admin">Hali ma'lumot yo'q — har yangi video/Reels uchun alohida avtomatika (izoh/DM trigger) sozlangach, shu yerda ko'rina boshlaydi.</div></div>
 
-    <button type="button" class="fin-recent-title fin-recent-toggle" id="igsManualToggle">✏️ Qo'lda yangilash <span class="fin-recent-arrow" id="igsManualArrow">▾</span></button>
+    <button type="button" class="fin-recent-title fin-recent-toggle" id="igsManualToggle">✏️ Qo'lda kiritish (faqat zaxira — avtomatik ishlamasa) <span class="fin-recent-arrow" id="igsManualArrow">▾</span></button>
     <div id="igsManualBox" style="display:none;">
-      <div class="mgmt-hint">Claude'dan "Instagram statistikasini yangila" deb so'rang — u beradigan JSON'ni shu yerga joylab, "Saqlash"ni bosing.</div>
+      <div class="mgmt-hint">Bu bo'lim raqamlarni har 30 daqiqada O'ZI avtomatik yangilaydi. Bu qutidan FAQAT avtomatika vaqtincha ishlamay qolsa foydalaning.</div>
       <textarea id="igsManualJson" rows="6" placeholder='{"today":{"messages":4,"replied":4,"converted":0},"activeChats":3,"totalClients":2,"weekVideos":0,"videos":[]}' style="width:100%;box-sizing:border-box;margin:8px 0;padding:10px;border-radius:8px;background:var(--panel-2,#141414);border:1px solid var(--line,#333);color:var(--text);font-family:monospace;font-size:12.5px;"></textarea>
       <button type="button" class="fin-confirm-btn fin-confirm-income" id="igsManualSaveBtn">✅ Saqlash</button>
       <div class="settings-msg" id="igsManualMsg"></div>
@@ -6050,11 +6049,12 @@ async function loadFinanceSummary(){
 }
 
 /* ==================================================================
-   "STATISTIKA" — Instagram (Chatplace) faolligi. Yuqoridagi izohga
-   qarang: bu yerda ko'rsatiladigan raqamlar Chatplace'dan TO'G'RIDAN-
-   TO'G'RI emas, balki Firestore'dagi so'nggi saqlangan holatdan
-   ("adminStats/instagram") o'qiladi — Claude buni suhbatda so'ralganda
-   yangilaydi (pastdagi "Qo'lda yangilash" qutisi orqali).
+   "STATISTIKA" — Instagram (Chatplace) faolligi. Bu panel qismi
+   Firestore'dagi ("adminStats/instagram") holatni o'qib ko'rsatadi —
+   o'sha hujjatni esa Netlify'ning avtomatik fon funksiyasi
+   (instagram-stats-sync-background.js) har 30 daqiqada o'zi yangilab
+   turadi, admin hech narsa qilishi shart emas. "Qo'lda kiritish" qutisi
+   faqat avtomatika ishlamay qolgan holatlar uchun zaxira.
    ================================================================== */
 async function igsCall(action, extra){
   const idToken = await firebase.auth().currentUser.getIdToken();
@@ -6100,7 +6100,16 @@ function igsRender(snap){
   document.getElementById('igsWeekVideos').textContent = s.weekVideos || 0;
   igsRenderVideoList(s.videos);
   const banner = document.getElementById('igsUpdatedBanner');
-  banner.textContent = s.updatedAt ? ('🕓 Oxirgi yangilanish: ' + igsFormatTime(s.updatedAt)) : 'Hali yangilanmagan — pastdagi "Qo\'lda yangilash" orqali birinchi ma\'lumotni kiriting.';
+  banner.textContent = s.updatedAt
+    ? ('🕓 Oxirgi avtomatik yangilanish: ' + igsFormatTime(s.updatedAt) + (s.autoSynced === false ? ' (qo\'lda kiritilgan)' : ''))
+    : 'Hali yangilanmagan — birinchi avtomatik urinish tez orada bo\'ladi (har 30 daqiqada).';
+  const errBanner = document.getElementById('igsErrorBanner');
+  if(s.lastError){
+    errBanner.style.display = '';
+    errBanner.textContent = '⚠️ Avtomatik yangilanishda xato: ' + s.lastError + ' — shu matnni Claude\'ga yuboring, tuzatib beradi.';
+  } else {
+    errBanner.style.display = 'none';
+  }
 }
 
 async function loadInstagramStats(){

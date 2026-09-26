@@ -1,23 +1,14 @@
-// "STATISTIKA" (Instagram/Chatplace faolligi) — admin panelidagi yangi bo'lim.
+// "STATISTIKA" (Instagram/Chatplace faolligi) — admin panelidagi bo'lim.
 //
-// MUHIM CHEKLOV: Chatplace'ning tashqi dasturlar (bizning sayt/server) uchun
-// ochiq va hujjatlashtirilgan REST API'si topilmadi (faqat AI agentlar uchun
-// MCP-konnektor bor, u to'g'ridan-to'g'ri Netlify funksiyasidan chaqirib
-// bo'lmaydi). Shu sabab bu funksiya Chatplace'ga O'ZI ULANMAYDI — u faqat
-// Firestore'dagi ("adminStats/instagram" hujjati) so'nggi saqlangan
-// statistikani o'qiydi (GET) va yozadi (SAVE).
-//
-// Yangilash oqimi: admin Claude'ga (suhbatda) "Instagram statistikasini
-// yangila" deydi -> Claude Chatplace'dan (o'zining MCP-ulanishi orqali)
-// jonli ma'lumot o'qib, tayyor JSON beradi -> admin uni panel ichidagi
-// "Qo'lda yangilash" qutisiga joylab saqlaydi -> shu funksiya (action:'save')
-// Firestore'ga yozadi -> keyingi safar panel ochilganda (action:'get')
-// o'sha saqlangan holat ko'rsatiladi ("oxirgi yangilanish" vaqti bilan).
-//
-// Kelajakda Chatplace rasman API hujjatini bersa (yoki ular bilan
-// bog'lanib olinsa), shu funksiyaga to'g'ridan-to'g'ri Chatplace'ga
-// ulanadigan (fetch bilan) qism qo'shish mumkin bo'ladi — hozircha
-// "qo'lda ko'prik" (manual bridge) orqali ishlaydi.
+// AVTOMATIK: raqamlarni haqiqiy avtomatik yangilab turadigan qism —
+// netlify/functions/instagram-stats-sync-background.js — Netlify'ning
+// o'zi (bizning kod emas, ADMIN HAM emas) har 30 daqiqada ishga tushirib,
+// Chatplace'dan o'qib, shu yerdagi bilan BIR XIL hujjatga
+// ("adminStats/instagram") yozadi. Shu funksiya (admin-instagram-stats.js)
+// faqat: (GET) panelga o'sha hujjatni ko'rsatish uchun o'qiydi, va
+// (SAVE) — agar avtomatik sinxronizatsiya biror sababga ko'ra hali
+// ishlamasa (masalan Chatplace API manzili hali aniqlanmagan bo'lsa) —
+// ZAXIRA sifatida qo'lda kiritishga ruxsat beradi.
 
 const admin = require('firebase-admin');
 const { requireAdmin } = require('./lib/adminAuth');
@@ -88,6 +79,8 @@ exports.handler = async (event) => {
     if (action === 'save') {
       const clean = sanitizeStats(body.stats);
       clean.updatedAt = Date.now();
+      clean.lastError = null;
+      clean.autoSynced = false;
       await DOC_REF().set(clean, { merge: false });
       return { statusCode: 200, body: JSON.stringify({ ok: true, stats: clean }) };
     }
