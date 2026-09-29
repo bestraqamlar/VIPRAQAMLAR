@@ -56,7 +56,7 @@ document.documentElement.setAttribute('data-theme', 'dark');
        ko'rinadigan asosiy fon) hali eski to'q-ko'k/yashil "shisha" rangda
        qolgan edi — shu sabab bosh sahifa, profil va katalogning bo'sh
        joylarida eski rang "orasidan ko'rinib" turardi. Endi bu asosiy
-       (--bg/--blob-*/--bg-glow*) o'zgaruvchilarning O'ZI binafsha-siyoh
+       (--bg, --blob va --bg-glow) o'zgaruvchilarning O'ZI binafsha-siyoh
        rangga o'zgartirildi — BODY bitta umumiy fon bo'lgani uchun bu
        BARCHA ekranlarda (Asosiy/Raqamlar/Profil) bir xilda qo'llanadi,
        alohida-alohida sozlash shart emas. */
@@ -2189,7 +2189,13 @@ function applyTheme(choice, persist){
 }
 
 function formatPrice(n){
-  const num = Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
+  // XATO TUZATILDI: narx bo'sh yoki noto'g'ri kelganda
+  // Number(n).toLocaleString('ru-RU') rus tilida "не число" deb yozardi
+  // va mijoz ekranda "не число so'm" degan tushunarsiz matnni ko'rardi.
+  // Endi bunday holatda oddiy chiziqcha chiqadi.
+  const v = Number(n);
+  if(!Number.isFinite(v)) return '—';
+  const num = v.toLocaleString('ru-RU').replace(/,/g,' ');
   return num + ' ' + t('priceSuffix');
 }
 function openBot(){

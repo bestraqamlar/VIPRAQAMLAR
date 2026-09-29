@@ -637,6 +637,164 @@
 
   .status-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;font-size:11.5px;color:var(--muted);}
 
+  /* ==================================================================
+     KREDIT / QARZDORLIK — yangi ko'rinish
+     ------------------------------------------------------------------
+     Mijoz iltimosi: "birinchi qatorda ism emas, QARZDORLIK SUMMASI va
+     RAQAM ko'rinsin; qarzdorlarni ko'rish va to'lovni tasdiqlash oson
+     va tushunarli bo'lsin".
+
+     Shu sabab ro'yxat endi ODAM bo'yicha emas, PUL bo'yicha tuzilgan:
+       * har bir qatorning chap chekkasida rangli chiziq — holat
+         (qizil = kechikkan, sariq = kuni yaqin, yashil = joyida);
+       * o'ng tarafda eng katta shrift bilan QOLGAN QARZ summasi;
+       * yuqorida to'rtta umumiy raqam (jami qarz, kechikkan va h.k.);
+       * ro'yxat KECHIKKANLARDAN boshlanadi — admin qidirib o'tirmaydi.
+     ================================================================== */
+
+  /* --- tepadagi umumiy raqamlar --- */
+  .qz-stats{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px;
+  }
+  @media (min-width:760px){ .qz-stats{grid-template-columns:repeat(4,minmax(0,1fr));} }
+  .qz-stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;position:relative;overflow:hidden;min-width:0;
+  }
+  .qz-stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line);}
+  .qz-stat.is-danger::before{background:var(--red);}
+  .qz-stat.is-warn::before{background:var(--amber);}
+  .qz-stat.is-ok::before{background:var(--green);}
+  .qz-stat-label{display:block;font-size:11px;color:var(--muted);letter-spacing:.02em;margin-bottom:5px;}
+  .qz-stat-value{
+    display:block;font-size:19px;font-weight:800;line-height:1.15;
+    font-variant-numeric:tabular-nums;word-break:break-word;
+  }
+  .qz-stat.is-danger .qz-stat-value{color:var(--red);}
+  .qz-stat.is-warn .qz-stat-value{color:var(--amber);}
+  .qz-stat-sub{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;}
+
+  /* --- filtr tugmalari --- */
+  .qz-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+  .qz-chip{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    border-radius:99px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,color .15s,background .15s;
+  }
+  .qz-chip:hover{border-color:var(--muted);color:var(--text);}
+  .qz-chip.is-active{background:var(--text);border-color:var(--text);color:var(--bg);}
+  .qz-chip-count{
+    font-variant-numeric:tabular-nums;font-size:11px;font-weight:800;
+    background:rgba(127,127,127,.22);border-radius:99px;padding:1px 7px;
+  }
+  .qz-chip.is-active .qz-chip-count{background:rgba(0,0,0,.18);}
+  .qz-chip.qz-chip-danger{border-color:rgba(255,92,92,.45);color:var(--red);}
+  .qz-chip.qz-chip-danger.is-active{background:var(--red);border-color:var(--red);color:#fff;}
+  .qz-chip.qz-chip-warn{border-color:rgba(255,176,0,.45);color:var(--amber);}
+  .qz-chip.qz-chip-warn.is-active{background:var(--amber);border-color:var(--amber);color:#1a1200;}
+
+  /* --- shartnoma qatori --- */
+  .qz-list{display:flex;flex-direction:column;gap:9px;}
+  .qz-item{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;position:relative;
+  }
+  .qz-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line);z-index:1;}
+  .qz-item.st-overdue::before{background:var(--red);}
+  .qz-item.st-soon::before{background:var(--amber);}
+  .qz-item.st-ok::before{background:var(--green);}
+  .qz-item.st-done::before{background:var(--muted);opacity:.5;}
+
+  .qz-head{
+    display:flex;align-items:center;gap:12px;padding:13px 14px 13px 17px;
+    cursor:pointer;user-select:none;
+  }
+  .qz-head:hover{background:var(--panel-2);}
+  .qz-head-main{flex:1 1 auto;min-width:0;}
+  .qz-num{
+    display:block;font-family:'Space Mono',ui-monospace,monospace;
+    font-size:15.5px;font-weight:700;letter-spacing:-.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .qz-meta{
+    display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;
+    margin-top:4px;font-size:11.5px;color:var(--muted);min-width:0;
+  }
+  .qz-meta a{color:var(--muted);text-decoration:none;border-bottom:1px dotted currentColor;}
+  .qz-meta a:hover{color:var(--text);}
+  .qz-head-money{flex:0 0 auto;text-align:right;}
+  .qz-debt{
+    display:block;font-size:16px;font-weight:800;line-height:1.15;
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .qz-item.st-overdue .qz-debt{color:var(--red);}
+  .qz-item.st-done .qz-debt{color:var(--muted);}
+  .qz-debt-sub{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .qz-arrow{flex:0 0 auto;color:var(--muted);font-size:12px;transition:transform .18s ease;}
+  .qz-item.is-open .qz-arrow{transform:rotate(180deg);}
+
+  .qz-pill{
+    display:inline-flex;align-items:center;gap:4px;
+    border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:800;
+    letter-spacing:.01em;white-space:nowrap;
+  }
+  .qz-pill.p-overdue{background:rgba(255,92,92,.16);color:var(--red);}
+  .qz-pill.p-soon{background:rgba(255,176,0,.16);color:var(--amber);}
+  .qz-pill.p-ok{background:rgba(51,226,140,.14);color:var(--green);}
+  .qz-pill.p-done{background:rgba(127,127,127,.16);color:var(--muted);}
+
+  /* --- ochilgan qism --- */
+  .qz-body{display:none;padding:0 14px 14px 17px;border-top:1px solid var(--line);}
+  .qz-item.is-open .qz-body{display:block;}
+
+  /* to'lovni tasdiqlash — asosiy harakat */
+  .qz-pay-cta{
+    width:100%;margin:13px 0 4px;border:none;border-radius:11px;cursor:pointer;
+    padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--green);color:#07180F;font-weight:800;font-size:14px;text-align:left;
+    transition:filter .15s ease;
+  }
+  .qz-pay-cta:hover{filter:brightness(1.07);}
+  .qz-pay-cta:disabled{opacity:.55;cursor:default;}
+  .qz-pay-cta .qz-cta-sub{display:block;font-size:11px;font-weight:700;opacity:.72;margin-top:2px;}
+  .qz-pay-cta .qz-cta-sum{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .qz-pay-cta.is-overdue{background:var(--red);color:#fff;}
+  .qz-pay-done{
+    margin:13px 0 4px;padding:12px 14px;border-radius:11px;text-align:center;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    font-size:12.5px;font-weight:600;
+  }
+
+  .qz-section-title{
+    font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;
+    margin:16px 0 7px;font-weight:700;
+  }
+  .qz-hint{font-size:11px;color:var(--muted);margin:6px 0 0;}
+
+  /* tahrirlash qismini yashirib turamiz — kundalik ishda kerak emas */
+  .qz-edit-toggle{
+    width:100%;margin-top:14px;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--muted);border-radius:9px;padding:10px 13px;font-size:12px;font-weight:600;
+    cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:8px;
+  }
+  .qz-edit-toggle:hover{border-color:var(--muted);color:var(--text);}
+  .qz-edit-box{display:none;margin-top:10px;}
+  .qz-edit-box.is-open{display:block;}
+  .qz-debt i{font-style:normal;font-size:10.5px;font-weight:700;opacity:.55;margin-left:4px;}
+
+  /* Holat tugmalari — avval beshta keng tugma butun ekranni egallardi;
+     endi bir-ikki qatorga sig'adigan ixcham yumaloq tugmalar. */
+  .qz-body .contract-status-row{margin-top:16px;padding-top:0;border-top:none;}
+  .qz-body .contract-status-buttons{flex-direction:row;flex-wrap:wrap;gap:6px;}
+  .qz-body .cs-btn{
+    width:auto;border-radius:99px;padding:7px 13px;font-size:11px;font-weight:600;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+  }
+  .qz-body .cs-btn:hover{color:var(--text);border-color:var(--muted);}
+  .qz-body .cs-btn.cs-active{color:#0a1a12;font-weight:800;}
+
+
+
   .credit-card{
     background:var(--panel);border:1px solid var(--line);border-radius:10px;
     padding:12px 14px;margin-bottom:10px;
@@ -1921,7 +2079,6 @@
       <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
       <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
       <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
-      <button class="tab" data-tab="statistika"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></span><span class="tab-label">Statistika</span></button>
       <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
       <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
       <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
@@ -2568,7 +2725,14 @@
       </div>
     </div>
 
-    <input type="text" id="creditSearchInput" placeholder="🔍 Ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
+    <!-- QARZDORLIK — umumiy manzara. Admin bo'limni ochishi bilan
+         "qancha pul qarz, kimlar kechiktirgan" degan savolga darhol
+         javob oladi; pastdagi ro'yxat esa kechikkanlardan boshlanadi. -->
+    <div class="qz-stats" id="qzStats"></div>
+
+    <input type="text" id="creditSearchInput" placeholder="🔍 Raqam, telefon yoki ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
+
+    <div class="qz-filters" id="qzFilters"></div>
     <div id="creditList"></div>
   </div>
 
@@ -2783,72 +2947,6 @@
        holatini ko'rsatadi. Pastdagi "Qo'lda kiritish" faqat ZAXIRA — agar
        avtomatik sinxronizatsiya xato bersa (masalan Chatplace API manzili
        hali noto'g'ri bo'lsa), shu yerda "lastError" xabari ko'rinadi. -->
-  <div class="pane" id="paneStatistika">
-    <div class="mgmt-hint" id="igsUpdatedBanner">Hali yangilanmagan.</div>
-    <div class="mgmt-hint" id="igsErrorBanner" style="display:none;background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.3);"></div>
-    <div class="fin-cards">
-      <div class="fin-card fin-card-income">
-        <div class="fin-card-ico">💬</div>
-        <div class="fin-card-body">
-          <span class="fin-card-label">Bugun yozganlar</span>
-          <b class="fin-card-value" id="igsTodayMessages">0</b>
-          <span class="fin-card-sub">Instagram'da murojaat qilgan kishilar</span>
-        </div>
-      </div>
-      <div class="fin-card fin-card-progress">
-        <div class="fin-card-ico">✅</div>
-        <div class="fin-card-body">
-          <span class="fin-card-label">Javob berilganlar</span>
-          <b class="fin-card-value" id="igsTodayReplied">0</b>
-          <span class="fin-card-sub">avtojavob yuborilgan (bugun)</span>
-        </div>
-      </div>
-      <div class="fin-card fin-card-expense">
-        <div class="fin-card-ico">🏁</div>
-        <div class="fin-card-body">
-          <span class="fin-card-label">Silkadan o'tganlar</span>
-          <b class="fin-card-value" id="igsTodayConverted">0</b>
-          <span class="fin-card-sub">to'liq javob zanjirini oxirigacha oldi (bugun)</span>
-        </div>
-      </div>
-      <div class="fin-card fin-card-income">
-        <div class="fin-card-ico">🟢</div>
-        <div class="fin-card-body">
-          <span class="fin-card-label">Faol chatlar</span>
-          <b class="fin-card-value" id="igsActiveChats">0</b>
-          <span class="fin-card-sub">hozirgi holat</span>
-        </div>
-      </div>
-      <div class="fin-card fin-card-progress">
-        <div class="fin-card-ico">👥</div>
-        <div class="fin-card-body">
-          <span class="fin-card-label">Jami mijozlar</span>
-          <b class="fin-card-value" id="igsTotalClients">0</b>
-          <span class="fin-card-sub">bot bilan yozishgan (jami)</span>
-        </div>
-      </div>
-      <div class="fin-card fin-card-expense">
-        <div class="fin-card-ico">🎬</div>
-        <div class="fin-card-body">
-          <span class="fin-card-label">Shu hafta yuklangan video</span>
-          <b class="fin-card-value" id="igsWeekVideos">0</b>
-          <span class="fin-card-sub">Reels/post</span>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="fin-recent-title" style="cursor:default;">🎥 Video orqali kelgan obunachilar</h3>
-    <div id="igsVideoList"><div class="empty-admin">Hali ma'lumot yo'q — har yangi video/Reels uchun alohida avtomatika (izoh/DM trigger) sozlangach, shu yerda ko'rina boshlaydi.</div></div>
-
-    <button type="button" class="fin-recent-title fin-recent-toggle" id="igsManualToggle">✏️ Qo'lda kiritish (faqat zaxira — avtomatik ishlamasa) <span class="fin-recent-arrow" id="igsManualArrow">▾</span></button>
-    <div id="igsManualBox" style="display:none;">
-      <div class="mgmt-hint">Bu bo'lim raqamlarni har 30 daqiqada O'ZI avtomatik yangilaydi. Bu qutidan FAQAT avtomatika vaqtincha ishlamay qolsa foydalaning.</div>
-      <textarea id="igsManualJson" rows="6" placeholder='{"today":{"messages":4,"replied":4,"converted":0},"activeChats":3,"totalClients":2,"weekVideos":0,"videos":[]}' style="width:100%;box-sizing:border-box;margin:8px 0;padding:10px;border-radius:8px;background:var(--panel-2,#141414);border:1px solid var(--line,#333);color:var(--text);font-family:monospace;font-size:12.5px;"></textarea>
-      <button type="button" class="fin-confirm-btn fin-confirm-income" id="igsManualSaveBtn">✅ Saqlash</button>
-      <div class="settings-msg" id="igsManualMsg"></div>
-    </div>
-  </div>
-
   <div class="pane" id="paneSessions">
     <div class="mgmt-hint" id="sessionsFilterBanner" style="display:none;"></div>
     <div class="sessions-list" id="sessionsList"></div>
@@ -5276,7 +5374,7 @@ document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
 });
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', statistika:'Statistika', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -5311,7 +5409,6 @@ document.querySelectorAll('.tab').forEach(tab=>{
       if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
     }
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
-    if(tab.dataset.tab === 'statistika'){ loadInstagramStats(); }
     if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
     if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
@@ -5694,137 +5791,330 @@ async function loadCreditContracts(){
   }
 }
 
+/* ==================================================================
+   KREDIT / QARZDORLIK RO'YXATI
+   ------------------------------------------------------------------
+   Mijoz iltimosi: "birinchi qatorlarda ism-familiya emas, QARZDORLIK
+   SUMMASI va RAQAM ko'rinsin; qarzdorlarni ko'rish va to'lovlarni
+   tasdiqlash oson va tushunarli bo'lsin".
+
+   Shuning uchun ro'yxat endi shunday tuzilgan:
+     * tepada to'rtta umumiy raqam — jami qarz, kechikkanlar, shu hafta
+       kutilayotgan to'lovlar, faol shartnomalar;
+     * ro'yxat KECHIKKANLARDAN boshlanadi (eng ko'p kechikkani yuqorida),
+       keyin kuni yaqinlashganlar — admin hech narsa qidirmaydi;
+     * har bir qatorda: raqam (katta), telefon, va o'ng tarafda QOLGAN
+       QARZ summasi; chap chekkadagi rangli chiziq holatni bildiradi;
+     * shartnoma ochilganda birinchi ko'rinadigan narsa — bitta katta
+       "to'lovni tasdiqlash" tugmasi (qaysi oy va qancha summa ekani
+       yozilgan holda). Avval buning uchun kichkina katakchani topib
+       bosish kerak edi.
+   Tahrirlash formasi yig'ib qo'yilgan — u kundalik ishda kerak emas.
+   ================================================================== */
+
+const QZ_DAY = 86400000;
+let qzFilter = 'all';        // all | overdue | soon | done
+let qzSearchQuery = '';
+
+function qzMoney(n){
+  const v = Number(n) || 0;
+  return v.toLocaleString('ru-RU').replace(/,/g, ' ');
+}
+
+// Katta summalarni qisqa ko'rinishda (12,5 mln) — tepadagi kartochkalar uchun.
+function qzShortMoney(n){
+  const v = Number(n) || 0;
+  if(v >= 1000000){
+    const mln = v / 1000000;
+    return (mln >= 100 ? Math.round(mln) : mln.toFixed(1).replace('.0','')).toString().replace('.', ',') + ' mln';
+  }
+  if(v >= 1000) return Math.round(v / 1000) + ' ming';
+  return String(v);
+}
+
+/* Bitta shartnomani tahlil qiladi — qaror qabul qilish uchun kerak
+   bo'lgan hamma narsa shu yerda bir marta hisoblanadi. */
+function qzAnalyze(d){
+  const now = Date.now();
+  const payments = Array.isArray(d.payments) ? d.payments : [];
+  const monthly = Number(d.monthlyPayment) || 0;
+  const total = Number(d.totalMonths) || payments.length || 0;
+  const paid = payments.filter(p => p.status === 'paid').length;
+  const left = Math.max(0, total - paid);
+  const pending = payments.filter(p => p.status !== 'paid').sort((a, b) => a.dueDate - b.dueDate);
+  const overdue = pending.filter(p => p.dueDate < now);
+  const next = pending[0] || null;
+  const closed = d.contractStatus === 'cancelled' || d.contractStatus === 'completed';
+
+  let state = 'ok', days = 0;
+  if(left === 0 || closed){
+    state = 'done';
+  }else if(overdue.length){
+    state = 'overdue';
+    days = Math.floor((now - overdue[0].dueDate) / QZ_DAY);
+  }else if(next && (next.dueDate - now) <= 7 * QZ_DAY){
+    state = 'soon';
+    days = Math.max(0, Math.ceil((next.dueDate - now) / QZ_DAY));
+  }
+
+  return {
+    paid, total, left, monthly, next, days, state, closed,
+    debt: left * monthly,
+    overdueCount: overdue.length,
+    overdueSum: overdue.length * monthly,
+    pct: total ? Math.round((paid / total) * 100) : 0
+  };
+}
+
+const QZ_RANK = { overdue: 0, soon: 1, ok: 2, done: 3 };
+
+function qzPill(a){
+  if(a.state === 'overdue') return '<span class="qz-pill p-overdue">⚠ ' + a.days + ' kun kechikdi</span>';
+  if(a.state === 'soon')    return '<span class="qz-pill p-soon">⏳ ' + (a.days === 0 ? 'to\'lov bugun' : a.days + ' kundan keyin') + '</span>';
+  if(a.state === 'done')    return '<span class="qz-pill p-done">✓ yopilgan</span>';
+  return '<span class="qz-pill p-ok">● joyida</span>';
+}
+
+/* Tepadagi to'rtta umumiy raqam. Faqat YOPILMAGAN shartnomalar hisobga
+   olinadi — yakunlangani qarzdorlikka kirmaydi. */
+function qzRenderStats(contracts){
+  const box = document.getElementById('qzStats');
+  if(!box) return;
+  let totalDebt = 0, overdueCount = 0, overdueSum = 0, soonCount = 0, soonSum = 0, activeCount = 0;
+
+  contracts.forEach(d => {
+    const a = qzAnalyze(d);
+    if(a.state === 'done') return;
+    activeCount++;
+    totalDebt += a.debt;
+    if(a.state === 'overdue'){ overdueCount++; overdueSum += a.overdueSum; }
+    else if(a.state === 'soon'){ soonCount++; soonSum += a.monthly; }
+  });
+
+  box.innerHTML =
+    '<div class="qz-stat' + (overdueCount ? ' is-danger' : ' is-ok') + '">' +
+      '<span class="qz-stat-label">Kechikkan to\'lovlar</span>' +
+      '<b class="qz-stat-value">' + overdueCount + '</b>' +
+      '<span class="qz-stat-sub">' + (overdueCount ? qzShortMoney(overdueSum) + ' so\'m undirilishi kerak' : 'kechikkan yo\'q') + '</span>' +
+    '</div>' +
+    '<div class="qz-stat' + (soonCount ? ' is-warn' : '') + '">' +
+      '<span class="qz-stat-label">Yaqin 7 kunda</span>' +
+      '<b class="qz-stat-value">' + soonCount + '</b>' +
+      '<span class="qz-stat-sub">' + (soonCount ? qzShortMoney(soonSum) + ' so\'m kutilmoqda' : 'bu hafta to\'lov yo\'q') + '</span>' +
+    '</div>' +
+    '<div class="qz-stat">' +
+      '<span class="qz-stat-label">Jami qarzdorlik</span>' +
+      '<b class="qz-stat-value">' + qzShortMoney(totalDebt) + '</b>' +
+      '<span class="qz-stat-sub">' + qzMoney(totalDebt) + ' so\'m</span>' +
+    '</div>' +
+    '<div class="qz-stat">' +
+      '<span class="qz-stat-label">Faol shartnomalar</span>' +
+      '<b class="qz-stat-value">' + activeCount + '</b>' +
+      '<span class="qz-stat-sub">jami ' + contracts.length + ' ta shartnoma</span>' +
+    '</div>';
+}
+
+/* Filtr tugmalari — har birida nechta borligi ko'rinib turadi. */
+function qzRenderFilters(contracts){
+  const box = document.getElementById('qzFilters');
+  if(!box) return;
+  const c = { all: contracts.length, overdue: 0, soon: 0, done: 0 };
+  contracts.forEach(d => { const st = qzAnalyze(d).state; if(c[st] !== undefined) c[st]++; });
+
+  const defs = [
+    { key: 'all',     label: 'Hammasi',      n: c.all,     cls: '' },
+    { key: 'overdue', label: 'Kechikkan',    n: c.overdue, cls: ' qz-chip-danger' },
+    { key: 'soon',    label: 'Yaqin 7 kun',  n: c.soon,    cls: ' qz-chip-warn' },
+    { key: 'done',    label: 'Yopilgan',     n: c.done,    cls: '' }
+  ];
+
+  box.innerHTML = defs.map(f =>
+    '<button type="button" class="qz-chip' + f.cls + (qzFilter === f.key ? ' is-active' : '') + '" data-qzfilter="' + f.key + '">' +
+      f.label + '<span class="qz-chip-count">' + f.n + '</span>' +
+    '</button>'
+  ).join('');
+
+  box.querySelectorAll('[data-qzfilter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      qzFilter = btn.dataset.qzfilter;
+      renderCreditList(currentCreditContracts);
+    });
+  });
+}
+
 function renderCreditList(contracts){
   const list = document.getElementById('creditList');
-  if(contracts.length === 0){ list.innerHTML = '<div class="empty-admin">Hali kredit shartnomasi yo\'q.</div>'; return; }
+  const all = Array.isArray(contracts) ? contracts : [];
 
-  const legend = `
-    <div class="credit-legend">
-      <span><i class="cm-pending" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Hali kelmagan</span>
-      <span><i class="cm-paid" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> To'langan</span>
-      <span><i class="cm-overdue" style="width:14px;height:14px;border-radius:4px;display:inline-block;"></i> Kechikmoqda</span>
-      <span style="color:var(--muted);">— katakchani bosib, to'landi/to'lanmadi deb belgilang</span>
-    </div>`;
+  // Tepadagi raqamlar va filtr tugmalari HAR DOIM to'liq ro'yxat bo'yicha
+  // hisoblanadi — qidiruv yoki filtr ularni o'zgartirmasligi kerak.
+  qzRenderStats(currentCreditContracts || all);
+  qzRenderFilters(currentCreditContracts || all);
 
-  list.innerHTML = legend + contracts.map(d => {
-    const paidCount = d.payments.filter(p => p.status === 'paid').length;
-    const pct = Math.round((paidCount / d.totalMonths) * 100);
-    const now = Date.now();
+  // Qidiruv: raqam, telefon, ism va shartnoma raqami bo'yicha.
+  let rows = all;
+  if(qzSearchQuery){
+    const q = qzSearchQuery;
+    rows = rows.filter(d =>
+      (d.customerName || '').toLowerCase().includes(q) ||
+      (d.number || '').toLowerCase().includes(q) ||
+      (d.customerPhone || '').toLowerCase().includes(q) ||
+      (d.contractId || '').toLowerCase().includes(q)
+    );
+  }
+  if(qzFilter !== 'all'){
+    rows = rows.filter(d => qzAnalyze(d).state === qzFilter);
+  }
+
+  if(rows.length === 0){
+    list.innerHTML = '<div class="empty-admin">' +
+      (all.length === 0 ? 'Hali kredit shartnomasi yo\'q.' : 'Bu shartga mos shartnoma topilmadi.') + '</div>';
+    return;
+  }
+
+  // Eng muhimi yuqorida: kechikkanlar (ko'p kechikkani birinchi), keyin
+  // kuni yaqinlashganlar, keyin qolganlari.
+  const sorted = rows.slice().sort((x, y) => {
+    const ax = qzAnalyze(x), ay = qzAnalyze(y);
+    if(QZ_RANK[ax.state] !== QZ_RANK[ay.state]) return QZ_RANK[ax.state] - QZ_RANK[ay.state];
+    if(ax.state === 'overdue') return ay.days - ax.days;
+    if(ax.state === 'soon')    return ax.days - ay.days;
+    return ay.debt - ax.debt;
+  });
+
+  list.innerHTML = '<div class="qz-list">' + sorted.map(d => {
+    const a = qzAnalyze(d);
     const status = d.contractStatus || 'active';
+    const now = Date.now();
 
-    return `
-    <div class="admin-row-collapsed" data-id="${d.id}">
-      <div class="an-summary" data-id="${d.id}">
-        <span class="an-summary-num">${escapeHtml(d.customerName)}</span>
-        <span class="an-summary-op">${escapeHtml(d.contractId)}</span>
-        <span class="an-summary-price">${paidCount}/${d.totalMonths} oy</span>
-        <span class="an-summary-arrow">▾</span>
-      </div>
-      <div class="an-body" style="display:none;">
-        <div class="credit-card" data-id="${d.id}" style="border:none;border-radius:0;margin:0;">
-          <div class="cr-edit-grid">
-            <div>
-              <label class="cr-edit-label">Ism</label>
-              <input type="text" class="cr-edit-name" value="${escapeHtml(d.customerName)}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Ishlab turgan raqami</label>
-              <input type="text" class="cr-edit-phone" value="${escapeHtml(d.customerPhone)}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Pasport seriya va raqami</label>
-              <input type="text" class="cr-edit-passport" value="${escapeHtml(d.passportNumber || '')}" placeholder="AD 1234567">
-            </div>
-            <div>
-              <label class="cr-edit-label">Tug'ilgan sana</label>
-              <input type="date" class="cr-edit-birthdate" value="${d.birthDate || ''}">
-            </div>
-            <div style="grid-column:1/-1;">
-              <label class="cr-edit-label">Doimiy yashash joyi</label>
-              <input type="text" class="cr-edit-address" value="${escapeHtml(d.permanentAddress || '')}" placeholder="Viloyat, tuman, ko'cha, uy">
-            </div>
-            <div>
-              <label class="cr-edit-label">Manzil (viloyat)</label>
-              <input type="text" class="cr-edit-region" value="${escapeHtml(d.region)}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Kreditga olingan raqam</label>
-              <input type="text" class="cr-edit-number" value="${escapeHtml(d.number)}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Oylik to'lov (so'm)</label>
-              <input type="number" class="cr-edit-monthly" value="${d.monthlyPayment}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Shartnoma sanasi</label>
-              <input type="date" class="cr-edit-date" value="${new Date(d.createdAt).toISOString().slice(0,10)}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Har oyning nechinchi sanasida (1-31)</label>
-              <input type="number" class="cr-edit-payday" min="1" max="31" value="${d.paymentDay}">
-            </div>
-            <div>
-              <label class="cr-edit-label">Necha oyga (jami muddat)</label>
-              <input type="number" class="cr-edit-months" min="1" value="${d.totalMonths}">
-            </div>
-            <div class="cr-field-wide" style="grid-column:1/-1;">
-              <label class="cr-edit-label">Qo'shimcha ma'lumot</label>
-              <input type="text" class="cr-edit-info" value="${escapeHtml(d.additionalInfo || '')}">
-            </div>
-          </div>
-          <button class="cr-save-btn" data-id="${d.id}">Saqlash</button>
-          <p style="color:var(--muted);font-size:11px;margin:6px 0 0;">Sana, oy soni yoki to'lov kunini o'zgartirsangiz, oylik to'lov jadvali shu bo'yicha avtomatik qayta hisoblanadi.</p>
+    const payCta = a.next
+      ? '<button type="button" class="qz-pay-cta' + (a.state === 'overdue' ? ' is-overdue' : '') + '" data-id="' + d.id + '" data-month="' + a.next.month + '">' +
+          '<span>' + a.next.month + '-oy to\'lovini tasdiqlash' +
+            '<span class="qz-cta-sub">Muddati: ' + formatDate(a.next.dueDate) + (a.state === 'overdue' ? ' · ' + a.days + ' kun kechikkan' : '') + '</span>' +
+          '</span>' +
+          '<span class="qz-cta-sum">' + qzMoney(a.monthly) + ' so\'m</span>' +
+        '</button>'
+      : '<div class="qz-pay-done">✓ Barcha to\'lovlar yakunlangan</div>';
 
-          <div class="credit-sub" style="margin-top:10px;">✅ ${paidCount}/${d.totalMonths} oy to'landi &nbsp;|&nbsp; 🗓 Har oyning ${d.paymentDay}-sanasida</div>
-          <div class="cr-progress-wrap" style="margin:8px 0;"><div class="cr-progress-bar" style="width:${pct}%;"></div></div>
-          <div class="credit-months">
-            ${d.payments.map(p => {
-              const isOverdue = p.status === 'pending' && p.dueDate < now;
-              const cls = p.status === 'paid' ? 'cm-paid' : (isOverdue ? 'cm-overdue' : 'cm-pending');
-              const icon = p.status === 'paid' ? '✓' : (isOverdue ? '⚠' : p.month + '-oy');
-              const dateStr = formatDate(p.dueDate).slice(0,5);
-              return `<div class="credit-month-chip ${cls}" data-id="${d.id}" data-month="${p.month}" title="${p.month}-oy to'lovi — ${formatDate(p.dueDate)}">
-                <span class="cm-label">${icon}</span><span class="cm-date">${dateStr}</span>
-              </div>`;
-            }).join('')}
-          </div>
+    return '' +
+    '<div class="qz-item st-' + a.state + '" data-id="' + d.id + '">' +
+      '<div class="qz-head" data-id="' + d.id + '">' +
+        '<div class="qz-head-main">' +
+          '<span class="qz-num">' + escapeHtml(d.number || '—') + '</span>' +
+          '<span class="qz-meta">' +
+            qzPill(a) +
+            '<a href="tel:' + escapeHtml((d.customerPhone || '').replace(/\s/g, '')) + '">☎ ' + escapeHtml(d.customerPhone || '—') + '</a>' +
+            '<span>' + escapeHtml(d.customerName || '') + '</span>' +
+          '</span>' +
+        '</div>' +
+        '<div class="qz-head-money">' +
+          '<b class="qz-debt">' + (a.debt > 0 ? qzMoney(a.debt) : '0') + '<i>so\'m</i></b>' +
+          '<span class="qz-debt-sub">qoldi · ' + a.paid + '/' + a.total + ' oy to\'langan</span>' +
+        '</div>' +
+        '<span class="qz-arrow">▾</span>' +
+      '</div>' +
 
-          <div class="contract-status-row">
-            <div class="contract-status-current" style="color:${contractStatusColor(status)};">● ${contractStatusLabel(status)}</div>
-            <div class="contract-status-buttons">
-              ${CONTRACT_STATUSES.map(s => `<button class="cs-btn ${s.key===status?'cs-active':''}" data-id="${d.id}" data-status="${s.key}">${s.label}</button>`).join('')}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+      '<div class="qz-body">' +
+        payCta +
 
-  list.querySelectorAll('.an-summary').forEach(summary=>{
-    summary.addEventListener('click', ()=>{
-      const wrap = summary.closest('.admin-row-collapsed');
-      const body = wrap.querySelector('.an-body');
-      const arrow = summary.querySelector('.an-summary-arrow');
-      const isOpen = body.style.display !== 'none';
-      body.style.display = isOpen ? 'none' : 'block';
-      arrow.textContent = isOpen ? '▾' : '▴';
-      wrap.classList.toggle('an-open', !isOpen);
+        '<div class="cr-progress-wrap" style="margin:12px 0 4px;"><div class="cr-progress-bar" style="width:' + a.pct + '%;"></div></div>' +
+        '<p class="qz-hint">To\'langan: <b>' + qzMoney(a.paid * a.monthly) + ' so\'m</b> · Qolgan: <b>' + qzMoney(a.debt) + ' so\'m</b> · Har oyning ' + d.paymentDay + '-sanasida</p>' +
+
+        '<div class="qz-section-title">Oylar bo\'yicha jadval</div>' +
+        '<div class="credit-months">' +
+          (d.payments || []).map(p => {
+            const isOverdue = p.status === 'pending' && p.dueDate < now;
+            const cls = p.status === 'paid' ? 'cm-paid' : (isOverdue ? 'cm-overdue' : 'cm-pending');
+            const icon = p.status === 'paid' ? '✓' : (isOverdue ? '⚠' : p.month + '-oy');
+            return '<div class="credit-month-chip ' + cls + '" data-id="' + d.id + '" data-month="' + p.month + '" title="' + p.month + '-oy to\'lovi — ' + formatDate(p.dueDate) + '">' +
+              '<span class="cm-label">' + icon + '</span><span class="cm-date">' + formatDate(p.dueDate).slice(0, 5) + '</span>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+        '<p class="qz-hint">Xato bosilsa — shu katakchani qayta bosib qaytarish mumkin.</p>' +
+
+        '<div class="contract-status-row">' +
+          '<div class="qz-section-title">Shartnoma holati</div>' +
+          '<div class="contract-status-buttons">' +
+            CONTRACT_STATUSES.map(st =>
+              '<button class="cs-btn ' + (st.key === status ? 'cs-active' : '') + '"' +
+              (st.key === status ? ' style="background:' + st.color + ';border-color:' + st.color + ';"' : '') +
+              ' data-id="' + d.id + '" data-status="' + st.key + '">' + st.label + '</button>').join('') +
+          '</div>' +
+        '</div>' +
+
+        '<button type="button" class="qz-edit-toggle" data-id="' + d.id + '">' +
+          '<span>✎ Shartnoma ma\'lumotlarini tahrirlash</span><span>▾</span>' +
+        '</button>' +
+        '<div class="qz-edit-box">' +
+          '<div class="credit-card" data-id="' + d.id + '" style="border:none;border-radius:0;margin:0;padding:0;background:none;">' +
+            '<div class="cr-edit-grid">' +
+              '<div><label class="cr-edit-label">Ism</label><input type="text" class="cr-edit-name" value="' + escapeHtml(d.customerName || '') + '"></div>' +
+              '<div><label class="cr-edit-label">Ishlab turgan raqami</label><input type="text" class="cr-edit-phone" value="' + escapeHtml(d.customerPhone || '') + '"></div>' +
+              '<div><label class="cr-edit-label">Pasport seriya va raqami</label><input type="text" class="cr-edit-passport" value="' + escapeHtml(d.passportNumber || '') + '" placeholder="AD 1234567"></div>' +
+              '<div><label class="cr-edit-label">Tug\'ilgan sana</label><input type="date" class="cr-edit-birthdate" value="' + (d.birthDate || '') + '"></div>' +
+              '<div style="grid-column:1/-1;"><label class="cr-edit-label">Doimiy yashash joyi</label><input type="text" class="cr-edit-address" value="' + escapeHtml(d.permanentAddress || '') + '" placeholder="Viloyat, tuman, ko\'cha, uy"></div>' +
+              '<div><label class="cr-edit-label">Manzil (viloyat)</label><input type="text" class="cr-edit-region" value="' + escapeHtml(d.region || '') + '"></div>' +
+              '<div><label class="cr-edit-label">Kreditga olingan raqam</label><input type="text" class="cr-edit-number" value="' + escapeHtml(d.number || '') + '"></div>' +
+              '<div><label class="cr-edit-label">Oylik to\'lov (so\'m)</label><input type="number" class="cr-edit-monthly" value="' + a.monthly + '"></div>' +
+              '<div><label class="cr-edit-label">Shartnoma sanasi</label><input type="date" class="cr-edit-date" value="' + new Date(d.createdAt).toISOString().slice(0, 10) + '"></div>' +
+              '<div><label class="cr-edit-label">Har oyning nechinchi sanasida (1-31)</label><input type="number" class="cr-edit-payday" min="1" max="31" value="' + d.paymentDay + '"></div>' +
+              '<div><label class="cr-edit-label">Necha oyga (jami muddat)</label><input type="number" class="cr-edit-months" min="1" value="' + a.total + '"></div>' +
+              '<div style="grid-column:1/-1;"><label class="cr-edit-label">Qo\'shimcha ma\'lumot</label><input type="text" class="cr-edit-info" value="' + escapeHtml(d.additionalInfo || '') + '"></div>' +
+            '</div>' +
+            '<button class="cr-save-btn" data-id="' + d.id + '">Saqlash</button>' +
+            '<p class="qz-hint">Shartnoma sanasi, muddati yoki to\'lov kunini o\'zgartirsangiz, jadval avtomatik qayta hisoblanadi (to\'langan oylar saqlanib qoladi). Shartnoma raqami: <b>' + escapeHtml(d.contractId || '') + '</b></p>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+
+  /* ---- ochish / yopish ---- */
+  list.querySelectorAll('.qz-head').forEach(head => {
+    head.addEventListener('click', () => {
+      head.closest('.qz-item').classList.toggle('is-open');
     });
   });
 
+  /* ---- tahrirlash qismini ochish ---- */
+  list.querySelectorAll('.qz-edit-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const box = btn.nextElementSibling;
+      if(box) box.classList.toggle('is-open');
+    });
+  });
+
+  /* ---- ASOSIY HARAKAT: to'lovni tasdiqlash ---- */
+  list.querySelectorAll('.qz-pay-cta').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      btn.disabled = true;
+      try{
+        await creCall('updatePayment', { id: btn.dataset.id, month: Number(btn.dataset.month) });
+        vibrate(60);
+        loadCreditContracts();
+      }catch(err){
+        btn.disabled = false;
+        alert('Xato: ' + err.message);
+      }
+    });
+  });
+
+  /* ---- oy katakchasi: to'landi / to'lanmadi (qaytarish uchun ham) ---- */
   list.querySelectorAll('.credit-month-chip').forEach(chip => {
     chip.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const contractId = chip.dataset.id;
-      const month = Number(chip.dataset.month);
       try{
-        await creCall('updatePayment', { id: contractId, month });
+        await creCall('updatePayment', { id: chip.dataset.id, month: Number(chip.dataset.month) });
         vibrate(60);
         loadCreditContracts();
       }catch(err){ alert('Xato: ' + err.message); }
     });
   });
 
+  /* ---- shartnoma ma'lumotlarini saqlash ---- */
   list.querySelectorAll('.cr-save-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -5836,9 +6126,7 @@ function renderCreditList(contracts){
         const newTotalMonths = Number(card.querySelector('.cr-edit-months').value) || 1;
         const newStartTs = dateVal ? new Date(dateVal + 'T00:00:00').getTime() : Date.now();
 
-        // Shartnoma sanasi, to'lov kuni yoki oy soni o'zgargan bo'lsa, oylik jadvalni
-        // shunga qarab qayta hisoblaymiz, lekin allaqachon "to'landi" deb belgilangan
-        // oylarning statusini saqlab qolamiz.
+        // To'langan deb belgilangan oylar saqlanib qoladi.
         const existing = currentCreditContracts.find(c => c.id === id);
         const oldPayments = existing ? existing.payments : [];
         const payments = [];
@@ -5863,25 +6151,23 @@ function renderCreditList(contracts){
           passportNumber: card.querySelector('.cr-edit-passport').value.trim(),
           birthDate: card.querySelector('.cr-edit-birthdate').value,
           permanentAddress: card.querySelector('.cr-edit-address').value.trim(),
-          startDate: dateVal,
+          createdAt: newStartTs,
           paymentDay: payDay,
-          totalMonths: newTotalMonths
+          totalMonths: newTotalMonths,
+          payments
         });
-        btn.textContent = '✓ Saqlandi';
-        btn.classList.add('saved-flash');
-        vibrate(80);
-        setTimeout(()=> loadCreditContracts(), 900);
+        vibrate(60);
+        loadCreditContracts();
       }catch(err){ alert('Xato: ' + err.message); }
     });
   });
 
+  /* ---- shartnoma holati ---- */
   list.querySelectorAll('.cs-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const id = btn.dataset.id;
-      const statusKey = btn.dataset.status;
       try{
-        await creCall('updateStatus', { id, status: statusKey });
+        await creCall('updateStatus', { id: btn.dataset.id, status: btn.dataset.status });
         vibrate(80);
         loadCreditContracts();
       }catch(err){ alert('Xato: ' + err.message); }
@@ -5890,10 +6176,8 @@ function renderCreditList(contracts){
 }
 
 document.getElementById('creditSearchInput').addEventListener('input', debounce((e)=>{
-  const q = e.target.value.trim().toLowerCase();
-  if(!q){ renderCreditList(currentCreditContracts); return; }
-  const filtered = currentCreditContracts.filter(d => (d.customerName || '').toLowerCase().includes(q));
-  renderCreditList(filtered);
+  qzSearchQuery = e.target.value.trim().toLowerCase();
+  renderCreditList(currentCreditContracts);
 }, 180));
 
 /* ---- Xavfsizlik: eski (auto-ID) shartnomalarni contractId-ID'ga ko'chirish ---- */
@@ -6046,116 +6330,6 @@ async function loadFinanceSummary(){
   }catch(err){
     list.innerHTML = '<div class="empty-admin">Xato: ' + escapeHtml(err.message) + '</div>';
   }
-}
-
-/* ==================================================================
-   "STATISTIKA" — Instagram (Chatplace) faolligi. Bu panel qismi
-   Firestore'dagi ("adminStats/instagram") holatni o'qib ko'rsatadi —
-   o'sha hujjatni esa Netlify'ning avtomatik fon funksiyasi
-   (instagram-stats-sync-background.js) har 30 daqiqada o'zi yangilab
-   turadi, admin hech narsa qilishi shart emas. "Qo'lda kiritish" qutisi
-   faqat avtomatika ishlamay qolgan holatlar uchun zaxira.
-   ================================================================== */
-async function igsCall(action, extra){
-  const idToken = await firebase.auth().currentUser.getIdToken();
-  const res = await fetch('/.netlify/functions/admin-instagram-stats', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-    body: JSON.stringify(Object.assign({ action }, extra || {}))
-  });
-  const data = await res.json();
-  if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
-  return data;
-}
-
-function igsFormatTime(ts){
-  if(!ts) return '—';
-  const d = new Date(ts);
-  const pad = n => String(n).padStart(2,'0');
-  return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-}
-
-function igsRenderVideoList(videos){
-  const box = document.getElementById('igsVideoList');
-  if(!videos || videos.length === 0){
-    box.innerHTML = '<div class="empty-admin">Hali ma\'lumot yo\'q — har yangi video/Reels uchun alohida avtomatika (izoh/DM trigger) sozlangach, shu yerda ko\'rina boshlaydi.</div>';
-    return;
-  }
-  box.innerHTML = videos.map(v => `
-    <div class="fin-tx-row">
-      <div class="fin-tx-cat">${escapeHtml(v.title || v.mediaId || 'Video')}</div>
-      <div class="fin-tx-amount">+${Number(v.subscribers || 0)} obunachi</div>
-    </div>
-  `).join('');
-}
-
-function igsRender(snap){
-  const s = snap || {};
-  const today = s.today || {};
-  document.getElementById('igsTodayMessages').textContent = today.messages || 0;
-  document.getElementById('igsTodayReplied').textContent = today.replied || 0;
-  document.getElementById('igsTodayConverted').textContent = today.converted || 0;
-  document.getElementById('igsActiveChats').textContent = s.activeChats || 0;
-  document.getElementById('igsTotalClients').textContent = s.totalClients || 0;
-  document.getElementById('igsWeekVideos').textContent = s.weekVideos || 0;
-  igsRenderVideoList(s.videos);
-  const banner = document.getElementById('igsUpdatedBanner');
-  banner.textContent = s.updatedAt
-    ? ('🕓 Oxirgi avtomatik yangilanish: ' + igsFormatTime(s.updatedAt) + (s.autoSynced === false ? ' (qo\'lda kiritilgan)' : ''))
-    : 'Hali yangilanmagan — birinchi avtomatik urinish tez orada bo\'ladi (har 30 daqiqada).';
-  const errBanner = document.getElementById('igsErrorBanner');
-  if(s.lastError){
-    errBanner.style.display = '';
-    errBanner.textContent = '⚠️ Avtomatik yangilanishda xato: ' + s.lastError + ' — shu matnni Claude\'ga yuboring, tuzatib beradi.';
-  } else {
-    errBanner.style.display = 'none';
-  }
-}
-
-async function loadInstagramStats(){
-  try{
-    const data = await igsCall('get');
-    igsRender(data.stats);
-  }catch(err){
-    document.getElementById('igsUpdatedBanner').textContent = 'Xato: ' + err.message;
-  }
-}
-
-const igsManualToggleBtn = document.getElementById('igsManualToggle');
-if(igsManualToggleBtn){
-  igsManualToggleBtn.addEventListener('click', ()=>{
-    const box = document.getElementById('igsManualBox');
-    const arrow = document.getElementById('igsManualArrow');
-    const open = box.style.display !== 'none';
-    box.style.display = open ? 'none' : '';
-    if(arrow) arrow.textContent = open ? '▾' : '▴';
-  });
-}
-const igsManualSaveBtn = document.getElementById('igsManualSaveBtn');
-if(igsManualSaveBtn){
-  igsManualSaveBtn.addEventListener('click', async ()=>{
-    const msg = document.getElementById('igsManualMsg');
-    const raw = document.getElementById('igsManualJson').value.trim();
-    let parsed;
-    try{
-      parsed = JSON.parse(raw);
-    }catch(e){
-      msg.textContent = "JSON noto'g'ri formatda: " + e.message;
-      msg.className = 'settings-msg bad';
-      return;
-    }
-    igsManualSaveBtn.disabled = true;
-    try{
-      const data = await igsCall('save', { stats: parsed });
-      igsRender(data.stats);
-      msg.textContent = 'Saqlandi ✅';
-      msg.className = 'settings-msg ok';
-    }catch(err){
-      msg.textContent = 'Xato: ' + err.message;
-      msg.className = 'settings-msg bad';
-    }
-    igsManualSaveBtn.disabled = false;
-  });
 }
 
 /* ---- Daromad/Xarajat forma ochish-yopish ---- */
@@ -7900,7 +8074,7 @@ const MGMT_FEATURE_LABELS = {
   watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
-  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya', statistika:'📊 Statistika'
+  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya'
 };
 const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
 

@@ -388,6 +388,35 @@ service cloud.firestore {
         || isValidLikeToggle(resource, request.resource.data);
     }
 
+    // PUSH BILDIRISHNOMA TOKENLARI (Android/iOS ilovasi uchun).
+    //
+    // Ilova o'rnatilgan har bir telefon Firebase'dan o'ziga xos "token"
+    // oladi — aynan shu token orqali o'sha telefonga xabar yuborish
+    // mumkin. Ilova uni shu yerga yozib qo'yadi.
+    //
+    // XAVFSIZLIK (nega bu ochiq yozishga ruxsat):
+    //  * Mijoz ro'yxatdan o'tmagan bo'lishi ham mumkin (ilovani endi
+    //    o'rnatgan), shuning uchun "request.auth" talab qilinmaydi;
+    //  * O'QISH VA O'CHIRISH BUTUNLAY TAQIQLANGAN — ya'ni hech kim
+    //    boshqalarning tokenlari ro'yxatini ko'ra olmaydi (xabar
+    //    yuborish faqat server tomondan, Admin SDK orqali bo'ladi);
+    //  * Hujjat nomi tokenning O'ZI — uni taxmin qilib bo'lmaydi;
+    //  * Maydonlar qat'iy tekshiriladi — ortiqcha yoki begona
+    //    ma'lumot yozib bo'lmaydi (bazani "axlat" bilan to'ldirish
+    //    yo'li yopilgan).
+    match /pushTokens/{tokenId} {
+      allow read, delete: if false;
+      allow create, update: if
+           tokenId.size() >= 64 && tokenId.size() <= 400
+        && request.resource.data.keys().hasOnly(['token', 'platform', 'uid', 'updatedAt'])
+        && request.resource.data.token == tokenId
+        && request.resource.data.platform in ['ios', 'android']
+        && request.resource.data.updatedAt is number
+        && (!('uid' in request.resource.data)
+            || request.resource.data.uid == null
+            || request.resource.data.uid is string);
+    }
+
     // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram
     // botlar, admin AI yordamchisi, admin-manage-admins.js) orqali,
     // Firebase Admin SDK bilan ishlatiladi — brauzerdan (Firestore Client
