@@ -246,6 +246,46 @@
   }
   .tab.active .tab-ico{opacity:1;filter:drop-shadow(0 0 4px rgba(255,176,0,.45));}
 
+  /* ==================================================================
+     YON MENYU GURUHLARI
+     Yigirmata bo'lim bitta uzun ustunda turgani sabab menyu chalkash
+     edi. Endi ular oltita guruhga ajratilgan; guruhlar yopiladi va
+     ochiladi, sahifa ochilganda esa faqat hozir ishlatilayotgan bo'lim
+     turgan guruh ochiq bo'ladi. Yopiq guruhda bildirishnoma (masalan
+     bajarilmagan vazifalar soni) bo'lsa, u guruh sarlavhasida
+     ko'rinadi — shu sabab hech narsa e'tibordan chetda qolmaydi.
+     ================================================================== */
+  .tab-group{display:flex;flex-direction:column;}
+  .tab-group + .tab-group{margin-top:2px;}
+
+  .tab-group-head{
+    display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    padding:9px 12px 7px;border-radius:9px;
+    font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    opacity:.72;transition:opacity .16s ease,color .16s ease,background-color .16s ease;
+  }
+  .tab-group-head:hover{opacity:1;color:var(--text);background:rgba(255,255,255,.04);}
+  .tgh-ico{width:14px;height:14px;flex:none;display:flex;}
+  .tgh-ico svg{width:100%;height:100%;}
+  .tgh-label{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .tgh-arrow{width:13px;height:13px;flex:none;display:flex;transition:transform .22s ease;}
+  .tgh-arrow svg{width:100%;height:100%;}
+  .tab-group.is-collapsed .tgh-arrow{transform:rotate(-90deg);}
+  .tab-group.is-collapsed .tab-group-body{display:none;}
+
+  /* yopiq guruhdagi bildirishnoma soni */
+  .tgh-badge{
+    flex:none;background:var(--red);color:#fff;border-radius:99px;
+    min-width:17px;padding:1px 5px;font-size:9.5px;font-weight:800;
+    text-align:center;letter-spacing:0;
+  }
+
+  .tab-group-body{display:flex;flex-direction:column;gap:2px;}
+  /* Guruh ichidagi bo'limlar biroz ichkariroq — ierarxiya ko'rinib tursin */
+  .tab-group-body .tab{padding-left:16px;}
+  .tab-group-body .tab.active{padding-left:16px;}
+
   /* ---- "Boshqaruv" — Sozlamalardan alohida, ajratilgan guruh ---- */
   .tab-divider{
     display:flex;align-items:center;gap:8px;margin:12px 10px 6px;
@@ -2066,30 +2106,94 @@
       <span class="sidebar-logo-text">VIP RAQAMLAR<small>Admin panel</small></span>
     </div>
     <nav class="tabs">
-      <button class="tab active" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
-      <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
-      <button class="tab" data-tab="ai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="10" rx="3"/><path d="M12 5v4M9 14h.01M15 14h.01"/><circle cx="12" cy="4" r="1"/></svg></span><span class="tab-label">AI Yordamchi</span></button>
-      <button class="tab" data-tab="instagram"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8 6l1.4-2h5.2L16 6"/></svg></span><span class="tab-label">Instagram AI</span></button>
-      <button class="tab" data-tab="telegramai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></span><span class="tab-label">Telegram AI</span></button>
-      <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
-      <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
-      <button class="tab" data-tab="orders"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="tab-label">Buyurtmalar</span></button>
-      <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
-      <button class="tab" data-tab="credit"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><span class="tab-label">Kredit</span></button>
-      <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
-      <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
-      <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
-      <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
-      <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
-      <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
-      <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
-      <button class="tab" data-tab="uzex"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span class="tab-label">UZEX auksion</span></button>
-      <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
-      <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
+        <!-- Bo'limlar guruhlarga ajratilgan: yigirmata tugma bir ustunda
+             turgani sabab menyu uzun va chalkash edi. Endi har bir guruh
+             yopiladi/ochiladi, faqat kerakli guruh ochiq turadi. Ochiq
+             guruh brauzerda eslab qolinadi. -->
+        <div class="tab-group" data-group="sotuv">
+          <button type="button" class="tab-group-head" data-group="sotuv" aria-expanded="true">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18l-1.6 9.2a2 2 0 0 1-2 1.8H6.6a2 2 0 0 1-2-1.8L3 6z"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg></span>
+            <span class="tgh-label">Sotuv</span>
+            <span class="tgh-badge" hidden>0</span>
+            <span class="tgh-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="tab-group-body">
+          <button class="tab active" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
+          <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
+          <button class="tab" data-tab="orders"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="tab-label">Buyurtmalar</span></button>
+          <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="moliya">
+          <button type="button" class="tab-group-head" data-group="moliya" aria-expanded="true">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M16.5 7.5c-.6-1.4-2.3-2.2-4.5-2.2s-4 1-4 2.8 1.8 2.4 4 2.9 4.5 1.1 4.5 3-1.9 3-4.5 3-4-.9-4.6-2.3"/></svg></span>
+            <span class="tgh-label">Moliya</span>
+            <span class="tgh-badge" hidden>0</span>
+            <span class="tgh-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="credit"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><span class="tab-label">Kredit</span></button>
+          <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
+          <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="aloqa">
+          <button type="button" class="tab-group-head" data-group="aloqa" aria-expanded="true">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.4-4.8A7.5 7.5 0 1 1 20 11.5z"/></svg></span>
+            <span class="tgh-label">AI va aloqa</span>
+            <span class="tgh-badge" hidden>0</span>
+            <span class="tgh-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="ai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="10" rx="3"/><path d="M12 5v4M9 14h.01M15 14h.01"/><circle cx="12" cy="4" r="1"/></svg></span><span class="tab-label">AI Yordamchi</span></button>
+          <button class="tab" data-tab="instagram"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8 6l1.4-2h5.2L16 6"/></svg></span><span class="tab-label">Instagram AI</span></button>
+          <button class="tab" data-tab="telegramai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></span><span class="tab-label">Telegram AI</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="kontent">
+          <button type="button" class="tab-group-head" data-group="kontent" aria-expanded="true">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/></svg></span>
+            <span class="tgh-label">Kontent</span>
+            <span class="tgh-badge" hidden>0</span>
+            <span class="tgh-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
+          <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
+          <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="kuzatuv">
+          <button type="button" class="tab-group-head" data-group="kuzatuv" aria-expanded="true">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16.5 16.5"/></svg></span>
+            <span class="tgh-label">Kuzatuv</span>
+            <span class="tgh-badge" hidden>0</span>
+            <span class="tgh-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
+          <button class="tab" data-tab="uzex"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span class="tab-label">UZEX auksion</span></button>
+          <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="tashkil">
+          <button type="button" class="tab-group-head" data-group="tashkil" aria-expanded="true">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v6c0 4.2-3.2 7.4-8 8.4-4.8-1-8-4.2-8-8.4V7l8-4z"/></svg></span>
+            <span class="tgh-label">Tashkilot</span>
+            <span class="tgh-badge" hidden>0</span>
+            <span class="tgh-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
+          <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
+          <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
+          <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
+          </div>
+        </div>
 
-      <div class="tab-divider" id="mgmtTabDivider" style="display:none;"><span>SUPER ADMIN</span></div>
+        <div class="tab-divider" id="mgmtTabDivider" style="display:none;"><span>SUPER ADMIN</span></div>
       <button class="tab tab-super" data-tab="management" id="mgmtTabBtn" style="display:none;"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M15.8 13.8c2.3.2 4.2 2.1 4.2 5.2"/></svg></span><span class="tab-label">👑 Boshqaruv</span></button>
-    </nav>
+      </nav>
   </aside>
 
   <div class="main-content">
@@ -4780,6 +4884,8 @@ async function vzGlobalCheck(){
       if(tabBadge) tabBadge.style.display = 'none';
       if(bellBtn) bellBtn.style.display = 'none';
     }
+    // Yon menyudagi guruh yopiq bo'lsa, son guruh sarlavhasida ko'rinsin.
+    try{ if(typeof refreshTabGroupBadges === 'function') refreshTabGroupBadges(); }catch(e){}
 
     urgent.forEach(t=>{
       if(vzAlertedIds.has(t.id)) return;
@@ -5312,6 +5418,14 @@ function applyAccessControl(whoami){
     // tugmani yashirish YETARLI EMAS — pane (bo'lim tarkibi) alohida
     // "active" bo'lib qoladi va tugma yashirilgan bo'lsa ham ko'rinib
     // qolishi mumkin edi, shu sabab bu yerda ANIQ boshqaramiz.
+    // Bo'limlari butunlay yopiq bo'lgan guruh sarlavhasi ham ko'rinmasin.
+    document.querySelectorAll('.tab-group').forEach(group => {
+      const anyVisible = Array.from(group.querySelectorAll('.tab-group-body .tab'))
+        .some(t => t.style.display !== 'none');
+      group.style.display = anyVisible ? '' : 'none';
+    });
+    try{ if(typeof refreshTabGroupBadges === 'function') refreshTabGroupBadges(); }catch(e){}
+
     const activeTab = document.querySelector('.tab.active');
     if(activeTab && activeTab.style.display === 'none'){
       const firstVisible = Array.from(document.querySelectorAll('.tab[data-tab]')).find(t => t.style.display !== 'none');
@@ -5374,12 +5488,110 @@ document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
 });
 
+/* ==================================================================
+   YON MENYU GURUHLARI — ochish/yopish
+   ------------------------------------------------------------------
+   Yigirmata bo'lim bitta uzun ro'yxatda turgani sabab menyu chalkash
+   edi. Endi:
+     * bo'limlar oltita guruhga ajratilgan;
+     * sahifa ochilganda FAQAT hozir ishlatilayotgan bo'lim turgan guruh
+       ochiq bo'ladi, qolganlari yig'ilgan;
+     * admin qaysi guruhni ochgan bo'lsa, u brauzerda eslab qolinadi;
+     * yopiq guruh ichida bildirishnoma (masalan bajarilmagan vazifalar
+       soni) bo'lsa, u guruh sarlavhasida ko'rinadi — shu sabab hech
+       narsa e'tibordan chetda qolmaydi.
+   ================================================================== */
+const TAB_GROUP_KEY = 'vipAdminTabGroups';
+
+function tabGroupsLoad(){
+  try{
+    const raw = localStorage.getItem(TAB_GROUP_KEY);
+    const v = raw ? JSON.parse(raw) : null;
+    return (v && typeof v === 'object') ? v : null;
+  }catch(e){ return null; }
+}
+function tabGroupsSave(state){
+  try{ localStorage.setItem(TAB_GROUP_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+/* Yopiq guruhlarda "o'qilmagan" belgilar yig'indisini sarlavhaga chiqaramiz. */
+function refreshTabGroupBadges(){
+  document.querySelectorAll('.tab-group').forEach(group => {
+    const badgeEl = group.querySelector('.tgh-badge');
+    if(!badgeEl) return;
+    let sum = 0;
+    group.querySelectorAll('.tab-group-body .tab').forEach(tab => {
+      if(tab.style.display === 'none') return;
+      tab.querySelectorAll('.task-tab-badge, .tab-badge, .nav-badge').forEach(b => {
+        if(b.style.display === 'none') return;
+        const n = parseInt((b.textContent || '').replace(/\D/g, ''), 10);
+        if(Number.isFinite(n)) sum += n;
+      });
+    });
+    const collapsed = group.classList.contains('is-collapsed');
+    if(collapsed && sum > 0){
+      badgeEl.textContent = sum > 99 ? '99+' : String(sum);
+      badgeEl.hidden = false;
+    }else{
+      badgeEl.hidden = true;
+    }
+  });
+}
+
+function setTabGroupOpen(group, open, persist){
+  group.classList.toggle('is-collapsed', !open);
+  const head = group.querySelector('.tab-group-head');
+  if(head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if(persist){
+    const state = tabGroupsLoad() || {};
+    state[group.dataset.group] = open ? 1 : 0;
+    tabGroupsSave(state);
+  }
+  refreshTabGroupBadges();
+}
+
+/* Biror bo'lim tanlanganda uning guruhi albatta ochiq bo'lsin. */
+function openGroupOfTab(tab){
+  const group = tab && tab.closest ? tab.closest('.tab-group') : null;
+  if(group && group.classList.contains('is-collapsed')) setTabGroupOpen(group, true, true);
+}
+
+(function initTabGroups(){
+  const groups = Array.from(document.querySelectorAll('.tab-group'));
+  if(!groups.length) return;
+  const saved = tabGroupsLoad();
+  const activeTab = document.querySelector('.tab.active');
+  const activeGroup = activeTab && activeTab.closest ? activeTab.closest('.tab-group') : null;
+
+  groups.forEach(group => {
+    let open;
+    if(saved && saved[group.dataset.group] !== undefined){
+      open = saved[group.dataset.group] === 1;
+    }else{
+      // Birinchi marta: faqat hozirgi bo'lim turgan guruh ochiq.
+      open = (group === activeGroup);
+    }
+    setTabGroupOpen(group, open, false);
+  });
+  // Hozirgi bo'lim ko'rinmay qolmasin.
+  if(activeGroup) setTabGroupOpen(activeGroup, true, false);
+
+  groups.forEach(group => {
+    const head = group.querySelector('.tab-group-head');
+    if(!head) return;
+    head.addEventListener('click', () => {
+      setTabGroupOpen(group, group.classList.contains('is-collapsed'), true);
+    });
+  });
+})();
+
 const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
+    openGroupOfTab(tab);
     document.getElementById('pane' + TAB_PANE_MAP[tab.dataset.tab]).classList.add('active');
 
     if(tab.dataset.tab === 'management'){ loadAdminsList(); }
