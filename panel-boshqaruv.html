@@ -3459,6 +3459,142 @@ body{
   @keyframes statPulse{ 0%{opacity:.4;} 100%{opacity:1;} }
 }
 
+/* ==================================================================
+   YANGI DIZAYN TIZIMI — "VIP RAQAM" maket (foydalanuvchi bergan rasm/
+   maket bo'yicha). Yon menyu HAR DOIM to'q ko'k-binafsha (navy), mavzu
+   (och/tun) tugmasidan qat'i nazar — maketda faqat shu bitta ko'rinish
+   bor. !important shu sabab ishlatilgan: bu qoida pastda, lekin
+   :root[data-theme="light"] .sidebar{...} undan YUQORI measure
+   (specificity)ga ega bo'lgani uchun, aks holda yutib ketardi.
+   ================================================================== */
+:root{
+  --sb-bg:#0D1B3D;
+  --sb-bg-2:#0A1530;
+  --sb-active:#1B2A52;
+  --sb-line:rgba(255,255,255,.08);
+  --sb-text:#E7ECFC;
+  --sb-text-dim:#8891B3;
+  --sb-label:#596593;
+}
+.sidebar{
+  background:var(--sb-bg) !important;border-right:none !important;
+}
+.sidebar-logo-text, .sidebar-logo-text small{color:#FFFFFF !important;}
+.sidebar-logo-text small{color:var(--sb-text-dim) !important;}
+.tgh-label{color:var(--sb-label) !important;}
+.tab{color:var(--sb-text-dim) !important;}
+.tab .tab-ico{color:var(--sb-text-dim);opacity:.85;}
+.tab:hover{background:rgba(255,255,255,.05) !important;color:var(--sb-text) !important;}
+.tab.active{
+  background:var(--sb-active) !important;color:#FFFFFF !important;font-weight:650;
+}
+.tab.active .tab-ico{color:#FFFFFF;opacity:1;}
+.tab.active::after{background:var(--amber-bright, #5B86F5) !important;}
+.tab-divider span{color:var(--sb-label) !important;}
+.tab-divider::before, .tab-divider::after{background:var(--sb-line) !important;}
+.sb-user{display:none !important;}
+
+/* Yon menyu tepasidagi QIDIRUV qatori — maketda shu yerda turadi */
+.sb-search{
+  margin:4px 14px 14px;height:38px;padding:0 12px;border-radius:10px;
+  background:rgba(255,255,255,.06);border:1px solid var(--sb-line);
+  display:flex;align-items:center;gap:9px;color:var(--sb-text-dim);
+  font-size:12.5px;cursor:pointer;flex:none;
+}
+.sb-search:hover{background:rgba(255,255,255,.09);}
+.sb-search svg{width:15px;height:15px;flex:none;opacity:.8;}
+.sb-search span{flex:1;text-align:left;}
+.sb-search kbd{
+  font-family:'Space Mono',monospace;font-size:10px;border:1px solid var(--sb-line);
+  border-radius:4px;padding:1px 6px;color:var(--sb-text-dim);
+}
+
+/* ---- Topbar: breadcrumb + "Tizim ishlamoqda" holat + qo'ng'iroq ---- */
+.topbar{
+  background:#FFFFFF !important;border-bottom:1px solid var(--line) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  height:52px !important;
+}
+.tb-breadcrumb{
+  display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0;
+}
+.tb-breadcrumb b{color:var(--text);font-weight:700;}
+.tb-breadcrumb .tbc-sep{opacity:.5;}
+.tb-status{
+  display:flex;align-items:center;gap:6px;flex:none;
+  background:#DCFCE7;color:#15803D;border-radius:99px;padding:6px 13px;
+  font-size:12px;font-weight:700;
+}
+.tb-status i{width:6px;height:6px;border-radius:99px;background:#15803D;flex:none;}
+.topbar .bell-btn{
+  background:var(--panel-2) !important;border:1px solid var(--line) !important;color:var(--text-2) !important;
+}
+.topbar #logoutBtn{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+  width:34px;height:34px;padding:0;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:0;
+}
+.topbar #logoutBtn::before{
+  content:'';width:16px;height:16px;flex:none;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E") center/contain no-repeat;
+  background:currentColor;
+}
+.topbar #logoutBtn:hover{border-color:var(--red);color:var(--red);}
+.topbar-clock{display:none !important;}
+
+/* ---- Sahifa boshi: maketdagi kabi katta, qalin sarlavha ---- */
+.page-head{border-bottom:none !important;padding:22px 0 18px !important;align-items:center !important;}
+.page-head h1{
+  font-family:'Unbounded',sans-serif !important;font-size:26px !important;font-weight:700 !important;
+  letter-spacing:-.01em !important;
+}
+.page-head p{font-size:13px !important;margin-top:6px !important;}
+.ph-acts{align-items:center;}
+.ph-avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--amber);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;
+  flex:none;margin-left:4px;font-family:'Unbounded',sans-serif;
+}
+
+/* ---- Boshqaruv paneli (Dashboard) va Baza raqam ---- */
+.dash-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+@media (max-width:1100px){.dash-stats-row{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:620px){.dash-stats-row{grid-template-columns:1fr;}}
+.dash-stat-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 16px -4px rgba(16,24,40,.08);
+}
+.dash-stat-top{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:10px;}
+.dash-stat-top svg{width:16px;height:16px;opacity:.55;}
+.dash-stat-num{font-family:'Unbounded',sans-serif;font-size:25px;font-weight:700;color:var(--text);display:flex;align-items:baseline;gap:8px;}
+.dash-stat-num small{font-size:12px;font-weight:700;color:var(--green);}
+.dash-stat-num small.bad{color:var(--red);}
+.dash-stat-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+.dash-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+@media (min-width:980px){.dash-grid{grid-template-columns:2fr 1fr;align-items:start;}}
+.dash-main,.dash-side{display:flex;flex-direction:column;gap:14px;min-width:0;}
+.dash-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 16px -4px rgba(16,24,40,.08);
+}
+.dash-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.dash-card-head h3{font-size:14.5px;font-weight:800;margin:0;}
+.dash-recent-list{display:flex;flex-direction:column;gap:2px;}
+.dash-order-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:center;
+  padding:10px 4px;border-bottom:1px solid var(--line-soft);font-size:12.5px;
+}
+.dash-order-row:last-child{border-bottom:none;}
+.dash-order-num{font-weight:800;}
+.dash-order-client{color:var(--muted);}
+.dash-task-row{display:flex;align-items:flex-start;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line-soft);font-size:12.5px;}
+.dash-task-row:last-child{border-bottom:none;}
+.dash-task-row.done .dash-task-title{text-decoration:line-through;color:var(--muted);}
+.dash-task-title{font-weight:700;}
+.dash-task-meta{color:var(--muted);font-size:11.5px;margin-top:2px;}
+.baza-op-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:12.5px;}
 </style>
 </head>
 <body>
@@ -3492,14 +3628,20 @@ body{
   <aside class="sidebar">
     <div class="sidebar-logo">
       <span class="sidebar-logo-dot"></span>
-      <span class="sidebar-logo-text">VIP RAQAMLAR<small>Boshqaruv paneli</small></span>
+      <span class="sidebar-logo-text">VIP RAQAM<small>Boshqaruv paneli</small></span>
+    </div>
+    <div class="sb-search" id="sbSearchBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <span>Qidirish...</span>
+      <kbd>⌘K</kbd>
     </div>
     <nav class="tabs">
-        <!-- Yangi tartib: eng muhim bo'limlar TEPADA (Sotuv → Moliya →
-             Tashkilot → Kuzatuv → Kontent → AI va aloqa). Guruh sarlavhalari
-             endi faqat vizual YORLIQ — bosilmaydi, yopilmaydi, barcha
-             bo'limlar doim ko'rinib turadi (ko'rinmas "guruh ichida guruh"
-             muammosi yo'q). -->
+        <!-- YANGI TUZILMA — foydalanuvchi bergan "VIP RAQAM" maketiga mos:
+             SOTUV (Boshqaruv paneli yangi bosh sahifa bo'lib qo'shildi),
+             MOLIYA, TASHKILOT, AI VA ALOQA, KONTENT. Maketda yo'q, lekin
+             tizimda real ishlaydigan bo'limlar (Shaxsiy baza, Operatorlar,
+             Premium video, Uslublar) o'chirilmadi — mos guruhga qo'shib
+             qo'yildi, shunda hech qanday amaliy funksiya yo'qolmaydi. -->
         <div class="tab-group" data-group="sotuv">
           <div class="tab-group-head" data-group="sotuv">
             <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18l-1.6 9.2a2 2 0 0 1-2 1.8H6.6a2 2 0 0 1-2-1.8L3 6z"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg></span>
@@ -3507,10 +3649,13 @@ body{
             <span class="tgh-badge" hidden>0</span>
           </div>
           <div class="tab-group-body">
-          <button class="tab active" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
-          <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
+          <button class="tab active" data-tab="dashboard"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="tab-label">Boshqaruv paneli</span></button>
           <button class="tab" data-tab="orders"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="tab-label">Buyurtmalar</span></button>
           <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
+          <button class="tab" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
+          <button class="tab" data-tab="bazaraqam"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tab-label">Baza raqam</span></button>
+          <button class="tab" data-tab="uzex"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span class="tab-label">UZEX auksion</span></button>
+          <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="tab-label">Kuzatuv</span></button>
           </div>
         </div>
         <div class="tab-group" data-group="moliya">
@@ -3521,45 +3666,8 @@ body{
           </div>
           <div class="tab-group-body">
           <button class="tab" data-tab="credit"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></span><span class="tab-label">Kredit</span></button>
-          <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-Chiqim</span></button>
+          <button class="tab" data-tab="finance"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5.5c0-1.7-2-3-5-3s-5 1.3-5 3 2 2.3 5 2.9c3 .6 5 1.6 5 3.4 0 1.7-2 3-5 3s-5-1.3-5-3"/></svg></span><span class="tab-label">Kirim-chiqim</span></button>
           <button class="tab" data-tab="personalbase"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tab-label">Shaxsiy baza</span></button>
-          </div>
-        </div>
-        <div class="tab-group" data-group="tashkil">
-          <div class="tab-group-head" data-group="tashkil">
-            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v6c0 4.2-3.2 7.4-8 8.4-4.8-1-8-4.2-8-8.4V7l8-4z"/></svg></span>
-            <span class="tgh-label">Tashkilot</span>
-            <span class="tgh-badge" hidden>0</span>
-          </div>
-          <div class="tab-group-body">
-          <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
-          <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
-          <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
-          <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
-          </div>
-        </div>
-        <div class="tab-group" data-group="kuzatuv">
-          <div class="tab-group-head" data-group="kuzatuv">
-            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16.5 16.5"/></svg></span>
-            <span class="tgh-label">Kuzatuv</span>
-            <span class="tgh-badge" hidden>0</span>
-          </div>
-          <div class="tab-group-body">
-          <button class="tab" data-tab="watch"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Baza raqam</span></button>
-          <button class="tab" data-tab="uzex"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span class="tab-label">UZEX auksion</span></button>
-          <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span><span class="tab-label">Seanslar</span></button>
-          </div>
-        </div>
-        <div class="tab-group" data-group="kontent">
-          <div class="tab-group-head" data-group="kontent">
-            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/></svg></span>
-            <span class="tgh-label">Kontent</span>
-            <span class="tgh-badge" hidden>0</span>
-          </div>
-          <div class="tab-group-body">
-          <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
-          <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
-          <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
           </div>
         </div>
         <div class="tab-group" data-group="aloqa">
@@ -3570,8 +3678,35 @@ body{
           </div>
           <div class="tab-group-body">
           <button class="tab" data-tab="ai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="10" rx="3"/><path d="M12 5v4M9 14h.01M15 14h.01"/><circle cx="12" cy="4" r="1"/></svg></span><span class="tab-label">AI Yordamchi</span></button>
-          <button class="tab" data-tab="instagram"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8 6l1.4-2h5.2L16 6"/></svg></span><span class="tab-label">Instagram AI</span></button>
           <button class="tab" data-tab="telegramai"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></span><span class="tab-label">Telegram AI</span></button>
+          <button class="tab" data-tab="instagram"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.4"/><path d="M8 6l1.4-2h5.2L16 6"/></svg></span><span class="tab-label">Instagram AI</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="kontent">
+          <div class="tab-group-head" data-group="kontent">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/></svg></span>
+            <span class="tgh-label">Kontent</span>
+            <span class="tgh-badge" hidden>0</span>
+          </div>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
+          <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
+          <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
+          <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
+          <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
+          </div>
+        </div>
+        <div class="tab-group" data-group="tashkil">
+          <div class="tab-group-head" data-group="tashkil">
+            <span class="tgh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v6c0 4.2-3.2 7.4-8 8.4-4.8-1-8-4.2-8-8.4V7l8-4z"/></svg></span>
+            <span class="tgh-label">Tashkilot</span>
+            <span class="tgh-badge" hidden>0</span>
+          </div>
+          <div class="tab-group-body">
+          <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
+          <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
+          <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><span class="tab-label">Seanslar</span></button>
+          <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
           </div>
         </div>
 
@@ -3585,9 +3720,10 @@ body{
       <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Menyu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <div class="topbar-title">Boshqaruv paneli<small>VIP RAQAMLAR — Admin</small></div>
+      <div class="tb-breadcrumb" id="tbBreadcrumb"><b>Admin</b></div>
       <div class="topbar-clock" id="topbarClock">--:--:--</div>
       <div class="header-actions">
+        <span class="tb-status"><i></i>Tizim ishlamoqda</span>
         <button class="bell-btn" id="bellBtn" aria-label="Yangi buyurtmalar" title="Yangi buyurtmalar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
           <span class="bell-badge" id="bellBadge">0</span>
@@ -3596,7 +3732,7 @@ body{
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
           <span class="bell-badge" id="taskBellBadge">0</span>
         </button>
-        <button id="logoutBtn">Chiqish</button>
+        <button id="logoutBtn" title="Chiqish">Chiqish</button>
       </div>
     </div>
 
@@ -3661,7 +3797,41 @@ body{
     </div>
   </div>
 
-  <div class="pane active" id="paneNumbers">
+  <div class="pane active" id="paneDashboard">
+    <div class="dash-stats-row" id="dashStatsRow"></div>
+    <div class="dash-grid">
+      <div class="dash-main">
+        <div class="dash-card">
+          <div class="dash-card-head"><h3>So'nggi buyurtmalar</h3></div>
+          <div id="dashRecentOrders" class="dash-recent-list"><div class="wt-empty">Yuklanmoqda...</div></div>
+        </div>
+      </div>
+      <div class="dash-side">
+        <div class="dash-card">
+          <div class="dash-card-head"><h3>Bugungi vazifalar</h3></div>
+          <div id="dashTasksMini" class="dash-recent-list"><div class="wt-empty">Yuklanmoqda...</div></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head"><h3>Kredit shartnomalari</h3></div>
+          <div id="dashCreditMini" class="dash-recent-list"><div class="wt-empty">Yuklanmoqda...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="paneBazaraqam">
+    <div class="wt-hint">
+      🗄️ Barcha manbalardan (qo'lda kiritish, Excel import, UZEX auksion) yig'ilgan raqamlar bazasi — operator bo'yicha
+      hisob va dublikat nazorati.
+    </div>
+    <div class="dash-stats-row" id="bazaOperatorStats"></div>
+    <div class="dash-card" style="margin-top:14px;">
+      <div class="dash-card-head"><h3>So'nggi qo'shilgan raqamlar</h3></div>
+      <div id="bazaRecentList" class="dash-recent-list"><div class="wt-empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <div class="pane" id="paneNumbers">
     <div class="add-form">
       <input type="text" id="newNumber" placeholder="90 777-77-77" inputmode="numeric">
       <select id="newOperator">
@@ -5082,6 +5252,133 @@ function updateOverview(){
   document.getElementById('ovTotalNumbers').textContent = currentNumbersCache.length;
   document.getElementById('ovVipNumbers').textContent = currentNumbersCache.filter(n => n.tag === 'vip').length;
   document.getElementById('ovTotalOrders').textContent = currentOrdersCache.length;
+}
+
+/* ==================================================================
+   BOSHQARUV PANELI (Dashboard) va BAZA RAQAM
+   Faqat REAL, allaqachon bazada mavjud ma'lumotlardan hisoblanadi —
+   hech qanday o'ylab topilgan (fake) raqam yo'q. Statistikalar
+   currentOrdersCache / currentCreditContracts / currentNumbersCache
+   keshlaridan va admin_tasks to'plamidan olinadi.
+   ================================================================== */
+function isToday(ts){
+  if(!ts) return false;
+  const d = new Date(ts), now = new Date();
+  return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+}
+async function refreshDashboardPane(){
+  const statsEl = document.getElementById('dashStatsRow');
+  const ordersEl = document.getElementById('dashRecentOrders');
+  const tasksEl = document.getElementById('dashTasksMini');
+  const creditEl = document.getElementById('dashCreditMini');
+  if(!statsEl) return;
+
+  // ---- Statistika kartalari (real hisoblangan) ----
+  const todayOrders = currentOrdersCache.filter(o => isToday(o.createdAtSort));
+  let activeContracts = 0, overdueContracts = 0;
+  try{
+    currentCreditContracts.forEach(d => {
+      const a = qzAnalyze(d);
+      if(a.state === 'done') return;
+      activeContracts++;
+      if(a.state === 'overdue') overdueContracts++;
+    });
+  }catch(e){ /* qzAnalyze hali yuklanmagan bo'lishi mumkin */ }
+
+  statsEl.innerHTML = `
+    <div class="dash-stat-card">
+      <div class="dash-stat-top">Bugungi buyurtmalar ${ICONS.cart || ''}</div>
+      <div class="dash-stat-num">${todayOrders.length}</div>
+      <div class="dash-stat-sub">jami ${currentOrdersCache.length} ta buyurtma</div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-top">Bazadagi raqamlar</div>
+      <div class="dash-stat-num">${currentNumbersCache.length}</div>
+      <div class="dash-stat-sub">shundan ${currentNumbersCache.filter(n=>n.tag==='vip').length} ta VIP</div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-top">Faol shartnomalar</div>
+      <div class="dash-stat-num">${activeContracts}</div>
+      <div class="dash-stat-sub">bo'lib to'lashda</div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-top">Kechikkan to'lovlar</div>
+      <div class="dash-stat-num">${overdueContracts}<small class="${overdueContracts?'bad':''}">${overdueContracts ? '⚠' : '✓'}</small></div>
+      <div class="dash-stat-sub">${overdueContracts ? 'eslatma yuborish kerak' : 'hammasi joyida'}</div>
+    </div>
+  `;
+
+  // ---- So'nggi buyurtmalar ----
+  if(ordersEl){
+    const recent = currentOrdersCache.slice(0, 6);
+    ordersEl.innerHTML = recent.length ? recent.map(o => `
+      <div class="dash-order-row">
+        <span class="dash-order-num">${escapeHtml(o.number || '')}</span>
+        <span class="dash-order-client">${escapeHtml(o.name || '')}</span>
+        <span class="oc-status-badge ${statusClass(o.status)}">${escapeHtml(o.status || 'Yangi')}</span>
+        <span style="color:var(--muted);font-size:11.5px;">${escapeHtml(o.createdAt || '')}</span>
+      </div>`).join('') : '<div class="wt-empty">Hali buyurtma yo\'q</div>';
+  }
+
+  // ---- Bugungi vazifalar (mini) ----
+  if(tasksEl){
+    try{
+      const snap = await db.collection('admin_tasks').where('completed','==', false).orderBy('dueAt','asc').limit(5).get();
+      const tasks = snap.docs.map(d => d.data());
+      tasksEl.innerHTML = tasks.length ? tasks.map(t => `
+        <div class="dash-task-row">
+          <div>
+            <div class="dash-task-title">${escapeHtml(t.text || '')}</div>
+            <div class="dash-task-meta">${t.dueAt ? new Date(t.dueAt).toLocaleString('uz-UZ') : ''}</div>
+          </div>
+        </div>`).join('') : '<div class="wt-empty">Faol vazifa yo\'q</div>';
+    }catch(e){ tasksEl.innerHTML = '<div class="wt-empty">Yuklab bo\'lmadi</div>'; }
+  }
+
+  // ---- Kredit shartnomalari (mini, kechikkanlar birinchi) ----
+  if(creditEl){
+    try{
+      const withA = currentCreditContracts.map(d => ({ d, a: qzAnalyze(d) })).filter(x => x.a.state !== 'done');
+      withA.sort((x,y) => QZ_RANK[x.a.state] - QZ_RANK[y.a.state]);
+      const top = withA.slice(0, 5);
+      creditEl.innerHTML = top.length ? top.map(({d,a}) => `
+        <div class="dash-task-row">
+          <div>
+            <div class="dash-task-title">${escapeHtml(d.number || '')} — ${escapeHtml(d.customerName || '')}</div>
+            <div class="dash-task-meta">${qzPill(a)}</div>
+          </div>
+        </div>`).join('') : '<div class="wt-empty">Faol shartnoma yo\'q</div>';
+    }catch(e){ creditEl.innerHTML = '<div class="wt-empty">Yuklab bo\'lmadi</div>'; }
+  }
+}
+
+async function refreshBazaraqamPane(){
+  const statsEl = document.getElementById('bazaOperatorStats');
+  const listEl = document.getElementById('bazaRecentList');
+  if(!statsEl) return;
+  statsEl.innerHTML = OPERATORS.map(op => {
+    const count = currentNumbersCache.filter(n => n.operator === op).length;
+    return `
+    <div class="dash-stat-card">
+      <div class="dash-stat-top">${escapeHtml(op)}</div>
+      <div class="dash-stat-num">${count}</div>
+      <div class="dash-stat-sub">ta raqam bazada</div>
+    </div>`;
+  }).join('');
+
+  if(listEl){
+    const recent = currentNumbersCache
+      .slice()
+      .sort((a,b) => (b.createdAtSort||0) - (a.createdAtSort||0))
+      .slice(0, 8);
+    listEl.innerHTML = recent.length ? recent.map(n => `
+      <div class="dash-order-row">
+        <span class="dash-order-num">${escapeHtml(n.number || '')}</span>
+        <span class="dash-order-client">${escapeHtml(n.operator || '—')}</span>
+        <span style="color:var(--muted);">${n.tag === 'vip' ? 'VIP' : ''}</span>
+        <span style="color:var(--muted);font-size:11.5px;">${escapeHtml(n.createdAt || '')}</span>
+      </div>`).join('') : '<div class="wt-empty">Hali raqam qo\'shilmagan</div>';
+  }
 }
 
 const OPERATORS = ['Beeline','Ucell','Uzmobile','Mobiuz','Humans','Perfektum'];
@@ -6731,6 +7028,7 @@ async function doLogin(){
     recordSession();
     if(hasFeaturePerm('numbers')) refreshNumbers();
     if(hasFeaturePerm('orders')) refreshOrders();
+    refreshDashboardPane();
     if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
     if(hasFeaturePerm('vazifalar')) startVazifalarWatch();
     if(hasFeaturePerm('vakansiya')) loadJobApplications();
@@ -6812,13 +7110,14 @@ function applyAccessControl(whoami){
     document.querySelectorAll('.tab[data-tab]').forEach(tab => {
       const key = tab.dataset.tab;
       if(key === 'management') return; // allaqachon yashirilgan
+      if(key === 'dashboard') return; // boshqaruv paneli — barcha adminlarga ochiq umumiy ko'rinish
       // "UZEX auksion" alohida ruxsat sifatida yaratilmagan — u "Baza raqam"
       // (watch) bilan bir xil turdagi qidiruv vositasi, shuning uchun
       // SERVER TOMONI ham aynan shu ruxsatni tekshiradi
       // (admin-uzex-search.js -> requireAdmin(..., {feature:'watch'})).
       // Ikkalasi bir xil kalitga bog'langani muhim: aks holda menyuda
       // ko'rinib, serverda rad etiladigan bo'lim paydo bo'lardi.
-      const permKey = (key === 'uzex') ? 'watch' : key;
+      const permKey = (key === 'uzex') ? 'watch' : (key === 'bazaraqam') ? 'numbers' : key;
       const allowed = perms[permKey] === 1 || perms[permKey] === true;
       tab.style.display = allowed ? '' : 'none';
     });
@@ -7146,7 +7445,9 @@ function openGroupOfTab(tab){
       ['paneVideos',       'Video sharhlar', "Mijozlarning video fikrlari. Saytda \"Mijozlarimiz fikri\" bo'limida chiqadi."],
       ['panePremiumvideo', 'Premium video',  "Alohida raqamlar uchun video. Saytda premium RELS bo'lib ko'rinadi."],
       ['paneStyles',       'Uslublar',       "Sayt ranglari, shriftlari va umumiy ko'rinishi."],
-      ['paneWatch',        'Baza raqam',     "Kerakli raqam bazada paydo bo'lishi bilan darhol xabar keladi."],
+      ['paneDashboard',    'Boshqaruv paneli', "Umumiy ko'rsatkichlar va so'nggi faoliyat bir joyda."],
+      ['paneBazaraqam',    'Baza raqam',     "Barcha manbalardan yig'ilgan xomashyo ro'yxati, operator bo'yicha hisob."],
+      ['paneWatch',        'Kuzatuv',        "Mijozlar kutayotgan raqamlar, avtomatik tekshiruv."],
       ['paneUzex',         'UZEX auksion',   "Davlat auksionidagi raqamlarni kuzatish va saqlab qo'yish."],
       ['paneSessions',     'Seanslar',       "Panelga kim, qachon va qaysi qurilmadan kirgani."],
       ['paneVazifalar',    'Vazifalar',      "Xodimlarga topshiriqlar, muddatlari va bajarilishi."],
@@ -7212,41 +7513,34 @@ function openGroupOfTab(tab){
        Har bo'limning o'z qidiruv maydoni bor, lekin ular pastda,
        ro'yxatning ichida. Tepadagi maydon o'sha bo'limning qidiruviga
        olib boradi — qayerda bo'lsangiz ham bitta joydan qidirasiz. */
-    const tb = document.querySelector('.topbar');
-    if(tb && !tb.querySelector('.tb-search')){
+    const box = document.getElementById('sbSearchBtn');
+    if(box && !box.dataset.wired){
+      box.dataset.wired = '1';
       const QIDIRUV = {
         paneNumbers: ['numberSearchInput', 'Raqam, operator, narx...'],
         paneCredit:  ['creditSearchInput', 'Raqam, telefon yoki ism...'],
         panePersonalbase: ['', 'Mijoz qidirish...']
       };
-      const box = document.createElement('button');
-      box.type = 'button';
-      box.className = 'tb-search';
-      box.innerHTML =
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
-        '<span class="tbs-txt">Qidirish</span><span class="tbs-kbd">/</span>';
-      const clock = tb.querySelector('.topbar-clock');
-      tb.insertBefore(box, clock || null);
-
       function joriyQidiruv(){
         const pane = document.querySelector('.pane.active');
         if(!pane) return null;
         const def = QIDIRUV[pane.id];
         const el = def && def[0] ? document.getElementById(def[0]) : pane.querySelector('input[type="text"][placeholder*="qidir" i]');
-        return { el, matn: def ? def[1] : 'Qidirish' };
+        return { el, matn: def ? def[1] : 'Qidirish...' };
       }
       function matnniYangila(){
         const q = joriyQidiruv();
-        const t = box.querySelector('.tbs-txt');
-        if(t) t.textContent = (q && q.el) ? q.matn : 'Qidirish';
-        box.style.opacity = (q && q.el) ? '1' : '.45';
+        const t = box.querySelector('span');
+        if(t) t.textContent = (q && q.el) ? q.matn : 'Qidirish...';
+        box.style.opacity = (q && q.el) ? '1' : '.6';
       }
       box.addEventListener('click', () => {
         const q = joriyQidiruv();
         if(q && q.el){ q.el.scrollIntoView({block:'center', behavior:'smooth'}); setTimeout(()=>q.el.focus(), 250); }
       });
       document.addEventListener('keydown', (e) => {
-        if(e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){
+        const isK = e.key === 'k' || e.key === 'K';
+        if((e.metaKey || e.ctrlKey) && isK){
           e.preventDefault(); box.click();
         }
       });
@@ -7527,7 +7821,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -7537,15 +7831,15 @@ const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiy
    (qolgan ikkitasi: yon menyudagi chiziq va sariq belgi).
    ================================================================== */
 function yolniYangila(tab){
-  const box = document.querySelector('.topbar-title');
+  const box = document.getElementById('tbBreadcrumb');
   if(!box || !tab) return;
   const label = (tab.querySelector('.tab-label') || {}).textContent || '';
   const grp = tab.closest('.tab-group');
   const grpName = grp ? ((grp.querySelector('.tgh-label') || {}).textContent || '') : '';
   const esc = (x) => String(x || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   box.innerHTML = grpName
-    ? esc(grpName.trim()) + '<span class="tb-sep">\u203A</span><small>' + esc(label.trim()) + '</small>'
-    : '<small>' + esc(label.trim()) + '</small>';
+    ? '<b>Admin</b><span class="tbc-sep">/</span>' + esc(grpName.trim()) + '<span class="tbc-sep">/</span><b>' + esc(label.trim()) + '</b>'
+    : '<b>Admin</b><span class="tbc-sep">/</span><b>' + esc(label.trim()) + '</b>';
 }
 
 document.querySelectorAll('.tab').forEach(tab=>{
@@ -7588,6 +7882,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
     if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
     if(tab.dataset.tab === 'aksiya'){ renderAksiyaTab(); }
+    if(tab.dataset.tab === 'dashboard'){ refreshDashboardPane(); }
+    if(tab.dataset.tab === 'bazaraqam'){ refreshBazaraqamPane(); }
     // UZEX jonli hisoblagichi faqat shu bo'lim OCHIQ turganda ishlashi
     // kerak — boshqa har qanday bo'limga o'tilganda (yoki UZEX'ga
     // QAYTA kirilganda, eski hisoblagich ikki marta yugurmasin deb)
@@ -10558,8 +10854,8 @@ if(addWatchNotifyIdBtn){
 /* ---- "Boshqaruv" — adminlarni qo'shish/boshqarish (faqat bosh admin) ---- */
 const MGMT_FEATURE_LABELS = {
   numbers:'📱 Raqamlar', aksiya:'🔥 Aksiya', orders:'🛒 Buyurtmalar', zakaz:'📥 Zakaz', credit:'💳 Kredit', personalbase:'🗄️ Shaxsiy baza',
-  vazifalar:'⏰ Vazifalar',
-  watch:'🎯 Baza raqam', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
+  vazifalar:'⏰ Vazifalar', bazaraqam:'🗄️ Baza raqam',
+  watch:'🎯 Kuzatuv', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
   finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya'
