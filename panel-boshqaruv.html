@@ -2168,6 +2168,427 @@
 .mgmt-admin-actions button:hover{transform:translateY(-1px);background:rgba(255,255,255,.1);}
 .mgmt-admin-actions button.mgmt-danger{color:#e74c3c;}
 .mgmt-admin-actions button.mgmt-primary{border-color:var(--amber);color:var(--amber);}
+
+/* ==================================================================
+   ===============  YANGI DIZAYN  (1-QATLAM: QOBIQ)  ================
+   ==================================================================
+   Bu blok ATAYLAB eng oxirida turadi: u yuqoridagi eski qoidalarni
+   ustidan yozadi. Shu sabab HTML va JS'ga deyarli tegilmaydi — xavf
+   kam, orqaga qaytarish oson (shu blokni o'chirsangiz, panel eski
+   ko'rinishiga qaytadi).
+
+   Yo'nalish: rasmiy muassasa paneli. Rang bezak emas, MA'NO tashiydi:
+   qizil — kechikkan, yashil — joyida, sariq — asosiy amal. Gradient
+   va soyalar olib tashlandi, o'rniga ingichka chiziqlar va tipografiya.
+   ================================================================== */
+
+:root{
+  --bg:#0A101B;
+  --panel:#111A28;
+  --panel-2:#16202F;
+  --raised:#1B2638;
+  --line:#22304A;
+  --line-soft:#1A2436;
+  --text:#E9EDF4;
+  --text-2:#A9B6CC;
+  --muted:#7E8CA6;
+  --amber:#F0A726;
+  --amber-soft:rgba(240,167,38,.12);
+  --green:#2FBF71;
+  --red:#E5484D;
+}
+
+/* ---------- YON MENYU ---------- */
+.sidebar{
+  width:252px;background:var(--panel);border-right:1px solid var(--line);
+}
+.sidebar-logo{
+  padding:17px 18px 15px;border-bottom:1px solid var(--line-soft);margin-bottom:10px;gap:11px;
+}
+.sidebar-logo-dot{
+  width:32px;height:32px;border-radius:9px;background:linear-gradient(145deg,#F0A726,#D4820E);
+  box-shadow:none;animation:none;
+  position:relative;
+}
+.sidebar-logo-dot::after{
+  content:'VR';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:12px;color:#1A1203;letter-spacing:.02em;
+}
+.sidebar-logo-text{font-size:12.5px;letter-spacing:.01em;color:var(--text);font-family:'Sora',sans-serif;}
+.sidebar-logo-text small{font-size:10.5px;color:var(--muted);margin-top:2px;}
+
+.tabs{padding:4px 10px 18px;gap:1px;}
+
+.tab-group + .tab-group{margin-top:3px;}
+.tab-group-head{
+  padding:8px 10px;border-radius:8px;opacity:1;color:var(--muted);
+  font-size:10px;letter-spacing:.13em;font-weight:800;
+}
+.tab-group-head:hover{background:rgba(255,255,255,.035);color:var(--text-2);}
+.tab-group.is-open > .tab-group-head{color:var(--text-2);}
+
+/* Guruh ichidagi bo'limlar — chapda ingichka chiziq, "ichkariga kirdim"
+   degan tuyg'uni beradigan yagona narsa shu. */
+.tab-group-body{position:relative;padding:1px 0 5px;}
+.tab-group-body::before{
+  content:'';position:absolute;left:19px;top:1px;bottom:5px;width:1px;background:var(--line);
+}
+.tab-group-body .tab,
+.tab-group-body .tab.active{padding-left:32px;}
+
+.tab{
+  padding:8px 10px;border-radius:8px;font-size:12.5px;font-weight:500;
+  color:var(--text-2);gap:10px;border:none;
+}
+.tab:hover{background:rgba(255,255,255,.035);color:var(--text);}
+.tab.active{
+  background:var(--amber-soft);color:var(--amber);font-weight:650;
+  box-shadow:none;position:relative;
+}
+.tab.active::after{
+  content:'';position:absolute;left:17px;top:50%;transform:translateY(-50%);
+  width:3px;height:16px;border-radius:2px;background:var(--amber);
+}
+.tab:not(.tab-group-body .tab).active::after{left:4px;}
+.tab.active .tab-ico{filter:none;}
+.tab-ico{opacity:.75;}
+
+.tab-divider{margin:12px 10px 7px;}
+.tab-divider span{color:var(--muted);font-size:9.5px;}
+
+/* ---------- YUQORI QATOR ---------- */
+.topbar{
+  background:var(--panel);border-bottom:1px solid var(--line);
+  padding:0 22px;height:54px;gap:14px;
+}
+.topbar-title{
+  font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--muted);
+  display:flex;align-items:center;gap:7px;letter-spacing:.01em;
+}
+.topbar-title small{
+  display:inline;font-size:12px;font-weight:650;color:var(--text);margin:0;
+}
+.topbar-title .tb-sep{opacity:.45;}
+
+.topbar-clock{
+  background:var(--bg);border:1px solid var(--line);color:var(--text-2);
+  border-radius:8px;padding:6px 10px;font-size:12px;letter-spacing:.04em;
+  box-shadow:none;animation:none;
+}
+.bell-btn{
+  width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--line);
+  color:var(--text-2);
+}
+.bell-btn:hover{border-color:var(--amber);transform:none;}
+.bell-badge{border-color:var(--panel);animation:none;}
+#logoutBtn{
+  border:1px solid var(--line);background:var(--bg);color:var(--text-2);
+  border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:600;
+}
+#logoutBtn:hover{border-color:var(--red);color:var(--red);}
+.sidebar-toggle{border-radius:8px;background:var(--bg);}
+
+/* ---------- KO'RSATKICHLAR CHIZIG'I ----------
+   Avval uchta katta rangli (ko'k/yashil/kulrang gradient) katak turardi.
+   Ular bir-biridan farq qilardi-yu, lekin farqning MA'NOSI yo'q edi —
+   shunchaki bezak. Endi bitta yaxlit chiziq: ingichka ajratuvchilar,
+   raqamlar mono shriftda, ustun bo'ylab tik tekis. */
+.overview-row{
+  display:flex;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;gap:0;margin-bottom:14px;
+}
+.ov-card,
+.ov-card:nth-child(1),
+.ov-card:nth-child(2),
+.ov-card:nth-child(3){
+  flex:1;min-width:0;background:none;border:none;border-right:1px solid var(--line-soft);
+  border-radius:0;padding:14px 16px;display:block;color:var(--text);
+  box-shadow:none;animation:none;opacity:1;
+}
+.ov-card:last-child{border-right:none;}
+.ov-card:hover{transform:none;box-shadow:none;}
+.ov-card-icon{display:none;}
+.ov-card span{
+  display:block;order:-1;font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:7px;
+}
+.ov-card b{
+  display:block;font-family:'Space Mono',monospace;font-size:24px;font-weight:700;
+  color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;
+}
+.ov-card.ov-vip b{color:var(--amber);}
+
+/* "Hozir saytda" qatori */
+.visitors-box{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:13px 16px;margin-bottom:16px;box-shadow:none;
+}
+.visitors-live{font-size:12.5px;color:var(--text-2);}
+.visitors-live b{color:var(--green);font-family:'Space Mono',monospace;}
+.visitors-total{font-size:11.5px;color:var(--muted);margin-top:3px;}
+.visitors-total b{color:var(--text-2);font-family:'Space Mono',monospace;}
+
+/* ---------- UMUMIY SHAKLLAR ---------- */
+.content-inner{padding:20px 22px 56px;max-width:1120px;}
+
+input, select, textarea{
+  background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--text);
+}
+input:focus, select:focus, textarea:focus{border-color:var(--amber);outline:none;}
+
+/* Klaviatura bilan yurganda qayerda turganini ko'rsatish */
+button:focus-visible, a:focus-visible, .tab:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible{
+  outline:2px solid var(--amber);outline-offset:2px;
+}
+
+@media (max-width:900px){
+  .sidebar{width:260px;}
+  .topbar{padding:0 14px;}
+  .content-inner{padding:16px 14px 56px;}
+  .overview-row{flex-wrap:wrap;}
+  .ov-card{flex:1 1 50%;border-bottom:1px solid var(--line-soft);}
+  .ov-card:nth-child(2){border-right:none;}
+  .ov-card:last-child{flex-basis:100%;border-bottom:none;}
+}
+
+
+/* ==================================================================
+   ========  YANGI DIZAYN (2-QATLAM: SAHIFA BOSHI VA OYNALAR)  ======
+   ==================================================================
+   Avval "qo'shish" formalari bo'limning eng tepasida DOIM ochiq
+   turardi — kuniga bir marta ishlatiladigan narsa ekranning yarmini
+   egallab, asosiy ish (ro'yxatni ko'rish) pastga tushib ketardi.
+   Endi ular oynaga ko'chdi: forma faqat kerak bo'lganda chiqadi.
+   ================================================================== */
+
+/* ---- Sahifa boshi: nom, izoh va o'ngda amal tugmalari ---- */
+.page-head{
+  display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;
+  padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--line-soft);
+}
+.page-head .ph-txt{flex:1 1 320px;min-width:0;}
+.page-head h1{
+  font-family:'Sora',sans-serif;font-size:20px;font-weight:700;
+  letter-spacing:-.02em;margin:0;color:var(--text);
+}
+.page-head p{font-size:12.5px;color:var(--muted);margin:5px 0 0;line-height:1.5;max-width:62ch;}
+.page-head .ph-acts{display:flex;gap:8px;flex:none;flex-wrap:wrap;}
+
+.ph-btn{
+  display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 14px;border-radius:8px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text-2);
+  font-size:12.5px;font-weight:650;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;
+}
+.ph-btn:hover{border-color:var(--muted);color:var(--text);}
+.ph-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+.ph-btn.is-primary{background:var(--amber);border-color:var(--amber);color:#1A1203;}
+.ph-btn.is-primary:hover{filter:brightness(1.06);color:#1A1203;}
+
+/* ---- Oyna (modal) ---- */
+.vm-back{
+  position:fixed;inset:0;z-index:200;background:rgba(4,8,14,.72);
+  display:none;align-items:flex-start;justify-content:center;padding:28px 16px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.vm-back.is-open{display:flex;}
+.vm{
+  width:100%;max-width:860px;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;overflow:hidden;margin:auto;
+  box-shadow:0 32px 90px -20px rgba(0,0,0,.8);
+  animation:fadeSlideUp .22s ease both;
+}
+.vm-head{display:flex;align-items:flex-start;gap:13px;padding:18px 20px 16px;border-bottom:1px solid var(--line);}
+.vm-head .vm-ico{
+  width:36px;height:36px;border-radius:10px;flex:none;
+  background:var(--amber-soft);color:var(--amber);
+  display:flex;align-items:center;justify-content:center;
+}
+.vm-head .vm-ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;}
+.vm-head h3{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;margin:0;color:var(--text);}
+.vm-head p{font-size:12px;color:var(--muted);margin:4px 0 0;line-height:1.5;}
+.vm-x{
+  margin-left:auto;width:32px;height:32px;border-radius:8px;flex:none;cursor:pointer;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+}
+.vm-x:hover{border-color:var(--red);color:var(--red);}
+.vm-x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+.vm-body{padding:18px 20px 20px;}
+/* Oyna ichiga ko'chirilgan eski formalarning tashqi ramkasi endi ortiqcha —
+   oynaning o'zi allaqachon ramka. Ikki qavat ramka "quti ichida quti"
+   bo'lib ko'rinadi. */
+.vm-body .add-form,
+.vm-body .settings-form,
+.vm-body .akt-form-wrap,
+.vm-body .bulk-box{
+  background:none;border:none;border-radius:0;padding:0;margin:0;box-shadow:none;
+}
+.vm-body .akt-form-title,
+.vm-body .settings-form > h3{display:none;}
+/* Eski kod ba'zan #aktFormWrap'ni yashiradi (u ilgari sahifa ichida
+   ochilib-yopilardi). Oyna ichida u DOIM ochiq bo'lishi kerak. */
+.vm-body #aktFormWrap{display:block !important;}
+
+/* Aksiya bo'limidagi eski katta "hero" quti — endi sahifa boshi bor,
+   ikkitasi birga ortiqcha. */
+#paneAksiya .akt-hero{display:none;}
+
+/* Kredit bo'limidagi yordamchi qutilar — ikkilamchi, shuning uchun
+   tugmalari ham ikkilamchi ko'rinishda. */
+.cr-tools-grid{margin-top:26px;padding-top:20px;border-top:1px solid var(--line-soft);}
+.cr-tools-grid button{
+  background:var(--panel-2) !important;border:1px solid var(--line) !important;
+  color:var(--text-2) !important;font-weight:650 !important;
+}
+.cr-tools-grid button:hover{border-color:var(--amber) !important;color:var(--amber) !important;}
+.vm-body .bulk-toggle{
+  display:inline-flex;align-items:center;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--line-soft);width:100%;color:var(--muted);font-size:12.5px;
+}
+.vm-body .bulk-box{margin-top:12px;}
+
+/* Oynadagi asosiy tugma — yashil emas, panelning asosiy rangida va
+   oynaning pastki chetida. */
+.vm-body #addNumberBtn,
+.vm-body #addCreditBtn,
+.vm-body .akt-save-btn{
+  width:100%;margin-top:18px;height:42px;border-radius:10px;border:none;
+  background:var(--amber);color:#1A1203;font-size:13.5px;font-weight:800;cursor:pointer;
+}
+.vm-body #addNumberBtn:hover,
+.vm-body #addCreditBtn:hover,
+.vm-body .akt-save-btn:hover{filter:brightness(1.06);}
+
+/* Xavfli amal ko'zga tashlanib turmasin — u kuniga bir marta ham
+   bosilmaydi, lekin xato bosilsa butun baza yo'qoladi. */
+#deleteAllNumbersBtn{
+  background:none !important;border:1px solid var(--line) !important;
+  color:var(--muted) !important;font-weight:600 !important;font-size:11.5px !important;
+  opacity:.7;
+}
+#deleteAllNumbersBtn:hover{border-color:var(--red) !important;color:var(--red) !important;opacity:1;}
+
+@media (max-width:620px){
+  .vm-back{padding:0;}
+  .vm{max-width:none;border-radius:0;min-height:100%;border:none;}
+  .page-head .ph-acts{width:100%;}
+  .ph-btn{flex:1 1 auto;justify-content:center;height:40px;}
+}
+
+
+/* ==================================================================
+   ======  YANGI DIZAYN (3-QATLAM: BARCHA BO'LIMLAR BIR TILDA)  =====
+   ==================================================================
+   Panelda vaqt o'tib bir necha xil "quti" paydo bo'lgan edi: biri
+   gradientli, biri rangli chekkali, biri soya bilan. Qaysi biri
+   muhimligini ko'rinishidan bilib bo'lmasdi. Endi hammasi bitta
+   tilda gapiradi: tekis yuza, ingichka chiziq, bir xil burchak
+   radiusi. Rang faqat MA'NO uchun qoladi.
+   ================================================================== */
+
+/* ---- Izoh qutilari (bo'lim nima qilishini tushuntiradi) ----
+   Endi sahifa boshida izoh bor, shuning uchun bular ikkilamchi. */
+.ai-hint, .mgmt-hint, .wt-hint, .ig-hint{
+  background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.55;
+  color:var(--muted);box-shadow:none;
+}
+
+/* ---- Forma va bo'lim qutilari ---- */
+.settings-form, .wt-form, .uzx-section, .op-block, .mgmt-form,
+.video-upload-box, .zk-inline-panel, .ai-chat-box{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  box-shadow:none;
+}
+.settings-form > h3, .wt-form-title, .uzx-section-title,
+.op-head, .vac-admin-form-title, .akt-form-title{
+  font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);
+  letter-spacing:-.01em;
+}
+
+/* Maydon yorliqlari — bir xil o'lcham va rang */
+.ig-field label, .cr-field label, .akt-field label, .cr-edit-label, .wt-field label{
+  font-size:11.5px;font-weight:650;color:var(--text-2);letter-spacing:0;
+}
+.ig-field-hint{font-size:11px;color:var(--muted);font-weight:500;}
+
+/* ---- Kartochkalar (Zakaz, Shaxsiy baza, Vazifalar) ---- */
+.zk-cust-card, .fin-card, .sessions-list > *, .wt-item, .uzx-item{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  box-shadow:none;
+}
+.zk-cust-card:hover, .fin-card:hover{transform:none;box-shadow:none;border-color:var(--muted);}
+
+/* ---- Yuqoridagi ko'rsatkich kataklari — hamma joyda bir xil ----
+   Avval ular to'q ko'k/yashil/qizil gradient bilan to'lgan edi va
+   raqamni o'qish qiyin bo'lardi. Endi tekis yuza, rang faqat chap
+   chekkadagi ingichka chiziqda qoladi. */
+.pb-stat-card, .zk-stat-card{
+  background:var(--panel) !important;border:1px solid var(--line);
+  border-left:3px solid var(--line);border-radius:12px;color:var(--text);
+  padding:13px 15px;box-shadow:none;opacity:1;animation:none;
+}
+.pb-stat-card:hover, .zk-stat-card:hover{transform:none;box-shadow:none;}
+.pb-stat-card.good, .zk-stat-card.st-done{border-left-color:var(--green);}
+.pb-stat-card.bad,  .zk-stat-card.st-cancelled{border-left-color:var(--red);}
+.zk-stat-card.st-new{border-left-color:#4C84F5;}
+.zk-stat-card.st-contacted{border-left-color:var(--amber);}
+.pb-stat-ico{display:none;}
+.pb-stat-card b, .zk-stat-card b{
+  font-family:'Space Mono',monospace;font-size:22px;color:var(--text);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+}
+.pb-stat-card.good b{color:var(--green);}
+.pb-stat-card.bad b{color:var(--red);}
+.pb-stat-card span.pb-stat-label, .zk-stat-card span{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);
+}
+.pb-stat-card span.pb-stat-trend{font-size:11px;font-weight:700;color:var(--muted);}
+.pb-stat-card.good span.pb-stat-trend{color:var(--green);}
+.pb-stat-card.bad span.pb-stat-trend{color:var(--red);}
+
+/* ---- Tugmalar: bitta asosiy, qolgani ikkilamchi ----
+   Avval deyarli har bir tugma amber/yashil bilan to'lgan edi — hammasi
+   "eng muhim" bo'lib ko'rinardi, natijada hech biri ajralmasdi. */
+.ig-save-btn, .wt-confirm, .cr-save-btn, .vac-save-btn, .zk-save-btn{
+  background:var(--amber);border:none;color:#1A1203;
+  border-radius:9px;font-weight:700;font-size:12.5px;padding:10px 16px;
+}
+.ig-save-btn:hover, .wt-confirm:hover, .cr-save-btn:hover{filter:brightness(1.06);}
+
+/* ---- Holat nishonlari ---- */
+.badge, .status-badge, .zk-customer-status-badge, .ord-status{
+  border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:3px 9px;
+}
+
+/* ---- Ro'yxat qatorlari ---- */
+.orders-list > *, .admin-row-collapsed{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  box-shadow:none;animation:none;
+}
+
+/* ---- Jadval ko'rinishi (bo'lgan joylarda) ---- */
+table{border-collapse:collapse;width:100%;}
+th{
+  text-align:left;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);background:var(--panel-2);border-bottom:1px solid var(--line);padding:11px 14px;
+}
+td{padding:12px 14px;border-bottom:1px solid var(--line-soft);font-size:12.5px;}
+
+/* ---- Bo'sh holat ---- */
+.empty-admin, .wt-empty{
+  background:var(--panel);border:1px dashed var(--line);border-radius:12px;
+  padding:28px 16px;text-align:center;color:var(--muted);font-size:12.5px;
+}
+
+/* ---- Pastki bo'shliq: har bo'lim bir xil nafas olsin ---- */
+.pane > .settings-form, .pane > .wt-form, .pane > .uzx-section,
+.pane > .op-block, .pane > .ai-hint, .pane > .mgmt-hint, .pane > .wt-hint{
+  margin-bottom:16px;
+}
+
 </style>
 </head>
 <body>
@@ -5654,6 +6075,213 @@ function openGroupOfTab(tab){
   if(group && group.classList.contains('is-collapsed')) setTabGroupOpen(group, true, true);
 }
 
+
+/* ==================================================================
+   SAHIFA BOSHI VA QO'SHISH OYNALARI
+   Bu blok HTML'ni qayta yozmaydi — mavjud formalarni DOM'da ko'chirib,
+   oyna ichiga joylashtiradi. Element ko'chirilganda unga ilgari
+   qo'yilgan hodisa tinglovchilari saqlanib qoladi, shuning uchun
+   "Saqlash"/"Qo'shish" tugmalari avvalgidek ishlayveradi.
+   ================================================================== */
+(function yangiQobiq(){
+
+  const ICO = {
+    raqam: '<svg viewBox="0 0 24 24"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg>',
+    aksiya: '<svg viewBox="0 0 24 24"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg>',
+    kredit: '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.4"/><path d="M3 10h18M7 15h4"/></svg>',
+    plus:  '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    yopish:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+  };
+
+  const oynalar = {};
+
+  /* Berilgan elementni oynaga ko'chiradi va oynani qaytaradi */
+  function oynaYasa(kalit, el, nom, izoh, ikona){
+    if(!el) return null;
+    const back = document.createElement('div');
+    back.className = 'vm-back';
+    back.innerHTML =
+      '<div class="vm" role="dialog" aria-modal="true" aria-label="' + nom + '">' +
+        '<div class="vm-head">' +
+          '<span class="vm-ico">' + (ikona || ICO.plus) + '</span>' +
+          '<div><h3>' + nom + '</h3><p>' + izoh + '</p></div>' +
+          '<button type="button" class="vm-x" aria-label="Yopish">' + ICO.yopish + '</button>' +
+        '</div>' +
+        '<div class="vm-body"></div>' +
+      '</div>';
+    document.body.appendChild(back);
+    back.querySelector('.vm-body').appendChild(el);
+    el.style.display = '';          // eski "display:none" bo'lsa ochamiz
+
+    const yop = () => { back.classList.remove('is-open'); document.body.style.overflow = ''; };
+    back.querySelector('.vm-x').addEventListener('click', yop);
+    back.addEventListener('click', (e) => { if(e.target === back) yop(); });
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape' && back.classList.contains('is-open')) yop();
+    });
+
+    const obj = {
+      el: back,
+      och(){
+        back.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        const birinchi = back.querySelector('input,select,textarea');
+        if(birinchi) setTimeout(()=>{ try{ birinchi.focus(); }catch(e){} }, 60);
+      },
+      yop
+    };
+    oynalar[kalit] = obj;
+    return obj;
+  }
+
+  /* Bo'lim boshiga sarlavha qo'shadi */
+  function sahifaBoshi(pane, nom, izoh, amallar){
+    if(!pane || pane.querySelector(':scope > .page-head')) return;
+    const head = document.createElement('div');
+    head.className = 'page-head';
+    head.innerHTML =
+      '<div class="ph-txt"><h1>' + nom + '</h1><p>' + izoh + '</p></div>' +
+      '<div class="ph-acts"></div>';
+    const box = head.querySelector('.ph-acts');
+    (amallar || []).forEach(a => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ph-btn' + (a.asosiy ? ' is-primary' : '');
+      b.innerHTML = (a.ikona || ICO.plus) + '<span>' + a.nom + '</span>';
+      b.addEventListener('click', a.bos);
+      box.appendChild(b);
+    });
+    pane.insertBefore(head, pane.firstChild);
+  }
+
+  /* Forma muvaffaqiyatli saqlangach oynani o'zi yopadi: belgilangan
+     maydon bo'shab qolsa — demak saqlandi (kod shunday tozalaydi). */
+  function saqlangachYop(tugma, maydon, oyna){
+    if(!tugma || !maydon || !oyna) return;
+    tugma.addEventListener('click', () => {
+      let n = 0;
+      const t = setInterval(() => {
+        n++;
+        if(!maydon.value){ clearInterval(t); oyna.yop(); }
+        else if(n > 20) clearInterval(t);     // ~4 soniya kutamiz
+      }, 200);
+    });
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------------- RAQAMLAR ---------------- */
+  (function(){
+    const pane = $('paneNumbers');
+    if(!pane) return;
+    const form = pane.querySelector('.add-form');
+    const bulkT = $('bulkToggle'), bulkB = $('bulkBox');
+    if(!form) return;
+
+    const quti = document.createElement('div');
+    form.parentNode.insertBefore(quti, form);
+    quti.appendChild(form);
+    if(bulkT) quti.appendChild(bulkT);
+    if(bulkB) quti.appendChild(bulkB);
+
+    const oyna = oynaYasa('raqam', quti, "Raqam qo'shish",
+      "Saqlaganingizdan keyin raqam saytda va ilovada darhol ko'rinadi.", ICO.raqam);
+
+    sahifaBoshi(pane, 'Raqamlar',
+      "Sotuvdagi barcha raqamlar, narxlari va holati. Bu yerdagi o'zgarishlar saytda darhol ko'rinadi.",
+      [{ nom: "Raqam qo'shish", asosiy: true, bos: () => oyna.och() }]);
+
+    saqlangachYop($('addNumberBtn'), $('newNumber'), oyna);
+  })();
+
+  /* ---------------- AKSIYA ---------------- */
+  (function(){
+    const pane = $('paneAksiya');
+    const form = $('aktFormWrap');
+    const tugma = $('aktAddToggleBtn');
+    if(!pane || !form) return;
+
+    const oyna = oynaYasa('aksiya', form, 'Aksiya e\'lon qilish',
+      "Mavjud raqamga vaqtinchalik chegirma qo'yiladi. Muddat tugaganda narx o'zi eski holiga qaytadi.", ICO.aksiya);
+
+    // Eski tugma endi oynani ochadi (o'zining eski ochish/yopish mantig'i o'rniga)
+    if(tugma){
+      const yangi = tugma.cloneNode(true);     // eski tinglovchilarni olib tashlaymiz
+      tugma.parentNode.replaceChild(yangi, tugma);
+      yangi.addEventListener('click', () => oyna.och());
+    }
+    sahifaBoshi(pane, 'Aksiya',
+      "Chegirmali raqamlar. Faol aksiya mijoz saytida teskari sanoq bilan ko'rinadi.",
+      [{ nom: 'Yangi aksiya', asosiy: true, ikona: ICO.plus, bos: () => oyna.och() }]);
+    saqlangachYop($('aktSaveBtn'), $('aktNewPrice'), oyna);
+  })();
+
+  /* ---------------- KREDIT ---------------- */
+  (function(){
+    const pane = $('paneCredit');
+    if(!pane) return;
+    const form = pane.querySelector('.settings-form.cr-form-2col');
+    if(!form) return;
+
+    const oyna = oynaYasa('kredit', form, 'Yangi kredit shartnomasi',
+      "Mijoz ma'lumotlari va to'lov jadvali. Saqlangach shartnoma PDF holida yuklab olinadi.", ICO.kredit);
+
+    sahifaBoshi(pane, 'Kredit',
+      "Bo'lib to'lash shartnomalari. Muddati o'tganlar eng tepada turadi.",
+      [{ nom: 'Shartnoma', asosiy: true, bos: () => oyna.och() }]);
+
+    saqlangachYop($('addCreditBtn'), $('crName'), oyna);
+
+    // "Excel hisobot" va "Xavfsizlik" qutilari kundalik ish emas — ular
+    // ro'yxatdan YUQORIDA turib, eng muhim narsani (kim qarzdor) pastga
+    // surib yuborardi. Endi bo'limning oxiriga ko'chadi.
+    const tools = pane.querySelector('.cr-tools-grid');
+    if(tools) pane.appendChild(tools);
+  })();
+
+
+  /* ---------------- QOLGAN BARCHA BO'LIMLAR ----------------
+     Har bir bo'lim bir xil tartibda boshlansin: nomi, bir qator izoh,
+     ostida ingichka chiziq. Shunda qaysi bo'limda ekaningiz va u nima
+     qilishi birinchi qarashdayoq ma'lum bo'ladi. */
+  (function(){
+    const BOLIMLAR = [
+      ['paneOrders',       'Buyurtmalar',    "Saytdan kelgan buyurtmalar va ularning holati. Yangi buyurtma kelganda qo'ng'iroq belgisi yonadi."],
+      ['paneZakaz',        'Zakaz',          "Mijoz so'ragan, lekin bazada yo'q raqamlar. Narx belgilab javob berasiz."],
+      ['paneFinance',      'Kirim-chiqim',   "Pul harakati: tushum, xarajat va qoldiq."],
+      ['panePersonalbase', 'Shaxsiy baza',   "Qo'lda kiritilgan mijozlar va ular bilan ishlash tarixi."],
+      ['paneAi',           'AI yordamchi',   "Panel bilan oddiy tilda gaplashing: narxni o'zgartirish, hisobot olish, raqam qidirish."],
+      ['paneInstagram',    'Instagram AI',   "Instagram'ga yozgan odamlarga avtomatik javob beradi. Bilim bazasini shu yerdan to'ldirasiz."],
+      ['paneTelegramai',   'Telegram AI',    "Telegram botdagi savollarga avtomatik javob."],
+      ['paneVideos',       'Video sharhlar', "Mijozlarning video fikrlari. Saytda \"Mijozlarimiz fikri\" bo'limida chiqadi."],
+      ['panePremiumvideo', 'Premium video',  "Alohida raqamlar uchun video. Saytda premium RELS bo'lib ko'rinadi."],
+      ['paneStyles',       'Uslublar',       "Sayt ranglari, shriftlari va umumiy ko'rinishi."],
+      ['paneWatch',        'Baza raqam',     "Kerakli raqam bazada paydo bo'lishi bilan darhol xabar keladi."],
+      ['paneUzex',         'UZEX auksion',   "Davlat auksionidagi raqamlarni kuzatish va saqlab qo'yish."],
+      ['paneSessions',     'Seanslar',       "Panelga kim, qachon va qaysi qurilmadan kirgani."],
+      ['paneVazifalar',    'Vazifalar',      "Xodimlarga topshiriqlar, muddatlari va bajarilishi."],
+      ['paneVakansiya',    'Vakansiya',      "Ish e'lonlari va nomzodlardan kelgan arizalar."],
+      ['paneOperators',    'Operatorlar',    "Qaysi operator raqamlari saytda ko'rinadi va ularning sozlamalari."],
+      ['paneSettings',     'Sozlamalar',     "Umumiy sozlamalar: parol, bo'lib to'lash foizlari, aloqa ma'lumotlari."],
+      ['paneManagement',   'Boshqaruv',      "Adminlar, ularning huquqlari va kirish nazorati."]
+    ];
+    BOLIMLAR.forEach(([id, nom, izoh]) => {
+      const pane = document.getElementById(id);
+      if(pane) sahifaBoshi(pane, nom, izoh, []);
+    });
+  })();
+
+  window.__adminOynalar = oynalar;
+})();
+
+/* Sahifa ochilganda ham yo'l ko'rsatkichi faol bo'limni ko'rsatsin */
+setTimeout(()=>{
+  try{
+    const faol = document.querySelector('.tab.active');
+    if(faol && typeof yolniYangila === 'function') yolniYangila(faol);
+  }catch(e){}
+}, 0);
+
 (function initTabGroups(){
   const groups = Array.from(document.querySelectorAll('.tab-group'));
   if(!groups.length) return;
@@ -5684,8 +6312,29 @@ function openGroupOfTab(tab){
 })();
 
 const TAB_PANE_MAP = { management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+/* ==================================================================
+   YUQORIDAGI YO'L KO'RSATKICHI
+   Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
+   ekaningizni faqat yon menyudan bilish mumkin edi. Endi u "Moliya ›
+   Kredit" ko'rinishida, bo'lim almashganda o'zi yangilanadi. Bu
+   "ichkariga kirdim" degan tuyg'uni beradigan uchta narsadan biri
+   (qolgan ikkitasi: yon menyudagi chiziq va sariq belgi).
+   ================================================================== */
+function yolniYangila(tab){
+  const box = document.querySelector('.topbar-title');
+  if(!box || !tab) return;
+  const label = (tab.querySelector('.tab-label') || {}).textContent || '';
+  const grp = tab.closest('.tab-group');
+  const grpName = grp ? ((grp.querySelector('.tgh-label') || {}).textContent || '') : '';
+  const esc = (x) => String(x || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  box.innerHTML = grpName
+    ? esc(grpName.trim()) + '<span class="tb-sep">\u203A</span><small>' + esc(label.trim()) + '</small>'
+    : '<small>' + esc(label.trim()) + '</small>';
+}
+
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
+    yolniYangila(tab);
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
