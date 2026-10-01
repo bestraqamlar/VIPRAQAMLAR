@@ -824,14 +824,112 @@
 
   /* Holat tugmalari — avval beshta keng tugma butun ekranni egallardi;
      endi bir-ikki qatorga sig'adigan ixcham yumaloq tugmalar. */
+  /* Holat tugmalari — beshta variant bitta ixcham to'rda. Har biri bir xil
+     o'lchamda, qatorga tekis joylashadi; uzun tushuntirish esa sichqoncha
+     olib borilganda (title) ko'rinadi. */
   .qz-body .contract-status-row{margin-top:16px;padding-top:0;border-top:none;}
-  .qz-body .contract-status-buttons{flex-direction:row;flex-wrap:wrap;gap:6px;}
+  .qz-body .contract-status-buttons.cs-grid{
+    display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;flex-direction:row;
+  }
   .qz-body .cs-btn{
-    width:auto;border-radius:99px;padding:7px 13px;font-size:11px;font-weight:600;
+    width:100%;border-radius:9px;padding:9px 6px;font-size:11.5px;font-weight:650;
     background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;
   }
   .qz-body .cs-btn:hover{color:var(--text);border-color:var(--muted);}
   .qz-body .cs-btn.cs-active{color:#0a1a12;font-weight:800;}
+  @media (max-width:860px){
+    .qz-body .contract-status-buttons.cs-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  }
+  @media (max-width:560px){
+    .qz-body .contract-status-buttons.cs-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .qz-body .cs-btn{padding:11px 6px;font-size:12px;}
+  }
+
+  /* ==================================================================
+     SHARTNOMANI YOPISH
+     Bu kundalik harakat emas — shuning uchun tugma deyarli ko'rinmaydi:
+     xira matn, ramkasiz. Bosilganda darhol yopilmaydi, avval ikkita
+     aniq variant chiqadi (yakunlandi / bekor bo'ldi), chunki bu
+     qaytarib bo'lmaydigan ish emas-u, lekin summalarni o'zgartiradi.
+     ================================================================== */
+  .qz-close-row{
+    display:flex;justify-content:flex-end;margin-top:12px;
+    padding-top:10px;border-top:1px solid var(--line);
+  }
+  .qz-close-btn{
+    background:none;border:none;color:var(--muted);opacity:.55;
+    font-size:11.5px;font-weight:600;cursor:pointer;padding:5px 2px;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:opacity .15s ease,color .15s ease;
+  }
+  .qz-close-btn:hover{opacity:1;color:var(--red);}
+  .qz-close-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;}
+
+  .qz-confirm{
+    display:none;margin-top:12px;padding:13px 14px;border-radius:11px;
+    background:var(--panel-2);border:1px solid var(--line);
+  }
+  .qz-confirm.is-open{display:block;}
+  .qz-confirm p{margin:0 0 10px;font-size:12.5px;color:var(--text);line-height:1.5;}
+  .qz-confirm p b{color:var(--amber);}
+  .qz-confirm-btns{display:flex;flex-wrap:wrap;gap:7px;}
+  .qz-cf{
+    border:1px solid var(--line);background:var(--panel);color:var(--text);
+    border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  }
+  .qz-cf.cf-done{background:var(--green);border-color:var(--green);color:#07180F;}
+  .qz-cf.cf-cancel{background:var(--red);border-color:var(--red);color:#fff;}
+  .qz-cf.cf-back{color:var(--muted);font-weight:600;}
+
+  /* arxivdagi shartnoma — xiraroq, lekin o'qiladigan */
+  .qz-item.is-archived{opacity:.72;}
+  .qz-item.is-archived .qz-num{text-decoration:line-through;text-decoration-color:var(--muted);}
+  .qz-archive-note{
+    margin:13px 0 4px;padding:11px 13px;border-radius:10px;
+    background:rgba(127,127,127,.09);border:1px solid var(--line);
+    color:var(--muted);font-size:12px;display:flex;align-items:center;
+    justify-content:space-between;gap:10px;flex-wrap:wrap;
+  }
+  .qz-reopen{
+    background:none;border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer;
+  }
+  .qz-reopen:hover{border-color:var(--amber);color:var(--amber);}
+
+  /* ==================================================================
+     TELEFON KO'RINISHI
+     Kredit bo'limi ko'pincha telefondan ochiladi (admin yo'lda, mijoz
+     oldida). Shuning uchun tor ekranda qator ikki qavatga bo'linadi,
+     summa pastga tushadi va barmoq bilan bosiladigan hamma narsa
+     kamida 44px balandlikda bo'ladi.
+     ================================================================== */
+  @media (max-width:560px){
+    .qz-filters{
+      flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+      margin-left:-4px;padding:0 4px 4px;
+    }
+    .qz-filters::-webkit-scrollbar{display:none;}
+    .qz-chip{flex:none;padding:9px 14px;}
+
+    .qz-head{flex-wrap:wrap;gap:8px;padding:12px 12px 12px 15px;align-items:flex-start;}
+    .qz-head-main{flex:1 1 100%;order:1;}
+    .qz-head-money{flex:1 1 auto;order:2;text-align:left;}
+    .qz-arrow{order:3;margin-left:auto;align-self:center;}
+    .qz-num{font-size:17px;}
+    .qz-debt{font-size:17px;}
+
+    .qz-body{padding:0 12px 14px 15px;}
+    .qz-pay-cta{flex-direction:column;align-items:stretch;gap:6px;padding:13px 14px;}
+    .qz-pay-cta .qz-cta-sum{font-size:17px;}
+
+    .credit-months{gap:5px;}
+    .credit-month-chip{width:calc(20% - 4px);height:46px;}
+
+    .qz-body .cs-btn{padding:9px 13px;font-size:11.5px;}
+    .qz-close-btn{opacity:.8;padding:12px 4px;min-height:44px;font-size:12.5px;}
+    .qz-cf{flex:1 1 auto;padding:11px 14px;}
+  }
 
 
 
@@ -5944,12 +6042,14 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
   }
 });
 
+// "short" — tor ekran va kredit kartasi uchun qisqa nom. To'liq nomi
+// (label) hisobotlarda va keng ekranda ishlatiladi.
 const CONTRACT_STATUSES = [
-  { key: 'active',    label: "To'lov muvaffaqiyatli bajarilmoqda", color: 'var(--green)' },
-  { key: 'trouble',   label: "To'lov uzilishlari ko'p",            color: 'var(--amber)' },
-  { key: 'cancelling',label: "Shartnoma bekor qilish jarayonida",  color: 'var(--red)' },
-  { key: 'cancelled', label: 'Shartnoma bekor bo\'ldi',             color: 'var(--red)' },
-  { key: 'completed', label: "Shartnoma muvaffaqiyatli yakunlandi", color: 'var(--green)' }
+  { key: 'active',    short: 'Joyida',           label: "To'lov muvaffaqiyatli bajarilmoqda", color: 'var(--green)' },
+  { key: 'trouble',   short: 'Uzilishli',        label: "To'lov uzilishlari ko'p",            color: 'var(--amber)' },
+  { key: 'cancelling',short: 'Bekor jarayonida', label: "Shartnoma bekor qilish jarayonida",  color: 'var(--red)' },
+  { key: 'cancelled', short: "Bekor bo'ldi",     label: 'Shartnoma bekor bo\'ldi',             color: 'var(--red)' },
+  { key: 'completed', short: 'Yakunlandi',       label: "Shartnoma muvaffaqiyatli yakunlandi", color: 'var(--green)' }
 ];
 function contractStatusLabel(key){
   const s = CONTRACT_STATUSES.find(s => s.key === key);
@@ -6056,7 +6156,10 @@ function qzAnalyze(d){
   const pending = payments.filter(p => p.status !== 'paid').sort((a, b) => a.dueDate - b.dueDate);
   const overdue = pending.filter(p => p.dueDate < now);
   const next = pending[0] || null;
-  const closed = d.contractStatus === 'cancelled' || d.contractStatus === 'completed';
+  // Arxiv = admin shartnomani QO'LDA yopgan (yakunlandi yoki bekor bo'ldi).
+  // Hamma oyi to'langan shartnoma ham tabiiy ravishda yopilgan hisoblanadi.
+  const archived = d.contractStatus === 'cancelled' || d.contractStatus === 'completed';
+  const closed = archived;
 
   let state = 'ok', days = 0;
   if(left === 0 || closed){
@@ -6070,7 +6173,8 @@ function qzAnalyze(d){
   }
 
   return {
-    paid, total, left, monthly, next, days, state, closed,
+    paid, total, left, monthly, next, days, state, closed, archived,
+    cancelled: d.contractStatus === 'cancelled',
     debt: left * monthly,
     overdueCount: overdue.length,
     overdueSum: overdue.length * monthly,
@@ -6083,7 +6187,7 @@ const QZ_RANK = { overdue: 0, soon: 1, ok: 2, done: 3 };
 function qzPill(a){
   if(a.state === 'overdue') return '<span class="qz-pill p-overdue">⚠ ' + a.days + ' kun kechikdi</span>';
   if(a.state === 'soon')    return '<span class="qz-pill p-soon">⏳ ' + (a.days === 0 ? 'to\'lov bugun' : a.days + ' kundan keyin') + '</span>';
-  if(a.state === 'done')    return '<span class="qz-pill p-done">✓ yopilgan</span>';
+  if(a.state === 'done')    return '<span class="qz-pill p-done">' + (a.cancelled ? '✕ bekor bo\'ldi' : (a.archived ? '✓ yopilgan' : '✓ to\'liq to\'langan')) + '</span>';
   return '<span class="qz-pill p-ok">● joyida</span>';
 }
 
@@ -6130,14 +6234,20 @@ function qzRenderStats(contracts){
 function qzRenderFilters(contracts){
   const box = document.getElementById('qzFilters');
   if(!box) return;
-  const c = { all: contracts.length, overdue: 0, soon: 0, done: 0 };
-  contracts.forEach(d => { const st = qzAnalyze(d).state; if(c[st] !== undefined) c[st]++; });
+  // "Hammasi" — faqat FAOL shartnomalar. Yopilganlari Arxivda turadi va
+  // na ro'yxatda, na tepadagi summalarda ko'rinadi.
+  const c = { all: 0, overdue: 0, soon: 0, done: 0 };
+  contracts.forEach(d => {
+    const st = qzAnalyze(d).state;
+    if(c[st] !== undefined) c[st]++;
+    if(st !== 'done') c.all++;
+  });
 
   const defs = [
-    { key: 'all',     label: 'Hammasi',      n: c.all,     cls: '' },
+    { key: 'all',     label: 'Faol',         n: c.all,     cls: '' },
     { key: 'overdue', label: 'Kechikkan',    n: c.overdue, cls: ' qz-chip-danger' },
     { key: 'soon',    label: 'Yaqin 7 kun',  n: c.soon,    cls: ' qz-chip-warn' },
-    { key: 'done',    label: 'Yopilgan',     n: c.done,    cls: '' }
+    { key: 'done',    label: 'Arxiv',        n: c.done,    cls: '' }
   ];
 
   box.innerHTML = defs.map(f =>
@@ -6174,13 +6284,18 @@ function renderCreditList(contracts){
       (d.contractId || '').toLowerCase().includes(q)
     );
   }
-  if(qzFilter !== 'all'){
+  if(qzFilter === 'all'){
+    rows = rows.filter(d => qzAnalyze(d).state !== 'done');   // arxiv alohida
+  }else{
     rows = rows.filter(d => qzAnalyze(d).state === qzFilter);
   }
 
   if(rows.length === 0){
     list.innerHTML = '<div class="empty-admin">' +
-      (all.length === 0 ? 'Hali kredit shartnomasi yo\'q.' : 'Bu shartga mos shartnoma topilmadi.') + '</div>';
+      (all.length === 0 ? 'Hali kredit shartnomasi yo\'q.'
+        : (qzFilter === 'done' ? 'Arxiv hozircha bo\'sh — yopilgan shartnoma yo\'q.'
+        : (qzFilter === 'all' ? 'Faol shartnoma yo\'q. Yopilganlari Arxiv bo\'limida.'
+        : 'Bu shartga mos shartnoma topilmadi.'))) + '</div>';
     return;
   }
 
@@ -6209,7 +6324,7 @@ function renderCreditList(contracts){
       : '<div class="qz-pay-done">✓ Barcha to\'lovlar yakunlangan</div>';
 
     return '' +
-    '<div class="qz-item st-' + a.state + '" data-id="' + d.id + '">' +
+    '<div class="qz-item st-' + a.state + (a.archived ? ' is-archived' : '') + '" data-id="' + d.id + '">' +
       '<div class="qz-head" data-id="' + d.id + '">' +
         '<div class="qz-head-main">' +
           '<span class="qz-num">' + escapeHtml(d.number || '—') + '</span>' +
@@ -6227,7 +6342,13 @@ function renderCreditList(contracts){
       '</div>' +
 
       '<div class="qz-body">' +
-        payCta +
+        (a.archived
+          ? '<div class="qz-archive-note">' +
+              '<span>Shartnoma ' + (a.cancelled ? 'bekor qilingan' : 'yopilgan') +
+              ' · summalarga qo\'shilmaydi</span>' +
+              '<button type="button" class="qz-reopen" data-id="' + d.id + '">Qayta ochish</button>' +
+            '</div>'
+          : payCta) +
 
         '<div class="cr-progress-wrap" style="margin:12px 0 4px;"><div class="cr-progress-bar" style="width:' + a.pct + '%;"></div></div>' +
         '<p class="qz-hint">To\'langan: <b>' + qzMoney(a.paid * a.monthly) + ' so\'m</b> · Qolgan: <b>' + qzMoney(a.debt) + ' so\'m</b> · Har oyning ' + d.paymentDay + '-sanasida</p>' +
@@ -6247,11 +6368,12 @@ function renderCreditList(contracts){
 
         '<div class="contract-status-row">' +
           '<div class="qz-section-title">Shartnoma holati</div>' +
-          '<div class="contract-status-buttons">' +
+          '<div class="contract-status-buttons cs-grid">' +
             CONTRACT_STATUSES.map(st =>
               '<button class="cs-btn ' + (st.key === status ? 'cs-active' : '') + '"' +
               (st.key === status ? ' style="background:' + st.color + ';border-color:' + st.color + ';"' : '') +
-              ' data-id="' + d.id + '" data-status="' + st.key + '">' + st.label + '</button>').join('') +
+              ' title="' + st.label + '"' +
+              ' data-id="' + d.id + '" data-status="' + st.key + '">' + (st.short || st.label) + '</button>').join('') +
           '</div>' +
         '</div>' +
 
@@ -6278,6 +6400,22 @@ function renderCreditList(contracts){
             '<p class="qz-hint">Shartnoma sanasi, muddati yoki to\'lov kunini o\'zgartirsangiz, jadval avtomatik qayta hisoblanadi (to\'langan oylar saqlanib qoladi). Shartnoma raqami: <b>' + escapeHtml(d.contractId || '') + '</b></p>' +
           '</div>' +
         '</div>' +
+
+        (a.archived ? '' :
+          '<div class="qz-close-row">' +
+            '<button type="button" class="qz-close-btn" data-close="' + d.id + '">' +
+              '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.3"/><path d="M5 9v10a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9M10 13h4"/></svg>' +
+              'Shartnomani yopish' +
+            '</button>' +
+          '</div>' +
+          '<div class="qz-confirm" data-confirm="' + d.id + '">' +
+            '<p>Shartnoma <b>arxivga</b> o\'tadi: ro\'yxatdan chiqadi va qarzdorlik summalariga qo\'shilmaydi. Qanday yopiladi?</p>' +
+            '<div class="qz-confirm-btns">' +
+              '<button type="button" class="qz-cf cf-done" data-id="' + d.id + '" data-status="completed">✓ Yakunlandi</button>' +
+              '<button type="button" class="qz-cf cf-cancel" data-id="' + d.id + '" data-status="cancelled">✕ Bekor bo\'ldi</button>' +
+              '<button type="button" class="qz-cf cf-back" data-cfback="' + d.id + '">Bekor qilish</button>' +
+            '</div>' +
+          '</div>') +
       '</div>' +
     '</div>';
   }).join('') + '</div>';
@@ -6286,6 +6424,55 @@ function renderCreditList(contracts){
   list.querySelectorAll('.qz-head').forEach(head => {
     head.addEventListener('click', () => {
       head.closest('.qz-item').classList.toggle('is-open');
+    });
+  });
+
+  /* ---- shartnomani yopish: avval tasdiq, keyin arxivga ---- */
+  list.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const box = list.querySelector('[data-confirm="' + btn.dataset.close + '"]');
+      if(box) box.classList.add('is-open');
+      btn.closest('.qz-close-row').style.display = 'none';
+    });
+  });
+  list.querySelectorAll('[data-cfback]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const box = btn.closest('.qz-confirm');
+      if(box){
+        box.classList.remove('is-open');
+        const row = box.previousElementSibling;
+        if(row && row.classList.contains('qz-close-row')) row.style.display = '';
+      }
+    });
+  });
+  list.querySelectorAll('.qz-cf[data-status]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      btn.disabled = true;
+      try{
+        await creCall('updateStatus', { id: btn.dataset.id, status: btn.dataset.status });
+        vibrate(60);
+        loadCreditContracts();
+      }catch(err){
+        btn.disabled = false;
+        alert('Xato: ' + err.message);
+      }
+    });
+  });
+  list.querySelectorAll('.qz-reopen').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      btn.disabled = true;
+      try{
+        await creCall('updateStatus', { id: btn.dataset.id, status: 'active' });
+        vibrate(60);
+        loadCreditContracts();
+      }catch(err){
+        btn.disabled = false;
+        alert('Xato: ' + err.message);
+      }
     });
   });
 

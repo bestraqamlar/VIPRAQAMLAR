@@ -5,7 +5,10 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<!-- Kattalashtirish ATAYLAB ochiq qoldirilgan: saytning butun mazmuni uzun
+     raqamlar, ko'zi xiraroq odam ularni barmoq bilan kattalashtirib o'qiy
+     olishi kerak. Ilgari user-scalable=no turardi va bu mumkin emas edi. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VIP Raqamlar — vipraqamlar.uz | Oltin, Chiroyli va VIP Nomerlar, Raqam Tanlash</title>
 <meta name="description" content="VIPRAQAMLAR.UZ — O'zbekistondagi eng katta oltin, chiroyli va VIP raqamlar katalogi. Raqam tanlash, oq nomer, gold raqam, aksiya raqamlar — Beeline, Ucell, Uzmobile, Humans, Mobiuz, Perfektum nomerlari eng arzon narxlarda. Bepul yetkazib berish, bo'lib to'lash (kredit) imkoniyati, kafolatli rasmiylashtirish.">
 <meta name="keywords" content="vip raqam, vipraqam, vipraqamlar, vip raqmlar, vipraqamlar.uz, raqamuz, uzraqam, raqamchi, nomerchi, oltin raqam, oltin raqamlar, gold raqam, gold nomer, chiroyli raqam, chiroyli nomer, raqam tanlash, raqam sotib olish, nomer sotib olish, oq nomer, aksiya raqam, uzmobile raqam, uzmobile nomer, uzmobile vip, ucell nomer, ucell raqam, beeline nomer, beeline raqam, humans nomer, humans raqam, mobiuz raqam, telefon raqami narxi, sim karta, Toshkentda vip raqam sotib olish, Toshkent raqam tanlash, O'zbekiston raqamlar katalogi, vip nomer narxi, bo'lib to'lash raqam, kredit raqam">
@@ -3588,6 +3591,72 @@
   cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1);
 }
 .load-retry-banner button:active{transform:scale(0.95);}
+
+/* ==================================================================
+   INTERNET UZILGANDA
+   Sayt keshdan ochilaveradi, lekin mijoz ko'rayotgan narsa ESKI
+   bo'lishi mumkin — narxi o'zgargan yoki allaqachon sotilgan raqam.
+   Shuning uchun aloqa yo'qligi yashirilmaydi: tepada tinch, lekin
+   aniq ko'rinadigan chiziq turadi va aloqa tiklanganda o'zi yo'qoladi.
+   ================================================================== */
+.net-bar{
+  position:fixed;left:0;right:0;top:0;z-index:9999;
+  display:none;align-items:center;justify-content:center;gap:9px;
+  padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top,0px));
+  font-size:12.5px;font-weight:650;line-height:1.35;text-align:center;
+  background:#2A1A06;color:#FFD778;border-bottom:1px solid rgba(255,176,0,.3);
+  transform:translateY(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.net-bar.is-on{display:flex;transform:translateY(0);}
+/* Chiziq tepada "suzib" turadi — shuning uchun u chiqqanda sahifaning
+   o'zini pastga suramiz, aks holda sayt sarlavhasini berkitib qo'yadi. */
+body.netbar-on{padding-top:calc(38px + env(safe-area-inset-top,0px));}
+body{transition:padding-top .28s cubic-bezier(.4,0,.2,1);}
+.net-bar.is-back{background:#0C2A1A;color:#7BE8B0;border-bottom-color:rgba(51,226,140,.3);}
+.net-bar svg{width:15px;height:15px;flex:none;}
+.net-bar b{font-weight:800;}
+
+/* "Ma'lumot eski" belgisi — katalog tepasida, offline paytida */
+.stale-note{
+  display:none;align-items:center;gap:8px;margin:0 0 12px;
+  padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.45;
+  background:rgba(255,176,0,.08);border:1px solid rgba(255,176,0,.25);color:var(--text);
+}
+.stale-note.is-on{display:flex;}
+.stale-note svg{width:15px;height:15px;flex:none;color:var(--amber);}
+
+/* Yuklab bo'lmagan bo'lim o'rnidagi ixcham qatorcha — bo'lim
+   jimgina yo'qolib ketgandan ko'ra, nima bo'lganini aytgan ma'qul. */
+.sec-fail{
+  display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  margin:8px 16px;padding:14px 16px;border-radius:14px;
+  background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:12.5px;
+}
+.sec-fail button{
+  background:none;border:1px solid var(--line);color:var(--text);
+  border-radius:9px;padding:8px 15px;font-size:12px;font-weight:700;cursor:pointer;
+}
+.sec-fail button:active{transform:scale(.96);}
+
+/* Qidiruv xatosi — "topilmadi" deb aldash o'rniga rost holat */
+.empty-state.is-error{
+  border:1px solid rgba(255,92,92,.3);background:rgba(255,92,92,.06);
+  border-radius:14px;padding:22px 16px;
+}
+.empty-state .es-retry{
+  display:inline-block;margin-top:12px;
+  background:linear-gradient(135deg, var(--amber), #FFD778);color:#241a02;
+  border:none;border-radius:10px;padding:9px 20px;font-weight:800;font-size:13px;cursor:pointer;
+}
+
+/* Klaviatura bilan yurganda qayerda turganini ko'rsatish — avval
+   hech qanday ko'rsatkich yo'q edi. */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+.card:focus-visible, .digit-box:focus-visible{
+  outline:2px solid var(--amber);outline-offset:2px;border-radius:6px;
+}
+
 .search-overlay{
   position:absolute;inset:0;z-index:6;border-radius:16px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -4042,6 +4111,16 @@ html.theme-purple-premium .card button.order-btn{
      uchun ko'pchilik "sayt ishlamayapti" deb chiqib ketardi. Endi shu
      holatda ANIQ xabar va "Qayta urinish" tugmasi chiqadi (qarang:
      loadNumbers() / showLoadRetryBanner() JS). -->
+<!-- Internet holati chizig'i — sahifaning eng tepasida, sayt qayerda
+     ochilgan bo'lsa ham ko'rinadi. JS: netWatch() boshqaradi. -->
+<div class="net-bar" id="netBar" role="status" aria-live="polite"></div>
+
+<!-- Keshdagi (eski) ma'lumot ko'rsatilayotgani haqida ogohlantirish -->
+<div class="stale-note" id="staleNote">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+  <span>Internet yo'q. Quyidagilar oxirgi marta saqlangan ro'yxat — narx yoki bandligi o'zgargan bo'lishi mumkin.</span>
+</div>
+
 <div class="load-retry-banner" id="loadRetryBanner" style="display:none;">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
   <span>Internet aloqasi zaif yoki uzilgan. Raqamlar yuklanmayapti.</span>
@@ -5166,6 +5245,189 @@ let ZIGZAG_ORDER = [];
 // urinishdan keyin (agar hali umuman ma'lumot bo'lmasa) ANIQ xabar va
 // "Qayta urinish" tugmasi ko'rsatiladi.
 let __numbersLoadFailCount = 0;
+/* ==================================================================
+   INTERNET HOLATI
+   Brauzerning navigator.onLine'i "simni ko'rdim" degani, "server
+   javob berdi" degani emas. Shuning uchun ikkala manbadan ham
+   foydalanamiz: brauzer hodisalari VA so'rovlarning haqiqatan
+   muvaffaqiyatsiz bo'layotgani (netMarkFail / netMarkOk).
+   ================================================================== */
+let __netOffline = false;       // brauzer: aloqa yo'q
+let __netFailing = false;       // so'rovlar ketma-ket yiqilyapti
+let __netBackTimer = null;
+
+function netBarRender(){
+  const bar = document.getElementById('netBar');
+  const stale = document.getElementById('staleNote');
+  if(!bar) return;
+  const down = __netOffline || __netFailing;
+
+  document.body.classList.toggle('netbar-on', down);
+  if(down){
+    bar.className = 'net-bar is-on';
+    bar.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+        '<path d="M2 2l20 20"/><path d="M5 12.5a11 11 0 0 1 4-2.6M2 8.8A16 16 0 0 1 8 5.3"/>' +
+        '<path d="M22 8.8a16 16 0 0 0-8.5-3.7M19 12.5c-.6-.5-1.3-1-2-1.3"/>' +
+        '<path d="M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>' +
+      '<span>' + (__netOffline
+        ? '<b>Internet yo\'q.</b> Sayt saqlangan nusxadan ishlayapti.'
+        : '<b>Aloqa zaif.</b> Ma\'lumot yangilanmayapti.') + '</span>';
+  }else{
+    bar.className = 'net-bar';
+  }
+  if(stale) stale.classList.toggle('is-on', down && Array.isArray(NUMBERS) && NUMBERS.length > 0);
+}
+
+/* Aloqa tiklanganda qisqa yashil tasdiq ko'rsatamiz va ma'lumotni yangilaymiz */
+function netBackOnline(){
+  const bar = document.getElementById('netBar');
+  const stale = document.getElementById('staleNote');
+  if(stale) stale.classList.remove('is-on');
+  if(bar){
+    bar.className = 'net-bar is-on is-back';
+    document.body.classList.add('netbar-on');
+    bar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg><span>Aloqa tiklandi — ma\'lumot yangilanmoqda</span>';
+    clearTimeout(__netBackTimer);
+    __netBackTimer = setTimeout(()=>{
+      bar.className = 'net-bar';
+      document.body.classList.remove('netbar-on');
+    }, 2600);
+  }
+}
+
+function netMarkFail(){
+  if(!__netFailing){ __netFailing = true; netBarRender(); }
+}
+function netMarkOk(){
+  const wasDown = __netOffline || __netFailing;
+  __netFailing = false;
+  __netOffline = !navigator.onLine;
+  if(wasDown && !__netOffline) netBackOnline(); else netBarRender();
+}
+
+(function netWatch(){
+  __netOffline = !navigator.onLine;
+  window.addEventListener('offline', ()=>{ __netOffline = true; netBarRender(); });
+  window.addEventListener('online',  ()=>{
+    __netOffline = false;
+    netBackOnline();
+    // Aloqa qaytishi bilan ro'yxatni darhol yangilaymiz — mijoz sahifani
+    // qo'lda yangilab o'tirmasin.
+    try{ if(typeof raqamlarniYukla === 'function') raqamlarniYukla(); }catch(e){}
+  });
+  if(document.readyState !== 'loading') netBarRender();
+  else document.addEventListener('DOMContentLoaded', netBarRender);
+})();
+
+/* ==================================================================
+   XATO MATNI
+   Avval mijozga xatoning asl matni ko'rsatilardi: "Failed to fetch",
+   "Missing or insufficient permissions". Bu inglizcha, tushunarsiz
+   va nima qilishni aytmaydi. Endi sabab bo'yicha o'zbekcha, aniq
+   maslahat beradigan jumlaga aylantiriladi.
+   ================================================================== */
+function xatoMatni(err){
+  const raw = String((err && (err.message || err.code)) || err || '').toLowerCase();
+  if(!navigator.onLine) return "Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring.";
+  if(raw.includes('failed to fetch') || raw.includes('networkerror') || raw.includes('network request'))
+    return "Serverga ulanib bo'lmadi. Internetingizni tekshiring va qayta urining.";
+  if(raw.includes('timeout') || raw.includes('deadline') || raw.includes('vaqt'))
+    return "Javob juda uzoq kutildi. Aloqa sekin — birozdan keyin qayta urining.";
+  if(raw.includes('permission') || raw.includes('unauthenticated') || raw.includes('401') || raw.includes('403'))
+    return "Bu amal uchun ruxsat yo'q. Sahifani yangilab, qaytadan urinib ko'ring.";
+  if(raw.includes('not found') || raw.includes('404'))
+    return "Ma'lumot topilmadi. Kiritgan ma'lumotlaringizni tekshiring.";
+  if(raw.includes('429') || raw.includes('too many'))
+    return "Juda ko'p so'rov yuborildi. Bir daqiqadan keyin qayta urining.";
+  if(raw.includes('quota') || raw.includes('unavailable') || raw.includes('500') || raw.includes('502') || raw.includes('503'))
+    return "Server vaqtincha javob bermayapti. Birozdan keyin qayta urining.";
+  return "Xatolik yuz berdi. Qayta urinib ko'ring yoki biz bilan bog'laning.";
+}
+
+/* ==================================================================
+   O'ZINI O'ZI TIKLASH
+   Internet uzilsa yoki sekin bo'lsa, mijoz sahifani QO'LDA yangilashi
+   shart emas. Har bir yuklash vazifasi shu yerda ro'yxatga olinadi va
+   muvaffaqiyatsiz bo'lsa o'zi qayta urinadi.
+
+   Uch qoida:
+   1) Oraliq asta uzayadi (3s, 4.5s, 7s ... 45s'da to'xtaydi) — server
+      yiqilgan bo'lsa uni so'rovlar bilan ko'mib tashlamaslik uchun.
+   2) Aloqa YO'Q bo'lsa umuman urinmaydi (behuda batareya va trafik),
+      lekin aloqa qaytgan zahoti BARCHASI darhol qayta ishga tushadi.
+   3) Mijoz sahifaga qaytganda (boshqa ilovadan) ham darhol urinadi.
+   ================================================================== */
+const __vazifalar = new Map();   // nom -> { ishla, urinish, taymer, tugadi }
+
+/* Vazifani ro'yxatga oladi va BIRINCHI urinishni darhol boshlaydi.
+   Qaytaradigan promise birinchi urinish tugaganda hal bo'ladi (natijasidan
+   qat'i nazar) — shunda chaqiruvchi kod kutib tura oladi, keyingi qayta
+   urinishlar esa orqa fonda o'zi davom etadi. */
+function avtoQayta(nom, ishla){
+  const bor = __vazifalar.get(nom);
+  if(bor){ bor.ishla = ishla; bor.urinish = 0; return __vazifaniBajar(nom); }
+  __vazifalar.set(nom, { ishla, urinish: 0, taymer: null, tugadi: false });
+  return __vazifaniBajar(nom);
+}
+
+async function __vazifaniBajar(nom){
+  const v = __vazifalar.get(nom);
+  if(!v || v.tugadi) return;
+  clearTimeout(v.taymer); v.taymer = null;
+
+  if(!navigator.onLine){
+    // Aloqa yo'q — urinmaymiz. 'online' hodisasi bizni o'zi uyg'otadi.
+    return;
+  }
+  try{
+    await v.ishla();
+    v.tugadi = true;
+    v.urinish = 0;
+    __vazifalar.delete(nom);
+    // Bitta vazifa o'tdi — demak tarmoq tirik.
+    if(typeof netMarkOk === 'function' && __vazifalar.size === 0) netMarkOk();
+  }catch(err){
+    v.urinish++;
+    console.warn('Qayta urinish #' + v.urinish + ' — ' + nom + ':', err && err.message);
+    if(v.urinish >= 2 && typeof netMarkFail === 'function') netMarkFail();
+    const kutish = Math.min(3000 * Math.pow(1.5, v.urinish - 1), 45000);
+    // Kichik tasodifiy qo'shimcha: hamma qurilma bir vaqtda urinmasin.
+    v.taymer = setTimeout(() => __vazifaniBajar(nom), kutish + Math.random() * 1000);
+  }
+}
+
+/* Hammasini darhol qayta urinishga majburlash */
+function hammasiniQaytaUrin(sabab){
+  if(!__vazifalar.size) return;
+  console.info('Qayta urinish (' + sabab + '): ' + __vazifalar.size + ' ta vazifa');
+  __vazifalar.forEach((v, nom) => { v.urinish = 0; __vazifaniBajar(nom); });
+}
+
+window.addEventListener('online', () => hammasiniQaytaUrin('aloqa tiklandi'));
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && navigator.onLine) hammasiniQaytaUrin('sahifaga qaytildi');
+});
+
+/* Aloqa sekin bo'lsa serverga ko'proq vaqt beramiz — 10 soniya 3G'da
+   ko'pincha yetmaydi va har safar "vaqt tugadi" bo'lib, yuklash
+   mantiqsiz ravishda qayta boshlanaverardi. */
+function kutishVaqti(oddiy){
+  try{
+    const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const t = c && String(c.effectiveType || '');
+    if(t === 'slow-2g' || t === '2g') return oddiy * 3;
+    if(t === '3g') return oddiy * 2;
+  }catch(e){}
+  return oddiy;
+}
+
+/* Katalogni yuklash — endi hamma joyda SHU chaqiriladi, chunki ichida
+   o'zini o'zi tiklash bor. */
+function raqamlarniYukla(){
+  return avtoQayta('raqamlar', () => loadNumbers());
+}
+
 function showLoadRetryBanner(show){
   const banner = document.getElementById('loadRetryBanner');
   if(banner) banner.style.display = show ? 'flex' : 'none';
@@ -5178,7 +5440,7 @@ if(__loadRetryBtnEl){
   __loadRetryBtnEl.addEventListener('click', ()=>{
     hapticFeedback(15);
     showLoadRetryBanner(false);
-    loadNumbers(2000);
+    raqamlarniYukla();
   });
 }
 
@@ -5215,12 +5477,13 @@ async function loadNumbers(retryDelay){
 
   // Keyin bazadan eng so'nggi holatni yuklab, keshni yangilaymiz
   try{
-    const snap = await withClientTimeout(db.collection('numbers').get(), 10000);
+    const snap = await withClientTimeout(db.collection('numbers').get(), kutishVaqti(10000));
     NUMBERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     ZIGZAG_ORDER = buildZigzagOrder(NUMBERS);
     numbersLoaded = true;
     __numbersLoadFailCount = 0;
     showLoadRetryBanner(false);
+    netMarkOk();
     try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){ /* kesh saqlanmasa ham davom etaveradi */ }
     refreshPriceRangeBounds();
     renderCatalog();
@@ -5232,6 +5495,10 @@ async function loadNumbers(retryDelay){
   }catch(err){
     console.error('Bazadan o\'qishda xato:', err);
     __numbersLoadFailCount++;
+    // Ikki marta ketma-ket yiqilsa — bu bir martalik uzilish emas, aloqa
+    // muammosi. Tepadagi chiziqni yoqamiz va keshdagi ma'lumot ESKI
+    // ekanini mijozga ochiq aytamiz.
+    if(__numbersLoadFailCount >= 2) netMarkFail();
     if(NUMBERS.length === 0){
       // Hali hech qanday ma'lumot yo'q — yuklanish animatsiyasini ko'rsatamiz va qayta urinamiz
       renderCatalog();
@@ -5240,13 +5507,12 @@ async function loadNumbers(retryDelay){
       // imkoniyati beramiz, "bo'sh ekran"da abadiy qolib ketmasin.
       if(__numbersLoadFailCount >= 2) showLoadRetryBanner(true);
     }
-    // Kesh bor-yo'qligidan qat'i nazar — orqa fonda jimgina qayta urinib
-    // turamiz (ortib boruvchi interval bilan, 60s'da to'xtaydi). Aks
-    // holda internet bir marta uzilib qolsa, mijoz eski keshdagi
-    // (masalan allaqachon sotilgan yoki narxi o'zgargan) raqamlarni
-    // sahifani qo'lda yangilamaguncha ko'rib o'tiraverardi.
-    const nextDelay = Math.min((retryDelay || 2000) * 1.5, 60000);
-    setTimeout(() => loadNumbers(nextDelay), nextDelay);
+    // Qayta urinishni endi umumiy mexanizm boshqaradi: oraliq o'zi
+    // uzayadi, aloqa yo'q paytda urinmaydi, aloqa qaytgan yoki mijoz
+    // sahifaga qaytgan zahoti darhol qayta uriniladi. Shuning uchun
+    // bu yerda alohida setTimeout kerak emas — xatoni yuqoriga
+    // uzatamiz, qolganini avtoQayta() bajaradi.
+    throw err;
   }
 }
 
@@ -6319,8 +6585,25 @@ function renderCatalog(){
       // (fetchLiveNumbers avtomatik, jimgina 2 marta qayta urinib ko'radi),
       // lekin ehtiyot chorasi sifatida — mijozga texnik xabar/"qayta
       // urinish" tugmasi o'rniga oddiy "topilmadi" matni chiqadi.
-      console.warn('STANDART qidiruv xatosi (mijozga ko\'rsatilmaydi):', LIVE_SEARCH_ERROR);
-      catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
+      // AVVAL bu yerda mijozga "Bunday raqam topilmadi" deb yozilardi.
+      // Bu xato edi: raqam bor, shunchaki qidiruv ishlamadi. Mijoz esa
+      // raqam yo'q deb o'ylab chiqib ketardi. Endi rost aytiladi va
+      // qayta urinish tugmasi beriladi. Texnik sabab konsolda qoladi.
+      console.warn('STANDART qidiruv xatosi:', LIVE_SEARCH_ERROR);
+      catalogEl.innerHTML =
+        '<div class="empty-state is-error">' +
+          '<div>' + escapeHtml(xatoMatni(LIVE_SEARCH_ERROR)) + '</div>' +
+          '<button type="button" class="es-retry" id="searchRetryBtn">Qayta qidirish</button>' +
+        '</div>';
+      const __sr = document.getElementById('searchRetryBtn');
+      if(__sr) __sr.addEventListener('click', ()=>{
+        try{ hapticFeedback(15); }catch(e){}
+        LIVE_SEARCH_ERROR = null;
+        liveMask = '';   // bir xil maska bo'lsa ham qaytadan so'ralsin
+        catalogEl.innerHTML = Array(PAGE_SIZE).fill('<div class="skeleton"></div>').join('');
+        showSearchOverlay();
+        fetchLiveNumbers().finally(()=>{ hideSearchOverlay(); renderCatalog(); });
+      });
     }else{
       catalogEl.innerHTML = `<div class="empty-state">${t("Bunday raqam topilmadi. Boshqa katakchalarni sinab ko'ring.")}</div>`;
     }
@@ -9125,7 +9408,7 @@ window.addEventListener('pageshow', (e)=>{
   document.body.style.right = '';
   document.body.style.width = '';
   if(typeof hideSearchOverlay === 'function') hideSearchOverlay();
-  if(typeof loadNumbers === 'function') loadNumbers();
+  if(typeof raqamlarniYukla === 'function') raqamlarniYukla();
 });
 
 // MIJOZ SO'ROVIGA KO'RA QO'SHILGAN OVOZLI BILDIRISHNOMALAR — uchta
@@ -9206,7 +9489,7 @@ document.getElementById('promoApplyBtn').addEventListener('click', async (e)=>{
     msgEl.className = 'promo-msg ok';
     showToast(`🎉 Sizga ${formatPrice(discount)} chegirma berildi`);
   }catch(err){
-    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.textContent = xatoMatni(err);
     msgEl.className = 'promo-msg bad';
   }
 });
@@ -9932,7 +10215,7 @@ async function openVacancyOverlay(){
       });
     });
   }catch(err){
-    inner.innerHTML = `<div style="color:var(--red);font-size:12.5px;text-align:center;padding:20px 0;">Xato: ${escapeHtml(err.message)}</div>`;
+    inner.innerHTML = `<div style="color:var(--red);font-size:12.5px;text-align:center;padding:20px 0;">${escapeHtml(xatoMatni(err))}</div>`;
   }
 }
 
@@ -10009,7 +10292,7 @@ ${experience ? `📝 Tajriba: ${experience}\n` : ''}🕐 Vaqti: ${time}`;
     document.getElementById('vacancyFormView').style.display = 'none';
     document.getElementById('vacancySuccessView').style.display = 'block';
   }catch(err){
-    errEl.textContent = 'Xato: ' + err.message;
+    errEl.textContent = xatoMatni(err);
     errEl.style.display = 'block';
   }
 
@@ -10245,7 +10528,7 @@ document.getElementById('contractSearchBtn').addEventListener('click', async ()=
       contractResultView.style.display = 'block';
     }
   }catch(err){
-    errEl.textContent = 'Xato: ' + err.message;
+    errEl.textContent = xatoMatni(err);
     errEl.style.display = 'block';
   }
 
@@ -10333,7 +10616,7 @@ function renderContractResult(data){
       window.open(url, '_blank');
       setTimeout(()=> URL.revokeObjectURL(url), 60000);
     }catch(err){
-      if(window.showToast) showToast('Yuklab olishda xato: ' + err.message, 4000, { errorSound: true });
+      if(window.showToast) showToast(xatoMatni(err), 4000, { errorSound: true });
     }
     link.innerHTML = originalText;
   });
@@ -10395,7 +10678,7 @@ document.getElementById('ordersSearchBtn').addEventListener('click', async ()=>{
       ordersResultView.style.display = 'block';
     }
   }catch(err){
-    errEl.textContent = 'Xato: ' + err.message;
+    errEl.textContent = xatoMatni(err);
     errEl.style.display = 'block';
   }
 
@@ -10615,7 +10898,7 @@ document.getElementById('coSubmitBtn').addEventListener('click', async ()=>{
     coStep2.style.display = 'none';
     coSuccessView.style.display = 'block';
   }catch(err){
-    errEl.textContent = 'Xato: ' + err.message;
+    errEl.textContent = xatoMatni(err);
     errEl.style.display = 'block';
   }
 
@@ -11135,13 +11418,33 @@ function getPreloadHolder(){
   }
   return holder;
 }
+/* Mijozning tarifini ayamoqchimiz: "Ma'lumotni tejash" yoqilgan bo'lsa
+   yoki aloqa sekin (2g/3g) bo'lsa, videoni BUTUNLAY yuklab olmaymiz —
+   faqat birinchi kadrini olamiz. Aks holda mijoz RELS'ni ochmasa ham
+   bir necha megabayt trafigi yonib ketardi. */
+function videoPreloadRejimi(){
+  try{
+    const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if(!navigator.onLine) return 'none';
+    if(c){
+      if(c.saveData) return 'none';
+      const t = String(c.effectiveType || '');
+      if(t === 'slow-2g' || t === '2g') return 'none';
+      if(t === '3g') return 'metadata';
+    }
+  }catch(e){}
+  return 'auto';
+}
+
 function warmVideoCache(url){
   if(!url) return;
+  const rejim = videoPreloadRejimi();
+  if(rejim === 'none') return;          // tejamkor rejim — oldindan yuklamaymiz
   const holder = getPreloadHolder();
   if(holder.querySelector(`video[data-warm-url="${CSS.escape(url)}"]`)) return; // allaqachon boshlangan
   const v = document.createElement('video');
   v.dataset.warmUrl = url;
-  v.preload = 'auto';
+  v.preload = rejim;
   v.muted = true;
   v.playsInline = true;
   v.src = url;
@@ -11210,6 +11513,8 @@ window.pauseReelsVideo = function(slideEl){
   const closeBtn = document.getElementById('reelsClose');
   const retryBtnDelegate = track;
   let videos = [];
+  let __testimonialsFailed = false;
+  let __testimonialsXato = null;
   let currentIdx = 0;
 
   async function loadVideoTestimonials(){
@@ -11236,9 +11541,55 @@ window.pauseReelsVideo = function(slideEl){
       // topib bo'lmasdi. Endi kamida konsolga chiqaramiz.
       console.error('loadVideoTestimonials: video_testimonials yuklanmadi:', e);
       videos = [];
+      __testimonialsFailed = true;
+      // Xatoni yuqoriga uzatamiz — avtoQayta() o'zi qayta urinadi.
+      // Shu bilan birga pastdagi "qayta urinish" qatorchasi ham chiqadi,
+      // mijoz kutib o'tirmasdan o'zi ham bosa oladi.
+      __testimonialsXato = e;
     }
 
-    if(videos.length === 0){ section.style.display = 'none'; return; }
+    if(videos.length === 0){
+      // FARQ MUHIM: "video yo'q" bilan "video yuklanmadi" bir xil emas.
+      // Avval ikkalasida ham bo'lim jimgina yo'qolardi va mijoz sharhlar
+      // umuman yo'q deb o'ylardi. Endi xato bo'lsa — qayta urinish beriladi.
+      if(__testimonialsFailed){
+        // MUHIM: section.innerHTML'ni ALMASHTIRMAYMIZ — ichidagi
+        // #testimonialsScroll va boshqa elementlarga JS allaqachon
+        // havola olib qo'ygan. Buzsak, qayta urinish muvaffaqiyatli
+        // bo'lganda videolar chizadigan joy yo'q bo'lib qoladi.
+        // Shuning uchun xabarni YONIGA qo'shamiz, asl tarkibni esa
+        // vaqtincha yashiramiz.
+        section.style.display = 'block';
+        if(scroll) scroll.style.display = 'none';
+        let fail = section.querySelector('.sec-fail');
+        if(!fail){
+          fail = document.createElement('div');
+          fail.className = 'sec-fail';
+          fail.innerHTML =
+            '<span>Mijozlar fikri yuklanmadi</span>' +
+            '<button type="button">Qayta urinish</button>';
+          fail.querySelector('button').addEventListener('click', (ev)=>{
+            const btn = ev.currentTarget;
+            btn.disabled = true; btn.textContent = 'Urinilmoqda...';
+            avtoQayta('video-sharhlar', loadVideoTestimonials);
+          });
+          section.appendChild(fail);
+        }else{
+          const btn = fail.querySelector('button');
+          if(btn){ btn.disabled = false; btn.textContent = 'Qayta urinish'; }
+        }
+        // Xatoni uloqtiramiz — avtoQayta() orqa fonda o'zi qayta urinadi.
+        throw (__testimonialsXato || new Error('video_testimonials bo\'sh'));
+      }
+      section.style.display = 'none';
+      return;
+    }
+    // Muvaffaqiyat — xato xabarini olib tashlaymiz, ro'yxatni qaytaramiz.
+    const __eskiFail = section.querySelector('.sec-fail');
+    if(__eskiFail) __eskiFail.remove();
+    if(scroll) scroll.style.display = '';
+    __testimonialsFailed = false;
+    __testimonialsXato = null;
     // Video ma'lumoti YUKLANIB BO'LGANDA mijoz VIP bo'limida turmagan
     // bo'lishi mumkin (masalan ASOSIY'da) — shu holatda bo'lim ko'rinishi
     // shart emas, VIP'ga qaytganda showAppSection() o'zi to'g'ri ko'rsatadi
@@ -11758,7 +12109,9 @@ window.pauseReelsVideo = function(slideEl){
     return a;
   }
 
+  let __premiumXato = null;
   async function loadPremiumVideos(){
+    __premiumXato = null;
     try{
       const snap = await db.collection('premium_number_videos').orderBy('createdAt', 'desc').limit(3000).get();
       const raw = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -11775,6 +12128,7 @@ window.pauseReelsVideo = function(slideEl){
       // narsa ko'rinmay, "nega ishlamayapti" sababini topib bo'lmasdi.
       console.error('loadPremiumVideos: premium_number_videos yuklanmadi:', e);
       items = [];
+      __premiumXato = e;
     }
 
     // Tasodifiy tartib endi shu yerda, BIR MARTA (sahifa yuklanganda)
@@ -12113,6 +12467,8 @@ window.pauseReelsVideo = function(slideEl){
   });
 
   window.__loadPremiumVideos = loadPremiumVideos;
+  // Xato bo'lgan bo'lsa — avtoQayta() qayta urinishi uchun uni ko'rsatamiz.
+  window.__premiumXatoBor = () => __premiumXato;
 })();
 
 /* ==================================================================
@@ -12160,10 +12516,24 @@ window.pauseReelsVideo = function(slideEl){
   // loadPremiumVideos() NUMBERS to'liq yuklanib bo'lgach (loadNumbers()
   // await qilingandan KEYIN) chaqiriladi — shunda NUMBERS har doim tayyor
   // bo'ladi va hech qanday video sababsiz tushib qolmaydi.
-  try{ if(window.__loadVideoTestimonials) window.__loadVideoTestimonials(); }catch(e){ console.error('init: video testimonials xato:', e); }
+  // Video bo'limlari ham o'zini o'zi tiklaydi: yuklanmasa, orqa fonda
+  // qayta urinib turadi va aloqa tiklanganda darhol o'zi chiqadi.
+  try{
+    avtoQayta('video-sharhlar', async () => {
+      if(!window.__loadVideoTestimonials) return;
+      await window.__loadVideoTestimonials();
+    });
+  }catch(e){ console.error('init: video testimonials xato:', e); }
 
-  try{ await loadNumbers(); }catch(e){ console.error('init: loadNumbers xato:', e); }
-  try{ if(window.__loadPremiumVideos) window.__loadPremiumVideos(); }catch(e){ console.error('init: premium videos xato:', e); }
+  try{ await raqamlarniYukla(); }catch(e){ console.error('init: loadNumbers xato:', e); }
+  try{
+    avtoQayta('premium-videolar', async () => {
+      if(!window.__loadPremiumVideos) return;
+      await window.__loadPremiumVideos();
+      const x = window.__premiumXatoBor && window.__premiumXatoBor();
+      if(x) throw x;                      // qayta urinilsin
+    });
+  }catch(e){ console.error('init: premium videos xato:', e); }
   try{ initNewNumberWatcher(); }catch(e){ console.error('init: initNewNumberWatcher xato:', e); }
   try{ initDailyDealWatcher(); }catch(e){ console.error('init: initDailyDealWatcher xato:', e); }
   try{ renderCatalog(); }catch(e){ console.error('init: renderCatalog xato:', e); }
@@ -12182,7 +12552,7 @@ setTimeout(()=>{
     if(catalogEl && catalogEl.querySelector('.skeleton')){
       console.warn('Watchdog: katalog hali ham skeleton holatida — majburan qayta chizilmoqda.');
       renderCatalog();
-      if(!numbersLoaded) loadNumbers();
+      if(!numbersLoaded) raqamlarniYukla();
     }
   }catch(e){ console.error('Watchdog xato:', e); }
 }, 5000);
