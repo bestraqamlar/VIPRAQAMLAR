@@ -147,24 +147,19 @@
     var loader = document.getElementById('lyuksLoader');
     if(loader) loader.style.display = 'none';
   }
-  // MIJOZ ILTIMOSIGA KO'RA — MUHIM XAVFSIZLIK QATLAMI: avval bu yerda
-  // (birinchi tashrifda) 4 SONIYAGACHA sahifa "visibility:hidden" holida
-  // qotib turishi mumkin edi — sekin internetda yoki ba'zi telefonlarda
-  // (masalan iPhone) bu HAQIQIY, uzoq "qotib qolish" his qildirardi va
-  // mijoz sahifaga umuman kira olmayotgandek ko'rinardi. Endi, nima
-  // bo'lishidan qat'iy nazar (Firestore javob bermasa ham, xato
-  // chiqsa ham, shrift API ishlamasa ham) sahifa ESKI 4000ms EMAS,
-  // ENG KO'PI BILAN ~1.2 soniyadan keyin albatta ko'rinadigan bo'ladi —
-  // valyuta (USD/UZS) almashtirilganda sahifa qayta yuklanganda ham
-  // (bu ham xuddi shu "birinchi ochilish" yo'lidan o'tadi) shu qoida
-  // amal qiladi.
+  // ESLATMA: avval shu yerda localStorage'ga saqlangan rang-dizayn keshi
+  // (raqamuz_theme_v1) o'qilib, sahifa chizilmasdan turib qo'llanardi.
+  // Bu BUTUNLAY OLIB TASHLANDI — chunki mijozlarning turli qurilma/
+  // brauzerlarida ESKI yoki boshqa-boshqa kesh qolib ketib, sayt har safar
+  // TURLI rangda yoki "eski" ko'rinishda ochilib qolardi (keshga
+  // bog'liqlik — aynan shikoyat qilingan muammo). Endi sayt doim BITTA
+  // qattiq (hardcoded) zamonaviy dizaynda, hech qanday keshga yoki
+  // tarmoq holatiga bog'liq bo'lmay ochiladi. MUHIM XAVFSIZLIK QATLAMI
+  // saqlab qolindi: nima bo'lishidan qat'iy nazar sahifa uzoq vaqt
+  // "visibility:hidden" holida qotib qolmaydi — eng ko'pi bilan ~1.2
+  // soniyadan keyin albatta ko'rinadigan bo'ladi.
   var __hardFailsafe = setTimeout(showNow, 1200);
   function reveal(){
-    // Rang tayyor bo'ldi — endi shirft (Sora, yoki tanlangan boshqa shirft)
-    // to'liq yuklanishini ham kutamiz, shundan keyingina sahifani ko'rsatamiz.
-    // Shunda "kichik/standart shirft birinchi, keyin almashadi" holati ham
-    // umuman ko'rinmaydi. Lekin yuqoridagi __hardFailsafe baribir eng
-    // yakuniy kafolat bo'lib qoladi.
     if(document.fonts && document.fonts.ready){
       try{ document.fonts.load("800 16px Sora"); }catch(e){}
       document.fonts.ready.then(showNow).catch(showNow);
@@ -174,48 +169,7 @@
     }
   }
   window.__revealSite = reveal;
-  try{
-    var raw = localStorage.getItem('raqamuz_theme_v1');
-    if(!raw){
-      // Kesh yo'q — bu birinchi tashrif. Firebase'dan haqiqiy rang-dizayn
-      // kelishini BIROZ kutamiz — lekin ENDI UZOQ EMAS (avval 4000ms edi,
-      // bu haqiqiy "qotib qolish" hissi berardi). Real rang Firestore'dan
-      // kelgunga qadar standart (odatiy ko'rinishdagi) rang bilan
-      // ko'rsatib turish, uzoq vaqt HECH NARSA ko'rsatmaslikdan ANCHA
-      // yaxshi — shu sabab endi atigi 600ms kutiladi, undan keyin
-      // standart ko'rinish bilan sahifa albatta ochiladi (rang keyin,
-      // Firestore javob berganda, silliq almashadi).
-      setTimeout(reveal, 600);
-      return;
-    }
-    var t = JSON.parse(raw);
-    var root = document.documentElement.style;
-    var map = {
-      bg:'--bg', pageBg:'--page-bg', panel:'--panel', panel2:'--panel-2', line:'--line',
-      amber:'--amber', amberSoft:'--amber-soft', green:'--green', red:'--red',
-      brandRed:'--brand-red', text:'--text', muted:'--muted',
-      btnBg:'--btn-bg', btnText:'--btn-text', btnBorderWidth:'--btn-border-width',
-      btnBorderColor:'--btn-border-color', btnRadius:'--btn-radius', cardRadius:'--card-radius',
-      scmBg:'--scm-bg', scmDigitBg:'--scm-digit-bg', scmDigitBorder:'--scm-digit-border',
-      scmDigitText:'--scm-digit-text', scmDigitPlaceholder:'--scm-digit-placeholder'
-    };
-    Object.keys(map).forEach(function(k){ if(t[k]) root.setProperty(map[k], t[k]); });
-    // Kartochka/modal tepasidagi oqib turuvchi chiziq ham (applyTheme()
-    // bilan bir xil mantiq) mavzuning o'z amber/green rangidan olinadi —
-    // shu bilan sahifa ochilishi bilanoq (Firestore javobini kutmasdan)
-    // to'g'ri, mavzuga mos rangda ko'rinadi.
-    if(t.amber) root.setProperty('--accent-grad-1', t.amber);
-    if(t.green) root.setProperty('--accent-grad-2', t.green);
-    if(t.themeKey === 'lyuks_premium') document.documentElement.classList.add('lyuks-mode');
-    if(t.themeKey === 'premium_purple') document.documentElement.classList.add('theme-purple-premium');
-    if(t.font){
-      root.setProperty('--font-main', "'" + t.font + "', 'Sora', sans-serif");
-      document.documentElement.setAttribute('data-custom-font', '1');
-    }
-    if(t.catalogStyle) window.__cachedCatalogStyle = t.catalogStyle;
-    if(t.hideOrderButton) window.__cachedHideOrderBtn = true;
-    reveal();
-  }catch(e){ reveal(); }
+  reveal();
 })();
 </script>
 <style>
@@ -228,10 +182,8 @@
     /* --page-bg — FAQAT sahifaning umumiy fon rangi (kartochkalar ORQASIDA
        turgan bo'sh joy). --bg'dan ATAYLAB ajratilgan: --bg tugmalar/nishonlar
        ustidagi YOZUV rangi sifatida ham ishlatiladi (masalan amber tugma
-       ustidagi matn), shu sabab admin panelda orqa fon rangini o'zgartirsa,
-       o'sha yozuvlar KO'RINMAY qolmasligi kerak. Standart holatda --bg bilan
-       bir xil (pastda applyTheme() da ham shunday sinxronlanadi), lekin
-       admin "Sayt orqa foni" dan alohida rang tanlasa, FAQAT shu o'zgaradi. */
+       ustidagi matn). Standart holatda --bg bilan bir xil, qattiq
+       (hardcoded) belgilangan — admin panelda o'zgartirib bo'lmaydi. */
     --page-bg: var(--bg);
     --panel: #121B2E;
     --panel-2: #17223A;
@@ -281,11 +233,9 @@
        BALANDROQ, alohida o'zgaruvchida, shu bilan faqat katakchalar
        cho'ziladi, boshqa tugmalar balandligi o'zgarmaydi. */
     --digit-box-h: calc(var(--search-row-h) + 9px);
-    /* Qidiruv kartochkasining o'ng (oq) maydoni foni — mijoz iltimosiga
-       ko'ra admin panelda 10 xil zamonaviy TO'Q rangdan birini tanlashi
-       mumkin (qarang: SEARCH_CARD_BG_PRESETS, panel-boshqaruv.html'dagi
-       "Qidiruv kartochkasi foni" bo'limi). Standart holatda avvalgi
-       och/pastel gradient. */
+    /* Qidiruv kartochkasining o'ng (oq) maydoni foni — doimiy, qattiq
+       belgilangan och/pastel gradient (admin panelda o'zgartirib
+       bo'lmaydi, shu bilan sayt har doim bir xil ko'rinishda ochiladi). */
     --scm-bg: linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);
     --scm-digit-bg: rgba(10,30,70,0.06);
     --scm-digit-border: rgba(20,45,110,0.22);
@@ -305,9 +255,6 @@
   }
   @media (min-width:1024px){
     :root{ --search-row-h:58px; --digit-box-w:52px; }
-  }
-  html[data-custom-font] *{
-    font-family: var(--font-main) !important;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   /* iOS Safari'da modal/overlay yopilganda yoki ekran orqaga
@@ -6317,7 +6264,7 @@ function buildCardInnerHtml(style, item, hasDiscount, discountPct, rank){
           ${installmentHtml}
           ${item.reserved
             ? `<button class="order-btn reserved-btn" disabled>${t('Bu raqamni boshqa inson bron qilish jarayonida')}</button>`
-            : (hideOrderButtonSetting ? '' : orderButtonHtml(item, `${CART_ICON_SVG}${t('Buyurtma berish')}`, ''))}
+            : orderButtonHtml(item, `${CART_ICON_SVG}${t('Buyurtma berish')}`, '')}
         </div>`;
   }
 }
@@ -6637,7 +6584,7 @@ function renderCatalog(){
       else card.insertAdjacentHTML('afterbegin', badge);
     }
 
-    const isRowClickStyle = NO_BUTTON_STYLES.includes(style) || (style === 'classic' && hideOrderButtonSetting);
+    const isRowClickStyle = NO_BUTTON_STYLES.includes(style);
     // Mijoz iltimosiga ko'ra jonli (operatordan kelgan) raqamlar ham endi
     // to'liq buyurtma beriladigan bo'lgani sabab, qator-bosiladigan
     // uslublarda ham ular boshqalar kabi bosiladigan bo'lishi kerak.
@@ -7053,7 +7000,7 @@ function renderAsosiyPremium(){
         else card.insertAdjacentHTML('afterbegin', badge);
       }
 
-      const isRowClickStyle = NO_BUTTON_STYLES.includes(style) || (style === 'classic' && hideOrderButtonSetting);
+      const isRowClickStyle = NO_BUTTON_STYLES.includes(style);
       if(isRowClickStyle && !item.reserved){
         card.classList.add('clickable-card');
         card.addEventListener('click', ()=> openModal(item.number, item.id));
@@ -10909,169 +10856,17 @@ document.getElementById('coCloseSuccess').addEventListener('click', ()=> customO
 
 
 
-/* Qidiruv kartochkasining (.sc-main, raqam katakchalari turgan o'ng
-   maydon) o'zining FONI uchun 20 ta tayyor rang (10 ta to'q + 10 ta
-   ochroq, ARALASH) — admin panelning "Mavzu" bo'limida, umumiy sayt
-   mavzusidan MUSTAQIL ravishda tanlanadi (qarang: panel-boshqaruv.html'
-   dagi bir xil nomdagi ro'yxat — ikkalasi HAR DOIM bir xil bo'lishi
-   kerak). Mijoz iltimosiga ko'ra: 7 ta raqam katakchasining FONI endi
-   ORQADAGI KARTA FONI BILAN BIR XIL (digitBg:'transparent' — karta fonini
-   o'zi "ko'rinib" turadi, alohida oq quti YO'Q), faqat ICHIDAGI "X"
-   belgisi va yozilgan raqam (digitText) O'QILADIGAN rangda (to'q fonda
-   OQ, och/pastel fonda TO'Q) — ya'ni "teskari": kontrast endi quti fonida
-   emas, faqat matnda, chegara (digitBorder) esa katakchani bilintirib
-   turadi. */
-const SEARCH_CARD_BG_PRESETS = {
-  // ---- 10 ta TO'Q variant ----
-  midnight_navy:  { name: 'Tungi ko\'k',       grad: 'linear-gradient(160deg, #0B1830 0%, #16294A 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  deep_slate:     { name: 'Grafit kulrang',     grad: 'linear-gradient(160deg, #12181F 0%, #232C38 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  royal_indigo:   { name: 'Qirollik binafsha',  grad: 'linear-gradient(160deg, #150F35 0%, #2C1F63 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  emerald_dusk:   { name: 'Zumrad yashil',      grad: 'linear-gradient(160deg, #08211B 0%, #123B2E 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  wine_dark:      { name: 'Vino qizil',         grad: 'linear-gradient(160deg, #250B18 0%, #421530 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  charcoal_gold:  { name: 'Ko\'mir-oltin',      grad: 'linear-gradient(160deg, #171410 0%, #2B2419 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  metal_graphite: { name: 'Metall kulrang',     grad: 'linear-gradient(160deg, #14171C 0%, #262C35 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  deep_teal:      { name: 'Chuqur dengiz',      grad: 'linear-gradient(160deg, #06201F 0%, #0E3A38 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  plum_night:     { name: 'Shafaq binafsha',    grad: 'linear-gradient(160deg, #1B0E2A 0%, #3A1E52 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  obsidian_blue:  { name: 'Qora zangori',       grad: 'linear-gradient(160deg, #0A0F1C 0%, #1B2740 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  // ---- YANA 5 ta TO'Q variant ----
-  ember_dark:     { name: 'Cho\'g\' (to\'q)',   grad: 'linear-gradient(160deg, #2A0F06 0%, #4A1B0A 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  forest_dark:    { name: 'O\'rmon (to\'q)',    grad: 'linear-gradient(160deg, #08210F 0%, #163A20 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  steel_dark:     { name: 'Po\'lat (to\'q)',    grad: 'linear-gradient(160deg, #101820 0%, #1F2E3D 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  rose_dark:      { name: 'Atirgul (to\'q)',    grad: 'linear-gradient(160deg, #240C1B 0%, #401530 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  amber_dark:     { name: 'Amber-bronza',       grad: 'linear-gradient(160deg, #1F1608 0%, #3A2A0E 100%)', digitBg: 'transparent', digitBorder: 'rgba(255,255,255,0.4)' },
-  // ---- 5 ta OCH (pastel) variant — bu yerda matn/X TO'Q rangda bo'lishi
-  // kerak (light:true), aks holda och fonda oq yozuv o'qilmay qolardi ----
-  soft_sky:       { name: 'Moviy osmon (och)',  grad: 'linear-gradient(160deg, #DCEAFE 0%, #B9D4FB 100%)', digitBg: 'transparent', digitBorder: 'rgba(29,78,216,0.45)', light: true },
-  soft_mint:      { name: 'Yalpiz (och)',       grad: 'linear-gradient(160deg, #DFF7EC 0%, #B9EDD1 100%)', digitBg: 'transparent', digitBorder: 'rgba(16,140,90,0.45)', light: true },
-  soft_lavender:  { name: 'Lavanda (och)',      grad: 'linear-gradient(160deg, #EDE7FB 0%, #D3C4F5 100%)', digitBg: 'transparent', digitBorder: 'rgba(110,70,200,0.45)', light: true },
-  soft_peach:     { name: 'Shaftoli (och)',     grad: 'linear-gradient(160deg, #FDEEE0 0%, #FBD3B0 100%)', digitBg: 'transparent', digitBorder: 'rgba(200,110,30,0.45)', light: true },
-  soft_rose:      { name: 'Atirgul (och)',      grad: 'linear-gradient(160deg, #FCE7EF 0%, #F7C0D3 100%)', digitBg: 'transparent', digitBorder: 'rgba(200,50,110,0.45)', light: true }
-};
-
-/* 10 ta tayyor rang mavzusi — admin panelidan tanlanadi */
-const SITE_THEMES = {
-  premium_navy:   { bg:'#0A1628', panel:'#101F38', panel2:'#152A47', line:'#1C2E4A', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.15)', green:'#33E28C', red:'#D4AF37', brandRed:'#D4AF37', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'8px', cardRadius:'12px' },
-  clean_white:    { bg:'#04010E', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#D5DEEE', amber:'#1D4ED8', amberSoft:'rgba(29,78,216,0.10)', green:'#1FA97F', red:'#1D4ED8', brandRed:'#1D4ED8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1D4ED8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'18px' },
-  modern_saas:    { bg:'#0D1B33', panel:'#132A4D', panel2:'#183A63', line:'#1C3050', amber:'#4A90D9', amberSoft:'rgba(74,144,217,0.15)', green:'#7FE7C4', red:'#4A90D9', brandRed:'#4A90D9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4A90D9', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  bold_editorial: { bg:'#0A1220', panel:'#0A1220', panel2:'#111A2C', line:'#FFFFFF', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.12)', green:'#7FE7C4', red:'#FFFFFF', brandRed:'#FFFFFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#FFFFFF', btnText:'#0A1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'0px', cardRadius:'0px' },
-  soft_glass:     { bg:'#0B1220', panel:'rgba(255,255,255,0.06)', panel2:'rgba(255,255,255,0.09)', line:'rgba(255,255,255,0.15)', amber:'#7FA8E0', amberSoft:'rgba(127,168,224,0.15)', green:'#7FE7C4', red:'#7FA8E0', brandRed:'#7FA8E0', text:'#FFFFFF', muted:'#B8CBE8', btnBg:'#FFFFFF', btnText:'#0B1220', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  warm_gold:      { bg:'#0F2547', panel:'#132C50', panel2:'#183761', line:'#C9A44E', amber:'#C9A44E', amberSoft:'rgba(201,164,78,0.15)', green:'#7FD99A', red:'#C9A44E', brandRed:'#C9A44E', text:'#FFFFFF', muted:'#9FB3CC', btnBg:'#C9A44E', btnText:'#0F2547', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'6px', cardRadius:'8px' },
-  midnight_blue: { bg:'#081625', panel:'#132A4A', panel2:'#132A4A', line:'#214A82', amber:'#214A82', amberSoft:'rgba(33,74,130,0.2)', green:'#4AF2A1', red:'#FF5C5C', brandRed:'#214A82', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#4D9FFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  royal_blue:    { bg:'#091A2E', panel:'#173D73', panel2:'#173D73', line:'#2C5FA8', amber:'#2C5FA8', amberSoft:'rgba(44,95,168,0.2)', green:'#56F2AE', red:'#FF5C5C', brandRed:'#2C5FA8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5BA7FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  navy_cyan:     { bg:'#07141F', panel:'#12334A', panel2:'#12334A', line:'#2E89B8', amber:'#2E89B8', amberSoft:'rgba(46,137,184,0.2)', green:'#63F5C8', red:'#FF5C5C', brandRed:'#2E89B8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#30B6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  indigo:        { bg:'#0A1028', panel:'#243C7D', panel2:'#243C7D', line:'#4966D8', amber:'#4966D8', amberSoft:'rgba(73,102,216,0.2)', green:'#5AF0B8', red:'#FF5C5C', brandRed:'#4966D8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#6EA6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  dark_purple:   { bg:'#100B24', panel:'#3D2568', panel2:'#3D2568', line:'#7A56D8', amber:'#7A56D8', amberSoft:'rgba(122,86,216,0.2)', green:'#59F5B2', red:'#FF5C5C', brandRed:'#7A56D8', text:'#FFFFFF', muted:'#B0A0D0', btnBg:'#679EFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  premium_black: { bg:'#090909', panel:'#1A1A1A', panel2:'#1A1A1A', line:'#3A3A3A', amber:'#8A8A8A', amberSoft:'rgba(138,138,138,0.2)', green:'#49E89D', red:'#FF5C5C', brandRed:'#3A8DFF', text:'#FFFFFF', muted:'#9A9A9A', btnBg:'#3A8DFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  graphite:      { bg:'#121417', panel:'#20262E', panel2:'#20262E', line:'#3C4C5A', amber:'#7A93A6', amberSoft:'rgba(122,147,166,0.2)', green:'#58F3AA', red:'#FF5C5C', brandRed:'#5AA2FF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5AA2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  ocean:         { bg:'#051B2F', panel:'#0E4167', panel2:'#0E4167', line:'#2F78A9', amber:'#2F78A9', amberSoft:'rgba(47,120,169,0.2)', green:'#4DF4B8', red:'#FF5C5C', brandRed:'#2F78A9', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#3FAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  emerald_blue:  { bg:'#081A21', panel:'#103F52', panel2:'#103F52', line:'#1D708C', amber:'#1D708C', amberSoft:'rgba(29,112,140,0.2)', green:'#49F0A5', red:'#FF5C5C', brandRed:'#1D708C', text:'#FFFFFF', muted:'#8FB0BC', btnBg:'#55AFFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  steel_blue:    { bg:'#0B1621', panel:'#20384F', panel2:'#20384F', line:'#48657D', amber:'#48657D', amberSoft:'rgba(72,101,125,0.2)', green:'#60F0B2', red:'#FF5C5C', brandRed:'#48657D', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#69AEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  sapphire:      { bg:'#061321', panel:'#1D3560', panel2:'#1D3560', line:'#386AC8', amber:'#386AC8', amberSoft:'rgba(56,106,200,0.2)', green:'#5AF5B5', red:'#FF5C5C', brandRed:'#386AC8', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#6AAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  arctic:        { bg:'#081B29', panel:'#23455F', panel2:'#23455F', line:'#4A88A6', amber:'#4A88A6', amberSoft:'rgba(74,136,166,0.2)', green:'#62F7BE', red:'#FF5C5C', brandRed:'#4A88A6', text:'#FFFFFF', muted:'#8FB4BC', btnBg:'#71C2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  neon_blue:     { bg:'#08111F', panel:'#162E58', panel2:'#162E58', line:'#3D7EFF', amber:'#3D7EFF', amberSoft:'rgba(61,126,255,0.2)', green:'#52F5C0', red:'#FF5C5C', brandRed:'#3D7EFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#56A8FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  dark_cyan:     { bg:'#071B1D', panel:'#18454A', panel2:'#18454A', line:'#31838E', amber:'#31838E', amberSoft:'rgba(49,131,142,0.2)', green:'#58F5AE', red:'#FF5C5C', brandRed:'#31838E', text:'#FFFFFF', muted:'#8FBCBC', btnBg:'#47B4FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  slate:         { bg:'#10151C', panel:'#283546', panel2:'#283546', line:'#4C6178', amber:'#4C6178', amberSoft:'rgba(76,97,120,0.2)', green:'#67F0A8', red:'#FF5C5C', brandRed:'#4C6178', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#6EB2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  blue_violet:   { bg:'#0E132A', panel:'#34418A', panel2:'#34418A', line:'#6A74D8', amber:'#6A74D8', amberSoft:'rgba(106,116,216,0.2)', green:'#58F5AF', red:'#FF5C5C', brandRed:'#6A74D8', text:'#FFFFFF', muted:'#A0A8D0', btnBg:'#79AEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  petrol:        { bg:'#07151B', panel:'#184153', panel2:'#184153', line:'#3A748B', amber:'#3A748B', amberSoft:'rgba(58,116,139,0.2)', green:'#4DF5AF', red:'#FF5C5C', brandRed:'#3A748B', text:'#FFFFFF', muted:'#8FB0BC', btnBg:'#56AFFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  dark_aqua:     { bg:'#061B20', panel:'#1C4E59', panel2:'#1C4E59', line:'#3A93A7', amber:'#3A93A7', amberSoft:'rgba(58,147,167,0.2)', green:'#58F5C5', red:'#FF5C5C', brandRed:'#3A93A7', text:'#FFFFFF', muted:'#8FBCC4', btnBg:'#69C2FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  night_sky:     { bg:'#060C18', panel:'#132B45', panel2:'#132B45', line:'#2F5C9C', amber:'#2F5C9C', amberSoft:'rgba(47,92,156,0.2)', green:'#5AF5A9', red:'#FF5C5C', brandRed:'#2F5C9C', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5DA6FF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  ultra_luxury:  { bg:'#071320', panel:'#17375F', panel2:'#17375F', line:'#2F6FC2', amber:'#FFD56A', amberSoft:'rgba(255,213,106,0.2)', green:'#55F2B0', red:'#FF5C5C', brandRed:'#5DAEFF', text:'#FFFFFF', muted:'#8FA0BC', btnBg:'#5AAEFF', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  white_lightblue:{ bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#38BDF8', amberSoft:'rgba(56,189,248,0.12)', green:'#1FA97F', red:'#38BDF8', brandRed:'#38BDF8', text:'#0B1F3A', muted:'#6B7688', btnBg:'#38BDF8', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_green:    { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0EFE6', amber:'#16A34A', amberSoft:'rgba(22,163,74,0.12)', green:'#16A34A', red:'#16A34A', brandRed:'#16A34A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#16A34A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_red:      { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F3DCDC', amber:'#DC2626', amberSoft:'rgba(220,38,38,0.10)', green:'#1FA97F', red:'#DC2626', brandRed:'#DC2626', text:'#0B1F3A', muted:'#6B7688', btnBg:'#DC2626', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_navy:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#E0E7F0', amber:'#1E3A8A', amberSoft:'rgba(30,58,138,0.10)', green:'#1FA97F', red:'#1E3A8A', brandRed:'#1E3A8A', text:'#0B1F3A', muted:'#6B7688', btnBg:'#1E3A8A', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  black_red:      { bg:'#0A0A0A', panel:'#1A1A1A', panel2:'#1A1A1A', line:'#3A1414', amber:'#FF3B3B', amberSoft:'rgba(255,59,59,0.2)', green:'#33E28C', red:'#FF3B3B', brandRed:'#FF3B3B', text:'#FFFFFF', muted:'#B08A8A', btnBg:'#FF3B3B', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'10px', cardRadius:'14px' },
-  white_gold:     { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#EDE4CC', amber:'#CA8A04', amberSoft:'rgba(202,138,4,0.12)', green:'#1FA97F', red:'#CA8A04', brandRed:'#CA8A04', text:'#0B1F3A', muted:'#6B7688', btnBg:'#CA8A04', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  white_maroon:   { bg:'#E7EBF3', panel:'#FFFFFF', panel2:'#FFFFFF', line:'#F0DCDC', amber:'#7F1D1D', amberSoft:'rgba(127,29,29,0.10)', green:'#1FA97F', red:'#7F1D1D', brandRed:'#7F1D1D', text:'#0B1F3A', muted:'#6B7688', btnBg:'#7F1D1D', btnText:'#FFFFFF', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'8px', cardRadius:'12px' },
-  lyuks_premium:  { bg:'#0A0806', panel:'#15120D', panel2:'#1C1811', line:'#3A3123', amber:'#D4AF37', amberSoft:'rgba(212,175,55,0.14)', green:'#B8935A', red:'#D4AF37', brandRed:'#D4AF37', text:'#F3EEE3', muted:'#9C9280', btnBg:'transparent', btnText:'#D4AF37', btnBorderWidth:'1.5px', btnBorderColor:'#D4AF37', btnRadius:'2px', cardRadius:'2px' },
-  // "Premium Binafsha" — animatsiyali gradient fon + oq "plastinka" uslubidagi
-  // raqam belgisi (applyTheme() pastda 'theme-purple-premium' klassini
-  // qo'shadi, maxsus CSS shu klass ostida ishlaydi).
-  premium_purple: { bg:'#1A0B36', panel:'#3A2E78', panel2:'#463890', line:'rgba(255,255,255,0.22)', amber:'#FFFFFF', amberSoft:'rgba(255,255,255,0.14)', green:'#7FE7C4', red:'#FF8FD6', brandRed:'#FF8FD6', text:'#FFFFFF', muted:'#DCD3F5', btnBg:'#FFFFFF', btnText:'#1A0B36', btnBorderWidth:'0px', btnBorderColor:'transparent', btnRadius:'12px', cardRadius:'18px' }
-};
-
-// Berilgan fon rangiga qarab har doim o'qiladigan (qora yoki oq) matn
-// rangini hisoblaydi — mavzu yozuvchisi qaysi ranglarni tanlamasin, yoki
-// admin sayt foniga alohida rang qo'ysa ham, ustiga chiqadigan matn hech
-// qachon fon bilan "qorishib" ko'rinmay qolmaydi.
-window.__readableOn = function(hex){
-  const c = String(hex || '').trim().replace('#', '');
-  if(c.length !== 6 || /[^0-9a-fA-F]/.test(c)) return '#FFFFFF';
-  const r = parseInt(c.slice(0,2),16)/255, g = parseInt(c.slice(2,4),16)/255, b = parseInt(c.slice(4,6),16)/255;
-  const lum = 0.2126*r + 0.7152*g + 0.0722*b;
-  return lum > 0.55 ? '#0A0F1C' : '#FFFFFF';
-};
-
-function applyTheme(themeKey){
-  const t = SITE_THEMES[themeKey];
-  if(!t) return;
-  const root = document.documentElement.style;
-  root.setProperty('--bg', t.bg);
-  // Mavzu almashganda sahifa foni ham mavzuning o'z rangiga qaytadi —
-  // agar admin alohida "Sayt orqa foni" tanlagan bo'lsa, pastda
-  // loadSiteSettings() bu qiymatni ustiga bosib qo'yadi (applyTheme'dan
-  // KEYIN chaqiriladi), shu bilan tanlangan orqa fon ustunlik saqlaydi.
-  root.setProperty('--page-bg', t.bg);
-  root.setProperty('--panel', t.panel);
-  root.setProperty('--panel-2', t.panel2);
-  root.setProperty('--line', t.line);
-  root.setProperty('--amber', t.amber);
-  root.setProperty('--amber-soft', t.amberSoft);
-  root.setProperty('--green', t.green);
-  root.setProperty('--red', t.red);
-  root.setProperty('--brand-red', t.brandRed);
-  root.setProperty('--text', t.text);
-  root.setProperty('--muted', t.muted);
-  root.setProperty('--btn-bg', t.btnBg);
-  root.setProperty('--btn-text', t.btnText);
-  root.setProperty('--btn-border-width', t.btnBorderWidth);
-  root.setProperty('--btn-border-color', t.btnBorderColor);
-  root.setProperty('--btn-radius', t.btnRadius);
-  root.setProperty('--card-radius', t.cardRadius);
-  // Kartochka va modal tepasidagi oqib turuvchi rangli chiziq ham endi
-  // TANLANGAN mavzuning o'z ikki asosiy rangidan (amber + green) foydalanadi
-  // — avval har doim binafsha-pushti bo'lib qolardi, mavzu qanday
-  // o'zgarmasin. Shu bilan har bir premium mavzu chindan ham o'ziga xos
-  // "animatsiya" olib, birbiridan farqlanadi.
-  root.setProperty('--accent-grad-1', t.amber);
-  root.setProperty('--accent-grad-2', t.green);
-
-  // Raqam katakchasi (--panel foni ustida) va "VIP" yozuvi (--page-bg
-  // foni ustida) uchun kafolatlangan o'qiladigan matn rangi.
-  root.setProperty('--digit-text', window.__readableOn(t.panel));
-  root.setProperty('--page-text', window.__readableOn(t.bg));
-
-  // "Lyuks Premium" mavzusi tanlanganda — butun sayt bo'ylab sekinroq,
-  // nafisroq animatsiya rejimiga o'tamiz (oddiy "sakraydigan" his emas).
-  document.documentElement.classList.toggle('lyuks-mode', themeKey === 'lyuks_premium');
-
-  // "Premium Binafsha" mavzusi — animatsiyali gradient fon va oq
-  // "plastinka" uslubidagi raqam belgisini yoqadi (CSS'da shu klass ostida).
-  document.documentElement.classList.toggle('theme-purple-premium', themeKey === 'premium_purple');
-}
-
-/* ---- Sayt bo'ylab yozuvlar shirftini (font) o'zgartirish ---- */
-function applyFont(fontName){
-  if(!fontName){
-    document.documentElement.removeAttribute('data-custom-font');
-    return;
-  }
-  const linkId = 'custom-font-link';
-  if(!document.getElementById(linkId)){
-    const link = document.createElement('link');
-    link.id = linkId;
-    link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName).replace(/%20/g,'+') + ':wght@400;500;600;700;800&display=swap';
-    document.head.appendChild(link);
-  }else{
-    document.getElementById(linkId).href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName).replace(/%20/g,'+') + ':wght@400;500;600;700;800&display=swap';
-  }
-  document.documentElement.style.setProperty('--font-main', `'${fontName}', 'Sora', sans-serif`);
-  document.documentElement.setAttribute('data-custom-font', '1');
-}
-
-let hideOrderButtonSetting = !!window.__cachedHideOrderBtn;
-let currentCatalogStyle = window.__cachedCatalogStyle || 'classic';
+/* ESLATMA: avval shu yerda mijoz saytining rang mavzusi (SITE_THEMES),
+   qidiruv kartochkasi foni (SEARCH_CARD_BG_PRESETS), orqa fon rangi
+   (siteBgColor) va shirft (font) tanlash tizimi bo'lgan — bularning
+   HAMMASI BUTUNLAY OLIB TASHLANDI. Sabab: bu sozlamalar Firestore'dan
+   ASYNC o'qilib, keyin localStorage'ga keshlanar va keyingi tashrifda
+   o'sha keshdan qo'llanardi — natijada turli qurilma/brauzerlarda ESKI
+   yoki har xil kesh qolib, sayt har safar BOSHQA-BOSHQA rangda yoki
+   "eski" ko'rinishda ochilib qolardi. Endi sayt doim BITTA qattiq
+   (hardcoded) zamonaviy dizaynda ochiladi — hech qanday keshga yoki
+   tarmoq holatiga bog'liq emas. */
+let currentCatalogStyle = 'classic';
 let installmentRates = { 6: 5, 12: 10, 24: 20, 36: 30 }; // standart foizlar — admin panelda o'zgartiriladi, mijozga ko'rinmaydi
 
 async function loadSiteSettings(retryDelay){
@@ -11087,48 +10882,6 @@ async function loadSiteSettings(retryDelay){
         36: Number(s.installmentRates[36]) || 0
       };
     }
-    if(s.theme) applyTheme(s.theme);
-    // Sayt orqa foni — mavzudan MUSTAQIL, admin panelda 30 tayyor rangdan
-    // birini tanlashi mumkin. MUHIM: bu FAQAT --page-bg'ni o'zgartiradi,
-    // --bg'ga TEGMAYDI — --bg amber tugmalar/nishonlar ustidagi YOZUV
-    // rangi sifatida ham ishlatiladi, agar shuni ham o'zgartirsak, o'sha
-    // yozuvlar (masalan tugma ichidagi harflar) ko'rinmay qolar edi.
-    // applyTheme()'dan KEYIN qo'yiladi — shunda mavzuning o'z bg qiymatini
-    // ustiga bosib, doim ustunlik qiladi.
-    if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){
-      document.documentElement.style.setProperty('--page-bg', s.siteBgColor);
-      // Fon rangi mavzudan mustaqil o'zgargani uchun, ustidagi matn
-      // ("VIP" va sh.k.) ham SHU YANGI fonga qarab qayta hisoblanadi —
-      // aks holda mavzuning eski --page-text qiymati yangi fon bilan
-      // qorishib ko'rinmay qolishi mumkin edi.
-      if(window.__readableOn){
-        document.documentElement.style.setProperty('--page-text', window.__readableOn(s.siteBgColor));
-      }
-    }
-    // Qidiruv kartochkasi (.sc-main) foni — sayt mavzusidan MUSTAQIL,
-    // admin panelning "Mavzu" bo'limida 10 ta zamonaviy to'q rangdan
-    // birini tanlaydi (yoki bo'sh qoldirsa avvalgi och/pastel fon qoladi).
-    if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){
-      const scp = SEARCH_CARD_BG_PRESETS[s.searchCardBg];
-      document.documentElement.style.setProperty('--scm-bg', scp.grad);
-      // Katakcha foni endi TO'LIQ shaffof emas — kartaning o'z foniga
-      // nisbatan OZGINA farqli (kontrastli) tus beriladi: fon TO'Q bo'lsa
-      // katak ozgina OCHROQ (oq overlay), fon OCH bo'lsa katak ozgina
-      // TO'QROQ (qora overlay) — shu bilan har bir katak ko'zga alohida
-      // ko'rinadi, lekin hali ham kartaga mos, "yopishib" ketmaydi.
-      document.documentElement.style.setProperty('--scm-digit-bg', scp.light ? 'rgba(10,20,40,0.07)' : 'rgba(255,255,255,0.09)');
-      document.documentElement.style.setProperty('--scm-digit-border', scp.digitBorder);
-      // Katakcha foni endi kartaning o'zi bilan bir xil (yuqoriga qarang) —
-      // shu sabab "X" va yozilgan raqam rangi TANLANGAN fonga qarab
-      // o'qiladigan bo'lishi kerak (to'q fonda oq, och/pastel fonda to'q).
-      document.documentElement.style.setProperty('--scm-digit-text', scp.light ? '#0B1220' : '#FFFFFF');
-      document.documentElement.style.setProperty('--scm-digit-placeholder', scp.light ? 'rgba(10,20,40,0.18)' : 'rgba(255,255,255,0.3)');
-      // Raqam kiritilgan katakcha foni — yozuv rangiga (oq/qora) qarama-qarshi,
-      // shu bilan yozilgan raqam aniq ajralib ko'rinadi.
-      document.documentElement.style.setProperty('--scm-digit-filled-bg', scp.light ? '#E4F7EC' : '#123B2A');
-    }
-    if(s.font !== undefined) applyFont(s.font);
-    hideOrderButtonSetting = !!s.hideOrderButton;
     if(s.catalogStyle) currentCatalogStyle = s.catalogStyle;
     if(numbersLoaded) renderCatalog();
     if(s.telegramLink) document.getElementById('drawerTelegram').href = s.telegramLink;
@@ -11141,53 +10894,14 @@ async function loadSiteSettings(retryDelay){
     if(s.workingHours) document.getElementById('drawerHours').textContent = s.workingHours;
     if(s.deliveryText) document.getElementById('drawerDelivery').textContent = s.deliveryText;
 
-    /* Keyingi tashrifda darhol to'g'ri ko'rinish chiqishi uchun,
-       yangi kelgan sozlamalarni brauzer xotirasiga saqlab qo'yamiz. */
-    try{
-      if(s.theme && SITE_THEMES[s.theme]){
-        const cache = Object.assign({}, SITE_THEMES[s.theme], {
-          themeKey: s.theme,
-          font: s.font || '',
-          catalogStyle: s.catalogStyle || 'classic',
-          hideOrderButton: !!s.hideOrderButton
-        });
-        // Agar admin alohida orqa fon rangini tanlagan bo'lsa — keshga
-        // ALOHIDA "pageBg" qiymati sifatida yozamiz (cache.bg'ga TEGMAYMIZ,
-        // chunki --bg amber tugmalar ustidagi yozuv rangi ham bo'lib
-        // xizmat qiladi), shunda keyingi tashrifda sahifa ochilishi
-        // bilanoq (Firestore javobini kutmasdan) to'g'ri fon ko'rinadi,
-        // "oq fon chaqib, keyin to'q fonga o'tish" holati bo'lmaydi —
-        // va tugma ichidagi yozuvlar ham hech qachon ko'rinmay qolmaydi.
-        if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){
-          cache.pageBg = s.siteBgColor;
-        }
-        // Qidiruv kartochkasi foni ham xuddi shunday keshlanadi — keyingi
-        // tashrifda sahifa ochilishi bilanoq (Firestore javobini
-        // kutmasdan) to'g'ri (tanlangan) fon ko'rinadi.
-        if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){
-          const scp2 = SEARCH_CARD_BG_PRESETS[s.searchCardBg];
-          cache.scmBg = scp2.grad;
-          cache.scmDigitBg = scp2.light ? 'rgba(10,20,40,0.07)' : 'rgba(255,255,255,0.09)';
-          cache.scmDigitBorder = scp2.digitBorder;
-          cache.scmDigitText = scp2.light ? '#0B1220' : '#FFFFFF';
-          cache.scmDigitPlaceholder = scp2.light ? 'rgba(10,20,40,0.34)' : 'rgba(255,255,255,0.55)';
-        }
-        localStorage.setItem('raqamuz_theme_v1', JSON.stringify(cache));
-      }
-    }catch(e){}
-
     if(window.__revealSite) window.__revealSite();
   }catch(e){
     // MUHIM: sekin/uzilib turuvchi internetda bu so'rov ko'pincha
     // birinchi urinishda muvaffaqiyatsiz tugaydi (yoki 10s ichida javob
-    // kelmaydi). ILGARI bu yerda hech qanday qayta urinish YO'Q edi —
-    // shu sabab admin panelda rang/shrift/uslub o'zgartirilgan bo'lsa
-    // ham, mijoz sekin internetda doim ESKI (localStorage'dagi yoki
-    // standart) ko'rinishda qolib ketardi, sahifani qo'lda yangilamasa
-    // ham tuzalmasdi. Endi — sahifa sekinlik uchun kutdirilmaydi (darhol
-    // ko'rinadi, bor keshi bilan), LEKIN orqa fonda jimgina, ortib
-    // boruvchi interval bilan qayta urinishda davom etadi, internet
-    // tiklangan zahoti to'g'ri dizayn o'zi almashadi.
+    // kelmaydi). Shu sabab — sahifa sekinlik uchun kutdirilmaydi (darhol
+    // ko'rinadi), LEKIN orqa fonda jimgina, ortib boruvchi interval bilan
+    // qayta urinishda davom etadi, internet tiklangan zahoti sozlamalar
+    // o'zi yangilanadi.
     console.error('Sozlamalarni yuklashda xato:', e);
     if(window.__revealSite) window.__revealSite();
     const nextDelay = Math.min((retryDelay || 3000) * 1.5, 60000);

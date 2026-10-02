@@ -684,6 +684,75 @@
   .of-tab.active b{color:#fff;}
   @media (max-width:620px){.order-filter-tabs{width:100%;overflow-x:auto;}}
 
+  /* ---- Buyurtmalar — to'liq yangilangan, zamonaviy karta ko'rinishi ----
+     Faqat #adminOrdersList ichida ishlaydi, shuning uchun bir xil
+     .admin-row-collapsed/.an-summary klasslarini ishlatuvchi Raqamlar
+     sahifasiga (#adminNumbersList) hech qanday ta'sir qilmaydi. */
+  #adminOrdersList{display:flex;flex-direction:column;gap:12px;}
+  #adminOrdersList .order-card{
+    border:1px solid var(--line);border-left:none;border-radius:16px;
+    background:var(--panel);padding:0;overflow:hidden;
+    box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 20px -10px rgba(16,24,40,.12);
+    transition:box-shadow .18s ease, transform .18s ease;
+  }
+  #adminOrdersList .order-card:hover{
+    box-shadow:0 4px 12px rgba(16,24,40,.06), 0 16px 30px -10px rgba(16,24,40,.18);
+  }
+  #adminOrdersList .oc-summary-grid{
+    display:flex;align-items:center;gap:14px;padding:14px 18px 14px 16px;
+    position:relative;cursor:pointer;
+  }
+  #adminOrdersList .oc-summary-grid::before{
+    content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:99px;
+    background:var(--muted);
+  }
+  #adminOrdersList .order-card.st-yangi .oc-summary-grid::before{background:var(--muted);}
+  #adminOrdersList .order-card.st-boglanildi .oc-summary-grid::before{background:var(--amber);}
+  #adminOrdersList .order-card.st-bekor .oc-summary-grid::before{background:var(--red);}
+  #adminOrdersList .order-card.st-yakunlandi .oc-summary-grid::before{background:var(--green);}
+  #adminOrdersList .oc-avatar{
+    width:38px;height:38px;border-radius:99px;flex:none;margin-left:6px;
+    background:linear-gradient(135deg,#4F8CFF,#1546D6);color:#fff;font-weight:800;font-size:12px;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -3px rgba(21,70,214,.5);
+  }
+  #adminOrdersList .oc-main-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  #adminOrdersList .oc-main-info .an-summary-num{font-size:13.5px;font-weight:800;color:var(--text);}
+  #adminOrdersList .oc-main-info .oc-summary-name{font-size:11.5px;color:var(--muted);}
+  #adminOrdersList .oc-pay-chip{
+    font-size:11px;font-weight:700;padding:5px 11px;border-radius:99px;white-space:nowrap;flex:none;
+    background:var(--panel-2);color:var(--muted);align-items:center;gap:4px;display:none;
+  }
+  @media (min-width:820px){#adminOrdersList .oc-pay-chip{display:inline-flex;}}
+  #adminOrdersList .oc-pay-chip.oc-pay-installment{background:rgba(21,70,214,.1);color:var(--amber);}
+  #adminOrdersList .oc-pay-chip.oc-pay-cash{background:rgba(15,157,88,.1);color:var(--green);}
+  #adminOrdersList .oc-price-cell{
+    font-weight:800;font-size:12.5px;color:var(--text);white-space:nowrap;flex:none;display:none;
+  }
+  @media (min-width:960px){#adminOrdersList .oc-price-cell{display:inline-block;}}
+  #adminOrdersList .oc-time-cell{color:var(--muted);font-size:11.5px;white-space:nowrap;flex:none;display:none;}
+  @media (min-width:680px){#adminOrdersList .oc-time-cell{display:inline-block;}}
+  #adminOrdersList .oc-status-badge{
+    font-size:10.5px;padding:5px 11px;border-radius:99px;font-weight:800;flex:none;white-space:nowrap;
+  }
+  #adminOrdersList .an-summary-arrow{
+    flex:none;color:var(--muted);font-size:12px;transition:transform .15s ease;
+  }
+  #adminOrdersList .admin-row-collapsed.an-open .an-summary-arrow{transform:rotate(180deg);}
+  #adminOrdersList .oc-body-inner{padding:4px 18px 18px;border-top:1px solid var(--line-soft);}
+
+  /* ---- Kredit jadvali — flat/qo'shilgan qatorlardan alohida, soyali
+     kartalarga aylantirildi (Buyurtmalar'dagi bilan bir xil g'oya).
+     Rang/soya qiymatlari :root[data-theme="light"] .qz-item qoidasidan
+     (yuqorida) keladi — bu yerda faqat shakl (radius/bo'shliq/animatsiya). */
+  .qz-list{background:none;border:none;box-shadow:none;overflow:visible;display:flex;flex-direction:column;gap:10px;}
+  .qz-thead{border:1px solid var(--line);border-radius:12px;margin-bottom:2px;}
+  .qz-item{border-radius:14px;overflow:hidden;transition:transform .18s ease, box-shadow .18s ease;}
+  .qz-item:hover{transform:translateY(-2px);}
+  .qz-list .qz-item:last-child{border-bottom:1px solid var(--line);}
+  .qz-item.is-open{border-color:var(--amber);}
+  .qz-row-pay{border-radius:99px;font-weight:800;}
+  .qz-pay-cta{border-radius:14px;}
+
   /* ==================================================================
      KREDIT / QARZDORLIK — yangi ko'rinish
      ------------------------------------------------------------------
@@ -1106,27 +1175,37 @@
   .zk-cust-cards-4{grid-template-columns:repeat(4,1fr);}
   @media (max-width:900px){ .zk-cust-cards-4{grid-template-columns:1fr 1fr;} }
   @media (max-width:560px){ .zk-cust-cards-4{grid-template-columns:1fr;} }
-  .zk-cust-card-price{background:linear-gradient(135deg,#F5A623,#B9720C);animation-delay:.14s;}
-  .zk-cust-card-orders{background:linear-gradient(135deg,#8E5BA6,#5B3B75);animation-delay:.2s;}
+  /* ---- "Tezkor amal" kartochkalari (Zakaz, Raqamlar, Vazifalar va h.k.) ----
+     ESLATMA: avval bu kartalar to'liq rangli gradient fonga ega edi va
+     matn/ikonka oq rangda yozilgan edi. Keyinroq (flat dizayn bosqichida)
+     kartaning foni oq/panelga aylantirilgan edi, lekin matn va ikonka rangi
+     oq holicha qolib ketib, OQ FONDA OQ MATN — ya'ni butunlay ko'rinmas
+     bo'lib qolgan edi. Endi rang faqat kichik ikonka doirasida gradient
+     sifatida qoladi, qolgan matn esa doim o'qiladigan var(--text)/var(--muted). */
   .zk-cust-card{
-    display:flex;align-items:center;gap:13px;text-align:left;border:none;cursor:pointer;
-    border-radius:16px;padding:16px 17px;color:#fff;position:relative;overflow:hidden;
+    display:flex;align-items:center;gap:14px;text-align:left;border:1px solid var(--line);cursor:pointer;
+    background:var(--panel);border-radius:16px;padding:17px 18px;color:var(--text);position:relative;overflow:hidden;
+    box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 20px -10px rgba(16,24,40,.12);
     opacity:0;animation:fadeSlideUp .4s ease forwards;
-    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, border-color .2s ease;
   }
-  .zk-cust-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.3);}
+  .zk-cust-card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(16,24,40,.06), 0 18px 34px -10px rgba(16,24,40,.2);border-color:var(--zc-a,var(--line));}
   .zk-cust-card:active{transform:translateY(-1px) scale(.99);}
-  .zk-cust-card-add{background:linear-gradient(135deg,#3B78EE,#1E4FB8);animation-delay:.02s;}
-  .zk-cust-card-view{background:linear-gradient(135deg,#22C58B,#149368);animation-delay:.08s;}
   .zk-cust-card-ico{
-    width:42px;height:42px;border-radius:12px;flex:none;
-    background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
+    width:44px;height:44px;border-radius:13px;flex:none;color:#fff;
+    background:linear-gradient(135deg,var(--zc-a,#4F8CFF),var(--zc-b,#1546D6));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px -4px rgba(0,0,0,.35);
   }
   .zk-cust-card-ico svg{width:21px;height:21px;}
+  .zk-cust-card-add{--zc-a:#4F8CFF;--zc-b:#1546D6;animation-delay:.02s;}
+  .zk-cust-card-view{--zc-a:#34D399;--zc-b:#0F9D58;animation-delay:.08s;}
+  .zk-cust-card-price{--zc-a:#FBBF24;--zc-b:#D97706;animation-delay:.14s;}
+  .zk-cust-card-orders{--zc-a:#B794F6;--zc-b:#7C3AED;animation-delay:.2s;}
   .zk-cust-card-body{display:flex;flex-direction:column;gap:3px;min-width:0;}
-  .zk-cust-card-title{font-weight:800;font-size:14px;color:#fff;}
-  .zk-cust-card-sub{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:600;}
-  .zk-cust-card-sub b{font-family:'Space Mono',monospace;font-size:13px;color:#fff;}
+  .zk-cust-card-title{font-weight:800;font-size:14px;color:var(--text);}
+  .zk-cust-card-sub{font-size:11.5px;color:var(--muted);font-weight:600;}
+  .zk-cust-card-sub b{font-family:'Space Mono',monospace;font-size:13px;color:var(--text);}
 
   /* ---- "Mijoz/Raqam qo'shish" va "...ko'rish" — YANGI OYNA OCHILMAYDI:
      kartochka bosilganda shu bo'limning O'ZIDA (joyida) ochiladi, ikkala
@@ -1255,6 +1334,25 @@
   .zk-customer-info{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:12.5px;margin-bottom:12px;}
   .zk-customer-info span:nth-child(odd){color:var(--muted);}
   .zk-customer-info span:nth-child(even){color:var(--text);font-weight:700;}
+
+  /* ---- "Vazifalar" bo'limi sarlavhasi — avval oddiy matn bilan boshlanib,
+     keyingi statistik qator va tezkor amallar bilan vizual bog'liqsiz
+     ko'rinardi. Endi aniq ikonkali sarlavha + qisqa tushuntirish "karta"
+     ichida, va har bir keyingi blok (statistika, tezkor amallar) o'z
+     kichik UPPERCASE yorlig'i bilan ajratiladi — natijada bo'lim ancha
+     tartibli va tushunarli ko'rinadi. */
+  .vz-pane-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;
+    background:linear-gradient(135deg, rgba(21,70,214,.08), rgba(21,70,214,.015));
+    border:1px solid rgba(21,70,214,.2);border-radius:14px;padding:16px 18px;}
+  .vz-pane-head-ico{width:38px;height:38px;border-radius:11px;flex:none;
+    background:linear-gradient(135deg,var(--amber),#3A6CF0);color:#fff;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -3px rgba(21,70,214,.5);}
+  .vz-pane-head-ico svg{width:20px;height:20px;}
+  .vz-pane-head h3{margin:0 0 4px;font-size:15.5px;font-weight:800;}
+  .vz-pane-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.6;}
+  .vz-pane-head p b{color:var(--text);}
+  .vz-section-label{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 9px;}
 
   /* ---- "Shaxsiy baza" bo'limi — statistika kartochkalari ---- */
   .pb-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
@@ -2156,8 +2254,21 @@
 .mgmt-hint{color:var(--muted);font-size:11.5px;line-height:1.6;margin:0 0 14px;
   background:linear-gradient(135deg, rgba(21,70,214,.09), rgba(21,70,214,.02));
   border:1px solid rgba(21,70,214,.22);border-radius:12px;padding:12px 14px;}
+
+/* Yangi admin qo'shish — prominent CTA tugma (oddiy "wt-confirm" o'rniga) */
+.mgmt-add-cta{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,var(--amber),#3A6CF0);
+  color:#FFFFFF;border:none;border-radius:12px;padding:12px 20px;font-size:13.5px;font-weight:800;
+  cursor:pointer;box-shadow:0 6px 16px -6px rgba(21,70,214,.55);transition:transform .15s ease,box-shadow .15s ease;
+  margin-bottom:16px;}
+.mgmt-add-cta:hover{transform:translateY(-2px);box-shadow:0 10px 22px -6px rgba(21,70,214,.6);}
+.mgmt-add-cta-ico{display:flex;width:18px;height:18px;transition:transform .2s ease;}
+.mgmt-add-cta-ico svg{width:100%;height:100%;}
+.mgmt-add-cta.open .mgmt-add-cta-ico{transform:rotate(45deg);}
+
 .mgmt-form{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:14px;
   padding:16px;margin:12px 0 16px;animation:wtFadeIn .3s ease both;}
+.mgmt-form-section-label{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;}
 .mgmt-note{color:var(--muted);font-size:11px;margin:2px 0 14px;}
 .mgmt-perms-label{font-size:12.5px;color:var(--text);font-weight:700;margin-bottom:8px;}
 .mgmt-perms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
@@ -2171,27 +2282,50 @@
   border:1px solid rgba(51,226,140,.3);font-size:12.5px;line-height:1.7;animation:wtFadeIn .3s ease both;}
 .mgmt-result b{font-family:'Space Mono',monospace;color:var(--green);}
 
-.mgmt-list{display:flex;flex-direction:column;gap:10px;}
-.mgmt-admin-card{background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);border-radius:13px;
-  padding:14px 16px;animation:wtFadeIn .3s ease both;}
-.mgmt-admin-card.paused{opacity:.55;}
-.mgmt-admin-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
-.mgmt-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#5B86EF);
-  display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-weight:800;font-size:13px;flex:none;}
-.mgmt-admin-name{font-weight:800;font-size:14px;flex:1;min-width:100px;}
-.mgmt-admin-handle{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
-.mgmt-badge{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.mgmt-list-label{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);margin:4px 0 10px;}
+.mgmt-list{display:flex;flex-direction:column;gap:12px;}
+.mgmt-admin-card{position:relative;background:var(--card,#161a20);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:16px 18px;animation:wtFadeIn .3s ease both;
+  box-shadow:0 1px 3px rgba(16,24,40,.06);transition:box-shadow .18s ease,transform .18s ease;}
+.mgmt-admin-card:hover{box-shadow:0 4px 14px -4px rgba(16,24,40,.22);transform:translateY(-1px);}
+.mgmt-admin-card.paused{opacity:.6;}
+.mgmt-admin-top{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:10px;padding-right:30px;}
+.mgmt-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#5B86EF);
+  display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-weight:800;font-size:15px;flex:none;
+  box-shadow:0 3px 8px -2px rgba(21,70,214,.5);}
+.mgmt-admin-id{flex:1;min-width:100px;}
+.mgmt-admin-name{font-weight:800;font-size:14.5px;}
+.mgmt-admin-handle{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px;}
+.mgmt-badge{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
 .mgmt-badge.on{background:rgba(51,226,140,.15);color:var(--green);}
 .mgmt-badge.off{background:rgba(231,76,60,.15);color:#e74c3c;}
-.mgmt-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.mgmt-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
 .mgmt-chip{font-size:10.5px;padding:3px 9px;border-radius:20px;background:rgba(21,70,214,.12);color:var(--amber);}
 .mgmt-chip.mgmt-chip-empty{background:rgba(255,255,255,.06);color:var(--muted);}
-.mgmt-admin-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* Amallar endi IKKI qatorga ajratilgan: tepada ko'proq ishlatiladigan
+   (Ruxsatlar/Parol/Faollashtirish), pastda kamroq ishlatiladigan
+   (Seanslar/Moliya/Kredit) — bu bitta uzun "yopishgan" qator o'rniga
+   ko'zga ancha tartibli ko'rinadi. O'chirish esa kartaning o'ng yuqori
+   burchagida alohida (ikonka) tugma sifatida, boshqalardan ajratilgan. */
+.mgmt-admin-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.mgmt-admin-actions + .mgmt-admin-actions{margin-top:7px;}
 .mgmt-admin-actions button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:inherit;
-  border-radius:8px;padding:7px 11px;cursor:pointer;font-size:11.5px;transition:transform .12s ease,background .12s ease;}
+  border-radius:9px;padding:7px 12px;cursor:pointer;font-size:11.5px;font-weight:600;
+  transition:transform .12s ease,background .12s ease;}
 .mgmt-admin-actions button:hover{transform:translateY(-1px);background:rgba(255,255,255,.1);}
-.mgmt-admin-actions button.mgmt-danger{color:#e74c3c;}
-.mgmt-admin-actions button.mgmt-primary{border-color:var(--amber);color:var(--amber);}
+.mgmt-actions-secondary button{background:transparent;border-style:dashed;opacity:.9;}
+.mgmt-actions-secondary button:hover{opacity:1;background:rgba(255,255,255,.06);}
+.mgmt-admin-actions button.mgmt-primary{border-color:var(--amber);color:var(--amber);border-style:solid;}
+.mgmt-toggle-btn.mgmt-toggle-off{border-color:var(--green);color:var(--green);}
+
+.mgmt-del-btn{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;background:rgba(231,76,60,.08);
+  border:1px solid rgba(231,76,60,.22);color:#e74c3c;cursor:pointer;flex:none;
+  transition:background .15s ease,transform .15s ease;padding:0;}
+.mgmt-del-btn:hover{background:rgba(231,76,60,.18);transform:scale(1.06);}
+.mgmt-del-btn svg{width:15px;height:15px;}
 
 /* ==================================================================
    ===============  YANGI DIZAYN  (1-QATLAM: QOBIQ)  ================
@@ -2229,15 +2363,15 @@
 .sidebar-logo{
   padding:17px 18px 15px;border-bottom:1px solid var(--line-soft);margin-bottom:10px;gap:11px;
 }
+/* Oldin bu yerda ko'k to'rtburchak ichida "VR" matni bo'lgan — endi
+   haqiqiy VIP RAQAMLAR brend belgisi (dumaloq, shaffof fonli rasm)
+   qo'yilgan, nozik halqa va soya bilan, zamonaviyroq ko'rinishi uchun. */
 .sidebar-logo-dot{
-  width:32px;height:32px;border-radius:9px;background:linear-gradient(145deg,#1546D6,#0E2F99);
-  box-shadow:none;animation:none;
-  position:relative;
+  width:36px;height:36px;border-radius:50%;flex:none;position:relative;
+  box-shadow:0 0 0 2px rgba(21,70,214,.35), 0 4px 10px -3px rgba(0,0,0,.5);
+  background:#05070C;
 }
-.sidebar-logo-dot::after{
-  content:'VR';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:'Space Mono',monospace;font-weight:700;font-size:12px;color:#FFFFFF;letter-spacing:.02em;
-}
+.sidebar-logo-dot img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
 .sidebar-logo-text{font-size:12.5px;letter-spacing:.01em;color:var(--text);font-family:'Sora',sans-serif;}
 .sidebar-logo-text small{font-size:10.5px;color:var(--muted);margin-top:2px;}
 
@@ -2549,12 +2683,17 @@ input:focus-visible, select:focus-visible, textarea:focus-visible{
 }
 .ig-field-hint{font-size:11px;color:var(--muted);font-weight:500;}
 
-/* ---- Kartochkalar (Zakaz, Shaxsiy baza, Vazifalar) ---- */
-.zk-cust-card, .fin-card, .sessions-list > *, .wt-item, .uzx-item{
+/* ---- Kartochkalar (Shaxsiy baza va h.k.) ----
+   .zk-cust-card BU YERDAN OLIB TASHLANDI: endi uning soyasi/burchagi/hover
+   animatsiyasi yuqorida, zamonaviy gradient-ikonkali versiyada butunlay
+   belgilangan — shu yerdagi "box-shadow:none;transform:none" o'sha yangi
+   dizaynni yana tekislab, soya va ko'tarilish animatsiyasini o'chirib
+   qo'yardi. */
+.fin-card, .sessions-list > *, .wt-item, .uzx-item{
   background:var(--panel);border:1px solid var(--line);border-radius:12px;
   box-shadow:none;
 }
-.zk-cust-card:hover, .fin-card:hover{transform:none;box-shadow:none;border-color:var(--muted);}
+.fin-card:hover{transform:none;box-shadow:none;border-color:var(--muted);}
 
 /* ---- Yuqoridagi ko'rsatkich kataklari — hamma joyda bir xil ----
    Avval ular to'q ko'k/yashil/qizil gradient bilan to'lgan edi va
@@ -3300,7 +3439,8 @@ body{
 :root[data-theme="light"] .tab-group-head:hover{background:var(--tint);}
 :root[data-theme="light"] .tab-divider::before, .tab-divider::after{background:var(--tint);}
 :root[data-theme="light"] .oc-status-badge.st-yangi{background:var(--tint);}
-:root[data-theme="light"] .zk-cust-card-ico{background:var(--tint);}
+/* .zk-cust-card-ico uchun light-theme override endi kerak emas — ikonka
+   doirasi o'zi gradient rangda, qaysi mavzuda ham bir xil ko'rinadi. */
 :root[data-theme="light"] .zk-cust-card-sub{color:var(--muted);}
 :root[data-theme="light"] .zk-inline-head-ico{background:var(--tint);}
 :root[data-theme="light"] .zk-panel-accent-add .zk-inline-back{background:var(--tint);border-color:var(--line);}
@@ -3367,6 +3507,8 @@ body{
 :root[data-theme="light"] .mgmt-chip.mgmt-chip-empty{background:var(--tint);}
 :root[data-theme="light"] .mgmt-admin-actions button{background:var(--tint);border-color:var(--line);}
 :root[data-theme="light"] .mgmt-admin-actions button:hover{background:var(--tint);}
+:root[data-theme="light"] .mgmt-actions-secondary button{background:transparent;}
+:root[data-theme="light"] .mgmt-del-btn{background:rgba(231,76,60,.08);}
 :root[data-theme="light"] .an-summary:hover{background:var(--tint);}
 :root[data-theme="light"] .tg-nt{background:var(--tint);}
 :root[data-theme="light"] .tg-mut{background:var(--tint);}
@@ -3492,20 +3634,9 @@ body{
 .tab-divider::before, .tab-divider::after{background:var(--sb-line) !important;}
 .sb-user{display:none !important;}
 
-/* Yon menyu tepasidagi QIDIRUV qatori — maketda shu yerda turadi */
-.sb-search{
-  margin:4px 14px 14px;height:38px;padding:0 12px;border-radius:10px;
-  background:rgba(255,255,255,.06);border:1px solid var(--sb-line);
-  display:flex;align-items:center;gap:9px;color:var(--sb-text-dim);
-  font-size:12.5px;cursor:pointer;flex:none;
-}
-.sb-search:hover{background:rgba(255,255,255,.09);}
-.sb-search svg{width:15px;height:15px;flex:none;opacity:.8;}
-.sb-search span{flex:1;text-align:left;}
-.sb-search kbd{
-  font-family:'Space Mono',monospace;font-size:10px;border:1px solid var(--sb-line);
-  border-radius:4px;padding:1px 6px;color:var(--sb-text-dim);
-}
+/* ESLATMA: avval shu yerda yon menyu tepasida "Qidirish..." (⌘K) qatori
+   bo'lgan — foydalanuvchi iltimosiga ko'ra BUTUNLAY OLIB TASHLANDI
+   (kerak emas deb topildi). */
 
 /* ---- Topbar: breadcrumb + "Tizim ishlamoqda" holat + qo'ng'iroq ---- */
 .topbar{
@@ -3521,12 +3652,18 @@ body{
 }
 .tb-breadcrumb b{color:var(--text);font-weight:700;}
 .tb-breadcrumb .tbc-sep{opacity:.5;}
+/* ESLATMA: avval shu yerda statik "Tizim ishlamoqda" matni turardi —
+   foydalanuvchi iltimosiga ko'ra endi o'rniga REAL VAQT (soniyagacha,
+   har soniyada yangilanadigan) soat ko'rsatiladi, yashil "jonli" nuqta
+   bilan birga (tb-status i). */
 .tb-status{
-  display:flex;align-items:center;gap:6px;flex:none;
-  background:#DCFCE7;color:#15803D;border-radius:99px;padding:6px 13px;
-  font-size:12px;font-weight:700;
+  display:flex;align-items:center;gap:7px;flex:none;
+  background:#DCFCE7;color:#15803D;border-radius:99px;padding:6px 14px;
+  font-size:12.5px;font-weight:700;
 }
-.tb-status i{width:6px;height:6px;border-radius:99px;background:#15803D;flex:none;}
+.tb-status i{width:6px;height:6px;border-radius:99px;background:#15803D;flex:none;
+  animation:vpulse 1.6s ease-in-out infinite;}
+.tb-status span{font-family:'Space Mono',monospace;letter-spacing:.02em;}
 .topbar .bell-btn{
   background:var(--panel-2) !important;border:1px solid var(--line) !important;color:var(--text-2) !important;
 }
@@ -3542,7 +3679,6 @@ body{
   background:currentColor;
 }
 .topbar #logoutBtn:hover{border-color:var(--red);color:var(--red);}
-.topbar-clock{display:none !important;}
 
 /* ---- Sahifa boshi: maketdagi kabi katta, qalin sarlavha ---- */
 .page-head{border-bottom:none !important;padding:22px 0 18px !important;align-items:center !important;}
@@ -3552,11 +3688,9 @@ body{
 }
 .page-head p{font-size:13px !important;margin-top:6px !important;}
 .ph-acts{align-items:center;}
-.ph-avatar{
-  width:36px;height:36px;border-radius:50%;background:var(--amber);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;
-  flex:none;margin-left:4px;font-family:'Unbounded',sans-serif;
-}
+/* ESLATMA: avval shu yerda har bir sahifa boshida bitta harfli (masalan
+   "R") dumaloq admin avatari (.ph-avatar) bo'lgan — foydalanuvchi
+   iltimosiga ko'ra olib tashlandi. */
 
 /* ---- Boshqaruv paneli (Dashboard) va Baza raqam ---- */
 .dash-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -3700,13 +3834,8 @@ body{
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <span class="sidebar-logo-dot"></span>
-      <span class="sidebar-logo-text">VIP RAQAM<small>Boshqaruv paneli</small></span>
-    </div>
-    <div class="sb-search" id="sbSearchBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <span>Qidirish...</span>
-      <kbd>⌘K</kbd>
+      <span class="sidebar-logo-dot"><img src="assets/logo-circle.png" alt="VIP Raqamlar"></span>
+      <span class="sidebar-logo-text">VIP RAQAMLAR<small>Boshqaruv paneli</small></span>
     </div>
     <nav class="tabs">
         <!-- YANGI TUZILMA — foydalanuvchi bergan "VIP RAQAM" maketiga mos:
@@ -3794,9 +3923,8 @@ body{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="tb-breadcrumb" id="tbBreadcrumb"><b>Admin</b></div>
-      <div class="topbar-clock" id="topbarClock">--:--:--</div>
       <div class="header-actions">
-        <span class="tb-status"><i></i>Tizim ishlamoqda</span>
+        <span class="tb-status" title="Joriy vaqt"><i></i><span id="topbarClock">--:--:--</span></span>
         <button class="bell-btn" id="bellBtn" aria-label="Yangi buyurtmalar" title="Yangi buyurtmalar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
           <span class="bell-badge" id="bellBadge">0</span>
@@ -3837,6 +3965,8 @@ body{
   </div>
 
   <div class="pane" id="paneManagement">
+    <div class="dash-stats-row" id="mgmtStatsRow"></div>
+
     <div class="mgmt-hint">
       👑 Bu bo'lim faqat ENG KATTA (bosh) adminga ko'rinadi. Bu yerda yangi adminlar
       qo'sha olasiz — ular email emas, faqat O'ZIGA BERGAN ISM va PAROL bilan kiradi.
@@ -3844,9 +3974,13 @@ body{
       qolganlari unga umuman ko'rinmaydi va serverda ham berkitilgan bo'ladi.
     </div>
 
-    <button type="button" class="wt-confirm" id="mgmtAddToggleBtn">+ Yangi admin qo'shish</button>
+    <button type="button" class="mgmt-add-cta" id="mgmtAddToggleBtn">
+      <span class="mgmt-add-cta-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>
+      <span>Yangi admin qo'shish</span>
+    </button>
 
     <div class="mgmt-form" id="mgmtAddForm" style="display:none;">
+      <div class="mgmt-form-section-label">Kirish ma'lumotlari</div>
       <div class="wt-row">
         <label for="mgmtName">Ismi:</label>
         <input type="text" id="mgmtName" placeholder="Masalan: Aziz Karimov" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:16px;">
@@ -3865,6 +3999,7 @@ body{
       <div class="mgmt-result" id="mgmtResultBox" style="display:none;"></div>
     </div>
 
+    <div class="mgmt-list-label" id="mgmtListLabel" style="display:none;">Adminlar ro'yxati</div>
     <div class="mgmt-list" id="mgmtAdminsList">
       <div class="wt-empty">Yuklanmoqda...</div>
     </div>
@@ -4556,14 +4691,20 @@ body{
   </div>
 
   <div class="pane" id="paneVazifalar">
-    <p style="color:var(--muted);font-size:12px;margin:0 0 16px;">
-      Bu — o'zingizning shaxsiy ish/dedlayn ro'yxatingiz. "Muhim" deb belgilangan vazifalar ro'yxat boshida
-      turadi, har birining muddati real vaqtda hisoblanib boradi, va muddatga <b>5 soatdan kam</b> qolganda
-      shu yerda hamda Telegram orqali ogohlantirish (qo'ng'iroqcha) keladi.
-    </p>
+    <div class="vz-pane-head">
+      <div class="vz-pane-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14l1.5 1.5L13 12"/></svg></div>
+      <div>
+        <h3>Vazifalar</h3>
+        <p>O'zingizning shaxsiy ish/dedlayn ro'yxatingiz — <b>muhim</b> deb belgilangan vazifalar ro'yxat
+          boshida turadi, muddat real vaqtda hisoblanadi, va <b>5 soatdan kam</b> qolganda shu yerda hamda
+          Telegram orqali ogohlantirish keladi.</p>
+      </div>
+    </div>
 
+    <div class="vz-section-label">Umumiy holat</div>
     <div class="pb-stats-row" id="vzStatsRow"></div>
 
+    <div class="vz-section-label">Tezkor amallar</div>
     <div class="zk-cust-cards" id="vzCustCardsRow">
       <button type="button" class="zk-cust-card zk-cust-card-add" id="vzAddTaskCard">
         <div class="zk-cust-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
@@ -5122,73 +5263,16 @@ body{
       <div id="promoList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
     </div>
 
-    <div class="settings-form">
-      <h3>Saytning rang mavzusi</h3>
-      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Birini tanlang — mijoz sayti darhol shu rangga o'tadi. Boshqa hech narsa qilish shart emas.</p>
-      <button id="vipWhiteThemeBtn" style="background:#FFFFFF;color:#0B1F3A;border:2px solid #1D4ED8;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;width:100%;">⚪ VIP Raqamlar — Oq mavzu</button>
-      <div id="themePicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
-      <div class="settings-msg" id="themeMsg"></div>
-    </div>
-
-    <div class="settings-form">
-      <h3>Sayt orqa foni</h3>
-      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">
-        Faqat kartochkalar ORQASIDA turgan umumiy fon rangi — boshqa hech narsa (kartochkalar,
-        tugmalar, matn ranglari) o'zgarmaydi. 30 xil zamonaviy premium rang — birini bosing,
-        mijoz saytida darhol qo'llanadi.
-      </p>
-      <div id="bgColorPicker" style="display:grid;grid-template-columns:repeat(6,1fr);gap:7px;"></div>
-      <div class="settings-msg" id="bgColorMsg"></div>
-    </div>
-
-    <div class="settings-form">
-      <h3>Qidiruv kartochkasi foni</h3>
-      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">
-        Bosh sahifadagi raqam qidiruv kartochkasining (7 ta katakcha, operator tugmalari
-        turgan maydon) foni — sayt mavzusidan MUSTAQIL. 10 xil zamonaviy TO'Q rangdan birini
-        tanlang, yoki "Standart" bilan avvalgi och/pastel fonga qayting.
-      </p>
-      <div id="searchCardBgPicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
-      <div class="settings-msg" id="searchCardBgMsg"></div>
-    </div>
-
-    <div class="settings-form">
-      <h3>Buyurtma tugmasi</h3>
-      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Yoqilsa, raqam qidiruv natijalaridagi kartochkalarda "Buyurtma berish" tugmasi olib tashlanadi — mijoz kartaning istalgan joyiga bossa, buyurtma shu zahoti qabul qilinadi.</p>
-      <label class="checkbox-field">
-        <input type="checkbox" id="hideOrderBtnCheckbox">
-        Buyurtma tugmasini olib tashlash (kartaga bosilsa — buyurtma bo'ladi)
-      </label>
-      <div class="settings-msg" id="hideOrderBtnMsg"></div>
-    </div>
-
-    <div class="settings-form">
-      <h3>Yozuvlar shirfti (font)</h3>
-      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Birini tanlang — mijoz saytidagi barcha yozuvlar shirfti darhol shunga o'tadi.</p>
-      <select id="siteFontSelect">
-        <option value="Sora">Sora (standart)</option>
-        <option value="Inter">Inter</option>
-        <option value="Roboto">Roboto</option>
-        <option value="Poppins">Poppins</option>
-        <option value="Montserrat">Montserrat</option>
-        <option value="Nunito">Nunito</option>
-        <option value="Rubik">Rubik</option>
-        <option value="Manrope">Manrope</option>
-        <option value="Mulish">Mulish</option>
-        <option value="Raleway">Raleway</option>
-        <option value="Work Sans">Work Sans</option>
-        <option value="Open Sans">Open Sans</option>
-        <option value="Lato">Lato</option>
-        <option value="Ubuntu">Ubuntu</option>
-        <option value="Karla">Karla</option>
-        <option value="DM Sans">DM Sans</option>
-        <option value="Outfit">Outfit</option>
-        <option value="Urbanist">Urbanist</option>
-        <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
-        <option value="Josefin Sans">Josefin Sans</option>
-      </select>
-      <div class="settings-msg" id="siteFontMsg"></div>
-    </div>
+    <!-- ESLATMA: "Saytning rang mavzusi", "Sayt orqa foni", "Qidiruv
+         kartochkasi foni", "Buyurtma tugmasi" va "Yozuvlar shirfti (font)"
+         bo'limlari shu yerdan BUTUNLAY OLIB TASHLANDI. Sabab: mijoz sayti
+         bu sozlamalarni Firestore'dan async o'qib, sahifa yuklangandan
+         KEYIN qo'llar edi — shuning uchun mijozlar sahifaga kirganda bir
+         lahzaga eski/standart rangda ko'rinib, keyin tanlangan rangga
+         "sakrab" o'tardi (ba'zan sekin internetda yoki keshda eskisi
+         qolib ketardi). Endi sayt doim bitta qattiq belgilangan zamonaviy
+         dizaynda ochiladi — hech qanday keshga yoki tarmoq tezligiga
+         bog'liq emas. Tegishli kod index.html'dan ham olib tashlandi. -->
 
     <div class="settings-form">
       <h3>Sayt sozlamalari (yon menyu)</h3>
@@ -5359,6 +5443,23 @@ function dashInitials(name){
   const s = (name || '').trim();
   if(!s) return '—';
   return s.split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+}
+
+/* Real createdAtSort (millisekund) qiymatidan "5 daqiqa oldin" kabi
+   nisbiy vaqt matnini hisoblaydi — Buyurtmalar ro'yxatida ishlatiladi. */
+function relativeTimeUz(ts){
+  if(!ts) return '';
+  const diffMs = Date.now() - ts;
+  if(diffMs < 0) return '';
+  const diffMin = Math.floor(diffMs / 60000);
+  if(diffMin < 1) return 'hozir';
+  if(diffMin < 60) return diffMin + ' daqiqa oldin';
+  const diffH = Math.floor(diffMin / 60);
+  if(diffH < 24) return diffH + ' soat oldin';
+  const diffD = Math.floor(diffH / 24);
+  if(diffD === 1) return 'kecha';
+  if(diffD < 7) return diffD + ' kun oldin';
+  return new Date(ts).toLocaleDateString('uz-UZ');
 }
 
 async function refreshDashboardPane(){
@@ -7503,13 +7604,9 @@ function openGroupOfTab(tab){
       b.addEventListener('click', a.bos);
       box.appendChild(b);
     });
-    // Mockupdagi kabi har bir sahifa boshida o'ng tomonda admin avatari —
-    // ism yuklanganda (window.CURRENT_ADMIN_NAME) harflar yangilanadi,
-    // hali yuklanmagan bo'lsa umumiy "A" harfi ko'rsatiladi.
-    const avatar = document.createElement('div');
-    avatar.className = 'ph-avatar';
-    avatar.textContent = (window.CURRENT_ADMIN_NAME || 'Admin').trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase() || 'A';
-    box.appendChild(avatar);
+    // ESLATMA: avval shu yerda har bir sahifa boshida o'ng tomonda bitta
+    // harfli (masalan "R") dumaloq admin avatari chiqardi — foydalanuvchi
+    // iltimosiga ko'ra BUTUNLAY OLIB TASHLANDI.
     pane.insertBefore(head, pane.firstChild);
   }
 
@@ -7697,55 +7794,16 @@ function openGroupOfTab(tab){
           if(nameEl) nameEl.textContent = qisqa.charAt(0).toUpperCase() + qisqa.slice(1);
           if(roleEl) roleEl.textContent = window.CURRENT_ADMIN_IS_SUPER ? 'Super admin' : 'Admin';
           if(av) av.textContent = qisqa.charAt(0).toUpperCase();
-          // Har bir sahifa boshidagi avatar (.ph-avatar) ham yangilanadi —
-          // ular turli pane'larda, login vaqtida hali yaratilmagan bo'lishi
-          // mumkin, shu sabab hozir mavjud bo'lganlarning hammasini topamiz.
-          const initials = qisqa.trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase();
-          document.querySelectorAll('.ph-avatar').forEach(el => { el.textContent = initials || 'A'; });
           clearInterval(t);
         }
         if(n > 40) clearInterval(t);            // ~20 soniya kutamiz
       }, 500);
     }
 
-    /* ---- 2. Yuqoridagi qidiruv ----
-       Har bo'limning o'z qidiruv maydoni bor, lekin ular pastda,
-       ro'yxatning ichida. Tepadagi maydon o'sha bo'limning qidiruviga
-       olib boradi — qayerda bo'lsangiz ham bitta joydan qidirasiz. */
-    const box = document.getElementById('sbSearchBtn');
-    if(box && !box.dataset.wired){
-      box.dataset.wired = '1';
-      const QIDIRUV = {
-        paneNumbers: ['numberSearchInput', 'Raqam, operator, narx...'],
-        paneCredit:  ['creditSearchInput', 'Raqam, telefon yoki ism...'],
-        panePersonalbase: ['', 'Mijoz qidirish...']
-      };
-      function joriyQidiruv(){
-        const pane = document.querySelector('.pane.active');
-        if(!pane) return null;
-        const def = QIDIRUV[pane.id];
-        const el = def && def[0] ? document.getElementById(def[0]) : pane.querySelector('input[type="text"][placeholder*="qidir" i]');
-        return { el, matn: def ? def[1] : 'Qidirish...' };
-      }
-      function matnniYangila(){
-        const q = joriyQidiruv();
-        const t = box.querySelector('span');
-        if(t) t.textContent = (q && q.el) ? q.matn : 'Qidirish...';
-        box.style.opacity = (q && q.el) ? '1' : '.6';
-      }
-      box.addEventListener('click', () => {
-        const q = joriyQidiruv();
-        if(q && q.el){ q.el.scrollIntoView({block:'center', behavior:'smooth'}); setTimeout(()=>q.el.focus(), 250); }
-      });
-      document.addEventListener('keydown', (e) => {
-        const isK = e.key === 'k' || e.key === 'K';
-        if((e.metaKey || e.ctrlKey) && isK){
-          e.preventDefault(); box.click();
-        }
-      });
-      document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setTimeout(matnniYangila, 60)));
-      setTimeout(matnniYangila, 300);
-    }
+    /* ESLATMA: avval shu yerda yon menyu tepasidagi "Qidirish..." (⌘K)
+       qatorini joriy bo'limning qidiruv maydoniga ulovchi kod bo'lgan —
+       foydalanuvchi iltimosiga ko'ra o'sha qidiruv qatori HTML/CSS'dan
+       olib tashlandi, shu sabab bu ulash kodi ham endi keraksiz. */
 
     /* ---- 3. Ko'rsatkichlar: sarlavhadan PASTDA va to'rtinchi katak ---- */
     const ov = document.getElementById('overviewRow');
@@ -8135,109 +8193,16 @@ document.getElementById('saveCredentialsBtn').addEventListener('click', async ()
 });
 
 /* ---- Sayt sozlamalari (yon menyu, xarita, ish vaqti va h.k.) ---- */
-/* ---- Rang mavzusi tanlash (10 ta tayyor variant) ---- */
-const SITE_THEMES = {
-  // premium:true — pastdagi renderThemePicker() shu 10 tasini ALOHIDA,
-  // kattaroq va tepada "⭐ 10 ta premium mavzu" qatorida ko'rsatadi (har
-  // biri o'ziga xos rang + soya/nur + qizil-yashil "oqib turuvchi" chiziq
-  // bilan farqlanadi — index.html'da applyTheme() shu ikki rangdan
-  // avtomatik soya/animatsiya hosil qiladi). Qolganlari pastda, kichikroq,
-  // "Boshqa mavzular" qatorida — hech biri o'chirilmagan, eski tanlangan
-  // mavzu ham ishlayveradi.
-  premium_navy:   { name:'Premium Navy Executive', bg:'#0A1628', panel:'#101F38', accent:'#D4AF37', premium:true },
-  ultra_luxury:   { name:'Ultra Luxury',   bg:'#071320', panel:'#17375F', accent:'#FFD56A', premium:true },
-  lyuks_premium:  { name:'💎 Lyuks Premium', bg:'#0A0806', panel:'#15120D', accent:'#D4AF37', premium:true },
-  premium_purple: { name:'🟣 Premium Binafsha (animatsiyali)', bg:'#1A0B36', panel:'#3A2E78', accent:'#FFFFFF', premium:true },
-  premium_black:  { name:'Premium Black',  bg:'#090909', panel:'#1A1A1A', accent:'#3A8DFF', premium:true },
-  dark_purple:    { name:'Dark Purple',    bg:'#100B24', panel:'#3D2568', accent:'#679EFF', premium:true },
-  emerald_blue:   { name:'Emerald Blue',   bg:'#081A21', panel:'#103F52', accent:'#55AFFF', premium:true },
-  warm_gold:      { name:'Warm Trust Navy-Gold',   bg:'#0F2547', panel:'#132C50', accent:'#C9A44E', premium:true },
-  clean_white:    { name:'Clean Corporate White',  bg:'#04010E', panel:'#FFFFFF', accent:'#1D4ED8', premium:true },
-  bold_editorial: { name:'Bold Editorial Navy',    bg:'#0A1220', panel:'#111A2C', accent:'#FFFFFF', premium:true },
-
-  modern_saas:    { name:'Modern SaaS Blue',       bg:'#0D1B33', panel:'#132A4D', accent:'#4A90D9' },
-  soft_glass:     { name:'Soft Glass Navy',        bg:'#0B1220', panel:'#16233E', accent:'#7FA8E0' },
-  midnight_blue:  { name:'Midnight Blue',  bg:'#081625', panel:'#132A4A', accent:'#4D9FFF' },
-  royal_blue:     { name:'Royal Blue',     bg:'#091A2E', panel:'#173D73', accent:'#5BA7FF' },
-  navy_cyan:      { name:'Navy + Cyan',    bg:'#07141F', panel:'#12334A', accent:'#30B6FF' },
-  indigo:         { name:'Indigo',         bg:'#0A1028', panel:'#243C7D', accent:'#6EA6FF' },
-  graphite:       { name:'Graphite',       bg:'#121417', panel:'#20262E', accent:'#5AA2FF' },
-  ocean:          { name:'Ocean',          bg:'#051B2F', panel:'#0E4167', accent:'#3FAEFF' },
-  steel_blue:     { name:'Steel Blue',     bg:'#0B1621', panel:'#20384F', accent:'#69AEFF' },
-  sapphire:       { name:'Sapphire',       bg:'#061321', panel:'#1D3560', accent:'#6AAEFF' },
-  arctic:         { name:'Arctic',         bg:'#081B29', panel:'#23455F', accent:'#71C2FF' },
-  neon_blue:      { name:'Neon Blue',      bg:'#08111F', panel:'#162E58', accent:'#56A8FF' },
-  dark_cyan:      { name:'Dark Cyan',      bg:'#071B1D', panel:'#18454A', accent:'#47B4FF' },
-  slate:          { name:'Slate',          bg:'#10151C', panel:'#283546', accent:'#6EB2FF' },
-  blue_violet:    { name:'Blue Violet',    bg:'#0E132A', panel:'#34418A', accent:'#79AEFF' },
-  petrol:         { name:'Petrol',         bg:'#07151B', panel:'#184153', accent:'#56AFFF' },
-  dark_aqua:      { name:'Dark Aqua',      bg:'#061B20', panel:'#1C4E59', accent:'#69C2FF' },
-  night_sky:      { name:'Night Sky',      bg:'#060C18', panel:'#132B45', accent:'#5DA6FF' },
-  white_lightblue:{ name:'Oq + Och ko\'k', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#38BDF8' },
-  white_green:    { name:'Oq + Yashil',    bg:'#E7EBF3', panel:'#FFFFFF', accent:'#16A34A' },
-  white_red:      { name:'Oq + Qizil',     bg:'#E7EBF3', panel:'#FFFFFF', accent:'#DC2626' },
-  white_navy:     { name:'Oq + To\'q ko\'k', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#1E3A8A' },
-  black_red:      { name:'Qora + Qizil',   bg:'#0A0A0A', panel:'#1A1A1A', accent:'#FF3B3B' },
-  white_gold:     { name:'Oq + To\'q sariq', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#CA8A04' },
-  white_maroon:   { name:'Oq + To\'q qizil', bg:'#E7EBF3', panel:'#FFFFFF', accent:'#7F1D1D' }
-};
-let currentTheme = 'premium_navy';
-
-/* ---- Sayt umumiy orqa foni (faqat --page-bg, boshqa hech narsa) ----
-   30 ta zamonaviy premium rang — 10 xil rang oilasi (binafsha, indigo,
-   ko'k tun, to'q havo, zumrad, zaytun, shokolad, bordo, pushti tun,
-   grafit), har birida 3 xil to'qlik darajasi. Barchasi past yorqinlikda
-   (premium/nafis) — mijoz saytida faqat kartochkalar ORQASIDAGI fon
-   o'zgaradi (index.html'da --page-bg custom property orqali, --bg'ga
-   VA theme'ga TEGMAYDI — shu bilan tugma/nishon ustidagi yozuvlar hech
-   qachon ko'rinmay qolmaydi). */
-const BG_COLOR_PRESETS = [
-  '#0E081C', '#1B1037', '#2B1957',   // Binafsha
-  '#080A1C', '#101337', '#191E57',   // Indigo
-  '#08101C', '#102037', '#193357',   // Ko'k tun
-  '#09181B', '#123036', '#1C4B54',   // To'q havo
-  '#0A1913', '#153326', '#21503C',   // Zumrad
-  '#11180C', '#222F18', '#354A26',   // Zaytun
-  '#19110B', '#322315', '#4F3722',   // Shokolad
-  '#1B090C', '#361218', '#541C25',   // Bordo
-  '#190A14', '#331529', '#502140',   // Pushti tun
-  '#0F1115', '#1E2129', '#2F3541'    // Grafit
-];
-let currentBgColor = '';
-
-/* ---- Qidiruv kartochkasi (.sc-main) foni ----
-   index.html'dagi SEARCH_CARD_BG_PRESETS bilan AYNAN bir xil bo'lishi
-   shart (bu yerda faqat OLDINDAN KO'RISH uchun ishlatiladi — haqiqiy
-   qo'llash index.html'da bo'ladi). digitBg endi HAR DOIM 'transparent' —
-   mijoz iltimosiga ko'ra 7 ta raqam katakchasi FONI kartaning O'ZI bilan
-   bir xil (alohida quti YO'Q), faqat "X"/raqam matni farqlanadi
-   (light:true bo'lganlarda TO'Q, bo'lmasa OQ). */
-const SEARCH_CARD_BG_PRESETS = {
-  // ---- 10 ta TO'Q variant ----
-  midnight_navy:  { name: 'Tungi ko\'k',       grad: 'linear-gradient(160deg, #0B1830 0%, #16294A 100%)', digitBg: 'transparent' },
-  deep_slate:     { name: 'Grafit kulrang',     grad: 'linear-gradient(160deg, #12181F 0%, #232C38 100%)', digitBg: 'transparent' },
-  royal_indigo:   { name: 'Qirollik binafsha',  grad: 'linear-gradient(160deg, #150F35 0%, #2C1F63 100%)', digitBg: 'transparent' },
-  emerald_dusk:   { name: 'Zumrad yashil',      grad: 'linear-gradient(160deg, #08211B 0%, #123B2E 100%)', digitBg: 'transparent' },
-  wine_dark:      { name: 'Vino qizil',         grad: 'linear-gradient(160deg, #250B18 0%, #421530 100%)', digitBg: 'transparent' },
-  charcoal_gold:  { name: 'Ko\'mir-oltin',      grad: 'linear-gradient(160deg, #171410 0%, #2B2419 100%)', digitBg: 'transparent' },
-  metal_graphite: { name: 'Metall kulrang',     grad: 'linear-gradient(160deg, #14171C 0%, #262C35 100%)', digitBg: 'transparent' },
-  deep_teal:      { name: 'Chuqur dengiz',      grad: 'linear-gradient(160deg, #06201F 0%, #0E3A38 100%)', digitBg: 'transparent' },
-  plum_night:     { name: 'Shafaq binafsha',    grad: 'linear-gradient(160deg, #1B0E2A 0%, #3A1E52 100%)', digitBg: 'transparent' },
-  obsidian_blue:  { name: 'Qora zangori',       grad: 'linear-gradient(160deg, #0A0F1C 0%, #1B2740 100%)', digitBg: 'transparent' },
-  // ---- YANA 5 ta TO'Q variant ----
-  ember_dark:     { name: 'Cho\'g\' (to\'q)',   grad: 'linear-gradient(160deg, #2A0F06 0%, #4A1B0A 100%)', digitBg: 'transparent' },
-  forest_dark:    { name: 'O\'rmon (to\'q)',    grad: 'linear-gradient(160deg, #08210F 0%, #163A20 100%)', digitBg: 'transparent' },
-  steel_dark:     { name: 'Po\'lat (to\'q)',    grad: 'linear-gradient(160deg, #101820 0%, #1F2E3D 100%)', digitBg: 'transparent' },
-  rose_dark:      { name: 'Atirgul (to\'q)',    grad: 'linear-gradient(160deg, #240C1B 0%, #401530 100%)', digitBg: 'transparent' },
-  amber_dark:     { name: 'Amber-bronza',       grad: 'linear-gradient(160deg, #1F1608 0%, #3A2A0E 100%)', digitBg: 'transparent' },
-  // ---- 5 ta OCH (pastel) variant ----
-  soft_sky:       { name: 'Moviy osmon (och)',  grad: 'linear-gradient(160deg, #DCEAFE 0%, #B9D4FB 100%)', digitBg: 'transparent', light: true },
-  soft_mint:      { name: 'Yalpiz (och)',       grad: 'linear-gradient(160deg, #DFF7EC 0%, #B9EDD1 100%)', digitBg: 'transparent', light: true },
-  soft_lavender:  { name: 'Lavanda (och)',      grad: 'linear-gradient(160deg, #EDE7FB 0%, #D3C4F5 100%)', digitBg: 'transparent', light: true },
-  soft_peach:     { name: 'Shaftoli (och)',     grad: 'linear-gradient(160deg, #FDEEE0 0%, #FBD3B0 100%)', digitBg: 'transparent', light: true },
-  soft_rose:      { name: 'Atirgul (och)',      grad: 'linear-gradient(160deg, #FCE7EF 0%, #F7C0D3 100%)', digitBg: 'transparent', light: true }
-};
-let currentSearchCardBg = '';
+/* ESLATMA: avval shu yerda mijoz saytining rang mavzusi (SITE_THEMES),
+   orqa fon rangi (BG_COLOR_PRESETS) va qidiruv kartochkasi foni
+   (SEARCH_CARD_BG_PRESETS) tanlanadigan sozlamalar bo'lgan. Ular BUTUNLAY
+   OLIB TASHLANDI — chunki mijoz sahifani ochganda bu sozlamalar
+   Firestore'dan ASYNC o'qilib, sahifa chizilgandan KEYIN qo'llanardi,
+   shuning uchun har kirishda bir lahzaga standart ko'rinish ko'rinib,
+   keyin tanlangan rangga "sakrab" o'tardi (sekin internet yoki eski
+   keshda ba'zan umuman o'zgarmay qolardi). Endi sayt bitta qattiq
+   (hardcoded) zamonaviy dizaynda ochiladi. Tegishli qo'llash kodi
+   index.html'dan ham olib tashlandi. */
 
 /* ---- Raqamlar ro'yxati uslubi (Uslublar bo'limi) ---- */
 const CATALOG_STYLES = [
@@ -8944,12 +8909,15 @@ function renderCreditList(contracts){
   list.querySelectorAll('.qz-row-pay').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if(!(await askPaymentCode())) return;
+      const contract = currentCreditContracts.find(c => c.id === btn.dataset.id);
+      if(!contract) return;
+      const month = await confirmCreditPayment(contract, Number(btn.dataset.month));
+      if(month == null) return;
       btn.disabled = true;
       const eski = btn.textContent;
       btn.textContent = '...';
       try{
-        await creCall('updatePayment', { id: btn.dataset.id, month: Number(btn.dataset.month) });
+        await creCall('updatePayment', { id: btn.dataset.id, month });
         vibrate(60);
         loadCreditContracts();
       }catch(err){
@@ -8963,10 +8931,13 @@ function renderCreditList(contracts){
   list.querySelectorAll('.qz-pay-cta').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if(!(await askPaymentCode())) return;
+      const contract = currentCreditContracts.find(c => c.id === btn.dataset.id);
+      if(!contract) return;
+      const month = await confirmCreditPayment(contract, Number(btn.dataset.month));
+      if(month == null) return;
       btn.disabled = true;
       try{
-        await creCall('updatePayment', { id: btn.dataset.id, month: Number(btn.dataset.month) });
+        await creCall('updatePayment', { id: btn.dataset.id, month });
         vibrate(60);
         loadCreditContracts();
       }catch(err){
@@ -8976,13 +8947,20 @@ function renderCreditList(contracts){
     });
   });
 
-  /* ---- oy katakchasi: to'landi / to'lanmadi (qaytarish uchun ham) ---- */
+  /* ---- oy katakchasi: to'landi / to'lanmadi (qaytarish uchun ham) ----
+     Bu yerda oy allaqachon aniq (admin xuddi shu katakchani bosdi), shuning
+     uchun oy tanlash oynasi chiqmaydi — faqat "shu oyni tasdiqlaysizmi?"
+     deb aniq so'raladi (allaqachon to'langan bo'lsa — "bekor qilasizmi?"). */
   list.querySelectorAll('.credit-month-chip').forEach(chip => {
     chip.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if(!(await askPaymentCode())) return;
+      const contract = currentCreditContracts.find(c => c.id === chip.dataset.id);
+      if(!contract) return;
+      const isUndo = chip.classList.contains('cm-paid');
+      const month = await confirmCreditPayment(contract, Number(chip.dataset.month), { single: true, isUndo });
+      if(month == null) return;
       try{
-        await creCall('updatePayment', { id: chip.dataset.id, month: Number(chip.dataset.month) });
+        await creCall('updatePayment', { id: chip.dataset.id, month });
         vibrate(60);
         loadCreditContracts();
       }catch(err){ alert('Xato: ' + err.message); }
@@ -9355,197 +9333,13 @@ document.getElementById('addPromoBtn').addEventListener('click', async ()=>{
   }
 });
 
-// Bitta mavzu "kartochkasi" HTML'ini quradi — tanlangan bo'lsa ✓ belgi va
-// o'z accent rangida chegara bilan, kattaroq (premium) yoki kichikroq
-// (oddiy) o'lchamda.
-function themeSwatchHtml(key, t, big){
-  const selected = key === currentTheme;
-  const pad = big ? '12px' : '9px';
-  const dot = big ? '24px' : '17px';
-  const font = big ? '12.5px' : '10.5px';
-  return `
-    <div class="theme-swatch" data-key="${key}" style="
-      background:${t.bg};border:2px solid ${selected ? t.accent : 'var(--line)'};
-      border-radius:10px;padding:${pad};cursor:pointer;display:flex;align-items:center;gap:8px;
-      box-shadow:${selected ? '0 0 0 1px ' + t.accent + ', 0 4px 14px -4px ' + t.accent + '88' : 'none'};">
-      <div style="width:${dot};height:${dot};border-radius:50%;background:${t.accent};flex-shrink:0;box-shadow:0 0 10px ${t.accent}77;"></div>
-      <div style="font-size:${font};color:#fff;font-weight:${big ? '700' : '400'};">${t.name}</div>
-      ${selected ? `<div style="margin-left:auto;color:${t.accent};font-size:14px;">✓</div>` : ''}
-    </div>
-  `;
-}
-
-function renderThemePicker(){
-  const premiumEntries = Object.entries(SITE_THEMES).filter(([,t]) => t.premium);
-  const otherEntries   = Object.entries(SITE_THEMES).filter(([,t]) => !t.premium);
-
-  const picker = document.getElementById('themePicker');
-  picker.innerHTML = `
-    <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--amber);margin:2px 0 2px;">
-      ⭐ 10 ta premium mavzu — har biri o'z rangi, soyasi va oqib turuvchi chizig'i bilan
-    </div>
-    ${premiumEntries.map(([key, t]) => themeSwatchHtml(key, t, true)).join('')}
-    <div style="grid-column:1/-1;font-size:11.5px;font-weight:600;color:var(--muted);margin:10px 0 2px;">
-      Boshqa mavzular
-    </div>
-    ${otherEntries.map(([key, t]) => themeSwatchHtml(key, t, false)).join('')}
-  `;
-
-  picker.querySelectorAll('.theme-swatch').forEach(el => {
-    el.addEventListener('click', async () => {
-      const key = el.dataset.key;
-      currentTheme = key;
-      renderThemePicker();
-      const msg = document.getElementById('themeMsg');
-      try{
-        await db.collection('site_settings').doc('general').set({ theme: key }, { merge: true });
-        msg.textContent = `✓ "${SITE_THEMES[key].name}" mavzusi saqlandi — mijoz saytida darhol qo'llanadi.`;
-        msg.className = 'settings-msg ok';
-        vibrate(80);
-      }catch(err){
-        msg.textContent = 'Xato: ' + err.message;
-        msg.className = 'settings-msg bad';
-      }
-    });
-  });
-}
-
-function renderBgColorPicker(){
-  const picker = document.getElementById('bgColorPicker');
-  picker.innerHTML = BG_COLOR_PRESETS.map(hex => `
-    <div class="bg-swatch" data-hex="${hex}" style="
-      background:${hex};aspect-ratio:1;border-radius:9px;cursor:pointer;
-      border:3px solid ${hex === currentBgColor ? '#FFFFFF' : 'transparent'};
-      box-shadow:0 0 0 1px var(--line)${hex === currentBgColor ? ', 0 0 0 2px #1D4ED8' : ''};
-      display:flex;align-items:center;justify-content:center;transition:transform .15s ease;">
-      ${hex === currentBgColor ? '<span style="color:#fff;font-size:15px;">✓</span>' : ''}
-    </div>
-  `).join('');
-
-  picker.querySelectorAll('.bg-swatch').forEach(el => {
-    el.addEventListener('click', async () => {
-      const hex = el.dataset.hex;
-      currentBgColor = hex;
-      renderBgColorPicker();
-      const msg = document.getElementById('bgColorMsg');
-      try{
-        await db.collection('site_settings').doc('general').set({ siteBgColor: hex }, { merge: true });
-        msg.textContent = `✓ Orqa fon saqlandi — mijoz saytida darhol qo'llanadi.`;
-        msg.className = 'settings-msg ok';
-        vibrate(80);
-      }catch(err){
-        msg.textContent = 'Xato: ' + err.message;
-        msg.className = 'settings-msg bad';
-      }
-    });
-  });
-}
-
-// Bitta "qidiruv kartochkasi foni" namunasi — o'zining gradientida,
-// ichida kichik oq katakcha + tugma namunasi bilan (haqiqiy ko'rinishga
-// yaqinroq bo'lsin deb).
-function searchCardBgSwatchHtml(key, t){
-  const selected = key === currentSearchCardBg;
-  // Ochroq (pastel) namunalarda yozuv/belgi TO'Q rangda bo'lishi kerak,
-  // aks holda oq yozuv och fonda o'qilmay qoladi.
-  const textColor = t.light ? '#0B1F3A' : '#fff';
-  // Mijoz iltimosiga ko'ra katakcha foni endi kartaning O'ZI bilan bir
-  // xil (alohida quti YO'Q) — shu sabab namunada ham katakcha faqat
-  // CHEGARA (border) bilan, ICHI shaffof ko'rsatiladi, o'rtasida "X".
-  const boxBorder = t.light ? 'rgba(11,31,58,0.4)' : 'rgba(255,255,255,0.55)';
-  const xColor = t.light ? 'rgba(11,31,58,0.6)' : 'rgba(255,255,255,0.75)';
-  const digitBoxHtml = `<div style="width:16px;height:20px;border-radius:5px;background:transparent;border:1.5px solid ${boxBorder};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:${xColor};">X</div>`;
-  return `
-    <div class="scb-swatch" data-key="${key}" style="
-      background:${t.grad};border-radius:12px;padding:10px;cursor:pointer;
-      border:2px solid ${selected ? (t.light ? '#1D4ED8' : '#FFFFFF') : 'transparent'};
-      box-shadow:0 0 0 1px var(--line)${selected ? ', 0 0 0 2px #1D4ED8' : ''};
-      display:flex;flex-direction:column;gap:8px;min-height:64px;justify-content:space-between;">
-      <div style="display:flex;gap:4px;">
-        ${digitBoxHtml}${digitBoxHtml}${digitBoxHtml}
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:11px;color:${textColor};font-weight:700;">${t.name}</span>
-        ${selected ? `<span style="color:${textColor};font-size:14px;">✓</span>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-function renderSearchCardBgPicker(){
-  const picker = document.getElementById('searchCardBgPicker');
-  if(!picker) return;
-  const defaultSelected = !currentSearchCardBg;
-  picker.innerHTML = `
-    <div class="scb-swatch" data-key="" style="
-      background:linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);border-radius:12px;padding:10px;cursor:pointer;
-      border:2px solid ${defaultSelected ? '#1D4ED8' : 'transparent'};
-      box-shadow:0 0 0 1px var(--line)${defaultSelected ? ', 0 0 0 2px #1D4ED8' : ''};
-      display:flex;flex-direction:column;gap:8px;min-height:64px;justify-content:space-between;grid-column:1/-1;">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:11px;color:#0B1F3A;font-weight:700;">⚪ Standart (och/pastel)</span>
-        ${defaultSelected ? '<span style="color:#1D4ED8;font-size:14px;">✓</span>' : ''}
-      </div>
-    </div>
-    ${Object.entries(SEARCH_CARD_BG_PRESETS).map(([key, t]) => searchCardBgSwatchHtml(key, t)).join('')}
-  `;
-
-  picker.querySelectorAll('.scb-swatch').forEach(el => {
-    el.addEventListener('click', async () => {
-      const key = el.dataset.key;
-      currentSearchCardBg = key;
-      renderSearchCardBgPicker();
-      const msg = document.getElementById('searchCardBgMsg');
-      try{
-        // Bo'sh key ('') = "Standart" tanlandi — Firestore'da maydonni
-        // o'chirib qo'yamiz, shunda index.html standart (och) fonga qaytadi.
-        await db.collection('site_settings').doc('general').set(
-          { searchCardBg: key ? key : firebase.firestore.FieldValue.delete() },
-          { merge: true }
-        );
-        msg.textContent = key
-          ? `✓ "${SEARCH_CARD_BG_PRESETS[key].name}" foni saqlandi — mijoz saytida darhol qo'llanadi.`
-          : `✓ Standart fonga qaytarildi — mijoz saytida darhol qo'llanadi.`;
-        msg.className = 'settings-msg ok';
-        vibrate(80);
-      }catch(err){
-        msg.textContent = 'Xato: ' + err.message;
-        msg.className = 'settings-msg bad';
-      }
-    });
-  });
-}
-
-document.getElementById('vipWhiteThemeBtn').addEventListener('click', async () => {
-  currentTheme = 'clean_white';
-  renderThemePicker();
-  const msg = document.getElementById('themeMsg');
-  try{
-    await db.collection('site_settings').doc('general').set({ theme: 'clean_white' }, { merge: true });
-    msg.textContent = `✓ "VIP Raqamlar — Oq mavzu" saqlandi — mijoz saytida darhol qo'llanadi.`;
-    msg.className = 'settings-msg ok';
-    vibrate(80);
-  }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
-    msg.className = 'settings-msg bad';
-  }
-});
-
 async function loadSiteSettingsForm(){
-  renderThemePicker();
   renderStylePicker();
-  renderBgColorPicker();
-  renderSearchCardBgPicker();
   try{
     const doc = await db.collection('site_settings').doc('general').get();
     if(!doc.exists) return;
     const s = doc.data();
-    if(s.theme && SITE_THEMES[s.theme]){ currentTheme = s.theme; renderThemePicker(); }
     if(s.catalogStyle && CATALOG_STYLES.some(cs => cs.key === s.catalogStyle)){ currentCatalogStyle = s.catalogStyle; renderStylePicker(); }
-    if(typeof s.siteBgColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.siteBgColor)){ currentBgColor = s.siteBgColor; renderBgColorPicker(); }
-    if(typeof s.searchCardBg === 'string' && SEARCH_CARD_BG_PRESETS[s.searchCardBg]){ currentSearchCardBg = s.searchCardBg; renderSearchCardBgPicker(); }
-    document.getElementById('hideOrderBtnCheckbox').checked = !!s.hideOrderButton;
-    document.getElementById('siteFontSelect').value = s.font || 'Sora';
     document.getElementById('siteTelegramLink').value = s.telegramLink || '';
     document.getElementById('siteInstagramLink').value = s.instagramLink || '';
     document.getElementById('siteContactLink').value = s.contactLink || '';
@@ -9637,6 +9431,40 @@ document.getElementById('saveInstallmentRatesBtn').addEventListener('click', asy
     .pin-modal-btns button{flex:1;padding:11px;border-radius:10px;font-weight:700;font-size:13.5px;cursor:pointer;border:none;}
     .pin-modal-cancel{background:var(--panel-2);border:1px solid var(--line) !important;color:var(--text-2);}
     .pin-modal-ok{background:var(--amber);color:#fff;}
+    .pin-modal-ok.is-danger{background:var(--red);}
+
+    /* ---- To'lov tasdiqlash oynasi (Kredit) — kengaytirilgan versiya:
+       endi faqat kod emas, QAYSI OYni tasdiqlayotgani ham aniq so'raladi,
+       shuning uchun bitta tugma bosilishi bilan hech narsa "birdaniga"
+       o'zgarib ketmaydi. ---- */
+    .pay-confirm-modal{max-width:340px;text-align:left;}
+    .pay-confirm-modal h3{text-align:center;}
+    .pcm-icon{
+      width:46px;height:46px;border-radius:13px;margin:0 auto 12px;
+      background:linear-gradient(135deg,#4F8CFF,#1546D6);color:#fff;
+      display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -4px rgba(21,70,214,.5);
+    }
+    .pcm-icon svg{width:22px;height:22px;}
+    .pcm-icon.is-danger{background:linear-gradient(135deg,#FB923C,#DC2626);box-shadow:0 6px 14px -4px rgba(220,38,38,.5);}
+    .pay-confirm-modal p.pcm-client{text-align:center;font-weight:700;color:var(--text);font-size:13px;margin:0 0 16px;}
+    .pcm-label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin:0 0 6px;}
+    .pcm-select, .pay-confirm-modal input{
+      width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--line);
+      background:var(--panel-2);color:var(--text);font-size:13px;font-weight:700;outline:none;
+      box-sizing:border-box;margin-bottom:14px;font-family:inherit;
+    }
+    .pcm-select:focus, .pay-confirm-modal input:focus{border-color:var(--amber);}
+    .pay-confirm-modal input{text-align:center;letter-spacing:.3em;font-size:18px;}
+    .pcm-month-fixed{
+      background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;
+      padding:11px 12px;font-weight:800;font-size:13px;color:var(--text);margin-bottom:14px;
+    }
+    .pcm-amount{
+      display:flex;align-items:center;justify-content:space-between;
+      background:rgba(15,157,88,.08);color:var(--green);border-radius:10px;padding:10px 14px;
+      font-weight:800;font-size:14px;margin-bottom:16px;
+    }
+    .pcm-amount.is-danger{background:rgba(220,38,38,.08);color:var(--red);}
   `;
   document.head.appendChild(stil);
 })();
@@ -9694,6 +9522,99 @@ function askPaymentCode(){
   });
 }
 
+/* ==================================================================
+   KREDIT — TO'LOVNI TASDIQLASH OYNASI (yaxshilangan)
+   Avval: tugma bosilishi bilan (agar PIN kod sozlanmagan bo'lsa) hech
+   qanday so'rovsiz, DARHOL "to'landi" deb belgilanardi — admin "qaysi
+   oyni bosganimni bilmay qoldim" deb shikoyat qildi. Endi har doim:
+   1) qaysi oy uchun ekani alohida oynada aniq ko'rsatiladi (bir nechta
+      to'lanmagan oy bo'lsa — tanlab olish mumkin),
+   2) agar Sozlamalar'da tasdiqlash kodi o'rnatilgan bo'lsa, o'sha kod
+      so'raladi,
+   3) ikkala holatda ham "Tasdiqlash" tugmasini ANIQ bosish shart —
+      demak endi hech narsa "birdaniga" o'zgarib ketmaydi.
+   contract — currentCreditContracts'dagi to'liq shartnoma obyekti.
+   opts.single = true bo'lsa — oy tanlanmaydi, aniq bitta oy ko'rsatiladi
+   (oylar jadvalidagi bitta katakchani bosganda ishlatiladi).
+   opts.isUndo = true bo'lsa — "to'lovni bekor qilish" matni va qizil rang.
+   Natija: tanlangan oy raqami (Number) yoki bekor qilinsa null.
+   ================================================================== */
+function confirmCreditPayment(contract, defaultMonth, opts){
+  opts = opts || {};
+  return new Promise((resolve) => {
+    const payments = contract.payments || [];
+    const pending = opts.single
+      ? payments.filter(p => p.month === defaultMonth)
+      : payments.filter(p => p.status !== 'paid').sort((a,b) => a.month - b.month);
+    if(!pending.length){ resolve(null); return; }
+
+    const code = ((window.PAYMENT_CONFIRM_CODE != null) ? String(window.PAYMENT_CONFIRM_CODE) : '').trim();
+
+    const old = document.getElementById('payConfirmModal');
+    if(old) old.remove();
+    const modal = document.createElement('div');
+    modal.id = 'payConfirmModal';
+    modal.className = 'pin-modal-back';
+
+    const chosen = pending.find(p => p.month === defaultMonth) || pending[0];
+    const monthField = opts.single
+      ? '<div class="pcm-month-fixed">' + chosen.month + '-oy &middot; muddati ' + formatDate(chosen.dueDate) + '</div>'
+      : '<label class="pcm-label" for="pcmMonthSelect">Qaysi oy uchun tasdiqlaysiz?</label>' +
+        '<select id="pcmMonthSelect" class="pcm-select">' +
+          pending.map(p => '<option value="' + p.month + '"' + (p.month === chosen.month ? ' selected' : '') + '>' +
+            p.month + '-oy — muddati ' + formatDate(p.dueDate) + '</option>').join('') +
+        '</select>';
+
+    modal.innerHTML =
+      '<div class="pin-modal pay-confirm-modal">' +
+        '<div class="pcm-icon' + (opts.isUndo ? ' is-danger' : '') + '">' + (ICONS.creditCard || '') + '</div>' +
+        '<h3>' + (opts.isUndo ? "To'lovni bekor qilish" : "To'lovni tasdiqlash") + '</h3>' +
+        '<p class="pcm-client">' + escapeHtml(contract.customerName || '') + ' &middot; ' + escapeHtml(contract.number || '') + '</p>' +
+        monthField +
+        '<div class="pcm-amount' + (opts.isUndo ? ' is-danger' : '') + '"><span>Oylik to\'lov</span><span>' + qzMoney(contract.monthlyPayment || 0) + ' so\'m</span></div>' +
+        (code
+          ? '<label class="pcm-label" for="pcmPinInput">Tasdiqlash kodi</label>' +
+            '<input type="password" inputmode="numeric" id="pcmPinInput" autocomplete="off">' +
+            '<div class="pin-modal-err" id="pcmPinErr">Kod noto\'g\'ri, qaytadan urinib ko\'ring</div>'
+          : '') +
+        '<div class="pin-modal-btns">' +
+          '<button type="button" class="pin-modal-cancel">Bekor qilish</button>' +
+          '<button type="button" class="pin-modal-ok' + (opts.isUndo ? ' is-danger' : '') + '">' + (opts.isUndo ? "Bekor qilaman" : "Tasdiqlash") + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+
+    const select = modal.querySelector('#pcmMonthSelect');
+    const pinInput = modal.querySelector('#pcmPinInput');
+    const pinErr = modal.querySelector('#pcmPinErr');
+    const okBtn = modal.querySelector('.pin-modal-ok');
+    const cancelBtn = modal.querySelector('.pin-modal-cancel');
+
+    requestAnimationFrame(() => modal.classList.add('is-open'));
+    setTimeout(() => { (pinInput || select || okBtn).focus(); }, 60);
+
+    function cleanup(result){
+      modal.classList.remove('is-open');
+      setTimeout(() => { if(modal.parentNode) modal.remove(); }, 180);
+      resolve(result);
+    }
+    function onOk(){
+      if(pinInput && pinInput.value.trim() !== code){
+        pinErr.style.display = 'block'; pinInput.value = ''; pinInput.focus();
+        if(window.vibrate) vibrate(120);
+        return;
+      }
+      cleanup(Number(opts.single ? chosen.month : select.value));
+    }
+    function onCancel(){ cleanup(null); }
+    function onKey(e){ if(e.key === 'Enter') onOk(); if(e.key === 'Escape') onCancel(); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('keydown', onKey);
+  });
+}
+
 document.getElementById('savePaymentCodeBtn').addEventListener('click', async ()=>{
   const msg = document.getElementById('paymentCodeMsg');
   try{
@@ -9708,35 +9629,6 @@ document.getElementById('savePaymentCodeBtn').addEventListener('click', async ()
     msg.className = 'settings-msg bad';
   }
 });
-
-document.getElementById('hideOrderBtnCheckbox').addEventListener('change', async (e)=>{
-  const msg = document.getElementById('hideOrderBtnMsg');
-  try{
-    await db.collection('site_settings').doc('general').set({ hideOrderButton: e.target.checked }, { merge: true });
-    msg.textContent = e.target.checked
-      ? "✓ Saqlandi — endi mijoz kartaning istalgan joyiga bossa, buyurtma bo'ladi."
-      : '✓ Saqlandi — "Buyurtma berish" tugmasi qaytarildi.';
-    msg.className = 'settings-msg ok';
-    vibrate(80);
-  }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
-    msg.className = 'settings-msg bad';
-  }
-});
-
-document.getElementById('siteFontSelect').addEventListener('change', async (e)=>{
-  const msg = document.getElementById('siteFontMsg');
-  try{
-    await db.collection('site_settings').doc('general').set({ font: e.target.value }, { merge: true });
-    msg.textContent = e.target.value ? `✓ "${e.target.value}" shirfti saqlandi — mijoz saytida darhol qo'llanadi.` : '✓ Standart shirftga qaytarildi.';
-    msg.className = 'settings-msg ok';
-    vibrate(80);
-  }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
-    msg.className = 'settings-msg bad';
-  }
-});
-
 
 /* ---- Seanslar ro'yxati ---- */
 const sessionsList = document.getElementById('sessionsList');
@@ -11101,9 +10993,12 @@ if(mgmtPermsGridEl){
   mgmtWirePermsGrid(mgmtPermsGridEl);
 }
 
-document.getElementById('mgmtAddToggleBtn').addEventListener('click', ()=>{
+document.getElementById('mgmtAddToggleBtn').addEventListener('click', (e)=>{
   const form = document.getElementById('mgmtAddForm');
-  form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+  const isOpening = (form.style.display === 'none' || !form.style.display);
+  form.style.display = isOpening ? 'block' : 'none';
+  e.currentTarget.classList.toggle('open', isOpening);
+  if(isOpening) form.scrollIntoView({ behavior:'smooth', block:'nearest' });
 });
 
 document.getElementById('mgmtCreateBtn').addEventListener('click', async ()=>{
@@ -11155,30 +11050,64 @@ async function loadAdminsList(){
     const admins = data.admins || [];
     if(admins.length === 0){
       list.innerHTML = '<div class="wt-empty">Hali qo\'shimcha admin yo\'q. Yuqoridan birinchisini qo\'shing.</div>';
+      const statsElEmpty = document.getElementById('mgmtStatsRow');
+      if(statsElEmpty) statsElEmpty.innerHTML = '';
+      const listLabelEmpty = document.getElementById('mgmtListLabel');
+      if(listLabelEmpty) listLabelEmpty.style.display = 'none';
       return;
     }
+    // Yangi statistik qator — jami, faol, to'xtatilgan adminlar soni.
+    const statsEl = document.getElementById('mgmtStatsRow');
+    if(statsEl){
+      const activeCount = admins.filter(a => a.active).length;
+      const pausedCount = admins.length - activeCount;
+      statsEl.innerHTML = `
+        <div class="dash-stat-card dsc-blue">
+          <div class="dash-stat-top"><span class="dash-stat-label">Jami adminlar</span><div class="dash-stat-ico">${ICONS.database}</div></div>
+          <div class="dash-stat-num">${admins.length}</div>
+          <div class="dash-stat-sub">bosh admindan tashqari</div>
+        </div>
+        <div class="dash-stat-card dsc-green">
+          <div class="dash-stat-top"><span class="dash-stat-label">Faol adminlar</span><div class="dash-stat-ico">${ICONS.check}</div></div>
+          <div class="dash-stat-num">${activeCount}</div>
+          <div class="dash-stat-sub">tizimga kira oladi</div>
+        </div>
+        <div class="dash-stat-card dsc-red">
+          <div class="dash-stat-top"><span class="dash-stat-label">To'xtatilgan</span><div class="dash-stat-ico">${ICONS.xCircle}</div></div>
+          <div class="dash-stat-num">${pausedCount}</div>
+          <div class="dash-stat-sub">${pausedCount ? 'kirish bloklangan' : 'hammasi faol'}</div>
+        </div>
+      `;
+    }
+    const listLabel = document.getElementById('mgmtListLabel');
+    if(listLabel) listLabel.style.display = '';
+
     list.innerHTML = admins.map(a => {
       const chips = MGMT_FEATURE_ORDER.filter(k => a.permissions[k]).map(k => `<span class="mgmt-chip">${MGMT_FEATURE_LABELS[k]}</span>`).join('');
       const initial = (a.name || '?').trim().charAt(0).toUpperCase();
       return `
       <div class="mgmt-admin-card ${a.active ? '' : 'paused'}" data-uid="${escapeHtml(a.uid)}">
+        <button type="button" class="mgmt-del-btn mgmt-danger" title="O'chirish" aria-label="O'chirish">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
         <div class="mgmt-admin-top">
           <div class="mgmt-avatar">${escapeHtml(initial)}</div>
-          <div>
+          <div class="mgmt-admin-id">
             <div class="mgmt-admin-name">${escapeHtml(a.name)}</div>
             <div class="mgmt-admin-handle">login: ${escapeHtml(a.loginHandle)} · qo'shilgan: ${mgmtFormatTime(a.createdAt)}</div>
           </div>
           <span class="mgmt-badge ${a.active ? 'on' : 'off'}">${a.active ? 'Faol' : "To'xtatilgan"}</span>
         </div>
         <div class="mgmt-chips">${chips || '<span class="mgmt-chip mgmt-chip-empty">Hech qanday bo\'limga ruxsat yo\'q</span>'}</div>
-        <div class="mgmt-admin-actions">
+        <div class="mgmt-admin-actions mgmt-actions-primary">
           <button type="button" class="mgmt-perms-btn">🔧 Ruxsatlar</button>
           <button type="button" class="mgmt-pass-btn">🔑 Parolni yangilash</button>
-          <button type="button" class="mgmt-toggle-btn">${a.active ? "⏸ To'xtatish" : '▶ Faollashtirish'}</button>
+          <button type="button" class="mgmt-toggle-btn ${a.active ? '' : 'mgmt-toggle-off'}">${a.active ? "⏸ To'xtatish" : '▶ Faollashtirish'}</button>
+        </div>
+        <div class="mgmt-admin-actions mgmt-actions-secondary">
           <button type="button" class="mgmt-sessions-btn mgmt-primary">📊 Seanslari</button>
           <button type="button" class="mgmt-finance-btn mgmt-primary">💰 Kirim-Chiqimi</button>
           <button type="button" class="mgmt-credit-btn mgmt-primary">💳 Kredit shartnomalari</button>
-          <button type="button" class="mgmt-del-btn mgmt-danger">🗑 O'chirish</button>
         </div>
         <div class="mgmt-form mgmt-edit-perms" style="display:none;">
           <div class="mgmt-perms-grid mgmt-edit-perms-grid"></div>
@@ -12866,10 +12795,18 @@ function renderAdminOrders(orders){
   }
   adminOrdersList.innerHTML = filtered.map(o => `
     <div class="admin-row-collapsed order-card oc-wrap ${statusClass(o.status)}" data-id="${o.id}">
-      <div class="an-summary" data-id="${o.id}">
-        <span class="an-summary-num">${escapeHtml(o.number)}</span>
-        <span class="oc-summary-name">${escapeHtml(o.name)}</span>
+      <div class="an-summary oc-summary-grid" data-id="${o.id}">
+        <div class="oc-avatar">${dashInitials(o.name)}</div>
+        <div class="oc-main-info">
+          <span class="an-summary-num">${escapeHtml(o.number)}</span>
+          <span class="oc-summary-name">${escapeHtml(o.name)}</span>
+        </div>
+        <span class="oc-pay-chip ${o.paymentType === 'installment' ? 'oc-pay-installment' : 'oc-pay-cash'}">
+          ${o.paymentType === 'installment' ? `💳 ${escapeHtml(o.installmentMonths || '')} oy` : '💵 Naqd'}
+        </span>
+        <span class="oc-price-cell">${o.price ? formatPrice(o.price) : ''}</span>
         <span class="oc-status-badge ${statusClass(o.status)}">${escapeHtml(o.status || 'Yangi')}</span>
+        <span class="oc-time-cell">${relativeTimeUz(o.createdAtSort)}</span>
         <span class="an-summary-arrow">▾</span>
       </div>
       <div class="an-body" style="display:none;">
