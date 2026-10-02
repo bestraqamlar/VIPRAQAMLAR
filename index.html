@@ -178,23 +178,35 @@
   @keyframes lyuksSpin{ to{ transform:rotate(360deg); } }
 
   :root{
-    --bg: #0B1220;
+    /* 3-bosqich (mijoz: "Telegram ilovasi dizaynidek bo'lsin") — rang tili
+       Telegram'ning qorong'i mavzusiga (--bg/--panel: #0E1621/#17212B
+       uslubi) va uning imzoviy ko'k brendiga (#2AABEE/#229ED9) qarab
+       moslashtirildi: sovuqroq ko'k-kulrang, indigo/binafshadan voz
+       kechilgan, ortiqcha gradient/nur effektlarisiz, sodda va aniq. */
+    --bg: #0E1621;
     /* --page-bg — FAQAT sahifaning umumiy fon rangi (kartochkalar ORQASIDA
        turgan bo'sh joy). --bg'dan ATAYLAB ajratilgan: --bg tugmalar/nishonlar
        ustidagi YOZUV rangi sifatida ham ishlatiladi (masalan amber tugma
        ustidagi matn). Standart holatda --bg bilan bir xil, qattiq
        (hardcoded) belgilangan — admin panelda o'zgartirib bo'lmaydi. */
     --page-bg: var(--bg);
-    --panel: #121B2E;
-    --panel-2: #17223A;
-    --line: #263450;
-    --amber: #FFB000;
-    --amber-soft: rgba(255,176,0,0.15);
-    --green: #33E28C;
-    --red: #FF5C5C;
-    --brand-red: #E63946;
-    --text: #EDEFF3;
-    --muted: #8494B0;
+    /* Mijoz iltimosiga ko'ra (2-bosqich): fon va kartochka/panel ranglari
+       orasidagi farq ATAYLAB OSHIRILDI — avval ikkalasi deyarli bir xil
+       to'qlikda bo'lib, kartochkalar fondan "ajralib turmay", hammasi
+       bitta tekis to'q massaga aylanib ko'rinardi. Endi --panel/--panel-2
+       sezilarli YORUG'ROQ va --line (chegara) ANIQ ko'rinadigan darajada
+       yoritilgan — shu bilan har bir karta/oyna fondan aniq "ko'tarilgan"
+       alohida sirt sifatida ko'zga tashlanadi. */
+    --panel: #17212B;
+    --panel-2: #1E2A36;
+    --line: #2E3D4E;
+    --amber: #F0A93E;
+    --amber-soft: rgba(240,169,62,0.14);
+    --green: #34D399;
+    --red: #FB7185;
+    --brand-red: #F43F5E;
+    --text: #F3F6F9;
+    --muted: #8296A8;
     /* MUHIM: avval --btn-bg (va boshqa tugma o'zgaruvchilari) uchun
        BU YERDA (:root'da) umuman standart qiymat YO'Q edi — ular FAQAT
        Firestore'dan (yoki keshdan) kelgach o'rnatilardi. Sekin internetda
@@ -205,15 +217,20 @@
        dizayn" taassurotini berardi. Endi BITTA umumiy, aniq standart
        qiymat bor — sahifa Firestore javobini kutayotgan har qanday
        lahzada ham hammasi BIR XIL, mos ko'rinishda turadi. */
-    --btn-bg: #2F6BE0;
+    --btn-bg: #2AABEE;
     --btn-text: #FFFFFF;
     --btn-border-width: 0px;
     --btn-border-color: transparent;
-    --btn-radius: 10px;
-    --card-radius: 14px;
+    --btn-radius: 14px;
+    --card-radius: 16px;
     --font-main: 'Sora', sans-serif;
-    --accent-grad-1: #8B5CF6;
-    --accent-grad-2: #EC4899;
+    /* Telegram o'zi deyarli gradient ishlatmaydi — bu ikkala o'zgaruvchi
+       hamon mavjud (boshqa CSS qoidalari ulardan foydalanadi), lekin
+       endi IKKALASI HAM bir xil Telegram-ko'k oilasidan, deyarli
+       sezilmaydigan darajada yaqin — "gradient"dan ko'ra, bir xil
+       rangning o'zi kabi ko'rinadi. */
+    --accent-grad-1: #2AABEE;
+    --accent-grad-2: #229ED9;
     --accent-gradient: linear-gradient(120deg, var(--accent-grad-1), var(--accent-grad-2));
     /* VIP/STANDART tugmalari, "Barchasi" tanlagichi va 7 ta raqam
        katakchasi — HAMMASI shu BITTA qiymatdan balandlik oladi, shu
@@ -236,15 +253,24 @@
     /* Qidiruv kartochkasining o'ng (oq) maydoni foni — doimiy, qattiq
        belgilangan och/pastel gradient (admin panelda o'zgartirib
        bo'lmaydi, shu bilan sayt har doim bir xil ko'rinishda ochiladi). */
-    --scm-bg: linear-gradient(160deg, #F1F6FE 0%, #DEE9FA 100%);
-    --scm-digit-bg: rgba(10,30,70,0.06);
-    --scm-digit-border: rgba(20,45,110,0.22);
-    --scm-digit-text: #0B1220;
-    --scm-digit-placeholder: rgba(10,20,40,0.18);
+    /* 4-bosqich (mijoz: "qidiruv kartochkasi ham to'q Telegram mavzusiga
+       mos bo'lsin") — avval bu yerda doimiy OQ/pastel fon bor edi, bu
+       esa sahifaning qolgan to'q qismidan KESKIN ajralib, yorqin
+       "yorug' dog'" bo'lib ko'rinardi. Endi hammasi sahifaning o'z
+       --panel/--panel-2/--line/--text o'zgaruvchilaridan foydalanadi —
+       shu bilan qidiruv kartochkasi alohida yorug' karta emas, sahifaning
+       TABIIY DAVOMI sifatida ko'rinadi. */
+    --scm-bg: linear-gradient(160deg, var(--panel) 0%, var(--panel-2) 100%);
+    --scm-digit-bg: rgba(255,255,255,0.04);
+    --scm-digit-border: var(--line);
+    --scm-digit-text: var(--text);
+    --scm-digit-placeholder: rgba(255,255,255,0.3);
     /* Mijoz iltimosiga ko'ra: raqam KIRITILGAN katakchada endi yozuv
        rangiga (--scm-digit-text) QARAMA-QARSHI (kontrastli) fon bo'ladi —
-       shu bilan yozilgan raqam yanada aniqroq, "ajralib" ko'rinadi. */
-    --scm-digit-filled-bg: #E4F7EC;
+       shu bilan yozilgan raqam yanada aniqroq, "ajralib" ko'rinadi. Endi
+       to'q mavzuga mos — och yashil o'rniga TO'Q, lekin aniq farqlanuvchi
+       yashil tint. */
+    --scm-digit-filled-bg: rgba(52,211,153,0.22);
   }
   /* Planshet/kompyuterda katakchalar avvalgidek 46px'da "qotib" qolmasin
      deb (kichkina telefon o'lchamida "muzlab" qolgandek ko'rinardi) —
@@ -272,23 +298,20 @@
   }
   body{
     margin:0;color:var(--text);font-family:'Sora',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;
-    /* Butun sayt bo'ylab bir xil, sekin "suzib yuruvchi" binafsha-pushti
-       nurlar — fon o'zi hech qachon diqqatni tortmaydi (past shaffoflik),
-       lekin butun sahifa bo'ylab bir xil zamonaviy, jonli tuyg'u beradi. */
+    /* 5-bosqich (Telegram uslubi, "fon ham zamonaviy bo'lsin"): mutlaqo
+       YASSI bitta rang o'rniga — Telegram ilovasining o'zidagi kabi —
+       juda nozik, STATIK (animatsiyasiz) diagonal gradient: bir-biriga
+       JUDA yaqin uchta to'q ko'k-kulrang (--bg/--panel oilasidan) ton
+       orasida, deyarli sezilmas, lekin fonni "chuqur/premium" qiladi.
+       Ustiga, tepada JUDA xira, statik radial nur qo'shiladi (busy
+       animatsion "nur to'plami" EMAS — faqat bitta, qimirlamaydigan,
+       deyarli ko'rinmas urg'u). Kartalar/panel hamon fondan ANIQ
+       ajralib turadi (--panel baribir --bg'dan sezilarli yorug'roq). */
     background-color:var(--page-bg);
-    /* Mijoz iltimosiga ko'ra fon endi ANIQROQ, "zamonaviy to'q" (premium)
-       ko'rinsin deb — avvalgi juda xira (12-14%) nurlar kuchaytirildi va
-       uchinchi, ko'k-binafsha qatlam qo'shildi (mavzudan mustaqil, doim
-       shu rangda — shu bilan qaysi mavzu tanlanmasin, fon hech qachon
-       "yassi bir xil qora" bo'lib qolmaydi, doim chuqurlik hissi bor). */
     background-image:
-      radial-gradient(ellipse 75vw 55vh at 10% -10%, color-mix(in srgb, var(--amber) 22%, transparent), transparent 62%),
-      radial-gradient(ellipse 65vw 48vh at 100% 8%, color-mix(in srgb, var(--green) 18%, transparent), transparent 58%),
-      radial-gradient(ellipse 80vw 60vh at 50% 115%, rgba(76,63,196,0.16), transparent 65%);
+      linear-gradient(165deg, #0B121C 0%, #101A28 48%, #0D1521 100%),
+      radial-gradient(ellipse 65vw 42vh at 50% -8%, rgba(42,171,238,0.07), transparent 60%);
     background-repeat:no-repeat;
-    background-size:140% 140%, 140% 140%, 160% 160%;
-    background-position:0% 0%, 0% 0%, 50% 100%;
-    animation:bodyGlowDrift 26s ease-in-out infinite;
     -webkit-user-select:none;-moz-user-select:none;user-select:none;
     -webkit-touch-callout:none;
     touch-action:pan-y;
@@ -316,6 +339,9 @@
   }
 
   header{
+    /* 3-bosqich (Telegram uslubi): Telegram'ning o'z sarlavha panellari
+       kabi — tekis, ANIQ panel rangi, og'ir blur/soya yo'q, faqat
+       ingichka pastki chiziq bilan ajraladi. */
     padding:12px 20px;
     display:flex;align-items:center;justify-content:flex-start;
     border-bottom:1px solid var(--line);
@@ -486,15 +512,12 @@
   .drawer-links a svg{width:18px;height:18px;flex-shrink:0;color:var(--red);}
   .drawer-links a:hover{border-color:var(--red);}
   .drawer-ai-link{
-    background:linear-gradient(90deg, rgba(255,176,0,0.16), rgba(230,57,70,0.16)) !important;
+    /* 3-bosqich (Telegram uslubi): tekis amber-tint fon, doimiy yaltiroq
+       animatsiya olib tashlandi. */
+    background:var(--amber-soft) !important;
     border-color:var(--amber) !important;position:relative;overflow:hidden;
   }
   .drawer-ai-link svg{color:var(--amber) !important;}
-  .drawer-ai-link::after{
-    content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
-    animation:drawerAiShine 3s ease-in-out infinite;
-  }
   @keyframes drawerAiShine{ 0%{left:-60%;} 60%,100%{left:120%;} }
 
   .drawer-map-wrap{padding:0 16px;}
@@ -528,10 +551,11 @@
   /* ---- Header'dagi "RELS" tugmasi — logotip + "RELS" BITTA ramka ichida,
      ramka sariq/ko'k orasida mayin almashib turadi, ichida orqa fon yo'q ---- */
   .header-reels-btn-wrap{
+    /* 3-bosqich (Telegram uslubi): statik ramka, doimiy rang almashinishi
+       olib tashlandi. */
     display:flex;align-items:center;gap:6px;cursor:pointer;
     background:none;padding:4px 12px 4px 4px;border-radius:10px;
-    border:1px solid #FFB000;
-    animation:hrbBorderShift 6s ease-in-out infinite;
+    border:1px solid var(--amber);
   }
   @keyframes hrbBorderShift{
     0%{ border-color:#FFB000; }
@@ -540,7 +564,7 @@
   }
   .hrb-ring{
     width:24px;height:24px;border-radius:50%;flex-shrink:0;
-    background:radial-gradient(circle at 35% 30%, #1c2740, #0B1220);
+    background:radial-gradient(circle at 35% 30%, var(--panel-2), var(--bg));
     display:flex;align-items:center;justify-content:center;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);
   }
@@ -562,17 +586,12 @@
        .sc-main elementlariga tegishli. Faqat tashqi chegara va soya
        (kartaning umumiy "ko'tarilgan" hissi) shu yerda qoladi. */
     display:flex;align-items:stretch;
-    background:#FFFFFF;border:1px solid rgba(20,45,110,0.14);border-radius:20px;
+    /* 4-bosqich (Telegram uslubi): avval bu yerda doimiy OQ fon bor edi —
+       sahifaning qolgan to'q qismidan keskin ajralib, yorqin "dog'"
+       bo'lib ko'rinardi. Endi sahifaning o'z panel ranglaridan iborat. */
+    background:var(--panel);border:1px solid var(--line);border-radius:20px;
     padding:0;
-    box-shadow:
-      0 28px 60px -12px rgba(30,55,120,0.3),
-      0 10px 26px -6px rgba(30,55,120,0.2);
-  }
-  .search-card::before{
-    /* Nozik yorqin chiziq — tepada, boshqa premium kartochkalardagi kabi. */
-    content:'';position:absolute;top:0;left:0;right:0;height:3px;z-index:1;
-    background:linear-gradient(90deg, var(--accent-grad-1), var(--accent-grad-2), var(--accent-grad-1));
-    background-size:200% 100%;animation:cardBorderFlow 7s linear infinite;
+    box-shadow:0 10px 28px -16px rgba(0,0,0,0.5);
   }
   /* ---- Chap tomondagi tor, ko'k gradientli brend panel — "VIP RAQAMLAR"
      logotipi doim shu yerda, qidiruv kartasining doimiy, ажralib turuvchi
@@ -588,7 +607,11 @@
     flex:0 0 auto;width:clamp(64px, 20vw, 96px);
     flex-direction:column;align-items:center;justify-content:center;gap:8px;
     padding:16px 6px;
-    background:linear-gradient(165deg, #173B7A 0%, #2F6BE0 100%);
+    /* 4-bosqich: ko'k panel endi sahifaning o'z Telegram-ko'k brendidan
+       (--btn-bg) iborat — avvalgi, biroz boshqacha reja ko'kidan emas —
+       shu bilan butun qidiruv kartochkasi BIR XIL ko'k oilasiga tegishli
+       ko'rinadi. */
+    background:linear-gradient(165deg, #0E6E9E 0%, var(--btn-bg) 100%);
     text-align:center;
   }
   .sc-side-logo{
@@ -712,12 +735,11 @@
   .cm-tab{transform:scale(1);}
   .cm-tab:active{transform:scale(0.96);}
   .cm-tab.active{
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--btn-bg, var(--amber)) 100%, white 16%),
-      var(--btn-bg, var(--amber)) 70%);
+    /* 3-bosqich (Telegram uslubi): tekis fon, og'ir nur-soyasiz — Telegram
+       tablaridagi "tanlangan" holat kabi sodda va aniq. */
+    background:var(--btn-bg, var(--amber));
     color:var(--btn-text, #0a1a12);
     border-color:transparent;
-    box-shadow:0 6px 18px -6px color-mix(in srgb, var(--amber) 55%, transparent), inset 0 1px 0 rgba(255,255,255,0.28);
   }
   /* "Qidirish" tugmasi endi kichik "Premium" ptichka-tugma bilan bitta
      qatorda — shu sabab o'zi endi 100% emas, qolgan joyni egallaydi
@@ -781,34 +803,30 @@
     display:flex;align-items:center;justify-content:center;gap:7px;
     width:100%;max-width:448px;height:var(--search-row-h);margin:10px auto 0;box-sizing:border-box;
     padding:0 10px;border:none;border-radius:12px;
-    /* Zamonaviy, "jonli" ko'p rangli gradient — sekin siljib turadi
-       (btnGradientShift), shu bilan tugma hech qachon "o'lik/statik"
-       ko'rinmaydi, doim nafis harakatda. */
-    background:linear-gradient(120deg, #12A66B, #2F5FE0 55%, #7B4DE0);
-    background-size:220% 100%;
-    animation:btnGradientShift 5s ease-in-out infinite;
+    /* 3-bosqich (Telegram uslubi): tekis, ishonchli Telegram-ko'k fon —
+       siljib turuvchi gradient va yaltiroq "shine" effekti olib
+       tashlandi, Telegram'ning "Yuborish" tugmasidagi kabi sodda va
+       aniq fikr-mulohaza (faqat bosilganda yengil siqilish). */
+    background:var(--btn-bg);
     color:#FFFFFF;
     font-family:'Sora',sans-serif;font-weight:800;font-size:13px;cursor:pointer;
     position:relative;overflow:hidden;
-    box-shadow:0 10px 26px -8px rgba(47,95,224,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
-    transition:transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
+    box-shadow:0 4px 14px -6px color-mix(in srgb, var(--btn-bg) 55%, transparent);
+    transition:background-color .15s ease, transform .1s ease, opacity .1s ease;
   }
+  /* btnGradientShift/btnShineSweep nomlari saqlanadi (boshqa yerda
+     murojaat bo'lishi mumkin), lekin endi tugmaga qo'llanilmaydi. */
   @keyframes btnGradientShift{
     0%,100%{background-position:0% 50%;}
     50%{background-position:100% 50%;}
   }
-  .standard-search-btn::after{
-    content:'';position:absolute;top:0;left:-75%;width:45%;height:100%;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-    transform:skewX(-20deg);animation:btnShineSweep 3.2s ease-in-out infinite;
-  }
   @keyframes btnShineSweep{
     0%{left:-75%;}
-    35%{left:130%;}
+    22%{left:130%;}
     100%{left:130%;}
   }
-  .standard-search-btn:hover{box-shadow:0 12px 30px -6px rgba(47,95,224,0.7), inset 0 1px 0 rgba(255,255,255,0.35);}
-  .standard-search-btn:active{transform:scale(0.97);}
+  .standard-search-btn:hover{background:color-mix(in srgb, var(--btn-bg) 88%, #000);}
+  .standard-search-btn:active{transform:scale(0.97);opacity:0.92;}
   .standard-search-btn:disabled{opacity:.6;cursor:not-allowed;animation-play-state:paused;}
 
   .search-wrap{
@@ -926,7 +944,7 @@
        raqamga (--scm-digit-text — och fonda qora, to'q fonda oq) QARAMA-
        QARSHI, kontrastli fon (--scm-digit-filled-bg) bo'ladi — shu bilan
        raqam yanada aniq, "ajralib" ko'rinadi (avval fon shaffof edi). */
-    background:var(--scm-digit-filled-bg);color:var(--scm-digit-text);border-color:#0E6B3A;
+    background:var(--scm-digit-filled-bg);color:var(--scm-digit-text);border-color:var(--green);
     font-weight:900;
   }
   .dash{flex:0 0 auto;color:var(--muted);font-family:'Sora',sans-serif;font-size:clamp(11px,3vw,14px);}
@@ -983,8 +1001,11 @@
        brend rangiga o'tadi (chap paneldagi #173B7A/#2F6BE0 gradienti
        bilan bir xil til). flex:none — qator hech qachon torayib, matn
        kesilib qolmasin, buning o'rniga butun qator svayp qilinadi. */
+    /* 4-bosqich (Telegram uslubi): oq/pastel fon o'rniga to'q panel
+       rangi — qidiruv kartochkasining qolgan qismi bilan BIR XIL
+       to'q mavzuga mos. */
     display:flex;align-items:center;gap:6px;padding:6px 11px 6px 8px;border-radius:9px;
-    border:1.5px solid #E4E9F3;background:#FBFCFF;cursor:pointer;flex:none;
+    border:1.5px solid var(--line);background:var(--panel-2);cursor:pointer;flex:none;
     position:relative;
     transition:transform .15s cubic-bezier(.34,1.56,.64,1), border-color .18s ease,
       background .18s ease, box-shadow .18s ease;
@@ -1005,7 +1026,7 @@
   .std-op-card:active{transform:scale(0.96);}
   .std-op-card img{width:15px;height:15px;object-fit:contain;border-radius:4px;background:#fff;flex:none;}
   .std-op-card .soc-name{
-    font-family:'Sora',sans-serif;font-weight:700;font-size:11px;color:#33455E;
+    font-family:'Sora',sans-serif;font-weight:700;font-size:11px;color:var(--text);
     white-space:nowrap;
   }
   /* Qidiruv natijasidan keyin har bir operator yonida NECHTA raqam
@@ -1013,25 +1034,25 @@
      mijoz bosishdan oldin qaysi operatorda ko'proq borligini ko'radi. */
   .std-op-card .soc-count{
     flex:none;font-family:'Space Mono',monospace;font-weight:700;font-size:9.5px;
-    color:#7C8AA5;background:#EEF2FA;border-radius:20px;padding:1px 6px;min-width:14px;text-align:center;
+    color:var(--muted);background:var(--panel);border-radius:20px;padding:1px 6px;min-width:14px;text-align:center;
     transition:all .18s ease;
   }
-  .std-op-card.selected .soc-count{color:#2F6BE0;background:#E4ECFF;}
+  .std-op-card.selected .soc-count{color:#fff;background:color-mix(in srgb, var(--btn-bg) 55%, var(--panel));}
   .std-op-card .soc-radio{ display:none; }
   .std-op-card.selected{
-    border-color:#2F6BE0;background:#EFF4FF;
-    box-shadow:0 3px 10px -5px rgba(47,107,224,0.45);
+    border-color:var(--btn-bg);background:color-mix(in srgb, var(--btn-bg) 18%, var(--panel-2));
+    box-shadow:0 3px 10px -5px rgba(42,171,238,0.4);
   }
-  .std-op-card.selected .soc-name{color:#173B7A;}
+  .std-op-card.selected .soc-name{color:#fff;}
   /* Mijoz iltimosiga ko'ra: "Raqam qidirish" bo'limidagi kompaniya
      kartochkalari (bitta tanlansa) ravshan YASHIL ramka bilan ajralib
      tursin — .standard-op-toggles (boshqa bo'lim) ko'k ranglicha qoladi. */
   .vip-op-toggles .std-op-card.selected{
-    border-color:#16A34A;background:#EAFBF1;
-    box-shadow:0 3px 10px -5px rgba(22,163,74,0.45);
+    border-color:var(--green);background:color-mix(in srgb, var(--green) 18%, var(--panel-2));
+    box-shadow:0 3px 10px -5px rgba(52,211,153,0.4);
   }
-  .vip-op-toggles .std-op-card.selected .soc-name{color:#0F7A3D;}
-  .vip-op-toggles .std-op-card.selected .soc-count{color:#16A34A;background:#DCF7E6;}
+  .vip-op-toggles .std-op-card.selected .soc-name{color:#fff;}
+  .vip-op-toggles .std-op-card.selected .soc-count{color:#fff;background:color-mix(in srgb, var(--green) 50%, var(--panel));}
   .hint-text{
     /* Mijoz iltimosiga ko'ra bu tushuntirish matni (VIP'da ham,
        STANDART'da ham) endi umuman ko'rsatilmaydi — JS uni hamon
@@ -1154,38 +1175,34 @@
     transition:opacity .18s ease;
   }
   .card{
+    /* 3-bosqich (Telegram uslubi): Telegram deyarli soya ishlatmaydi —
+       sirtlar orasidagi farq asosan FON RANGI orqali (--panel sahifa
+       --bg'idan yorug'roq) va ingichka chegara orqali beriladi, og'ir
+       soya/gradient orqali EMAS. Shu sabab fon endi tekis --panel (oldingi
+       diagonal gradient olib tashlandi), soya esa juda yupqa, faqat
+       "qog'oz varag'i" hissi uchun. */
     background:var(--panel);
-    border:1.5px solid var(--line);border-radius:var(--card-radius, 14px);
+    border:1px solid var(--line);border-radius:var(--card-radius, 14px);
     display:flex;flex-direction:column;position:relative;overflow:hidden;
-    box-shadow:0 12px 34px rgba(8,4,30,0.48), 0 0 0 1px color-mix(in srgb, var(--amber) 10%, transparent);
-    transition:border-color .3s ease, box-shadow .35s ease, transform .3s cubic-bezier(.22,1,.36,1);
-    opacity:0;animation:cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards;
+    box-shadow:0 1px 0 rgba(255,255,255,0.02) inset;
+    transition:border-color .2s ease, background-color .2s ease, transform .18s cubic-bezier(.22,1,.36,1);
+    opacity:0;animation:cardPopIn .4s cubic-bezier(.22,1,.36,1) forwards;
   }
-  .card::before{
-    /* Faqat TEPADA, ingichka chiziq — avvalgi (oddiy) ko'rinishga qaytarildi. */
-    content:'';position:absolute;top:0;left:0;right:0;height:2px;
-    background:linear-gradient(90deg, var(--accent-grad-1), var(--accent-grad-2), var(--accent-grad-1));
-    background-size:200% 100%;
-    animation:cardBorderFlow 7s linear infinite;
-    border-radius:var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
-  }
+  /* Telegram'dagi kabi — kartaning tepasida bezak chiziq YO'Q, ortiqcha
+     animatsiyalar olib tashlandi (quyidagi ikkita keyframe hamon
+     mavjud — JS/CSS boshqa joyda nomi orqali murojaat qilishi mumkin —
+     lekin endi HECH QANDAY elementga qo'llanilmaydi, shu bilan vizual
+     "nafas olish/oqib turish" effekti yo'q). */
   @keyframes cardBorderFlow{ from{background-position:0% 50%;} to{background-position:200% 50%;} }
-  /* Kartaning tinch (hover qilinmagan) holatidagi soyasi sekin
-     "nafas oladi" — to'qroq/ochroq bo'lib turadi (o'z box-shadow'i,
-     hover qilinganda pastdagi kuchliroq soyaga yumshoq o'tadi). */
-  .card:not(:hover):not(:focus-within){
-    animation: cardPopIn .5s cubic-bezier(.22,1,.36,1) forwards, cardShadowBreathe 5s ease-in-out infinite;
-  }
   @keyframes cardShadowBreathe{
-    0%,100%{ box-shadow:0 12px 32px rgba(8,4,30,0.5), 0 6px 16px color-mix(in srgb, var(--amber) 30%, transparent); }
-    50%{ box-shadow:0 17px 42px rgba(8,4,30,0.66), 0 9px 22px color-mix(in srgb, var(--amber) 46%, transparent); }
+    0%,100%{ box-shadow:0 1px 0 rgba(255,255,255,0.02) inset; }
+    50%{ box-shadow:0 1px 0 rgba(255,255,255,0.02) inset; }
   }
   .card:hover, .card:focus-within{
-    border-color:color-mix(in srgb, var(--amber) 40%, transparent);
-    box-shadow:0 22px 50px rgba(8,4,30,0.62), 0 0 0 1px color-mix(in srgb, var(--amber) 12%, transparent), 0 12px 30px -6px color-mix(in srgb, var(--amber) 52%, transparent);
-    transform:translateY(-5px);
+    border-color:color-mix(in srgb, var(--btn-bg) 40%, var(--line));
+    background:var(--panel-2);
   }
-  .card:active{transform:scale(0.98);transition:transform .12s ease;}
+  .card:active{transform:scale(0.985);transition:transform .1s ease;}
   .card.clickable-card{cursor:pointer;}
   @keyframes cardPopIn{from{opacity:0;transform:translateY(16px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
   .catalog .card:nth-child(1){animation-delay:.02s;}
@@ -1378,25 +1395,27 @@
   @keyframes favPop{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1);}}
   .card-body{padding:18px 16px;display:flex;flex-direction:column;flex:1;}
   .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;flex-wrap:wrap;margin-top:auto;}
-  .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--amber);}
+  .price-row .new-price{font-family:'Sora',sans-serif;font-weight:800;font-size:17px;letter-spacing:0.2px;color:var(--amber);}
   .price-row .old-price{
-    font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);text-decoration:line-through;
+    font-family:'Sora',sans-serif;font-size:11.5px;color:var(--muted);text-decoration:line-through;
   }
   /* "Bo'lib to'lashga Raqamlar" oynasidagi "Keyingisi" (yana 8 tasini
      ochish) tugmasi — "Buyurtma berish" tugmasi bilan bir xil uslubda. */
   .installment-more-btn{
+    /* 3-bosqich (Telegram uslubi): tekis, bitta ANIQ rang — metall/yaltiroq
+       gradient va og'ir soya olib tashlandi, Telegram tugmalaridagi kabi
+       sodda, ishonchli ko'rinish uchun. Bosilganda faqal yengil
+       xiralashish/torayish (opacity+scale) — "ko'tarilish" EMAS. */
     display:block;width:fit-content;margin:4px auto 24px;padding:12px 34px;
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--btn-bg, #1D2A44) 100%, white 14%),
-      var(--btn-bg, #1D2A44) 65%);
+    background:var(--btn-bg, #1D2A44);
     color:var(--btn-text, #fff);
     border:var(--btn-border-width, 1px) solid var(--btn-border-color, rgba(255,255,255,0.18));
     border-radius:var(--btn-radius, 9px);
     font-weight:700;font-size:14px;cursor:pointer;
-    box-shadow:0 8px 18px -8px color-mix(in srgb, var(--btn-bg, #1D2A44) 65%, transparent);
-    transition:transform .16s cubic-bezier(.34,1.56,.64,1), opacity .12s ease;
+    transition:background-color .15s ease, opacity .12s ease, transform .1s ease;
   }
-  .installment-more-btn:active{transform:scale(0.96);}
+  .installment-more-btn:hover{background:color-mix(in srgb, var(--btn-bg, #1D2A44) 88%, #000);}
+  .installment-more-btn:active{transform:scale(0.97);opacity:0.9;}
   .installment-tag{
     display:inline-flex;align-items:center;gap:5px;
     background:rgba(255,176,0,0.12);border:1px solid rgba(255,176,0,0.3);
@@ -1420,40 +1439,30 @@
   .hu-fin-badge svg{width:11px;height:11px;flex-shrink:0;}
   @keyframes hfBadgeIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
   .card button.order-btn{
-    /* Tekis bitta rang o'rniga yengil "yaltiroq" gradient (tepasi ozgina
-       yorug'roq) — tugma metall/shisha tugma kabi hajmli ko'rinadi,
-       adminning tanlagan --btn-bg rangidan qat'i nazar. */
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--btn-bg, #1D2A44) 100%, white 14%),
-      var(--btn-bg, #1D2A44) 65%);
+    /* 3-bosqich (Telegram uslubi): tekis, ishonchli bitta rang — tugma
+       Telegram'ning "Yuborish/Tasdiqlash" tugmalari kabi sodda, hajmli
+       "metall" effektisiz. Faqat bosilganda yengil, tezkor fikr-mulohaza
+       (scale+opacity), yaltiroq "shine" animatsiyasi olib tashlandi. */
+    background:var(--btn-bg, #1D2A44);
     color:var(--btn-text, #fff);
     border:var(--btn-border-width, 1px) solid var(--btn-border-color, rgba(255,255,255,0.18));
     border-radius:var(--btn-radius, 9px);
-    padding:11px;font-weight:600;font-size:14px;cursor:pointer;
+    padding:12px;font-weight:700;font-size:14px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:8px;
     position:relative;overflow:hidden;
-    /* Doimiy (hover kutmasdan) yumshoq "ko'tarilgan" soya + tepada
-       ingichka yorug' chiziq (inset highlight) — tugma sahifadan ozgina
-       ajralib, hajmli/premium ko'rinishda turadi. */
-    box-shadow:0 8px 18px -8px color-mix(in srgb, var(--btn-bg, #1D2A44) 65%, transparent),
-      inset 0 1px 0 rgba(255,255,255,0.22);
-    transition:transform .16s cubic-bezier(.34,1.56,.64,1), opacity .12s ease, background .15s ease, box-shadow .2s ease;
+    transition:background-color .15s ease, opacity .1s ease, transform .1s ease;
   }
-  .card button.order-btn::after{
-    /* Ingichka oq nur — hover kutmasdan, o'zi vaqti-vaqti bilan
-       tugma ustidan sekin o'tib turadi (juda ko'p emas, 4 soniyada bir marta). */
-    content:'';position:absolute;top:0;left:-40%;width:20%;height:100%;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-    transform:skewX(-20deg);
-    animation:btnShineLoop 4s ease-in-out infinite;
-  }
+  /* btnShineLoop keyframe'i saqlanadi (boshqa joyda nom orqali
+     ishlatilishi mumkin), lekin order-btn'ga endi ::after orqali
+     HECH QANDAY yaltiroq nur chizilmaydi — Telegram uslubida ortiqcha
+     bezak bo'lmasin deb. */
   @keyframes btnShineLoop{
     0%{ left:-40%; }
-    35%{ left:130%; }
+    22%{ left:130%; }
     100%{ left:130%; }
   }
-  .card button.order-btn:hover{filter:brightness(1.15);box-shadow:0 6px 18px -4px color-mix(in srgb, var(--amber) 50%, transparent);}
-  .card button.order-btn:active{transform:scale(0.96);}
+  .card button.order-btn:hover{background:color-mix(in srgb, var(--btn-bg) 88%, #000);}
+  .card button.order-btn:active{transform:scale(0.96);opacity:0.92;}
   .reserved-btn{
     background:var(--panel-2) !important;
     border:1px solid var(--line) !important;
@@ -1847,8 +1856,10 @@
   @media (min-width:600px){ .cp-input-modal{border-radius:20px;} }
   .cp-input-close{
     position:absolute;top:14px;right:14px;background:var(--panel-2);border:1px solid var(--line);
-    border-radius:9px;width:32px;height:32px;color:var(--text);cursor:pointer;font-size:15px;
+    border-radius:10px;width:38px;height:38px;color:var(--text);cursor:pointer;font-size:16px;
+    display:flex;align-items:center;justify-content:center;transition:border-color .15s ease, color .15s ease;
   }
+  .cp-input-close:hover{border-color:var(--red);color:var(--red);}
   .cp-input-modal h3{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin:0 0 8px;}
   .cp-input-modal p{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 18px;}
   .cp-number-field{
@@ -1856,7 +1867,7 @@
     padding:14px;color:var(--text);font-family:'Space Mono',monospace;font-size:17px;font-weight:700;
     text-align:center;outline:none;letter-spacing:0.5px;transition:border-color .15s ease;
   }
-  .cp-number-field:focus{border-color:var(--amber);}
+  .cp-number-field:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);}
   .cp-input-hint{
     font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;
     transition:color .2s ease;
@@ -2458,11 +2469,12 @@
   .pm-option-card:active{transform:scale(0.98);}
   .pm-option-card.active{
     border-color:var(--amber);
-    box-shadow:0 6px 18px -8px color-mix(in srgb, var(--amber) 55%, transparent);
-    background:linear-gradient(135deg, color-mix(in srgb, var(--amber) 14%, var(--panel)), color-mix(in srgb, var(--green) 10%, var(--panel)));
+    background:color-mix(in srgb, var(--amber) 10%, var(--panel));
   }
   .pm-option-icon{
-    flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    /* 3-bosqich (Telegram uslubi): doiraviy nishon — Telegram'ning
+       avatar/ikonka doirachalariga o'xshab. */
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     background:color-mix(in srgb, var(--amber) 16%, var(--panel));color:var(--amber);
   }
   .pm-option-card.active .pm-option-icon{background:var(--amber);color:var(--bg);}
@@ -2756,13 +2768,11 @@
     transform:translateY(34px) scale(.97);opacity:0;
     transition:opacity .46s cubic-bezier(.16,1,.3,1), transform .46s cubic-bezier(.16,1,.3,1);
     max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
-    box-shadow:0 20px 60px -12px color-mix(in srgb, var(--amber) 30%, transparent);
+    /* 3-bosqich (Telegram uslubi): Telegram'ning pastdan chiqadigan
+       action-sheet'lari kabi — yupqa, neytral soya, rangli nur yo'q. */
+    box-shadow:0 -4px 32px rgba(0,0,0,0.3);
   }
   .overlay.overlay-in .modal{transform:translateY(0) scale(1);opacity:1;}
-  .modal::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:4px;
-    background:var(--accent-gradient);
-  }
   @media (min-width:600px){ .modal{border-radius:20px;} }
   /* .modal endi yuqoridagi transition orqali ochiladi, lekin bu keyframes
      boshqa (kichikroq) oynalar uchun (masalan .cp-input-modal) hali ham
@@ -2822,13 +2832,11 @@
      "Rasmiylashtirish" bosilib to'liq forma (#formView) ochilganda oyna
      odatdagi (mavzuga mos) fonga qaytadi. ---- */
   .modal.modal-preview{
-    /* Mijoz iltimosiga ko'ra zamonaviylashtirildi — tekis ko'k o'rniga
-       chuqur indigo/binafsha fon + yumshoq amber nur (radial glow),
-       premium/rasmiy taassurot uchun. */
-    background:
-      radial-gradient(circle at 20% 0%, rgba(255,176,0,0.16) 0%, transparent 55%),
-      linear-gradient(160deg, #2A1F6B 0%, #150F3D 55%, #0A0820 100%);
-    border-color:rgba(255,255,255,0.14);
+    /* 3-bosqich (Telegram uslubi): indigo/binafsha nur o'rniga Telegram'ning
+       o'z chuqur ko'k-kulrang fonidan foydalaniladi — tekis, sodda,
+       ortiqcha "porlash"siz. */
+    background:var(--bg);
+    border-color:rgba(255,255,255,0.1);
   }
   .modal.modal-preview .modal-handle{background:rgba(255,255,255,0.35);}
   .modal.modal-preview .op-preview-text{color:rgba(255,255,255,0.82);}
@@ -2888,7 +2896,7 @@
     background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;
     padding:12px 8px 12px 18px;color:var(--text);outline:none;
   }
-  .sms-code-input:focus{border-color:var(--amber);}
+  .sms-code-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);}
   .sms-code-error{text-align:center;color:var(--red);font-size:12px;margin-top:8px;}
   .sms-safe-note{
     display:flex;align-items:flex-start;gap:8px;margin-top:16px;
@@ -2897,12 +2905,17 @@
   }
   .sms-safe-note svg{width:15px;height:15px;flex-shrink:0;margin-top:1px;color:var(--green);}
 
-  .modal label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px;}
+  .modal label{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 5px;font-weight:600;}
   .modal input, .modal select{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
-    padding:11px 12px;color:var(--text);font-size:14.5px;outline:none;transition:border-color .2s;
+    width:100%;background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;
+    padding:12px 13px;color:var(--text);font-size:14.5px;outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease;
   }
-  .modal input:focus, .modal select:focus{border-color:var(--amber);}
+  .modal input:focus, .modal select:focus{
+    border-color:var(--amber);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);
+  }
+  .modal input::placeholder{color:var(--muted);opacity:0.75;}
   .field-error{color:var(--red);font-size:11.5px;margin-top:4px;display:none;}
 
   .promo-row{display:flex;gap:6px;margin:8px 0 2px;}
@@ -2942,7 +2955,7 @@
   .toast.show{top:16px;}
 
   .hub-overlay{
-    position:fixed;inset:0;background:linear-gradient(160deg,#2c1aa0,#180d5c);
+    position:fixed;inset:0;background:var(--bg);
     z-index:215;overflow-y:auto;
     opacity:0;pointer-events:none;transform:scale(0.96);
     transition:opacity 0.35s ease, transform 0.35s cubic-bezier(.22,1,.36,1);
@@ -2952,7 +2965,8 @@
   .hub-top-bar{
     position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
     padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 14px;
-    background:linear-gradient(160deg,#2c1aa0,#180d5c);z-index:2;
+    background:var(--bg);
+    border-bottom:1px solid rgba(255,255,255,0.06);z-index:2;
   }
   .hub-top-title{color:#fff;font-family:'Sora',sans-serif;font-weight:800;font-size:18px;}
   .hub-close{
@@ -2967,11 +2981,14 @@
     display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:6px 20px 20px;
   }
   .hub-btn{
-    background:#4633ea;border:1px solid rgba(255,255,255,0.12);border-radius:18px;
+    /* 3-bosqich (Telegram uslubi): tekis panel fon, gradient yo'q —
+       Telegram'ning chat-ro'yxati kartalaridagi kabi sodda sirt. */
+    background:var(--panel);
+    border:1px solid var(--line);border-radius:16px;
     color:#fff;text-align:left;cursor:pointer;
     padding:18px 16px;min-height:140px;display:flex;flex-direction:column;
     justify-content:flex-start;gap:8px;
-    transition:transform .18s cubic-bezier(.34,1.56,.64,1), background .15s ease, box-shadow .2s ease;
+    transition:background-color .15s ease, transform .1s ease;
     opacity:0;animation:hubCardIn .4s ease forwards;
   }
   .hub-btn:nth-child(1){animation-delay:.02s;}
@@ -2979,14 +2996,16 @@
   .hub-btn:nth-child(3){animation-delay:.14s;}
   .hub-btn:nth-child(4){animation-delay:.20s;}
   @keyframes hubCardIn{from{opacity:0;transform:translateY(14px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
-  .hub-btn:hover{background:#5442ff;transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,0.25);}
-  .hub-btn:active{transform:translateY(0) scale(0.98);}
+  .hub-btn:hover{background:var(--panel-2);border-color:color-mix(in srgb, var(--btn-bg) 40%, var(--line));}
+  .hub-btn:active{transform:scale(0.98);}
   .hub-btn-icon{
-    width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.14);
+    /* 3-bosqich (Telegram uslubi): Telegram'ning doiraviy avatar/nishon
+       belgilariga o'xshab to'liq yumaloq. */
+    width:36px;height:36px;border-radius:50%;background:color-mix(in srgb, var(--btn-bg) 30%, rgba(255,255,255,0.1));
     display:flex;align-items:center;justify-content:center;
-    transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+    transition:transform .15s ease;
   }
-  .hub-btn:hover .hub-btn-icon{transform:scale(1.12) rotate(-6deg);}
+  .hub-btn:hover .hub-btn-icon{transform:scale(1.08);}
   .hub-btn-icon svg{width:19px;height:19px;}
   .hub-btn-title{font-weight:800;font-size:14px;line-height:1.25;margin-top:2px;}
   .hub-btn-sub{font-size:10.5px;color:rgba(255,255,255,0.65);line-height:1.4;font-weight:500;}
@@ -2994,7 +3013,7 @@
   /* ---- "Savatdagi raqamlar" (sevimlilar) oynasi — hub bilan bir xil
      ko'k-binafsha gradient uslubida ---- */
   .fav-overlay{
-    position:fixed;inset:0;background:linear-gradient(160deg,#2c1aa0,#180d5c);
+    position:fixed;inset:0;background:var(--bg);
     z-index:216;overflow-y:auto;
     opacity:0;pointer-events:none;transform:scale(0.96);
     transition:opacity 0.35s ease, transform 0.35s cubic-bezier(.22,1,.36,1);
@@ -3004,7 +3023,8 @@
   .fav-top-bar{
     position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
     padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 14px;
-    background:linear-gradient(160deg,#2c1aa0,#180d5c);z-index:2;
+    background:var(--bg);
+    border-bottom:1px solid rgba(255,255,255,0.06);z-index:2;
   }
   .fav-top-title{color:#fff;font-family:'Sora',sans-serif;font-weight:800;font-size:18px;}
   .fav-empty{text-align:center;padding:70px 24px;color:rgba(255,255,255,0.7);}
@@ -3014,7 +3034,8 @@
 
   .fav-list{padding:6px 20px 20px;display:flex;flex-direction:column;gap:12px;}
   .fav-item{
-    background:#4633ea;border:1px solid rgba(255,255,255,0.12);border-radius:16px;
+    background:var(--panel);
+    border:1px solid var(--line);border-radius:16px;
     padding:16px;color:#fff;
     opacity:0;animation:hubCardIn .4s ease forwards;
   }
@@ -3030,12 +3051,12 @@
   .fav-item-price{font-weight:800;font-size:15px;margin-bottom:12px;display:flex;align-items:baseline;gap:8px;}
   .fav-item-price .fav-old-price{font-weight:600;font-size:11.5px;color:rgba(255,255,255,0.55);text-decoration:line-through;}
   .fav-item-order-btn{
-    width:100%;background:#fff;color:#2c1aa0;border:none;border-radius:11px;
+    width:100%;background:#fff;color:#0E88C4;border:none;border-radius:11px;
     padding:12px;font-weight:800;font-size:13px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;gap:7px;
     transition:transform .15s ease, background .15s ease;
   }
-  .fav-item-order-btn:hover{background:#eee6ff;}
+  .fav-item-order-btn:hover{background:#EDEBFF;}
   .fav-item-order-btn:active{transform:scale(0.98);}
   .fav-item-order-btn svg{width:15px;height:15px;}
 
@@ -3094,14 +3115,20 @@
   }
   .contract-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
   .contract-title{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;color:var(--text);}
-  .contract-modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px;}
+  .contract-modal label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 5px;font-weight:600;}
   .contract-modal input{
-    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
-    background:var(--panel-2);color:var(--text);font-size:13.5px;
+    width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:13.5px;outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease;
   }
   .contract-modal textarea{
-    width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+    width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid var(--line);
     background:var(--panel-2);color:var(--text);font-size:13.5px;font-family:inherit;resize:vertical;
+    outline:none;transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .contract-modal input:focus, .contract-modal textarea:focus{
+    border-color:var(--amber);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);
   }
 
   /* ---- "Vakansiya" bo'limi (mijoz sayti) — ochiq ish o'rinlari ro'yxati
@@ -3138,7 +3165,7 @@
   #vacancyOverlay .vac-card{background:#F1F3F6;border:1px solid #E4E7EC;}
   #vacancyOverlay .vac-card-title{color:#12151C;}
   #vacancyOverlay .vac-card-desc{color:#444C58;}
-  #vacancyOverlay .vac-card-salary{color:#2F6BE0;}
+  #vacancyOverlay .vac-card-salary{color:#3E7BFA;}
   #vacancyOverlay .vac-consent{color:#444C58;}
   #vacancyOverlay .vac-locked-field,
   #vacancyOverlay .contract-modal input,
@@ -3318,9 +3345,13 @@
   }
 
   footer{
-    text-align:center;color:var(--muted);font-size:12px;padding:22px 20px 28px;border-top:1px solid var(--line);
+    text-align:center;color:var(--muted);font-size:12px;line-height:1.7;
+    padding:24px 20px 28px;margin-top:8px;
+    border-top:1px solid var(--line);
+    background:linear-gradient(180deg, transparent, rgba(255,255,255,0.015));
   }
-  footer a{color:var(--amber);}
+  footer a{color:var(--amber);font-weight:600;transition:opacity .15s ease;}
+  footer a:hover{opacity:0.8;}
 
   @media (max-width:560px){
     .catalog{
