@@ -121,6 +121,15 @@
     Content-Type = "application/json"
     Cache-Control = "public, max-age=3600"
 
+# Service worker (oflayn rejim) — HECH QACHON keshlanmasin, aks holda
+# brauzer eski sw.js ni ushlab qolib, saytning yangi versiyasi
+# foydalanuvchiga yetib bormay qoladi.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
 # HTML sahifalar hech qachon ESKI (keshlangan, tekshirilmagan) nusxada
 # ko'rsatilmasin — brauzer har doim serverdan eng yangi versiyani
 # tasdiqlab oladi. "no-store" ATAYLAB qo'yilmagan — u orqaga/oldinga
