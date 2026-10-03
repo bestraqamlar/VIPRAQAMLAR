@@ -340,6 +340,11 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 .sheet .bodyscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 20px}
 .sheet .ft{flex:none;padding:13px 18px calc(16px + var(--bot));border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:12px}
 .sheet.full .pn{height:100dvh;max-height:100dvh;border-radius:0}
+@media (max-width:899px){
+  #shOrder .pn,#shGen .pn{height:100dvh;max-height:100dvh;border-radius:0}
+  #shOrder .grip,#shGen .grip{display:none}
+  #shOrder .hd,#shGen .hd{padding-top:calc(var(--top) + 14px)}
+}
 
 /* ---------- Bosqichlar ---------- */
 .steps{display:flex;align-items:flex-start;position:relative;padding:4px 0 2px}
@@ -396,12 +401,20 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 .hero .num{font-size:30px;font-weight:700;margin-top:12px}
 .hero .sub{font-size:12.5px;color:#A9BCD6;font-weight:600;margin-top:7px}
 
+/* ---------- Qidirilayotganda ro'yxat oqarib turadi ---------- */
+#catList.is-loading{
+  pointer-events:none;filter:saturate(.45);
+  animation:dimpulse 1.8s ease-in-out infinite;
+}
+@keyframes dimpulse{0%,100%{opacity:.38}50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){#catList.is-loading{animation:none;opacity:.35}}
+
 /* ---------- Qidirilmoqda ---------- */
 .searching{
   grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);
-  padding:44px 22px;text-align:center;box-shadow:var(--sh-1);
+  padding:26px 22px;text-align:center;box-shadow:var(--sh-1);margin-bottom:14px;
 }
-.radar{width:96px;height:96px;margin:0 auto;position:relative}
+.radar{width:78px;height:78px;margin:0 auto;position:relative}
 .radar i{
   position:absolute;inset:0;border-radius:50%;border:2px solid var(--blue);
   opacity:0;animation:ping 2.1s cubic-bezier(.2,.6,.3,1) infinite;
@@ -415,9 +428,9 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   display:flex;align-items:center;justify-content:center;animation:bob 2.1s ease-in-out infinite;
 }
 @keyframes bob{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.09)}}
-.searching h3{margin-top:20px;font-size:16.5px}
+.searching h3{margin-top:16px;font-size:16px}
 .searching p{margin:8px auto 0;font-size:12.5px;color:var(--muted);font-weight:600;max-width:300px;line-height:1.55}
-.searching .bar{margin:18px auto 0;width:170px;height:4px;border-radius:2px;background:var(--card-3);overflow:hidden}
+.searching .bar{margin:15px auto 0;width:170px;height:4px;border-radius:2px;background:var(--card-3);overflow:hidden}
 .searching .bar i{display:block;width:40%;height:100%;border-radius:2px;background:var(--blue);animation:slide 1.25s cubic-bezier(.5,0,.5,1) infinite}
 @keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
 
@@ -1693,6 +1706,28 @@ function catalogItems(){
 const SORTS = [['default','Tasodifiy'],['cheap','Avval arzoni'],['expensive','Avval qimmati'],['installment',"Bo'lib to'lash"]];
 
 function renderCatalog(){
+  /* Qidiruv ketayotganda: ro'yxat o'zgarmaydi — faqat oqaradi,
+     tepada esa "Qidirilmoqda" animatsiyasi turadi. Natija FAQAT
+     server javob bergandan keyin, bir marta almashadi. */
+  if(liveBusy){
+    $('#searchInfo').innerHTML = `<div class="searching">
+      <div class="radar"><i></i><i></i><i></i>
+        <span class="core"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></span>
+      </div>
+      <h3>${t('Qidirilmoqda…')}</h3>
+      <p>${LANG==='ru'?'Проверяем операторов и нашу базу — это занимает несколько секунд.':'Operatorlar va bazamiz tekshirilmoqda — bu bir necha soniya oladi.'}</p>
+      <div class="bar"><i></i></div>
+    </div>`;
+    const lst = $('#catList');
+    if(lst){
+      if(!lst.children.length) lst.innerHTML = skeletons(6);
+      lst.classList.add('is-loading');
+    }
+    $('#catMore').style.display = 'none';
+    return;
+  }
+  $('#catList').classList.remove('is-loading');
+
   const all = localMatch(NUMBERS);
   const counts = {};
   all.forEach(n => { if(n.operator) counts[n.operator] = (counts[n.operator]||0)+1; });
@@ -1716,17 +1751,6 @@ function renderCatalog(){
          <button class="chip" id="searchReset" style="padding:7px 12px;font-size:12px">${t('Tozalash')}</button>
        </div>` : '';
 
-  if(liveBusy){
-    $('#catList').innerHTML = `<div class="searching">
-      <div class="radar"><i></i><i></i><i></i>
-        <span class="core"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></span>
-      </div>
-      <h3>${t('Qidirilmoqda…')}</h3>
-      <p>${LANG==='ru'?'Проверяем операторов и нашу базу — это занимает несколько секунд.':'Operatorlar va bazamiz tekshirilmoqda — bu bir necha soniya oladi.'}</p>
-      <div class="bar"><i></i></div>
-    </div>`;
-    $('#catMore').style.display = 'none'; return;
-  }
   if(!numbersLoaded && !list.length){ $('#catList').innerHTML = skeletons(6); $('#catMore').style.display='none'; return; }
   if(!list.length){
     $('#catList').innerHTML = emptyBox(IC_SEARCH, t('Bunday raqam topilmadi'),
