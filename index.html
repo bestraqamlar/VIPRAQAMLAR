@@ -415,6 +415,7 @@ html[data-theme="dark"] .srch-cells input:focus{
 .fld .inp select{appearance:none;-webkit-appearance:none}
 .fld .inp input::placeholder,.fld .inp textarea::placeholder{color:var(--faint);font-weight:600}
 .fld .hint{margin-top:6px;font-size:11px;color:var(--muted-2);font-weight:600}
+input[data-upper]{text-transform:uppercase}
 .fld .err{margin-top:6px;font-size:11px;color:var(--red);font-weight:700;display:none;align-items:center;gap:5px}
 .fld.bad .inp{border-color:var(--red)}
 .fld.bad .err{display:flex}
@@ -431,11 +432,11 @@ html[data-theme="dark"] .srch-cells input:focus{
   content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;
   background:linear-gradient(180deg,var(--blue),rgba(46,95,224,.15));opacity:.85;
 }
-.numcard.vipc::after{background:linear-gradient(180deg,var(--gold),rgba(230,200,119,.12))}
+.numcard.vipc::after{background:var(--tier-bar)}
 
 /* ---------- VIP kartochka: faqat tepa qismi premium ---------- */
 .numcard.vipc{padding:0 0 15px}
-.numcard.vipc::after{top:14px;bottom:14px;width:3px;background:linear-gradient(180deg,var(--gold),rgba(230,200,119,.1))}
+.numcard.vipc::after{top:14px;bottom:14px;width:3px;background:var(--tier-bar)}
 /* oltin "shapka" — raqam, VIP va operator shu yerda */
 .numcard.vipc .nc-top{
   position:relative;overflow:hidden;
@@ -458,14 +459,90 @@ html[data-theme="dark"] .srch-cells input:focus{
 .numcard.vipc .nc-fav{background:var(--vip-chip);border-color:var(--vip-line);color:var(--vip-chip-ink)}
 .numcard.vipc .tag.vip{
   display:inline-flex;align-items:center;gap:4px;padding:4px 9px 4px 7px;letter-spacing:.1em;
-  background:linear-gradient(135deg,#E8CE87,#CFA846 55%,#B08C32);color:#241A03;
-  box-shadow:0 2px 7px -4px rgba(201,160,65,.6);
+  background:var(--tier-badge);color:var(--tier-badge-ink);
+  box-shadow:0 2px 7px -4px var(--tier-shadow);
 }
 .numcard.vipc .tag.vip svg{width:11px;height:11px;flex:none}
 /* pastki qism — oddiy kartochkadagidek */
 .numcard.vipc .nc-sep{display:none}
 .numcard.vipc .nc-bot{padding:0 17px 0 19px}
 .numcard.vipc .nc-off{top:17px;right:66px;bottom:auto;left:auto}
+
+/* ==== TOIFALAR: VIP / PREMIUM / GOLD ==== */
+/* --- yorug' mavzu --- */
+.numcard.t-vip{
+  --vip-head:linear-gradient(135deg,rgba(103,58,183,.30) 0%,rgba(103,58,183,.15) 58%,rgba(103,58,183,.03) 100%);
+  --vip-glow:rgba(124,76,206,.22);
+  --vip-weave:rgba(85,45,160,.07);
+  --vip-line:rgba(103,58,183,.3);
+  --vip-chip:rgba(103,58,183,.13);
+  --vip-chip-ink:#4A2585;
+  --tier-bar:linear-gradient(180deg,#7C3AED,rgba(124,58,237,.1));
+  --tier-badge:linear-gradient(135deg,#C9AEF7,#9B6BE8 55%,#7C3AED);
+  --tier-badge-ink:#1E0A3C;
+  --tier-shadow:rgba(124,58,237,.6);
+}
+.numcard.t-premium{
+  --vip-head:linear-gradient(135deg,rgba(72,116,150,.30) 0%,rgba(72,116,150,.15) 58%,rgba(72,116,150,.03) 100%);
+  --vip-glow:rgba(96,140,175,.22);
+  --vip-weave:rgba(60,100,135,.07);
+  --vip-line:rgba(72,116,150,.32);
+  --vip-chip:rgba(72,116,150,.14);
+  --vip-chip-ink:#27485F;
+  --tier-bar:linear-gradient(180deg,#8FA9BC,rgba(143,169,188,.1));
+  --tier-badge:linear-gradient(135deg,#E6EEF4,#B3C6D4 55%,#8CA4B6);
+  --tier-badge-ink:#17293A;
+  --tier-shadow:rgba(96,140,175,.6);
+}
+.numcard.t-gold{
+  --vip-head:linear-gradient(135deg,rgba(158,116,20,.34) 0%,rgba(158,116,20,.17) 58%,rgba(158,116,20,.04) 100%);
+  --vip-glow:rgba(176,132,32,.23);
+  --vip-weave:rgba(130,96,16,.07);
+  --vip-line:rgba(150,112,24,.3);
+  --vip-chip:rgba(150,112,24,.15);
+  --vip-chip-ink:#4F3B0B;
+  --tier-bar:linear-gradient(180deg,#C9A041,rgba(201,160,65,.1));
+  --tier-badge:linear-gradient(135deg,#E8CE87,#CFA846 55%,#B08C32);
+  --tier-badge-ink:#241A03;
+  --tier-shadow:rgba(201,160,65,.6);
+}
+/* --- tungi mavzu --- */
+html[data-theme="dark"] .numcard.t-vip{
+  --vip-head:linear-gradient(135deg,rgba(150,106,255,.34) 0%,rgba(134,94,232,.18) 58%,rgba(120,84,210,.05) 100%);
+  --vip-glow:rgba(160,120,255,.26);
+  --vip-weave:rgba(206,184,255,.055);
+  --vip-line:rgba(176,142,255,.3);
+  --vip-chip:rgba(176,142,255,.16);
+  --vip-chip-ink:#D9C8FF;
+  --tier-bar:linear-gradient(180deg,#A47BFF,rgba(164,123,255,.1));
+  --tier-badge:linear-gradient(135deg,#D7C2FF,#A47BFF 55%,#7C3AED);
+  --tier-badge-ink:#190637;
+  --tier-shadow:rgba(164,123,255,.6);
+}
+html[data-theme="dark"] .numcard.t-premium{
+  --vip-head:linear-gradient(135deg,rgba(168,196,216,.26) 0%,rgba(150,178,200,.14) 58%,rgba(140,168,190,.04) 100%);
+  --vip-glow:rgba(190,214,232,.2);
+  --vip-weave:rgba(220,236,246,.055);
+  --vip-line:rgba(186,208,224,.28);
+  --vip-chip:rgba(186,208,224,.16);
+  --vip-chip-ink:#DCE9F2;
+  --tier-bar:linear-gradient(180deg,#C3D6E4,rgba(195,214,228,.1));
+  --tier-badge:linear-gradient(135deg,#F2F7FB,#C3D6E4 55%,#9DB4C6);
+  --tier-badge-ink:#14202C;
+  --tier-shadow:rgba(195,214,228,.5);
+}
+html[data-theme="dark"] .numcard.t-gold{
+  --vip-head:linear-gradient(135deg,rgba(201,160,65,.39) 0%,rgba(178,138,52,.20) 58%,rgba(160,122,42,.05) 100%);
+  --vip-glow:rgba(201,160,65,.25);
+  --vip-weave:rgba(255,222,150,.05);
+  --vip-line:rgba(230,200,119,.26);
+  --vip-chip:rgba(230,200,119,.15);
+  --vip-chip-ink:#F0E1B8;
+  --tier-bar:linear-gradient(180deg,#E0BC65,rgba(224,188,101,.1));
+  --tier-badge:linear-gradient(135deg,#F3E2B4,#DFC27C 55%,#C9A041);
+  --tier-badge-ink:#241A03;
+  --tier-shadow:rgba(224,188,101,.6);
+}
 
 .numcard.insc::after{background:linear-gradient(180deg,#36C9A0,rgba(54,201,160,.12))}
 .numcard.res::after{background:var(--line-2)}
@@ -1107,7 +1184,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
           <label for="ctId" data-t="Shartnoma ID">Shartnoma ID</label>
           <div class="inp">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.5"></rect><path d="M8 10h8M8 14h5"></path></svg>
-            <input id="ctId" type="text" placeholder="KR001" autocapitalize="characters">
+            <input id="ctId" type="text" placeholder="KR001" data-upper autocapitalize="characters" spellcheck="false">
           </div>
           <div class="hint" data-t="Shartnomaning yuqori o'ng burchagida yozilgan">Shartnomaning yuqori o'ng burchagida yozilgan</div>
         </div>
@@ -1328,7 +1405,7 @@ const RU = {
   "Buyurtma xulosasi":"Детали заказа","Ma'lumotlaringiz":"Ваши данные","Tasdiqlash":"Подтверждение",
   "SMS tasdiq":"SMS подтверждение","To'lov usuli":"Способ оплаты","To'liq to'lov":"Полная оплата",
   "Bir martada":"Единовременно","Muddat":"Срок","Oylik to'lov":"Ежемесячный платёж","Bosh to'lov":"Первый взнос",
-  "Promokod":"Промокод","Qo'llash":"Применить","Raqam narxi":"Цена номера","Promokod chegirmasi":"Скидка по промокоду",
+  "Raqam narxi":"Цена номера",
   "Yetkazib berish":"Доставка","Bepul":"Бесплатно","Davom etish":"Продолжить","Orqaga":"Назад",
   "Ism familiyangiz":"Ваше имя и фамилия","Telefon raqamingiz":"Ваш номер телефона","Viloyat":"Область","Tanlang":"Выберите",
   "Tasdiqlash uchun shu raqamga SMS kod yuboriladi":"На этот номер придёт SMS-код для подтверждения",
@@ -1340,7 +1417,6 @@ const RU = {
   "Tasdiqlash kodi":"Код подтверждения","Kodni qayta yuborish":"Отправить код снова",
   "Kod kelmadi — baribir davom etish":"Код не пришёл — продолжить","Buyurtma qabul qilindi":"Заказ принят",
   "Holati":"Статус","YANGI":"НОВЫЙ","Yopish":"Закрыть","Summa":"Сумма",
-  "Tarif":"Тариф","Tarif tanlang":"Выберите тариф","Tarifsiz":"Без тарифа",
   "Internet yo'q":"Нет интернета","Aloqa sekin":"Медленное соединение",
   "Aloqa tiklanishi bilan o'zi davom etadi":"Продолжится автоматически при восстановлении связи",
   "Avtomatik qayta urinilmoqda…":"Автоматически повторяем…",
@@ -1436,7 +1512,6 @@ function installmentFinancingFor(item){
   const tb = OPERATOR_FINANCING.byOperator[item.operator];
   return tb ? (tb[Number(item.operatorPrice)] || null) : null;
 }
-function tariffsFor(op){ return (OPERATOR_FINANCING.tariffsByOperator && OPERATOR_FINANCING.tariffsByOperator[op]) || []; }
 /* Bo'lib to'lash shu raqamga umuman mumkinmi?
    Faqat: admin panelda "installment" belgilangan raqamlar,
    yoki operator moliyalashtirishi bor jonli raqamlar,
@@ -1561,6 +1636,7 @@ function openSheet(id){
   el.classList.remove('closing'); el.classList.add('on');
   document.body.classList.add('noscroll');
   haptic('light');
+  setTimeout(()=>{ if(typeof upperAll === 'function') upperAll(el); }, 0);
   if(!sheetStack.includes(id)) sheetStack.push(id);
 }
 function closeSheet(id){
@@ -1773,10 +1849,18 @@ function opChip(op){
   const m = opMeta(op);
   return `<span class="nc-op"><i style="background:${m.color}"></i>${esc(op||'')}</span>`;
 }
+/* Toifa: admin paneldan `tier` maydoni — vip | premium | gold.
+   Eski raqamlarda faqat `featured` bo'lsa — GOLD deb olinadi. */
+const TIERS = { vip:'VIP', premium:'PREMIUM', gold:'GOLD' };
+function tierOf(item){
+  const tRaw = String(item && item.tier || '').trim().toLowerCase();
+  if(TIERS[tRaw]) return tRaw;
+  return item && item.featured ? 'gold' : '';
+}
 function numCard(item){
   const fav = isFav(item.id), disc = discountPct(item);
   const res = !!item.reserved, ins = installmentTeaser(item), showCash = !item.installment;
-  const vip = !!item.featured;
+  const tier = tierOf(item), vip = !!tier;
   let price = '';
   if(showCash){
     price = `<div class="p sg">${formatPrice(item.price)} <small>${SUM()}</small></div>`;
@@ -1785,14 +1869,14 @@ function numCard(item){
   }else{
     price = `<div class="ins" style="margin-top:0">${esc(ins || t("Bo'lib to'lash"))}</div>`;
   }
-  const cls = res ? ' res' : (vip ? ' vipc' : (installmentAllowed(item) ? ' insc' : ''));
+  const cls = res ? ' res' : (vip ? ' vipc t-' + tier : (installmentAllowed(item) ? ' insc' : ''));
   return `<article class="numcard${cls}" data-card="${esc(item.id)}">
     ${disc && showCash ? `<span class="nc-off">−${disc}%</span>` : ''}
     <div class="nc-top">
       <div style="flex:1;min-width:0">
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
-          ${vip ? `<span class="tag vip">${ICO_CROWN}${t('VIP')}</span>` : ''}
+          ${vip ? `<span class="tag vip">${ICO_CROWN}${TIERS[tier]}</span>` : ''}
           ${opChip(item.operator)}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
         </div>
@@ -2318,7 +2402,6 @@ function numberFacts(item){
    ================================================================== */
 const ORD = {
   item:null, step:1, paymentType:'cash', months:6, monthly:0, down:0,
-  insTariff:null, cashTariff:null, promo:'', discount:0,
   name:'', phoneRaw:'', region:'', location:null, orderId:null
 };
 const STEP_TITLES = ['Buyurtma xulosasi',"Ma'lumotlaringiz",'Tasdiqlash','SMS tasdiq','Buyurtma qabul qilindi'];
@@ -2326,7 +2409,7 @@ const STEP_TITLES = ['Buyurtma xulosasi',"Ma'lumotlaringiz",'Tasdiqlash','SMS ta
 function openOrder(id){
   const item = findItem(id); if(!item || item.reserved) return;
   Object.assign(ORD, { item, step:1, paymentType: (item.installment && installmentAllowed(item)) ? 'installment' : 'cash',
-    months:6, monthly:0, down:0, insTariff:null, cashTariff:null, promo:'', discount:0, location:null, orderId:null });
+    months:6, monthly:0, down:0, location:null, orderId:null });
   try{
     ORD.name = localStorage.getItem('vip_name') || '';
     ORD.phoneRaw = localStorage.getItem('vip_phone') || '';
@@ -2341,8 +2424,7 @@ function recalcMonthly(){
   if(fin){ ORD.monthly = fin.monthly[ORD.months]||0; ORD.down = fin.down[ORD.months]||0; }
   else { ORD.monthly = installmentMonthlyFor(it, ORD.months); ORD.down = 0; }
 }
-function cashTariffPrice(){ return (ORD.paymentType==='cash' && ORD.cashTariff) ? (Number(ORD.cashTariff.price)||0) : 0; }
-function finalPrice(){ return Math.max(0, (ORD.item.price||0) - ORD.discount) + cashTariffPrice(); }
+function finalPrice(){ return Math.max(0, (ORD.item.price||0)); }
 
 function setSteps(n){
   $$('#ordSteps .s').forEach((s,i)=>{
@@ -2359,13 +2441,11 @@ function renderOrder(){
   $('#ordTitle').textContent = t(STEP_TITLES[ORD.step-1] || 'Buyurtma');
   const body = $('#ordBody'), foot = $('#ordFoot');
 
-  /* ---- 1: raqam, to'lov turi, tarif, promokod ---- */
+  /* ---- 1: raqam va to'lov turi ---- */
   if(ORD.step === 1){
     const fin = installmentFinancingFor(it);
     const canIns = installmentAllowed(it);
     const months = fin ? [6,12,24].filter(m => fin.monthly[m]) : [6,12,24,36];
-    const insT = fin ? tariffsFor(it.operator) : [];
-    const cashT = tariffsFor(it.operator).filter(x => Number(x.price) > 0);
     body.innerHTML = `
       <div class="card">
         <div style="display:flex;align-items:flex-start;gap:12px">
@@ -2401,36 +2481,13 @@ function renderOrder(){
             <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:12.5px;color:var(--text-3);font-weight:650">${t("Oylik to'lov")}</span><span class="sg" style="font-size:17px;font-weight:700;color:var(--blue-text)">${formatPrice(ORD.monthly)} ${SUM()}</span></div>
             ${ORD.down?`<div style="margin-top:8px;display:flex;align-items:baseline"><span style="flex:1;font-size:12.5px;color:var(--text-3);font-weight:650">${t("Bosh to'lov")}</span><span class="sg" style="font-size:14px;font-weight:700">${formatPrice(ORD.down)} ${SUM()}</span></div>`:''}
           </div>
-          ${insT.length ? `<div style="margin-top:14px"><div class="eyebrow">${t('Tarif')}</div>
-            <div style="margin-top:9px;display:flex;gap:8px;flex-wrap:wrap">
-              ${insT.map((x,i) => `<button class="chip${ORD.insTariff && ORD.insTariff.name===x.name?' on':''}" data-instar="${i}">${esc(x.name||'')}</button>`).join('')}
-            </div></div>` : ''}
-        </div>` : (cashT.length ? `
-        <div style="margin-top:14px">
-          <div class="eyebrow">${t('Tarif tanlang')}</div>
-          <div style="margin-top:9px;display:flex;flex-direction:column;gap:8px">
-            <button class="chip${!ORD.cashTariff?' on':''}" data-cashtar="-1" style="justify-content:space-between">${t('Tarifsiz')}</button>
-            ${cashT.map((x,i) => `<button class="chip${ORD.cashTariff && ORD.cashTariff.name===x.name?' on':''}" data-cashtar="${i}" style="justify-content:space-between">
-              <span>${esc(x.name||'')}${x.badge?` · ${esc(x.badge)}`:''}</span>
-              <span class="sg" style="font-weight:700">+${formatPrice(x.price)}</span></button>`).join('')}
-          </div>
-        </div>` : '')}
+        </div>` : ''}
       </div>
 
-      <div class="card" style="margin-top:12px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v6a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18v-6"></path><path d="M3 7.5h18V12H3zM12 7.5V20"></path><path d="M12 7.5S10.5 4 8.2 4a2 2 0 0 0 0 3.5zM12 7.5S13.5 4 15.8 4a2 2 0 0 1 0 3.5z"></path></svg>
-          <input id="promoInp" type="text" placeholder="${t('Promokod')}" value="${esc(ORD.promo)}" style="flex:1;min-width:0;border:none;outline:none;background:none;font-size:13.5px;font-weight:650;text-transform:uppercase">
-          <button class="btn sm" id="promoBtn" style="background:var(--ink);color:#fff;box-shadow:none">${t("Qo'llash")}</button>
-        </div>
-        <div id="promoMsg" style="margin-top:9px;font-size:11.5px;font-weight:700;display:none"></div>
-      </div>
 
       <div class="card" style="margin-top:12px">
         <div style="display:flex;flex-direction:column;gap:10px">
           ${ORD.paymentType === 'installment' ? '' : `<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Raqam narxi')}</span><span class="sg" style="font-size:13.5px;font-weight:700">${formatPrice(it.price)}</span></div>`}
-          ${cashTariffPrice()?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Tarif')} · ${esc(ORD.cashTariff.name||'')}</span><span class="sg" style="font-size:13.5px;font-weight:700">+${formatPrice(cashTariffPrice())}</span></div>`:''}
-          ${ORD.discount?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Promokod chegirmasi')}</span><span class="sg" style="font-size:13.5px;font-weight:700;color:var(--green)">−${formatPrice(ORD.discount)}</span></div>`:''}
           <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Yetkazib berish')}</span><span class="sg" style="font-size:13.5px;font-weight:700;color:var(--green)">${t('Bepul')}</span></div>
           <div style="height:1px;background:var(--line-3)"></div>
           <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:20px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} <span style="font-family:'Plus Jakarta Sans';font-size:12px;color:var(--muted-2);font-weight:600">${SUM()}</span></span></div>
@@ -2453,7 +2510,7 @@ function renderOrder(){
         <label for="inName">${t('Ism familiyangiz')}</label>
         <div class="inp">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.4"></circle><path d="M5 20c0-3.7 3.1-6.2 7-6.2s7 2.5 7 6.2"></path></svg>
-          <input id="inName" type="text" placeholder="Asadbek Rustamov" value="${esc(ORD.name)}" autocomplete="name">
+          <input id="inName" type="text" placeholder="ASADBEK RUSTAMOV" value="${esc(ORD.name)}" autocomplete="name" data-upper autocapitalize="characters" spellcheck="false">
         </div>
         <div class="err"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v6M12 16.5v.5"></path></svg><span>${t('Ismingizni kiriting')}</span></div>
       </div>
@@ -2496,7 +2553,7 @@ function renderOrder(){
       </div>`;
     foot.innerHTML = `<button class="btn ghost" data-ostep="1" style="flex:none;width:100px">${t('Orqaga')}</button>
       <button class="btn" data-ostep="3" style="flex:1">${t('Davom etish')}</button>`;
-    setTimeout(()=>{ bindPhoneMask(); bindRegion(); }, 0);
+    setTimeout(()=>{ bindPhoneMask(); bindRegion(); if(typeof upperAll === 'function') upperAll(); }, 0);
     return;
   }
 
@@ -2511,8 +2568,6 @@ function renderOrder(){
           <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t("To'lov")}</span><span style="font-size:13.5px;font-weight:700">${ORD.paymentType==='cash'?t("To'liq to'lov"):ORD.months+' '+t('oyga')}</span></div>
           ${ORD.paymentType==='installment'?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t("Oylik to'lov")}</span><span class="sg" style="font-size:14px;font-weight:700;color:var(--blue-text)">${formatPrice(ORD.monthly)} ${SUM()}</span></div>`:''}
           ${ORD.paymentType==='installment'&&ORD.down?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t("Bosh to'lov")}</span><span class="sg" style="font-size:14px;font-weight:700">${formatPrice(ORD.down)}</span></div>`:''}
-          ${ORD.insTariff?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Tarif')}</span><span style="font-size:13.5px;font-weight:700">${esc(ORD.insTariff.name)}</span></div>`:''}
-          ${cashTariffPrice()?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Tarif')}</span><span style="font-size:13.5px;font-weight:700">${esc(ORD.cashTariff.name)} (+${formatPrice(cashTariffPrice())})</span></div>`:''}
           ${ORD.discount?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Chegirma')}</span><span class="sg" style="font-size:14px;font-weight:700;color:var(--green)">−${formatPrice(ORD.discount)}</span></div>`:''}
           <div style="height:1px;background:var(--line-3)"></div>
           <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:19px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${SUM()}</span></div>
@@ -2684,25 +2739,6 @@ function useMyLocation(){
   );
 }
 
-/* ---------- Promokod ---------- */
-async function applyPromo(){
-  const inp = $('#promoInp'), msg = $('#promoMsg'), btn = $('#promoBtn');
-  const code = (inp.value||'').trim().toUpperCase();
-  if(!code){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent = LANG==='ru'?'Введите промокод':'Promokod kiriting'; return; }
-  btn.disabled = true; btn.textContent = '…';
-  try{
-    const res = await withClientTimeout(fetch(FN + 'check-promo-code', {
-      method:'POST', headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
-      body: JSON.stringify({ code, numberId: ORD.item.live ? null : ORD.item.id })
-    }), kutishVaqti(9000));
-    const data = await res.json();
-    if(data.ok){ ORD.promo = code; ORD.discount = Number(data.discount)||0;
-      toast(`${t('Promokod')}: −${formatPrice(ORD.discount)} ${SUM()}`); renderOrder(); return; }
-    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent = data.error || 'Promokod topilmadi';
-  }catch(err){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent = xatoMatni(err); }
-  finally{ const b = $('#promoBtn'); if(b){ b.disabled=false; b.textContent = t("Qo'llash"); } }
-}
-
 /* ---------- SMS ---------- */
 function bindSmsDigits(){
   const boxes = $$('#smsDigits input');
@@ -2765,11 +2801,7 @@ function buildPayload(){
     p.monthlyPayment = ORD.monthly;
     if(installmentFinancingFor(it)){
       p.installmentDownPayment = ORD.down;
-      if(ORD.insTariff && ORD.insTariff.name) p.installmentTariff = ORD.insTariff.name;
     }
-  }else if(ORD.cashTariff){
-    p.cashTariffName = ORD.cashTariff.name || '';
-    p.cashTariffPrice = cashTariffPrice();
   }
   if(ORD.location && typeof ORD.location.lat === 'number' && typeof ORD.location.lng === 'number'){
     p.location = { lat:Number(ORD.location.lat.toFixed(6)), lng:Number(ORD.location.lng.toFixed(6)) };
@@ -2832,7 +2864,6 @@ async function submitOrder(smsVerified){
   }
 
   ORD.orderId = orderId;
-  if(ORD.discount > 0 && !it.live && it.id) db.collection('promo_usage').doc(it.id).set({ usedAt: FV.serverTimestamp() }).catch(()=>{});
   if(!it.live){ const n = NUMBERS.find(x => x.id === it.id); if(n) n.reserved = true; }
   try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){}
   renderAll();
@@ -2843,10 +2874,8 @@ async function submitOrder(smsVerified){
     if(payload.paymentType === 'installment'){
       paymentLine = `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPriceUzs(payload.monthlyPayment)}dan`;
       if(payload.installmentDownPayment !== undefined) paymentLine += "\n💰 Bosh to'lov: " + formatPriceUzs(payload.installmentDownPayment);
-      if(payload.installmentTariff) paymentLine += "\n📶 Tarif: " + payload.installmentTariff;
     }else{
       paymentLine = "💵 To'lov turi: Naqt to'lov";
-      if(payload.cashTariffName) paymentLine += "\n📶 Tarif: " + payload.cashTariffName + " (" + formatPriceUzs(payload.cashTariffPrice) + "/oy)";
     }
     const text = `🔔 Yangi buyurtma\n\n📱 Buyurtma raqami: ${payload.number}\n👤 Mijoz ismi: ${payload.name}\n☎️ Ishlab turgan raqami: ${payload.phone}\n📍 Manzil: ${payload.region}\n${paymentLine}\n🕐 Vaqti: ${orderTime}\n🌐 Qayerdan: ${payload.source}`;
     const mapUrl = payload.location ? `https://yandex.uz/maps/?pt=${payload.location.lng},${payload.location.lat}&z=17&l=map` : undefined;
@@ -2908,7 +2937,7 @@ async function lookupOrders(){
               <div class="big sg">${esc(shortNumber(o.number))}</div>
               <div class="sub">${o.paymentType === 'installment'
                   ? `${t("Bo'lib to'lash")}${o.installmentMonths?' · '+o.installmentMonths+' '+t('oy'):''}${o.monthlyPayment?' · '+formatPrice(o.monthlyPayment)+' '+SUM()+'/'+t('oy'):''}`
-                  : t("To'liq to'lov")}${o.cashTariffName?' · '+esc(o.cashTariffName):''}</div>
+                  : t("To'liq to'lov")}</div>
             </div>
             <div class="amt sg">${formatPrice(o.price)}</div>
           </div>
@@ -3094,7 +3123,7 @@ function renderCustom(){
     </div>
     ${priceBox}
     <div class="fld" style="margin-top:16px" id="coName"><label for="coInName">Ism familiyangiz</label>
-      <div class="inp"><input id="coInName" type="text" placeholder="Asadbek Rustamov"></div></div>
+      <div class="inp"><input id="coInName" type="text" placeholder="ASADBEK RUSTAMOV" data-upper autocapitalize="characters" spellcheck="false"></div></div>
     <div class="fld" style="margin-top:12px" id="coPhone"><label for="coInPhone">Telefon raqamingiz</label>
       <div class="inp"><span class="sg" style="font-size:14.5px;font-weight:700;color:var(--text-3)">+998</span><span style="width:1px;height:22px;background:var(--line-2)"></span><input id="coInPhone" type="tel" inputmode="numeric" placeholder="90 123 45 67"></div></div>
     <div class="fld" style="margin-top:12px" id="coRegion"><label for="coInRegion">Viloyat</label>
@@ -3271,7 +3300,7 @@ function openVacForm(id){
   $('#genTitle').textContent = t('Ariza');
   $('#genBody').innerHTML = `
     <div class="card"><div class="eyebrow">Lavozim</div><div style="margin-top:6px;font-size:15px;font-weight:800">${esc(vacPick.title||'')}</div></div>
-    <div class="fld" style="margin-top:14px" id="vfName"><label for="vfInName">Ism familiyangiz</label><div class="inp"><input id="vfInName" type="text" placeholder="Asadbek Rustamov"></div></div>
+    <div class="fld" style="margin-top:14px" id="vfName"><label for="vfInName">Ism familiyangiz</label><div class="inp"><input id="vfInName" type="text" placeholder="ASADBEK RUSTAMOV" data-upper autocapitalize="characters" spellcheck="false"></div></div>
     <div class="fld" style="margin-top:12px" id="vfPhone"><label for="vfInPhone">Telefon raqamingiz</label><div class="inp"><span class="sg" style="font-size:14.5px;font-weight:700;color:var(--text-3)">+998</span><span style="width:1px;height:22px;background:var(--line-2)"></span><input id="vfInPhone" type="tel" inputmode="numeric" placeholder="90 123 45 67"></div></div>
     <div class="fld" style="margin-top:12px"><label for="vfInExp">Tajribangiz</label><div class="inp" style="align-items:flex-start"><textarea id="vfInExp" rows="4" placeholder="Qisqacha yozing (ixtiyoriy)"></textarea></div></div>
     <label style="margin-top:14px;display:flex;align-items:flex-start;gap:10px">
@@ -3326,6 +3355,30 @@ async function submitVac(){
 </script>
 <script>
 'use strict';
+
+/* ---------- Avtomatik KATTA HARF ----------
+   Shartnoma ID va ma'lumot to'ldirish maydonlari o'z-o'zidan katta harfga
+   o'tadi (o'zbekcha harflar ham: ʻ/' belgisi saqlanadi). */
+function toUpperUz(v){
+  return String(v)
+    .replace(/[ʻʼ‘’`]/g, "'")
+    .toLocaleUpperCase('uz-Latn');
+}
+document.addEventListener('input', (e)=>{
+  const el = e.target;
+  if(!el || !el.matches || !el.matches('input[data-upper]')) return;
+  const up = toUpperUz(el.value);
+  if(up === el.value) return;
+  const s = el.selectionStart, f = el.selectionEnd;
+  el.value = up;
+  try{ el.setSelectionRange(s, f); }catch(x){}
+}, true);
+/* Avtomatik to'ldirilgan (saqlangan) qiymatlar ham katta harfga o'tsin */
+function upperAll(root){
+  (root || document).querySelectorAll('input[data-upper]').forEach(el => {
+    if(el.value) el.value = toUpperUz(el.value);
+  });
+}
 
 /* Har qanday amalda yumshoq tebranish */
 document.addEventListener('pointerdown', (e)=>{
@@ -3382,19 +3435,11 @@ document.addEventListener('click', (e)=>{
   }
 
   const pay = e.target.closest('[data-pay]');
-  if(pay){ ORD.paymentType = pay.dataset.pay; if(ORD.paymentType==='installment') ORD.cashTariff=null; else ORD.insTariff=null; recalcMonthly(); renderOrder(); return; }
+  if(pay){ ORD.paymentType = pay.dataset.pay; recalcMonthly(); renderOrder(); return; }
   const mon = e.target.closest('[data-mon]');
   if(mon){ ORD.months = Number(mon.dataset.mon); recalcMonthly(); renderOrder(); return; }
-  const itr = e.target.closest('[data-instar]');
-  if(itr){ const list = tariffsFor(ORD.item.operator); const x = list[Number(itr.dataset.instar)];
-    ORD.insTariff = (ORD.insTariff && x && ORD.insTariff.name === x.name) ? null : x; renderOrder(); return; }
-  const ctr = e.target.closest('[data-cashtar]');
-  if(ctr){ const i = Number(ctr.dataset.cashtar);
-    const list = tariffsFor(ORD.item.operator).filter(x => Number(x.price) > 0);
-    ORD.cashTariff = (i < 0) ? null : list[i]; renderOrder(); return; }
 
   if(e.target.closest('#geoBtn')){ useMyLocation(); return; }
-  if(e.target.closest('#promoBtn')){ applyPromo(); return; }
 
   if(e.target.closest('#ordSubmit')){
     (async ()=>{

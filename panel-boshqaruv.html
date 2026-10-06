@@ -1518,6 +1518,9 @@
   .nb-flag-chip[data-flag="vip"]{--flag-c:var(--amber);}
   .nb-flag-chip[data-flag="installment"]{--flag-c:#5C8DF6;}
   .nb-flag-chip[data-flag="featured"]{--flag-c:#22C58B;}
+  .tg-t-vip{background:linear-gradient(135deg,#C9AEF7,#7C3AED);color:#1E0A3C;font-weight:800}
+  .tg-t-prem{background:linear-gradient(135deg,#E6EEF4,#8CA4B6);color:#17293A;font-weight:800}
+  .tg-t-gold{background:linear-gradient(135deg,#E8CE87,#B08C32);color:#241A03;font-weight:800}
   .nb-flag-chip[data-flag="ownership"]{--flag-c:#2E86C1;}
   .nb-flag-chip[data-flag="recommended"]{--flag-c:#B98CE8;}
   .nb-flag-chip:hover{border-color:var(--flag-c);color:var(--flag-c);}
@@ -4141,6 +4144,12 @@ body{
         <input type="checkbox" id="newInstallment">
         Bo'lib to'lash mumkin
       </label>
+      <select id="newTier" title="Toifa">
+        <option value="">Toifasiz (oddiy)</option>
+        <option value="vip">VIP — binafsha</option>
+        <option value="premium">PREMIUM — platina</option>
+        <option value="gold">GOLD — oltin</option>
+      </select>
       <label class="checkbox-field">
         <input type="checkbox" id="newFeatured">
         Mashhur raqamlarga qo'shish
@@ -5016,7 +5025,7 @@ body{
          faqat Humans/Ucell/Beeline'da bor edi. Har bir qatorda YANGI
          "HIT" katagi ham bor — belgilansa, o'sha tarif saytda alohida
          (amber lentacha bilan) ajratib ko'rsatiladi. -->
-    <div class="op-block">
+    <div class="op-block" style="display:none">
       <div class="op-head">
         <span class="op-name">Tariflar — Humans</span>
       </div>
@@ -5031,7 +5040,7 @@ body{
       <button type="button" class="op-add" data-fin-add="Humans">+ Tarif qo'shish</button>
     </div>
 
-    <div class="op-block">
+    <div class="op-block" style="display:none">
       <div class="op-head">
         <span class="op-name">Tariflar — Ucell</span>
       </div>
@@ -5043,7 +5052,7 @@ body{
       <button type="button" class="op-add" data-fin-add="Ucell">+ Tarif qo'shish</button>
     </div>
 
-    <div class="op-block">
+    <div class="op-block" style="display:none">
       <div class="op-head">
         <span class="op-name">Tariflar — Beeline</span>
       </div>
@@ -5055,7 +5064,7 @@ body{
       <button type="button" class="op-add" data-fin-add="Beeline">+ Tarif qo'shish</button>
     </div>
 
-    <div class="op-block">
+    <div class="op-block" style="display:none">
       <div class="op-head">
         <span class="op-name">Tariflar — Mobiuz</span>
       </div>
@@ -5068,7 +5077,7 @@ body{
       <button type="button" class="op-add" data-fin-add="Mobiuz">+ Tarif qo'shish</button>
     </div>
 
-    <div class="op-block">
+    <div class="op-block" style="display:none">
       <div class="op-head">
         <span class="op-name">Tariflar — Uzmobile</span>
       </div>
@@ -5081,7 +5090,7 @@ body{
       <button type="button" class="op-add" data-fin-add="Uzmobile">+ Tarif qo'shish</button>
     </div>
 
-    <div class="op-block">
+    <div class="op-block" style="display:none">
       <div class="op-head">
         <span class="op-name">Tariflar — Perfektum</span>
       </div>
@@ -5325,7 +5334,10 @@ body{
       <div class="settings-msg" id="settingsMsg"></div>
     </div>
 
-    <div class="settings-form">
+    <!-- Mijoz iltimosiga ko'ra promokodlar saytdan OLIB TASHLANDI.
+         Kod va ma'lumotlar o'chirilmadi — kerak bo'lsa display:none ni
+         olib tashlash kifoya. -->
+    <div class="settings-form" style="display:none">
       <h3>Promokodlar</h3>
       <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Mijozlar buyurtma berayotganda kiritishi mumkin bo'lgan chegirma kodlari.</p>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
@@ -12051,6 +12063,10 @@ function nbOylik(item){
 }
 
 function nbToifa(item){
+  const t = String(item.tier || '').toLowerCase();
+  if(t === 'vip')     return '<span class="tg tg-t-vip">VIP</span>';
+  if(t === 'premium') return '<span class="tg tg-t-prem">PREMIUM</span>';
+  if(t === 'gold')    return '<span class="tg tg-t-gold">GOLD</span>';
   if(item.tag === 'vip') return '<span class="tg tg-vip">VIP</span>';
   return '<span class="tg tg-nt">Oddiy</span>';
 }
@@ -12122,6 +12138,12 @@ function renderAdminNumbers(numbers){
               <input type="checkbox" class="an-installment" ${item.installment ? 'checked' : ''}>
               Bo'lib to'lash
             </label>
+            <select class="an-tier" title="Toifa">
+              <option value="" ${!item.tier?'selected':''}>Toifasiz</option>
+              <option value="vip" ${item.tier==='vip'?'selected':''}>VIP — binafsha</option>
+              <option value="premium" ${item.tier==='premium'?'selected':''}>PREMIUM — platina</option>
+              <option value="gold" ${item.tier==='gold'?'selected':''}>GOLD — oltin</option>
+            </select>
             <label class="an-installment-label">
               <input type="checkbox" class="an-featured" ${item.featured ? 'checked' : ''}>
               Mashhur raqamlarda
@@ -12201,7 +12223,8 @@ function renderAdminNumbers(numbers){
           oldPrice: oldPriceVal,
           onSale: oldPriceVal > priceVal,
           installment: row.querySelector('.an-installment').checked,
-          featured: row.querySelector('.an-featured').checked,
+          tier: row.querySelector('.an-tier').value,
+          featured: row.querySelector('.an-featured').checked || !!row.querySelector('.an-tier').value,
           dailyDeal: row.querySelector('.an-dailydeal').checked,
           monthlyTariff: Number(row.querySelector('.an-monthlytariff').value) || 0,
           tariffMonths: Number(row.querySelector('.an-tariffmonths').value) || 0,
@@ -12671,7 +12694,8 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       oldPrice: 0,
       onSale: false,
       installment: document.getElementById('newInstallment').checked,
-      featured: document.getElementById('newFeatured').checked,
+      tier: document.getElementById('newTier').value,
+      featured: document.getElementById('newFeatured').checked || !!document.getElementById('newTier').value,
       dailyDeal: false,
       monthlyTariff: 0,
       tariffMonths: 0,
@@ -12689,6 +12713,7 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     document.getElementById('newPrice').value = '';
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
+    document.getElementById('newTier').value = '';
     document.getElementById('newRecommended').checked = false;
     codeHint.textContent = '';
     codeHint.className = 'code-hint';
@@ -12781,6 +12806,7 @@ async function saveBulkRows(){
           price: row.price,
           oldPrice: 0,
           onSale: false,
+          tier: '',
           featured: false,
           installment: false,
           tag: row.tag,
