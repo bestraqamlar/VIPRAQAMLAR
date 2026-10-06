@@ -79,7 +79,8 @@
   --navline:rgba(16,32,60,.1);
   --navink:#5A6882;
   --navink-on:#0E1B33;
-  --navpill:rgba(16,32,60,.09);
+  --navpill:rgba(36,87,230,.1);
+  --navpill-line:rgba(16,32,60,.08);
   --app-w:480px;
 }
 html[data-theme="dark"]{
@@ -113,7 +114,8 @@ html[data-theme="dark"]{
   --navline:rgba(255,255,255,.14);
   --navink:#8FA3C2;
   --navink-on:#FFFFFF;
-  --navpill:rgba(255,255,255,.14);
+  --navpill:rgba(255,255,255,.1);
+  --navpill-line:rgba(255,255,255,.16);
   --sh-1:0 1px 1px rgba(0,0,0,.35), 0 4px 12px -3px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.55);
   --sh-2:0 4px 14px -4px rgba(0,0,0,.5), 0 22px 48px -22px rgba(0,0,0,.8);
   --sh-3:0 36px 80px -34px rgba(0,0,0,.9);
@@ -217,11 +219,20 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0
 #nav a span.lbl{display:none}
 #nav a.on{color:var(--navink-on)}
 #nav a.on svg{stroke-width:2.3;transform:translateY(-.5px)}
-#nav a .pill{
-  position:absolute;inset:0;border-radius:999px;background:var(--navpill);
-  opacity:0;transform:scale(.72);transition:opacity .22s,transform .28s cubic-bezier(.2,.9,.3,1);
+#nav a .pill{display:none}
+/* Instagramdagidek: bitta kapsula tanlangan bo'limga sekin suriladi */
+.navpill{
+  position:absolute;left:0;top:7px;height:46px;width:0;border-radius:999px;
+  background:var(--navpill);
+  box-shadow:inset 0 1px 0 var(--nc-edge),0 4px 14px -8px rgba(9,24,44,.5);
+  backdrop-filter:blur(10px) saturate(160%);-webkit-backdrop-filter:blur(10px) saturate(160%);
+  border:1px solid var(--navpill-line);
+  transform:translateX(0);opacity:0;pointer-events:none;
+  transition:transform .42s cubic-bezier(.22,1,.3,1),width .42s cubic-bezier(.22,1,.3,1),opacity .25s;
+  will-change:transform,width;
 }
-#nav a.on .pill{opacity:1;transform:scale(1)}
+.navpill.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.navpill{transition:opacity .2s}}
 #nav a:active svg{transform:scale(.9)}
 #nav .badge{
   position:absolute;top:4px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;
@@ -445,6 +456,24 @@ input[data-upper]{text-transform:uppercase}
 .fld.bad .inp{border-color:var(--red)}
 .fld.bad .err{display:flex}
 .fld.bad .hint{display:none}
+
+/* ---------- Sevimlilar: surib o'chirish ---------- */
+.swipe{position:relative;border-radius:22px;overflow:hidden;touch-action:pan-y}
+.swipe-del{
+  position:absolute;right:0;top:0;bottom:0;width:76px;border-radius:20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  background:linear-gradient(135deg,#E5484D,#AF2026);color:#fff;
+  font-size:10.5px;font-weight:800;letter-spacing:.04em;
+  opacity:0;transform:translateX(14px) scale(.96);
+  transition:opacity .2s,transform .3s cubic-bezier(.22,1,.3,1);
+}
+.swipe.open .swipe-del,.swipe.drag .swipe-del{opacity:1;transform:none}
+.swipe-del svg{width:20px;height:20px}
+/* kartochka ostida mot fon — qizil tugma kartochka orqasidan ko'rinmasin */
+.swipe-in{position:relative;background:var(--ground);border-radius:22px;
+  transition:transform .3s cubic-bezier(.22,1,.3,1);will-change:transform}
+.swipe.open .swipe-in{transform:translateX(-86px)}
+.swipe.drag .swipe-in{transition:none}
 
 /* ---------- Raqam kartochkasi (zamonaviy) ---------- */
 .numcard{
@@ -1138,7 +1167,12 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 
 <!-- =====================  SEVIMLILAR  ===================== -->
 <section class="screen" id="sc-fav" data-route="fav">
-  <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Sevimlilar">Sevimlilar</h1><div class="sub" id="favCount"></div></div></header>
+  <header class="apbar">
+    <div style="flex:1;min-width:0"><h1 data-t="Sevimlilar">Sevimlilar</h1><div class="sub" id="favCount"></div></div>
+    <button class="iconbtn" id="favEdit" aria-label="O'chirish rejimi" style="display:none">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4.5h6V7"></path></svg>
+    </button>
+  </header>
   <div class="pad wrap" style="padding-top:14px"><div class="list" id="favList"></div></div>
 </section>
 
@@ -1314,7 +1348,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 </div><!-- /#app -->
 
 <!-- =====================  PASTKI NAVIGATSIYA  ===================== -->
-<nav id="nav" aria-label="Asosiy menyu">
+<nav id="nav" aria-label="Asosiy menyu"><span class="navpill" id="navPill" aria-hidden="true"></span>
   <a href="#/" data-nav="home" class="on"><span class="pill"></span>
     <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5.5 10v9.5h13V10"></path></svg><span class="lbl" data-t="Bosh sahifa">Bosh sahifa</span></a>
   <a href="#/katalog" data-nav="catalog"><span class="pill"></span>
@@ -1733,6 +1767,7 @@ let currentRoute = 'home';
 const go = (r) => { location.hash = ROUTE_HASH[r] || '#/'; };
 function renderRoute(keepScroll){
   const r = ROUTES[location.hash.replace(/^#/,'')] || 'home';
+  if(r !== 'fav') FAV_EDIT = false;
   currentRoute = r;
   $$('.screen').forEach(s => s.classList.toggle('on', s.dataset.route === r));
   const navKey = (r === 'orders' || r === 'contract') ? 'more' : r;
@@ -1741,6 +1776,7 @@ function renderRoute(keepScroll){
   if(r === 'fav') renderFavorites();
   if(r === 'catalog'){ reshuffle(); catShown = PAGE_SIZE; renderCatalog(); }
   if(r === 'home') pickHome();
+  if(typeof moveNavPill === 'function') requestAnimationFrame(moveNavPill);
 }
 window.addEventListener('hashchange', ()=> renderRoute());
 document.addEventListener('click', (e)=>{
@@ -1755,6 +1791,7 @@ const isFav = (id) => FAVORITES.indexOf(id) !== -1;
 /* Jonli (serverdan kelgan) raqamlar bazamizda yo'q — shuning uchun
    sevimliga qo'shilganda raqamning o'zi ham saqlab qo'yiladi. */
 let FAV_ITEMS = {};
+let FAV_EDIT = false;   /* sevimlilarda "o'chirish" rejimi */
 function loadFavItems(){ try{ FAV_ITEMS = JSON.parse(localStorage.getItem('vip_fav_items')||'{}')||{}; }catch(e){ FAV_ITEMS={}; } }
 function saveFavItems(){ try{ localStorage.setItem('vip_fav_items', JSON.stringify(FAV_ITEMS)); }catch(e){} }
 function favSnapshot(id){
@@ -2235,7 +2272,14 @@ function renderCatalog(){
 function renderFavorites(){
   const items = FAVORITES.map(id => favItem(id)).filter(Boolean);
   $('#favCount').textContent = items.length ? `${items.length} ${t('ta saqlangan raqam')}` : t('Hali hech narsa saqlanmagan');
-  $('#favList').innerHTML = items.length ? items.map(n => numCard(n)).join('')
+  const eb = $('#favEdit'); if(eb) eb.style.display = items.length ? 'flex' : 'none';
+  if(!items.length) FAV_EDIT = false;
+  const DEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4.5h6V7"></path></svg>';
+  const wrap = (n) => `<div class="swipe${FAV_EDIT?' open':''}" data-sw="${esc(n.id)}">
+      <button class="swipe-del" data-unfav="${esc(n.id)}" aria-label="${t("O'chirish")}">${DEL}<span>${t("O'chirish")}</span></button>
+      <div class="swipe-in">${numCard(n)}</div>
+    </div>`;
+  $('#favList').innerHTML = items.length ? items.map(wrap).join('')
     : emptyBox(IC_HEART_B, t("Sevimlilar bo'sh"), t("Yoqqan raqamni yurakcha tugmasi bilan belgilang — u shu yerda saqlanadi."), t("Raqamlarni ko'rish"), 'data-go="catalog"');
 }
 
@@ -3429,6 +3473,24 @@ document.addEventListener('click', (e)=>{
   const tt = e.target.closest('[data-theme-toggle]');
   if(tt){ setTheme(themeNow() === 'dark' ? 'light' : 'dark'); return; }
 
+  const uf = e.target.closest('[data-unfav]');
+  if(uf){
+    e.preventDefault(); e.stopPropagation();
+    const row = uf.closest('.swipe');
+    toggleFav(uf.dataset.unfav);
+    haptic('bad');
+    if(row){
+      row.style.transition = 'height .26s ease, opacity .2s, margin .26s ease';
+      row.style.height = row.offsetHeight + 'px'; void row.offsetHeight;
+      row.style.overflow = 'hidden'; row.style.opacity = '0';
+      row.style.height = '0'; row.style.marginTop = '0';
+      setTimeout(()=> renderFavorites(), 280);
+    } else renderFavorites();
+    toast(t("Sevimlilardan olib tashlandi"), 'info');
+    return;
+  }
+  if(e.target.closest('#favEdit')){ FAV_EDIT = !FAV_EDIT; haptic('select'); renderFavorites(); return; }
+
   const f = e.target.closest('[data-fav]');
   if(f){
     e.preventDefault(); e.stopPropagation();
@@ -3685,6 +3747,74 @@ if('serviceWorker' in navigator && location.protocol === 'https:'){
   setTimeout(()=> avtoQayta('fikrlar', fikrlarniYukla), 1200);
   setTimeout(()=>{ tashrifHisobi(); yangiRaqamKuzatuvi(); }, 1800);
 })();
+
+/* ---------- Sevimlilar: kartani chapga surib o'chirish ---------- */
+(function(){
+  const W = 86;
+  let el=null, x0=0, y0=0, dx=0, lock='', justSwiped=0;
+  function closeAll(except){
+    document.querySelectorAll('#favList .swipe.open').forEach(s=>{ if(s!==except) s.classList.remove('open'); });
+  }
+  document.addEventListener('pointerdown', (e)=>{
+    const sw = e.target.closest('#favList .swipe'); if(!sw){ closeAll(null); return; }
+    if(e.target.closest('.swipe-del')) return;
+    el = sw; x0 = e.clientX; y0 = e.clientY; dx = 0; lock='';
+  }, {passive:true});
+  document.addEventListener('pointermove', (e)=>{
+    if(!el) return;
+    const mx = e.clientX - x0, my = e.clientY - y0;
+    if(!lock){
+      if(Math.abs(mx) > 8 || Math.abs(my) > 8) lock = Math.abs(mx) > Math.abs(my) ? 'x' : 'y';
+      if(lock === 'y'){ el = null; return; }
+    }
+    if(lock !== 'x') return;
+    const base = el.classList.contains('open') ? -W : 0;
+    dx = Math.max(-W - 18, Math.min(0, base + mx));
+    el.classList.add('drag');
+    const inn = el.querySelector('.swipe-in');
+    if(inn) inn.style.transform = 'translateX(' + dx + 'px)';
+  }, {passive:true});
+  function end(){
+    if(!el) return;
+    const inn = el.querySelector('.swipe-in');
+    el.classList.remove('drag');
+    if(inn) inn.style.transform = '';
+    if(lock === 'x'){
+      const open = dx < -W/2;
+      closeAll(el);
+      el.classList.toggle('open', open);
+      if(open) haptic('select');
+      justSwiped = Date.now();
+    }
+    el = null; dx = 0; lock = '';
+  }
+  document.addEventListener('pointerup', end, {passive:true});
+  document.addEventListener('pointercancel', end, {passive:true});
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('#favList')) return;
+    if(e.target.closest('.swipe-del')) return;
+    /* surishdan keyingi "soxta" klik — e'tiborsiz qoldiriladi */
+    if(Date.now() - justSwiped < 400){ e.preventDefault(); e.stopPropagation(); return; }
+    const sw = e.target.closest('#favList .swipe.open');
+    if(sw){ e.preventDefault(); e.stopPropagation(); sw.classList.remove('open'); }
+  }, true);
+})();
+
+/* ---------- Pastki menyu: kapsula tanlangan bo'limga suriladi ---------- */
+function moveNavPill(){
+  const nav = document.getElementById('nav'), pill = document.getElementById('navPill');
+  if(!nav || !pill) return;
+  const on = nav.querySelector('a.on');
+  if(!on){ pill.classList.remove('on'); return; }
+  const r = on.getBoundingClientRect(), nr = nav.getBoundingClientRect();
+  pill.style.width = r.width + 'px';
+  pill.style.transform = 'translateX(' + (r.left - nr.left) + 'px)';
+  pill.classList.add('on');
+}
+window.addEventListener('resize', moveNavPill);
+window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
+setTimeout(moveNavPill, 60);
+setTimeout(moveNavPill, 400);
 </script>
 </body>
 </html>

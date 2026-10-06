@@ -76,3 +76,34 @@ qidiruv oqimlari OK.
   shaffofroq fon, blur 26px, ichki yorug' chiziq va ikki burchakda ko'k/binafsha shu'la.
   Mobil (`.apbar`) va kompyuter (`#deskhead`) ikkalasida ham.
 - Kontent panel ostidan xira ko'rinib o'tadi, sahifa "bir butun shisha" uslubida.
+
+## v17.5 — sevimlilarda surib o'chirish + suriluvchi menyu kapsulasi
+
+### Surib o'chirish (iOS uslubida)
+- Sevimlilardagi kartochkani **o'ngdan chapga ozgina sursangiz**, yonida qizil
+  "O'chirish" tugmasi chiqadi. Bosilsa — raqam sevimlilardan o'chadi,
+  kartochka yumshoq yig'ilib yo'qoladi.
+- Surish paytida kartochka barmoq ortidan yuradi; yarmidan oshsa ochiq qoladi,
+  oshmasa o'z joyiga qaytadi. Vertikal aylantirishga xalaqit bermaydi
+  (gorizontal/vertikal harakat avtomatik ajratiladi).
+- Ochiq kartochkaga bosilsa — avval yopiladi (tasodifan ochilib ketmaydi).
+- Bir vaqtda faqat bitta kartochka ochiq turadi.
+
+### Tepadagi o'chirish tugmasi
+- "Sevimlilar" sarlavhasi yonida **savat ikonkasi** paydo bo'ldi (ro'yxat bo'sh
+  bo'lsa ko'rinmaydi).
+- Bosilsa — **barcha kartochkalar o'sha surilgan holatga o'tadi**, har birida
+  "O'chirish" tugmasi turadi. Yana bossa — rejim o'chadi.
+- Boshqa bo'limga o'tilsa rejim avtomatik yopiladi.
+
+### Pastki menyu — Instagramdagidek suriluvchi kapsula
+- Avval har bir ikonkaning o'z kapsulasi paydo bo'lib yo'qolardi.
+  Endi **bitta kapsula** tanlangan bo'limga **silliq surilib** boradi
+  (0.42s, tabiiy sekinlashuv).
+- Kapsula fonining o'zi ham **shisha**: yarim shaffof, blur bilan, nozik chegara
+  va ichki yorug' chiziq.
+- Harakatni kamaytirish rejimida surilish o'chadi.
+
+## v17.6
+- Kartochka bilan qizil "O'chirish" tugmasi orasida **10px oraliq** qoldirildi —
+  avval yopishib turardi. Tugma burchaklari ham kartochkaga moslandi.
