@@ -60,6 +60,13 @@
   --r-s:11px; --r-m:14px; --r-l:18px; --r-xl:24px;
   --nc-bg:linear-gradient(180deg,#FFFFFF,#FBFCFE);
   --nc-hov:rgba(36,87,230,.5);
+  --vip-head:linear-gradient(135deg,#FDF6E2 0%,#F8EAC7 55%,#F3E1B4 100%);
+  --vip-line:rgba(176,136,36,.3);
+  --vip-glow:rgba(214,172,70,.3);
+  --vip-weave:rgba(176,136,36,.075);
+  --vip-num:#2E2206;
+  --vip-chip:rgba(176,136,36,.15);
+  --vip-chip-ink:#5E4710;
   --top:env(safe-area-inset-top,0px);
   --bot:env(safe-area-inset-bottom,0px);
   --navh:calc(70px + var(--bot));
@@ -85,6 +92,13 @@ html[data-theme="dark"]{
   --navy-grad:linear-gradient(150deg,#12294C 0%,#1E457E 100%);
   --nc-bg:linear-gradient(180deg,#142D54,#102545);
   --nc-hov:rgba(143,180,255,.45);
+  --vip-head:linear-gradient(135deg,#413418 0%,#352C1C 55%,#282530 100%);
+  --vip-line:rgba(230,200,119,.26);
+  --vip-glow:rgba(230,200,119,.22);
+  --vip-weave:rgba(230,200,119,.06);
+  --vip-num:#FFF6E2;
+  --vip-chip:rgba(230,200,119,.16);
+  --vip-chip-ink:#F0E1B8;
   --navbg:rgba(9,21,41,.93);
   --navline:rgba(255,255,255,.10);
   --navink:#8FA3C2;
@@ -201,7 +215,7 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.75),inset 
   background:var(--nc-bg);border:1px solid var(--line);border-radius:var(--r-xl);
   padding:18px;box-shadow:var(--sh-1);position:relative;
 }
-.card::before,.numcard::before,.rows::before,.empty::before{
+.card::before,.numcard:not(.vipc)::before,.rows::before,.empty::before{
   content:'';position:absolute;inset:0 0 auto;height:1px;border-radius:inherit;
   background:var(--edge);pointer-events:none;
 }
@@ -418,6 +432,41 @@ html[data-theme="dark"] .srch-cells input:focus{
   background:linear-gradient(180deg,var(--blue),rgba(46,95,224,.15));opacity:.85;
 }
 .numcard.vipc::after{background:linear-gradient(180deg,var(--gold),rgba(230,200,119,.12))}
+
+/* ---------- VIP kartochka: faqat tepa qismi premium ---------- */
+.numcard.vipc{padding:0 0 15px}
+.numcard.vipc::after{top:0;bottom:0;background:linear-gradient(180deg,#F3DFA8,var(--gold) 38%,rgba(230,200,119,.12))}
+/* oltin "shapka" — raqam, VIP va operator shu yerda */
+.numcard.vipc .nc-top{
+  position:relative;overflow:hidden;
+  padding:15px 17px 26px 19px;margin-bottom:-14px;
+  border-radius:21px 21px 0 0;
+}
+/* oltin qatlam pastga qarab asta yo'qoladi — kartochka rangiga qo'shilib ketadi */
+.numcard.vipc .nc-top::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 88% -10%, var(--vip-glow), transparent 58%),
+    repeating-linear-gradient(115deg, var(--vip-weave) 0 1px, transparent 1px 10px),
+    var(--vip-head);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.55) 74%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.55) 74%,transparent 100%);
+}
+.numcard.vipc .nc-top > *{position:relative;z-index:1}
+.numcard.vipc .nc-num{color:var(--vip-num)}
+.numcard.vipc .nc-op{background:var(--vip-chip);color:var(--vip-chip-ink);box-shadow:inset 0 0 0 1px var(--vip-line)}
+.numcard.vipc .nc-fav{background:var(--vip-chip);border-color:var(--vip-line);color:var(--vip-chip-ink)}
+.numcard.vipc .tag.vip{
+  display:inline-flex;align-items:center;gap:4px;padding:4px 9px 4px 7px;letter-spacing:.1em;
+  background:linear-gradient(135deg,#FBEFC9,#E3C372 45%,#C9A041);color:#2A1E05;
+  box-shadow:0 2px 8px -3px rgba(201,160,65,.8),inset 0 1px 0 rgba(255,255,255,.55);
+}
+.numcard.vipc .tag.vip svg{width:11px;height:11px;flex:none}
+/* pastki qism — oddiy kartochkadagidek */
+.numcard.vipc .nc-sep{display:none}
+.numcard.vipc .nc-bot{padding:0 17px 0 19px}
+.numcard.vipc .nc-off{top:17px;right:66px;bottom:auto;left:auto}
+
 .numcard.insc::after{background:linear-gradient(180deg,#36C9A0,rgba(54,201,160,.12))}
 .numcard.res::after{background:var(--line-2)}
 .numcard:active{transform:scale(.982)}
@@ -426,22 +475,15 @@ html[data-theme="dark"] .srch-cells input:focus{
 
 .nc-top{display:flex;align-items:flex-start;gap:12px}
 .nc-num{font-size:21px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15}
-.numcard.vipc .nc-num{
-  background:linear-gradient(100deg,var(--ink) 40%,var(--gold-ink));
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-}
+/* VIP raqam — to'liq tiniq, bir xil rangda (o'qish qulay bo'lsin) */
+.numcard.vipc .nc-num{color:var(--ink)}
 .nc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-/* operator — kichik logotipli chip */
+/* operator chipi — rangli nuqta bilan */
 .nc-op{
-  display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 3px;border-radius:9px;
+  display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:9px;
   background:var(--card-2);font-size:11px;font-weight:700;color:var(--text-3);
 }
-.nc-op .lg{
-  width:18px;height:18px;border-radius:6px;flex:none;overflow:hidden;background:#fff;padding:2px;
-  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);
-}
-.nc-op .lg img{width:100%;height:100%;object-fit:contain;display:block}
-.nc-op i{width:18px;height:18px;border-radius:6px;flex:none;display:block}
+.nc-op i{width:8px;height:8px;border-radius:3px;flex:none;display:block}
 
 .nc-fav{
   width:38px;height:38px;border-radius:50%;border:1px solid var(--line-2);background:var(--card-2);
@@ -1593,14 +1635,38 @@ document.addEventListener('click', (e)=>{
 });
 
 /* ---------- Sevimlilar ---------- */
-function loadFavorites(){ try{ FAVORITES = JSON.parse(localStorage.getItem('vip_favorites')||'[]')||[]; }catch(e){ FAVORITES=[]; } updateFavBadge(); }
+function loadFavorites(){ try{ FAVORITES = JSON.parse(localStorage.getItem('vip_favorites')||'[]')||[]; }catch(e){ FAVORITES=[]; } loadFavItems(); updateFavBadge(); }
 function saveFavorites(){ try{ localStorage.setItem('vip_favorites', JSON.stringify(FAVORITES)); }catch(e){} updateFavBadge(); }
 const isFav = (id) => FAVORITES.indexOf(id) !== -1;
+/* Jonli (serverdan kelgan) raqamlar bazamizda yo'q — shuning uchun
+   sevimliga qo'shilganda raqamning o'zi ham saqlab qo'yiladi. */
+let FAV_ITEMS = {};
+function loadFavItems(){ try{ FAV_ITEMS = JSON.parse(localStorage.getItem('vip_fav_items')||'{}')||{}; }catch(e){ FAV_ITEMS={}; } }
+function saveFavItems(){ try{ localStorage.setItem('vip_fav_items', JSON.stringify(FAV_ITEMS)); }catch(e){} }
+function favSnapshot(id){
+  let it = null;
+  try{ it = (typeof findItem === 'function') ? findItem(id) : null; }catch(e){}
+  if(!it) return;
+  FAV_ITEMS[id] = {
+    id: it.id, number: it.number, operator: it.operator || '',
+    price: it.price || 0, oldPrice: it.oldPrice || 0,
+    installment: !!it.installment, featured: !!it.featured,
+    reserved: !!it.reserved, live: !!it.live,
+    dealMonthly6: it.dealMonthly6, dealMonthly12: it.dealMonthly12, dealMonthly24: it.dealMonthly24,
+    dailyDeal: !!it.dailyDeal, monthly6: it.monthly6, monthly12: it.monthly12, monthly24: it.monthly24
+  };
+  saveFavItems();
+}
+function favItem(id){
+  let it = null;
+  try{ it = (typeof NUMBERS !== 'undefined') ? NUMBERS.find(n => n.id === id) : null; }catch(e){}
+  return it || FAV_ITEMS[id] || null;
+}
 function toggleFav(id){
   if(!id) return false;
   const i = FAVORITES.indexOf(id);
-  if(i === -1){ FAVORITES.push(id); saveFavorites(); return true; }
-  FAVORITES.splice(i,1); saveFavorites(); return false;
+  if(i === -1){ FAVORITES.push(id); favSnapshot(id); saveFavorites(); return true; }
+  FAVORITES.splice(i,1); delete FAV_ITEMS[id]; saveFavItems(); saveFavorites(); return false;
 }
 function updateFavBadge(){
   const txt = FAVORITES.length > 99 ? '99+' : String(FAVORITES.length);
@@ -1701,13 +1767,11 @@ function yangiRaqamKuzatuvi(){
    ================================================================== */
 const ICO_HEART = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg>';
 
+const ICO_CROWN = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 7.5 7 11l5-6.5L17 11l4-3.5-1.6 10.5H4.6L3 7.5z"></path></svg>';
 const ICO_ARR = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"></path></svg>';
 function opChip(op){
-  const m = opMeta(op), nm = esc(op||'');
-  const mark = m.logo
-    ? `<span class="lg"><img src="${m.logo}" alt="" loading="lazy" decoding="async" onerror="this.parentElement.outerHTML='<i style=\\'background:${m.color}\\'></i>'"></span>`
-    : `<i style="background:${m.color}"></i>`;
-  return `<span class="nc-op">${mark}${nm}</span>`;
+  const m = opMeta(op);
+  return `<span class="nc-op"><i style="background:${m.color}"></i>${esc(op||'')}</span>`;
 }
 function numCard(item){
   const fav = isFav(item.id), disc = discountPct(item);
@@ -1728,7 +1792,7 @@ function numCard(item){
       <div style="flex:1;min-width:0">
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
-          ${vip ? `<span class="tag vip">${t('VIP')}</span>` : ''}
+          ${vip ? `<span class="tag vip">${ICO_CROWN}${t('VIP')}</span>` : ''}
           ${opChip(item.operator)}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
         </div>
@@ -2047,7 +2111,7 @@ function renderCatalog(){
 }
 
 function renderFavorites(){
-  const items = FAVORITES.map(id => NUMBERS.find(n => n.id === id)).filter(Boolean);
+  const items = FAVORITES.map(id => favItem(id)).filter(Boolean);
   $('#favCount').textContent = items.length ? `${items.length} ${t('ta saqlangan raqam')}` : t('Hali hech narsa saqlanmagan');
   $('#favList').innerHTML = items.length ? items.map(n => numCard(n)).join('')
     : emptyBox(IC_HEART_B, t("Sevimlilar bo'sh"), t("Yoqqan raqamni yurakcha tugmasi bilan belgilang — u shu yerda saqlanadi."), t("Raqamlarni ko'rish"), 'data-go="catalog"');
@@ -2141,7 +2205,7 @@ async function liveSearch(){
    RAQAM TAFSILOTI
    ================================================================== */
 let CURRENT = null;
-const findItem = (id) => NUMBERS.find(n => n.id === id) || LIVE_RESULTS.find(n => n.id === id) || null;
+const findItem = (id) => NUMBERS.find(n => n.id === id) || LIVE_RESULTS.find(n => n.id === id) || FAV_ITEMS[id] || null;
 
 function openDetail(id){
   const item = findItem(id); if(!item) return;
