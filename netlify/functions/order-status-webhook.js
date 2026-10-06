@@ -113,7 +113,7 @@ function mainMenuKeyboard(){
    to'g'ridan-to'g'ri bot chatiga (https://t.me/<bot_username>) olib
    boradi — bu har doim, har qanday telefonda ishlaydi. */
 const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot';
-const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipraqamlar';
+const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipraqamlar.uz';
 function channelPostButtons(){
   return {
     inline_keyboard: [

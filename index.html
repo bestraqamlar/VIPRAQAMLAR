@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="uz" data-theme="light">
+<html lang="uz" data-theme="dark">
 <head>
+<meta name="color-scheme" content="dark">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
-<meta name="theme-color" content="#0A1B33" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07152B">
 <title>VIP RAQAMLAR — chiroyli va VIP telefon raqamlar</title>
 <meta name="description" content="O'zbekiston bo'ylab VIP, oltin va chiroyli telefon raqamlar. Barcha operatorlar, bo'lib to'lash, bepul yetkazib berish va rasmiy shartnoma.">
 <link rel="canonical" href="https://vipraqamlar.uz/">
@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="assets/logo-circle.png">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,6 +89,7 @@ body{
   background:var(--ground); color:var(--ink);
   font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
   overscroll-behavior-y:none; position:relative; min-height:100dvh;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
 /* Yumshoq nurli fon — statik, hech narsani sekinlashtirmaydi */
 body::before{
@@ -223,75 +224,114 @@ html[data-theme="dark"] .chip.on{background:var(--blue);border-color:var(--blue)
 .oprow::before{left:0;width:18px;background:linear-gradient(90deg,var(--ground),transparent)}
 .oprow::after{right:0;width:30px;background:linear-gradient(270deg,var(--ground) 30%,transparent)}
 .oprow-in{
-  display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;
+  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
   padding:3px 18px 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
 }
 .oprow-in::-webkit-scrollbar{display:none}
 .op{
-  flex:none;scroll-snap-align:start;display:flex;align-items:center;gap:9px;
-  height:46px;padding:0 15px 0 12px;border-radius:15px;
+  flex:none;scroll-snap-align:start;display:flex;align-items:center;gap:6px;
+  height:32px;padding:0 9px 0 5px;border-radius:11px;
   background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
-  color:var(--text-2);font-size:13.5px;font-weight:700;white-space:nowrap;
+  color:var(--text-2);font-size:11.5px;font-weight:700;white-space:nowrap;
   transition:transform .18s cubic-bezier(.2,.8,.3,1),border-color .18s,background .18s,color .18s;
 }
 .op:active{transform:scale(.96)}
 .op .av{
-  width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;color:#fff;letter-spacing:.01em;flex:none;
+  width:22px;height:22px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;color:#fff;letter-spacing:.01em;flex:none;overflow:hidden;
 }
+/* haqiqiy logotip — oq plitka ichida */
+.op .av.logo{width:30px;border-radius:9px;background:#fff;padding:3px 4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.op .av.logo img{width:100%;height:100%;object-fit:contain;display:block}
 .op .cnt{
-  font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:8px;
+  font-size:10px;font-weight:800;padding:1px 5px;border-radius:6px;
   background:var(--card-2);color:var(--muted);
 }
 .op.on{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:var(--sh-2)}
 .op.on .cnt{background:rgba(255,255,255,.17);color:#fff}
 html[data-theme="dark"] .op.on{background:var(--blue);border-color:var(--blue)}
 
-/* ---------- Qidiruv paneli ---------- */
-.srch{
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);
-  padding:18px;box-shadow:var(--sh-1);position:relative;
+/* ---------- Buyurtma / shartnoma natijalari ---------- */
+.rescard{
+  background:var(--card);border:1px solid var(--line);border-radius:20px;
+  padding:16px 17px;box-shadow:var(--sh-1);position:relative;overflow:hidden;
 }
-.srch::before{content:'';position:absolute;inset:0 0 auto;height:1px;border-radius:inherit;background:var(--edge);pointer-events:none}
-.srch-head{display:flex;align-items:flex-start;gap:12px}
-.srch-ic{
-  width:38px;height:38px;border-radius:13px;flex:none;
+.rescard + .rescard{margin-top:11px}
+.rescard .rb{position:absolute;left:0;top:0;bottom:0;width:4px}
+.rescard .rh{display:flex;align-items:center;gap:10px}
+.rescard .rh .id{font-size:11.5px;font-weight:700;color:var(--muted)}
+.rescard .big{margin-top:11px;font-size:21px;font-weight:700;letter-spacing:.01em}
+.rescard .sub{margin-top:5px;font-size:11.5px;color:var(--muted-2);font-weight:600;line-height:1.5}
+.rescard .amt{font-size:16px;font-weight:700}
+
+.ringwrap{display:flex;align-items:center;gap:18px}
+.ring{width:92px;height:92px;flex:none;position:relative}
+.ring svg{transform:rotate(-90deg);display:block}
+.ring .mid{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring .mid b{font-size:19px;font-weight:700;line-height:1}
+.ring .mid i{font-size:9.5px;font-weight:700;color:var(--muted-2);font-style:normal;margin-top:3px;letter-spacing:.06em}
+
+.payrow{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line-3)}
+.payrow:last-child{border-bottom:none}
+.payrow .pn{
+  width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;
+}
+.payrow .pt{flex:1;min-width:0;font-size:12.5px;font-weight:650;color:var(--text-2)}
+
+.hintbox{
+  background:var(--card);border:1px dashed var(--line-2);border-radius:20px;
+  padding:26px 20px;text-align:center;
+}
+.hintbox .hi{
+  width:56px;height:56px;border-radius:18px;margin:0 auto;
   background:var(--blue-tint);color:var(--blue-text);display:flex;align-items:center;justify-content:center;
 }
-.srch-head b{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.01em}
-.srch-head i{display:block;margin-top:3px;font-size:11.5px;color:var(--muted);font-weight:600;font-style:normal;line-height:1.45}
+.hintbox h4{margin-top:13px;font-size:14.5px;font-weight:800}
+.hintbox p{margin:7px auto 0;font-size:12px;color:var(--muted);font-weight:600;line-height:1.55;max-width:280px}
 
+/* ---------- Qidiruv (kartochkasiz, yirik) ---------- */
+.srch{margin:0 0 16px}
 .srch-field{
-  margin-top:15px;display:flex;align-items:center;gap:8px;
-  background:var(--card-2);border:1.5px solid var(--line-2);border-radius:18px;
-  padding:8px 9px;transition:border-color .18s,box-shadow .18s,background .18s;
+  display:flex;align-items:center;gap:6px;
+  background:var(--card);border:1.5px solid var(--line-2);border-radius:22px;
+  padding:9px 10px;box-shadow:var(--sh-1);
+  transition:border-color .18s,box-shadow .18s;
 }
-.srch-field.focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-tint);background:var(--card)}
-.srch-cells{flex:1;min-width:0;display:flex;align-items:center;gap:5px}
-.srch-dash{flex:none;width:9px;text-align:center;color:var(--faint);font-size:17px;font-weight:700;line-height:1;user-select:none}
+.srch-field.focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-tint),var(--sh-1)}
+.srch-cells{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.srch-dash{flex:none;width:10px;text-align:center;color:var(--faint);font-size:19px;font-weight:700;line-height:1;user-select:none}
 .srch-cells input{
-  flex:1;min-width:0;height:56px;border:none;outline:none;border-radius:14px;
-  background:transparent;text-align:center;color:var(--ink);
-  font-family:'Space Grotesk',monospace;font-size:24px;font-weight:700;padding:0;
+  flex:1;min-width:0;height:66px;border:none;outline:none;border-radius:16px;
+  background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line-3);
+  text-align:center;color:var(--ink);
+  font-family:'Space Grotesk',monospace;font-size:28px;font-weight:700;padding:0;
   transition:background .16s,box-shadow .16s,color .16s,transform .16s;
 }
-.srch-cells input:focus{transform:translateY(-1px)}
-.srch-cells input::placeholder{color:var(--faint);opacity:.4;font-weight:600}
-.srch-cells input:not(.has){background:var(--card);box-shadow:inset 0 0 0 1px var(--line-3)}
-html[data-theme="dark"] .srch-cells input:not(.has){background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
-.srch-cells input.has{background:var(--blue-tint);box-shadow:inset 0 0 0 1.5px rgba(36,87,230,.35);color:var(--ink)}
-.srch-cells input:focus{background:var(--blue-tint)!important;box-shadow:inset 0 0 0 2px var(--blue)!important}
-.srch-x{
-  width:30px;height:30px;border-radius:50%;flex:none;background:var(--card-3);color:var(--muted);
-  display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;
+html[data-theme="dark"] .srch-cells input{background:rgba(0,0,0,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.srch-cells input::placeholder{color:var(--faint);opacity:.3;font-weight:600}
+/* yozilgan katak — fon aniq ochroq, ko'k, to'lgani darrov bilinadi */
+html .srch-cells input.has{
+  background:linear-gradient(180deg,rgba(45,98,240,.30),rgba(45,98,240,.17));
+  box-shadow:inset 0 0 0 1.5px rgba(96,142,255,.55),0 4px 14px -6px rgba(45,98,240,.55);
+  color:#fff;
 }
-.srch-x:active{transform:scale(.88)}
+html .srch-cells input:focus{
+  background:linear-gradient(180deg,rgba(45,98,240,.42),rgba(45,98,240,.26));
+  box-shadow:inset 0 0 0 2px var(--blue),0 0 0 4px rgba(45,98,240,.18),0 6px 18px -6px rgba(45,98,240,.7);
+  transform:translateY(-2px);
+}
+/* to'lish ko'rsatkichi */
+.srch-prog{height:3px;border-radius:99px;background:var(--line-3);margin:10px 2px 0;overflow:hidden}
+.srch-prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--blue),#6FA0FF);transition:width .25s cubic-bezier(.4,0,.2,1)}
+.srch-dash.on{color:var(--blue)}
 
-
-.srch-act{margin-top:14px;display:flex;gap:10px}
-.srch-act .btn{height:54px;font-size:15px;border-radius:16px}
-.srch-act #btnFilter{width:54px;flex:none;padding:0;position:relative}
-.srch-act #btnFilter .dot{position:absolute;top:11px;right:11px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.srch-act{margin-top:12px;display:flex;gap:10px}
+.srch-act .btn{height:58px;font-size:16px;border-radius:18px}
+.srch-act #btnFilter{width:58px;flex:none;padding:0;position:relative;border-radius:18px}
+.srch-act #btnFilter .dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--red)}
 
 .tag{font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:3px 8px;border-radius:6px}
 .tag.vip{color:var(--gold-ink);background:var(--gold-tint)}
@@ -659,14 +699,13 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   /* --- Katalog: chapda filtr --- */
   .catlayout{display:grid;grid-template-columns:392px 1fr;gap:32px;align-items:start}
   .catside{position:sticky;top:94px;display:flex;flex-direction:column;gap:20px}
-  .catside .card,.catside .srch{padding:26px;border-radius:24px}
+  .catside .card{padding:24px;border-radius:24px}
   .catside .eyebrow{font-size:12.5px;letter-spacing:.11em}
-  .srch-head b{font-size:16px}
-  .srch-field{padding:9px 10px;border-radius:20px}
-  .srch-cells input{height:62px;font-size:26px;border-radius:15px}
-  .srch-dash{font-size:19px;width:10px}
-  .srch-act .btn{height:58px;font-size:15.5px}
-  .srch-act #btnFilter{width:58px}
+  .srch-field{padding:10px;border-radius:24px}
+  .srch-cells input{height:68px;font-size:30px;border-radius:17px}
+  .srch-dash{font-size:21px;width:11px}
+  .srch-act .btn{height:60px;font-size:16px}
+  .srch-act #btnFilter{width:60px}
   .oprow{margin:0 0 18px}
   .oprow::before,.oprow::after{display:none}
   .oprow-in{flex-wrap:wrap;overflow:visible;padding:0}
@@ -734,10 +773,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
     </nav>
     <div class="dh-act">
       <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span id="dhLang">UZ</span></button>
-      <button class="iconbtn" data-theme-toggle aria-label="Mavzuni almashtirish">
-        <svg class="ico-sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.6 12h2.2M19.2 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path></svg>
-        <svg class="ico-moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5z"></path></svg>
-      </button>
     </div>
   </div>
 </header>
@@ -752,10 +787,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
       <h1 style="margin-top:2px">VIP RAQAMLAR</h1>
     </div>
     <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span class="langlbl">UZ</span></button>
-    <button class="iconbtn" data-theme-toggle aria-label="Mavzuni almashtirish">
-      <svg class="ico-sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.6 12h2.2M19.2 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path></svg>
-      <svg class="ico-moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5z"></path></svg>
-    </button>
   </header>
 
   <div class="pad wrap" style="padding-top:14px">
@@ -784,18 +815,8 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   <div class="pad wrap" style="padding-top:14px">
     <div class="catlayout">
       <aside class="catside">
-        <!-- Qidiruv paneli -->
+        <!-- Qidiruv -->
         <div class="srch">
-          <div class="srch-head">
-            <span class="srch-ic">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-            </span>
-            <div style="flex:1;min-width:0">
-              <b data-t="Raqam bo'yicha qidirish">Raqam bo'yicha qidirish</b>
-              <i data-t="Bilgan raqamlaringizni kiriting, qolgani bo'sh qolsin">Bilgan raqamlaringizni kiriting, qolgani bo'sh qolsin</i>
-            </div>
-          </div>
-
           <div class="srch-field">
             <div class="srch-cells" id="digits">
               <input type="text" inputmode="numeric" maxlength="1" placeholder="1" data-i="0" aria-label="1-raqam">
@@ -808,18 +829,16 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
               <input type="text" inputmode="numeric" maxlength="1" placeholder="6" data-i="5" aria-label="6-raqam">
               <input type="text" inputmode="numeric" maxlength="1" placeholder="7" data-i="6" aria-label="7-raqam">
             </div>
-            <button type="button" class="srch-x" id="digitsClear" aria-label="Tozalash" style="display:none">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
-            </button>
           </div>
+          <div class="srch-prog" aria-hidden="true"><i id="srchProg"></i></div>
 
           <div class="srch-act">
             <button class="btn" id="btnLive">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
               <span data-t="Qidirish">Qidirish</span>
             </button>
             <button class="btn ghost mobonly" id="btnFilter" aria-label="Saralash">
-              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg>
               <span class="dot" id="filterDot" style="display:none"></span>
             </button>
           </div>
@@ -951,37 +970,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Profil">Profil</h1><div class="sub" data-t="Sozlamalar va bo'limlar">Sozlamalar va bo'limlar</div></div></header>
   <div class="pad wrap" style="padding-top:16px">
 
-    <div class="eyebrow" data-t="Ko'rinish">Ko'rinish</div>
-    <div class="card" style="margin-top:10px">
-      <div style="display:flex;gap:10px" id="themePick">
-        <button class="tpick" data-theme-val="light" style="flex:1">
-          <span class="pv" style="display:block;height:66px;border-radius:14px;border:2px solid var(--blue);background:#fff;padding:9px;overflow:hidden">
-            <span style="display:block;height:8px;border-radius:4px;background:#DCE3EF"></span>
-            <span style="display:block;margin-top:6px;height:18px;border-radius:6px;background:#F2F5FA"></span>
-            <span style="display:block;margin-top:6px;height:8px;width:60%;border-radius:4px;background:#2457E6"></span>
-          </span>
-          <span class="lb" style="display:block;margin-top:7px;text-align:center;font-size:12px;font-weight:800;color:var(--blue-text)" data-t="Yorug'">Yorug'</span>
-        </button>
-        <button class="tpick" data-theme-val="dark" style="flex:1">
-          <span class="pv" style="display:block;height:66px;border-radius:14px;border:1.5px solid var(--line-2);background:#061225;padding:9px;overflow:hidden">
-            <span style="display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.14)"></span>
-            <span style="display:block;margin-top:6px;height:18px;border-radius:6px;background:rgba(255,255,255,.08)"></span>
-            <span style="display:block;margin-top:6px;height:8px;width:60%;border-radius:4px;background:#E6C877"></span>
-          </span>
-          <span class="lb" style="display:block;margin-top:7px;text-align:center;font-size:12px;font-weight:650;color:var(--text-3)" data-t="Tungi">Tungi</span>
-        </button>
-        <button class="tpick" data-theme-val="auto" style="flex:1">
-          <span class="pv" style="display:block;height:66px;border-radius:14px;border:1.5px solid var(--line-2);background:linear-gradient(110deg,#fff 50%,#061225 50%);padding:9px;overflow:hidden">
-            <span style="display:block;height:8px;border-radius:4px;background:rgba(140,160,190,.35)"></span>
-            <span style="display:block;margin-top:6px;height:18px;border-radius:6px;background:rgba(140,160,190,.25)"></span>
-            <span style="display:block;margin-top:6px;height:8px;width:60%;border-radius:4px;background:#7A93C4"></span>
-          </span>
-          <span class="lb" style="display:block;margin-top:7px;text-align:center;font-size:12px;font-weight:650;color:var(--text-3)" data-t="Tizim">Tizim</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="eyebrow" style="margin-top:20px" data-t="Til">Til</div>
+    <div class="eyebrow" data-t="Til">Til</div>
     <div class="seg" style="margin-top:10px" id="langPick">
       <button class="lpick on" data-lang-val="uz">O'zbekcha</button>
       <button class="lpick" data-lang-val="ru">Русский</button>
@@ -1006,11 +995,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
         <span class="pb" id="profFavBadge" style="display:none">0</span>
       </a>
 
-      <button class="ptile rise" data-installgo>
-        <span class="pi" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"></rect><path d="M3 10h18"></path></svg></span>
-        <b data-t="Bo'lib to'lashga raqamlar">Bo'lib to'lashga raqamlar</b><i data-t="Imkoniyat">Imkoniyat</i>
-      </button>
-
       <button class="ptile rise" data-sheet="jobs">
         <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="12" rx="2"></rect><path d="M9 7.5V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2"></path></svg></span>
         <b data-t="Vakansiyalar">Vakansiyalar</b><i data-t="Ish o'rinlari">Ish o'rinlari</i>
@@ -1021,9 +1005,9 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
         <b data-t="Bog'lanish">Bog'lanish</b><i>Telegram</i>
       </a>
 
-      <a class="ptile rise" id="moreInsta" href="#" target="_blank" rel="noopener">
+      <a class="ptile rise" id="moreInsta" href="https://instagram.com/vipraqamlar.uz" target="_blank" rel="noopener">
         <span class="pi" style="background:var(--gold-tint);color:var(--gold-ink)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"></rect><circle cx="12" cy="12" r="3.6"></circle><circle cx="17" cy="7" r="1.1" fill="currentColor"></circle></svg></span>
-        <b data-t="Instagram kanal">Instagram kanal</b><i data-t="Postlar">Postlar</i>
+        <b data-t="Instagram kanal">Instagram kanal</b><i>@vipraqamlar.uz</i>
       </a>
 
       <button class="ptile rise" data-sheet="faq">
@@ -1133,8 +1117,12 @@ let TESTIMONIALS = [];
 const FN = '/.netlify/functions/';
 
 const OPERATOR_META = {
-  Mobiuz:{color:'#C0392B'}, Beeline:{color:'#B8860B'}, Ucell:{color:'#8E5BA6'},
-  Uzmobile:{color:'#2E63C7'}, Humans:{color:'#A8791B'}, Perfektum:{color:'#D9541F'}
+  Mobiuz:{color:'#C0392B', logo:'assets/operators/mobiuz.png'},
+  Beeline:{color:'#B8860B', logo:'assets/operators/beeline.png'},
+  Ucell:{color:'#8E5BA6', logo:'assets/operators/ucell.png'},
+  Uzmobile:{color:'#2E63C7', logo:'assets/operators/uzmobile.png'},
+  Humans:{color:'#A8791B', logo:'assets/operators/humans.svg'},
+  Perfektum:{color:'#D9541F', logo:'assets/operators/perfektum.svg'}
 };
 const opMeta = (op) => OPERATOR_META[op] || { color:'#6b7280' };
 const LIVE_OPERATORS = ['Beeline','Ucell','Humans','Mobiuz','Perfektum'];
@@ -1236,7 +1224,10 @@ function applyLang(){
   const dl = document.getElementById('dhLang'); if(dl) dl.textContent = LANG.toUpperCase();
   document.querySelectorAll('[data-lang-val]').forEach(b => b.classList.toggle('on', b.dataset.langVal === LANG));
 }
-function setLang(v){ LANG = v; try{ localStorage.setItem('vip_lang', v); }catch(e){} applyLang(); renderAll(); renderRoute(true); }
+function setLang(v){ LANG = v; try{ localStorage.setItem('vip_lang', v); }catch(e){} applyLang();
+  ['#oqResult','#ctResult'].forEach(id => { const el = document.querySelector(id); if(el && el.querySelector('.hintbox')) el.innerHTML = ''; });
+  if(typeof initHints === 'function') initHints();
+  renderAll(); renderRoute(true); }
 try{ LANG = localStorage.getItem('vip_lang') || 'uz'; }catch(e){}
 
 /* ---------- Yordamchilar ---------- */
@@ -1426,29 +1417,8 @@ document.addEventListener('click', (e)=>{
 });
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && sheetStack.length) closeSheet(); });
 
-/* ---------- Mavzu ---------- */
-function applyTheme(val){
-  const real = (val === 'auto') ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : val;
-  document.documentElement.setAttribute('data-theme', real);
-  $$('.ico-sun').forEach(s => s.style.display = real==='dark' ? '' : 'none');
-  $$('.ico-moon').forEach(s => s.style.display = real==='dark' ? 'none' : '');
-  $$('.tpick').forEach(b=>{
-    const on = b.dataset.themeVal === val;
-    $('.pv', b).style.border = on ? '2px solid var(--blue)' : '1.5px solid var(--line-2)';
-    const lb = $('.lb', b);
-    lb.style.color = on ? 'var(--blue-text)' : 'var(--text-3)';
-    lb.style.fontWeight = on ? '800' : '650';
-  });
-}
-function setTheme(v){ try{ localStorage.setItem('vip_theme', v); }catch(e){} applyTheme(v); }
-(function(){
-  let v='light'; try{ v = localStorage.getItem('vip_theme') || 'light'; }catch(e){}
-  applyTheme(v);
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
-    let c='light'; try{ c = localStorage.getItem('vip_theme')||'light'; }catch(e){}
-    if(c === 'auto') applyTheme('auto');
-  });
-})();
+/* Sayt faqat tungi mavzuda ishlaydi */
+document.documentElement.setAttribute('data-theme','dark');
 
 /* ---------- Marshrut ---------- */
 const ROUTES = { '':'home', '/':'home', '/katalog':'catalog', '/sevimlilar':'fav', '/buyurtmalarim':'orders', '/shartnoma':'contract', '/profil':'more', '/yana':'more' };
@@ -1522,7 +1492,7 @@ async function sozlamalarniYukla(){
   }
   if(s.telegramLink){ const a=$('#moreTg'); if(a) a.href=s.telegramLink; }
   const ig = $('#moreInsta');
-  if(s.instagramLink && ig){ ig.href = s.instagramLink; } else if(ig) ig.style.display='none';
+  if(s.instagramLink && ig) ig.href = s.instagramLink;   /* standart: @vipraqamlar.uz */
   if(s.workingHours) $('#moreHours').textContent = s.workingHours;
   if(s.deliveryText){ const d=$('#moreDelivery'); d.textContent = s.deliveryText; d.removeAttribute('data-t'); }
   renderAll();
@@ -1854,7 +1824,13 @@ function renderCatalog(){
   LIVE_RESULTS.forEach(n => { if(n.operator) counts[n.operator] = (counts[n.operator]||0)+1; });
   const ops = Object.keys(counts).sort((a,b)=> counts[b]-counts[a]);
   const total = all.length + LIVE_RESULTS.length;
-  const opAv = (op) => `<span class="av" style="background:${opMeta(op).color}">${esc(String(op||'?').slice(0,2).toUpperCase())}</span>`;
+  const opAv = (op) => {
+    const m = opMeta(op), ini = esc(String(op||'?').slice(0,2).toUpperCase());
+    return m.logo
+      ? `<span class="av logo"><img src="${m.logo}" alt="${esc(op||'')}" loading="lazy" decoding="async"
+           onerror="this.parentElement.className='av';this.parentElement.style.background='${m.color}';this.parentElement.textContent='${ini}'"></span>`
+      : `<span class="av" style="background:${m.color}">${ini}</span>`;
+  };
   $('#catOps').innerHTML =
     `<button class="op${catOp?'':' on'}" data-catop="">
        <span class="av" style="background:linear-gradient(140deg,#2457E6,#1B44B5)">
@@ -1868,6 +1844,7 @@ function renderCatalog(){
   /* tanlangan operator ko'rinib tursin */
   requestAnimationFrame(()=>{
     const on = $('#catOps .op.on');
+    if(!catOp){ const bx = $('#catOps'); if(bx) bx.scrollTo({left:0}); return; }
     if(on && on.parentElement.scrollWidth > on.parentElement.clientWidth){
       const box = on.parentElement;
       const l = on.offsetLeft - (box.clientWidth - on.offsetWidth)/2;
@@ -1922,9 +1899,10 @@ function fillQuick(digits){
 /* katakchalar holati: to'lganmi, tozalash tugmasi ko'rinsinmi */
 function syncDigits(){
   const boxes = $$('#digits input');
-  let any = false;
-  boxes.forEach(b => { const v = !!b.value; if(v) any = true; b.classList.toggle('has', v); });
-  const x = $('#digitsClear'); if(x) x.style.display = any ? 'flex' : 'none';
+  let n = 0;
+  boxes.forEach(b => { const v = !!b.value; if(v) n++; b.classList.toggle('has', v); });
+  const pr = $('#srchProg'); if(pr) pr.style.width = (n / 7 * 100) + '%';
+  $$('.srch-cells .srch-dash').forEach((d, i) => d.classList.toggle('on', n > (i === 0 ? 2 : 4)));
 }
 
 /* "Qidirish" tugmasining o'zi "Qidirilmoqda…" ga aylanadi */
@@ -2675,24 +2653,25 @@ async function lookupOrders(){
       box.innerHTML = emptyBox(IC_BOX, t('Buyurtma topilmadi'), data.error || (LANG==='ru'?'По этим номерам заказов нет. Проверьте телефон и последние 4 цифры.':"Bu raqamlar bo'yicha buyurtma yo'q. Telefon va oxirgi 4 ta raqamni tekshiring."), null);
       return;
     }
+    const COL = { 'Yangi':'var(--blue)', "Bog'lanildi":'var(--gold)', 'Yakunlandi':'var(--green)', 'Bekor qilindi':'var(--red)' };
     box.innerHTML = `<div class="eyebrow" style="padding:0 4px;margin-bottom:10px">${data.orders.length} ${t('ta buyurtma')}</div>` +
       data.orders.map(o => {
         const st = ORDER_STATUS[o.status] || { tag:'grey', label: String(o.status||'—').toUpperCase() };
-        return `<div class="card" style="margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="sg" style="font-size:12px;font-weight:700;color:var(--muted)">${esc(o.createdAt||'')}</span>
+        const bar = COL[o.status] || 'var(--line-2)';
+        return `<div class="rescard">
+          <span class="rb" style="background:${bar}"></span>
+          <div class="rh">
+            <span class="id sg">${esc(o.createdAt||'')}</span>
             <span class="tag ${st.tag}" style="margin-left:auto">${esc(st.label)}</span>
           </div>
-          <div style="margin-top:11px;display:flex;align-items:flex-end;gap:12px">
+          <div style="display:flex;align-items:flex-end;gap:12px">
             <div style="flex:1;min-width:0">
-              <div class="sg" style="font-size:19px;font-weight:700">${esc(shortNumber(o.number))}</div>
-              <div style="margin-top:5px;font-size:11.5px;color:var(--muted-2);font-weight:600">
-                ${o.paymentType === 'installment'
-                  ? `Bo'lib to'lash${o.installmentMonths?' · '+o.installmentMonths+' oy':''}${o.monthlyPayment?' · '+formatPrice(o.monthlyPayment)+" so'm/oy":''}`
-                  : "To'liq to'lov"}${o.cashTariffName?' · '+esc(o.cashTariffName):''}
-              </div>
+              <div class="big sg">${esc(shortNumber(o.number))}</div>
+              <div class="sub">${o.paymentType === 'installment'
+                  ? `${t("Bo'lib to'lash")}${o.installmentMonths?' · '+o.installmentMonths+' '+t('oy'):''}${o.monthlyPayment?' · '+formatPrice(o.monthlyPayment)+' '+SUM()+'/'+t('oy'):''}`
+                  : t("To'liq to'lov")}${o.cashTariffName?' · '+esc(o.cashTariffName):''}</div>
             </div>
-            <div class="sg" style="font-size:15px;font-weight:700">${formatPrice(o.price)}</div>
+            <div class="amt sg">${formatPrice(o.price)}</div>
           </div>
         </div>`;
       }).join('');
@@ -2742,39 +2721,49 @@ async function lookupContract(){
     const pct = pays.length ? Math.round(paid / pays.length * 100) : 0;
     const now = Date.now();
 
+    const R = 40, C = 2 * Math.PI * R;
     box.innerHTML = `
       <div class="card" style="background:var(--navy-grad);border-color:transparent;color:#fff;position:relative;overflow:hidden">
-        <div style="position:absolute;right:-40px;top:-50px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(230,200,119,.2),transparent 68%)"></div>
-        <div style="position:relative">
-          <div style="font-size:10.5px;font-weight:800;letter-spacing:.12em;color:#8EA3C0;text-transform:uppercase">Shartnoma</div>
-          <div class="sg" style="margin-top:6px;font-size:20px;font-weight:700;color:#E6C877">${esc(idVal)}</div>
-          <div style="margin-top:10px;font-size:13px;color:#C9D6E8;font-weight:650">${esc(d.customerName||'')} · ${esc(shortNumber(d.number||''))}</div>
-          <div style="margin-top:16px;height:7px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden">
-            <span style="display:block;height:100%;width:${pct}%;background:#E6C877;border-radius:4px"></span>
+        <div style="position:absolute;right:-40px;top:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(230,200,119,.22),transparent 68%)"></div>
+        <div style="position:relative" class="ringwrap">
+          <div class="ring">
+            <svg viewBox="0 0 92 92" width="92" height="92" aria-hidden="true">
+              <circle cx="46" cy="46" r="${R}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="8"></circle>
+              <circle cx="46" cy="46" r="${R}" fill="none" stroke="#E6C877" stroke-width="8" stroke-linecap="round"
+                      stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct/100)).toFixed(1)}"></circle>
+            </svg>
+            <span class="mid"><b class="sg" style="color:#fff">${pct}%</b><i style="color:#A9BCD6">${paid}/${pays.length}</i></span>
           </div>
-          <div style="margin-top:9px;display:flex;align-items:center">
-            <span style="flex:1;font-size:11.5px;color:#A9BCD6;font-weight:650">${paid} / ${pays.length} to'lov bajarildi</span>
-            <span class="sg" style="font-size:13px;font-weight:700;color:#E6C877">${pct}%</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.12em;color:#8EA3C0;text-transform:uppercase">${t('Shartnoma')}</div>
+            <div class="sg" style="margin-top:5px;font-size:19px;font-weight:700;color:#E6C877">${esc(idVal)}</div>
+            <div style="margin-top:7px;font-size:12.5px;color:#C9D6E8;font-weight:650">${esc(d.customerName||'')}</div>
+            <div class="sg" style="margin-top:3px;font-size:12.5px;color:#A9BCD6;font-weight:600">${esc(shortNumber(d.number||''))}</div>
           </div>
         </div>
       </div>
 
-      <div class="card" style="margin-top:10px;display:flex;align-items:center;gap:10px">
-        <span class="tag ${st.tag}">${t('HOLAT')}</span>
-        <span style="flex:1;font-size:13px;font-weight:700">${esc(st.label)}</span>
+      <div class="rescard" style="margin-top:11px">
+        <span class="rb" style="background:${st.tag==='green'?'var(--green)':st.tag==='red'?'var(--red)':'var(--gold)'}"></span>
+        <div style="display:flex;align-items:center;gap:11px">
+          <span class="tag ${st.tag}">${t('HOLAT')}</span>
+          <span style="flex:1;font-size:13px;font-weight:700">${esc(st.label)}</span>
+        </div>
       </div>
 
-      <div class="card" style="margin-top:10px">
-        <div style="display:flex;align-items:center"><span class="eyebrow" style="flex:1">${t("To'lovlar jadvali")}</span>
-          <span class="sg" style="font-size:12.5px;font-weight:700;color:var(--text-3)">${formatPrice(d.monthlyPayment)} so'm/oy</span></div>
-        <div style="margin-top:12px;display:flex;flex-direction:column;gap:9px">
+      <div class="rescard" style="margin-top:11px">
+        <div style="display:flex;align-items:center">
+          <span class="eyebrow" style="flex:1">${t("To'lovlar jadvali")}</span>
+          <span class="sg" style="font-size:12.5px;font-weight:700;color:var(--text-3)">${formatPrice(d.monthlyPayment)} ${SUM()}/${t('oy')}</span>
+        </div>
+        <div style="margin-top:8px">
           ${pays.map(p => {
             const over = p.status === 'pending' && p.dueDate && p.dueDate < now;
             const done = p.status === 'paid';
             const dd = p.dueDate ? new Date(p.dueDate).toLocaleDateString('uz-UZ') : '—';
-            return `<div style="display:flex;align-items:center;gap:11px">
-              <span style="width:26px;height:26px;border-radius:50%;background:${done?'var(--green)':over?'var(--red)':'var(--card-2)'};color:${done||over?'#fff':'var(--muted-2)'};display:flex;align-items:center;justify-content:center;flex:none;font-size:11px;font-weight:800">${done?'✓':(p.month||'•')}</span>
-              <span style="flex:1;min-width:0;font-size:12.5px;font-weight:650;color:var(--text-2)">${p.month?p.month+'-'+t("to'lov"):t("to'lov")} · ${esc(dd)}</span>
+            return `<div class="payrow">
+              <span class="pn" style="background:${done?'var(--green)':over?'var(--red)':'var(--card-3)'};color:${done||over?'#fff':'var(--muted)'}">${done?'✓':(p.month||'•')}</span>
+              <span class="pt">${p.month?p.month+'-'+t("to'lov"):t("to'lov")} · ${esc(dd)}</span>
               <span class="tag ${done?'green':over?'red':'grey'}">${done?t("TO'LANDI"):over?t('KECHIKMOQDA'):t('KUTILMOQDA')}</span>
             </div>`;
           }).join('')}
@@ -3155,11 +3144,6 @@ document.addEventListener('click', (e)=>{
     const list = tariffsFor(ORD.item.operator).filter(x => Number(x.price) > 0);
     ORD.cashTariff = (i < 0) ? null : list[i]; renderOrder(); return; }
 
-  if(e.target.closest('#digitsClear')){
-    $$('#digits input').forEach(b => b.value = '');
-    syncDigits(); $('#digits input').focus();
-    return;
-  }
   if(e.target.closest('#geoBtn')){ useMyLocation(); return; }
   if(e.target.closest('#promoBtn')){ applyPromo(); return; }
 
@@ -3195,12 +3179,6 @@ document.addEventListener('click', (e)=>{
   if(coop){ CO.operator = coop.dataset.coop; if(CO.pattern.length===4) loadCustomPrice(); else renderCustom(); return; }
   if(e.target.closest('#coSubmit')){ submitCustom(); return; }
 
-  if(e.target.closest('[data-installgo]')){
-    catOnlyInstallment = true; catOp = ''; catShown = PAGE_SIZE;
-    go('catalog');
-    toast(LANG==='ru'?'Показаны номера в рассрочку':"Bo'lib to'lash mumkin bo'lgan raqamlar", 'info');
-    return;
-  }
   const sh = e.target.closest('[data-sheet]');
   if(sh){
     const k = sh.dataset.sheet;
@@ -3224,11 +3202,6 @@ document.addEventListener('click', (e)=>{
 
   if(e.target.closest('#catMore')){ catShown += PAGE_SIZE; renderCatalog(); return; }
 
-  const tp = e.target.closest('[data-theme-val]');
-  if(tp){ setTheme(tp.dataset.themeVal); return; }
-  if(e.target.closest('[data-theme-toggle]')){
-    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); return;
-  }
   const lp = e.target.closest('[data-lang-val]');
   if(lp){ setLang(lp.dataset.langVal); return; }
   if(e.target.closest('[data-lang-toggle]')){ setLang(LANG === 'uz' ? 'ru' : 'uz'); return; }
@@ -3311,6 +3284,24 @@ function openFilter(){
   });
 })();
 
+/* Buyurtma va shartnoma ekranlarida boshlang'ich ko'rsatma */
+function hintBox(icon, title, body){
+  return `<div class="hintbox"><span class="hi">${icon}</span><h4>${esc(title)}</h4><p>${esc(body)}</p></div>`;
+}
+function initHints(){
+  const o = $('#oqResult'), c = $('#ctResult');
+  if(o && !o.innerHTML.trim()) o.innerHTML = hintBox(
+    '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"></path><path d="M4 7.5 12 11l8-3.5M12 11v9"></path></svg>',
+    LANG==='ru' ? 'Здесь появятся ваши заказы' : 'Buyurtmalaringiz shu yerda chiqadi',
+    LANG==='ru' ? 'Введите номер телефона и последние 4 цифры купленного номера, затем нажмите «Проверить».'
+                : "Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting, so'ng «Tekshirish» tugmasini bosing.");
+  if(c && !c.innerHTML.trim()) c.innerHTML = hintBox(
+    '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg>',
+    LANG==='ru' ? 'Статус договора и график' : "Shartnoma holati va to'lovlar jadvali",
+    LANG==='ru' ? 'Введите ID договора и номер телефона — покажем график платежей и дадим скачать PDF.'
+                : "Shartnoma ID va telefon raqamini kiriting — to'lovlar jadvalini ko'rsatamiz va PDF ni yuklab olasiz.");
+}
+
 /* Telegram Mini ilova */
 (function(){
   let n = 0;
@@ -3321,10 +3312,6 @@ function openFilter(){
         tg.ready(); tg.expand();
         if(tg.disableVerticalSwipes) tg.disableVerticalSwipes();
         if(tg.enableClosingConfirmation) tg.enableClosingConfirmation();
-        if(tg.colorScheme === 'dark'){
-          let saved = null; try{ saved = localStorage.getItem('vip_theme'); }catch(e){}
-          if(!saved) setTheme('dark');
-        }
       }catch(e){}
       return;
     }
@@ -3354,6 +3341,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:'){
     $('#homeHero').innerHTML = '<div class="sk shim" style="height:180px"></div>';
   }
   syncDigits();
+  initHints();
   renderCatalog();
 
   avtoQayta('raqamlar', raqamlarniYukla);
