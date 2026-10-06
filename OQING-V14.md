@@ -84,3 +84,11 @@ Bu papkani Netlify'ga deploy qiling. Sayt deploy qilingandan keyin o'zgaradi.
 - `theme-color` (telefon status paneli rangi) ham mavzuga qarab o'zgaradi.
 - Yorug' mavzuda qidiruv kataklaridagi raqamlar rangi tuzatildi (avval oq edi).
 - Kontrast: ikkala mavzuda ham 34 element, 0 xato.
+
+## v14.6 — pastki menyu (Instagram uslubida)
+- Menyu endi ekran chetlariga yopishgan panel emas, **suzib turuvchi kapsula**:
+  chetlardan 14px, pastdan 10px uzilgan, to'liq dumaloq (999px), yengil soya bilan.
+- **Yozuvlar olib tashlandi** — faqat ikonkalar (kattaroq, 24px). Faol bo'lim
+  ikonkasi ostida yumshoq kapsula belgisi paydo bo'ladi (animatsiya bilan).
+- Yangi ranglar: tungida to'q ko'k shaffof fon + oq ikonka, yorug'da oq fon + to'q ikonka.
+- Sevimlilar soni belgisi (badge) ikonka ustida, menyu foni rangida halqa bilan.
