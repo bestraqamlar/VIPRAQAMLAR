@@ -58,8 +58,13 @@
   --sh-3:0 30px 70px -30px rgba(9,24,44,.5);
   --sh-blue:0 12px 26px -14px rgba(36,87,230,.85);
   --r-s:11px; --r-m:14px; --r-l:18px; --r-xl:24px;
-  --nc-bg:linear-gradient(180deg,#FFFFFF,#FBFCFE);
+  --nc-bg:linear-gradient(160deg,rgba(255,255,255,.82),rgba(255,255,255,.62));
   --nc-hov:rgba(36,87,230,.5);
+  --nc-edge:rgba(255,255,255,.9);
+  --nc-line:rgba(16,32,60,.09);
+  --glow-a:rgba(36,87,230,.17); --glow-b:rgba(124,58,237,.13);
+  --blob-1:rgba(36,87,230,.17); --blob-2:rgba(192,138,46,.13);
+  --blob-3:rgba(124,58,237,.1); --blob-4:rgba(36,87,230,.12);
   --vip-head:linear-gradient(135deg,rgba(158,116,20,.34) 0%,rgba(158,116,20,.17) 58%,rgba(158,116,20,.04) 100%);
   --vip-line:rgba(150,112,24,.3);
   --vip-glow:rgba(176,132,32,.23);
@@ -70,8 +75,8 @@
   --top:env(safe-area-inset-top,0px);
   --bot:env(safe-area-inset-bottom,0px);
   --navh:calc(70px + var(--bot));
-  --navbg:rgba(255,255,255,.94);
-  --navline:rgba(16,32,60,.09);
+  --navbg:rgba(255,255,255,.7);
+  --navline:rgba(16,32,60,.1);
   --navink:#5A6882;
   --navink-on:#0E1B33;
   --navpill:rgba(16,32,60,.09);
@@ -90,8 +95,13 @@ html[data-theme="dark"]{
   --green:#3DD68C;       --green-tint:rgba(17,135,92,.22);
   --red:#FF8A87;         --red-tint:rgba(194,48,46,.22); --red-line:rgba(255,138,135,.32);
   --navy-grad:linear-gradient(150deg,#12294C 0%,#1E457E 100%);
-  --nc-bg:linear-gradient(180deg,#142D54,#102545);
+  --nc-bg:linear-gradient(160deg,rgba(132,170,230,.14),rgba(90,125,190,.07));
   --nc-hov:rgba(143,180,255,.45);
+  --nc-edge:rgba(255,255,255,.14);
+  --nc-line:rgba(255,255,255,.1);
+  --glow-a:rgba(92,150,255,.30); --glow-b:rgba(164,123,255,.23);
+  --blob-1:rgba(46,95,224,.34); --blob-2:rgba(201,160,65,.2);
+  --blob-3:rgba(124,58,237,.22); --blob-4:rgba(46,95,224,.24);
   --vip-head:linear-gradient(135deg,rgba(201,160,65,.39) 0%,rgba(178,138,52,.20) 58%,rgba(160,122,42,.05) 100%);
   --vip-line:rgba(230,200,119,.26);
   --vip-glow:rgba(201,160,65,.25);
@@ -99,8 +109,8 @@ html[data-theme="dark"]{
   --vip-num:var(--ink);
   --vip-chip:rgba(230,200,119,.15);
   --vip-chip-ink:#F0E1B8;
-  --navbg:rgba(9,21,41,.93);
-  --navline:rgba(255,255,255,.10);
+  --navbg:rgba(18,38,70,.6);
+  --navline:rgba(255,255,255,.14);
   --navink:#8FA3C2;
   --navink-on:#FFFFFF;
   --navpill:rgba(255,255,255,.14);
@@ -124,9 +134,10 @@ body{
 body::before{
   content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:
-    radial-gradient(900px 540px at 12% -8%, rgba(36,87,230,.09), transparent 62%),
-    radial-gradient(760px 480px at 92% 4%, rgba(192,138,46,.07), transparent 60%),
-    radial-gradient(900px 700px at 50% 108%, rgba(36,87,230,.06), transparent 62%);
+    radial-gradient(760px 460px at 10% -6%, var(--blob-1), transparent 60%),
+    radial-gradient(620px 420px at 94% 10%, var(--blob-2), transparent 58%),
+    radial-gradient(700px 520px at 52% 46%, var(--blob-3), transparent 60%),
+    radial-gradient(900px 700px at 50% 108%, var(--blob-4), transparent 62%);
 }
 html[data-theme="dark"] body::before{
   background:
@@ -157,8 +168,13 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.012em}
 /* ---------- Tepa panel (mobil) ---------- */
 .apbar{
   position:sticky;top:0;z-index:40;
-  background:var(--glass);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);
-  border-bottom:1px solid var(--line);
+  background:
+    radial-gradient(160px 70px at 6% 0%, var(--glow-a), transparent 72%),
+    radial-gradient(180px 80px at 96% 100%, var(--glow-b), transparent 72%),
+    var(--navbg);
+  backdrop-filter:saturate(170%) blur(26px);-webkit-backdrop-filter:saturate(170%) blur(26px);
+  border-bottom:1px solid var(--navline);
+  box-shadow:inset 0 1px 0 var(--nc-edge),0 8px 24px -18px rgba(9,24,44,.5);
   padding:calc(var(--top) + 14px) 18px 13px;
   display:flex;align-items:center;gap:10px;
 }
@@ -181,13 +197,17 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.012em}
   position:fixed;left:50%;transform:translateX(-50%);z-index:60;
   bottom:calc(10px + var(--bot));
   width:calc(100% - 28px);max-width:calc(var(--app-w) - 28px);
-  background:var(--navbg);backdrop-filter:saturate(180%) blur(22px);-webkit-backdrop-filter:saturate(180%) blur(22px);
+  background:
+    radial-gradient(90px 46px at 12% 0%, var(--glow-a), transparent 72%),
+    radial-gradient(110px 50px at 92% 100%, var(--glow-b), transparent 72%),
+    var(--navbg);
+  backdrop-filter:saturate(170%) blur(26px);-webkit-backdrop-filter:saturate(170%) blur(26px);
   border:1px solid var(--navline);border-radius:999px;
   padding:7px 9px;
   display:flex;justify-content:space-between;align-items:center;
-  box-shadow:0 10px 30px -10px rgba(9,24,44,.35),0 2px 8px -4px rgba(9,24,44,.25);
+  box-shadow:0 10px 30px -10px rgba(9,24,44,.3),0 2px 8px -4px rgba(9,24,44,.2),inset 0 1px 0 var(--nc-edge);
 }
-html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.05)}
+html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0 1px 0 var(--nc-edge)}
 #nav a{
   position:relative;flex:1;display:flex;align-items:center;justify-content:center;
   height:46px;border-radius:999px;color:var(--navink);
@@ -212,8 +232,13 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.75),inset 
 
 /* ---------- Kartochka ---------- */
 .card{
-  background:var(--nc-bg);border:1px solid var(--line);border-radius:var(--r-xl);
-  padding:18px;box-shadow:var(--sh-1);position:relative;
+  background:
+    radial-gradient(150px 120px at 100% 0%, var(--glow-b), transparent 72%),
+    var(--nc-bg);
+  border:1px solid var(--nc-line);border-radius:var(--r-xl);
+  padding:18px;position:relative;
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
 }
 .card::before,.numcard:not(.vipc)::before,.rows::before,.empty::before{
   content:'';position:absolute;inset:0 0 auto;height:1px;border-radius:inherit;
@@ -423,9 +448,15 @@ input[data-upper]{text-transform:uppercase}
 
 /* ---------- Raqam kartochkasi (zamonaviy) ---------- */
 .numcard{
-  background:var(--nc-bg);border:1px solid var(--line);border-radius:22px;
-  padding:16px 17px 15px 19px;box-shadow:var(--sh-1);position:relative;overflow:hidden;
-  transition:transform .24s cubic-bezier(.2,.8,.3,1),box-shadow .24s,border-color .24s;
+  background:
+    radial-gradient(130px 110px at 6% 0%, var(--glow-a), transparent 72%),
+    radial-gradient(150px 130px at 100% 100%, var(--glow-b), transparent 72%),
+    var(--nc-bg);
+  border:1px solid var(--nc-line);border-radius:22px;
+  padding:16px 17px 15px 19px;position:relative;overflow:hidden;
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
+  transition:transform .24s cubic-bezier(.2,.8,.3,1),box-shadow .24s,border-color .24s,background .24s;
 }
 /* chap tomonda ingichka rangli chiziq — holatga qarab */
 .numcard::after{
@@ -823,13 +854,15 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 /* ---------- Profil plitalari ---------- */
 .ptiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .ptile{
-  background:var(--nc-bg);border:1px solid var(--line);border-radius:20px;padding:16px 16px 17px;
-  text-align:left;color:inherit;box-shadow:var(--sh-1);display:block;
+  background:var(--nc-bg);border:1px solid var(--nc-line);border-radius:20px;padding:16px 16px 17px;
+  text-align:left;color:inherit;display:block;
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
   transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,border-color .18s;position:relative;overflow:hidden;
 }
 .ptile::after{
-  content:'';position:absolute;right:-30px;top:-40px;width:110px;height:110px;border-radius:50%;
-  background:radial-gradient(circle,var(--blue-tint),transparent 70%);opacity:.5;pointer-events:none;
+  content:'';position:absolute;right:-30px;top:-40px;width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow-b),transparent 70%);pointer-events:none;
 }
 .ptile:active{transform:scale(.975)}
 .ptile:hover{transform:translateY(-3px);box-shadow:var(--sh-2);border-color:var(--nc-hov)}
@@ -890,8 +923,13 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   /* --- Tepa sarlavha --- */
   #deskhead{
     display:block;position:sticky;top:0;z-index:50;
-    background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
-    border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(320px 90px at 4% 0%, var(--glow-a), transparent 72%),
+      radial-gradient(360px 100px at 98% 100%, var(--glow-b), transparent 72%),
+      var(--navbg);
+    backdrop-filter:saturate(170%) blur(26px);-webkit-backdrop-filter:saturate(170%) blur(26px);
+    border-bottom:1px solid var(--navline);
+    box-shadow:inset 0 1px 0 var(--nc-edge),0 10px 30px -22px rgba(9,24,44,.5);
   }
   .dh-in{max-width:1240px;margin:0 auto;padding:0 32px;height:70px;display:flex;align-items:center;gap:28px}
   .dh-logo{display:flex;align-items:center;gap:11px;flex:none}

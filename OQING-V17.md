@@ -37,3 +37,42 @@
 ## Tekshiruvlar
 JS 0 xato · CSS 0 · buyurtmaning 3 bosqichida ham "promokod"/"tarif" so'zlari yo'q ·
 kontrast 0 xato · toshish 0 · xarita, til, katta harf testlari o'tdi.
+
+---
+
+## v17.1 — kartochkalar "shisha" (glass) ko'rinishida
+Tuzilish, o'lchamlar va joylashuv **umuman o'zgarmadi** — faqat yuzasi almashtirildi.
+
+- **Shaffof shisha yuza**: to'q rang o'rniga yarim shaffof qatlam +
+  `backdrop-filter: blur(18px) saturate(150%)` — orqadagi fon kartochka ostidan
+  xira ko'rinib turadi.
+- **Ichki yorug' chiziq** (yuqori chekkada) va yupqaroq chegara — shisha qirrasi effekti.
+- **Orqa fonga rangli shu'lalar** kuchaytirildi (ko'k, binafsha, oltin) —
+  shisha nimanidir sindirishi uchun; ularsiz shaffoflik bilinmaydi.
+- Xuddi shu yuza qo'llandi: raqam kartochkalari, oddiy kartochkalar (`.card`),
+  profil plitalari, qidiruv maydoni va operator chiplari — sayt bo'ylab bitta uslub.
+- VIP / PREMIUM / GOLD toifa ranglari shisha ustida ham ishlaydi.
+
+Eslatma: `backdrop-filter` barcha zamonaviy brauzerlarda bor; qo'llab-quvvatlamagan
+eski brauzerda kartochka oddiy yarim shaffof fon bilan ko'rinadi — buziladigan joyi yo'q.
+
+Tekshiruvlar: kontrast ikkala mavzuda 0 xato · toshish 0 · toifalar, buyurtma,
+qidiruv oqimlari OK.
+
+## v17.2
+- **Kartochka ichida rangli nur** qo'shildi: yuqori-chapda ko'k, pastki-o'ngda
+  binafsha shu'la — shisha yuza "jonlanadi". Oddiy kartochkalar va profil
+  plitalarida ham bor (yengilroq).
+- **Qidiruv maydoni (7 ta katak) va operator chiplari shishadan qaytarildi** —
+  ular endi avvalgidek to'q (qattiq) fonda. Shisha faqat kartochkalarda.
+
+## v17.3
+- **Pastki menyu ham shisha** bo'ldi: shaffofroq fon + kuchliroq xiralashtirish
+  (blur 26px), ichki yorug' chiziq va ikki burchakda ko'k/binafsha shu'la.
+  Kontent menyu ostidan xira ko'rinib o'tadi — chinakam "suzib turuvchi shisha".
+
+## v17.4
+- **Tepadagi doimiy panel ham shisha** bo'ldi — pastki menyu bilan bir xil:
+  shaffofroq fon, blur 26px, ichki yorug' chiziq va ikki burchakda ko'k/binafsha shu'la.
+  Mobil (`.apbar`) va kompyuter (`#deskhead`) ikkalasida ham.
+- Kontent panel ostidan xira ko'rinib o'tadi, sahifa "bir butun shisha" uslubida.
