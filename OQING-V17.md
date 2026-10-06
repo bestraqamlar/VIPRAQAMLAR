@@ -136,3 +136,15 @@ Sevimlilar pastki menyuda allaqachon bor — profilda takrorlanmaydi.
 - Tor ekranlarda tugma pastga tushadi, matn kesilmaydi.
 
 Kontrast: ikkala mavzuda 0 xato.
+
+## v17.9 — katakdagi raqam pastga tushib qolishi tuzatildi
+**Sabab:** katak `<input>` i sahifadan `line-height: 1.5` ni meros qilib olardi.
+28px shriftda bu 42px balandlikdagi "qator qutisi" degani — ba'zi telefon
+brauzerlari matnni shu qutining pastiga joylaydi, kursor esa raqamdan ancha
+baland bo'lib ko'rinadi.
+
+**Yechim:** raqam kataklariga `line-height: 1` aniq qo'yildi
+(qidiruv kataklari ham, SMS kod kataklari ham). Endi raqam har doim aniq
+markazda turadi, kursor ham raqam balandligida bo'ladi.
+Qo'shimcha himoya sifatida barcha matn/tel/raqam maydonlariga
+`line-height: normal` qo'yildi.
