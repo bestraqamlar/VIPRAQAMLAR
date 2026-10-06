@@ -107,3 +107,32 @@ qidiruv oqimlari OK.
 ## v17.6
 - Kartochka bilan qizil "O'chirish" tugmasi orasida **10px oraliq** qoldirildi —
   avval yopishib turardi. Tugma burchaklari ham kartochkaga moslandi.
+
+## v17.7
+- Qidiruv kataklari (7 ta katak) ancha ko'rinadigan bo'ldi: chegarasi
+  aniqroq, foni yengil ochroq, ichidagi raqam namunasi ham tiniqroq.
+  Yozilgan katakning ko'k holati o'z kuchida.
+
+## v17.8 — profil bo'limi
+### 1. Instagram havolasi tuzatildi
+- Avval admin paneldagi `instagramLink` qiymati qanday bo'lsa shundayligicha
+  ishlatilardi — shuning uchun noto'g'ri kanal ochilardi yoki umuman ochilmasdi.
+- Endi havola avtomatik to'g'rilanadi: `@nik`, `nik`, `instagram.com/nik`,
+  `https://instagram.com/nik` — hammasi to'g'ri manzilga aylanadi.
+- Namuna qiymatlar (`sahifangiz`, `kanalingiz`, `username` va h.k.), bo'sh qiymat
+  yoki boshqa saytning havolasi **e'tiborga olinmaydi** — standart
+  `instagram.com/vipraqamlar.uz` ishlatiladi.
+- Plitka ostidagi `@...` yozuvi ham havolaga qarab avtomatik yangilanadi.
+- Xuddi shu himoya Telegram havolasiga ham qo'yildi.
+
+### 2. "Sevimli raqamlarim" plitkasi olib tashlandi
+Sevimlilar pastki menyuda allaqachon bor — profilda takrorlanmaydi.
+
+### 3. "Bog'lanish" o'rniga "Telegram kanal" kartochkasi
+- Kichik plitka o'rniga **keng, zamonaviy kartochka**: dumaloq Telegram ikonkasi
+  (brend rangida), sarlavha, qisqa izoh va **"Obuna"** tugmasi.
+- Shisha yuza, ko'k shu'la — sayt uslubi bilan bir xil.
+- Havola: `t.me/vip_raqamlar_uz` (admin paneldan o'zgartirsa bo'ladi).
+- Tor ekranlarda tugma pastga tushadi, matn kesilmaydi.
+
+Kontrast: ikkala mavzuda 0 xato.
