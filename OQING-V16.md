@@ -97,3 +97,24 @@ Kontrast: ikkala mavzuda ham 0 xato.
 - Oltin shapka bilan kartochkaning qolgan qismi orasidagi **keskin chegara olib
   tashlandi**: oltin qatlam pastga qarab asta so'nib, kartochka rangiga qo'shilib
   ketadi (CSS mask bilan yumshoq o'tish). Naqsh va nur ham birga so'nadi.
+
+## v16.5
+- Oltin rang **ancha kamaytirildi** — endi to'q sariq fon emas, kartochkaning o'z
+  rangi ustida juda yengil oltin shu'la (tepada ~13%, pastga qarab yo'qoladi).
+- Naqsh va burchakdagi nur ham ikki barobar yumshatildi.
+- Raqam endi oltin tusda emas, oddiy kartochkadagidek oq/to'q rangda.
+- "VIP" belgisi va chap chetdagi chiziq yumshoqroq oltinda — premium tuyg'u
+  qoladi, lekin ko'zga urilmaydi.
+
+## v16.6
+- Oltin to'qroq, chuqurroq tusga o'tkazildi (och sariq emas, bronza-oltin):
+  tungida 30%, yorug'da 26% — baribir pastga qarab butunlay so'nadi.
+- "VIP" belgisi ham to'qroq oltin gradientda.
+- Kontrast: ikkala mavzuda 0 xato.
+
+## v16.7
+- Oltin yana bir oz quyuqlashtirildi (tungida 39%, yorug'da 34%).
+
+## v16.8
+- Oltin so'nish chizig'i yuqoriroqqa ko'tarildi — sariq endi faqat raqam va
+  belgilar atrofida qoladi, narx qatoriga yetib bormaydi.

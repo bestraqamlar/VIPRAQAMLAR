@@ -60,13 +60,13 @@
   --r-s:11px; --r-m:14px; --r-l:18px; --r-xl:24px;
   --nc-bg:linear-gradient(180deg,#FFFFFF,#FBFCFE);
   --nc-hov:rgba(36,87,230,.5);
-  --vip-head:linear-gradient(135deg,#FDF6E2 0%,#F8EAC7 55%,#F3E1B4 100%);
-  --vip-line:rgba(176,136,36,.3);
-  --vip-glow:rgba(214,172,70,.3);
-  --vip-weave:rgba(176,136,36,.075);
-  --vip-num:#2E2206;
-  --vip-chip:rgba(176,136,36,.15);
-  --vip-chip-ink:#5E4710;
+  --vip-head:linear-gradient(135deg,rgba(158,116,20,.34) 0%,rgba(158,116,20,.17) 58%,rgba(158,116,20,.04) 100%);
+  --vip-line:rgba(150,112,24,.3);
+  --vip-glow:rgba(176,132,32,.23);
+  --vip-weave:rgba(130,96,16,.07);
+  --vip-num:var(--ink);
+  --vip-chip:rgba(150,112,24,.15);
+  --vip-chip-ink:#4F3B0B;
   --top:env(safe-area-inset-top,0px);
   --bot:env(safe-area-inset-bottom,0px);
   --navh:calc(70px + var(--bot));
@@ -92,12 +92,12 @@ html[data-theme="dark"]{
   --navy-grad:linear-gradient(150deg,#12294C 0%,#1E457E 100%);
   --nc-bg:linear-gradient(180deg,#142D54,#102545);
   --nc-hov:rgba(143,180,255,.45);
-  --vip-head:linear-gradient(135deg,#413418 0%,#352C1C 55%,#282530 100%);
+  --vip-head:linear-gradient(135deg,rgba(201,160,65,.39) 0%,rgba(178,138,52,.20) 58%,rgba(160,122,42,.05) 100%);
   --vip-line:rgba(230,200,119,.26);
-  --vip-glow:rgba(230,200,119,.22);
-  --vip-weave:rgba(230,200,119,.06);
-  --vip-num:#FFF6E2;
-  --vip-chip:rgba(230,200,119,.16);
+  --vip-glow:rgba(201,160,65,.25);
+  --vip-weave:rgba(255,222,150,.05);
+  --vip-num:var(--ink);
+  --vip-chip:rgba(230,200,119,.15);
   --vip-chip-ink:#F0E1B8;
   --navbg:rgba(9,21,41,.93);
   --navline:rgba(255,255,255,.10);
@@ -435,11 +435,11 @@ html[data-theme="dark"] .srch-cells input:focus{
 
 /* ---------- VIP kartochka: faqat tepa qismi premium ---------- */
 .numcard.vipc{padding:0 0 15px}
-.numcard.vipc::after{top:0;bottom:0;background:linear-gradient(180deg,#F3DFA8,var(--gold) 38%,rgba(230,200,119,.12))}
+.numcard.vipc::after{top:14px;bottom:14px;width:3px;background:linear-gradient(180deg,var(--gold),rgba(230,200,119,.1))}
 /* oltin "shapka" — raqam, VIP va operator shu yerda */
 .numcard.vipc .nc-top{
   position:relative;overflow:hidden;
-  padding:15px 17px 26px 19px;margin-bottom:-14px;
+  padding:15px 17px 22px 19px;margin-bottom:-12px;
   border-radius:21px 21px 0 0;
 }
 /* oltin qatlam pastga qarab asta yo'qoladi — kartochka rangiga qo'shilib ketadi */
@@ -449,8 +449,8 @@ html[data-theme="dark"] .srch-cells input:focus{
     radial-gradient(circle at 88% -10%, var(--vip-glow), transparent 58%),
     repeating-linear-gradient(115deg, var(--vip-weave) 0 1px, transparent 1px 10px),
     var(--vip-head);
-  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.55) 74%,transparent 100%);
-  mask-image:linear-gradient(180deg,#000 0%,#000 46%,rgba(0,0,0,.55) 74%,transparent 100%);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 32%,rgba(0,0,0,.42) 58%,transparent 84%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 32%,rgba(0,0,0,.42) 58%,transparent 84%);
 }
 .numcard.vipc .nc-top > *{position:relative;z-index:1}
 .numcard.vipc .nc-num{color:var(--vip-num)}
@@ -458,8 +458,8 @@ html[data-theme="dark"] .srch-cells input:focus{
 .numcard.vipc .nc-fav{background:var(--vip-chip);border-color:var(--vip-line);color:var(--vip-chip-ink)}
 .numcard.vipc .tag.vip{
   display:inline-flex;align-items:center;gap:4px;padding:4px 9px 4px 7px;letter-spacing:.1em;
-  background:linear-gradient(135deg,#FBEFC9,#E3C372 45%,#C9A041);color:#2A1E05;
-  box-shadow:0 2px 8px -3px rgba(201,160,65,.8),inset 0 1px 0 rgba(255,255,255,.55);
+  background:linear-gradient(135deg,#E8CE87,#CFA846 55%,#B08C32);color:#241A03;
+  box-shadow:0 2px 7px -4px rgba(201,160,65,.6);
 }
 .numcard.vipc .tag.vip svg{width:11px;height:11px;flex:none}
 /* pastki qism — oddiy kartochkadagidek */
