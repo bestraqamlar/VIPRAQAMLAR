@@ -58,6 +58,8 @@
   --sh-3:0 30px 70px -30px rgba(9,24,44,.5);
   --sh-blue:0 12px 26px -14px rgba(36,87,230,.85);
   --r-s:11px; --r-m:14px; --r-l:18px; --r-xl:24px;
+  --nc-bg:linear-gradient(180deg,#FFFFFF,#FBFCFE);
+  --nc-hov:rgba(36,87,230,.5);
   --top:env(safe-area-inset-top,0px);
   --bot:env(safe-area-inset-bottom,0px);
   --navh:calc(70px + var(--bot));
@@ -81,6 +83,8 @@ html[data-theme="dark"]{
   --green:#3DD68C;       --green-tint:rgba(17,135,92,.22);
   --red:#FF8A87;         --red-tint:rgba(194,48,46,.22); --red-line:rgba(255,138,135,.32);
   --navy-grad:linear-gradient(150deg,#12294C 0%,#1E457E 100%);
+  --nc-bg:linear-gradient(180deg,#142D54,#102545);
+  --nc-hov:rgba(143,180,255,.45);
   --navbg:rgba(9,21,41,.93);
   --navline:rgba(255,255,255,.10);
   --navink:#8FA3C2;
@@ -194,7 +198,7 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.75),inset 
 
 /* ---------- Kartochka ---------- */
 .card{
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);
+  background:var(--nc-bg);border:1px solid var(--line);border-radius:var(--r-xl);
   padding:18px;box-shadow:var(--sh-1);position:relative;
 }
 .card::before,.numcard::before,.rows::before,.empty::before{
@@ -269,7 +273,7 @@ html[data-theme="dark"] .op.on{background:var(--blue);border-color:var(--blue)}
 
 /* ---------- Buyurtma / shartnoma natijalari ---------- */
 .rescard{
-  background:var(--card);border:1px solid var(--line);border-radius:20px;
+  background:var(--nc-bg);border:1px solid var(--line);border-radius:20px;
   padding:16px 17px;box-shadow:var(--sh-1);position:relative;overflow:hidden;
 }
 .rescard + .rescard{margin-top:11px}
@@ -402,38 +406,79 @@ html[data-theme="dark"] .srch-cells input:focus{
 .fld.bad .err{display:flex}
 .fld.bad .hint{display:none}
 
-/* ---------- Raqam kartochkasi ---------- */
+/* ---------- Raqam kartochkasi (zamonaviy) ---------- */
 .numcard{
-  background:var(--card);border:1px solid var(--line);border-radius:20px;
-  padding:16px 17px;box-shadow:var(--sh-1);position:relative;overflow:hidden;
-  transition:transform .22s cubic-bezier(.2,.8,.3,1),box-shadow .22s,border-color .22s;
+  background:var(--nc-bg);border:1px solid var(--line);border-radius:22px;
+  padding:16px 17px 15px 19px;box-shadow:var(--sh-1);position:relative;overflow:hidden;
+  transition:transform .24s cubic-bezier(.2,.8,.3,1),box-shadow .24s,border-color .24s;
 }
-.numcard:active{transform:scale(.978)}
-.numcard:hover{border-color:var(--blue);box-shadow:var(--sh-2);transform:translateY(-3px)}
-.numcard.res{opacity:.6}
+/* chap tomonda ingichka rangli chiziq — holatga qarab */
+.numcard::after{
+  content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,var(--blue),rgba(46,95,224,.15));opacity:.85;
+}
+.numcard.vipc::after{background:linear-gradient(180deg,var(--gold),rgba(230,200,119,.12))}
+.numcard.insc::after{background:linear-gradient(180deg,#36C9A0,rgba(54,201,160,.12))}
+.numcard.res::after{background:var(--line-2)}
+.numcard:active{transform:scale(.982)}
+.numcard:hover{border-color:var(--nc-hov);box-shadow:var(--sh-2);transform:translateY(-3px)}
+.numcard.res{opacity:.58}
+
 .nc-top{display:flex;align-items:flex-start;gap:12px}
-.nc-num{font-size:20px;font-weight:700;white-space:nowrap}
-.nc-meta{margin-top:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.nc-op{font-size:11.5px;color:var(--text-3);font-weight:600;display:inline-flex;align-items:center;gap:6px}
-.nc-op i{width:7px;height:7px;border-radius:2px;display:inline-block}
-.nc-fav{
-  width:36px;height:36px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);
-  display:flex;align-items:center;justify-content:center;color:var(--muted);flex:none;
-  transition:transform .18s,color .18s,background .18s;
+.nc-num{font-size:21px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15}
+.numcard.vipc .nc-num{
+  background:linear-gradient(100deg,var(--ink) 40%,var(--gold-ink));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
-.nc-fav:active{transform:scale(.88)}
+.nc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+/* operator — kichik logotipli chip */
+.nc-op{
+  display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 3px;border-radius:9px;
+  background:var(--card-2);font-size:11px;font-weight:700;color:var(--text-3);
+}
+.nc-op .lg{
+  width:18px;height:18px;border-radius:6px;flex:none;overflow:hidden;background:#fff;padding:2px;
+  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);
+}
+.nc-op .lg img{width:100%;height:100%;object-fit:contain;display:block}
+.nc-op i{width:18px;height:18px;border-radius:6px;flex:none;display:block}
+
+.nc-fav{
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--line-2);background:var(--card-2);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);flex:none;
+  transition:transform .18s,color .18s,background .18s,border-color .18s;
+}
+.nc-fav:active{transform:scale(.86)}
 .nc-fav.on{color:var(--red);background:var(--red-tint);border-color:transparent}
 .nc-fav.on svg{fill:currentColor;animation:pop .32s cubic-bezier(.3,1.5,.5,1)}
 @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
-.nc-bot{margin-top:13px;display:flex;align-items:flex-end;gap:12px}
+
+.nc-sep{height:1px;background:var(--line-3);margin:13px 0 12px;border-radius:1px}
+.nc-bot{display:flex;align-items:center;gap:12px}
 .nc-price{flex:1;min-width:0}
-.nc-price .p{font-size:16.5px;font-weight:700;white-space:nowrap}
-.nc-price .p small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:var(--muted-2);font-weight:600}
-.nc-price .old{font-size:11.5px;color:var(--muted-2);text-decoration:line-through;margin-top:2px}
-.nc-price .ins{font-size:11.5px;color:var(--blue-text);font-weight:700;margin-top:3px;line-height:1.35}
-.nc-cta{height:38px;padding:0 18px;border-radius:12px;background:linear-gradient(180deg,#3366EE,#2051DF);color:#fff;font-size:13.5px;font-weight:700;display:flex;align-items:center;flex:none}
-.nc-cta.off{background:var(--card-3);color:var(--faint)}
-.nc-off{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;border-radius:0 var(--r-l) 0 12px}
+.nc-price .p{font-size:17.5px;font-weight:700;white-space:nowrap;line-height:1.2}
+.nc-price .p small{font-family:'Plus Jakarta Sans';font-size:11px;color:var(--muted-2);font-weight:600;margin-left:1px}
+.nc-price .old{font-size:11.5px;color:var(--muted-2);text-decoration:line-through;margin-top:3px}
+.nc-price .ins{
+  display:inline-flex;align-items:center;gap:5px;margin-top:5px;
+  font-size:11px;color:var(--blue-text);font-weight:700;line-height:1.3;
+  background:var(--blue-tint);padding:3px 8px;border-radius:8px;
+}
+.nc-cta{
+  height:40px;padding:0 15px 0 17px;border-radius:14px;flex:none;
+  background:linear-gradient(180deg,#3A6CF0,#2050DD);color:#fff;font-size:13.5px;font-weight:700;
+  display:flex;align-items:center;gap:7px;
+  box-shadow:0 6px 16px -8px rgba(32,80,221,.9);
+  transition:transform .18s,box-shadow .18s;
+}
+.numcard:hover .nc-cta{transform:translateY(-1px);box-shadow:0 9px 20px -8px rgba(32,80,221,.95)}
+.nc-cta svg{opacity:.9;transition:transform .2s}
+.numcard:hover .nc-cta svg{transform:translateX(2px)}
+.nc-cta.off{background:var(--card-3);color:var(--faint);box-shadow:none}
+.nc-off{
+  position:absolute;top:13px;right:62px;background:var(--red);color:#fff;
+  font-size:10px;font-weight:800;padding:4px 8px;border-radius:8px;letter-spacing:.02em;
+}
 
 .list{display:flex;flex-direction:column;gap:11px}
 
@@ -622,13 +667,36 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .heroscroll.drag{cursor:grabbing}
 .heroscroll > *{flex:none}
 .herocard{
-  width:min(84vw,360px);border-radius:22px;padding:20px;background:var(--navy-grad);
-  position:relative;overflow:hidden;color:#fff;box-shadow:var(--sh-2);
+  width:min(84vw,360px);border-radius:24px;padding:19px 20px 18px;
+  background:linear-gradient(150deg,#16305C 0%,#1B3F74 55%,#143258 100%);
+  position:relative;overflow:hidden;color:#fff;
+  box-shadow:var(--sh-2),inset 0 1px 0 rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
 }
-.herocard::after{content:'';position:absolute;right:-50px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(230,200,119,.24),rgba(230,200,119,0) 68%)}
+.herocard::after{content:'';position:absolute;right:-60px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(230,200,119,.26),rgba(230,200,119,0) 66%)}
+.herocard::before{content:'';position:absolute;left:-40px;bottom:-70px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(70,130,255,.22),rgba(70,130,255,0) 68%)}
 .herocard > *{position:relative}
-.herocard .num{font-size:27px;font-weight:700;margin-top:12px}
-.herocard .sub{font-size:12px;color:#A9BCD6;font-weight:600;margin-top:6px}
+.hc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hc-badge{
+  font-size:9.5px;font-weight:800;letter-spacing:.11em;color:#F0D898;
+  background:rgba(230,200,119,.16);box-shadow:inset 0 0 0 1px rgba(230,200,119,.3);
+  padding:5px 10px;border-radius:8px;
+}
+.herocard .nc-op{background:rgba(255,255,255,.1);color:#DCE6F5}
+.herocard .num{font-size:28px;font-weight:700;margin-top:14px;letter-spacing:.01em}
+.herocard .sub{font-size:11.5px;color:#9FB4D4;font-weight:600;margin-top:6px}
+.hc-bot{margin-top:16px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px}
+.hc-price{flex:1;min-width:0}
+.hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-price .pv.ins2{font-size:14.5px;line-height:1.35;white-space:normal;color:#F0D898}
+.hc-price .pv small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:#9FB4D4;font-weight:600}
+.hc-price .pi2{display:inline-block;margin-top:5px;font-size:10.5px;color:#F0D898;font-weight:700;background:rgba(230,200,119,.14);padding:3px 8px;border-radius:7px;white-space:nowrap}
+.hc-cta{
+  height:42px;padding:0 16px 0 18px;border-radius:14px;flex:none;
+  background:linear-gradient(180deg,#F0D491,#DFBB63);
+  color:#15223C;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;
+  box-shadow:0 8px 18px -10px rgba(230,200,119,.9);
+}
 .herodots{display:flex;gap:5px;justify-content:center;margin-top:12px}
 .herodots i{width:6px;height:6px;border-radius:3px;background:var(--line-2);transition:width .25s,background .25s}
 .herodots i.on{width:18px;background:var(--blue)}
@@ -636,14 +704,18 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 /* ---------- Profil plitalari ---------- */
 .ptiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .ptile{
-  background:var(--card);border:1px solid var(--line);border-radius:20px;padding:17px;
+  background:var(--nc-bg);border:1px solid var(--line);border-radius:20px;padding:16px 16px 17px;
   text-align:left;color:inherit;box-shadow:var(--sh-1);display:block;
-  transition:transform .16s,box-shadow .16s,border-color .16s;position:relative;overflow:hidden;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,border-color .18s;position:relative;overflow:hidden;
+}
+.ptile::after{
+  content:'';position:absolute;right:-30px;top:-40px;width:110px;height:110px;border-radius:50%;
+  background:radial-gradient(circle,var(--blue-tint),transparent 70%);opacity:.5;pointer-events:none;
 }
 .ptile:active{transform:scale(.975)}
-.ptile:hover{transform:translateY(-2px);box-shadow:var(--sh-2);border-color:var(--line-2)}
-.ptile .pi{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center}
-.ptile b{display:block;margin-top:34px;font-size:14.5px;font-weight:800;line-height:1.3}
+.ptile:hover{transform:translateY(-3px);box-shadow:var(--sh-2);border-color:var(--nc-hov)}
+.ptile .pi{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line-3)}
+.ptile b{display:block;margin-top:30px;font-size:14.5px;font-weight:800;line-height:1.3}
 .ptile i{display:block;margin-top:5px;font-size:11.5px;color:var(--muted-2);font-weight:600;font-style:normal}
 .ptile .pb{position:absolute;top:16px;right:16px;min-width:20px;height:20px;border-radius:10px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px}
 
@@ -1629,33 +1701,44 @@ function yangiRaqamKuzatuvi(){
    ================================================================== */
 const ICO_HEART = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg>';
 
+const ICO_ARR = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"></path></svg>';
+function opChip(op){
+  const m = opMeta(op), nm = esc(op||'');
+  const mark = m.logo
+    ? `<span class="lg"><img src="${m.logo}" alt="" loading="lazy" decoding="async" onerror="this.parentElement.outerHTML='<i style=\\'background:${m.color}\\'></i>'"></span>`
+    : `<i style="background:${m.color}"></i>`;
+  return `<span class="nc-op">${mark}${nm}</span>`;
+}
 function numCard(item){
-  const m = opMeta(item.operator), fav = isFav(item.id), disc = discountPct(item);
+  const fav = isFav(item.id), disc = discountPct(item);
   const res = !!item.reserved, ins = installmentTeaser(item), showCash = !item.installment;
+  const vip = !!item.featured;
   let price = '';
   if(showCash){
     price = `<div class="p sg">${formatPrice(item.price)} <small>${SUM()}</small></div>`;
     if(hasActiveDiscount(item)) price += `<div class="old sg">${formatPrice(item.oldPrice)}</div>`;
     if(ins) price += `<div class="ins">${esc(ins)}</div>`;
   }else{
-    price = `<div class="p sg" style="color:var(--blue-text);font-size:14px;line-height:1.35">${esc(ins || t("Bo'lib to'lash"))}</div>`;
+    price = `<div class="ins" style="margin-top:0">${esc(ins || t("Bo'lib to'lash"))}</div>`;
   }
-  return `<article class="numcard${res?' res':''}" data-card="${esc(item.id)}">
+  const cls = res ? ' res' : (vip ? ' vipc' : (installmentAllowed(item) ? ' insc' : ''));
+  return `<article class="numcard${cls}" data-card="${esc(item.id)}">
     ${disc && showCash ? `<span class="nc-off">−${disc}%</span>` : ''}
     <div class="nc-top">
       <div style="flex:1;min-width:0">
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
-          ${item.featured ? `<span class="tag vip">${t('VIP')}</span>` : ''}
-          <span class="nc-op"><i style="background:${m.color}"></i>${esc(item.operator||'')}</span>
+          ${vip ? `<span class="tag vip">${t('VIP')}</span>` : ''}
+          ${opChip(item.operator)}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
         </div>
       </div>
       <button class="nc-fav${fav?' on':''}" data-fav="${esc(item.id)}" aria-label="Sevimlilar">${ICO_HEART}</button>
     </div>
+    <div class="nc-sep"></div>
     <div class="nc-bot">
       <div class="nc-price">${price}</div>
-      <span class="nc-cta${res?' off':''}">${res?t('Band'):t("Ko'rish")}</span>
+      <span class="nc-cta${res?' off':''}">${res?t('Band'):t("Ko'rish")}${res?'':ICO_ARR}</span>
     </div>
   </article>`;
 }
@@ -1712,17 +1795,20 @@ function renderHome(){
     const card = (h) => {
       const ins = installmentTeaser(h);
       return `<div class="herocard" data-card="${esc(h.id)}">
-        <span style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#E6C877;background:rgba(230,200,119,.18);padding:5px 11px;border-radius:7px">${t('PREMIUM TANLOV')}</span>
+        <div class="hc-top">
+          <span class="hc-badge">${t('PREMIUM TANLOV')}</span>
+          ${opChip(h.operator)}
+        </div>
         <div class="num sg">${esc(shortNumber(h.number))}</div>
-        <div class="sub">${esc(h.operator||'')} · ${t('Nomingizga rasmiylashtiriladi')}</div>
-        <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div style="flex:1;min-width:120px">
+        <div class="sub">${t('Nomingizga rasmiylashtiriladi')}</div>
+        <div class="hc-bot">
+          <div class="hc-price">
             ${h.installment
-              ? `<div class="sg" style="font-size:17px;font-weight:700;color:#E6C877">${esc(ins)}</div>`
-              : `<div class="sg" style="font-size:21px;font-weight:700">${formatPrice(h.price)} <span style="font-family:'Plus Jakarta Sans';font-size:12px;color:#A9BCD6">${SUM()}</span></div>
-                 ${ins?`<div style="font-size:11px;color:#E6C877;font-weight:700;margin-top:4px">${esc(ins)}</div>`:''}`}
+              ? `<div class="pv ins2 sg">${esc(ins)}</div>`
+              : `<div class="pv sg">${formatPrice(h.price)} <small>${SUM()}</small></div>
+                 ${ins?`<div class="pi2">${esc(ins)}</div>`:''}`}
           </div>
-          <span style="height:42px;padding:0 20px;border-radius:13px;background:#E6C877;color:#09182C;font-size:13.5px;font-weight:800;display:flex;align-items:center;flex:none">${t("Ko'rish")}</span>
+          <span class="hc-cta">${t("Ko'rish")}${ICO_ARR}</span>
         </div>
       </div>`;
     };
