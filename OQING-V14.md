@@ -65,3 +65,22 @@ Bu papkani Netlify'ga deploy qiling. Sayt deploy qilingandan keyin o'zgaradi.
 - `beeline.png`, `ucell.png`, `uzmobile.png` fayllaridagi shaffoflik o'rniga
   "shaxmat" naqshi tozalandi (endi haqiqiy shaffof PNG).
 - "Hammasi" tanlanganda qator chap chekkadan boshlanadi (avval kesilib qolardi).
+
+## v14.4
+- Kataklar tagidagi **to'lish chizig'i olib tashlandi** (keraksiz edi) — katakning
+  o'z ko'k foni to'lganini ko'rsatadi.
+- Operatorlar qatori endi **kartochkalar bilan bir chiziqda** boshlanadi
+  (avval ekran chetiga chiqib, "Hammasi" kesilib turardi). O'ng tomonda yana
+  davom etishini bildiruvchi yengil soya qoldi.
+
+## v14.5 — mavzu tanlash qaytarildi
+- Profil > **Ko'rinish** bo'limida yana ikkita variant: **Tungi** va **Yorug'**.
+- **Standart — tungi.** Hech qachon tanlamagan mijoz doim qora fonda ochadi.
+- Mijoz "Yorug'"ni tanlasa — sayt oqaradi va bu tanlov eslab qolinadi
+  (`localStorage: vip_theme`), keyingi kirishda ham o'sha mavzuda ochiladi.
+  Qaytadan "Tungi"ni bossa — tungiga qaytadi.
+- `<head>` ichida kichik skript bor: sahifa chizilishidan oldin mavzu qo'yiladi,
+  shuning uchun ochilishda "oq chaqnash" bo'lmaydi.
+- `theme-color` (telefon status paneli rangi) ham mavzuga qarab o'zgaradi.
+- Yorug' mavzuda qidiruv kataklaridagi raqamlar rangi tuzatildi (avval oq edi).
+- Kontrast: ikkala mavzuda ham 34 element, 0 xato.

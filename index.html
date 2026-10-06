@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="uz" data-theme="dark">
 <head>
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
+<script>(function(){var v="dark";try{v=localStorage.getItem("vip_theme")||"dark";}catch(e){}document.documentElement.setAttribute("data-theme",v==="light"?"light":"dark");})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#07152B">
@@ -217,15 +218,14 @@ html[data-theme="dark"] .chip.on{background:var(--blue);border-color:var(--blue)
 .chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 18px;margin:0 -18px}
 .chiprow::-webkit-scrollbar{display:none}
 /* ---------- Operatorlar: bitta qator, surib tanlanadi ---------- */
-.oprow{position:relative;margin:0 -18px 16px}
-.oprow::before,.oprow::after{
-  content:'';position:absolute;top:0;bottom:0;width:26px;z-index:2;pointer-events:none;
+.oprow{position:relative;margin:0 0 16px}
+.oprow::after{
+  content:'';position:absolute;top:0;bottom:0;right:0;width:26px;z-index:2;pointer-events:none;
+  background:linear-gradient(270deg,var(--ground) 20%,transparent);border-radius:0 11px 11px 0;
 }
-.oprow::before{left:0;width:18px;background:linear-gradient(90deg,var(--ground),transparent)}
-.oprow::after{right:0;width:30px;background:linear-gradient(270deg,var(--ground) 30%,transparent)}
 .oprow-in{
   display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
-  padding:3px 18px 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+  padding:3px 0 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
 }
 .oprow-in::-webkit-scrollbar{display:none}
 .op{
@@ -314,19 +314,45 @@ html[data-theme="dark"] .srch-cells input{background:rgba(0,0,0,.22);box-shadow:
 .srch-cells input::placeholder{color:var(--faint);opacity:.3;font-weight:600}
 /* yozilgan katak — fon aniq ochroq, ko'k, to'lgani darrov bilinadi */
 html .srch-cells input.has{
+  background:linear-gradient(180deg,rgba(45,98,240,.14),rgba(45,98,240,.08));
+  box-shadow:inset 0 0 0 1.5px rgba(45,98,240,.38),0 4px 14px -6px rgba(45,98,240,.35);
+  color:#13224A;
+}
+html .srch-cells input:focus{
+  background:linear-gradient(180deg,rgba(45,98,240,.22),rgba(45,98,240,.12));
+  box-shadow:inset 0 0 0 2px var(--blue),0 0 0 4px rgba(45,98,240,.14),0 6px 18px -6px rgba(45,98,240,.45);
+  transform:translateY(-2px);
+}
+html[data-theme="dark"] .srch-cells input.has{
   background:linear-gradient(180deg,rgba(45,98,240,.30),rgba(45,98,240,.17));
   box-shadow:inset 0 0 0 1.5px rgba(96,142,255,.55),0 4px 14px -6px rgba(45,98,240,.55);
   color:#fff;
 }
-html .srch-cells input:focus{
+html[data-theme="dark"] .srch-cells input:focus{
   background:linear-gradient(180deg,rgba(45,98,240,.42),rgba(45,98,240,.26));
   box-shadow:inset 0 0 0 2px var(--blue),0 0 0 4px rgba(45,98,240,.18),0 6px 18px -6px rgba(45,98,240,.7);
-  transform:translateY(-2px);
 }
-/* to'lish ko'rsatkichi */
-.srch-prog{height:3px;border-radius:99px;background:var(--line-3);margin:10px 2px 0;overflow:hidden}
-.srch-prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--blue),#6FA0FF);transition:width .25s cubic-bezier(.4,0,.2,1)}
 .srch-dash.on{color:var(--blue)}
+
+/* ---------- Mavzu tanlash ---------- */
+.tpick-row{display:flex;gap:10px;margin-top:10px}
+.tpick{
+  flex:1;background:var(--card);border:1.5px solid var(--line-2);border-radius:18px;
+  padding:10px 10px 11px;text-align:left;box-shadow:var(--sh-1);
+  transition:border-color .18s,box-shadow .18s,transform .15s;
+}
+.tpick:active{transform:scale(.97)}
+.tpick .pv{display:block;height:58px;border-radius:12px;padding:8px;overflow:hidden}
+.tpick .pv i{display:block;border-radius:4px}
+.tpick .lb{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12.5px;font-weight:700;color:var(--text-3)}
+.tpick .lb .rd{
+  width:15px;height:15px;border-radius:50%;flex:none;border:1.5px solid var(--line-2);
+  display:flex;align-items:center;justify-content:center;
+}
+.tpick.on{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint),var(--sh-1)}
+.tpick.on .lb{color:var(--blue-text);font-weight:800}
+.tpick.on .lb .rd{border-color:var(--blue);background:var(--blue)}
+.tpick.on .lb .rd::after{content:'';width:5px;height:5px;border-radius:50%;background:#fff}
 
 .srch-act{margin-top:12px;display:flex;gap:10px}
 .srch-act .btn{height:58px;font-size:16px;border-radius:18px}
@@ -707,7 +733,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .srch-act .btn{height:60px;font-size:16px}
   .srch-act #btnFilter{width:60px}
   .oprow{margin:0 0 18px}
-  .oprow::before,.oprow::after{display:none}
+  .oprow::after{display:none}
   .oprow-in{flex-wrap:wrap;overflow:visible;padding:0}
   .catside #deskSort{gap:10px}
   .catside #deskSort .chip{padding:16px 18px;font-size:14.5px;border-radius:15px}
@@ -830,7 +856,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
               <input type="text" inputmode="numeric" maxlength="1" placeholder="7" data-i="6" aria-label="7-raqam">
             </div>
           </div>
-          <div class="srch-prog" aria-hidden="true"><i id="srchProg"></i></div>
 
           <div class="srch-act">
             <button class="btn" id="btnLive">
@@ -970,7 +995,27 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Profil">Profil</h1><div class="sub" data-t="Sozlamalar va bo'limlar">Sozlamalar va bo'limlar</div></div></header>
   <div class="pad wrap" style="padding-top:16px">
 
-    <div class="eyebrow" data-t="Til">Til</div>
+    <div class="eyebrow" data-t="Ko'rinish">Ko'rinish</div>
+    <div class="tpick-row" id="themePick">
+      <button class="tpick on" data-theme-val="dark">
+        <span class="pv" style="background:#061225;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)">
+          <i style="height:7px;background:rgba(255,255,255,.14)"></i>
+          <i style="margin-top:6px;height:17px;background:rgba(255,255,255,.08)"></i>
+          <i style="margin-top:6px;height:7px;width:60%;background:#2457E6"></i>
+        </span>
+        <span class="lb"><span class="rd"></span><span data-t="Tungi">Tungi</span></span>
+      </button>
+      <button class="tpick" data-theme-val="light">
+        <span class="pv" style="background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)">
+          <i style="height:7px;background:#DCE3EF"></i>
+          <i style="margin-top:6px;height:17px;background:#F2F5FA"></i>
+          <i style="margin-top:6px;height:7px;width:60%;background:#2457E6"></i>
+        </span>
+        <span class="lb"><span class="rd"></span><span data-t="Yorug'">Yorug'</span></span>
+      </button>
+    </div>
+
+    <div class="eyebrow" style="margin-top:20px" data-t="Til">Til</div>
     <div class="seg" style="margin-top:10px" id="langPick">
       <button class="lpick on" data-lang-val="uz">O'zbekcha</button>
       <button class="lpick" data-lang-val="ru">Русский</button>
@@ -1417,8 +1462,17 @@ document.addEventListener('click', (e)=>{
 });
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && sheetStack.length) closeSheet(); });
 
-/* Sayt faqat tungi mavzuda ishlaydi */
-document.documentElement.setAttribute('data-theme','dark');
+/* ---------- Mavzu: standart — tungi, mijoz xohlasa yorug' ---------- */
+function themeNow(){ try{ return localStorage.getItem('vip_theme')==='light' ? 'light' : 'dark'; }catch(e){ return 'dark'; } }
+function applyTheme(v){
+  const real = (v === 'light') ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', real);
+  const mt = document.querySelector('meta[name="theme-color"]');
+  if(mt) mt.setAttribute('content', real === 'light' ? '#F4F7FC' : '#07152B');
+  document.querySelectorAll('.tpick').forEach(b => b.classList.toggle('on', b.dataset.themeVal === real));
+}
+function setTheme(v){ try{ localStorage.setItem('vip_theme', v); }catch(e){} applyTheme(v); }
+applyTheme(themeNow());
 
 /* ---------- Marshrut ---------- */
 const ROUTES = { '':'home', '/':'home', '/katalog':'catalog', '/sevimlilar':'fav', '/buyurtmalarim':'orders', '/shartnoma':'contract', '/profil':'more', '/yana':'more' };
@@ -1901,7 +1955,6 @@ function syncDigits(){
   const boxes = $$('#digits input');
   let n = 0;
   boxes.forEach(b => { const v = !!b.value; if(v) n++; b.classList.toggle('has', v); });
-  const pr = $('#srchProg'); if(pr) pr.style.width = (n / 7 * 100) + '%';
   $$('.srch-cells .srch-dash').forEach((d, i) => d.classList.toggle('on', n > (i === 0 ? 2 : 4)));
 }
 
@@ -3201,6 +3254,9 @@ document.addEventListener('click', (e)=>{
   }
 
   if(e.target.closest('#catMore')){ catShown += PAGE_SIZE; renderCatalog(); return; }
+
+  const tp = e.target.closest('[data-theme-val]');
+  if(tp){ setTheme(tp.dataset.themeVal); return; }
 
   const lp = e.target.closest('[data-lang-val]');
   if(lp){ setLang(lp.dataset.langVal); return; }
