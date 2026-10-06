@@ -439,9 +439,11 @@ html[data-theme="dark"] .srch-cells input:focus{
 
 /* ---------- Skeleton ---------- */
 .sk{background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);padding:15px 16px;box-shadow:var(--sh-1)}
-.sk b{display:block;height:17px;width:58%;border-radius:8px;background:var(--card-3)}
-.sk i{display:block;height:11px;width:34%;border-radius:6px;background:var(--card-2);margin-top:9px}
-.sk u{display:block;height:34px;border-radius:11px;background:var(--card-3);margin-top:14px}
+.sk b{display:block;height:22px;width:62%;border-radius:9px;background:var(--card-3)}
+.sk i{display:block;height:11px;width:30%;border-radius:6px;background:var(--card-2);margin-top:11px}
+.sk .rw{display:flex;align-items:center;gap:12px;margin-top:17px}
+.sk u{display:block;height:15px;border-radius:7px;background:var(--card-2);flex:1}
+.sk s{display:block;height:36px;width:88px;border-radius:13px;background:var(--card-3);flex:none}
 .shim{position:relative;overflow:hidden}
 .shim::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:shim 1.5s infinite}
@@ -480,17 +482,17 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 /* ---------- Sheet ---------- */
 .sheet{position:fixed;inset:0;z-index:100;display:none;justify-content:center;align-items:flex-end}
 .sheet.on{display:flex}
-.sheet .bd{position:absolute;inset:0;background:rgba(6,18,37,.5);backdrop-filter:blur(3px);animation:fin .42s cubic-bezier(.22,.7,.3,1) both}
+.sheet .bd{position:absolute;inset:0;background:rgba(6,18,37,.5);backdrop-filter:blur(4px);animation:fin .5s cubic-bezier(.22,.7,.3,1) both}
 @keyframes fin{from{opacity:0}}
 .sheet .pn{
   position:relative;width:100%;max-width:var(--app-w);max-height:94dvh;background:var(--ground);
   border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;flex-direction:column;overflow:hidden;
-  animation:sin .52s cubic-bezier(.16,.86,.3,1) both;
+  animation:sin .62s cubic-bezier(.19,1,.22,1) both;will-change:transform;
 }
-@keyframes sin{from{transform:translateY(100%);opacity:.6}to{transform:translateY(0);opacity:1}}
-.sheet.closing .pn{animation:sout .34s cubic-bezier(.4,0,.7,.2) forwards}
+@keyframes sin{from{transform:translateY(16%) scale(.985);opacity:0}60%{opacity:1}to{transform:translateY(0) scale(1);opacity:1}}
+.sheet.closing .pn{animation:sout .34s cubic-bezier(.45,0,.75,.3) forwards}
 .sheet.closing .bd{animation:fout .3s ease forwards}
-@keyframes sout{to{transform:translateY(100%)}}
+@keyframes sout{to{transform:translateY(12%) scale(.99);opacity:0}}
 @keyframes fout{to{opacity:0}}
 .sheet .grip{padding:11px 0 0;display:flex;justify-content:center;flex:none}
 .sheet .grip span{width:40px;height:4px;border-radius:2px;background:var(--line-2)}
@@ -815,6 +817,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
     </nav>
     <div class="dh-act">
       <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span id="dhLang">UZ</span></button>
+      <button class="iconbtn" data-theme-toggle aria-label="Mavzu"><svg class="ico-moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2z"></path></svg><svg class="ico-sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path></svg></button>
     </div>
   </div>
 </header>
@@ -828,7 +831,10 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
       <div style="font-size:11.5px;color:var(--muted);font-weight:650" data-t="Xush kelibsiz">Xush kelibsiz</div>
       <h1 style="margin-top:2px">VIP RAQAMLAR</h1>
     </div>
-    <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span class="langlbl">UZ</span></button>
+    <div style="display:flex;gap:8px;flex:none">
+      <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span class="langlbl">UZ</span></button>
+      <button class="iconbtn" data-theme-toggle aria-label="Mavzu"><svg class="ico-moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2z"></path></svg><svg class="ico-sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path></svg></button>
+    </div>
   </header>
 
   <div class="pad wrap" style="padding-top:14px">
@@ -1011,27 +1017,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Profil">Profil</h1><div class="sub" data-t="Sozlamalar va bo'limlar">Sozlamalar va bo'limlar</div></div></header>
   <div class="pad wrap" style="padding-top:16px">
 
-    <div class="eyebrow" data-t="Ko'rinish">Ko'rinish</div>
-    <div class="tpick-row" id="themePick">
-      <button class="tpick on" data-theme-val="dark">
-        <span class="pv" style="background:#061225;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)">
-          <i style="height:7px;background:rgba(255,255,255,.14)"></i>
-          <i style="margin-top:6px;height:17px;background:rgba(255,255,255,.08)"></i>
-          <i style="margin-top:6px;height:7px;width:60%;background:#2457E6"></i>
-        </span>
-        <span class="lb"><span class="rd"></span><span data-t="Tungi">Tungi</span></span>
-      </button>
-      <button class="tpick" data-theme-val="light">
-        <span class="pv" style="background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)">
-          <i style="height:7px;background:#DCE3EF"></i>
-          <i style="margin-top:6px;height:17px;background:#F2F5FA"></i>
-          <i style="margin-top:6px;height:7px;width:60%;background:#2457E6"></i>
-        </span>
-        <span class="lb"><span class="rd"></span><span data-t="Yorug'">Yorug'</span></span>
-      </button>
-    </div>
-
-    <div class="eyebrow" style="margin-top:20px" data-t="Til">Til</div>
+    <div class="eyebrow" data-t="Til">Til</div>
     <div class="seg" style="margin-top:10px" id="langPick">
       <button class="lpick on" data-lang-val="uz">O'zbekcha</button>
       <button class="lpick" data-lang-val="ru">Русский</button>
@@ -1460,6 +1446,7 @@ function openSheet(id){
   const el = document.getElementById(id); if(!el) return;
   el.classList.remove('closing'); el.classList.add('on');
   document.body.classList.add('noscroll');
+  haptic('light');
   if(!sheetStack.includes(id)) sheetStack.push(id);
 }
 function closeSheet(id){
@@ -1485,9 +1472,30 @@ function applyTheme(v){
   document.documentElement.setAttribute('data-theme', real);
   const mt = document.querySelector('meta[name="theme-color"]');
   if(mt) mt.setAttribute('content', real === 'light' ? '#F4F7FC' : '#07152B');
-  document.querySelectorAll('.tpick').forEach(b => b.classList.toggle('on', b.dataset.themeVal === real));
+  /* tungida — quyosh (yorug'ga o'tish), yorug'da — oy */
+  document.querySelectorAll('.ico-sun').forEach(i => i.style.display = real === 'dark' ? '' : 'none');
+  document.querySelectorAll('.ico-moon').forEach(i => i.style.display = real === 'dark' ? 'none' : '');
 }
-function setTheme(v){ try{ localStorage.setItem('vip_theme', v); }catch(e){} applyTheme(v); }
+function setTheme(v){ try{ localStorage.setItem('vip_theme', v); }catch(e){} haptic('light'); applyTheme(v); }
+
+/* ---------- Yumshoq tebranish (haptic) ---------- */
+function haptic(kind){
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback;
+    if(tg){
+      if(kind === 'ok' || kind === 'bad' || kind === 'warn')
+        tg.notificationOccurred(kind === 'ok' ? 'success' : kind === 'bad' ? 'error' : 'warning');
+      else if(kind === 'select') tg.selectionChanged();
+      else tg.impactOccurred(kind === 'medium' ? 'medium' : 'light');
+      return;
+    }
+  }catch(e){}
+  try{
+    if(!navigator.vibrate) return;
+    const P = { light:[8], select:[6], medium:[14], ok:[10,40,16], bad:[22,60,22], warn:[16,50,16] };
+    navigator.vibrate(P[kind] || P.light);
+  }catch(e){}
+}
 applyTheme(themeNow());
 
 /* ---------- Marshrut ---------- */
@@ -1651,7 +1659,7 @@ function numCard(item){
     </div>
   </article>`;
 }
-function skeletons(n){ let h=''; for(let i=0;i<n;i++) h += '<div class="sk shim"><b></b><i></i><u></u></div>'; return h; }
+function skeletons(n){ let h=''; for(let i=0;i<n;i++) h += '<div class="sk shim"><b></b><i></i><div class="rw"><u></u><s></s></div></div>'; return h; }
 function emptyBox(icon, title, body, btnText, btnAttr, isErr){
   return `<div class="empty${isErr?' err':''}" style="grid-column:1/-1">
     <span class="ic">${icon}</span><h3>${esc(title)}</h3><p>${esc(body)}</p>
@@ -1879,12 +1887,15 @@ function renderCatalog(){
     $('#searchInfo').innerHTML = '';
     const lst = $('#catList');
     if(lst){
-      if(!lst.children.length) lst.innerHTML = skeletons(6);
-      lst.classList.add('is-loading');
+      /* eski raqamlar umuman ko'rinmasin — faqat "yuklanmoqda" kartochkalari */
+      const n = Math.min(Math.max(lst.querySelectorAll('.numcard').length || 6, 4), 8);
+      if(!lst.dataset.skel){ lst.innerHTML = skeletons(n); lst.dataset.skel = '1'; }
+      lst.classList.remove('is-loading');
     }
     $('#catMore').style.display = 'none';
     return;
   }
+  { const lst = $('#catList'); if(lst) delete lst.dataset.skel; }
   setSearchBusy(false);
   $('#catList').classList.remove('is-loading');
 
@@ -1993,9 +2004,17 @@ function setSearchBusy(on){
 async function liveSearch(){
   const mask = currentMask();
   if(mask === '_______'){
-    COMMITTED = null; LIVE_RESULTS = []; catShown = PAGE_SIZE; renderCatalog();
-    toast(LANG==='ru'?'Введите хотя бы одну цифру':'Avval kamida bitta raqam kiriting','info'); return;
+    /* raqam kiritilmagan bo'lsa — har safar bazadan tasodifiy raqamlar */
+    COMMITTED = null; LIVE_RESULTS = [];
+    catSort = 'default'; catOnlyInstallment = false; reshuffle(); catShown = PAGE_SIZE;
+    haptic('light');
+    liveBusy = true; renderCatalog();
+    await new Promise(r => setTimeout(r, 600));
+    liveBusy = false; renderCatalog();
+    haptic('ok');
+    return;
   }
+  haptic('light');
   liveBusy = true; LIVE_RESULTS = []; COMMITTED = null; catShown = PAGE_SIZE; renderCatalog();
   const started = Date.now();
   const url = FN + 'api-live-search?limit=40&mask=' + encodeURIComponent(mask);
@@ -2025,6 +2044,7 @@ async function liveSearch(){
   liveBusy = false; catShown = PAGE_SIZE;
   renderCatalog();
   const total = catalogItems().length;
+  haptic(total ? 'ok' : 'warn');
   if(!total) toast(LANG==='ru'?'Ничего не найдено':'Hech narsa topilmadi','info');
 }
 </script>
@@ -3157,7 +3177,16 @@ async function submitVac(){
 <script>
 'use strict';
 
+/* Har qanday amalda yumshoq tebranish */
+document.addEventListener('pointerdown', (e)=>{
+  if(e.target.closest('button, a, [data-card], [data-order], .op, .chip, .tpick, .ptile, #nav a'))
+    haptic('select');
+}, {passive:true});
+
 document.addEventListener('click', (e)=>{
+
+  const tt = e.target.closest('[data-theme-toggle]');
+  if(tt){ setTheme(themeNow() === 'dark' ? 'light' : 'dark'); return; }
 
   const f = e.target.closest('[data-fav]');
   if(f){
@@ -3165,6 +3194,7 @@ document.addEventListener('click', (e)=>{
     const on = toggleFav(f.dataset.fav);
     f.classList.toggle('on', on);
     const svg = f.querySelector('svg'); if(svg) svg.setAttribute('fill', on ? 'currentColor' : 'none');
+    haptic(on ? 'ok' : 'light');
     toast(on ? t('Sevimlilarga qo\'shildi') : t('Sevimlilardan olib tashlandi'), on ? 'ok' : 'info');
     if(currentRoute === 'fav') renderFavorites();
     return;
