@@ -215,16 +215,83 @@ html[data-theme="dark"] .chip.on{background:var(--blue);border-color:var(--blue)
 .chip i.dotc{width:7px;height:7px;border-radius:2px;display:inline-block}
 .chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 18px;margin:0 -18px}
 .chiprow::-webkit-scrollbar{display:none}
-/* Operator chiplari — tartibli to'r, hammasi bir xil o'lchamda */
-#catOps,#homeOps{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
-  overflow:visible;padding:0;margin:0;
+/* ---------- Operatorlar: bitta qator, surib tanlanadi ---------- */
+.oprow{position:relative;margin:0 -18px 16px}
+.oprow::before,.oprow::after{
+  content:'';position:absolute;top:0;bottom:0;width:26px;z-index:2;pointer-events:none;
 }
-#catOps .chip,#homeOps .chip{
-  justify-content:center;padding:11px 6px;font-size:12.5px;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;display:flex;
+.oprow::before{left:0;width:18px;background:linear-gradient(90deg,var(--ground),transparent)}
+.oprow::after{right:0;width:30px;background:linear-gradient(270deg,var(--ground) 30%,transparent)}
+.oprow-in{
+  display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;
+  padding:3px 18px 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
 }
-@media (max-width:360px){ #catOps,#homeOps{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.oprow-in::-webkit-scrollbar{display:none}
+.op{
+  flex:none;scroll-snap-align:start;display:flex;align-items:center;gap:9px;
+  height:46px;padding:0 15px 0 12px;border-radius:15px;
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
+  color:var(--text-2);font-size:13.5px;font-weight:700;white-space:nowrap;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),border-color .18s,background .18s,color .18s;
+}
+.op:active{transform:scale(.96)}
+.op .av{
+  width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff;letter-spacing:.01em;flex:none;
+}
+.op .cnt{
+  font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:8px;
+  background:var(--card-2);color:var(--muted);
+}
+.op.on{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:var(--sh-2)}
+.op.on .cnt{background:rgba(255,255,255,.17);color:#fff}
+html[data-theme="dark"] .op.on{background:var(--blue);border-color:var(--blue)}
+
+/* ---------- Qidiruv paneli ---------- */
+.srch{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:18px;box-shadow:var(--sh-1);position:relative;
+}
+.srch::before{content:'';position:absolute;inset:0 0 auto;height:1px;border-radius:inherit;background:var(--edge);pointer-events:none}
+.srch-head{display:flex;align-items:flex-start;gap:12px}
+.srch-ic{
+  width:38px;height:38px;border-radius:13px;flex:none;
+  background:var(--blue-tint);color:var(--blue-text);display:flex;align-items:center;justify-content:center;
+}
+.srch-head b{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+.srch-head i{display:block;margin-top:3px;font-size:11.5px;color:var(--muted);font-weight:600;font-style:normal;line-height:1.45}
+
+.srch-field{
+  margin-top:15px;display:flex;align-items:center;gap:8px;
+  background:var(--card-2);border:1.5px solid var(--line-2);border-radius:18px;
+  padding:8px 9px;transition:border-color .18s,box-shadow .18s,background .18s;
+}
+.srch-field.focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-tint);background:var(--card)}
+.srch-cells{flex:1;min-width:0;display:flex;align-items:center;gap:5px}
+.srch-dash{flex:none;width:9px;text-align:center;color:var(--faint);font-size:17px;font-weight:700;line-height:1;user-select:none}
+.srch-cells input{
+  flex:1;min-width:0;height:56px;border:none;outline:none;border-radius:14px;
+  background:transparent;text-align:center;color:var(--ink);
+  font-family:'Space Grotesk',monospace;font-size:24px;font-weight:700;padding:0;
+  transition:background .16s,box-shadow .16s,color .16s,transform .16s;
+}
+.srch-cells input:focus{transform:translateY(-1px)}
+.srch-cells input::placeholder{color:var(--faint);opacity:.4;font-weight:600}
+.srch-cells input:not(.has){background:var(--card);box-shadow:inset 0 0 0 1px var(--line-3)}
+html[data-theme="dark"] .srch-cells input:not(.has){background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.srch-cells input.has{background:var(--blue-tint);box-shadow:inset 0 0 0 1.5px rgba(36,87,230,.35);color:var(--ink)}
+.srch-cells input:focus{background:var(--blue-tint)!important;box-shadow:inset 0 0 0 2px var(--blue)!important}
+.srch-x{
+  width:30px;height:30px;border-radius:50%;flex:none;background:var(--card-3);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;
+}
+.srch-x:active{transform:scale(.88)}
+
+
+.srch-act{margin-top:14px;display:flex;gap:10px}
+.srch-act .btn{height:54px;font-size:15px;border-radius:16px}
+.srch-act #btnFilter{width:54px;flex:none;padding:0;position:relative}
+.srch-act #btnFilter .dot{position:absolute;top:11px;right:11px;width:8px;height:8px;border-radius:50%;background:var(--red)}
 
 .tag{font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:3px 8px;border-radius:6px}
 .tag.vip{color:var(--gold-ink);background:var(--gold-tint)}
@@ -590,16 +657,19 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .vcard video{height:300px}
 
   /* --- Katalog: chapda filtr --- */
-  #catOps{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-  #homeOps{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
-  #catOps .chip,#homeOps .chip{padding:13px 8px;font-size:13.5px}
   .catlayout{display:grid;grid-template-columns:392px 1fr;gap:32px;align-items:start}
   .catside{position:sticky;top:94px;display:flex;flex-direction:column;gap:20px}
-  .catside .card{padding:28px;border-radius:24px}
+  .catside .card,.catside .srch{padding:26px;border-radius:24px}
   .catside .eyebrow{font-size:12.5px;letter-spacing:.11em}
-  .catside .digits{gap:9px;margin-top:14px}
-  .catside .digits input{height:70px;font-size:27px;border-radius:16px}
-  .catside .btn{height:58px;font-size:15.5px;border-radius:16px}
+  .srch-head b{font-size:16px}
+  .srch-field{padding:9px 10px;border-radius:20px}
+  .srch-cells input{height:62px;font-size:26px;border-radius:15px}
+  .srch-dash{font-size:19px;width:10px}
+  .srch-act .btn{height:58px;font-size:15.5px}
+  .srch-act #btnFilter{width:58px}
+  .oprow{margin:0 0 18px}
+  .oprow::before,.oprow::after{display:none}
+  .oprow-in{flex-wrap:wrap;overflow:visible;padding:0}
   .catside #deskSort{gap:10px}
   .catside #deskSort .chip{padding:16px 18px;font-size:14.5px;border-radius:15px}
   .herocard{width:420px;padding:28px;border-radius:26px}
@@ -714,30 +784,43 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   <div class="pad wrap" style="padding-top:14px">
     <div class="catlayout">
       <aside class="catside">
-        <div class="card">
-          <div class="eyebrow" data-t="Raqam bo'yicha qidirish">Raqam bo'yicha qidirish</div>
-          <div style="margin-top:11px;display:flex;align-items:center;gap:8px">
-            <span class="sg" style="font-size:15px;font-weight:700;color:var(--muted)">+998</span>
-            <span style="font-size:11.5px;color:var(--muted-2);font-weight:650" data-t="keyingi 7 ta raqam">keyingi 7 ta raqam</span>
+        <!-- Qidiruv paneli -->
+        <div class="srch">
+          <div class="srch-head">
+            <span class="srch-ic">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+            </span>
+            <div style="flex:1;min-width:0">
+              <b data-t="Raqam bo'yicha qidirish">Raqam bo'yicha qidirish</b>
+              <i data-t="Bilgan raqamlaringizni kiriting, qolgani bo'sh qolsin">Bilgan raqamlaringizni kiriting, qolgani bo'sh qolsin</i>
+            </div>
           </div>
-          <div class="digits" style="margin-top:10px" id="digits">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="1" data-i="0" aria-label="1-raqam">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="2" data-i="1" aria-label="2-raqam">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="3" data-i="2" aria-label="3-raqam">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="4" data-i="3" aria-label="4-raqam">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="5" data-i="4" aria-label="5-raqam">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="6" data-i="5" aria-label="6-raqam">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="7" data-i="6" aria-label="7-raqam">
+
+          <div class="srch-field">
+            <div class="srch-cells" id="digits">
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="1" data-i="0" aria-label="1-raqam">
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="2" data-i="1" aria-label="2-raqam">
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="3" data-i="2" aria-label="3-raqam">
+              <span class="srch-dash">–</span>
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="4" data-i="3" aria-label="4-raqam">
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="5" data-i="4" aria-label="5-raqam">
+              <span class="srch-dash">–</span>
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="6" data-i="5" aria-label="6-raqam">
+              <input type="text" inputmode="numeric" maxlength="1" placeholder="7" data-i="6" aria-label="7-raqam">
+            </div>
+            <button type="button" class="srch-x" id="digitsClear" aria-label="Tozalash" style="display:none">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
           </div>
-          <div style="margin-top:9px;font-size:11px;color:var(--muted-2);font-weight:600" data-t="Bo'sh katakcha — istalgan raqam">Bo'sh katakcha — istalgan raqam</div>
-          <div style="margin-top:12px;display:flex;gap:9px">
-            <button class="btn" id="btnLive" style="height:46px;font-size:13.5px;flex:1">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+
+          <div class="srch-act">
+            <button class="btn" id="btnLive">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
               <span data-t="Qidirish">Qidirish</span>
             </button>
-            <button class="btn ghost mobonly rel" id="btnFilter" style="height:46px;width:46px;flex:none;padding:0;position:relative" aria-label="Saralash">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg>
-              <span class="dot" id="filterDot" style="display:none;position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>
+            <button class="btn ghost mobonly" id="btnFilter" aria-label="Saralash">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg>
+              <span class="dot" id="filterDot" style="display:none"></span>
             </button>
           </div>
         </div>
@@ -749,7 +832,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
       </aside>
 
       <div class="catmain">
-        <div class="chiprow" id="catOps" style="margin-bottom:14px"></div>
+        <div class="oprow"><div class="oprow-in" id="catOps"></div></div>
         <div id="searchInfo" style="margin-bottom:10px"></div>
         <div class="list" id="catList"></div>
         <button class="btn ghost" id="catMore" style="margin-top:16px;display:none"></button>
@@ -1086,7 +1169,7 @@ const RU = {
   "O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.":"Бесплатная доставка по Узбекистану. Курьер привозит официальный договор и SIM-карту.",
   "Har kuni 9:00 – 21:00":"Ежедневно 9:00 – 21:00",
   /* dinamik */
-  "so'm":"сум","Ko'rish":"Смотреть","Band":"Занят","BAND":"ЗАНЯТ","JONLI":"ЖИВОЙ","VIP":"VIP",
+  "so'm":"сум","Ko'rish":"Смотреть","Band":"Занят","BAND":"ЗАНЯТ","VIP":"VIP",
   "PREMIUM TANLOV":"ПРЕМИУМ ВЫБОР","Nomingizga rasmiylashtiriladi":"Оформляется на ваше имя",
   "Buyurtma berish":"Оформить заказ","Jami":"Итого","Oyiga":"В месяц","Narxi":"Цена","Raqam haqida":"О номере",
   "O'xshash raqamlar":"Похожие номера","Bo'lib to'lash":"Рассрочка","Bo'lib to'lash mavjud":"Доступна рассрочка",
@@ -1136,7 +1219,7 @@ const RU = {
   "Sevimli raqamlarim":"Избранные номера","Saqlanganlar":"Сохранённые",
   "Bo'lib to'lashga raqamlar":"Номера в рассрочку","Imkoniyat":"Возможность",
   "Vakansiyalar":"Вакансии","Ish o'rinlari":"Рабочие места","Instagram kanal":"Instagram-канал","Postlar":"Посты",
-  "Qidirish":"Найти","Qidirilmoqda…":"Идёт поиск…","Qidirilmoqda":"Идёт поиск","Hammasini tozalash":"Сбросить всё","Mening joylashuvim":"Моё местоположение","Aniqlanmoqda…":"Определяем…",
+  "Qidirish":"Найти","Qidirilmoqda…":"Идёт поиск…","Qidirilmoqda":"Идёт поиск","Hammasini tozalash":"Сбросить всё","Bilgan raqamlaringizni kiriting, qolgani bo'sh qolsin":"Введите известные цифры, остальные оставьте пустыми","Mening joylashuvim":"Моё местоположение","Aniqlanmoqda…":"Определяем…",
   "Buyurtma holatini tekshirish":"Проверка статуса заказа","Buyurtmam qayerda?":"Где мой заказ?",
   "Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting.":"Введите свой номер телефона и последние 4 цифры купленного номера.",
   "Kredit shartnomam":"Мой кредитный договор","To'lovlar jadvali va PDF":"График платежей и PDF",
@@ -1516,7 +1599,6 @@ function numCard(item){
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
           ${item.featured ? `<span class="tag vip">${t('VIP')}</span>` : ''}
-          ${item.live ? `<span class="tag blue">${t('JONLI')}</span>` : ''}
           <span class="nc-op"><i style="background:${m.color}"></i>${esc(item.operator||'')}</span>
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
         </div>
@@ -1772,9 +1854,26 @@ function renderCatalog(){
   LIVE_RESULTS.forEach(n => { if(n.operator) counts[n.operator] = (counts[n.operator]||0)+1; });
   const ops = Object.keys(counts).sort((a,b)=> counts[b]-counts[a]);
   const total = all.length + LIVE_RESULTS.length;
+  const opAv = (op) => `<span class="av" style="background:${opMeta(op).color}">${esc(String(op||'?').slice(0,2).toUpperCase())}</span>`;
   $('#catOps').innerHTML =
-    `<button class="chip${catOp?'':' on'}" data-catop="">${t('Hammasi')} · ${total}</button>` +
-    ops.map(op => `<button class="chip${catOp===op?' on':''}" data-catop="${esc(op)}"><i class="dotc" style="background:${opMeta(op).color}"></i>${esc(op)} · ${counts[op]}</button>`).join('');
+    `<button class="op${catOp?'':' on'}" data-catop="">
+       <span class="av" style="background:linear-gradient(140deg,#2457E6,#1B44B5)">
+         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+       </span>
+       <span>${t('Hammasi')}</span><span class="cnt sg">${total}</span>
+     </button>` +
+    ops.map(op => `<button class="op${catOp===op?' on':''}" data-catop="${esc(op)}">
+       ${opAv(op)}<span>${esc(op)}</span><span class="cnt sg">${counts[op]}</span>
+     </button>`).join('');
+  /* tanlangan operator ko'rinib tursin */
+  requestAnimationFrame(()=>{
+    const on = $('#catOps .op.on');
+    if(on && on.parentElement.scrollWidth > on.parentElement.clientWidth){
+      const box = on.parentElement;
+      const l = on.offsetLeft - (box.clientWidth - on.offsetWidth)/2;
+      box.scrollTo({ left: Math.max(0, l), behavior:'smooth' });
+    }
+  });
 
   const ds = $('#deskSort');
   if(ds) ds.innerHTML = SORTS.map(s => `<button class="chip${catSort===s[0]?' on':''}" data-sort="${s[0]}" style="justify-content:center">${t(s[1])}</button>`).join('');
@@ -1808,6 +1907,24 @@ function renderFavorites(){
   $('#favCount').textContent = items.length ? `${items.length} ${t('ta saqlangan raqam')}` : t('Hali hech narsa saqlanmagan');
   $('#favList').innerHTML = items.length ? items.map(n => numCard(n)).join('')
     : emptyBox(IC_HEART_B, t("Sevimlilar bo'sh"), t("Yoqqan raqamni yurakcha tugmasi bilan belgilang — u shu yerda saqlanadi."), t("Raqamlarni ko'rish"), 'data-go="catalog"');
+}
+
+/* Nusxalab qo'yilgan raqamni kataklarga joylaydi */
+function fillQuick(digits){
+  const boxes = $$('#digits input');
+  boxes.forEach(b => { b.value = ''; });
+  const d = String(digits||'').replace(/\D/g,'');
+  for(let i=0;i<d.length && i<7;i++) boxes[7 - d.length + i].value = d[i];
+  syncDigits();
+  const next = boxes.find(b => !b.value);
+  (next || boxes[6]).focus();
+}
+/* katakchalar holati: to'lganmi, tozalash tugmasi ko'rinsinmi */
+function syncDigits(){
+  const boxes = $$('#digits input');
+  let any = false;
+  boxes.forEach(b => { const v = !!b.value; if(v) any = true; b.classList.toggle('has', v); });
+  const x = $('#digitsClear'); if(x) x.style.display = any ? 'flex' : 'none';
 }
 
 /* "Qidirish" tugmasining o'zi "Qidirilmoqda…" ga aylanadi */
@@ -1893,7 +2010,6 @@ function openDetail(id){
     </div>
     <div style="position:relative;margin-top:26px">
       ${item.featured ? `<span style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#E6C877;background:rgba(230,200,119,.16);padding:4px 9px;border-radius:6px">${t('VIP')} ${t('Raqam').toUpperCase()}</span>` : ''}
-      ${item.live ? `<span style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#8FB4FF;background:rgba(36,87,230,.22);padding:4px 9px;border-radius:6px">${t('JONLI')}</span>` : ''}
       <div class="sg" style="margin-top:14px;font-size:31px;font-weight:700;color:#fff">${esc(shortNumber(item.number))}</div>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#C9D6E8;font-weight:600"><i style="width:7px;height:7px;border-radius:2px;background:${m.color};display:inline-block"></i>${esc(item.operator||'')}</span>
@@ -3039,6 +3155,11 @@ document.addEventListener('click', (e)=>{
     const list = tariffsFor(ORD.item.operator).filter(x => Number(x.price) > 0);
     ORD.cashTariff = (i < 0) ? null : list[i]; renderOrder(); return; }
 
+  if(e.target.closest('#digitsClear')){
+    $$('#digits input').forEach(b => b.value = '');
+    syncDigits(); $('#digits input').focus();
+    return;
+  }
   if(e.target.closest('#geoBtn')){ useMyLocation(); return; }
   if(e.target.closest('#promoBtn')){ applyPromo(); return; }
 
@@ -3140,18 +3261,31 @@ function openFilter(){
 
 /* qidiruv kataklari */
 (function(){
-  const boxes = $$('#digits input');
+  const boxes = $$('#digits input'), field = $('.srch-field');
   boxes.forEach((b,i)=>{
     b.addEventListener('input', ()=>{
       b.value = b.value.replace(/\D/g,'').slice(0,1);
       if(b.value && boxes[i+1]) boxes[i+1].focus();
-      /* ro'yxat o'zgarmaydi — qidiruv faqat tugma bosilganda ishlaydi */
+      syncDigits();
+      /* ro'yxat o'zgarmaydi — qidiruv faqat tugma bosilganda */
     });
     b.addEventListener('keydown', (e)=>{
-      if(e.key === 'Backspace' && !b.value && boxes[i-1]) boxes[i-1].focus();
+      if(e.key === 'Backspace' && !b.value && boxes[i-1]){ boxes[i-1].focus(); boxes[i-1].value=''; syncDigits(); e.preventDefault(); }
+      if(e.key === 'ArrowLeft' && boxes[i-1]) boxes[i-1].focus();
+      if(e.key === 'ArrowRight' && boxes[i+1]) boxes[i+1].focus();
       if(e.key === 'Enter') liveSearch();
     });
-    b.addEventListener('focus', ()=> b.select());
+    b.addEventListener('paste', (e)=>{
+      const d = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(-7);
+      if(d){ e.preventDefault(); fillQuick(d); }
+    });
+    b.addEventListener('focus', ()=>{ b.select(); if(field) field.classList.add('focus'); });
+    b.addEventListener('blur', ()=>{ setTimeout(()=>{ if(field && !$$('#digits input').some(x=>x===document.activeElement)) field.classList.remove('focus'); }, 40); });
+  });
+  if(field) field.addEventListener('click', (e)=>{
+    if(e.target.tagName === 'INPUT') return;
+    const next = boxes.find(x => !x.value) || boxes[6];
+    next.focus();
   });
 })();
 
@@ -3219,6 +3353,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:'){
     $('#homeFeatured').innerHTML = skeletons(3);
     $('#homeHero').innerHTML = '<div class="sk shim" style="height:180px"></div>';
   }
+  syncDigits();
   renderCatalog();
 
   avtoQayta('raqamlar', raqamlarniYukla);
