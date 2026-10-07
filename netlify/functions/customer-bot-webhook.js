@@ -284,7 +284,17 @@ function contactKeyboard(){
   return replyKb([[BTN.CANCEL, BTN.STEP_BACK]]);
 }
 
-function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
+/* VALYUTA — adminkada raqamga "dollar" belgilangan bo'lsa (currency:'USD'),
+   narx so'mda emas, dollarda ko'rsatiladi. Ikkinchi argument raqam obyekti
+   ham, oddiy 'USD' satri ham bo'lishi mumkin; berilmasa — so'm (eski xulq). */
+function isUsd(cur){
+  const c = (cur && typeof cur === 'object') ? cur.currency : cur;
+  return typeof c === 'string' && c.toLowerCase() === 'usd';
+}
+function formatPrice(n, cur){
+  const t = Number(n).toLocaleString('ru-RU').replace(/,/g, ' ');
+  return isUsd(cur) ? (t + ' $') : (t + " so'm");
+}
 /* Mijoz ismiga tasodifan (yoki ataylab) "<", "&" kabi belgilar yozib
    qo'yishi mumkin — bu HTML rejimidagi xabarni butunlay yuborilmay
    qolishiga sabab bo'lishi mumkin edi. Shu sabab ekranga chiqarishdan
@@ -400,9 +410,9 @@ async function showNumberDetail(chatId, item, instOnly){
 
   const hideCash = !!(instOnly && item.installment);
   if(!hideCash){
-    text += `\n💵 Narxi: <b>${formatPrice(item.price)}</b>\n`;
+    text += `\n💵 Narxi: <b>${formatPrice(item.price, item)}</b>\n`;
     if(item.onSale && item.oldPrice > item.price){
-      text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
+      text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice, item)}</s>\n`;
     }
   }
   // To'liq ma'lumot — botda har doim ko'rinadi (oylik tarif, muddat,
@@ -416,7 +426,8 @@ async function showNumberDetail(chatId, item, instOnly){
   if(item.ownershipTransfer){
     text += `📝 Sizning nomingizga rasmiylashtiriladi.\n`;
   }
-  if(item.installment){
+  // Dollarlik raqam — faqat naqt to'lov (bo'lib to'lash hisob-kitobi so'mda)
+  if(item.installment && !isUsd(item)){
     text += `💰 Raqamni 6,12,24,36 oygacha bo'lib to'lash sharti bilan olish mumkin.\n`;
   }
   if(item.reserved){
@@ -536,6 +547,10 @@ async function notifyAdmin(orderId, payload){
   if(payload.operator){
     text += `\n📶 Operator: ${payload.operator}`;
   }
+  // Dollarlik raqam — summa adminga aniq ko'rinsin
+  if(isUsd(payload.currency)){
+    text += `\n💲 Summa: ${formatPrice(payload.price || 0, 'USD')}`;
+  }
   if(payload.installmentMonths){
     text += `\n💳 To'lov turi: ${payload.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(payload.installmentMonthly)})`;
   }
@@ -571,6 +586,7 @@ function docToItem(doc){
     operator: d.operator || '',
     price: d.price || 0,
     oldPrice: d.oldPrice || 0,
+    currency: d.currency || 'UZS',
     tag: d.tag || 'oddiy',
     installment: !!d.installment,
     featured: !!d.featured,
@@ -1092,7 +1108,7 @@ exports.handler = async function (event) {
       // STANDART TOIFA: 'numbers' hujjati yo'q — hech narsa o'qimaymiz,
       // ma'lumot seansdagi jonli natijadan olinadi.
       const isLive = !!(session.isLiveOrder && session.liveNumber);
-      let numberStr, price, operatorStr;
+      let numberStr, price, operatorStr, orderCurrency = 'UZS';
       if(isLive){
         numberStr = displayNumber(session.liveNumber.number || '');
         price = session.liveNumber.price || 0;
@@ -1103,6 +1119,7 @@ exports.handler = async function (event) {
         numberStr = displayNumber(nd.number || '');
         price = nd.price || 0;
         operatorStr = nd.operator || '';
+        orderCurrency = isUsd(nd) ? 'USD' : 'UZS';
       }
       const time = new Date().toLocaleString('uz-UZ');
       const manzil = session.draftDistrict
@@ -1112,6 +1129,7 @@ exports.handler = async function (event) {
       const orderRef = await withRetry(() => db.collection('orders').add({
         number: numberStr,
         price,
+        currency: orderCurrency,
         name: session.draftName || '',
         region: manzil,
         phone: session.draftPhone || '',
@@ -1142,7 +1160,7 @@ exports.handler = async function (event) {
 
       await notifyAdmin(orderRef.id, {
         number: numberStr, name: session.draftName, phone: session.draftPhone,
-        region: manzil, time,
+        region: manzil, time, price, currency: orderCurrency,
         catalogType: isLive ? 'Standart' : 'VIP',
         operator: operatorStr,
         installmentMonths: session.installmentMonths || null,
@@ -1780,7 +1798,7 @@ ${monthsLines}
       const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
       const nd = numberDoc.exists ? numberDoc.data() : {};
       numberStr = premiumNumber(displayNumber(nd.number || ''));
-      priceStr = formatPrice(nd.price || 0);
+      priceStr = formatPrice(nd.price || 0, nd);
     }
     const manzil = `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`;
 

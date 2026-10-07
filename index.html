@@ -917,19 +917,29 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .herodots i.on{width:18px;background:var(--blue)}
 
 /* ---------- Kun tavsiyasi (gorizontal surib o'tiladigan) ---------- */
-.dayrow{position:relative;margin:0 -18px}
+/* "Tavsiya etiladi" ro'yxati ichidagi bo'lim — telefonda ro'yxat ustun
+   bo'lgani uchun oddiy blok, kompyuterda esa grid bo'lgani uchun pastda
+   (media so'rovida) butun qatorni egallaydi. */
+.dayrow-sect{margin-top:6px}
+/* MIJOZ SO'ROVI: avval qator sahifa chekkasigacha "chiqib" ketardi
+   (margin:0 -18px) — kartochka boshqa kartochkalardan kengroq bo'lib
+   ko'rinardi. Endi qator ham AYNAN o'sha chegaradan boshlanib, o'sha
+   chegarada tugaydi; keyingi kartochkadan bir chekkasi ko'rinib turadi
+   (surish mumkinligi bilinishi uchun). */
+.dayrow{position:relative;margin:0}
 .dayrow::after{
-  content:'';position:absolute;top:0;bottom:0;right:0;width:26px;z-index:2;pointer-events:none;
-  background:linear-gradient(270deg,var(--ground) 20%,transparent);
+  content:'';position:absolute;top:0;bottom:0;right:0;width:30px;z-index:2;pointer-events:none;
+  border-radius:0 22px 22px 0;
+  background:linear-gradient(270deg,var(--ground) 35%,transparent);
 }
 .dayrow-in{
   display:flex;gap:11px;overflow-x:auto;scrollbar-width:none;
-  padding:4px 18px 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  padding:4px 0 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
 }
 .dayrow-in::-webkit-scrollbar{display:none}
 
 .daycard{
-  flex:none;width:min(74vw,268px);scroll-snap-align:start;
+  flex:none;width:calc(100% - 44px);max-width:300px;scroll-snap-align:start;
   position:relative;overflow:hidden;border-radius:22px;padding:15px 16px 14px;
   background:
     radial-gradient(150px 120px at 100% 0%, var(--day-glow), transparent 70%),
@@ -954,8 +964,11 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .daycard .dc-price{flex:1;min-width:0}
 .daycard .dc-price b{display:block;font-size:16.5px;font-weight:700;white-space:nowrap}
 .daycard .dc-price b small{font-family:'Plus Jakarta Sans';font-size:10.5px;color:var(--muted-2);font-weight:600}
+/* Bo'lib to'lash yorlig'i uzun bo'lsa (masalan "225 000 so'mdan / 24 oy")
+   tugma yonida kesilib qolmasin — ikki qatorga o'tadi. */
 .daycard .dc-price i{display:inline-block;margin-top:4px;font-size:10.5px;font-style:normal;font-weight:700;
-  color:var(--day-rib-ink);background:var(--day-rib);padding:3px 7px;border-radius:7px;white-space:nowrap}
+  color:var(--day-rib-ink);background:var(--day-rib);padding:3px 7px;border-radius:7px;
+  max-width:100%;white-space:normal;line-height:1.4}
 .daycard .dc-go{
   flex:none;height:36px;padding:0 13px;border-radius:12px;display:flex;align-items:center;gap:6px;
   background-color:#0E7C68;background-image:linear-gradient(180deg,#19A98E,#0E7C68);color:#fff;
@@ -1136,6 +1149,14 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .oprow-in{flex-wrap:wrap;overflow:visible;padding:0}
   .catside #deskSort{gap:10px}
   .catside #deskSort .chip{padding:16px 18px;font-size:14.5px;border-radius:15px}
+  /* Kun tavsiyasi — grid ichida butun qatorni egallaydi (aks holda
+     bitta katakka siqilib, kartochkalar ustma-ust tushadi). */
+  #homeFeatured > .dayrow-sect{grid-column:1/-1;margin:18px 0 4px}
+  .dayrow-sect .sect-h{margin-bottom:14px}
+  .dayrow-sect .dayrow{margin:0}
+  .dayrow-sect .dayrow::after{width:60px;background:linear-gradient(270deg,var(--ground) 30%,transparent)}
+  .dayrow-sect .dayrow-in{padding:4px 2px 10px;gap:18px}
+  .dayrow-sect .daycard{width:300px;padding:18px 19px 17px;border-radius:24px}
   .herocard{width:420px;padding:28px;border-radius:26px}
   .herocard .num{font-size:38px}
   .ptiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
@@ -2087,13 +2108,17 @@ function opChip(op){
   const m = opMeta(op);
   return `<span class="nc-op"><i style="background:${m.color}"></i>${esc(op||'')}</span>`;
 }
-/* Toifa: admin paneldan `tier` maydoni — vip | premium | gold.
-   Eski raqamlarda faqat `featured` bo'lsa — GOLD deb olinadi. */
+/* Toifa: FAQAT admin paneldagi `tier` maydoni — vip | premium | gold.
+   MIJOZ SO'ROVI: admin "Toifasiz (oddiy)" ni tanlasa, kartochkaga hech
+   qanday rang va yorliq QO'SHILMASIN. Avval bu yerda "featured (Mashhur)
+   bo'lsa — GOLD" degan zaxira qoida bor edi; aynan o'sha sabab toifasiz
+   raqam ham o'zi oltin rangga o'tib qolardi. Endi u olib tashlandi:
+   "Mashhur" belgisi faqat bosh sahifadagi karuselga tushishini bildiradi,
+   rangga umuman ta'sir qilmaydi. */
 const TIERS = { vip:'VIP', premium:'PREMIUM', gold:'GOLD' };
 function tierOf(item){
   const tRaw = String(item && item.tier || '').trim().toLowerCase();
-  if(TIERS[tRaw]) return tRaw;
-  return item && item.featured ? 'gold' : '';
+  return TIERS[tRaw] ? tRaw : '';
 }
 function numCard(item){
   const fav = isFav(item.id), disc = discountPct(item);
@@ -2231,6 +2256,11 @@ function renderHome(){
    Bazadagi raqam ham, jonli (qo'lda kiritilgan) raqam ham bo'lishi mumkin.
    ================================================================== */
 let DAY_PICKS = { title:'', subtitle:'', items:[] };
+/* Kun tavsiyasidagi kartochkalar — ID bo'yicha. Jonli bazadan qo'shilgan
+   raqam NUMBERS'da ham, LIVE_RESULTS'da ham YO'Q, shu sabab ustiga
+   bosilganda findItem() uni topa olmasdi va kartochka "o'lik" bo'lib
+   qolardi. Endi shu ro'yxat ham tekshiriladi (qarang: findItem). */
+const DAY_OBJS = {};
 
 async function kunTavsiyasiYukla(){
   try{
@@ -2244,7 +2274,47 @@ async function kunTavsiyasiYukla(){
       items: Array.isArray(d.items) ? d.items.slice(0, 20) : [],
     };
     renderHome();
+    dayPicksLiveSync();
   }catch(e){ /* bo'lmasa — bo'lim ko'rsatilmaydi */ }
+}
+
+/* ---------- JONLI BAZADAN OLINGAN TAVSIYALARNI TEKSHIRISH ----------
+   Admin "jonli bazadan" qo'shgan raqam operator bazasida band qilinib
+   ketishi mumkin — u holda saytda ham ko'rinmasligi kerak. Shu sabab
+   har yuklanishda operatordan AYNAN o'sha 7 ta raqam bo'yicha so'raymiz
+   (bitta operator bilan cheklanadi — arzon so'rov):
+     • topilmasa  → ro'yxatdan olib tashlanadi;
+     • topilsa    → narxi/operatori yangilanadi;
+     • server javob bermasa → HECH NARSA o'chirilmaydi (xato tufayli
+       raqam yo'qolib qolmasin).
+   Bazadagi (Firestore) tavsiyalar bu yerda tekshirilmaydi — ular
+   allaqachon NUMBERS bilan jonli bog'langan. */
+async function dayPicksLiveSync(){
+  const live = (DAY_PICKS.items || []).filter(x => x && x.live && x.number);
+  if(!live.length) return;
+  await Promise.all(live.slice(0, 8).map(async (it) => {
+    const d7 = String(it.number).replace(/\D/g, '').slice(-7);
+    if(d7.length !== 7) return;
+    let url = FN + 'api-live-search?limit=8&mask=' + encodeURIComponent(d7);
+    if(it.operator) url += '&operator=' + encodeURIComponent(it.operator);
+    const ctrl = new AbortController();
+    const tm = setTimeout(() => ctrl.abort(), kutishVaqti(9000));
+    try{
+      const res = await fetch(url, { signal: ctrl.signal });
+      const data = await res.json();
+      if(data.ok !== true) return;
+      const hit = (data.items || []).find(x =>
+        String(x.number || '').replace(/\D/g, '').slice(-7) === d7);
+      if(!hit){ it.__gone = true; return; }
+      if(Number(hit.price) > 0) it.price = Number(hit.price);
+      if(hit.operator) it.operator = hit.operator;
+    }catch(e){ /* tarmoq xatosi — o'chirmaymiz */ }
+    finally{ clearTimeout(tm); }
+  }));
+  const oldLen = DAY_PICKS.items.length;
+  DAY_PICKS.items = DAY_PICKS.items.filter(x => !x.__gone);
+  if(DAY_PICKS.items.length !== oldLen) renderHome();
+  else renderHome();   /* narx yangilangan bo'lishi mumkin */
 }
 
 /** Kun tavsiyasidagi bitta yozuvni to'liq raqam obyektiga aylantiradi */
@@ -2297,10 +2367,16 @@ function dayCard(item){
 /** Bo'limni HTML sifatida qaytaradi (hech narsa bo'lmasa — bo'sh satr) */
 function dayRowHtml(){
   const items = (DAY_PICKS.items || []).map(dayItemToNumber).filter(Boolean);
+  Object.keys(DAY_OBJS).forEach(k => { delete DAY_OBJS[k]; });
+  items.forEach(n => { DAY_OBJS[n.id] = n; });
   if(!items.length) return '';
   const title = DAY_PICKS.title || t('Kun tavsiyasi');
   const sub = DAY_PICKS.subtitle || '';
-  return `<section class="sect" style="margin-top:6px">
+  /* MUHIM: bu bo'lim "Tavsiya etiladi" ro'yxatining ICHIGA qo'yiladi.
+     Kompyuterda u ro'yxat 3-4 ustunli GRID bo'ladi — shu sabab bo'lim
+     alohida klass oladi va CSS'da butun qatorni egallaydi (grid-column:1/-1),
+     aks holda u bitta katak ichiga tiqilib, kartochkalar ustma-ust tushardi. */
+  return `<section class="sect dayrow-sect">
     <div class="sect-h">
       <h2>${esc(title)}</h2>
       ${sub ? `<span style="font-size:12px;color:var(--muted-2);font-weight:650">${esc(sub)}</span>` : ''}
@@ -2626,7 +2702,12 @@ async function liveSearch(){
    RAQAM TAFSILOTI
    ================================================================== */
 let CURRENT = null;
-const findItem = (id) => NUMBERS.find(n => n.id === id) || LIVE_RESULTS.find(n => n.id === id) || FAV_ITEMS[id] || null;
+const findItem = (id) =>
+  NUMBERS.find(n => n.id === id) ||
+  LIVE_RESULTS.find(n => n.id === id) ||
+  /* Kun tavsiyasidagi jonli raqam — faqat shu ro'yxatda bo'ladi */
+  (typeof DAY_OBJS !== 'undefined' ? DAY_OBJS[id] : null) ||
+  FAV_ITEMS[id] || null;
 
 function openDetail(id){
   const item = findItem(id); if(!item) return;

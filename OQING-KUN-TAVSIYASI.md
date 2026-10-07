@@ -109,3 +109,85 @@ Sayt: JS 0 xato · kontrast 0 xato (light + dark) · toshish 0 ·
 upper, noprom, usd …) — hammasi o'tdi, 0 konsol xatosi.
 Admin: valyuta tanlovi, dollarda saqlash, bo'lib to'lashning avtomatik
 o'chishi, ro'yxatdagi `$`, tahrir qatoridagi tanlov — tekshirildi.
+
+---
+
+# Yana uchta tuzatish
+
+## 1. Telegram botda ham dollar
+Mijoz boti (`customer-bot-webhook.js`) endi raqamning `currency` maydonini
+o'qiydi:
+- Raqam kartochkasida «💵 Narxi» va «Eski narxi» `$` bilan chiqadi.
+- Dollarlik raqamda «bo'lib to'lash mumkin» qatori umuman ko'rsatilmaydi.
+- Tasdiqlash xulosasida ham `$` ko'rinadi.
+- Buyurtma hujjatiga `currency: 'USD'` yoziladi va adminga ketadigan
+  bildirishnomaga `💲 Summa: 1 200 $` qatori qo'shiladi.
+Admin boti (`bot-webhook.js`) ro'yxatida ham dollarlik raqam `$` bilan chiqadi.
+
+## 2. Kun tavsiyasi kartochkasi chekkaga chiqib ketmaydi
+Avval qator sahifa chekkasigacha «chiqib» ketardi (`margin:0 -18px`) —
+kartochka boshqalaridan kengroq ko'rinardi. Endi qator aynan o'sha
+chegaradan boshlanib, o'sha chegarada tugaydi; keyingi kartochkadan bir
+chekkasi ko'rinib turadi (surish mumkinligi bilinishi uchun).
+
+## 3. Jonli bazadagi tavsiyalar o'zi yangilanadi
+Admin «jonli bazadan» qo'shgan raqam operatorda band qilinib ketishi
+mumkin. Endi sayt har yuklanishda aynan o'sha 7 raqam bo'yicha operatordan
+so'raydi (bitta operator bilan cheklangan — arzon so'rov):
+
+| Holat | Natija |
+|---|---|
+| Operatorda topilmadi | Kun tavsiyasidan **avtomatik olib tashlanadi** |
+| Topildi, narxi o'zgargan | **Narxi va operatori yangilanadi** |
+| Server/operator javob bermadi | **Hech narsa o'chirilmaydi** (xato tufayli raqam yo'qolib qolmasin) |
+
+Bazadagi (Firestore) tavsiyalar bu yerda tekshirilmaydi — ular allaqachon
+raqamlar bazasi bilan jonli bog'langan.
+
+## Tekshiruvlar
+Sayt: JS 0 xato · kontrast 0 · 16 ta harness o'tdi.
+Jonli tekshiruv alohida sinaldi: band bo'lgan raqam yo'qoldi, narxi
+o'zgargani yangilandi, server xato bergan holatda hech narsa o'chmadi.
+Botlar: sintaksis tekshiruvi (`node --check`) toza.
+
+---
+
+# «Toifasiz» endi rostdan ham rangsiz
+
+Sabab topildi: kodda «agar raqam *Mashhur* (featured) bo'lsa — uni GOLD deb
+hisobla» degan ZAXIRA qoida bor edi. Shuning uchun admin «Toifasiz (oddiy)»
+ni tanlasa ham, «Mashhur raqamlarga qo'shish» belgilangan bo'lsa (yoki eski
+raqamda shu belgi qolgan bo'lsa) kartochka o'zi oltin rangga o'tib qolardi.
+
+O'sha qoida olib tashlandi. Endi:
+
+- **Toifasiz** → hech qanday rang, hech qanday yorliq. Oddiy kartochka.
+- **VIP / PREMIUM / GOLD** → faqat admin shu toifani tanlaganda.
+- **«Mashhur raqamlarga qo'shish»** endi faqat bosh sahifadagi yuqori
+  karuselga tushishini bildiradi — rangga umuman ta'sir qilmaydi.
+
+Eslatma: «Bo'lib to'lash» belgilangan raqamda chap chekkada ingichka
+ko'kish-yashil chiziq qoladi — bu toifa rangi emas, «bo'lib to'lash bor»
+degan belgi (pastdagi «450 000 so'mdan / 24 oy» yorlig'i bilan bir xil
+rangda). Kerak bo'lmasa, uni ham olib tashlash mumkin.
+
+---
+
+# Kun tavsiyasi kartochkasi endi oddiy kartochkadek ishlaydi
+
+Sabab: jonli bazadan qo'shilgan tavsiya raqami Firestore'da ham, saytdagi
+jonli qidiruv natijalarida ham YO'Q edi — shuning uchun ustiga bosilganda
+`findItem()` uni topa olmay, kartochka "o'lik" bo'lib qolardi.
+
+Endi kun tavsiyasidagi raqamlar alohida ro'yxatda saqlanadi va `findItem()`
+shuni ham tekshiradi. Natijada:
+
+- Kartochka ustiga bosilsa — **raqam oynasi ochiladi** (narxi, shartlari,
+  ulashish va sevimlilarga qo'shish bilan).
+- **«Buyurtma berish»** tugmasi to'liq ishlaydi: ism, telefon, manzil, SMS
+  tasdiq — hammasi odatdagidek.
+- Jonli raqam buyurtmasi `live_reservations` qulfi bilan yoziladi (ikki
+  mijoz bir raqamni band qila olmaydi), bazadagi raqam esa odatdagidek
+  tranzaksiya bilan band qilinadi.
+
+Bazadan qo'shilgan tavsiyalar avvaldan ishlardi — ular ham tekshirildi.

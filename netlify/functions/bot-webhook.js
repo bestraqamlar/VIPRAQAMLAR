@@ -148,7 +148,8 @@ exports.handler = async function (event) {
     await withRetry(() => batch.commit());
 
     const summary = parsed.map(p => {
-      let line = `• ${p.number} — ${p.operator} — ${p.price.toLocaleString('ru-RU')} so'm`;
+      const _usd = String(p.currency || '').toLowerCase() === 'usd';
+      let line = `• ${p.number} — ${p.operator} — ${p.price.toLocaleString('ru-RU')}${_usd ? ' $' : " so'm"}`;
       if(p.tag === 'vip') line += ' — VIP';
       if(p.featured) line += ' — Mashhur';
       if(p.onSale) line += ` — Aksiya (eski narx: ${p.oldPrice.toLocaleString('ru-RU')})`;
