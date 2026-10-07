@@ -191,3 +191,31 @@ shuni ham tekshiradi. Natijada:
   tranzaksiya bilan band qilinadi.
 
 Bazadan qo'shilgan tavsiyalar avvaldan ishlardi — ular ham tekshirildi.
+
+---
+
+# RANG TIZIMI — «A» varianti
+
+Oldin bitta ekranda 8 ga yaqin rang bir vaqtda gapirardi. Endi rang
+oilasi 3 ta: **neytral** (fon va matn), **metall** (toifa), **qizil**
+(faqat chegirma).
+
+| Nima o'zgardi | Avval | Hozir |
+|---|---|---|
+| Toifali kartochka ichi | oltin / binafsha / platina fon | **neytral** — oddiy kartochka bilan bir xil |
+| Toifa qanday bilinadi | butun kartochka rangi | **yorliq + chap chekkadagi 3px chiziq** |
+| Toifasiz kartochka | ko'k chiziq | chiziq yo'q |
+| «Bo'lib to'lash» | ko'kish-yashil chiziq + ko'k yorliq | chiziq yo'q, yorliq neytral |
+| Operator | rangli nuqta (sariq/qizil/pushti…) | **nuqtasiz**, neytral chip |
+| Ro'yxatdagi «Ko'rish» | to'q ko'k tugma | **jim** tugma (butun kartochka bosiladi) |
+| Kun tavsiyasi | firuza shisha kartochka | **tegilmadi** — mijoz so'roviga ko'ra eski holicha qoldi |
+
+To'q ko'k endi butun saytda **bitta joyda** qoladi: raqam oynasidagi
+«Buyurtma berish» tugmasi. Shu sabab u endi rostdan ham ko'zga tashlanadi.
+
+Tegilmagan joylar (ataylab): bosh sahifadagi PREMIUM karusel va raqam
+oynasining sarlavhasi — ular to'q ko'k + oltin, ya'ni brendning bitta
+«hashamat» yuzasi; operator filtri qatori — u yerda logotiplar bor.
+
+Tekshirildi: kontrast 0 xato (oq va qora fonda), 16 ta harness o'tdi,
+JS 0 xato, uch toifa va toifasiz kartochka ikkala mavzuda ko'zdan kechirildi.
