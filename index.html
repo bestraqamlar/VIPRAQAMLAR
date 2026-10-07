@@ -152,55 +152,19 @@ body{
   touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
 /* Yumshoq nurli fon — statik, hech narsani sekinlashtirmaydi */
-/* ==================================================================
-   JONLI ORQA FON
-   Ikkita ko'rinmas nur qatlami butun ekran bo'ylab juda sekin suzadi
-   (70 va 95 soniya). Maqsad — sayt "tirik" tuyulsin, lekin ko'z
-   kartochkadan uzilmasin: shuning uchun harakat juda sekin, rang juda
-   past va kartochkalar ustida emas, ORQASIDA (z-index:-2).
-   Unumdorlik: faqat `transform` jonlantiriladi, ya'ni brauzer qayta
-   chizmaydi (GPU) — arzon telefonlarda ham sekinlashtirmaydi.
-   `prefers-reduced-motion` yoqilgan qurilmada harakat o'chadi. */
-body::before,body::after{
-  content:'';position:fixed;inset:-25%;z-index:-2;pointer-events:none;
-  will-change:transform;backface-visibility:hidden;
-}
 body::before{
+  content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:
-    radial-gradient(760px 460px at 20% 12%, var(--blob-1), transparent 60%),
-    radial-gradient(700px 520px at 58% 56%, var(--blob-3), transparent 60%);
-  animation:fonA 70s ease-in-out infinite;
-}
-body::after{
-  background:
-    radial-gradient(620px 420px at 82% 22%, var(--blob-2), transparent 58%),
-    radial-gradient(900px 700px at 46% 92%, var(--blob-4), transparent 62%);
-  animation:fonB 95s ease-in-out infinite;
-}
-@keyframes fonA{
-  0%  {transform:translate3d(0,0,0) scale(1)}
-  33% {transform:translate3d(8%,-6%,0) scale(1.12)}
-  66% {transform:translate3d(-7%,6%,0) scale(1.04)}
-  100%{transform:translate3d(0,0,0) scale(1)}
-}
-@keyframes fonB{
-  0%  {transform:translate3d(0,0,0) scale(1.08)}
-  40% {transform:translate3d(-9%,7%,0) scale(1)}
-  75% {transform:translate3d(7%,-5%,0) scale(1.13)}
-  100%{transform:translate3d(0,0,0) scale(1.08)}
-}
-@media (prefers-reduced-motion:reduce){
-  body::before,body::after{animation:none}
+    radial-gradient(760px 460px at 10% -6%, var(--blob-1), transparent 60%),
+    radial-gradient(620px 420px at 94% 10%, var(--blob-2), transparent 58%),
+    radial-gradient(700px 520px at 52% 46%, var(--blob-3), transparent 60%),
+    radial-gradient(900px 700px at 50% 108%, var(--blob-4), transparent 62%);
 }
 html[data-theme="dark"] body::before{
   background:
-    radial-gradient(900px 540px at 22% 10%, rgba(58,110,255,.20), transparent 62%),
-    radial-gradient(760px 480px at 60% 58%, rgba(46,95,224,.12), transparent 60%);
-}
-html[data-theme="dark"] body::after{
-  background:
-    radial-gradient(760px 480px at 80% 18%, rgba(230,200,119,.12), transparent 60%),
-    radial-gradient(900px 700px at 46% 94%, rgba(46,95,224,.14), transparent 62%);
+    radial-gradient(900px 540px at 12% -8%, rgba(58,110,255,.20), transparent 62%),
+    radial-gradient(760px 480px at 92% 4%, rgba(230,200,119,.12), transparent 60%),
+    radial-gradient(900px 700px at 50% 108%, rgba(46,95,224,.14), transparent 62%);
 }
 body.noscroll{overflow:hidden}
 body.netbar-on #app{padding-top:58px}
@@ -311,7 +275,12 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0
     var(--nc-bg);
   border:1px solid var(--nc-line);border-radius:var(--r-xl);
   padding:18px;position:relative;
-  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  /* backdrop-filter ATAYLAB QO'YILMAGAN: bu element ro'yxatda o'nlab
+     marta takrorlanadi va har biri alohida "shisha" qatlami hosil
+     qilib, aylantirishda kadr tezligini keskin tushiradi (o'lchangan:
+     44 -> 60 FPS). Fon deyarli to'liq to'q bo'lgani uchun xiralikdan
+     ko'rinishda farq ham yo'q. Shisha effekti faqat TAKRORLANMAYDIGAN
+     elementlarda qoldi: tepa panel, pastki menyu, oynalar. */
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
 }
 .card::before,.numcard:not(.vipc)::before,.rows::before,.empty::before{
@@ -574,7 +543,7 @@ input[data-upper]{text-transform:uppercase}
     var(--nc-bg);
   border:1px solid var(--nc-line);border-radius:22px;
   padding:16px 17px 15px 19px;position:relative;overflow:hidden;
-  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  /* backdrop-filter yo'q — yuqoridagi izohga qarang (unumdorlik) */
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
   transition:transform .24s cubic-bezier(.2,.8,.3,1),box-shadow .24s,border-color .24s,background .24s;
 }
@@ -1010,7 +979,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .herocard .nc-op{
   background:rgba(255,255,255,.08);color:#E3EBF8;
   box-shadow:inset 0 0 0 1px rgba(240,216,152,.22);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 /* Raqam — metallga o'yib yozilgandek: ustidan oq, pastdan sutli oltin,
    tagida chuqur soya va yuqorida ingichka yorug'lik qirrasi. */
@@ -1218,7 +1186,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     var(--day-bg);
   border:1px solid var(--day-line);
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
-  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  /* backdrop-filter yo'q — yuqoridagi izohga qarang (unumdorlik) */
   transition:transform .2s cubic-bezier(.2,.8,.3,1),box-shadow .2s,border-color .2s;
 }
 .daycard:active{transform:scale(.98)}
@@ -1269,7 +1237,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     radial-gradient(150px 120px at 0% 0%, var(--tg-glow), transparent 70%),
     var(--nc-bg);
   border:1px solid var(--tg-line);
-  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  /* backdrop-filter yo'q — yuqoridagi izohga qarang (unumdorlik) */
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
   transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,border-color .18s;
 }
@@ -1303,7 +1271,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 .ptile{
   background:var(--nc-bg);border:1px solid var(--nc-line);border-radius:20px;padding:16px 16px 17px;
   text-align:left;color:inherit;display:block;
-  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  /* backdrop-filter yo'q — yuqoridagi izohga qarang (unumdorlik) */
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
   transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,border-color .18s;position:relative;overflow:hidden;
 }

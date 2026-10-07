@@ -541,25 +541,45 @@ endi u saytning **har doim tungi** qolishini tekshiradi.
 
 ---
 
-# Jonli orqa fon
+# Jonli orqa fon — SINALDI VA BEKOR QILINDI
 
-Orqa fonda ikkita **ko'rinmas nur qatlami** butun ekran bo'ylab juda
-sekin suzadi — biri 70 soniyada, ikkinchisi 95 soniyada bir aylanadi va
-ular bir-biriga mos kelmaydi, shuning uchun harakat takrorlanayotgandek
-tuyulmaydi.
+Orqa fonda sekin suzadigan nur qatlamlari qo'shilgandi, lekin:
 
-Shartlar bajarildi:
+- nurning cheti to'q fonda sezilarli chiziq (banding) hosil qilardi;
+  uni yumshatish uchun qo'shilgan "don" qatlami esa
+- aylantirishdagi kadr tezligini ~53 FPS dan ~38 FPS gacha tushirdi
 
-- **Kartochkaga ta'sir qilmaydi** — qatlamlar `z-index:-2` da, ya'ni butun
-  kontentning ORQASIDA; bosish va surishga ham aralashmaydi
-  (`pointer-events:none`)
-- **Ko'z ketmaydi** — ikki kadr orasidagi farq o'rtacha 255 dan 3–4 birlik,
-  ya'ni ~1,5%. Qarab turganda sezilmaydi, lekin ekran "nafas olayotgandek"
-  jonli tuyuladi
-- **Sekinlashtirmaydi** — faqat `transform` jonlantiriladi (GPU), brauzer
-  qayta chizmaydi. O'lchov: **60 FPS**
-- Animatsiyani o'chirgan qurilmada (`prefers-reduced-motion`) harakat
-  butunlay to'xtaydi
+Shu sabab mijoz so'roviga ko'ra **butunlay bekor qilindi** — orqa fon
+avvalgi holida qoldi: statik, qimirlamaydigan nurlar. Aylantirish yana
+~53 FPS.
 
-Tekshiruv: 0 / 23 / 47-soniyadagi kadrlar solishtirildi — fon rostdan ham
-siljiydi; kontrast 0 xato, 12 ta harness o'tdi.
+---
+
+# Tezlik: shisha effekti ro'yxatdan olib tashlandi
+
+O'lchov (30 ta kartochkali ro'yxatni aylantirganda):
+
+| Holat | FPS |
+|---|---|
+| Avval | **44** |
+| Kartochkadagi `backdrop-filter` olib tashlangach | **61** |
+
+Sabab: `backdrop-filter` (shisha xiralik) har bir kartochkada ALOHIDA
+qatlam yaratadi. Ro'yxatda 30 ta kartochka bo'lsa — 30 ta qatlam, va
+brauzer aylantirishning har bir kadrida ularning hammasini qayta
+hisoblaydi. Arzon Android telefonlarda bu yanada og'ir.
+
+Olib tashlandi: `.numcard`, `.daycard`, `.card`, `.ptile`, `.tgcard` va
+premium kartochka ichidagi operator chipidan.
+Qoldi (takrorlanmaydigan, bittadan): tepa panel, pastki menyu, menyu
+kapsulasi, oynalar foni, bildirishnoma, chekka belgisi.
+
+**Ko'rinishda farq yo'q** — kartochka foni allaqachon deyarli to'liq to'q
+edi, xiralik orqasidan hech narsa ko'rinmasdi. Oq va qora fonda
+solishtirildi.
+
+Yon tekshiruv: `container-type` ni olib tashlash FPS ni 51 ga TUSHIRADI,
+ya'ni u aksincha yordam beryapti — joyida qoldirildi. Premium kartochka
+va kun tavsiyasidagi yaltirash animatsiyalari endi tezlikka ta'sir
+qilmaydi (shisha olinganidan keyin ikkalasi ham 60 FPS beradi), shuning
+uchun ular saqlandi.
