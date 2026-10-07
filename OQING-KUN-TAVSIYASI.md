@@ -583,3 +583,31 @@ ya'ni u aksincha yordam beryapti — joyida qoldirildi. Premium kartochka
 va kun tavsiyasidagi yaltirash animatsiyalari endi tezlikka ta'sir
 qilmaydi (shisha olinganidan keyin ikkalasi ham 60 FPS beradi), shuning
 uchun ular saqlandi.
+
+---
+
+# Menyu bosilganda bo'lim YUMSHOQ ochiladi
+
+Animatsiya avval ham bor edi, lekin u **0 shaffoflikdan** boshlanardi:
+ekran bir lahza butunlay bo'sh qolib, keyin "sakrab" paydo bo'lardi —
+aynan shuning uchun qattiq tuyulardi.
+
+O'zgarishlar:
+
+| Nima | Avval | Hozir |
+|---|---|---|
+| Boshlang'ich shaffoflik | 0 (bo'sh ekran) | **0.42** (ko'rinib turadi) |
+| Davomiyligi | 0.40 s | **0.58 s** |
+| Harakat | 8px ko'tarilish | **16px ko'tarilish + ozgina kattalashish** |
+| Egri chiziq | o'rtacha | yumshoqroq (`cubic-bezier(.22,.9,.26,1)`) |
+
+Yana ikkita nozik joy tuzatildi:
+
+1. **Sahifa tepaga ko'tarilishi** endi animatsiyadan OLDIN bajariladi —
+   avval o'rtasida bajarilib, ekran "sakrab" tushardi.
+2. **Menyu belgisi** keskin almashmaydi: to'ldirilgan belgi ichkaridan
+   yumshoq "chiqadi", chiziqlisi esa ozgina kattalashib so'nadi.
+3. Kartochkalarning ketma-ket chiqish kechikishi biroz qisqartirildi
+   (0.42 s → 0.32 s), shunda ekran bilan birga tinchlanadi.
+
+Tezlikka ta'siri yo'q: aylantirishda baribir **61 FPS**.
