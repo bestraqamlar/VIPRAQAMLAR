@@ -2,7 +2,9 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta name="color-scheme" content="dark light">
-<script>(function(){var v="dark";try{v=localStorage.getItem("vip_theme")||"dark";}catch(e){}document.documentElement.setAttribute("data-theme",v==="light"?"light":"dark");})();</script>
+<!-- Mijoz so'roviga ko'ra sayt FAQAT tungi fonda ishlaydi — yorug' mavzu
+     va uni almashtirish tugmasi olib tashlandi. -->
+<script>document.documentElement.setAttribute("data-theme","dark");</script>
 <meta charset="UTF-8">
 <!-- Mijoz so'rovi: barmoq bilan yaqinlashtirish/uzoqlashtirish MUMKIN bo'lsin.
      (Ikki marta bosganda sakrab zoom bo'lishi body{touch-action:manipulation}
@@ -150,19 +152,55 @@ body{
   touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
 /* Yumshoq nurli fon — statik, hech narsani sekinlashtirmaydi */
+/* ==================================================================
+   JONLI ORQA FON
+   Ikkita ko'rinmas nur qatlami butun ekran bo'ylab juda sekin suzadi
+   (70 va 95 soniya). Maqsad — sayt "tirik" tuyulsin, lekin ko'z
+   kartochkadan uzilmasin: shuning uchun harakat juda sekin, rang juda
+   past va kartochkalar ustida emas, ORQASIDA (z-index:-2).
+   Unumdorlik: faqat `transform` jonlantiriladi, ya'ni brauzer qayta
+   chizmaydi (GPU) — arzon telefonlarda ham sekinlashtirmaydi.
+   `prefers-reduced-motion` yoqilgan qurilmada harakat o'chadi. */
+body::before,body::after{
+  content:'';position:fixed;inset:-25%;z-index:-2;pointer-events:none;
+  will-change:transform;backface-visibility:hidden;
+}
 body::before{
-  content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:
-    radial-gradient(760px 460px at 10% -6%, var(--blob-1), transparent 60%),
-    radial-gradient(620px 420px at 94% 10%, var(--blob-2), transparent 58%),
-    radial-gradient(700px 520px at 52% 46%, var(--blob-3), transparent 60%),
-    radial-gradient(900px 700px at 50% 108%, var(--blob-4), transparent 62%);
+    radial-gradient(760px 460px at 20% 12%, var(--blob-1), transparent 60%),
+    radial-gradient(700px 520px at 58% 56%, var(--blob-3), transparent 60%);
+  animation:fonA 70s ease-in-out infinite;
+}
+body::after{
+  background:
+    radial-gradient(620px 420px at 82% 22%, var(--blob-2), transparent 58%),
+    radial-gradient(900px 700px at 46% 92%, var(--blob-4), transparent 62%);
+  animation:fonB 95s ease-in-out infinite;
+}
+@keyframes fonA{
+  0%  {transform:translate3d(0,0,0) scale(1)}
+  33% {transform:translate3d(8%,-6%,0) scale(1.12)}
+  66% {transform:translate3d(-7%,6%,0) scale(1.04)}
+  100%{transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes fonB{
+  0%  {transform:translate3d(0,0,0) scale(1.08)}
+  40% {transform:translate3d(-9%,7%,0) scale(1)}
+  75% {transform:translate3d(7%,-5%,0) scale(1.13)}
+  100%{transform:translate3d(0,0,0) scale(1.08)}
+}
+@media (prefers-reduced-motion:reduce){
+  body::before,body::after{animation:none}
 }
 html[data-theme="dark"] body::before{
   background:
-    radial-gradient(900px 540px at 12% -8%, rgba(58,110,255,.20), transparent 62%),
-    radial-gradient(760px 480px at 92% 4%, rgba(230,200,119,.12), transparent 60%),
-    radial-gradient(900px 700px at 50% 108%, rgba(46,95,224,.14), transparent 62%);
+    radial-gradient(900px 540px at 22% 10%, rgba(58,110,255,.20), transparent 62%),
+    radial-gradient(760px 480px at 60% 58%, rgba(46,95,224,.12), transparent 60%);
+}
+html[data-theme="dark"] body::after{
+  background:
+    radial-gradient(760px 480px at 80% 18%, rgba(230,200,119,.12), transparent 60%),
+    radial-gradient(900px 700px at 46% 94%, rgba(46,95,224,.14), transparent 62%);
 }
 body.noscroll{overflow:hidden}
 body.netbar-on #app{padding-top:58px}
@@ -398,48 +436,51 @@ html[data-theme="dark"] .op.on{background:var(--blue);border-color:var(--blue)}
 .srch-field.focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-tint),var(--sh-1)}
 .srch-cells{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
 .srch-dash{flex:none;width:10px;text-align:center;color:var(--faint);font-size:19px;font-weight:700;line-height:1;user-select:none}
-/* MUHIM — raqam katak ichida pastga tushib qolmasligi uchun:
-   `line-height` katakning TO'LIQ balandligiga teng qilinadi.
-   Shunda matn qutisi katakni to'liq egallaydi va raqam barcha
-   brauzerlarda (Android, iOS, Telegram ichidagi brauzer) bir xil —
-   aniq markazda turadi. Kursor balandligi ham shunga mos bo'ladi. */
+/* ==================================================================
+   7 TA KATAK — raqam HAR DOIM aniq markazda
+   Muammo tarixi: raqam <input> ning o'zida chizilganda uning vertikal
+   o'rni brauzerga (Android Chrome, iOS Safari, Telegram ichidagi
+   brauzer) va shriftga bog'liq bo'lib qolardi — ba'zi kataklarda
+   raqam pastga tushib ketardi, "xira" ko'rsatkich va yozilgan raqam
+   bir xil turmasdi.
+   YECHIM: <input> ning matni butunlay KO'RINMAYDI (color:transparent).
+   Raqam ustiga qo'yilgan <i class="cl-g"> qatlamida chiziladi va u
+   flexbox bilan markazlashadi — flexbox markazlashuvi barcha
+   brauzerlarda bir xil ishlaydi, shriftga ham bog'liq emas.
+   ================================================================== */
+.srch-cells .cl{position:relative;flex:1;min-width:0;display:block;height:66px}
 .srch-cells input{
-  flex:1;min-width:0;border:none;outline:none;border-radius:16px;
-  height:66px;padding:0;line-height:66px;
+  position:absolute;inset:0;width:100%;height:100%;
+  border:none;outline:none;border-radius:16px;padding:0;
   background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line-3);
-  text-align:center;color:var(--ink);
+  text-align:center;color:transparent;caret-color:transparent;
   font-family:'Space Grotesk',monospace;font-size:28px;font-weight:700;
   -webkit-appearance:none;appearance:none;
-  /* Kursor (chizig'i) ko'rsatilmaydi: katak bitta raqamlik, faol katak
-     allaqachon ko'k fon va halqa bilan ajralib turadi. Shu bilan ba'zi
-     telefonlarda raqamdan pastga cho'zilib turadigan baland kursor
-     muammosi butunlay yo'qoladi. */
-  caret-color:transparent;
-  transition:background .16s,box-shadow .16s,color .16s,transform .16s;
+  transition:background .16s,box-shadow .16s,transform .16s;
 }
-html[data-theme="dark"] .srch-cells input{
-  background:rgba(255,255,255,.055);
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.07);
+.srch-cells .cl-g{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',monospace;font-size:28px;font-weight:700;font-style:normal;
+  line-height:1;color:var(--faint);opacity:.55;
+  transition:color .16s,opacity .16s;
 }
-.srch-cells input::selection{background:transparent}
-.digits input::selection{background:transparent}
-.srch-cells input::placeholder{color:var(--faint);opacity:.55;font-weight:650}
+.srch-cells .cl.has .cl-g{color:#13224A;opacity:1}
+html[data-theme="dark"] .srch-cells .cl.has .cl-g{color:#fff}
 html[data-theme="dark"] .srch-cells input::placeholder{opacity:.6}
 /* yozilgan katak — fon aniq ochroq, ko'k, to'lgani darrov bilinadi */
-html .srch-cells input.has{
+html .srch-cells .cl.has input{
   background:linear-gradient(180deg,rgba(45,98,240,.14),rgba(45,98,240,.08));
   box-shadow:inset 0 0 0 1.5px rgba(45,98,240,.38),0 4px 14px -6px rgba(45,98,240,.35);
-  color:#13224A;
 }
 html .srch-cells input:focus{
   background:linear-gradient(180deg,rgba(45,98,240,.22),rgba(45,98,240,.12));
   box-shadow:inset 0 0 0 2px var(--blue),0 0 0 4px rgba(45,98,240,.14),0 6px 18px -6px rgba(45,98,240,.45);
   transform:translateY(-2px);
 }
-html[data-theme="dark"] .srch-cells input.has{
+html[data-theme="dark"] .srch-cells .cl.has input{
   background:linear-gradient(180deg,rgba(45,98,240,.30),rgba(45,98,240,.17));
   box-shadow:inset 0 0 0 1.5px rgba(96,142,255,.55),0 4px 14px -6px rgba(45,98,240,.55);
-  color:#fff;
 }
 html[data-theme="dark"] .srch-cells input:focus{
   background:linear-gradient(180deg,rgba(45,98,240,.42),rgba(45,98,240,.26));
@@ -1091,14 +1132,12 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 .tgn-ic svg{width:17px;height:17px}
 
 
-/* Raqam oynasidagi katta raqam — bosilsa nusxalanadi */
-.dt-numbtn{
-  display:inline-flex;align-items:center;gap:10px;margin-top:14px;padding:0;
-  font-size:31px;font-weight:700;color:#fff;background:none;border:none;
-  letter-spacing:.012em;cursor:pointer;-webkit-user-select:text;user-select:text;
+/* Raqam oynasidagi katta raqam — hech qanday belgisiz, lekin bosilsa
+   nusxalanadi (mijoz so'roviga ko'ra belgi olib tashlandi). */
+.dt-num{
+  margin-top:14px;font-size:31px;font-weight:700;color:#fff;letter-spacing:.012em;
+  -webkit-user-select:text;user-select:text;
 }
-.dt-numbtn svg{opacity:.55;flex:none;transition:opacity .18s,transform .18s}
-.dt-numbtn:active svg{opacity:1;transform:scale(.9)}
 
 /* ---------- Ofis manzili ("Biz haqimizda") ---------- */
 .ofis{padding:15px 16px 16px}
@@ -1384,7 +1423,9 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
   .catside .card{padding:24px;border-radius:24px}
   .catside .eyebrow{font-size:12.5px;letter-spacing:.11em}
   .srch-field{padding:10px;border-radius:24px}
-  .srch-cells input{height:68px;padding:0;line-height:68px;font-size:30px;border-radius:17px}
+  .srch-cells .cl{height:68px}
+  .srch-cells input{border-radius:17px}
+  .srch-cells .cl-g{font-size:30px}
   .srch-dash{font-size:21px;width:11px}
   .srch-act .btn{height:60px;font-size:16px}
   .srch-act #btnFilter{width:60px}
@@ -1461,7 +1502,6 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     </nav>
     <div class="dh-act">
       <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span id="dhLang">UZ</span></button>
-      <button class="iconbtn" data-theme-toggle aria-label="Mavzu"><svg class="ico-moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2z"></path></svg><svg class="ico-sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path></svg></button>
     </div>
   </div>
 </header>
@@ -1477,7 +1517,6 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     </div>
     <div style="display:flex;gap:8px;flex:none">
       <button class="iconbtn langbtn" data-lang-toggle aria-label="Tilni almashtirish"><span class="langlbl">UZ</span></button>
-      <button class="iconbtn" data-theme-toggle aria-label="Mavzu"><svg class="ico-moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2z"></path></svg><svg class="ico-sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"></path></svg></button>
     </div>
   </header>
 
@@ -1511,15 +1550,15 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
         <div class="srch">
           <div class="srch-field">
             <div class="srch-cells" id="digits">
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="1" data-i="0" aria-label="1-raqam">
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="2" data-i="1" aria-label="2-raqam">
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="3" data-i="2" aria-label="3-raqam">
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="0" aria-label="1-raqam"><i class="cl-g" data-ph="1">1</i></span>
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="1" aria-label="2-raqam"><i class="cl-g" data-ph="2">2</i></span>
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="2" aria-label="3-raqam"><i class="cl-g" data-ph="3">3</i></span>
               <span class="srch-dash">–</span>
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="4" data-i="3" aria-label="4-raqam">
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="5" data-i="4" aria-label="5-raqam">
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="3" aria-label="4-raqam"><i class="cl-g" data-ph="4">4</i></span>
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="4" aria-label="5-raqam"><i class="cl-g" data-ph="5">5</i></span>
               <span class="srch-dash">–</span>
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="6" data-i="5" aria-label="6-raqam">
-              <input type="text" inputmode="numeric" maxlength="1" placeholder="7" data-i="6" aria-label="7-raqam">
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="5" aria-label="6-raqam"><i class="cl-g" data-ph="6">6</i></span>
+              <span class="cl"><input type="text" inputmode="numeric" maxlength="1" data-i="6" aria-label="7-raqam"><i class="cl-g" data-ph="7">7</i></span>
             </div>
           </div>
 
@@ -1652,7 +1691,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
         </div>
         <button class="btn" id="ctBtn" style="margin-top:16px">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
-          <span data-t="Holatni ko'rish">Holatni ko'rish</span>
+          <span data-t="Holatni tekshirish">Holatni tekshirish</span>
         </button>
       </div>
 
@@ -1684,7 +1723,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 
       <a class="ptile rise" href="#/buyurtmalarim">
         <span class="pi" style="background:var(--blue-tint);color:var(--blue-text)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"></path><path d="M4 7.5 12 11l8-3.5M12 11v9"></path></svg></span>
-        <b data-t="Buyurtmalarim">Buyurtmalarim</b><i data-t="Tarixni ko'rish">Tarixni ko'rish</i>
+        <b data-t="Buyurtmalarim">Buyurtmalarim</b><i data-t="Buyurtmalar tarixi">Buyurtmalar tarixi</i>
       </a>
 
       <a class="ptile rise" href="#/shartnoma">
@@ -1847,7 +1886,7 @@ const RU = {
   "Sotib olingan raqamning oxirgi 4 ta raqami":"Последние 4 цифры купленного номера",
   "Bu — xavfsizlik uchun ikkinchi tekshiruv":"Это вторая проверка для безопасности","Tekshirish":"Проверить",
   "Kredit shartnoma holati":"Статус кредитного договора","Shartnoma ID":"ID договора",
-  "Shartnomadagi telefon raqam":"Номер телефона в договоре","Holatni ko'rish":"Посмотреть статус",
+  "Shartnomadagi telefon raqam":"Номер телефона в договоре","Holatni tekshirish":"Проверить статус",
   "Sozlamalar, yordam va aloqa":"Настройки, помощь и контакты","Ko'rinish":"Внешний вид","Mavzu":"Тема",
   "Yorug'":"Светлая","Tungi":"Тёмная","Tizim":"Системная","Til":"Язык","Aloqa va ma'lumot":"Контакты и информация",
   "Savol-javob":"Вопросы и ответы","Eng ko'p so'raladigan savollar":"Часто задаваемые вопросы",
@@ -1857,7 +1896,7 @@ const RU = {
   "O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.":"Бесплатная доставка по Узбекистану. Курьер привозит официальный договор и SIM-карту.",
   "Har kuni 9:00 – 21:00":"Ежедневно 9:00 – 21:00",
   /* dinamik */
-  "so'm":"сум","Ko'rish":"Смотреть","Band":"Занят","BAND":"ЗАНЯТ","VIP":"VIP",
+  "so'm":"сум","Batafsil":"Подробнее","Band":"Занят","BAND":"ЗАНЯТ","VIP":"VIP",
   "PREMIUM":"ПРЕМИУМ",
   "Buyurtma berish":"Оформить заказ","Jami":"Итого","Oyiga":"В месяц","Narxi":"Цена","Raqam haqida":"О номере",
   "O'xshash raqamlar":"Похожие номера","Bo'lib to'lash":"Рассрочка","Bo'lib to'lash mavjud":"Доступна рассрочка",
@@ -1885,7 +1924,7 @@ const RU = {
   "Sevimlilarga qo'shildi":"Добавлено в избранное","Sevimlilardan olib tashlandi":"Удалено из избранного",
   "Sevimlilar bo'sh":"Избранное пусто",
   "Yoqqan raqamni yurakcha tugmasi bilan belgilang — u shu yerda saqlanadi.":"Отметьте понравившийся номер сердечком — он сохранится здесь.",
-  "Raqamlarni ko'rish":"Смотреть номера","Raqam topilmadi":"Номер не найден",
+  "Katalogga o'tish":"Перейти в каталог","Raqam topilmadi":"Номер не найден",
   "Bunday raqam topilmadi":"Такой номер не найден","Maxsus buyurtma":"Особый заказ",
   "Maxsus raqam buyurtmasi":"Заказ особого номера","Arizani yuborish":"Отправить заявку",
   "Ariza qabul qilindi":"Заявка принята","Taxminiy narx":"Примерная цена",
@@ -1902,7 +1941,7 @@ const RU = {
   "Hozircha bo'sh o'rin yo'q":"Сейчас вакансий нет","Arizangiz yuborildi":"Ваша заявка отправлена",
   "Tez orada siz bilan bog'lanamiz.":"Мы свяжемся с вами в ближайшее время.",
   "Profil":"Профиль","Sozlamalar va bo'limlar":"Настройки и разделы","Bo'limlar":"Разделы",
-  "Shartnomalarim":"Мои договоры","Hujjatlar":"Документы","Tarixni ko'rish":"История заказов",
+  "Shartnomalarim":"Мои договоры","Hujjatlar":"Документы","Buyurtmalar tarixi":"История заказов",
   "Sevimli raqamlarim":"Избранные номера","Saqlanganlar":"Сохранённые",
   "Bo'lib to'lashga raqamlar":"Номера в рассрочку","Imkoniyat":"Возможность",
   "Vakansiyalar":"Вакансии","Ish o'rinlari":"Рабочие места","Instagram kanal":"Instagram-канал","Postlar":"Посты",
@@ -2310,18 +2349,18 @@ document.addEventListener('click', (e)=>{
 });
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && sheetStack.length) closeSheet(); });
 
-/* ---------- Mavzu: standart — tungi, mijoz xohlasa yorug' ---------- */
-function themeNow(){ try{ return localStorage.getItem('vip_theme')==='light' ? 'light' : 'dark'; }catch(e){ return 'dark'; } }
-function applyTheme(v){
-  const real = (v === 'light') ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', real);
+/* ---------- Mavzu: FAQAT tungi ----------
+   Mijoz so'roviga ko'ra yorug' mavzu va uni almashtirish tugmasi olib
+   tashlandi. Quyidagi funksiyalar saqlanib qoldi (boshqa joylarda
+   chaqiriladi va testlar ham ishlatadi), lekin endi doim tungi fon
+   qo'yiladi — eski saqlangan tanlov ham e'tiborga olinmaydi. */
+function themeNow(){ return 'dark'; }
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', 'dark');
   const mt = document.querySelector('meta[name="theme-color"]');
-  if(mt) mt.setAttribute('content', real === 'light' ? '#F4F7FC' : '#07152B');
-  /* tungida — quyosh (yorug'ga o'tish), yorug'da — oy */
-  document.querySelectorAll('.ico-sun').forEach(i => i.style.display = real === 'dark' ? '' : 'none');
-  document.querySelectorAll('.ico-moon').forEach(i => i.style.display = real === 'dark' ? 'none' : '');
+  if(mt) mt.setAttribute('content', '#07152B');
 }
-function setTheme(v){ try{ localStorage.setItem('vip_theme', v); }catch(e){} haptic('light'); applyTheme(v); }
+function setTheme(){ applyTheme(); }
 
 /* ---------- Yumshoq tebranish (haptic) ---------- */
 function haptic(kind){
@@ -2580,7 +2619,7 @@ function numCard(item){
     <div class="nc-sep"></div>
     <div class="nc-bot">
       <div class="nc-price">${price}</div>
-      <span class="nc-cta${res?' off':''}">${res?t('Band'):t("Ko'rish")}${res?'':ICO_ARR}</span>
+      <span class="nc-cta${res?' off':''}">${res?t('Band'):t('Batafsil')}${res?'':ICO_ARR}</span>
     </div>
   </article>`;
 }
@@ -2649,7 +2688,7 @@ function renderHome(){
               : `<div class="pv sg">${formatPrice(h.price)} ${UNITH(h)}</div>
                  ${ins?`<div class="pi2">${esc(ins)}</div>`:''}`}
           </div>
-          <span class="hc-cta">${t("Ko'rish")}${ICO_ARR}</span>
+          <span class="hc-cta">${t('Batafsil')}${ICO_ARR}</span>
         </div>
       </div>`;
     };
@@ -2792,7 +2831,7 @@ function dayCard(item){
         ${showCash ? `<b class="sg">${formatPrice(item.price)} ${UNITH(item)}</b>` : ''}
         ${ins ? `<i>${esc(ins)}</i>` : (showCash ? '' : `<i>${t("Bo'lib to'lash")}</i>`)}
       </div>
-      <span class="dc-go">${res ? t('Band') : t("Ko'rish")}${res ? '' : ICO_ARR}</span>
+      <span class="dc-go">${res ? t('Band') : t('Batafsil')}${res ? '' : ICO_ARR}</span>
     </div>
   </article>`;
 }
@@ -3044,7 +3083,7 @@ function renderFavorites(){
       <div class="swipe-in">${numCard(n)}</div>
     </div>`;
   $('#favList').innerHTML = items.length ? items.map(wrap).join('')
-    : emptyBox(IC_HEART_B, t("Sevimlilar bo'sh"), t("Yoqqan raqamni yurakcha tugmasi bilan belgilang — u shu yerda saqlanadi."), t("Raqamlarni ko'rish"), 'data-go="catalog"');
+    : emptyBox(IC_HEART_B, t("Sevimlilar bo'sh"), t("Yoqqan raqamni yurakcha tugmasi bilan belgilang — u shu yerda saqlanadi."), t('Katalogga o\'tish'), 'data-go="catalog"');
 }
 
 /* Nusxalab qo'yilgan raqamni kataklarga joylaydi */
@@ -3061,7 +3100,16 @@ function fillQuick(digits){
 function syncDigits(){
   const boxes = $$('#digits input');
   let n = 0;
-  boxes.forEach(b => { const v = !!b.value; if(v) n++; b.classList.toggle('has', v); });
+  boxes.forEach(b => {
+    const v = !!b.value;
+    if(v) n++;
+    b.classList.toggle('has', v);
+    /* Raqam <input> da emas, ustidagi qatlamda chiziladi — shunda u
+       barcha brauzerlarda aniq markazda turadi (yuqoridagi CSS izohi). */
+    const cl = b.parentElement, g = cl && cl.querySelector('.cl-g');
+    if(cl) cl.classList.toggle('has', v);
+    if(g) g.textContent = v ? b.value : (g.dataset.ph || '');
+  });
   $$('.srch-cells .srch-dash').forEach((d, i) => d.classList.toggle('on', n > (i === 0 ? 2 : 4)));
 }
 
@@ -3155,19 +3203,14 @@ function openDetail(id){
       <button class="iconbtn" data-close aria-label="Yopish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
       <span style="flex:1"></span>
-      <button class="iconbtn" data-copy aria-label="Nusxa olish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.4"></rect><path d="M5 15V5.6A1.6 1.6 0 0 1 6.6 4H15"></path></svg>
-      </button>
-      <button class="iconbtn" data-share aria-label="Ulashish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4"></path><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"></path></svg></button>
+      <!-- MIJOZ SO'ROVI: "Nusxa olish" va "Ulashish" tugmalari olib
+           tashlandi — sarlavha avvalgidek sodda qoladi. Raqamning
+           O'ZIGA bosilsa baribir nusxalanadi (belgisiz). -->
       <button class="iconbtn" data-fav="${esc(item.id)}" aria-label="Sevimlilar" style="background:rgba(230,200,119,.18);border-color:transparent;color:#E6C877">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="${fav?'currentColor':'none'}" stroke="#E6C877" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg></button>
     </div>
     <div style="position:relative;margin-top:26px">
-      ${item.featured ? `<span style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#E6C877;background:rgba(230,200,119,.16);padding:4px 9px;border-radius:6px">${t('VIP')} ${t('Raqam').toUpperCase()}</span>` : ''}
-      <button type="button" data-copy class="dt-numbtn sg" aria-label="Nusxa olish">${esc(shortNumber(item.number))}
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.4"></rect><path d="M5 15V5.6A1.6 1.6 0 0 1 6.6 4H15"></path></svg>
-      </button>
+      <div class="sg dt-num" data-copy>${esc(shortNumber(item.number))}</div>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#C9D6E8;font-weight:600"><i style="width:7px;height:7px;border-radius:2px;background:${m.color};display:inline-block"></i>${esc(item.operator||'')}</span>
       </div>
@@ -3900,7 +3943,7 @@ async function lookupContract(){
   }catch(err){
     box.innerHTML = emptyBox(IC_WARN, t("Tekshirib bo'lmadi"), xatoMatni(err), null, null, true);
   }finally{
-    btn.disabled = false; btn.textContent = t("Holatni ko'rish");
+    btn.disabled = false; btn.textContent = t('Holatni tekshirish');
   }
 }
 
@@ -4302,9 +4345,6 @@ document.addEventListener('pointerdown', (e)=>{
 }, {passive:true});
 
 document.addEventListener('click', (e)=>{
-
-  const tt = e.target.closest('[data-theme-toggle]');
-  if(tt){ setTheme(themeNow() === 'dark' ? 'light' : 'dark'); return; }
 
   const uf = e.target.closest('[data-unfav]');
   if(uf){

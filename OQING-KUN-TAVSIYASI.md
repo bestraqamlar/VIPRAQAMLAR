@@ -442,3 +442,124 @@ yoki ba'zi brauzerlarda u jim qolardi. Endi:
 Va eng muhimi: **raqam oynasidagi katta raqamning o'ziga bosish ham
 nusxalaydi** — yonida kichik nusxa belgisi turadi, ya'ni tugmani qidirish
 shart emas. Yuqoridagi nusxa tugmasi ham joyida qoldi.
+
+---
+
+# 7 ta katak — raqam endi hech qachon pastga tushmaydi
+
+Muammo qayta-qayta qaytib kelardi, chunki ildizi chuqurroq edi: raqam
+`<input>` ning O'ZIDA chizilardi, demak uning vertikal o'rni brauzerga
+(Android Chrome, iOS Safari, Telegram ichidagi brauzer) va shrift
+metrikasiga bog'liq bo'lib qolardi. Shuning uchun "xira" ko'rsatkich
+raqam bilan yozilgan raqam bir xil turmasdi va ba'zi kataklarda pastga
+siljirdi. `line-height` bilan tuzatish faqat ba'zi brauzerlarda ishlardi.
+
+**Yechim — tubdan boshqacha:** `<input>` ning matni endi butunlay
+ko'rinmaydi (`color:transparent`), raqam esa uning ustidagi alohida
+qatlamda chiziladi va **flexbox bilan markazlashadi**. Flexbox
+markazlashuvi barcha brauzerlarda bir xil ishlaydi va shriftga umuman
+bog'liq emas — ya'ni muammo butunlay yopildi.
+
+Yon ta'sir sifatida: xira ko'rsatkich raqam ham, yozilgan raqam ham
+**aynan bitta joyda** chiziladi, shuning uchun yozganda raqam joyidan
+qimirlamaydi. Kursor ko'rinmasligi (avvalgi tuzatish) saqlanib qoldi.
+
+Tekshirildi: to'lgan va bo'sh kataklar yonma-yon — oq va qora fonda
+raqamlar bir chiziqda; kataklarga yozish, o'chirish, chiziqchalar va
+qidiruv jarayoni (`cells`, `caret`, `flow`) testlari o'tdi.
+
+---
+
+# Raqam oynasi sarlavhasi — soddalashtirildi
+
+Mijoz so'roviga ko'ra olib tashlandi:
+
+- «Nusxa olish» tugmasi (yuqoridagi belgi)
+- «Ulashish» tugmasi
+- Raqam yonidagi kichik nusxa belgisi
+- «VIP RAQAM» yorlig'i
+
+Qoldi: orqaga qaytish, sevimlilar (yurakcha), raqam va operator — ya'ni
+avvalgi sodda ko'rinish.
+
+Raqamning **O'ZIGA bosilsa baribir nusxalanadi** — hech qanday belgi
+ko'rinmaydi, lekin mijoz raqamga bossa buferga tushadi va «Raqam
+nusxalandi» xabari chiqadi. Matnni barmoq bilan belgilab nusxalash ham
+ishlayveradi. Agar bu ham keraksiz bo'lsa — ayting, bir daqiqada olaman.
+
+---
+
+# «Ko'rish» → «Batafsil»
+
+Ro'yxatdagi tugma yozuvi uchchala joyda ham o'zgartirildi: raqam
+kartochkasi, bosh sahifadagi premium karusel va kun tavsiyasi.
+Ruscha tarjimasi — «Подробнее».
+
+Sabab: «Ko'rish» og'zaki va noaniq; «Batafsil» rasmiy, qisqa va halol —
+bosilganda rostdan ham batafsil ma'lumot oynasi ochiladi.
+
+Ierarxiya tiniq bo'ldi:
+- Ro'yxatda — **Batafsil** (jim, tiniq ko'k): «qarab chiqaman»
+- Raqam oynasida — **Buyurtma berish** (to'q ko'k): «olaman»
+
+«Band» yozuvi band raqamlarda avvalgidek qoladi.
+
+## «Ko'rish» saytdan butunlay olib tashlandi
+
+Kartochkalardan tashqari yana uchta joyda qolgan edi — ular ham rasmiy
+ohangga keltirildi (ma'nosiga mos so'z bilan):
+
+| Qayerda | Avval | Hozir | Ruscha |
+|---|---|---|---|
+| Raqam kartochkasi, premium karusel, kun tavsiyasi | Ko'rish | **Batafsil** | Подробнее |
+| Buyurtmalarim — holat tugmasi | Holatni ko'rish | **Holatni tekshirish** | Проверить статус |
+| Profil — Buyurtmalarim plitkasi | Tarixni ko'rish | **Buyurtmalar tarixi** | История заказов |
+| Sevimlilar bo'sh ekrani | Raqamlarni ko'rish | **Katalogga o'tish** | Перейти в каталог |
+
+Tekshiruv: beshta ekranda (bosh sahifa, katalog, qidiruv natijasi,
+sevimlilar, profil, buyurtmalarim) o'zbekcha va ruscha rejimda
+«Ko'rish» / «Смотреть» so'zi **0 marta** uchraydi.
+
+---
+
+# Yorug' mavzu olib tashlandi — sayt faqat tungi
+
+Mijoz so'roviga ko'ra:
+
+- Mavzu almashtirish tugmasi **ikkala sarlavhadan ham** (telefon va
+  kompyuter) olib tashlandi
+- Sahifa **doim tungi fonda** ochiladi: tizim (telefon) yorug' rejimda
+  bo'lsa ham, mijozda eski «light» tanlovi saqlangan bo'lsa ham
+- Brauzer paneli rangi (`theme-color`) doim `#07152B`
+
+Yorug' mavzuning CSS qoidalari **o'chirilmadi** — kerak bo'lsa tugmani
+qaytarish uchun bir necha satr yetarli. Kontrast testi ham ikkala mavzuni
+tekshirishda davom etadi, ya'ni yorug' mavzu buzilmay turadi.
+
+Eski `theme.cjs` testi (tugmani tekshirardi) yangisi bilan almashtirildi:
+endi u saytning **har doim tungi** qolishini tekshiradi.
+
+---
+
+# Jonli orqa fon
+
+Orqa fonda ikkita **ko'rinmas nur qatlami** butun ekran bo'ylab juda
+sekin suzadi — biri 70 soniyada, ikkinchisi 95 soniyada bir aylanadi va
+ular bir-biriga mos kelmaydi, shuning uchun harakat takrorlanayotgandek
+tuyulmaydi.
+
+Shartlar bajarildi:
+
+- **Kartochkaga ta'sir qilmaydi** — qatlamlar `z-index:-2` da, ya'ni butun
+  kontentning ORQASIDA; bosish va surishga ham aralashmaydi
+  (`pointer-events:none`)
+- **Ko'z ketmaydi** — ikki kadr orasidagi farq o'rtacha 255 dan 3–4 birlik,
+  ya'ni ~1,5%. Qarab turganda sezilmaydi, lekin ekran "nafas olayotgandek"
+  jonli tuyuladi
+- **Sekinlashtirmaydi** — faqat `transform` jonlantiriladi (GPU), brauzer
+  qayta chizmaydi. O'lchov: **60 FPS**
+- Animatsiyani o'chirgan qurilmada (`prefers-reduced-motion`) harakat
+  butunlay to'xtaydi
+
+Tekshiruv: 0 / 23 / 47-soniyadagi kadrlar solishtirildi — fon rostdan ham
+siljiydi; kontrast 0 xato, 12 ta harness o'tdi.
