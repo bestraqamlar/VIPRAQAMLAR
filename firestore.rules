@@ -178,10 +178,15 @@ service cloud.firestore {
       // bo'limga ruxsati borlar o'zgartira oladi. "general" hujjati esa
       // "Uslublar" VA "Sozlamalar" ikkala bo'lim tomonidan ham
       // ishlatiladi, shu sabab ikkalasidan biriga ruxsat bo'lsa yetarli.
+      // "daily_picks" — "Kun tavsiyasi" bo'limi (Kontent guruhi). Adminkada
+      // u "Aksiya" bilan bir xil ruxsatga bog'langan, shu sabab server
+      // tomoni ham aynan shu kalitni tekshiradi (ikkisi bir xil bo'lishi
+      // muhim: aks holda bo'lim ko'rinib, saqlash rad etilardi).
       allow write: if
         (doc == 'instagram_bot' && hasPerm('instagram'))
         || (doc == 'telegram_bot' && hasPerm('telegramai'))
-        || (doc != 'instagram_bot' && doc != 'telegram_bot' && (hasPerm('styles') || hasPerm('settings')));
+        || (doc == 'daily_picks' && (hasPerm('aksiya') || hasPerm('numbers') || hasPerm('settings')))
+        || (doc != 'instagram_bot' && doc != 'telegram_bot' && doc != 'daily_picks' && (hasPerm('styles') || hasPerm('settings')));
     }
 
     match /active_sessions/{doc} {

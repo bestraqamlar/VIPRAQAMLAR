@@ -64,6 +64,9 @@
   --nc-line:rgba(16,32,60,.09);
   --glow-a:rgba(36,87,230,.17); --glow-b:rgba(124,58,237,.13);
   --tg-glow:rgba(45,160,220,.16); --tg-line:rgba(45,160,220,.26); --tg-line-2:rgba(45,160,220,.5);
+  --day-bg:linear-gradient(160deg,rgba(255,255,255,.86),rgba(240,252,249,.72));
+  --day-glow:rgba(16,160,132,.14); --day-line:rgba(16,160,132,.25); --day-line-2:rgba(16,160,132,.5);
+  --day-rib:rgba(16,160,132,.13); --day-rib-ink:#0A6A58;
   --blob-1:rgba(36,87,230,.17); --blob-2:rgba(192,138,46,.13);
   --blob-3:rgba(124,58,237,.1); --blob-4:rgba(36,87,230,.12);
   --vip-head:linear-gradient(135deg,rgba(158,116,20,.34) 0%,rgba(158,116,20,.17) 58%,rgba(158,116,20,.04) 100%);
@@ -103,6 +106,9 @@ html[data-theme="dark"]{
   --nc-line:rgba(255,255,255,.1);
   --glow-a:rgba(92,150,255,.30); --glow-b:rgba(164,123,255,.23);
   --tg-glow:rgba(56,176,227,.22); --tg-line:rgba(56,176,227,.3); --tg-line-2:rgba(56,176,227,.6);
+  --day-bg:linear-gradient(160deg,rgba(38,196,164,.14),rgba(20,110,95,.08));
+  --day-glow:rgba(45,210,176,.2); --day-line:rgba(45,210,176,.26); --day-line-2:rgba(45,210,176,.55);
+  --day-rib:rgba(45,210,176,.16); --day-rib-ink:#8FEFD9;
   --blob-1:rgba(46,95,224,.34); --blob-2:rgba(201,160,65,.2);
   --blob-3:rgba(124,58,237,.22); --blob-4:rgba(46,95,224,.24);
   --vip-head:linear-gradient(135deg,rgba(201,160,65,.39) 0%,rgba(178,138,52,.20) 58%,rgba(160,122,42,.05) 100%);
@@ -219,9 +225,16 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0
   transition:color .2s,background .22s cubic-bezier(.2,.8,.3,1);
 }
 #nav a svg{width:24px;height:24px;stroke-width:2;position:relative;z-index:1;transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+/* Instagram uslubi: tanlangan bo'lim ikonkasi TO'LIQ to'ldirilgan,
+   qolganlari nozik chiziqli. Har bir tugmada ikkala ko'rinish ham
+   turadi, faqat biri ko'rsatiladi — JS kerak emas, DOM almashmaydi,
+   shu sabab animatsiya ham uzilmaydi. */
+#nav a .ic-f{display:none}
+#nav a.on .ic-o{display:none}
+#nav a.on .ic-f{display:block}
 #nav a span.lbl{display:none}
 #nav a.on{color:var(--navink-on)}
-#nav a.on svg{stroke-width:2.3;transform:translateY(-.5px)}
+#nav a.on svg{transform:translateY(-.5px)}
 #nav a .pill{display:none}
 /* Instagramdagidek: bitta kapsula tanlangan bo'limga sekin suriladi */
 .navpill{
@@ -376,21 +389,31 @@ html[data-theme="dark"] .op.on{background:var(--blue);border-color:var(--blue)}
 .srch-field.focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-tint),var(--sh-1)}
 .srch-cells{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
 .srch-dash{flex:none;width:10px;text-align:center;color:var(--faint);font-size:19px;font-weight:700;line-height:1;user-select:none}
+/* MUHIM — raqam katak ichida pastga tushib qolmasligi uchun:
+   `line-height` katakning TO'LIQ balandligiga teng qilinadi.
+   Shunda matn qutisi katakni to'liq egallaydi va raqam barcha
+   brauzerlarda (Android, iOS, Telegram ichidagi brauzer) bir xil —
+   aniq markazda turadi. Kursor balandligi ham shunga mos bo'ladi. */
 .srch-cells input{
-  flex:1;min-width:0;height:66px;border:none;outline:none;border-radius:16px;
+  flex:1;min-width:0;border:none;outline:none;border-radius:16px;
+  height:66px;padding:0;line-height:66px;
   background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line-3);
   text-align:center;color:var(--ink);
-  font-family:'Space Grotesk',monospace;font-size:28px;font-weight:700;padding:0;
-  /* MUHIM: line-height sahifadan (1.5) meros bo'lsa, ba'zi telefon
-     brauzerlarida raqam katak ichida pastga tushib qoladi va kursor
-     juda baland bo'lib ko'rinadi. line-height:1 buni butunlay yo'q qiladi. */
-  line-height:1;
+  font-family:'Space Grotesk',monospace;font-size:28px;font-weight:700;
+  -webkit-appearance:none;appearance:none;
+  /* Kursor (chizig'i) ko'rsatilmaydi: katak bitta raqamlik, faol katak
+     allaqachon ko'k fon va halqa bilan ajralib turadi. Shu bilan ba'zi
+     telefonlarda raqamdan pastga cho'zilib turadigan baland kursor
+     muammosi butunlay yo'qoladi. */
+  caret-color:transparent;
   transition:background .16s,box-shadow .16s,color .16s,transform .16s;
 }
 html[data-theme="dark"] .srch-cells input{
   background:rgba(255,255,255,.055);
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.07);
 }
+.srch-cells input::selection{background:transparent}
+.digits input::selection{background:transparent}
 .srch-cells input::placeholder{color:var(--faint);opacity:.55;font-weight:650}
 html[data-theme="dark"] .srch-cells input::placeholder{opacity:.6}
 /* yozilgan katak — fon aniq ochroq, ko'k, to'lgani darrov bilinadi */
@@ -440,8 +463,12 @@ html[data-theme="dark"] .srch-cells input:focus{
 .srch-act #btnFilter{width:58px;flex:none;padding:0;position:relative;border-radius:18px}
 .srch-act #btnFilter .dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--red)}
 
-.tag{font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:3px 8px;border-radius:6px}
+.tag{font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:3px 8px;border-radius:6px;
+  white-space:nowrap;flex:none;display:inline-flex;align-items:center;gap:4px;line-height:1.35}
+.tag.off{background:var(--red);color:#fff;letter-spacing:.02em}
 .tag.vip{color:var(--gold-ink);background:var(--gold-tint)}
+/* toj ikonkasi har doim kichik — band kartochkada ham */
+.tag.vip svg{width:11px;height:11px;flex:none}
 .tag.blue{color:var(--blue-ink);background:var(--blue-tint)}
 .tag.green{color:var(--green);background:var(--green-tint)}
 .tag.red{color:var(--red);background:var(--red-tint)}
@@ -537,7 +564,7 @@ input[data-upper]{text-transform:uppercase}
 /* pastki qism — oddiy kartochkadagidek */
 .numcard.vipc .nc-sep{display:none}
 .numcard.vipc .nc-bot{padding:0 17px 0 19px}
-.numcard.vipc .nc-off{top:17px;right:66px;bottom:auto;left:auto}
+
 
 /* ==== TOIFALAR: VIP / PREMIUM / GOLD ==== */
 /* --- yorug' mavzu --- */
@@ -622,7 +649,7 @@ html[data-theme="dark"] .numcard.t-gold{
 .numcard.res{opacity:.58}
 
 .nc-top{display:flex;align-items:flex-start;gap:12px}
-.nc-num{font-size:21px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15}
+.nc-num{font-size:21px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
 /* VIP raqam — to'liq tiniq, bir xil rangda (o'qish qulay bo'lsin) */
 .numcard.vipc .nc-num{color:var(--ink)}
 .nc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -665,10 +692,7 @@ html[data-theme="dark"] .numcard.t-gold{
 .nc-cta svg{opacity:.9;transition:transform .2s}
 .numcard:hover .nc-cta svg{transform:translateX(2px)}
 .nc-cta.off{background:var(--card-3);color:var(--faint);box-shadow:none}
-.nc-off{
-  position:absolute;top:13px;right:62px;background:var(--red);color:#fff;
-  font-size:10px;font-weight:800;padding:4px 8px;border-radius:8px;letter-spacing:.02em;
-}
+
 
 .list{display:flex;flex-direction:column;gap:11px}
 
@@ -756,9 +780,11 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 /* ---------- Qidiruv kataklari ---------- */
 .digits{display:flex;gap:7px;justify-content:space-between}
 .digits input{
-  flex:1;min-width:0;height:54px;border-radius:13px;border:1.5px solid var(--line-2);
+  flex:1;min-width:0;border-radius:13px;border:1.5px solid var(--line-2);
+  height:54px;padding:0;line-height:51px;
   background:var(--card);text-align:center;font-family:'Space Grotesk',monospace;
-  font-size:21px;font-weight:700;color:var(--ink);outline:none;padding:0;line-height:1;
+  font-size:21px;font-weight:700;color:var(--ink);outline:none;
+  -webkit-appearance:none;appearance:none;caret-color:transparent;
   transition:border-color .16s,box-shadow .16s,transform .16s;
 }
 .digits input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);transform:translateY(-1px)}
@@ -873,9 +899,8 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   padding:5px 10px;border-radius:8px;
 }
 .herocard .nc-op{background:rgba(255,255,255,.1);color:#DCE6F5}
-.herocard .num{font-size:28px;font-weight:700;margin-top:14px;letter-spacing:.01em}
-.herocard .sub{font-size:11.5px;color:#9FB4D4;font-weight:600;margin-top:6px}
-.hc-bot{margin-top:16px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px}
+.herocard .num{font-size:28px;font-weight:700;margin-top:17px;letter-spacing:.01em}
+.hc-bot{margin-top:19px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px}
 .hc-price{flex:1;min-width:0}
 .hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hc-price .pv.ins2{font-size:14.5px;line-height:1.35;white-space:normal;color:#F0D898}
@@ -890,6 +915,56 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .herodots{display:flex;gap:5px;justify-content:center;margin-top:12px}
 .herodots i{width:6px;height:6px;border-radius:3px;background:var(--line-2);transition:width .25s,background .25s}
 .herodots i.on{width:18px;background:var(--blue)}
+
+/* ---------- Kun tavsiyasi (gorizontal surib o'tiladigan) ---------- */
+.dayrow{position:relative;margin:0 -18px}
+.dayrow::after{
+  content:'';position:absolute;top:0;bottom:0;right:0;width:26px;z-index:2;pointer-events:none;
+  background:linear-gradient(270deg,var(--ground) 20%,transparent);
+}
+.dayrow-in{
+  display:flex;gap:11px;overflow-x:auto;scrollbar-width:none;
+  padding:4px 18px 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+}
+.dayrow-in::-webkit-scrollbar{display:none}
+
+.daycard{
+  flex:none;width:min(74vw,268px);scroll-snap-align:start;
+  position:relative;overflow:hidden;border-radius:22px;padding:15px 16px 14px;
+  background:
+    radial-gradient(150px 120px at 100% 0%, var(--day-glow), transparent 70%),
+    var(--day-bg);
+  border:1px solid var(--day-line);
+  box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  transition:transform .2s cubic-bezier(.2,.8,.3,1),box-shadow .2s,border-color .2s;
+}
+.daycard:active{transform:scale(.98)}
+.daycard:hover{transform:translateY(-3px);box-shadow:var(--sh-2);border-color:var(--day-line-2)}
+.daycard .dc-rib{
+  display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:8px;
+  font-size:9.5px;font-weight:800;letter-spacing:.1em;
+  background:var(--day-rib);color:var(--day-rib-ink);box-shadow:inset 0 0 0 1px var(--day-line);
+}
+.daycard .dc-rib svg{width:11px;height:11px;flex:none}
+.daycard .dc-num{margin-top:12px;font-size:21px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.daycard .dc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.daycard .dc-sep{height:1px;background:var(--day-line);margin:13px 0 11px;opacity:.7}
+.daycard .dc-bot{display:flex;align-items:center;gap:10px}
+.daycard .dc-price{flex:1;min-width:0}
+.daycard .dc-price b{display:block;font-size:16.5px;font-weight:700;white-space:nowrap}
+.daycard .dc-price b small{font-family:'Plus Jakarta Sans';font-size:10.5px;color:var(--muted-2);font-weight:600}
+.daycard .dc-price i{display:inline-block;margin-top:4px;font-size:10.5px;font-style:normal;font-weight:700;
+  color:var(--day-rib-ink);background:var(--day-rib);padding:3px 7px;border-radius:7px;white-space:nowrap}
+.daycard .dc-go{
+  flex:none;height:36px;padding:0 13px;border-radius:12px;display:flex;align-items:center;gap:6px;
+  background-color:#0E7C68;background-image:linear-gradient(180deg,#19A98E,#0E7C68);color:#fff;
+  font-size:12.5px;font-weight:700;box-shadow:0 6px 16px -8px rgba(14,124,104,.95);
+}
+.daycard .dc-go svg{transition:transform .2s}
+.daycard:hover .dc-go svg{transform:translateX(2px)}
+.daycard.res{opacity:.6}
+.daycard.res .dc-go{background-image:none;background-color:var(--card-3);color:var(--faint);box-shadow:none}
 
 /* ---------- Telegram kanal kartochkasi ---------- */
 .tgcard{
@@ -1052,7 +1127,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .catside .card{padding:24px;border-radius:24px}
   .catside .eyebrow{font-size:12.5px;letter-spacing:.11em}
   .srch-field{padding:10px;border-radius:24px}
-  .srch-cells input{height:68px;font-size:30px;border-radius:17px}
+  .srch-cells input{height:68px;padding:0;line-height:68px;font-size:30px;border-radius:17px}
   .srch-dash{font-size:21px;width:11px}
   .srch-act .btn{height:60px;font-size:16px}
   .srch-act #btnFilter{width:60px}
@@ -1148,7 +1223,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
     <div class="herodots" id="heroDots"></div>
 
     <div class="sect">
-      <div class="sect-h"><h2 data-t="Tanlangan VIP raqamlar">Tanlangan VIP raqamlar</h2><button data-go="catalog" data-t="Hammasi">Hammasi</button></div>
+      <div class="sect-h"><h2 data-t="Tavsiya etiladi">Tavsiya etiladi</h2></div>
       <div class="list" id="homeFeatured"></div>
     </div>
 
@@ -1328,12 +1403,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Profil">Profil</h1><div class="sub" data-t="Sozlamalar va bo'limlar">Sozlamalar va bo'limlar</div></div></header>
   <div class="pad wrap" style="padding-top:16px">
 
-    <div class="eyebrow" data-t="Til">Til</div>
-    <div class="seg" style="margin-top:10px" id="langPick">
-      <button class="lpick on" data-lang-val="uz">O'zbekcha</button>
-      <button class="lpick" data-lang-val="ru">Русский</button>
-    </div>
-
     <a class="tgcard" id="moreTg" href="https://t.me/vip_raqamlar_uz" target="_blank" rel="noopener">
       <span class="tg-ic">
         <svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true"><path d="M21.6 4.3 2.9 11.5c-.9.35-.88 1.63.03 1.95l4.6 1.6 1.78 5.3c.23.68 1.1.86 1.58.33l2.5-2.75 4.7 3.45c.6.44 1.45.11 1.6-.62l3.2-15c.17-.78-.6-1.44-1.3-1.16zM9.5 14.3l-.3 3.2-1.2-3.6 8.9-5.6-7.4 6z"></path></svg>
@@ -1392,8 +1461,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top:1px"><path d="M3 16V7h10v9"></path><path d="M13 10h4l3 3.2V16"></path><circle cx="7" cy="18" r="1.9"></circle><circle cx="17" cy="18" r="1.9"></circle></svg>
       <div style="font-size:12px;color:var(--text-2);font-weight:600;line-height:1.55" id="moreDelivery" data-t="O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.">O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.</div>
     </div>
-    <div style="margin-top:12px;text-align:center;font-size:11px;color:var(--muted-2);font-weight:650" id="moreHours">Har kuni 9:00 – 21:00</div>
-    <div style="margin-top:16px;text-align:center;font-size:10.5px;color:var(--muted-2);font-weight:600;line-height:1.7">© 2026 VIP RAQAMLAR (vipraqamlar.uz)</div>
   </div>
 </section>
 
@@ -1402,13 +1469,13 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 <!-- =====================  PASTKI NAVIGATSIYA  ===================== -->
 <nav id="nav" aria-label="Asosiy menyu"><span class="navpill" id="navPill" aria-hidden="true"></span>
   <a href="#/" data-nav="home" class="on"><span class="pill"></span>
-    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5.5 10v9.5h13V10"></path></svg><span class="lbl" data-t="Bosh sahifa">Bosh sahifa</span></a>
+    <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5.5 10v9.5h13V10"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><path d="M3.2 10.6 12 3.6l8.8 7v8.5a1.6 1.6 0 0 1-1.6 1.6h-3.6v-5.8H8.4v5.8H4.8a1.6 1.6 0 0 1-1.6-1.6z"></path></svg><span class="lbl" data-t="Bosh sahifa">Bosh sahifa</span></a>
   <a href="#/katalog" data-nav="catalog"><span class="pill"></span>
-    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg><span class="lbl" data-t="Katalog">Katalog</span></a>
+    <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M11 3a8 8 0 1 0 4.72 14.46l3.37 3.37a1.25 1.25 0 0 0 1.77-1.77l-3.37-3.37A8 8 0 0 0 11 3zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path></svg><span class="lbl" data-t="Katalog">Katalog</span></a>
   <a href="#/sevimlilar" data-nav="fav"><span class="pill"></span>
-    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg><span class="lbl" data-t="Sevimli">Sevimli</span><span class="badge" id="navFavBadge" style="display:none">0</span></a>
+    <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 20.3s-7.3-4.8-7.3-9.7A4.1 4.1 0 0 1 12 7.8a4.1 4.1 0 0 1 7.3 2.8c0 4.9-7.3 9.7-7.3 9.7z"></path></svg><span class="lbl" data-t="Sevimli">Sevimli</span><span class="badge" id="navFavBadge" style="display:none">0</span></a>
   <a href="#/profil" data-nav="more"><span class="pill"></span>
-    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.4"></circle><path d="M5 20c0-3.7 3.1-6.2 7-6.2s7 2.5 7 6.2"></path></svg><span class="lbl" data-t="Profil">Profil</span></a>
+    <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.4"></circle><path d="M5 20c0-3.7 3.1-6.2 7-6.2s7 2.5 7 6.2"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="8.3" r="3.8"></circle><path d="M4.8 20.4c0-3.9 3.3-6.6 7.2-6.6s7.2 2.7 7.2 6.6a1 1 0 0 1-1 1H5.8a1 1 0 0 1-1-1z"></path></svg><span class="lbl" data-t="Profil">Profil</span></a>
 </nav>
 
 <div id="toasts" aria-live="polite"></div>
@@ -1499,7 +1566,7 @@ const RU = {
   "Chiroyli raqamlar":"Красивые номера","Bosh sahifa":"Главная","Katalog":"Каталог","Sevimlilar":"Избранное",
   "Sevimli":"Избранное","Buyurtmalarim":"Мои заказы","Buyurtma":"Заказ","Ma'lumot":"Информация","Yana":"Ещё",
   "Bog'lanish":"Связаться","Xush kelibsiz":"Добро пожаловать","Operatorlar":"Операторы","Hammasi":"Все",
-  "Tanlangan VIP raqamlar":"Избранные VIP номера","Sizga tavsiya qilamiz":"Рекомендуем вам","Mijozlar fikri":"Отзывы клиентов",
+  "Tavsiya etiladi":"Рекомендуем","Kun tavsiyasi":"Выбор дня","KUN TAVSIYASI":"ВЫБОР ДНЯ","Sizga tavsiya qilamiz":"Рекомендуем вам","Mijozlar fikri":"Отзывы клиентов",
   "Kerakli raqamingiz yo'qmi?":"Не нашли нужный номер?","Oxirgi 4 ta raqamni ayting — biz topamiz":"Назовите последние 4 цифры — мы найдём",
   "Barcha huquqlar himoyalangan.":"Все права защищены.","Raqam bo'yicha qidirish":"Поиск по номеру",
   "keyingi 7 ta raqam":"следующие 7 цифр","Bo'sh katakcha — istalgan raqam":"Пустая ячейка — любая цифра",
@@ -1520,7 +1587,7 @@ const RU = {
   "Har kuni 9:00 – 21:00":"Ежедневно 9:00 – 21:00",
   /* dinamik */
   "so'm":"сум","Ko'rish":"Смотреть","Band":"Занят","BAND":"ЗАНЯТ","VIP":"VIP",
-  "PREMIUM TANLOV":"ПРЕМИУМ ВЫБОР","Nomingizga rasmiylashtiriladi":"Оформляется на ваше имя",
+  "PREMIUM":"ПРЕМИУМ",
   "Buyurtma berish":"Оформить заказ","Jami":"Итого","Oyiga":"В месяц","Narxi":"Цена","Raqam haqida":"О номере",
   "O'xshash raqamlar":"Похожие номера","Bo'lib to'lash":"Рассрочка","Bo'lib to'lash mavjud":"Доступна рассрочка",
   "Bo'lib to'lash hisob-kitobi":"Расчёт рассрочки","Bo'lib to'lash shartlari":"Условия рассрочки",
@@ -1619,6 +1686,18 @@ const formatPrice = (n) => Number(n||0).toLocaleString('ru-RU').replace(/,/g,' '
 const formatPriceUzs = (n) => formatPrice(n) + " so'm";
 const SUM = () => t("so'm");
 
+/* ---------- VALYUTA ----------
+   Admin panelda raqamga "dollarda" belgisi qo'yilgan bo'lsa (currency:'usd'),
+   uning NAQT narxi so'm emas, dollarda ko'rsatiladi. Bo'lib to'lash esa
+   har doim so'mda hisoblanadi — shu sabab dollarlik raqamda bo'lib to'lash
+   umuman taklif qilinmaydi (faqat naqt to'lov). */
+function isUsd(item){
+  const c = item && item.currency;
+  return typeof c === 'string' && c.toLowerCase() === 'usd';
+}
+/* Narx yonidagi birlik: "so'm" yoki "$" */
+function UNIT(item){ return isUsd(item) ? '$' : SUM(); }
+
 function hasActiveDiscount(i){
   if(!i || !i.oldPrice || !(i.oldPrice > i.price)) return false;
   if(i.dailyDeal === true && i.dealExpiresAt && i.dealExpiresAt <= Date.now()) return false;
@@ -1642,6 +1721,7 @@ function installmentFinancingFor(item){
    yoki kun taklifi uchun oylik to'lov kiritilgan raqamlar. */
 function installmentAllowed(item){
   if(!item) return false;
+  if(isUsd(item)) return false;   /* dollarlik raqam — faqat naqt to'lov */
   if(item.installment === true) return true;
   if(installmentFinancingFor(item)) return true;
   if(item.dailyDeal && (item.dealMonthly6 || item.dealMonthly12 || item.dealMonthly24)) return true;
@@ -1649,7 +1729,8 @@ function installmentAllowed(item){
 }
 
 function installmentTeaser(item){
-  if(!item || !(item.installment === true || item.live || item.dailyDeal)) return '';
+  if(!item || isUsd(item)) return '';
+  if(!(item.installment === true || item.live || item.dailyDeal)) return '';
   const fin = installmentFinancingFor(item);
   if(fin){
     for(const m of [24,12,6]) if(fin.monthly[m]) return `${formatPrice(fin.monthly[m])} ${t("so'mdan")} / ${m} ${t('oy')}`;
@@ -1915,15 +1996,14 @@ async function sozlamalarniYukla(){
   const tgUrl = tidyLink(s.telegramLink, 't.me', 'vip_raqamlar_uz');
   if(tgA && tgUrl) tgA.href = tgUrl;
 
+  /* Instagram — HAR DOIM rasmiy kanal. Admin paneldagi qiymat qanday
+     bo'lishidan qat'i nazar, boshqa sahifaga olib ketmaydi. */
   const ig = $('#moreInsta');
-  const igUrl = tidyLink(s.instagramLink, 'instagram.com', 'vipraqamlar.uz');
-  if(ig && igUrl){
-    ig.href = igUrl;
-    const handle = igUrl.split('/').filter(Boolean).pop();
+  if(ig){
+    ig.href = 'https://instagram.com/vipraqamlar.uz';
     const sub = ig.querySelector('i');
-    if(sub && handle) sub.textContent = '@' + handle;
+    if(sub) sub.textContent = '@vipraqamlar.uz';
   }
-  if(s.workingHours) $('#moreHours').textContent = s.workingHours;
   if(s.deliveryText){ const d=$('#moreDelivery'); d.textContent = s.deliveryText; d.removeAttribute('data-t'); }
   renderAll();
 }
@@ -2021,7 +2101,7 @@ function numCard(item){
   const tier = tierOf(item), vip = !!tier;
   let price = '';
   if(showCash){
-    price = `<div class="p sg">${formatPrice(item.price)} <small>${SUM()}</small></div>`;
+    price = `<div class="p sg">${formatPrice(item.price)} <small>${UNIT(item)}</small></div>`;
     if(hasActiveDiscount(item)) price += `<div class="old sg">${formatPrice(item.oldPrice)}</div>`;
     if(ins) price += `<div class="ins">${esc(ins)}</div>`;
   }else{
@@ -2029,13 +2109,13 @@ function numCard(item){
   }
   const cls = res ? ' res' : (vip ? ' vipc t-' + tier : (installmentAllowed(item) ? ' insc' : ''));
   return `<article class="numcard${cls}" data-card="${esc(item.id)}">
-    ${disc && showCash ? `<span class="nc-off">−${disc}%</span>` : ''}
     <div class="nc-top">
       <div style="flex:1;min-width:0">
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
           ${vip ? `<span class="tag vip">${ICO_CROWN}${TIERS[tier]}</span>` : ''}
           ${opChip(item.operator)}
+          ${disc && showCash ? `<span class="tag off">−${disc}%</span>` : ''}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
         </div>
       </div>
@@ -2102,16 +2182,15 @@ function renderHome(){
       const ins = installmentTeaser(h);
       return `<div class="herocard" data-card="${esc(h.id)}">
         <div class="hc-top">
-          <span class="hc-badge">${t('PREMIUM TANLOV')}</span>
+          <span class="hc-badge">${t('PREMIUM')}</span>
           ${opChip(h.operator)}
         </div>
         <div class="num sg">${esc(shortNumber(h.number))}</div>
-        <div class="sub">${t('Nomingizga rasmiylashtiriladi')}</div>
         <div class="hc-bot">
           <div class="hc-price">
             ${h.installment
               ? `<div class="pv ins2 sg">${esc(ins)}</div>`
-              : `<div class="pv sg">${formatPrice(h.price)} <small>${SUM()}</small></div>
+              : `<div class="pv sg">${formatPrice(h.price)} <small>${UNIT(h)}</small></div>
                  ${ins?`<div class="pi2">${esc(ins)}</div>`:''}`}
           </div>
           <span class="hc-cta">${t("Ko'rish")}${ICO_ARR}</span>
@@ -2127,14 +2206,107 @@ function renderHome(){
     $('#heroDots').innerHTML = '';
   }
 
-  /* --- Tanlangan VIP raqamlar: bazadan 15 ta tasodifiy --- */
+  /* --- Tanlangan VIP raqamlar: bazadan 15 ta tasodifiy.
+         5-kartochkadan keyin "Kun tavsiyasi" qatori qo'yiladi. --- */
   const picks = HOME_PICKS.map(id => NUMBERS.find(n => n.id === id)).filter(Boolean);
-  $('#homeFeatured').innerHTML = numbersLoaded
-    ? (picks.length ? picks.map(n => `<div class="rise">${numCard(n)}</div>`).join('')
-       : emptyBox(IC_BOX, t('Raqam topilmadi'), LANG==='ru'?'Каталог пока пуст.':"Hozircha katalog bo'sh.", null))
-    : skeletons(3);
+  let html;
+  if(!numbersLoaded){
+    html = skeletons(3);
+  }else if(!picks.length){
+    html = emptyBox(IC_BOX, t('Raqam topilmadi'), LANG==='ru'?'Каталог пока пуст.':"Hozircha katalog bo'sh.", null);
+  }else{
+    const cards = picks.map(n => `<div class="rise">${numCard(n)}</div>`);
+    const day = dayRowHtml();
+    if(day && cards.length > 5) cards.splice(5, 0, day);
+    else if(day) cards.push(day);
+    html = cards.join('');
+  }
+  $('#homeFeatured').innerHTML = html;
 
   renderTestimonials();
+}
+
+/* ==================================================================
+   KUN TAVSIYASI — admin panelda tanlangan raqamlar.
+   Bazadagi raqam ham, jonli (qo'lda kiritilgan) raqam ham bo'lishi mumkin.
+   ================================================================== */
+let DAY_PICKS = { title:'', subtitle:'', items:[] };
+
+async function kunTavsiyasiYukla(){
+  try{
+    const doc = await withClientTimeout(
+      db.collection('site_settings').doc('daily_picks').get(), kutishVaqti(9000));
+    if(!doc.exists) return;
+    const d = doc.data() || {};
+    DAY_PICKS = {
+      title: d.title || '',
+      subtitle: d.subtitle || '',
+      items: Array.isArray(d.items) ? d.items.slice(0, 20) : [],
+    };
+    renderHome();
+  }catch(e){ /* bo'lmasa — bo'lim ko'rsatilmaydi */ }
+}
+
+/** Kun tavsiyasidagi bitta yozuvni to'liq raqam obyektiga aylantiradi */
+function dayItemToNumber(it){
+  if(!it) return null;
+  if(it.live){
+    const price = Number(it.price) || 0;
+    return {
+      id: 'day:' + (it.number || Math.random()),
+      number: it.number, operator: it.operator || '',
+      price, oldPrice: Number(it.oldPrice) || 0,
+      installment: !!it.installment, featured: !!it.featured,
+      tier: it.tier || '', reserved: !!it.reserved, live: true,
+      monthly24: Number(it.monthly24) || 0,
+      currency: it.currency || 'UZS',
+      note: it.note || '',
+    };
+  }
+  const n = NUMBERS.find(x => x.id === it.id);
+  if(!n) return null;
+  return Object.assign({}, n, { note: it.note || '' });
+}
+
+const ICO_STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2l2.5 5.4 5.9.7-4.4 4 1.2 5.8L12 16.2 6.8 19.1 8 13.3l-4.4-4 5.9-.7z"></path></svg>';
+
+function dayCard(item){
+  const res = !!item.reserved;
+  const ins = installmentTeaser(item) || (item.live && item.monthly24 ? `${formatPrice(item.monthly24)} ${SUM()}dan / 24 oy` : '');
+  const showCash = !item.installment && (item.price > 0);
+  return `<article class="daycard${res?' res':''}" data-card="${esc(item.id)}">
+    <span class="dc-rib">${ICO_STAR}${t('KUN TAVSIYASI')}</span>
+    <div class="dc-num sg">${esc(shortNumber(item.number))}</div>
+    <div class="dc-meta">
+      ${item.tier && TIERS[item.tier] ? `<span class="tag vip">${ICO_CROWN}${TIERS[item.tier]}</span>` : ''}
+      ${opChip(item.operator)}
+      ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
+    </div>
+    ${item.note ? `<div style="margin-top:9px;font-size:11.5px;color:var(--text-3);font-weight:600;line-height:1.45">${esc(item.note)}</div>` : ''}
+    <div class="dc-sep"></div>
+    <div class="dc-bot">
+      <div class="dc-price">
+        ${showCash ? `<b class="sg">${formatPrice(item.price)} <small>${UNIT(item)}</small></b>` : ''}
+        ${ins ? `<i>${esc(ins)}</i>` : (showCash ? '' : `<i>${t("Bo'lib to'lash")}</i>`)}
+      </div>
+      <span class="dc-go">${res ? t('Band') : t("Ko'rish")}${res ? '' : ICO_ARR}</span>
+    </div>
+  </article>`;
+}
+
+/** Bo'limni HTML sifatida qaytaradi (hech narsa bo'lmasa — bo'sh satr) */
+function dayRowHtml(){
+  const items = (DAY_PICKS.items || []).map(dayItemToNumber).filter(Boolean);
+  if(!items.length) return '';
+  const title = DAY_PICKS.title || t('Kun tavsiyasi');
+  const sub = DAY_PICKS.subtitle || '';
+  return `<section class="sect" style="margin-top:6px">
+    <div class="sect-h">
+      <h2>${esc(title)}</h2>
+      ${sub ? `<span style="font-size:12px;color:var(--muted-2);font-weight:650">${esc(sub)}</span>` : ''}
+    </div>
+    <div class="dayrow"><div class="dayrow-in">${items.map(dayCard).join('')}</div></div>
+  </section>`;
 }
 
 /* ---------- Karusel: bitta-bittadan o'tadi, qo'l bilan ham suriladi ---------- */
@@ -2479,13 +2651,11 @@ function openDetail(id){
       <div class="sg" style="margin-top:14px;font-size:31px;font-weight:700;color:#fff">${esc(shortNumber(item.number))}</div>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#C9D6E8;font-weight:600"><i style="width:7px;height:7px;border-radius:2px;background:${m.color};display:inline-block"></i>${esc(item.operator||'')}</span>
-        <span style="font-size:12.5px;color:#8EA3C0">·</span>
-        <span style="font-size:12.5px;color:#C9D6E8;font-weight:600">${t('Nomingizga rasmiylashtiriladi')}</span>
       </div>
     </div>
   </div>`;
 
-  const priceCard = item.installment
+  const priceCard = (item.installment && !isUsd(item))
     ? `<div class="card">
         <div class="eyebrow">${t("Bo'lib to'lash")}</div>
         <div class="sg" style="margin-top:8px;font-size:23px;font-weight:700;color:var(--blue-text)">${esc(installmentTeaser(item))}</div>
@@ -2493,7 +2663,7 @@ function openDetail(id){
     : `<div class="card" style="display:flex;align-items:center;gap:14px">
         <div style="flex:1">
           <div class="eyebrow">${t('Narxi')}</div>
-          <div class="sg" style="margin-top:7px;font-size:25px;font-weight:700">${formatPrice(item.price)} <span style="font-family:'Plus Jakarta Sans';font-size:13px;color:var(--muted-2);font-weight:600">${SUM()}</span></div>
+          <div class="sg" style="margin-top:7px;font-size:25px;font-weight:700">${formatPrice(item.price)} <span style="font-family:'Plus Jakarta Sans';font-size:13px;color:var(--muted-2);font-weight:600">${UNIT(item)}</span></div>
         </div>
         ${disc ? `<div style="text-align:right">
           <div class="sg" style="font-size:13px;color:var(--muted-2);text-decoration:line-through">${formatPrice(item.oldPrice)}</div>
@@ -2538,20 +2708,18 @@ function openDetail(id){
   $('#dtFoot').innerHTML = item.reserved
     ? `<div style="flex:1;text-align:center;font-size:13.5px;font-weight:700;color:var(--muted)">${t('Bu raqam allaqachon band qilingan')}</div>`
     : `<div style="flex:none">
-         <div style="font-size:10.5px;color:var(--muted-2);font-weight:600">${item.installment?t('Oyiga'):t('Jami')}</div>
-         <div class="sg" style="font-size:17px;font-weight:700">${item.installment ? formatPrice(installmentMonthlyFor(item,24)) : formatPrice(item.price)}</div>
+         <div style="font-size:10.5px;color:var(--muted-2);font-weight:600">${(item.installment && !isUsd(item))?t('Oyiga'):t('Jami')}</div>
+         <div class="sg" style="font-size:17px;font-weight:700">${(item.installment && !isUsd(item)) ? formatPrice(installmentMonthlyFor(item,24)) : formatPrice(item.price) + (isUsd(item)?' $':'')}</div>
        </div>
        <button class="btn" data-order="${esc(item.id)}" style="flex:1">${t('Buyurtma berish')}</button>`;
   openSheet('shDetail');
 }
 
 function numberFacts(item){
-  const d = String(item.number||'').replace(/\D/g,'').slice(-7), f = [];
-  const rep = d.match(/(\d)\1{2,}/);
-  if(rep) f.push({ icon: rep[0].slice(0,2), bg:'var(--gold-tint)', fg:'var(--gold-ink)',
-    text: LANG==='ru' ? `Последовательность ${rep[0]} — легко запомнить` : `${rep[0]} ketma-ketligi — eslab qolish oson` });
-  if(/(\d)\1(\d)\2/.test(d)) f.push({ icon:'::', bg:'var(--blue-tint)', fg:'var(--blue-text)',
-    text: LANG==='ru' ? 'Парные повторяющиеся цифры' : 'Juft takrorlanuvchi raqamlar' });
+  /* MIJOZ SO'ROVI: "falon ketma-ketlik — eslab qolish oson" kabi
+     sun'iy tavsiyalar olib tashlandi. Faqat ANIQ, foydali ma'lumot
+     qoldirildi: mavjudligi, rasmiy shartnoma va yetkazib berish. */
+  const f = [];
   f.push({ icon:'1', bg:'var(--blue-tint)', fg:'var(--blue-text)',
     text: item.live ? (LANG==='ru'?'Напрямую от оператора, с новой SIM':"Operatordan to'g'ridan-to'g'ri, yangi SIM bilan")
                     : (LANG==='ru'?'Есть в наличии, оформляется сразу':'Bazamizda mavjud, darhol rasmiylashtiriladi') });
@@ -2652,10 +2820,10 @@ function renderOrder(){
 
       <div class="card" style="margin-top:12px">
         <div style="display:flex;flex-direction:column;gap:10px">
-          ${ORD.paymentType === 'installment' ? '' : `<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Raqam narxi')}</span><span class="sg" style="font-size:13.5px;font-weight:700">${formatPrice(it.price)}</span></div>`}
+          ${ORD.paymentType === 'installment' ? '' : `<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Raqam narxi')}</span><span class="sg" style="font-size:13.5px;font-weight:700">${formatPrice(it.price)}${isUsd(it)?' $':''}</span></div>`}
           <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Yetkazib berish')}</span><span class="sg" style="font-size:13.5px;font-weight:700;color:var(--green)">${t('Bepul')}</span></div>
           <div style="height:1px;background:var(--line-3)"></div>
-          <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:20px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} <span style="font-family:'Plus Jakarta Sans';font-size:12px;color:var(--muted-2);font-weight:600">${SUM()}</span></span></div>
+          <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:20px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} <span style="font-family:'Plus Jakarta Sans';font-size:12px;color:var(--muted-2);font-weight:600">${ORD.paymentType==='installment'?SUM():UNIT(ORD.item)}</span></span></div>
         </div>
       </div>`;
     foot.innerHTML = `<button class="btn" data-ostep="2">${t('Davom etish')}
@@ -2735,7 +2903,7 @@ function renderOrder(){
           ${ORD.paymentType==='installment'&&ORD.down?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t("Bosh to'lov")}</span><span class="sg" style="font-size:14px;font-weight:700">${formatPrice(ORD.down)}</span></div>`:''}
           ${ORD.discount?`<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Chegirma')}</span><span class="sg" style="font-size:14px;font-weight:700;color:var(--green)">−${formatPrice(ORD.discount)}</span></div>`:''}
           <div style="height:1px;background:var(--line-3)"></div>
-          <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:19px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${SUM()}</span></div>
+          <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:19px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${ORD.paymentType==='installment'?SUM():UNIT(ORD.item)}</span></div>
         </div>
       </div>
       <div class="card" style="margin-top:12px">
@@ -2793,7 +2961,7 @@ function renderOrder(){
       <div class="card" style="margin-top:18px">
         <div style="display:flex;flex-direction:column;gap:11px">
           <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Raqam')}</span><span class="sg" style="font-size:15px;font-weight:700">${esc(shortNumber(ORD.item.number))}</span></div>
-          <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${ORD.paymentType==='installment'?t("Oylik to'lov"):t('Summa')}</span><span class="sg" style="font-size:15px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${SUM()}</span></div>
+          <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${ORD.paymentType==='installment'?t("Oylik to'lov"):t('Summa')}</span><span class="sg" style="font-size:15px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${ORD.paymentType==='installment'?SUM():UNIT(ORD.item)}</span></div>
           <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Holati')}</span><span class="tag blue">${t('YANGI')}</span></div>
         </div>
       </div>`;
@@ -2961,6 +3129,8 @@ function buildPayload(){
     operator: it.operator || '',
     catalogType: it.live ? 'Standart' : 'VIP'
   };
+  /* Dollarlik raqam — adminka va Telegram xabari summani $ bilan ko'rsatishi uchun */
+  if(isUsd(it)) p.currency = 'USD';
   if(ORD.paymentType === 'installment'){
     p.installmentMonths = ORD.months;
     p.monthlyPayment = ORD.monthly;
@@ -3041,6 +3211,8 @@ async function submitOrder(smsVerified){
       if(payload.installmentDownPayment !== undefined) paymentLine += "\n💰 Bosh to'lov: " + formatPriceUzs(payload.installmentDownPayment);
     }else{
       paymentLine = "💵 To'lov turi: Naqt to'lov";
+      /* Dollarlik raqam — admin summani $ da ko'rishi shart */
+      if(payload.currency === 'USD') paymentLine += "\n💲 Summa: " + formatPrice(payload.price) + " $";
     }
     const text = `🔔 Yangi buyurtma\n\n📱 Buyurtma raqami: ${payload.number}\n👤 Mijoz ismi: ${payload.name}\n☎️ Ishlab turgan raqami: ${payload.phone}\n📍 Manzil: ${payload.region}\n${paymentLine}\n🕐 Vaqti: ${orderTime}\n🌐 Qayerdan: ${payload.source}`;
     const mapUrl = payload.location ? `https://yandex.uz/maps/?pt=${payload.location.lng},${payload.location.lat}&z=17&l=map` : undefined;
@@ -3104,7 +3276,7 @@ async function lookupOrders(){
                   ? `${t("Bo'lib to'lash")}${o.installmentMonths?' · '+o.installmentMonths+' '+t('oy'):''}${o.monthlyPayment?' · '+formatPrice(o.monthlyPayment)+' '+SUM()+'/'+t('oy'):''}`
                   : t("To'liq to'lov")}</div>
             </div>
-            <div class="amt sg">${formatPrice(o.price)}</div>
+            <div class="amt sg">${formatPrice(o.price)}${o.currency==='USD'?' $':''}</div>
           </div>
         </div>`;
       }).join('');
@@ -3827,6 +3999,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:'){
   avtoQayta('raqamlar', raqamlarniYukla);
   avtoQayta('sozlamalar', sozlamalarniYukla);
   avtoQayta('moliyalash', moliyalashYukla);
+  avtoQayta('kuntavsiyasi', kunTavsiyasiYukla);
   setTimeout(()=> avtoQayta('fikrlar', fikrlarniYukla), 1200);
   setTimeout(()=>{ tashrifHisobi(); yangiRaqamKuzatuvi(); }, 1800);
 })();

@@ -1759,6 +1759,30 @@
   }
 
 
+
+/* ---------- Kun tavsiyasi (admin) ----------
+   Ro'yxat qatorlari: raqam + manba belgisi + izoh, o'ngda tartib va
+   o'chirish tugmalari. Alohida og'ir uslub yozmaslik uchun mavjud
+   .akt-* / .dash-* uslublari ustiga faqat shu qatorlar qo'shiladi. */
+.dayadm-row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:12px;
+  background:var(--card-2,rgba(255,255,255,.03));border:1px solid var(--line,rgba(255,255,255,.08));margin-bottom:8px}
+.dayadm-row .dar-ord{font-size:12px;font-weight:800;opacity:.5;min-width:18px;text-align:center}
+.dayadm-row .dar-main{flex:1;min-width:0}
+.dayadm-row .dar-num{font-weight:800;font-size:15px;letter-spacing:.02em}
+.dayadm-row .dar-sub{font-size:11.5px;opacity:.65;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dayadm-row .dar-src{font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:6px;flex:none}
+.dayadm-row .dar-src.base{background:rgba(16,160,132,.16);color:#19A98E}
+.dayadm-row .dar-src.live{background:rgba(66,133,244,.16);color:#6AA6FF}
+.dayadm-row .dar-src.manual{background:rgba(214,158,46,.16);color:#D69E2E}
+.dayadm-row .dar-btns{display:flex;gap:6px;flex:none}
+.dayadm-row .dar-btns button{width:30px;height:30px;border-radius:9px;border:1px solid var(--line,rgba(255,255,255,.1));
+  background:transparent;color:inherit;cursor:pointer;font-size:13px;line-height:1}
+.dayadm-row .dar-btns button:hover{background:rgba(255,255,255,.07)}
+.dayadm-row .dar-btns button.dar-del:hover{background:rgba(229,62,62,.18);color:#FC8181}
+.dash-card-head .akt-save-btn,.day-live-row .akt-save-btn{flex:none;width:auto;padding:9px 16px;font-size:13px}
+.dayadm-sel{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;margin-top:10px;
+  background:rgba(16,160,132,.1);border:1px solid rgba(16,160,132,.3);font-size:13px}
+
 /* ---- Operatorlar (jonli API) bo'limi ---- */
 /* ==================================================================
    "Aksiya" — o'zining alohida bo'limi (avval "Raqamlar" ichida
@@ -3964,6 +3988,7 @@ body{
           <div class="tab-group-body">
           <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
           <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
+          <button class="tab" data-tab="kuntavsiyasi"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Kun tavsiyasi</span></button>
           <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
           <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
           <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
@@ -4136,6 +4161,13 @@ body{
         <option value="Perfektum">Perfektum</option>
       </select>
       <div id="newPriceWrap"><input type="number" id="newPrice" placeholder="Narxi (so'm)"></div>
+      <!-- VALYUTA: faqat NAQT to'lovga chiqadigan summa uchun. Dollar
+           tanlansa — saytda narx "$" bilan ko'rsatiladi va bu raqamga
+           bo'lib to'lash umuman taklif qilinmaydi (hisob-kitob so'mda). -->
+      <select id="newCurrency" title="Valyuta">
+        <option value="uzs">so'm (UZS)</option>
+        <option value="usd">dollar ($)</option>
+      </select>
       <select id="newTag">
         <option value="oddiy">Oddiy</option>
         <option value="vip">VIP</option>
@@ -4310,6 +4342,129 @@ body{
 
     <div class="akt-grid" id="aktGridActive"></div>
     <div class="akt-grid" id="aktGridArchive" style="display:none;"></div>
+  </div>
+
+
+  <div class="pane" id="paneKuntavsiyasi">
+    <div class="akt-hero">
+      <div class="akt-hero-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg>
+      </div>
+      <div class="akt-hero-text">
+        <h2>&#127775; Kun tavsiyasi</h2>
+        <p>Saytdagi &laquo;Tanlangan VIP raqamlar&raquo; ro'yxatining 5-kartochkasidan keyin yonga suriladigan
+          alohida kartochkalar qatori chiqadi. Raqamni bazadan tanlang, jonli bazadan qidirib qo'shing yoki
+          qo'lda kiriting. O'zgarishlar &laquo;Saqlash&raquo; bosilgandan keyin saytda darhol ko'rinadi.</p>
+      </div>
+      <button type="button" id="dayAddToggleBtn" class="akt-add-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Raqam qo'shish
+      </button>
+    </div>
+
+    <div class="akt-form-wrap" id="dayFormWrap" style="display:none;">
+      <div class="akt-form-title">&#10133; Kun tavsiyasiga raqam qo'shish</div>
+
+      <div class="akt-switch" id="daySrcSwitch">
+        <button type="button" class="akt-switch-btn active" data-src="base">&#128451; Bazadan</button>
+        <button type="button" class="akt-switch-btn" data-src="live">&#128225; Jonli bazadan</button>
+        <button type="button" class="akt-switch-btn" data-src="manual">&#9997; Qo'lda</button>
+      </div>
+
+      <div class="akt-form-grid" id="dayBaseBox">
+        <div class="akt-field akt-field-wide">
+          <label for="daySearch">Raqam <span class="ig-field-hint">(saytdagi bazadan qidirib tanlang)</span></label>
+          <input type="text" id="daySearch" placeholder="90 777-77-77 yoki qismini yozing" inputmode="numeric" autocomplete="off">
+          <div class="pv-number-results" id="dayResults"></div>
+        </div>
+      </div>
+
+      <div class="akt-form-grid" id="dayLiveBox" style="display:none;">
+        <div class="akt-field akt-field-wide">
+          <label for="dayLiveMask">Jonli qidiruv <span class="ig-field-hint">(7 belgi &mdash; noma'lum o'rin uchun &laquo;_&raquo;, masalan ___7777)</span></label>
+          <div class="day-live-row" style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="dayLiveMask" placeholder="___7777" maxlength="7" autocomplete="off" style="flex:1;min-width:0;">
+            <button type="button" class="akt-save-btn" id="dayLiveBtn" style="flex:none;">&#128269; Qidirish</button>
+          </div>
+          <div class="pv-number-results" id="dayLiveResults"></div>
+        </div>
+      </div>
+
+      <div class="akt-form-grid" id="dayManualBox" style="display:none;">
+        <div class="akt-field">
+          <label for="dayMnNumber">Raqam</label>
+          <input type="text" id="dayMnNumber" placeholder="90 777-77-77" autocomplete="off">
+        </div>
+        <div class="akt-field">
+          <label for="dayMnOperator">Operator</label>
+          <select id="dayMnOperator">
+            <option>Beeline</option><option>Ucell</option><option>Humans</option>
+            <option>Mobiuz</option><option>Uzmobile</option><option>Perfektum</option>
+          </select>
+        </div>
+        <div class="akt-field">
+          <label for="dayMnPrice">Narxi</label>
+          <input type="number" id="dayMnPrice" placeholder="6500000">
+        </div>
+        <div class="akt-field">
+          <label for="dayMnOld">Eski narxi <span class="ig-field-hint">(ixtiyoriy)</span></label>
+          <input type="number" id="dayMnOld" placeholder="8000000">
+        </div>
+        <div class="akt-field">
+          <label for="dayMnCurrency">Valyuta</label>
+          <select id="dayMnCurrency">
+            <option value="uzs">so'm (UZS)</option>
+            <option value="usd">dollar ($)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="akt-form-grid">
+        <div class="akt-field akt-field-wide">
+          <label for="dayNote">Izoh <span class="ig-field-hint">(kartochkada bitta qator, ixtiyoriy)</span></label>
+          <input type="text" id="dayNote" placeholder="Masalan: eng ko'p qidirilgan raqam" maxlength="80" autocomplete="off">
+        </div>
+        <div class="akt-field">
+          <label for="dayTier">Toifa <span class="ig-field-hint">(ixtiyoriy)</span></label>
+          <select id="dayTier">
+            <option value="">&mdash; yo'q &mdash;</option>
+            <option value="vip">VIP</option>
+            <option value="premium">PREMIUM</option>
+            <option value="gold">GOLD</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dayadm-sel" id="daySelBox" style="display:none;"></div>
+
+      <div class="akt-form-actions">
+        <button type="button" class="akt-save-btn" id="dayAddBtn">&#10133; Ro'yxatga qo'shish</button>
+        <button type="button" class="akt-cancel-btn" id="dayCancelBtn">&#10005; Bekor qilish</button>
+      </div>
+      <div class="code-hint" id="dayFormHint"></div>
+    </div>
+
+    <div class="akt-form-wrap" style="margin-top:14px;">
+      <div class="akt-form-title">&#9999; Bo'lim sarlavhasi</div>
+      <div class="akt-form-grid">
+        <div class="akt-field">
+          <label for="dayTitle">Sarlavha <span class="ig-field-hint">(bo'sh bo'lsa &laquo;Kun tavsiyasi&raquo;)</span></label>
+          <input type="text" id="dayTitle" placeholder="Kun tavsiyasi" maxlength="40" autocomplete="off">
+        </div>
+        <div class="akt-field">
+          <label for="daySubtitle">Qo'shimcha matn <span class="ig-field-hint">(ixtiyoriy)</span></label>
+          <input type="text" id="daySubtitle" placeholder="Bugun biz tanlagan raqamlar" maxlength="60" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-card" style="margin-top:14px;">
+      <div class="dash-card-head">
+        <h3>Ro'yxat <span class="akt-switch-count" id="dayCount">0</span></h3>
+        <button type="button" class="akt-save-btn" id="daySaveBtn">&#128190; Saqlash</button>
+      </div>
+      <div id="dayList" class="dash-recent-list"><div class="wt-empty">Yuklanmoqda...</div></div>
+    </div>
   </div>
 
   <div class="pane" id="paneAi">
@@ -7574,7 +7729,10 @@ function applyAccessControl(whoami){
       // (admin-uzex-search.js -> requireAdmin(..., {feature:'watch'})).
       // Ikkalasi bir xil kalitga bog'langani muhim: aks holda menyuda
       // ko'rinib, serverda rad etiladigan bo'lim paydo bo'lardi.
-      const permKey = (key === 'uzex') ? 'watch' : (key === 'bazaraqam') ? 'numbers' : key;
+      const permKey = (key === 'uzex') ? 'watch' : (key === 'bazaraqam') ? 'numbers'
+        // "Kun tavsiyasi" — Aksiya bilan bir xil turdagi kontent bo'limi,
+        // shu sabab alohida ruxsat yaratmasdan aynan 'aksiya' kalitiga bog'landi.
+        : (key === 'kuntavsiyasi') ? 'aksiya' : key;
       const allowed = perms[permKey] === 1 || perms[permKey] === true;
       tab.style.display = allowed ? '' : 'none';
     });
@@ -8142,14 +8300,15 @@ function openGroupOfTab(tab){
       const op = V('newOperator');
       const narx = Number(V('newPrice')) || 0;
       const vip = V('newTag') === 'vip';
-      const bolib = CH('newInstallment');
+      const usd = V('newCurrency') === 'usd';
+      const bolib = CH('newInstallment') && !usd;
 
       let html = '<div class="vms-t">Saytda shunday ko\'rinadi</div>';
       html += '<div class="vms-card">' +
         '<div class="vms-num">' + (raqam ? esc(raqam) : '—') + '</div>' +
         '<div class="vms-op"><i style="background:' + (OP_RANG[op] || '#6F7F99') + '"></i>' + esc(op) +
           (vip ? ' <span class="tg tg-vip">VIP</span>' : '') + '</div>' +
-        '<div class="vms-price">' + (narx ? pul(narx) + ' <span>so\'m</span>' : 'Narxi kelishiladi') + '</div>' +
+        '<div class="vms-price">' + (narx ? pul(narx) + (usd ? ' <span>$</span>' : ' <span>so\'m</span>') : 'Narxi kelishiladi') + '</div>' +
         (bolib ? '<div class="vms-sub">Bo\'lib to\'lash mavjud</div>' : '') +
       '</div>';
 
@@ -8271,7 +8430,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -8332,6 +8491,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
     if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
     if(tab.dataset.tab === 'aksiya'){ renderAksiyaTab(); }
+    if(tab.dataset.tab === 'kuntavsiyasi'){ dayLoad(); }
     if(tab.dataset.tab === 'dashboard'){ refreshDashboardPane(); }
     if(tab.dataset.tab === 'bazaraqam'){ refreshBazaraqamPane(); }
     // UZEX jonli hisoblagichi faqat shu bo'lim OCHIQ turganda ishlashi
@@ -12011,6 +12171,7 @@ async function refreshNumbers(){
     const snap = await db.collection('numbers').get();
     const numbers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     currentNumbersCache = numbers;
+    try{ document.dispatchEvent(new Event('vip:numbers-cache')); }catch(e){}
     updateOverview();
     applyNumberFilters();
     renderAksiyaTab();
@@ -12045,16 +12206,20 @@ function nbJadvalBoshi(){
   '</div>';
 }
 
-function nbNarx(v){
+function nbUsd(item){
+  return String((item && item.currency) || '').toLowerCase() === 'usd';
+}
+function nbNarx(v, item){
   const n = Number(v);
   if(!Number.isFinite(n) || n <= 0) return 'Kelishiladi';
-  return n.toLocaleString('ru-RU').replace(/,/g, ' ');
+  const txt = n.toLocaleString('ru-RU').replace(/,/g, ' ');
+  return nbUsd(item) ? (txt + ' $') : txt;
 }
 
 /* Bo'lib to'lash yoqilgan bo'lsa — oyiga qancha tushishini ko'rsatamiz.
    Admin mijozga "oyiga qancha?" degan savolga darhol javob bersin. */
 function nbOylik(item){
-  if(!item.installment) return '';
+  if(!item.installment || nbUsd(item)) return '';
   const narx = Number(item.price) || 0;
   const oy = Number(item.tariffMonths) || 12;
   if(!narx || !oy) return "bo'lib to'lash bor";
@@ -12110,7 +12275,7 @@ function renderAdminNumbers(numbers){
         </span>
         <span class="anc anc-tag">${nbToifa(item)}</span>
         <span class="anc anc-price">
-          <b>${nbNarx(item.price)}</b>
+          <b>${nbNarx(item.price, item)}</b>
           <i>${nbOylik(item)}</i>
         </span>
         <span class="anc anc-state">${nbHolat(item)}</span>
@@ -12124,6 +12289,10 @@ function renderAdminNumbers(numbers){
           <input class="an-number" value="${escapeHtml(item.number)}">
           <select class="an-operator">${operatorOptionsHtml(item.operator)}</select>
           <input class="an-price" type="number" value="${escapeHtml(item.price)}">
+          <select class="an-currency" title="Valyuta">
+            <option value="uzs" ${!nbUsd(item)?'selected':''}>so'm</option>
+            <option value="usd" ${nbUsd(item)?'selected':''}>$</option>
+          </select>
           <select class="an-tag">
             <option value="oddiy" ${item.tag==='oddiy'?'selected':''}>Oddiy</option>
             <option value="vip" ${item.tag==='vip'?'selected':''}>VIP</option>
@@ -12222,7 +12391,9 @@ function renderAdminNumbers(numbers){
           price: priceVal,
           oldPrice: oldPriceVal,
           onSale: oldPriceVal > priceVal,
-          installment: row.querySelector('.an-installment').checked,
+          currency: row.querySelector('.an-currency').value === 'usd' ? 'USD' : 'UZS',
+          installment: row.querySelector('.an-currency').value === 'usd'
+            ? false : row.querySelector('.an-installment').checked,
           tier: row.querySelector('.an-tier').value,
           featured: row.querySelector('.an-featured').checked || !!row.querySelector('.an-tier').value,
           dailyDeal: row.querySelector('.an-dailydeal').checked,
@@ -12627,6 +12798,315 @@ function renderAksiyaTab(){
 // Shuning uchun foydalanuvchi yozishni bir oz to'xtatgandan keyingina
 // (180ms) qidiruv ishga tushadi — yozish esa hech qanday kechikishsiz,
 // darhol ko'rinadi.
+
+/* ==================================================================
+   KUN TAVSIYASI
+   Sayt (index.html) site_settings/daily_picks hujjatini o'qiydi va
+   "Tanlangan VIP raqamlar" ro'yxatining 5-kartochkasidan keyin yonga
+   suriladigan alohida kartochkalar qatorini chizadi.
+
+   Hujjat ko'rinishi:
+     { title, subtitle, updatedAt, items: [ ... ] }
+   Element ikki xil bo'ladi:
+     1) BAZADAN  -> { id:'<numbers hujjati ID>', note?, tier? }
+        Narx/operator saytda jonli o'qiladi — ya'ni bazada narx
+        o'zgarsa, kun tavsiyasi ham o'zi yangilanadi.
+     2) JONLI/QO'LDA -> { live:true, number, operator, price, oldPrice?,
+                          installment?, tier?, note? }
+        Bu raqamlar Firestore'da yo'q (operator bazasida turadi), shu
+        sabab ko'rsatish uchun kerakli maydonlar shu yerda SAQLANADI.
+   ================================================================== */
+
+let DAY_ITEMS = [];          // ro'yxat (saqlanmagan o'zgarishlar ham shu yerda)
+let daySelected = null;      // qo'shish formasida tanlangan raqam
+let daySrc = 'base';         // 'base' | 'live' | 'manual'
+let dayDirty = false;
+
+function dayHint(text, kind){
+  const h = document.getElementById('dayFormHint');
+  if(!h) return;
+  h.textContent = text || '';
+  h.className = 'code-hint' + (kind ? ' ' + kind : '');
+}
+
+async function dayLoad(){
+  const box = document.getElementById('dayList');
+  if(!box) return;
+  if(dayDirty){ dayRender(); return; }   // saqlanmagan o'zgarishni yo'q qilmaymiz
+  box.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
+  try{
+    const doc = await db.collection('site_settings').doc('daily_picks').get();
+    const d = doc.exists ? (doc.data() || {}) : {};
+    DAY_ITEMS = Array.isArray(d.items) ? d.items.slice() : [];
+    document.getElementById('dayTitle').value = d.title || '';
+    document.getElementById('daySubtitle').value = d.subtitle || '';
+  }catch(e){
+    box.innerHTML = '<div class="wt-empty">Yuklab bo\'lmadi: ' + escapeHtml(e.message) + '</div>';
+    return;
+  }
+  dayDirty = false;
+  dayRender();
+}
+
+/* Ro'yxatdagi elementni ko'rsatish uchun "to'liq" ko'rinishga aylantirish.
+   Bazadagi element uchun ma'lumot currentNumbersCache'dan olinadi; agar
+   raqam bazadan O'CHIRILGAN bo'lsa — buni admin ko'rishi kerak, shu sabab
+   qatorda ogohlantirish chiqadi. */
+function dayItemView(it){
+  if(it && it.live){
+    return { number: it.number || '—', operator: it.operator || '', price: Number(it.price) || 0,
+             usd: nbUsd(it), src: 'live', srcLabel: 'JONLI', missing: false };
+  }
+  const n = currentNumbersCache.find(x => x.id === (it && it.id));
+  if(!n) return { number: (it && it.number) || (it && it.id) || '—', operator: '', price: 0,
+                  src: 'base', srcLabel: 'BAZA', missing: true };
+  return { number: n.number || '—', operator: n.operator || '', price: Number(n.price) || 0,
+           usd: nbUsd(n), src: 'base', srcLabel: 'BAZA', missing: false };
+}
+
+function dayRender(){
+  const box = document.getElementById('dayList');
+  const cnt = document.getElementById('dayCount');
+  if(!box) return;
+  if(cnt) cnt.textContent = DAY_ITEMS.length;
+  if(!DAY_ITEMS.length){
+    box.innerHTML = '<div class="wt-empty">Hozircha bo\'sh — ro\'yxat bo\'sh bo\'lsa saytda bu bo\'lim '
+      + 'umuman ko\'rsatilmaydi. Yuqoridagi &laquo;Raqam qo\'shish&raquo; bilan to\'ldiring.</div>';
+    return;
+  }
+  box.innerHTML = DAY_ITEMS.map((it, i) => {
+    const v = dayItemView(it);
+    const tier = (it.tier || '').toUpperCase();
+    const sub = [
+      v.operator ? escapeHtml(v.operator) : '',
+      v.price ? (formatPrice(v.price) + (v.usd ? ' $' : " so'm")) : (v.src === 'base' ? 'narx bazadan olinadi' : ''),
+      tier ? tier : '',
+      it.note ? '«' + escapeHtml(it.note) + '»' : '',
+      v.missing ? '⚠️ bazada topilmadi — o\'chirilgan bo\'lishi mumkin' : ''
+    ].filter(Boolean).join(' · ');
+    const srcCls = v.src === 'live' ? 'live' : 'base';
+    return '<div class="dayadm-row">'
+      + '<span class="dar-ord">' + (i + 1) + '</span>'
+      + '<span class="dar-src ' + srcCls + '">' + v.srcLabel + '</span>'
+      + '<span class="dar-main"><span class="dar-num">' + escapeHtml(v.number) + '</span>'
+      + '<div class="dar-sub">' + sub + '</div></span>'
+      + '<span class="dar-btns">'
+      + '<button type="button" data-day-up="' + i + '" title="Yuqoriga">&#8593;</button>'
+      + '<button type="button" data-day-down="' + i + '" title="Pastga">&#8595;</button>'
+      + '<button type="button" class="dar-del" data-day-del="' + i + '" title="O\'chirish">&#10005;</button>'
+      + '</span></div>';
+  }).join('');
+}
+
+document.addEventListener('click', (ev)=>{
+  const t = ev.target.closest('[data-day-up],[data-day-down],[data-day-del]');
+  if(!t) return;
+  if(t.dataset.dayUp !== undefined){
+    const i = +t.dataset.dayUp;
+    if(i > 0){ const x = DAY_ITEMS[i]; DAY_ITEMS[i] = DAY_ITEMS[i-1]; DAY_ITEMS[i-1] = x; }
+  } else if(t.dataset.dayDown !== undefined){
+    const i = +t.dataset.dayDown;
+    if(i < DAY_ITEMS.length - 1){ const x = DAY_ITEMS[i]; DAY_ITEMS[i] = DAY_ITEMS[i+1]; DAY_ITEMS[i+1] = x; }
+  } else {
+    DAY_ITEMS.splice(+t.dataset.dayDel, 1);
+  }
+  dayDirty = true;
+  dayRender();
+  dayHint('O\'zgarish kiritildi — &laquo;Saqlash&raquo;ni bosmaguncha saytda ko\'rinmaydi.', 'warn');
+});
+
+/* ---- forma: ochish/yopish ---- */
+(function(){
+  const addBtn = document.getElementById('dayAddToggleBtn');
+  if(!addBtn) return;
+  addBtn.addEventListener('click', ()=>{
+    const wrap = document.getElementById('dayFormWrap');
+    const open = wrap.style.display !== 'none';
+    wrap.style.display = open ? 'none' : '';
+    addBtn.classList.toggle('akt-add-btn-active', !open);
+    if(!open) document.getElementById('daySearch').focus();
+  });
+  document.getElementById('dayCancelBtn').addEventListener('click', ()=>{
+    document.getElementById('dayFormWrap').style.display = 'none';
+    addBtn.classList.remove('akt-add-btn-active');
+    dayResetForm();
+  });
+})();
+
+function dayResetForm(){
+  daySelected = null;
+  ['daySearch','dayLiveMask','dayMnNumber','dayMnPrice','dayMnOld','dayNote'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('dayMnCurrency').value = 'uzs';
+  document.getElementById('dayTier').value = '';
+  const r = document.getElementById('dayResults'); r.innerHTML = ''; r.classList.remove('show');
+  const lr = document.getElementById('dayLiveResults'); lr.innerHTML = ''; lr.classList.remove('show');
+  document.getElementById('daySelBox').style.display = 'none';
+  dayHint('');
+}
+
+/* ---- manba almashtirgich ---- */
+document.querySelectorAll('#daySrcSwitch .akt-switch-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#daySrcSwitch .akt-switch-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    daySrc = btn.dataset.src;
+    document.getElementById('dayBaseBox').style.display   = daySrc === 'base'   ? '' : 'none';
+    document.getElementById('dayLiveBox').style.display   = daySrc === 'live'   ? '' : 'none';
+    document.getElementById('dayManualBox').style.display = daySrc === 'manual' ? '' : 'none';
+    daySelected = null;
+    document.getElementById('daySelBox').style.display = 'none';
+    dayHint('');
+  });
+});
+
+function dayShowSel(){
+  const box = document.getElementById('daySelBox');
+  if(!daySelected){ box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  box.innerHTML = '<span>&#10003; Tanlandi: <b>' + escapeHtml(daySelected.number) + '</b>'
+    + (daySelected.operator ? ' · ' + escapeHtml(daySelected.operator) : '')
+    + (daySelected.price ? ' · ' + formatPrice(daySelected.price) : '') + '</span>';
+}
+
+/* ---- 1) bazadan qidirish ---- */
+document.getElementById('daySearch').addEventListener('input', debounce(()=>{
+  const el = document.getElementById('daySearch');
+  const res = document.getElementById('dayResults');
+  const q = el.value.replace(/\D/g, '');
+  if(!q){ res.classList.remove('show'); res.innerHTML = ''; return; }
+  const matches = currentNumbersCache
+    .filter(n => (n.number || '').replace(/\D/g,'').includes(q))
+    .slice(0, 15);
+  if(!matches.length){
+    res.innerHTML = '<div class="pv-number-row" style="cursor:default;color:var(--muted);">Topilmadi</div>';
+  }else{
+    res.innerHTML = matches.map(n =>
+      '<div class="pv-number-row" data-id="' + n.id + '" data-number="' + escapeHtml(n.number) + '"'
+      + ' data-operator="' + escapeHtml(n.operator || '') + '" data-price="' + (n.price || 0) + '">'
+      + '<span>' + escapeHtml(n.number) + (n.reserved ? ' 🔒' : '') + '</span>'
+      + '<span class="pvn-price">' + formatPrice(n.price || 0) + '</span></div>'
+    ).join('');
+    res.querySelectorAll('.pv-number-row[data-id]').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        daySelected = { kind:'base', id: row.dataset.id, number: row.dataset.number,
+                        operator: row.dataset.operator, price: Number(row.dataset.price) };
+        res.classList.remove('show'); el.value = '';
+        dayShowSel();
+      });
+    });
+  }
+  res.classList.add('show');
+}, 200));
+
+/* ---- 2) jonli bazadan qidirish (api-live-search) ---- */
+document.getElementById('dayLiveBtn').addEventListener('click', async ()=>{
+  const el = document.getElementById('dayLiveMask');
+  const res = document.getElementById('dayLiveResults');
+  // Maska AYNAN 7 belgi bo'lishi shart (funksiya shunday kutadi): yozilmagan
+  // o'rinlar "_" bilan to'ldiriladi, ya'ni admin "7777" deb yozsa ham ishlaydi.
+  let raw = (el.value || '').replace(/[^0-9_*]/g, '').replace(/\*/g, '_');
+  if(!raw){ dayHint('Avval maskani yozing (masalan ___7777).', 'bad'); return; }
+  const mask = (raw + '_______').slice(0, 7);
+  el.value = mask;
+  res.innerHTML = '<div class="pv-number-row" style="cursor:default;color:var(--muted);">Qidirilmoqda...</div>';
+  res.classList.add('show');
+  try{
+    const r = await fetch('/.netlify/functions/api-live-search?limit=40&mask=' + encodeURIComponent(mask));
+    const d = await r.json();
+    if(d.ok !== true) throw new Error(d.error || 'Qidiruv xatosi');
+    const items = d.items || [];
+    if(!items.length){
+      res.innerHTML = '<div class="pv-number-row" style="cursor:default;color:var(--muted);">Operatorlarda bo\'sh raqam topilmadi</div>';
+      return;
+    }
+    res.innerHTML = items.slice(0, 30).map(x =>
+      '<div class="pv-number-row" data-number="' + escapeHtml(x.number) + '"'
+      + ' data-operator="' + escapeHtml(x.operator || '') + '" data-price="' + (x.price || 0) + '"'
+      + ' data-inst="' + (x.installment ? 1 : 0) + '">'
+      + '<span>' + escapeHtml(x.number) + ' <small style="opacity:.6;">' + escapeHtml(x.operator || '') + '</small></span>'
+      + '<span class="pvn-price">' + formatPrice(x.price || 0) + '</span></div>'
+    ).join('');
+    res.querySelectorAll('.pv-number-row[data-number]').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        daySelected = { kind:'live', number: row.dataset.number, operator: row.dataset.operator,
+                        price: Number(row.dataset.price), installment: row.dataset.inst === '1' };
+        res.classList.remove('show');
+        dayShowSel();
+      });
+    });
+    dayHint('Jonli bazadan tanlangan raqam Firestore\'da yo\'q — shu sabab narxi va operatori '
+      + 'kun tavsiyasi ro\'yxatiga nusxalanib saqlanadi.', '');
+  }catch(e){
+    res.innerHTML = '<div class="pv-number-row" style="cursor:default;color:var(--muted);">Xato: ' + escapeHtml(e.message) + '</div>';
+  }
+});
+
+/* ---- 3) ro'yxatga qo'shish ---- */
+document.getElementById('dayAddBtn').addEventListener('click', ()=>{
+  const note = (document.getElementById('dayNote').value || '').trim();
+  const tier = document.getElementById('dayTier').value || '';
+  let item = null;
+
+  if(daySrc === 'manual'){
+    const num = (document.getElementById('dayMnNumber').value || '').trim();
+    const price = Number(document.getElementById('dayMnPrice').value) || 0;
+    if(!num){ dayHint('Raqamni yozing.', 'bad'); return; }
+    if(!price){ dayHint('Narxini yozing.', 'bad'); return; }
+    item = { live:true, number: num, operator: document.getElementById('dayMnOperator').value,
+             price: price, oldPrice: Number(document.getElementById('dayMnOld').value) || 0,
+             currency: document.getElementById('dayMnCurrency').value === 'usd' ? 'USD' : 'UZS' };
+  } else {
+    if(!daySelected){ dayHint('Avval raqamni tanlang.', 'bad'); return; }
+    if(daySelected.kind === 'base'){
+      item = { id: daySelected.id, number: daySelected.number };
+    } else {
+      item = { live:true, number: daySelected.number, operator: daySelected.operator,
+               price: daySelected.price, oldPrice: 0, installment: !!daySelected.installment };
+    }
+  }
+  if(note) item.note = note;
+  if(tier) item.tier = tier;
+
+  const key = item.id ? ('id:' + item.id) : ('num:' + String(item.number).replace(/\D/g,''));
+  const exists = DAY_ITEMS.some(x => (x.id ? ('id:' + x.id) : ('num:' + String(x.number||'').replace(/\D/g,''))) === key);
+  if(exists){ dayHint('Bu raqam ro\'yxatda allaqachon bor.', 'bad'); return; }
+  if(DAY_ITEMS.length >= 20){ dayHint('Ko\'pi bilan 20 ta raqam (saytda shuncha ko\'rsatiladi).', 'bad'); return; }
+
+  DAY_ITEMS.push(item);
+  dayDirty = true;
+  dayRender();
+  dayResetForm();
+  dayHint('Qo\'shildi. Saytda ko\'rinishi uchun pastdagi &laquo;Saqlash&raquo;ni bosing.', 'ok');
+});
+
+/* ---- 4) saqlash ---- */
+document.getElementById('daySaveBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('daySaveBtn');
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+  try{
+    await db.collection('site_settings').doc('daily_picks').set({
+      title: (document.getElementById('dayTitle').value || '').trim(),
+      subtitle: (document.getElementById('daySubtitle').value || '').trim(),
+      items: DAY_ITEMS.slice(0, 20),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    dayDirty = false;
+    dayHint('Saqlandi — saytda ko\'rinadi.', 'ok');
+  }catch(e){
+    dayHint('Saqlanmadi: ' + e.message, 'bad');
+  }finally{
+    btn.disabled = false; btn.textContent = old;
+  }
+});
+
+/* Raqamlar bazasi yangilanganda ro'yxatdagi narx/operator ham yangilanadi. */
+document.addEventListener('vip:numbers-cache', ()=>{
+  if(document.getElementById('paneKuntavsiyasi').classList.contains('active')) dayRender();
+});
+
 function debounce(fn, delay){
   let timer = null;
   return function(...args){
@@ -12693,7 +13173,11 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       price: priceVal,
       oldPrice: 0,
       onSale: false,
-      installment: document.getElementById('newInstallment').checked,
+      currency: document.getElementById('newCurrency').value === 'usd' ? 'USD' : 'UZS',
+      // Dollarlik raqamda bo'lib to'lash bo'lmaydi — hisob-kitob so'mda
+      // yuritiladi, shu sabab belgilangan bo'lsa ham o'chiriladi.
+      installment: document.getElementById('newCurrency').value === 'usd'
+        ? false : document.getElementById('newInstallment').checked,
       tier: document.getElementById('newTier').value,
       featured: document.getElementById('newFeatured').checked || !!document.getElementById('newTier').value,
       dailyDeal: false,
@@ -12711,6 +13195,9 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     vibrate(80);
     numberInput.value = '';
     document.getElementById('newPrice').value = '';
+    const curEl = document.getElementById('newCurrency');
+    curEl.value = 'uzs';
+    curEl.dispatchEvent(new Event('change'));
     document.getElementById('newInstallment').checked = false;
     document.getElementById('newFeatured').checked = false;
     document.getElementById('newTier').value = '';
@@ -12720,6 +13207,27 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     refreshNumbers();
   }catch(err){ alert('Qo\'shishda xato: ' + err.message); }
 });
+
+/* Valyuta tanlanganda: narx maydonining yozuvi va "bo'lib to'lash"
+   belgisining holati darhol moslashadi — admin adashmasin. */
+(function(){
+  const cur = document.getElementById('newCurrency');
+  if(!cur) return;
+  const sync = ()=>{
+    const usd = cur.value === 'usd';
+    const price = document.getElementById('newPrice');
+    if(price) price.placeholder = usd ? 'Narxi ($)' : "Narxi (so'm)";
+    const ins = document.getElementById('newInstallment');
+    if(ins){
+      if(usd) ins.checked = false;
+      ins.disabled = usd;
+      const lbl = ins.closest('.checkbox-field');
+      if(lbl){ lbl.style.opacity = usd ? '.45' : ''; lbl.title = usd ? "Dollarlik raqamda bo'lib to'lash yo'q" : ''; }
+    }
+  };
+  cur.addEventListener('change', sync);
+  sync();
+})();
 
 /* ---- Ko'p raqamni birdan qo'shish ---- */
 const bulkToggle  = document.getElementById('bulkToggle');
@@ -13011,7 +13519,7 @@ function renderAdminOrders(orders){
         <span class="oc-pay-chip ${o.paymentType === 'installment' ? 'oc-pay-installment' : 'oc-pay-cash'}">
           ${o.paymentType === 'installment' ? `💳 ${escapeHtml(o.installmentMonths || '')} oy` : '💵 Naqd'}
         </span>
-        <span class="oc-price-cell">${o.price ? formatPrice(o.price) : ''}</span>
+        <span class="oc-price-cell">${o.price ? formatPrice(o.price) + (o.currency === 'USD' ? ' $' : '') : ''}</span>
         <span class="oc-status-badge ${statusClass(o.status)}">${escapeHtml(o.status || 'Yangi')}</span>
         <span class="oc-time-cell">${relativeTimeUz(o.createdAtSort)}</span>
         <span class="an-summary-arrow">▾</span>
@@ -13024,7 +13532,7 @@ function renderAdminOrders(orders){
           <div class="oc-row"><b>Ism:</b> ${escapeHtml(o.name)}</div>
           <div class="oc-row"><b>Viloyat:</b> ${escapeHtml(o.region)}</div>
           <div class="oc-row"><b>Telefon:</b> ${escapeHtml(o.phone)}</div>
-          <div class="oc-row"><b>Narxi:</b> ${o.price ? formatPrice(o.price) : "Noma'lum"}</div>
+          <div class="oc-row"><b>Narxi:</b> ${o.price ? formatPrice(o.price) + (o.currency === 'USD' ? ' $' : " so'm") : "Noma'lum"}</div>
           ${o.paymentType === 'installment'
             ? `<div class="oc-row" style="color:var(--amber);"><b>💳 To'lov:</b> Bo'lib to'lash — ${escapeHtml(o.installmentMonths)} oyga, oyiga ${formatPrice(o.monthlyPayment || 0)}dan</div>`
             : ''}

@@ -148,3 +148,42 @@ baland bo'lib ko'rinadi.
 markazda turadi, kursor ham raqam balandligida bo'ladi.
 Qo'shimcha himoya sifatida barcha matn/tel/raqam maydonlariga
 `line-height: normal` qo'yildi.
+
+## v17.10 — katakdagi raqam muammosi butunlay yopildi
+Avvalgi tuzatish yetarli bo'lmagan ekan. Endi uch qatlamli himoya qo'yildi:
+
+1. **`line-height` katakning to'liq balandligiga teng** (66px) — raqam
+   brauzerning o'z hisob-kitobiga bog'liq bo'lmay, har doim aniq markazda turadi
+   (Android, iOS, Telegram ichidagi brauzer — hammasida bir xil).
+2. **Kursor (chizig'i) ko'rsatilmaydi** (`caret-color: transparent`) — aynan shu
+   chiziq raqamdan pastga cho'zilib, "katak tushib qolgandek" ko'rinardi.
+   Katak bitta raqamlik, faol katak esa ko'k fon va halqa bilan allaqachon
+   ajralib turadi — kursor umuman kerak emas.
+3. **Matn ajratish ranggi o'chirildi** — tasodifan bosilganda katak bo'yi
+   bo'lib ko'k bo'lib ketmaydi.
+
+Xuddi shu tuzatish SMS kod kataklariga ham qo'llandi.
+
+## v17.11
+### 1. Profildan "Til" bo'limi olib tashlandi
+Til almashtirish tugmasi yuqoridagi panelda (UZ) allaqachon bor — takrorlanmaydi.
+
+### 2. Instagram havolasi qat'iy belgilandi
+Endi admin paneldagi qiymat qanday bo'lishidan qat'i nazar, Instagram plitkasi
+**har doim `instagram.com/vipraqamlar.uz`** ni ochadi. Boshqa sahifaga olib
+ketmaydi.
+
+### 3. Chegirma belgisi raqam ustiga tushmaydi
+Avval `−33%` kartochkaning o'ng yuqori burchagida "suzib" turardi va uzun
+raqamlarda (ayniqsa kompyuterda) raqam ustiga chiqib ketardi.
+Endi u **GOLD / operator belgilari qatoriga** qo'yildi — hech qachon ustma-ust
+tushmaydi, qator torayса o'zi pastga o'tadi.
+VIP toifalarda chegirma belgisi oltin rangda bo'lib qoladi.
+
+### 4. Band (sotilgan) kartochka tartibga keltirildi
+Toj ikonkasi band kartochkada juda katta bo'lib, "GOLD" yozuvini bosib
+ketayotgan edi va belgilar uch qatorga bo'linib ketardi.
+Endi toj ikonkasi har doim 11px, belgilar bir qatorda va qatorga sig'masa
+butun holda keyingi qatorga o'tadi (yarmidan bo'linmaydi).
+
+Kontrast: ikkala mavzuda 0 xato.
