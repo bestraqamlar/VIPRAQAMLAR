@@ -4,7 +4,10 @@
 <meta name="color-scheme" content="dark light">
 <script>(function(){var v="dark";try{v=localStorage.getItem("vip_theme")||"dark";}catch(e){}document.documentElement.setAttribute("data-theme",v==="light"?"light":"dark");})();</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- Mijoz so'rovi: barmoq bilan yaqinlashtirish/uzoqlashtirish MUMKIN bo'lsin.
+     (Ikki marta bosganda sakrab zoom bo'lishi body{touch-action:manipulation}
+     bilan baribir o'chirilgan — ya'ni faqat ikki barmoq bilan ishlaydi.) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 <meta name="theme-color" content="#07152B">
 <title>VIP RAQAMLAR — chiroyli va VIP telefon raqamlar</title>
 <meta name="description" content="O'zbekiston bo'ylab VIP, oltin va chiroyli telefon raqamlar. Barcha operatorlar, bo'lib to'lash, bepul yetkazib berish va rasmiy shartnoma.">
@@ -51,6 +54,7 @@
   --muted:#56637B;       --muted-2:#56637B;     --faint:#7F8DA4;
   --line:#D3DCEB;        --line-2:#C7D2E4;      --line-3:#E2E8F2;
   --blue:#2457E6;        --blue-ink:#17398F;    --blue-tint:#E4ECFD;   --blue-text:#1B44B5;
+  --tgn-bg:rgba(255,255,255,.93); --tgn-line:rgba(16,32,60,.12);
   --blue-cta-line:rgba(36,87,230,.22);  --blue-cta-line-2:rgba(36,87,230,.42); --blue-cta-hov:#D7E3FC;
   --gold:#B8832A;        --gold-ink:#8C6417;    --gold-tint:#FBF0DC;   --gold-bright:#E6C877;
   --green:#0F7A52;       --green-tint:#E2F2EA;
@@ -99,6 +103,7 @@ html[data-theme="dark"]{
   --muted:#93A6C2;       --muted-2:#93A6C2;     --faint:#7E91AE;
   --line:rgba(255,255,255,.11); --line-2:rgba(255,255,255,.15); --line-3:rgba(255,255,255,.08);
   --blue:#2E5FE0;        --blue-ink:#A8C4FF;    --blue-tint:rgba(46,95,224,.26);  --blue-text:#8FB4FF;
+  --tgn-bg:rgba(20,34,58,.9); --tgn-line:rgba(255,255,255,.12);
   --blue-cta-line:rgba(120,160,255,.26); --blue-cta-line-2:rgba(140,180,255,.5); --blue-cta-hov:rgba(46,95,224,.36);
   --gold:#E6C877;        --gold-ink:#E6C877;    --gold-tint:rgba(230,200,119,.14);
   --green:#3DD68C;       --green-tint:rgba(17,135,92,.22);
@@ -485,9 +490,12 @@ html[data-theme="dark"] .srch-cells input:focus{
   transition:border-color .16s,box-shadow .16s;
 }
 .fld .inp:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+/* 16px dan kichik bo'lsa, iPhone maydonga bosilganda sahifani O'ZI
+   kattalashtirib yuboradi (endi yaqinlashtirish ruxsat etilgani uchun).
+   Shu sabab forma maydonlari aynan 16px. */
 .fld .inp input,.fld .inp select,.fld .inp textarea{
   flex:1;min-width:0;border:none;outline:none;background:none;
-  font-size:14.5px;font-weight:650;color:var(--ink);padding:14px 0;
+  font-size:16px;font-weight:650;color:var(--ink);padding:13px 0;
 }
 .fld .inp textarea{resize:none;line-height:1.5}
 .fld .inp select{appearance:none;-webkit-appearance:none}
@@ -1003,6 +1011,146 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .herodots i{width:6px;height:6px;border-radius:3px;background:var(--line-2);transition:width .25s,background .25s}
 .herodots i.on{width:18px;background:var(--blue)}
 
+
+/* ==================================================================
+   TEPADAN TUSHADIGAN BILDIRISHNOMA  (Telegramdagi kabi)
+   Pastdagi kichik "toast" o'rniga: bazaga yangi raqam qo'shilganda
+   tepadan sirg'alib tushadi, 4 soniya turadi, ovoz chaladi.
+   Mijoz uni kutmasdan yuqoriga yoki yonga surib yuborishi mumkin.
+   ================================================================== */
+#tgnotes{
+  position:fixed;left:0;right:0;top:calc(var(--top) + 8px);z-index:3000;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:0 12px;pointer-events:none;
+}
+.tgnote{
+  pointer-events:auto;width:100%;max-width:440px;position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px 13px;border-radius:19px;cursor:pointer;
+  background:
+    radial-gradient(150px 90px at 100% 0%, rgba(230,200,119,.16), transparent 70%),
+    var(--tgn-bg);
+  border:1px solid var(--tgn-line);
+  box-shadow:0 18px 40px -18px rgba(4,11,24,.85),0 2px 10px -4px rgba(4,11,24,.5),inset 0 1px 0 var(--nc-edge);
+  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  transform:translateY(-130%);opacity:0;
+  animation:tgnIn .52s cubic-bezier(.17,.89,.32,1.28) forwards;
+  touch-action:pan-x;
+}
+@keyframes tgnIn{to{transform:translateY(0);opacity:1}}
+.tgnote.out{animation:tgnOut .26s ease forwards}
+@keyframes tgnOut{to{transform:translateY(-130%);opacity:0}}
+.tgnote.drag{transition:none;animation:none;opacity:1}
+
+.tgn-b{flex:1;min-width:0}
+.tgn-t{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink)}
+.tgn-n{margin-top:3px;font-size:19px;font-weight:700;letter-spacing:.01em;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgn-s{margin-top:2px;font-size:12px;font-weight:700;color:var(--text-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgn-s b{color:var(--ink);font-weight:800}
+.tgn-x{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  color:var(--faint);background:var(--card-2)}
+/* Pastdagi ingichka chiziq — qancha vaqt qolganini ko'rsatadi */
+.tgn-p{position:absolute;left:0;bottom:0;height:2px;width:100%;transform-origin:left;
+  background:linear-gradient(90deg,var(--gold-bright),rgba(230,200,119,.25));
+  animation:tgnP 4s linear forwards}
+@keyframes tgnP{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){
+  .tgnote{animation:none;transform:none;opacity:1}
+  .tgn-p{animation:none}
+}
+
+
+/* ---------- Nusxa olish ----------
+   Mijoz so'rovi: saytdagi matnni (ayniqsa raqam va narxni) barmoq bilan
+   belgilab, nusxa olish mumkin bo'lsin. Tugmalar va boshqaruv elementlari
+   esa belgilanmaydi — ular bosiladi, o'qilmaydi. */
+body{-webkit-user-select:text;user-select:text}
+button,.nc-cta,.hc-cta,.dc-go,.tag,.chip,.op,.nc-op,.hc-badge,.dc-rib,
+#nav,#nav *,.navpill,.srch-dash,.iconbtn,.tgn-x,.tgn-ic,.herodots{
+  -webkit-user-select:none;user-select:none;
+}
+.nc-num,.dc-num,.herocard .num,.nc-price,.dc-price,.hc-price,.tgn-n,.tgn-s{
+  -webkit-touch-callout:default;
+}
+/* Belgilangan matn ko'rinishi */
+::selection{background:rgba(36,87,230,.3);color:inherit}
+html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
+
+/* ---------- Bildirishnoma belgisi (yangi, ixchamroq) ---------- */
+.tgn-ic{
+  width:34px;height:34px;border-radius:12px;flex:none;align-self:flex-start;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(120% 120% at 30% 0%, rgba(255,255,255,.5), transparent 60%),
+    linear-gradient(145deg,rgba(230,200,119,.28),rgba(201,160,65,.16));
+  box-shadow:inset 0 0 0 1px rgba(230,200,119,.45),0 4px 14px -8px rgba(201,160,65,.8);
+  color:var(--gold-ink);
+}
+.tgn-ic svg{width:17px;height:17px}
+
+
+/* Raqam oynasidagi katta raqam — bosilsa nusxalanadi */
+.dt-numbtn{
+  display:inline-flex;align-items:center;gap:10px;margin-top:14px;padding:0;
+  font-size:31px;font-weight:700;color:#fff;background:none;border:none;
+  letter-spacing:.012em;cursor:pointer;-webkit-user-select:text;user-select:text;
+}
+.dt-numbtn svg{opacity:.55;flex:none;transition:opacity .18s,transform .18s}
+.dt-numbtn:active svg{opacity:1;transform:scale(.9)}
+
+/* ---------- Ofis manzili ("Biz haqimizda") ---------- */
+.ofis{padding:15px 16px 16px}
+.ofis-top{display:flex;align-items:center;gap:12px}
+.ofis-pin{width:40px;height:40px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:var(--red-tint);color:var(--red)}
+.ofis-txt{flex:1;min-width:0}
+.ofis-txt b{display:block;font-size:13.5px;font-weight:800;color:var(--ink)}
+.ofis-txt i{display:block;margin-top:2px;font-size:12px;font-style:normal;font-weight:650;color:var(--text-3)}
+/* Kichik "xarita" taqlidi — rasm yuklanmaydi, shunchaki chiroyli fon */
+.ofis-map{
+  position:relative;height:104px;margin-top:13px;border-radius:15px;overflow:hidden;
+  background:
+    repeating-linear-gradient(0deg, var(--line-3) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, var(--line-3) 0 1px, transparent 1px 32px),
+    linear-gradient(140deg, var(--card-2), var(--card-3));
+  box-shadow:inset 0 0 0 1px var(--line-3);
+}
+.ofis-map::before{
+  content:'';position:absolute;left:-10%;right:-10%;top:52%;height:9px;transform:rotate(-7deg);
+  background:var(--card);opacity:.9;border-radius:6px;
+}
+.ofis-map::after{
+  content:'';position:absolute;left:26%;top:-10%;bottom:-10%;width:7px;transform:rotate(9deg);
+  background:var(--card);opacity:.85;border-radius:5px;
+}
+.ofis-dot{
+  position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;
+  background:var(--red);box-shadow:0 0 0 5px var(--red-tint),0 6px 14px -6px rgba(181,43,41,.9);z-index:2;
+}
+.ofis-dot::after{
+  content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--red);opacity:.5;
+  animation:ofisPulse 2.4s ease-out infinite;
+}
+@keyframes ofisPulse{0%{transform:scale(.7);opacity:.6}70%{transform:scale(2.1);opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.ofis-dot::after{animation:none}}
+.ofis-btns{display:flex;gap:9px;margin-top:13px}
+.ofis-btns .btn{flex:1;height:46px;font-size:13.5px;gap:8px}
+
+/* ---------- Chap chekkadan surib orqaga qaytish ---------- */
+#edgeBack{
+  position:fixed;left:0;top:50%;z-index:2900;pointer-events:none;
+  width:46px;height:46px;border-radius:0 24px 24px 0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--tgn-bg);border:1px solid var(--tgn-line);border-left:none;
+  color:var(--ink);box-shadow:0 10px 26px -12px rgba(4,11,24,.8);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transform:translate(-100%,-50%) scale(.8);opacity:0;
+  transition:opacity .12s;
+}
+#edgeBack.on{opacity:1}
+
 /* ---------- Kun tavsiyasi (gorizontal surib o'tiladigan) ---------- */
 /* "Tavsiya etiladi" ro'yxati ichidagi bo'lim — telefonda ro'yxat ustun
    bo'lgani uchun oddiy blok, kompyuterda esa grid bo'lgani uchun pastda
@@ -1013,12 +1161,10 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
    ko'rinardi. Endi qator ham AYNAN o'sha chegaradan boshlanib, o'sha
    chegarada tugaydi; keyingi kartochkadan bir chekkasi ko'rinib turadi
    (surish mumkinligi bilinishi uchun). */
+/* MIJOZ SO'ROVI: o'ng chekkadagi qora soya olib tashlandi — kartochka
+   kam bo'lganda u bo'sh joyda xunuk bo'lib ko'rinardi. O'rniga
+   kartochkaning o'zida sekin yurib turuvchi oq yaltirash bor. */
 .dayrow{position:relative;margin:0}
-.dayrow::after{
-  content:'';position:absolute;top:0;bottom:0;right:0;width:30px;z-index:2;pointer-events:none;
-  border-radius:0 22px 22px 0;
-  background:linear-gradient(270deg,var(--ground) 35%,transparent);
-}
 .dayrow-in{
   display:flex;gap:11px;overflow-x:auto;scrollbar-width:none;
   padding:4px 0 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
@@ -1061,6 +1207,16 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   background-color:#0E7C68;background-image:linear-gradient(180deg,#19A98E,#0E7C68);color:#fff;
   font-size:12.5px;font-weight:700;box-shadow:0 6px 16px -8px rgba(14,124,104,.95);
 }
+/* Yurib turuvchi oq yaltirash — bosh sahifadagi premium kartochkadagi kabi */
+.daycard::after{
+  content:'';position:absolute;top:-60%;bottom:-60%;width:26%;left:-34%;z-index:1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.10) 42%,rgba(255,255,255,.17) 52%,rgba(255,255,255,.08) 62%,transparent);
+  transform:rotate(14deg);
+  animation:dcShine 6.5s cubic-bezier(.4,0,.2,1) 1.2s infinite;
+}
+@keyframes dcShine{0%{left:-34%}30%{left:122%}100%{left:122%}}
+@media (prefers-reduced-motion:reduce){.daycard::after{animation:none;opacity:0}}
+.daycard > *{position:relative;z-index:2}
 .daycard .dc-go svg{transition:transform .2s}
 .daycard:hover .dc-go svg{transform:translateX(2px)}
 .daycard.res{opacity:.6}
@@ -1242,7 +1398,6 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   #homeFeatured > .dayrow-sect{grid-column:1/-1;margin:18px 0 4px}
   .dayrow-sect .sect-h{margin-bottom:14px}
   .dayrow-sect .dayrow{margin:0}
-  .dayrow-sect .dayrow::after{width:60px;background:linear-gradient(270deg,var(--ground) 30%,transparent)}
   .dayrow-sect .dayrow-in{padding:4px 2px 10px;gap:18px}
   .dayrow-sect .daycard{width:300px;padding:18px 19px 17px;border-radius:24px}
   .herocard{width:420px;padding:28px;border-radius:26px}
@@ -1588,6 +1743,14 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 
 <div id="toasts" aria-live="polite"></div>
 
+<!-- Tepadan tushadigan bildirishnoma (Telegramdagi kabi) -->
+<div id="tgnotes" aria-live="polite"></div>
+
+<!-- Chap chekkadan surib orqaga qaytish belgisi -->
+<div id="edgeBack" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg>
+</div>
+
 <div class="sheet full" id="shDetail" role="dialog" aria-modal="true" aria-label="Raqam tafsiloti">
   <div class="bd" data-close></div>
   <div class="pn"><div id="dtHead"></div><div class="bodyscroll" id="dtBody"></div><div class="ft" id="dtFoot"></div></div>
@@ -1710,7 +1873,7 @@ const RU = {
   "Tasdiqlash uchun shu raqamga SMS kod yuboriladi":"На этот номер придёт SMS-код для подтверждения",
   "Ismingizni kiriting":"Введите ваше имя","To'g'ri raqam kiriting":"Введите корректный номер",
   "Bunday raqam mavjud emas":"Такого номера не существует","Viloyatni tanlang":"Выберите область",
-  "Manzil":"Адрес","Xaritadan belgilang":"Отметьте на карте","Yetkazib berish manzili":"Адрес доставки",
+  "Manzil":"Адрес","Bizning manzil":"Наш адрес","Xaritani ochish":"Открыть на карте","Yo'nalish":"Маршрут","Xaritadan belgilang":"Отметьте на карте","Yetkazib berish manzili":"Адрес доставки",
   "Mijoz":"Клиент","Ism":"Имя","Telefon":"Телефон","O'zgartirish":"Изменить","Operator":"Оператор","To'lov":"Оплата",
   "Chegirma":"Скидка","Buyurtmani yuborish":"Отправить заказ","Yuborilmoqda…":"Отправляется…",
   "Tasdiqlash kodi":"Код подтверждения","Kodni qayta yuborish":"Отправить код снова",
@@ -1949,6 +2112,178 @@ function toast(matn, turi){
   try{ if(navigator.vibrate) navigator.vibrate(turi==='bad' ? [12,60,12] : 10); }catch(e){}
 }
 
+
+/* ==================================================================
+   TEPADAN TUSHADIGAN BILDIRISHNOMA (Telegramdagi kabi)
+   Bazaga yangi raqam qo'shilganda tepadan sirg'alib tushadi, yumshoq
+   ovoz chaladi va 4 soniyadan keyin o'zi ketadi. Mijoz uni kutmasdan
+   yuqoriga yoki yonga surib yuborishi ham mumkin; ustiga bossa —
+   o'sha raqam oynasi ochiladi.
+   ================================================================== */
+/* Uchqun — "yangi narsa paydo bo'ldi" degan zamonaviy belgi
+   (qo'ng'iroqdan ko'ra ixchamroq va chiroyliroq). */
+const ICO_BELL = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6l1.55 4.9 4.9 1.55-4.9 1.55L12 15.5l-1.55-4.9-4.9-1.55 4.9-1.55L12 2.6z"></path><path d="M18.6 14.2l.72 2.28 2.28.72-2.28.72-.72 2.28-.72-2.28-2.28-.72 2.28-.72.72-2.28z" opacity=".72"></path><path d="M5.6 15.6l.52 1.64 1.64.52-1.64.52-.52 1.64-.52-1.64L3.44 18.28l1.64-.52.52-1.64z" opacity=".5"></path></svg>';
+const ICO_XS = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+
+/* Yumshoq "ding" ovozi — fayl kerak emas, brauzerning o'zi chaladi.
+   Brauzerlar foydalanuvchi saytga TEGMAGUNCHA ovozga ruxsat bermaydi,
+   shu sabab birinchi teginishda audio "uyg'otiladi". */
+let __ac = null, __acReady = false;
+function ovozniUygot(){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    if(!__ac) __ac = new AC();
+    if(__ac.state === 'suspended') __ac.resume().then(()=>{ __acReady = true; }).catch(()=>{});
+    else __acReady = true;
+  }catch(e){}
+}
+['pointerdown','touchstart','keydown'].forEach(ev =>
+  document.addEventListener(ev, ovozniUygot, { once:true, passive:true }));
+
+function bildirishnomaOvozi(){
+  try{
+    if(!__ac || !__acReady || __ac.state !== 'running') return;
+    const t = __ac.currentTime;
+    const g = __ac.createGain();
+    g.connect(__ac.destination);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.16, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.52);
+    [[880, 0], [1318.5, 0.085]].forEach(([f, d]) => {
+      const o = __ac.createOscillator();
+      o.type = 'sine'; o.frequency.value = f;
+      o.connect(g); o.start(t + d); o.stop(t + d + 0.45);
+    });
+  }catch(e){}
+}
+
+/** Tepadan bildirishnoma ko'rsatadi. item — raqam obyekti (ixtiyoriy). */
+function tgNote(sarlavha, item){
+  const box = $('#tgnotes'); if(!box) return;
+  /* Bir vaqtda ko'pi bilan 2 ta — ekran to'lib ketmasin */
+  while(box.children.length >= 2) box.firstElementChild.remove();
+
+  const narx = item ? (item.installment && !isUsd(item)
+      ? (installmentTeaser(item) || t("Bo'lib to'lash"))
+      : (formatPrice(item.price) + ' ' + UNIT(item))) : '';
+  const el = document.createElement('div');
+  el.className = 'tgnote';
+  el.innerHTML =
+    '<span class="tgn-ic">' + ICO_BELL + '</span>' +
+    '<span class="tgn-b">' +
+      '<span class="tgn-t">' + esc(sarlavha) + '</span>' +
+      (item ? '<div class="tgn-n sg">' + esc(shortNumber(item.number)) + '</div>' : '') +
+      (item ? '<div class="tgn-s"><b>' + esc(narx) + '</b>' +
+              (item.operator ? ' · ' + esc(item.operator) : '') + '</div>' : '') +
+    '</span>' +
+    '<span class="tgn-x">' + ICO_XS + '</span>' +
+    '<i class="tgn-p"></i>';
+  box.appendChild(el);
+  bildirishnomaOvozi();
+  haptic('ok');
+
+  let timer = setTimeout(close, 4000);
+  function close(){
+    clearTimeout(timer);
+    el.classList.add('out');
+    setTimeout(()=> el.remove(), 280);
+  }
+
+  /* --- barmoq bilan surib yuborish (yuqoriga yoki yonga) --- */
+  let sx = 0, sy = 0, dragging = false, mx = 0, my = 0;
+  el.addEventListener('pointerdown', (e)=>{
+    dragging = true; sx = e.clientX; sy = e.clientY; mx = my = 0;
+    clearTimeout(timer);
+    el.classList.add('drag');
+    const p = el.querySelector('.tgn-p'); if(p) p.style.animationPlayState = 'paused';
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  el.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    mx = e.clientX - sx; my = Math.min(0, e.clientY - sy);
+    el.style.transform = 'translate(' + mx + 'px,' + my + 'px)';
+    el.style.opacity = String(Math.max(0, 1 - (Math.abs(mx) / 220) - (Math.abs(my) / 120)));
+  });
+  const end = ()=>{
+    if(!dragging) return;
+    dragging = false;
+    if(Math.abs(mx) > 70 || my < -36){ el.style.transition = 'transform .2s,opacity .2s';
+      el.style.transform = 'translate(' + (mx > 0 ? 400 : (mx < -20 ? -400 : 0)) + 'px,' + (my < -20 ? -200 : 0) + 'px)';
+      el.style.opacity = '0'; setTimeout(()=> el.remove(), 210); return; }
+    el.style.transition = 'transform .22s cubic-bezier(.2,.9,.3,1.2),opacity .22s';
+    el.style.transform = ''; el.style.opacity = '';
+    setTimeout(()=>{ el.style.transition = ''; }, 240);
+    timer = setTimeout(close, 2500);
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+
+  el.addEventListener('click', (e)=>{
+    if(Math.abs(mx) > 6 || Math.abs(my) > 6) return;      /* surish edi, bosish emas */
+    if(e.target.closest('.tgn-x')){ close(); return; }
+    close();
+    if(item && item.id) setTimeout(()=> openDetail(item.id), 120);
+  });
+}
+
+/* ==================================================================
+   NUSXA OLISH — uchta usul ketma-ket sinaladi, biri ishlashi shart:
+     1. Telegram ilovasi ichida bo'lsa — uning o'z buferi
+     2. Zamonaviy brauzer — navigator.clipboard
+     3. Eski usul — yashirin maydon + execCommand('copy')
+   Qaysi biri ishlasa ham mijozga "Raqam nusxalandi" xabari chiqadi.
+   ================================================================== */
+function nusxaOl(txt, xabar){
+  const ok = ()=>{
+    haptic('ok');
+    toast(xabar || (LANG==='ru' ? 'Номер скопирован' : 'Raqam nusxalandi'), 'ok');
+  };
+  const xato = ()=>{
+    /* Hech biri ishlamasa — matnni belgilab beramiz, mijoz o'zi
+       "Nusxa olish" ni bosadi (brauzerning o'z menyusi orqali). */
+    try{
+      const d = document.createElement('div');
+      d.textContent = txt;
+      d.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;'
+        + 'padding:14px 18px;border-radius:14px;font-size:19px;font-weight:700;'
+        + 'background:var(--card);color:var(--ink);box-shadow:var(--sh-2);user-select:text;-webkit-user-select:text';
+      document.body.appendChild(d);
+      const r = document.createRange(); r.selectNodeContents(d);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      toast(LANG==='ru' ? 'Выделено — нажмите «Копировать»' : 'Belgilandi — «Nusxa olish» ni bosing', 'info');
+      setTimeout(()=> d.remove(), 6000);
+    }catch(e){}
+  };
+  /* 1 — Telegram */
+  try{
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if(tg && typeof tg.writeTextToClipboard === 'function'){ tg.writeTextToClipboard(txt); ok(); return; }
+  }catch(e){}
+  /* 2 — zamonaviy brauzer */
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok).catch(()=>{ nusxaZaxira(txt) ? ok() : xato(); });
+      return;
+    }
+  }catch(e){}
+  /* 3 — eski usul */
+  nusxaZaxira(txt) ? ok() : xato();
+}
+
+/* Clipboard API ishlamasa (eski brauzer yoki HTTPS emas) — zaxira usul */
+function nusxaZaxira(txt){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.setAttribute('readonly','');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, 99999);
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  }catch(e){ return false; }
+}
+
 /* ---------- Sheet ---------- */
 let sheetStack = [];
 function openSheet(id){
@@ -2184,7 +2519,9 @@ function yangiRaqamKuzatuvi(){
         if(ch.type === 'added'){
           const item = { id:ch.doc.id, ...ch.doc.data() };
           if(!NUMBERS.some(n => n.id === item.id)){ NUMBERS.unshift(item); renderAll(); }
-          toast((LANG==='ru'?'Новый номер: ':"Yangi raqam: ") + shortNumber(item.number), 'info');
+          /* Pastdagi kichik "toast" emas — tepadan tushadigan to'liq
+             bildirishnoma: raqam, narxi va operatori bilan. */
+          tgNote(LANG==='ru' ? 'Добавлен новый номер' : "Yangi raqam qo'shildi", item);
         }
       });
     }, ()=>{});
@@ -2818,6 +3155,9 @@ function openDetail(id){
       <button class="iconbtn" data-close aria-label="Yopish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
       <span style="flex:1"></span>
+      <button class="iconbtn" data-copy aria-label="Nusxa olish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.4"></rect><path d="M5 15V5.6A1.6 1.6 0 0 1 6.6 4H15"></path></svg>
+      </button>
       <button class="iconbtn" data-share aria-label="Ulashish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4"></path><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"></path></svg></button>
       <button class="iconbtn" data-fav="${esc(item.id)}" aria-label="Sevimlilar" style="background:rgba(230,200,119,.18);border-color:transparent;color:#E6C877">
@@ -2825,7 +3165,9 @@ function openDetail(id){
     </div>
     <div style="position:relative;margin-top:26px">
       ${item.featured ? `<span style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#E6C877;background:rgba(230,200,119,.16);padding:4px 9px;border-radius:6px">${t('VIP')} ${t('Raqam').toUpperCase()}</span>` : ''}
-      <div class="sg" style="margin-top:14px;font-size:31px;font-weight:700;color:#fff">${esc(shortNumber(item.number))}</div>
+      <button type="button" data-copy class="dt-numbtn sg" aria-label="Nusxa olish">${esc(shortNumber(item.number))}
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.4"></rect><path d="M5 15V5.6A1.6 1.6 0 0 1 6.6 4H15"></path></svg>
+      </button>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#C9D6E8;font-weight:600"><i style="width:7px;height:7px;border-radius:2px;background:${m.color};display:inline-block"></i>${esc(item.operator||'')}</span>
       </div>
@@ -3754,6 +4096,55 @@ function openFaq(){
     </div><div style="height:6px"></div>`;
   openSheet('shGen');
 }
+
+/* ==================================================================
+   OFIS MANZILI  ("Biz haqimizda" oynasida)
+   Koordinata admin panelning "Sozlamalar" bo'limidan olinadi
+   (site_settings/general → officeLat / officeLng). Kiritilmagan bo'lsa
+   standart qiymat ishlatiladi — ya'ni blok har doim ishlaydi.
+   "Xaritani ochish" telefonda Yandex Xarita / Yandex Go ilovasini
+   ochadi (o'rnatilmagan bo'lsa — brauzerdagi xaritani).
+   ================================================================== */
+function ofisKoord(){
+  const la = parseFloat(SETTINGS.officeLat), ln = parseFloat(SETTINGS.officeLng);
+  return {
+    lat: Number.isFinite(la) ? la : 41.289757,
+    lng: Number.isFinite(ln) ? ln : 69.201657
+  };
+}
+function ofisBloki(){
+  const { lat, lng } = ofisKoord();
+  const manzil = esc(SETTINGS.officeAddress || (LANG==='ru' ? 'г. Ташкент' : 'Toshkent shahri'));
+  const nom = encodeURIComponent('VIP RAQAMLAR');
+  const xarita = `https://yandex.uz/maps/?pt=${lng},${lat}&z=17&l=map&text=${nom}`;
+  const yol    = `https://yandex.uz/maps/?rtext=~${lat},${lng}&rtt=auto`;
+  return `
+    <div class="card ofis" style="margin-top:12px">
+      <div class="ofis-top">
+        <span class="ofis-pin">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"></path><circle cx="12" cy="10" r="2.6"></circle></svg>
+        </span>
+        <span class="ofis-txt">
+          <b>${t('Bizning manzil')}</b>
+          <i>${manzil}</i>
+        </span>
+      </div>
+      <div class="ofis-map" aria-hidden="true">
+        <span class="ofis-dot"></span>
+      </div>
+      <div class="ofis-btns">
+        <a class="btn" href="${xarita}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5 3.5 6.8v13L9 17.5l6 3 5.5-2.3v-13L15 7.5z"></path><path d="M9 4.5v13M15 7.5v13"></path></svg>
+          ${t('Xaritani ochish')}
+        </a>
+        <a class="btn ghost" href="${yol}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h7a3 3 0 0 0 3-3V7"></path><path d="M13 4.5 16 7l-3 2.5"></path><circle cx="5" cy="17" r="2.4"></circle><path d="M7.4 17H18a3 3 0 0 0 0-6"></path></svg>
+          ${t("Yo'nalish")}
+        </a>
+      </div>
+    </div>`;
+}
+
 function openAbout(){
   $('#genTitle').textContent = t('Biz haqimizda');
   $('#genFoot').style.display = 'none';
@@ -3768,6 +4159,7 @@ function openAbout(){
     <div class="card" style="margin-top:12px">
       <div style="font-size:13px;color:var(--text-2);font-weight:600;line-height:1.65">Biz mijozlarimizga barcha operatorlar (Beeline, Ucell, Uzmobile, Mobiuz, Humans, Perfektum) raqamlarini keng katalog orqali taqdim etamiz, O'zbekiston bo'ylab bepul yetkazib berish va bo'lib to'lash (kredit) imkoniyatini beramiz.</div>
     </div>
+    ${ofisBloki()}
     <div class="rows" style="margin-top:12px">
       <a class="row" href="tel:+998878880101"><span class="ri" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a1.5 1.5 0 0 1-1.7 1.5A16.5 16.5 0 0 1 5 5.2 1.5 1.5 0 0 1 6.5 3.5z"></path></svg></span><span class="rt"><b>Qo'ng'iroq</b><i class="sg">+998 87 888 01 01</i></span></a>
       <a class="row" href="${esc(SETTINGS.telegramLink || 'https://t.me/Vip_raqamlar_admin')}" target="_blank" rel="noopener"><span class="ri" style="background:var(--blue-tint);color:var(--blue)"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5L10.5 13.5 3.5 10.5z"></path><path d="M21 5l-7 15-3.5-6.5"></path></svg></span><span class="rt"><b>Telegram</b><i>@Vip_raqamlar_admin</i></span></a>
@@ -3894,6 +4286,15 @@ function upperAll(root){
   });
 }
 
+/* Bosishdan OLDIN matn belgilangan edimi? Brauzer bosilganda belgilashni
+   darhol tozalaydi, shu sabab uni aynan shu yerda eslab qolamiz — aks
+   holda mijoz raqamni belgilab, nusxa olmoqchi bo'lganda kartochka
+   ochilib ketardi. */
+let __selOldin = '';
+document.addEventListener('pointerdown', (e)=>{
+  try{ __selOldin = ((window.getSelection && window.getSelection().toString()) || '').trim(); }catch(err){ __selOldin = ''; }
+}, {passive:true, capture:true});
+
 /* Har qanday amalda yumshoq tebranish */
 document.addEventListener('pointerdown', (e)=>{
   if(e.target.closest('button, a, [data-card], [data-order], .op, .chip, .tpick, .ptile, #nav a'))
@@ -3932,6 +4333,19 @@ document.addEventListener('click', (e)=>{
     haptic(on ? 'ok' : 'light');
     toast(on ? t('Sevimlilarga qo\'shildi') : t('Sevimlilardan olib tashlandi'), on ? 'ok' : 'info');
     if(currentRoute === 'fav') renderFavorites();
+    return;
+  }
+
+  /* Mijoz matnni belgilagan bo'lsa (nusxa olmoqchi) — bu bosish faqat
+     belgilashni bekor qiladi, kartochka ochilmaydi. */
+  let __sel = '';
+  try{ __sel = (window.getSelection && window.getSelection().toString()) || ''; }catch(err){}
+  if(__sel.trim().length > 2 || __selOldin.length > 2){ __selOldin = ''; return; }
+
+  const cp = e.target.closest('[data-copy]');
+  if(cp && CURRENT){
+    e.preventDefault(); e.stopPropagation();
+    nusxaOl(displayNumber(CURRENT.number));
     return;
   }
 
@@ -4189,6 +4603,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:'){
     document.querySelectorAll('#favList .swipe.open').forEach(s=>{ if(s!==except) s.classList.remove('open'); });
   }
   document.addEventListener('pointerdown', (e)=>{
+    if(e.clientX <= 24) return;          /* chap chekka — "orqaga" imo-ishorasi uchun */
     const sw = e.target.closest('#favList .swipe'); if(!sw){ closeAll(null); return; }
     if(e.target.closest('.swipe-del')) return;
     el = sw; x0 = e.clientX; y0 = e.clientY; dx = 0; lock='';
@@ -4246,6 +4661,65 @@ function moveNavPill(){
 }
 window.addEventListener('resize', moveNavPill);
 window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
+
+/* ==================================================================
+   CHAP CHEKKADAN SURIB ORQAGA QAYTISH
+   Telegram/iOS'dagi kabi: barmoqni ekranning chap chekkasidan o'ngga
+   sursa — orqaga qaytadi. Oyna (sheet) ochiq bo'lsa avval o'sha
+   yopiladi, keyin sahifa tarixi bo'yicha orqaga o'tiladi.
+   Chekka zonasi 22px — oddiy surish va kartochkadagi "o'chirish"
+   imo-ishorasiga xalaqit bermaydi.
+   ================================================================== */
+(function(){
+  const EDGE = 22;       /* chekka zonasi (px) */
+  const NEED = 74;       /* orqaga qaytish uchun kerakli masofa */
+  const hint = document.getElementById('edgeBack');
+  let act = false, x0 = 0, y0 = 0, dx = 0, lock = '';
+
+  function qoy(d){
+    if(!hint) return;
+    const k = Math.min(1, d / NEED);
+    hint.style.transform = 'translate(' + (Math.min(d, 118) - 46) + 'px,-50%) scale(' + (0.8 + k * 0.28) + ')';
+    hint.classList.toggle('on', d > 6);
+  }
+  function tozala(){
+    act = false; lock = ''; dx = 0;
+    if(hint){ hint.classList.remove('on'); hint.style.transform = 'translate(-100%,-50%) scale(.8)'; }
+  }
+
+  document.addEventListener('pointerdown', (e)=>{
+    if(e.pointerType === 'mouse') return;          /* faqat barmoq uchun */
+    if(e.clientX > EDGE) return;
+    if(document.querySelector('.sheet.on .bodyscroll') && e.target.closest('.srch-cells')) return;
+    act = true; x0 = e.clientX; y0 = e.clientY; dx = 0; lock = '';
+  }, {passive:true, capture:true});
+
+  document.addEventListener('pointermove', (e)=>{
+    if(!act) return;
+    const mx = e.clientX - x0, my = e.clientY - y0;
+    if(!lock){
+      if(Math.abs(mx) < 10 && Math.abs(my) < 10) return;
+      lock = (mx > Math.abs(my)) ? 'x' : 'y';
+      if(lock === 'y'){ tozala(); return; }
+    }
+    dx = Math.max(0, mx);
+    qoy(dx);
+  }, {passive:true, capture:true});
+
+  const tugadi = ()=>{
+    if(!act) return;
+    const yetarli = lock === 'x' && dx >= NEED;
+    tozala();
+    if(!yetarli) return;
+    haptic('light');
+    if(typeof sheetStack !== 'undefined' && sheetStack.length){ closeSheet(); return; }
+    if(history.length > 1) history.back();
+    else location.hash = '#/';
+  };
+  document.addEventListener('pointerup', tugadi, {passive:true, capture:true});
+  document.addEventListener('pointercancel', ()=> tozala(), {passive:true, capture:true});
+})();
+
 setTimeout(moveNavPill, 60);
 setTimeout(moveNavPill, 400);
 </script>

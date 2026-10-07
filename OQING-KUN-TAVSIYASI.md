@@ -335,3 +335,110 @@ Endi `$` **narx bilan aynan bir xil kattalikda, qalinlikda va rangda**
 chiqadi; `so'm` esa avvalgidek kichik va xira qoladi. Bu qoida saytning
 barcha joyida ishlaydi: kartochka, bosh sahifadagi premium karusel, kun
 tavsiyasi, raqam oynasi, pastki «Jami» qatori va buyurtma xulosasi.
+
+---
+
+# Tepadan tushadigan bildirishnoma, chekka imo-ishorasi, kun tavsiyasi
+
+## 1. Yangi raqam qo'shilganda — Telegramdagi kabi bildirishnoma
+Avval pastda kichkina kulrang "toast" chiqardi. Endi **tepadan sirg'alib
+tushadigan to'liq kartochka**:
+
+- Kichik sarlavha: «YANGI RAQAM QO'SHILDI»
+- Yirik raqam, tagida **narxi va operatori** to'liq
+- Oltin qo'ng'iroq belgisi, shisha fon, pastda vaqt chizig'i
+- **Yumshoq ovoz** chaladi (fayl kerak emas — brauzerning o'zi chaladi;
+  brauzer qoidasiga ko'ra birinchi teginishdan keyin ishlaydi) va titratish
+- **4 soniyadan keyin o'zi ketadi**; mijoz kutmasdan **yuqoriga yoki yonga
+  surib** yuborishi, yoki ✕ bosishi mumkin
+- Ustiga bossa — o'sha raqam oynasi ochiladi
+- Bir vaqtda ko'pi bilan 2 ta ko'rinadi, ekran to'lib ketmaydi
+
+## 2. Chap chekkadan surib orqaga qaytish
+Telegram/iOS'dagi kabi: barmoqni ekranning **chap chekkasidan o'ngga**
+sursa — orqaga qaytadi. Surish paytida chekkada kichik strelka chiqib,
+barmoq bilan birga suriladi.
+
+- Oyna (raqam oynasi, buyurtma, savol-javob…) ochiq bo'lsa — **avval o'sha
+  yopiladi**
+- Aks holda sahifa tarixi bo'yicha orqaga o'tiladi
+- Chekka zonasi 22px va faqat barmoq uchun — sichqoncha bilan ishlamaydi,
+  shuning uchun oddiy surishga va sevimlilardagi "o'chirish" imo-ishorasiga
+  xalaqit bermaydi
+
+## 3. Kun tavsiyasi
+- O'ng chekkadagi **qora soya butunlay olib tashlandi** — kartochka kam
+  bo'lganda u bo'sh joyda xunuk ko'rinardi.
+- O'rniga kartochkaning o'zida **sekin yurib turuvchi oq yaltirash** paydo
+  bo'ldi (bosh sahifadagi premium kartochkadagi kabi, lekin yumshoqroq).
+
+Tekshirildi: bildirishnoma ikkala mavzuda chiqdi va 4 soniyada ketdi, yonga
+surilganda darhol yo'qoldi; chekka imo-ishorasi oynani yopdi va sahifani
+orqaga qaytardi; 16 ta harness o'tdi, kontrast 0 xato, JS 0 xato.
+
+---
+
+# Nusxa olish, yaqinlashtirish va yangi bildirishnoma belgisi
+
+## 1. Yaqinlashtirish/uzoqlashtirish ochildi
+Sahifa sozlamasida `user-scalable=no, maximum-scale=1` turgandi — shuning
+uchun ikki barmoq bilan kattalashtirib bo'lmasdi. Endi **5 barobargacha**
+yaqinlashtirish mumkin.
+
+Yonidagi tuzatish: forma maydonlari (ism, telefon, manzil) 14.5px edi —
+iPhone 16px dan kichik maydonga bosilganda sahifani o'zi kattalashtirib
+yuboradi. Shu sabab ular **16px** ga o'tkazildi. Ikki marta bosganda
+sakrab zoom bo'lishi esa avvalgidek o'chirilgan, ya'ni faqat ikki barmoq
+bilan ishlaydi.
+
+## 2. Nusxa olish ishlaydi
+- Matn (raqam, narx, shartlar) endi **barmoq bilan belgilanadi va
+  nusxalanadi**. Tugmalar, yorliqlar va menyu belgilanmaydi — ular
+  bosiladi, o'qilmaydi.
+- Mijoz matnni belgilagan bo'lsa, keyingi bosish **faqat belgilashni bekor
+  qiladi** — kartochka ochilib ketmaydi (avval shunday bo'lardi).
+- Raqam oynasiga **«Nusxa olish» tugmasi** qo'shildi (yuqorida, ulashish
+  belgisi yonida): bosilsa to'liq raqam (`+998 90 777 00 00`) buferga
+  tushadi va «Raqam nusxalandi» xabari chiqadi. HTTPS bo'lmagan yoki eski
+  brauzerlar uchun zaxira usul ham bor.
+
+## 3. Bildirishnoma belgisi
+Katta va oddiy oltin qo'ng'iroq o'rniga endi **ixcham (34px) uchqun belgisi**:
+shaffof oltin fon, ingichka oltin halqa va yumshoq porlash. Bildirishnoma
+balandligi ham shunga mos ravishda kichrayadi.
+
+Tekshirildi: raqamni sichqoncha bilan belgilash ishladi («90 777 00 00»),
+belgilangandan keyingi bosish kartochkani ochmadi, keyingisi ochdi; nusxa
+tugmasi buferga `+998 90 777 00 00` yozdi; 17 ta harness o'tdi.
+
+---
+
+# «Biz haqimizda» — manzil va xarita; nusxa olish mustahkamlandi
+
+## 1. Ofis manzili va «Xaritani ochish»
+Profil → «Biz haqimizda» oynasiga manzil kartochkasi qaytarildi:
+
+- Manzil matni, pastida kichik xarita tasviri va urib turgan qizil nuqta
+- **«Xaritani ochish»** — telefonda Yandex Xarita / Yandex Go ilovasini
+  ochadi va VIP RAQAMLAR nuqtasini ko'rsatadi (ilova bo'lmasa brauzerda)
+- **«Yo'nalish»** — darhol shu manzilgacha yo'l quradi
+
+Koordinata admin paneldagi **Sozlamalar → «Ofis manzili — kenglik /
+uzunlik»** maydonlaridan olinadi (allaqachon bor edi). Yangi qo'shilgani:
+**«Ofis manzili (matn)»** maydoni — saytda ko'rinadigan yozuv. Bo'sh
+qoldirilsa «Toshkent shahri» yoziladi, koordinata kiritilmagan bo'lsa
+standart nuqta ishlatiladi — ya'ni bo'lim har doim ishlaydi.
+
+## 2. Nusxa olish — endi uchta usul ketma-ket sinaladi
+Avval faqat bitta usul (`navigator.clipboard`) ishlatilardi; Telegram ichida
+yoki ba'zi brauzerlarda u jim qolardi. Endi:
+
+1. Telegram ilovasi ichida bo'lsa — uning o'z buferi
+2. Zamonaviy brauzer — `navigator.clipboard`
+3. Eski usul — yashirin maydon + `execCommand('copy')`
+4. Hech biri ishlamasa — raqam katta qilib chiqadi va **o'zi belgilanadi**,
+   mijoz brauzerning «Nusxa olish»ini bosadi
+
+Va eng muhimi: **raqam oynasidagi katta raqamning o'ziga bosish ham
+nusxalaydi** — yonida kichik nusxa belgisi turadi, ya'ni tugmani qidirish
+shart emas. Yuqoridagi nusxa tugmasi ham joyida qoldi.

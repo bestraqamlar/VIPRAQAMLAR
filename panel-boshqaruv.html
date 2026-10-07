@@ -5525,6 +5525,9 @@ body{
       <input type="text" id="siteContactLink" placeholder="https://t.me/sizning_username yoki tel:+998...">
       <label for="siteAdminContactLink">Admin bilan aloqa havolasi</label>
       <input type="text" id="siteAdminContactLink" placeholder="https://t.me/admin_username">
+      <label for="officeAddress">Ofis manzili (matn)</label>
+      <input type="text" id="officeAddress" placeholder="Toshkent sh., Chilonzor t., ... ko'chasi 1-uy">
+      <p style="color:var(--muted);font-size:11.5px;margin:4px 0 0;">Saytda «Biz haqimizda» bo'limida ko'rinadi. Bo'sh qoldirilsa — «Toshkent shahri» yoziladi.</p>
       <label for="officeLat">Ofis manzili — kenglik (latitude)</label>
       <input type="text" id="officeLat" placeholder="41.289757">
       <label for="officeLng">Ofis manzili — uzunlik (longitude)</label>
@@ -9697,6 +9700,7 @@ async function loadSiteSettingsForm(){
     document.getElementById('siteInstagramLink').value = s.instagramLink || '';
     document.getElementById('siteContactLink').value = s.contactLink || '';
     document.getElementById('siteAdminContactLink').value = s.adminContactLink || '';
+    document.getElementById('officeAddress').value = s.officeAddress || '';
     document.getElementById('officeLat').value = s.officeLat || '41.289757';
     document.getElementById('officeLng').value = s.officeLng || '69.201657';
     document.getElementById('yandexApiKey').value = s.yandexApiKey || '788242a0-f999-487f-801f-01d3a640f448';
@@ -9722,6 +9726,7 @@ document.getElementById('saveSiteSettingsBtn').addEventListener('click', async (
       instagramLink: document.getElementById('siteInstagramLink').value.trim(),
       contactLink: document.getElementById('siteContactLink').value.trim(),
       adminContactLink: document.getElementById('siteAdminContactLink').value.trim(),
+      officeAddress: document.getElementById('officeAddress').value.trim(),
       officeLat: document.getElementById('officeLat').value.trim(),
       officeLng: document.getElementById('officeLng').value.trim(),
       yandexApiKey: document.getElementById('yandexApiKey').value.trim(),
