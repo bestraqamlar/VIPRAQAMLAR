@@ -41,7 +41,9 @@
 
 :root{
   /* --- Yorug' mavzu --- */
-  --ground:#E4EAF4;      --ground-2:#DCE4F0;
+  /* Orqa fon kartochkadan sezilarli to'qroq — oldin ikkalasi deyarli
+     bir xil oqish edi va kartochka "yo'qolib" ketardi. */
+  --ground:#D9E1EF;      --ground-2:#CFD9EA;
   --card:#FFFFFF;        --card-2:#F3F6FB;      --card-3:#E8EDF5;
   --glass:rgba(255,255,255,.72);
   --edge:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,0));
@@ -49,19 +51,20 @@
   --muted:#56637B;       --muted-2:#56637B;     --faint:#7F8DA4;
   --line:#D3DCEB;        --line-2:#C7D2E4;      --line-3:#E2E8F2;
   --blue:#2457E6;        --blue-ink:#17398F;    --blue-tint:#E4ECFD;   --blue-text:#1B44B5;
+  --blue-cta-line:rgba(36,87,230,.22);  --blue-cta-line-2:rgba(36,87,230,.42); --blue-cta-hov:#D7E3FC;
   --gold:#B8832A;        --gold-ink:#8C6417;    --gold-tint:#FBF0DC;   --gold-bright:#E6C877;
   --green:#0F7A52;       --green-tint:#E2F2EA;
   --red:#B52B29;         --red-tint:#FBE8E7;    --red-line:#F0CFCE;
   --navy-grad:linear-gradient(150deg,#09182C 0%,#1C3C6B 100%);
-  --sh-1:0 1px 1px rgba(9,24,44,.035), 0 2px 6px -2px rgba(9,24,44,.06), 0 10px 26px -14px rgba(9,24,44,.14);
+  --sh-1:0 1px 2px rgba(9,24,44,.05), 0 3px 8px -2px rgba(9,24,44,.08), 0 14px 30px -16px rgba(9,24,44,.20);
   --sh-2:0 2px 8px -3px rgba(9,24,44,.1), 0 18px 40px -20px rgba(9,24,44,.42);
   --sh-3:0 30px 70px -30px rgba(9,24,44,.5);
   --sh-blue:0 12px 26px -14px rgba(36,87,230,.85);
   --r-s:11px; --r-m:14px; --r-l:18px; --r-xl:24px;
-  --nc-bg:linear-gradient(160deg,rgba(255,255,255,.82),rgba(255,255,255,.62));
+  --nc-bg:linear-gradient(160deg,rgba(255,255,255,.99),rgba(255,255,255,.93));
   --nc-hov:rgba(36,87,230,.5);
   --nc-edge:rgba(255,255,255,.9);
-  --nc-line:rgba(16,32,60,.09);
+  --nc-line:rgba(16,32,60,.11);
   --glow-a:rgba(36,87,230,.17); --glow-b:rgba(124,58,237,.13);
   --tg-glow:rgba(45,160,220,.16); --tg-line:rgba(45,160,220,.26); --tg-line-2:rgba(45,160,220,.5);
   --day-bg:linear-gradient(160deg,rgba(255,255,255,.86),rgba(240,252,249,.72));
@@ -96,6 +99,7 @@ html[data-theme="dark"]{
   --muted:#93A6C2;       --muted-2:#93A6C2;     --faint:#7E91AE;
   --line:rgba(255,255,255,.11); --line-2:rgba(255,255,255,.15); --line-3:rgba(255,255,255,.08);
   --blue:#2E5FE0;        --blue-ink:#A8C4FF;    --blue-tint:rgba(46,95,224,.26);  --blue-text:#8FB4FF;
+  --blue-cta-line:rgba(120,160,255,.26); --blue-cta-line-2:rgba(140,180,255,.5); --blue-cta-hov:rgba(46,95,224,.36);
   --gold:#E6C877;        --gold-ink:#E6C877;    --gold-tint:rgba(230,200,119,.14);
   --green:#3DD68C;       --green-tint:rgba(17,135,92,.22);
   --red:#FF8A87;         --red-tint:rgba(194,48,46,.22); --red-line:rgba(255,138,135,.32);
@@ -631,7 +635,7 @@ html[data-theme="dark"] .t-gold{
 .numcard.res{opacity:.58}
 
 .nc-top{display:flex;align-items:flex-start;gap:12px}
-.nc-num{font-size:21px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
+.nc-num{font-size:23.5px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
 .nc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 /* Operator chipi — RANGLI NUQTASIZ (neytral). Operator kartochkadagi
    4-darajali ma'lumot, lekin rangli nuqta uni eng baland elementga
@@ -658,22 +662,34 @@ html[data-theme="dark"] .t-gold{
 .nc-price .p{font-size:17.5px;font-weight:700;white-space:nowrap;line-height:1.2}
 .nc-price .p small{font-family:'Plus Jakarta Sans';font-size:11px;color:var(--muted-2);font-weight:600;margin-left:1px}
 .nc-price .old{font-size:11.5px;color:var(--muted-2);text-decoration:line-through;margin-top:3px}
+/* Bo'lib to'lash yorlig'i — ko'pincha BU raqamning yagona narxi bo'ladi,
+   shu sabab xira bo'lmasligi kerak. Rangi ko'k (harakat emas, ma'lumot —
+   lekin narx bo'lgani uchun aniq o'qilishi shart). */
 .nc-price .ins{
   display:inline-flex;align-items:center;gap:5px;margin-top:5px;
-  font-size:11px;color:var(--text-3);font-weight:700;line-height:1.3;
-  background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line-3);
-  padding:3px 8px;border-radius:8px;
+  font-size:11.5px;color:var(--blue-text);font-weight:800;line-height:1.3;
+  background:var(--blue-tint);padding:4px 9px;border-radius:8px;
 }
-/* Ro'yxatdagi tugma JIM — butun kartochka bosiladi, to'q ko'k esa faqat
-   bitta joyda qoladi: raqam oynasidagi "Buyurtma berish". */
+/* Naqt narx ko'rsatilmaydigan kartochkada bu YAGONA narx — shu sabab
+   yorliq emas, oddiy narx kabi chiziladi: katta, qalin, fonsiz. */
+.nc-price .ins.solo{
+  display:block;background:none;box-shadow:none;padding:0;border-radius:0;
+  font-size:13.5px;font-weight:800;color:var(--ink);line-height:1.3;
+  white-space:normal;
+}
+/* Ro'yxatdagi tugma — IKKILAMCHI (tiniq ko'k): ochiq ko'k fon, to'q ko'k
+   matn, porlashsiz. Ro'yxatda hamma element teng, shu sabab u yerda
+   "asosiy" tugma bo'lmasligi kerak — aks holda ko'z har kartochkada
+   raqamdan tugmaga sakraydi. To'ldirilgan to'q ko'k butun saytda FAQAT
+   bitta joyda: raqam oynasidagi "Buyurtma berish". */
 .nc-cta{
   height:40px;padding:0 15px 0 17px;border-radius:14px;flex:none;
-  background:var(--card-3);color:var(--ink);font-size:13.5px;font-weight:700;
-  box-shadow:inset 0 0 0 1px var(--line-2);
+  background:var(--blue-tint);color:var(--blue-text);font-size:13.5px;font-weight:800;
+  box-shadow:inset 0 0 0 1px var(--blue-cta-line);
   display:flex;align-items:center;gap:7px;
   transition:transform .18s,box-shadow .18s,background .18s;
 }
-.numcard:hover .nc-cta{transform:translateY(-1px);background:var(--card-2);box-shadow:inset 0 0 0 1px var(--nc-hov)}
+.numcard:hover .nc-cta{transform:translateY(-1px);background:var(--blue-cta-hov);box-shadow:inset 0 0 0 1px var(--blue-cta-line-2)}
 .nc-cta svg{opacity:.9;transition:transform .2s}
 .numcard:hover .nc-cta svg{transform:translateX(2px)}
 .nc-cta.off{background:var(--card-3);color:var(--faint);box-shadow:none}
@@ -942,7 +958,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   background:var(--day-rib);color:var(--day-rib-ink);box-shadow:inset 0 0 0 1px var(--day-line);
 }
 .daycard .dc-rib svg{width:11px;height:11px;flex:none}
-.daycard .dc-num{margin-top:12px;font-size:21px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.daycard .dc-num{margin-top:12px;font-size:23.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .daycard .dc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .daycard .dc-sep{height:1px;background:var(--day-line);margin:13px 0 11px;opacity:.7}
 .daycard .dc-bot{display:flex;align-items:center;gap:10px}
@@ -1115,7 +1131,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .numcard .nc-cta{justify-content:center;height:42px}
   .list,.grid,#catList{align-items:stretch}
   .numcard:hover{transform:translateY(-3px)}
-  .nc-num{font-size:21px}
+  .nc-num{font-size:25px}
   .vcard{width:auto}
   .vcard video{height:300px}
 
@@ -2115,7 +2131,7 @@ function numCard(item){
     if(hasActiveDiscount(item)) price += `<div class="old sg">${formatPrice(item.oldPrice)}</div>`;
     if(ins) price += `<div class="ins">${esc(ins)}</div>`;
   }else{
-    price = `<div class="ins" style="margin-top:0">${esc(ins || t("Bo'lib to'lash"))}</div>`;
+    price = `<div class="ins solo" style="margin-top:0">${esc(ins || t("Bo'lib to'lash"))}</div>`;
   }
   const cls = res ? ' res' : (vip ? ' vipc t-' + tier : (installmentAllowed(item) ? ' insc' : ''));
   return `<article class="numcard${cls}" data-card="${esc(item.id)}">

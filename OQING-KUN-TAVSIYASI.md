@@ -207,11 +207,12 @@ oilasi 3 ta: **neytral** (fon va matn), **metall** (toifa), **qizil**
 | Toifasiz kartochka | ko'k chiziq | chiziq yo'q |
 | «Bo'lib to'lash» | ko'kish-yashil chiziq + ko'k yorliq | chiziq yo'q, yorliq neytral |
 | Operator | rangli nuqta (sariq/qizil/pushti…) | **nuqtasiz**, neytral chip |
-| Ro'yxatdagi «Ko'rish» | to'q ko'k tugma | **jim** tugma (butun kartochka bosiladi) |
+| Ro'yxatdagi «Ko'rish» | to'q ko'k tugma | **to'q ko'k** (o'zgarmadi) — endi u yagona urg'u |
 | Kun tavsiyasi | firuza shisha kartochka | **tegilmadi** — mijoz so'roviga ko'ra eski holicha qoldi |
 
-To'q ko'k endi butun saytda **bitta joyda** qoladi: raqam oynasidagi
-«Buyurtma berish» tugmasi. Shu sabab u endi rostdan ham ko'zga tashlanadi.
+To'q ko'k endi butun saytda FAQAT BITTA narsani bildiradi: **harakat**
+(«Ko'rish» va «Buyurtma berish»). Kartochka ichi neytral bo'lgani uchun
+u hech narsa bilan kurashmaydi — ko'z avval raqamga, keyin tugmaga tushadi.
 
 Tegilmagan joylar (ataylab): bosh sahifadagi PREMIUM karusel va raqam
 oynasining sarlavhasi — ular to'q ko'k + oltin, ya'ni brendning bitta
@@ -219,3 +220,52 @@ oynasining sarlavhasi — ular to'q ko'k + oltin, ya'ni brendning bitta
 
 Tekshirildi: kontrast 0 xato (oq va qora fonda), 16 ta harness o'tdi,
 JS 0 xato, uch toifa va toifasiz kartochka ikkala mavzuda ko'zdan kechirildi.
+
+---
+
+# Raqam kattaroq + oq fonda kartochka ajralib turadi
+
+**1. Raqam — kartochkaning bosh qahramoni**
+Telefonda 21px → **23.5px**, kompyuterda 21px → **25px**. Kun tavsiyasi
+kartochkasida ham bir xil. Kattalashtirish ataylab ozgina — kartochka
+balandligi deyarli o'zgarmadi, lekin ko'z endi birinchi navbatda raqamga
+tushadi.
+
+**2. Oq fon: kartochka va orqa fon ajralmasdi**
+Sabab aniq edi — orqa fon `#E4EAF4`, kartochka esa yarim shaffof oq
+(82%) bo'lgani uchun ikkalasi deyarli bir xil oqish chiqardi. Endi:
+
+| | Avval | Hozir |
+|---|---|---|
+| Orqa fon | `#E4EAF4` | **`#D9E1EF`** (biroz to'qroq, salqin kulrang-ko'k) |
+| Kartochka foni | oq 82% / 62% | **oq 99% / 93%** — amalda toza oq |
+| Chegara | 9% | 11% |
+| Soya | yengil | biroz chuqurroq va kengroq |
+
+Natijada kartochka fonda "suzib" turgandek ko'rinadi — zamonaviy
+ilovalardagidek. Qora mavzuga tegilmadi, u allaqachon to'g'ri edi.
+
+Tekshirildi: kontrast 0 xato (oq va qora fonda), toshish 0, 14 ta harness
+o'tdi; telefon va kompyuter ko'rinishlari ko'zdan kechirildi.
+
+---
+
+# «Ko'rish» — ikkilamchi tugma
+
+Ro'yxatda tugma va ko'k rang QOLDI, lekin to'ldirilgan emas:
+**ochiq ko'k fon + to'q ko'k matn + strelka, porlashsiz.**
+
+Sabab: ro'yxatda hamma element teng. 15 ta bir xil to'q ko'k tugma
+qo'yilsa, «asosiy» degan tushuncha yo'qoladi va ko'z har kartochkada
+raqamdan tugmaga sakraydi. Katta kompaniyalar (Airbnb, Apple, Amazon,
+Zillow) ro'yxatda umuman to'ldirilgan tugma qo'ymaydi; Booking.com
+qo'yadi, lekin u konversiyaga sozlangan, nafislikka emas.
+
+To'ldirilgan to'q ko'k endi butun saytda **bitta joyda** — raqam
+oynasidagi «Buyurtma berish». Ya'ni qaror qabul qilinadigan nuqtada.
+
+Kun tavsiyasi kartochkasidagi yashil tugma tegilmadi — o'sha bo'lim
+ataylab ajralib turishi kerak.
+
+Kontrast: oq fonda 8.1:1, qora fonda ~6.2:1 — ikkalasi ham AA dan ancha
+yuqori.
