@@ -883,36 +883,78 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .heroscroll::-webkit-scrollbar{display:none}
 .heroscroll.drag{cursor:grabbing}
 .heroscroll > *{flex:none}
+/* ================= PREMIUM KARTOCHKA (bosh sahifa karuseli) =================
+   Bu kartochka saytdagi yagona "hashamat yuzasi" — qolgan hamma joy
+   neytral bo'lgani uchun u butun ekranni ko'taradi. Qatlamlar (pastdan
+   yuqoriga): to'q tungi fon → oltin nur → ko'k nur → juda nozik
+   gilyosh (bank kartasidagidek chiziqcha naqsh) → ustida oltin soch
+   chizig'i (ramka) → sekin yurib o'tadigan yorug'lik (metall yaltirashi).
+   Har bir qatlam alohida juda past shaffoflikda — shu sabab natija
+   "bezakli" emas, "qimmat" ko'rinadi. */
 .herocard{
-  width:min(84vw,360px);border-radius:24px;padding:19px 20px 18px;
-  background:linear-gradient(150deg,#16305C 0%,#1B3F74 55%,#143258 100%);
+  width:min(84vw,360px);border-radius:26px;padding:20px 21px 19px;
+  background:
+    radial-gradient(180px 150px at 100% 0%, rgba(230,200,119,.30), transparent 68%),
+    radial-gradient(200px 170px at 0% 100%, rgba(64,118,235,.26), transparent 70%),
+    repeating-linear-gradient(118deg, rgba(255,255,255,.035) 0 1px, transparent 1px 9px),
+    linear-gradient(152deg,#0E1F3E 0%,#17315C 46%,#0B1830 100%);
   position:relative;overflow:hidden;color:#fff;
-  box-shadow:var(--sh-2),inset 0 1px 0 rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.08);
+  box-shadow:
+    0 24px 50px -26px rgba(5,14,30,.95),
+    0 2px 10px -4px rgba(5,14,30,.6),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  border:none;
+  isolation:isolate;
 }
-.herocard::after{content:'';position:absolute;right:-60px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(230,200,119,.26),rgba(230,200,119,0) 66%)}
-.herocard::before{content:'';position:absolute;left:-40px;bottom:-70px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(70,130,255,.22),rgba(70,130,255,0) 68%)}
-.herocard > *{position:relative}
+/* Oltin soch chizig'i — tepada yorqin, pastga qarab so'nadi */
+.herocard::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;
+  background:linear-gradient(150deg,rgba(240,216,152,.75) 0%,rgba(240,216,152,.18) 34%,rgba(255,255,255,.06) 62%,rgba(240,216,152,.26) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+}
+/* Metall yaltirashi — sekin, bir marta o'tib yo'qoladi va qaytadi */
+.herocard::after{
+  content:'';position:absolute;top:-60%;bottom:-60%;width:38%;left:-45%;z-index:1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.14) 42%,rgba(255,240,205,.22) 52%,rgba(255,255,255,.12) 60%,transparent);
+  transform:rotate(14deg);
+  animation:hcShine 7.5s cubic-bezier(.4,0,.2,1) 1.8s infinite;
+}
+@keyframes hcShine{0%{left:-45%}32%{left:125%}100%{left:125%}}
+@media (prefers-reduced-motion:reduce){.herocard::after{animation:none;opacity:0}}
+.herocard > *{position:relative;z-index:3}
 .hc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* Oltin folga yorlig'i */
 .hc-badge{
-  font-size:9.5px;font-weight:800;letter-spacing:.11em;color:#F0D898;
-  background:rgba(230,200,119,.16);box-shadow:inset 0 0 0 1px rgba(230,200,119,.3);
-  padding:5px 10px;border-radius:8px;
+  font-size:9.5px;font-weight:800;letter-spacing:.13em;color:#241A03;
+  background:linear-gradient(135deg,#F9EBC2 0%,#E8CE8E 46%,#C9A041 100%);
+  box-shadow:0 2px 8px -4px rgba(230,200,119,.9),inset 0 1px 0 rgba(255,255,255,.55);
+  padding:5px 11px;border-radius:8px;
 }
-.herocard .nc-op{background:rgba(255,255,255,.1);color:#DCE6F5}
-.herocard .num{font-size:28px;font-weight:700;margin-top:17px;letter-spacing:.01em}
-.hc-bot{margin-top:19px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px}
+.herocard .nc-op{background:rgba(255,255,255,.1);color:#DCE6F5;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.herocard .num{
+  font-size:31px;font-weight:700;margin-top:18px;letter-spacing:.012em;
+  text-shadow:0 2px 14px rgba(5,14,30,.55);
+}
+.hc-bot{
+  margin-top:19px;padding-top:15px;display:flex;align-items:center;gap:12px;
+  border-top:1px solid transparent;
+  border-image:linear-gradient(90deg,rgba(240,216,152,.42),rgba(255,255,255,.07) 55%,transparent) 1;
+}
 .hc-price{flex:1;min-width:0}
 .hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc-price .pv.ins2{font-size:14.5px;line-height:1.35;white-space:normal;color:#F0D898}
+.hc-price .pv.ins2{font-size:13.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#F0D898;letter-spacing:-.01em}
 .hc-price .pv small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:#9FB4D4;font-weight:600}
 .hc-price .pi2{display:inline-block;margin-top:5px;font-size:10.5px;color:#F0D898;font-weight:700;background:rgba(230,200,119,.14);padding:3px 8px;border-radius:7px;white-space:nowrap}
 .hc-cta{
-  height:42px;padding:0 16px 0 18px;border-radius:14px;flex:none;
-  background:linear-gradient(180deg,#F0D491,#DFBB63);
-  color:#15223C;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;
-  box-shadow:0 8px 18px -10px rgba(230,200,119,.9);
+  height:43px;padding:0 17px 0 19px;border-radius:15px;flex:none;
+  background:linear-gradient(180deg,#F8E6B6 0%,#EBCE86 42%,#D9B45C 100%);
+  color:#1A1203;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;
+  box-shadow:0 10px 22px -11px rgba(224,188,101,.95),inset 0 1px 0 rgba(255,255,255,.65);
+  transition:transform .18s,box-shadow .18s;
 }
+.herocard:active .hc-cta{transform:scale(.97)}
 .herodots{display:flex;gap:5px;justify-content:center;margin-top:12px}
 .herodots i{width:6px;height:6px;border-radius:3px;background:var(--line-2);transition:width .25s,background .25s}
 .herodots i.on{width:18px;background:var(--blue)}
