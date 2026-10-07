@@ -269,3 +269,69 @@ ataylab ajralib turishi kerak.
 
 Kontrast: oq fonda 8.1:1, qora fonda ~6.2:1 — ikkalasi ham AA dan ancha
 yuqori.
+
+---
+
+# Bosh sahifadagi PREMIUM kartochka — qimmatbaho karta ko'rinishi
+
+Yurib turuvchi (karusel) kartochka endi oddiy to'q ko'k to'rtburchak emas.
+Unga bank/kolleksion kartalar tilidan olingan oltita qatlam qo'shildi:
+
+1. **Oltin soch chiziq ramka** — tepada yorqin, pastga qarab so'nadi
+   (`mask-composite` bilan chizilgan 1px gradient ramka, oddiy border emas).
+2. **Giloshe to'qima** — pul va bank kartalaridagi kabi ingichka yoy naqsh,
+   zo'rg'a sezilarli: naqsh emas, "material" bo'lib turadi.
+3. **Vinyetka** — chekkalar to'qlashadi, kartochka og'ir va chuqur ko'rinadi.
+4. **Metall yaltirashi** — har ~7.5 soniyada ingichka yorug'lik yuzadan
+   sekin o'tadi. `prefers-reduced-motion` yoqilgan qurilmada o'chadi.
+5. **O'yib yozilgan raqam** — ustidan oq, pastdan sutli oltin o'tadigan
+   gradient + chuqur soya va yuqorida yorug'lik qirrasi.
+6. **Qabariq oltin folga** — yorliq va "Ko'rish" tugmasida: ichki yorug'lik
+   qirrasi, pastda to'q qirra va ko'ndalang yaltirash chizig'i.
+
+Ajratgich ham oddiy chiziq emas — o'rtasi oltin, ikki chekkasi so'nadi.
+Operator chipi shisha + oltin soch chiziq.
+
+Natijada ierarxiya aniq: tepada bitta **hashamat yuzasi**, pastda esa tinch
+neytral ro'yxat. Oltin saytda faqat shu yerda va toifa yorlig'ida qoladi.
+
+Tekshirildi: kontrast 0 xato, 12 ta harness o'tdi, telefon va kompyuter
+ko'rinishlari ko'zdan kechirildi.
+
+---
+
+# Kompyuterda raqam to'liq ko'rinadi
+
+Muammo: katalogda ustunlar soni QAT'IY 3 ta edi. 1050px atrofidagi ekranda
+yon panel (392px) joyni yeb, kartochka 180px gacha siqilardi — raqam esa
+25px da qolib, «33 072 07 …» bo'lib kesilardi.
+
+Uchta yo'nalishda tuzatildi:
+
+1. **Raqam o'lchami kartochkaga qarab o'zi moslashadi** (container query):
+   tor ustunda kichrayadi, keng kartochkada 25px gacha kattalashadi.
+   Ya'ni raqam endi HECH QACHON kesilmaydi. Eski brauzerlarda avvalgi
+   qiymat zaxira bo'lib qoladi.
+2. **Katalog ustunlari soni joyga qarab tanlanadi** (`auto-fill`), kartochka
+   hech qachon ~260px dan tor bo'lmaydi.
+3. **Yon panel** endi qat'iy 392px emas — kichik ekranda 270px gacha torayadi.
+   Bosh sahifada esa 4 ta ustun 3 taga tushirildi: sahifa kengligi 1240px
+   bilan cheklangani uchun 4 ta kartochka 280px gacha siqilardi, endi
+   ~380px va raqam to'liq 25px.
+
+Tekshiruv: 900 / 1000 / 1054 / 1100 / 1200 / 1280 / 1400 / 1500 / 1700 px
+kengliklarda, bosh sahifa va katalogda — **hech bir raqam kesilmadi**
+(avval 9 tadan 9 tasi kesilardi).
+
+---
+
+# Dollar belgisi summa bilan bir xil kattalikda
+
+Avval `$` belgisi `so'm` bilan bir xil uslubda — kichik va xira — chiqardi.
+Lekin bu ikkisi bir xil narsa emas: «so'm» shunchaki o'lchov birligi, `$`
+esa summaning o'qilishiga kiradi («750 $» = «750 dollar»).
+
+Endi `$` **narx bilan aynan bir xil kattalikda, qalinlikda va rangda**
+chiqadi; `so'm` esa avvalgidek kichik va xira qoladi. Bu qoida saytning
+barcha joyida ishlaydi: kartochka, bosh sahifadagi premium karusel, kun
+tavsiyasi, raqam oynasi, pastki «Jami» qatori va buyurtma xulosasi.

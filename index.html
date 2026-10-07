@@ -635,7 +635,15 @@ html[data-theme="dark"] .t-gold{
 .numcard.res{opacity:.58}
 
 .nc-top{display:flex;align-items:flex-start;gap:12px}
+/* Raqam — kartochkaning bosh qahramoni, shu sabab HECH QACHON kesilmasligi
+   kerak. Shrift o'lchami kartochka kengligiga qarab o'zi moslashadi
+   (container query): tor ustunda kichrayadi, keng kartochkada kattalashadi.
+   Eski brauzerlar uchun pastdagi oddiy qiymat zaxira bo'lib qoladi. */
 .nc-num{font-size:23.5px;font-weight:700;white-space:nowrap;letter-spacing:.01em;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
+.numcard{container-type:inline-size}
+@supports (container-type:inline-size){
+  .nc-num{font-size:clamp(16.5px,7.8cqi,23.5px)}
+}
 .nc-meta{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 /* Operator chipi — RANGLI NUQTASIZ (neytral). Operator kartochkadagi
    4-darajali ma'lumot, lekin rangli nuqta uni eng baland elementga
@@ -661,6 +669,8 @@ html[data-theme="dark"] .t-gold{
 .nc-price{flex:1;min-width:0}
 .nc-price .p{font-size:17.5px;font-weight:700;white-space:nowrap;line-height:1.2}
 .nc-price .p small{font-family:'Plus Jakarta Sans';font-size:11px;color:var(--muted-2);font-weight:600;margin-left:1px}
+/* Dollar belgisi summa bilan bir xil kattalikda va rangda */
+.cur-usd{font-size:inherit;font-weight:inherit;color:inherit;font-family:inherit;letter-spacing:inherit;margin-left:2px}
 .nc-price .old{font-size:11.5px;color:var(--muted-2);text-decoration:line-through;margin-top:3px}
 /* Bo'lib to'lash yorlig'i — ko'pincha BU raqamning yagona narxi bo'ladi,
    shu sabab xira bo'lmasligi kerak. Rangi ko'k (harakat emas, ma'lumot —
@@ -894,13 +904,21 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .herocard{
   width:min(84vw,360px);border-radius:26px;padding:20px 21px 19px;
   background:
-    radial-gradient(180px 150px at 100% 0%, rgba(230,200,119,.30), transparent 68%),
-    radial-gradient(200px 170px at 0% 100%, rgba(64,118,235,.26), transparent 70%),
-    repeating-linear-gradient(118deg, rgba(255,255,255,.035) 0 1px, transparent 1px 9px),
-    linear-gradient(152deg,#0E1F3E 0%,#17315C 46%,#0B1830 100%);
+    /* 1. Giloshe — pul va bank kartalaridagi kabi ingichka yoy naqsh,
+          zo'rg'a sezilarli: naqsh emas, "to'qima" bo'lib turishi kerak */
+    repeating-radial-gradient(circle at 114% -16%, rgba(240,216,152,.026) 0 1px, transparent 1px 11px),
+    /* 2. Ipak chiziqlar */
+    repeating-linear-gradient(118deg, rgba(255,255,255,.022) 0 1px, transparent 1px 10px),
+    /* 3. Oltin nur (tepa o'ng) va ko'k nur (past chap) */
+    radial-gradient(200px 168px at 100% 0%, rgba(230,200,119,.34), transparent 66%),
+    radial-gradient(210px 180px at 0% 100%, rgba(64,118,235,.22), transparent 70%),
+    /* 4. Vinyetka — chekkalar to'qlashadi, kartochka "og'ir" ko'rinadi */
+    radial-gradient(126% 106% at 50% 10%, transparent 34%, rgba(2,8,20,.66) 100%),
+    /* 5. Asos */
+    linear-gradient(152deg,#0D1D3B 0%,#17315C 46%,#081426 100%);
   position:relative;overflow:hidden;color:#fff;
   box-shadow:
-    0 24px 50px -26px rgba(5,14,30,.95),
+    0 26px 56px -26px rgba(4,11,24,.98),
     0 2px 10px -4px rgba(5,14,30,.6),
     inset 0 1px 0 rgba(255,255,255,.10);
   border:none;
@@ -916,31 +934,51 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 }
 /* Metall yaltirashi — sekin, bir marta o'tib yo'qoladi va qaytadi */
 .herocard::after{
-  content:'';position:absolute;top:-60%;bottom:-60%;width:38%;left:-45%;z-index:1;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.14) 42%,rgba(255,240,205,.22) 52%,rgba(255,255,255,.12) 60%,transparent);
+  content:'';position:absolute;top:-60%;bottom:-60%;width:24%;left:-32%;z-index:1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.07) 40%,rgba(255,240,205,.15) 52%,rgba(255,255,255,.06) 62%,transparent);
   transform:rotate(14deg);
   animation:hcShine 7.5s cubic-bezier(.4,0,.2,1) 1.8s infinite;
 }
-@keyframes hcShine{0%{left:-45%}32%{left:125%}100%{left:125%}}
+@keyframes hcShine{0%{left:-32%}30%{left:120%}100%{left:120%}}
 @media (prefers-reduced-motion:reduce){.herocard::after{animation:none;opacity:0}}
 .herocard > *{position:relative;z-index:3}
 .hc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 /* Oltin folga yorlig'i */
 .hc-badge{
-  font-size:9.5px;font-weight:800;letter-spacing:.13em;color:#241A03;
-  background:linear-gradient(135deg,#F9EBC2 0%,#E8CE8E 46%,#C9A041 100%);
-  box-shadow:0 2px 8px -4px rgba(230,200,119,.9),inset 0 1px 0 rgba(255,255,255,.55);
+  font-size:9.5px;font-weight:800;letter-spacing:.15em;color:#201702;
+  background:
+    linear-gradient(104deg,transparent 28%,rgba(255,255,255,.55) 42%,transparent 56%),
+    linear-gradient(135deg,#FBF0CF 0%,#EDD79A 38%,#D7B straight 0%,#C9A041 100%);
+  background:
+    linear-gradient(104deg,transparent 28%,rgba(255,255,255,.5) 42%,transparent 56%),
+    linear-gradient(135deg,#FBF0CF 0%,#EDD79A 40%,#D5B059 72%,#B8902F 100%);
+  box-shadow:
+    0 3px 10px -5px rgba(230,200,119,.95),
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -1px 0 rgba(120,88,20,.35);
   padding:5px 11px;border-radius:8px;
 }
-.herocard .nc-op{background:rgba(255,255,255,.1);color:#DCE6F5;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.herocard .nc-op{
+  background:rgba(255,255,255,.08);color:#E3EBF8;
+  box-shadow:inset 0 0 0 1px rgba(240,216,152,.22);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+/* Raqam — metallga o'yib yozilgandek: ustidan oq, pastdan sutli oltin,
+   tagida chuqur soya va yuqorida ingichka yorug'lik qirrasi. */
 .herocard .num{
-  font-size:31px;font-weight:700;margin-top:18px;letter-spacing:.012em;
-  text-shadow:0 2px 14px rgba(5,14,30,.55);
+  font-size:32px;font-weight:700;margin-top:18px;letter-spacing:.015em;
+  background:linear-gradient(176deg,#FFFFFF 0%,#FFFFFF 42%,#FBEFD2 72%,#EFD9A4 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 2px 10px rgba(4,11,24,.65)) drop-shadow(0 1px 0 rgba(255,255,255,.14));
 }
 .hc-bot{
-  margin-top:19px;padding-top:15px;display:flex;align-items:center;gap:12px;
-  border-top:1px solid transparent;
-  border-image:linear-gradient(90deg,rgba(240,216,152,.42),rgba(255,255,255,.07) 55%,transparent) 1;
+  position:relative;margin-top:19px;padding-top:16px;display:flex;align-items:center;gap:12px;
+}
+/* Ajratgich — o'rtasi yorqin, ikki chekkasi so'nadigan oltin soch chiziq */
+.hc-bot::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(240,216,152,.55) 22%,rgba(255,255,255,.18) 58%,transparent);
 }
 .hc-price{flex:1;min-width:0}
 .hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -948,10 +986,16 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 .hc-price .pv small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:#9FB4D4;font-weight:600}
 .hc-price .pi2{display:inline-block;margin-top:5px;font-size:10.5px;color:#F0D898;font-weight:700;background:rgba(230,200,119,.14);padding:3px 8px;border-radius:7px;white-space:nowrap}
 .hc-cta{
+  position:relative;overflow:hidden;
   height:43px;padding:0 17px 0 19px;border-radius:15px;flex:none;
-  background:linear-gradient(180deg,#F8E6B6 0%,#EBCE86 42%,#D9B45C 100%);
+  background:
+    linear-gradient(100deg,transparent 30%,rgba(255,255,255,.42) 44%,transparent 58%),
+    linear-gradient(180deg,#FBEDC6 0%,#EFD596 40%,#DCB864 72%,#C9A041 100%);
   color:#1A1203;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;
-  box-shadow:0 10px 22px -11px rgba(224,188,101,.95),inset 0 1px 0 rgba(255,255,255,.65);
+  box-shadow:
+    0 12px 24px -12px rgba(224,188,101,.95),
+    inset 0 1px 0 rgba(255,255,255,.75),
+    inset 0 -1.5px 0 rgba(120,88,20,.3);
   transition:transform .18s,box-shadow .18s;
 }
 .herocard:active .hc-cta{transform:scale(.97)}
@@ -1174,11 +1218,12 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .list,.grid,#catList{align-items:stretch}
   .numcard:hover{transform:translateY(-3px)}
   .nc-num{font-size:25px}
+  @supports (container-type:inline-size){ .nc-num{font-size:clamp(16.5px,7.8cqi,25px)} }
   .vcard{width:auto}
   .vcard video{height:300px}
 
   /* --- Katalog: chapda filtr --- */
-  .catlayout{display:grid;grid-template-columns:392px 1fr;gap:32px;align-items:start}
+  .catlayout{display:grid;grid-template-columns:clamp(270px,26vw,392px) 1fr;gap:clamp(20px,2.2vw,32px);align-items:start}
   .catside{position:sticky;top:94px;display:flex;flex-direction:column;gap:20px}
   .catside .card{padding:24px;border-radius:24px}
   .catside .eyebrow{font-size:12.5px;letter-spacing:.11em}
@@ -1206,7 +1251,10 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   .ptile{padding:22px;border-radius:22px}
   .ptile b{margin-top:40px;font-size:16px}
   .catmain{min-width:0}
-  #catList{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Qat'iy 3 ta ustun 1050px atrofida kartochkani 180px gacha siqib
+     qo'yardi — raqam sig'masdi. Endi ustunlar soni joyga qarab o'zi
+     tanlanadi, kartochka hech qachon 250px dan tor bo'lmaydi. */
+  #catList{grid-template-columns:repeat(auto-fill,minmax(clamp(260px,21vw,330px),1fr))}
   .deskonly{display:block}
   .mobonly{display:none!important}
 
@@ -1230,13 +1278,9 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 @media (max-width:899px){
   .deskonly{display:none!important}
 }
-@media (min-width:1280px){
-  .grid,.list,#catList{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .catlayout #catList{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media (min-width:1500px){
-  .catlayout #catList{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
+/* 4 ta ustun qo'yilmaydi: sahifa kengligi 1240px bilan cheklangani uchun
+   4 ta kartochka 280px gacha siqilib, raqam ham kichrayib ketardi.
+   3 ta ustunda kartochka ~380px bo'ladi — raqam to'liq va yirik. */
 </style>
 </head>
 <body>
@@ -1761,6 +1805,13 @@ function isUsd(item){
 }
 /* Narx yonidagi birlik: "so'm" yoki "$" */
 function UNIT(item){ return isUsd(item) ? '$' : SUM(); }
+/* Narx birligining HTML ko'rinishi.
+   "so'm" — kichik va xira (u shunchaki o'lchov birligi).
+   "$"    — summaning O'ZI bilan bir xil kattalikda va rangda, chunki
+   dollarda narx aynan shu belgi bilan o'qiladi (750 $ — "750 dollar"). */
+function UNITH(item){
+  return isUsd(item) ? '<span class="cur-usd">$</span>' : `<small>${SUM()}</small>`;
+}
 
 function hasActiveDiscount(i){
   if(!i || !i.oldPrice || !(i.oldPrice > i.price)) return false;
@@ -2169,7 +2220,7 @@ function numCard(item){
   const tier = tierOf(item), vip = !!tier;
   let price = '';
   if(showCash){
-    price = `<div class="p sg">${formatPrice(item.price)} <small>${UNIT(item)}</small></div>`;
+    price = `<div class="p sg">${formatPrice(item.price)} ${UNITH(item)}</div>`;
     if(hasActiveDiscount(item)) price += `<div class="old sg">${formatPrice(item.oldPrice)}</div>`;
     if(ins) price += `<div class="ins">${esc(ins)}</div>`;
   }else{
@@ -2258,7 +2309,7 @@ function renderHome(){
           <div class="hc-price">
             ${h.installment
               ? `<div class="pv ins2 sg">${esc(ins)}</div>`
-              : `<div class="pv sg">${formatPrice(h.price)} <small>${UNIT(h)}</small></div>
+              : `<div class="pv sg">${formatPrice(h.price)} ${UNITH(h)}</div>
                  ${ins?`<div class="pi2">${esc(ins)}</div>`:''}`}
           </div>
           <span class="hc-cta">${t("Ko'rish")}${ICO_ARR}</span>
@@ -2401,7 +2452,7 @@ function dayCard(item){
     <div class="dc-sep"></div>
     <div class="dc-bot">
       <div class="dc-price">
-        ${showCash ? `<b class="sg">${formatPrice(item.price)} <small>${UNIT(item)}</small></b>` : ''}
+        ${showCash ? `<b class="sg">${formatPrice(item.price)} ${UNITH(item)}</b>` : ''}
         ${ins ? `<i>${esc(ins)}</i>` : (showCash ? '' : `<i>${t("Bo'lib to'lash")}</i>`)}
       </div>
       <span class="dc-go">${res ? t('Band') : t("Ko'rish")}${res ? '' : ICO_ARR}</span>
@@ -2789,7 +2840,7 @@ function openDetail(id){
     : `<div class="card" style="display:flex;align-items:center;gap:14px">
         <div style="flex:1">
           <div class="eyebrow">${t('Narxi')}</div>
-          <div class="sg" style="margin-top:7px;font-size:25px;font-weight:700">${formatPrice(item.price)} <span style="font-family:'Plus Jakarta Sans';font-size:13px;color:var(--muted-2);font-weight:600">${UNIT(item)}</span></div>
+          <div class="sg" style="margin-top:7px;font-size:25px;font-weight:700">${formatPrice(item.price)} ${isUsd(item)?'<span class="cur-usd">$</span>':`<span style="font-family:'Plus Jakarta Sans';font-size:13px;color:var(--muted-2);font-weight:600">${SUM()}</span>`}</div>
         </div>
         ${disc ? `<div style="text-align:right">
           <div class="sg" style="font-size:13px;color:var(--muted-2);text-decoration:line-through">${formatPrice(item.oldPrice)}</div>
@@ -2949,7 +3000,7 @@ function renderOrder(){
           ${ORD.paymentType === 'installment' ? '' : `<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Raqam narxi')}</span><span class="sg" style="font-size:13.5px;font-weight:700">${formatPrice(it.price)}${isUsd(it)?' $':''}</span></div>`}
           <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Yetkazib berish')}</span><span class="sg" style="font-size:13.5px;font-weight:700;color:var(--green)">${t('Bepul')}</span></div>
           <div style="height:1px;background:var(--line-3)"></div>
-          <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:20px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} <span style="font-family:'Plus Jakarta Sans';font-size:12px;color:var(--muted-2);font-weight:600">${ORD.paymentType==='installment'?SUM():UNIT(ORD.item)}</span></span></div>
+          <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:20px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${(ORD.paymentType!=='installment'&&isUsd(ORD.item))?'<span class="cur-usd">$</span>':`<span style="font-family:'Plus Jakarta Sans';font-size:12px;color:var(--muted-2);font-weight:600">${SUM()}</span>`}</span></div>
         </div>
       </div>`;
     foot.innerHTML = `<button class="btn" data-ostep="2">${t('Davom etish')}
