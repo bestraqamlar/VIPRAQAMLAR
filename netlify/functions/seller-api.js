@@ -30,7 +30,7 @@
 // raqamlariga teginadi — har bir amalda tekshiriladi.
 
 const admin = require('firebase-admin');
-const { verifyPassword, makeToken, requireSeller } = require('./lib/sellerAuth');
+const { verifyPassword, makeToken, requireSeller, initSecret } = require('./lib/sellerAuth');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -245,7 +245,12 @@ async function sendMessage(s, body) {
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
   if (event.httpMethod !== 'POST') return bad('Faqat POST', 405);
-  if (!process.env.SELLER_SECRET) return bad('Tizim hali sozlanmagan (SELLER_SECRET)', 503);
+
+  // Imzo kalitini tayyorlash. Netlify'da SELLER_SECRET qo'yilgan bo'lsa
+  // o'sha, bo'lmasa tizim birinchi ishlaganda o'zi hosil qilib,
+  // Firestore'ga saqlab qo'yadi — qo'lda sozlash shart emas.
+  try { await initSecret(db); }
+  catch (e) { return bad('Imzo kalitini tayyorlab bo\u2019lmadi: ' + String((e && e.message) || e), 503); }
 
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) { return bad("Noto'g'ri JSON"); }

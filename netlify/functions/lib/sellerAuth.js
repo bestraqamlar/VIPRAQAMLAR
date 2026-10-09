@@ -7,11 +7,20 @@
 // sotuvchilar butunlay ALOHIDA, soddaroq tizimda: login + parol, va
 // imzolangan (HMAC) seans tokeni.
 //
-// MUHIM MUHIT O'ZGARUVCHISI (Netlify -> Environment variables):
-//   SELLER_SECRET — uzun tasodifiy satr (kamida 32 belgi). Seans
-//   tokenlari shu kalit bilan imzolanadi. U O'ZGARTIRILSA — barcha
-//   sotuvchilar tizimdan chiqib ketadi (ba'zan bu foydali).
-//   Masalan: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+// IMZO KALITI — hech narsa sozlash SHART EMAS.
+//   Seans tokenlari maxfiy kalit bilan imzolanadi. Kalit shu tartibda
+//   olinadi:
+//     1. Agar Netlify muhit o'zgaruvchisi SELLER_SECRET qo'yilgan bo'lsa
+//        — o'sha ishlatiladi (eng afzal yo'l).
+//     2. Aks holda tizim BIRINCHI ishlaganda o'zi tasodifiy kalit hosil
+//        qilib, Firestore'ning `sys_config/seller` hujjatiga yozib
+//        qo'yadi va keyin doim o'shani ishlatadi.
+//   Ikkala holatda ham kalit FAQAT serverda qoladi — brauzerga hech
+//   qachon yuborilmaydi (`sys_config` Firestore qoidalarida yopiq).
+//
+//   Kalitni almashtirmoqchi bo'lsangiz: SELLER_SECRET ni qo'ying yoki
+//   Firestore'dagi `sys_config/seller` hujjatini o'chiring — shunda
+//   barcha sotuvchilar tizimdan chiqadi va qaytadan kirishadi.
 //
 // PAROL QANDAY SAQLANADI: ochiq matnda EMAS. scrypt (sekin, maxsus
 // parol uchun mo'ljallangan algoritm) + har parol uchun alohida "tuz"
@@ -19,8 +28,36 @@
 
 const crypto = require('crypto');
 
-const SECRET = () => process.env.SELLER_SECRET || '';
 const SESSION_DAYS = 14;
+
+/* Kalit bir marta olinadi va funksiya "issiq" turgan vaqt davomida
+   xotirada saqlanadi — har so'rovda Firestore'ga bormaydi. */
+let CACHED = process.env.SELLER_SECRET || '';
+const SECRET = () => CACHED;
+
+/**
+ * Kalitni tayyorlaydi. Har bir handler ISHNING BOSHIDA buni
+ * chaqirishi kerak (await bilan).
+ */
+async function initSecret(db) {
+  if (CACHED) return CACHED;
+  const ref = db.collection('sys_config').doc('seller');
+  const snap = await ref.get();
+  const have = snap.exists && snap.data() && snap.data().secret;
+  if (have && String(have).length >= 32) { CACHED = String(have); return CACHED; }
+  // Birinchi ishga tushish — kalitni o'zimiz hosil qilamiz.
+  // Poyga holati (ikki funksiya bir vaqtda yozishi) bo'lmasin deb
+  // tranzaksiya ichida: kim birinchi yozsa — o'shaniki qoladi.
+  const made = crypto.randomBytes(48).toString('hex');
+  const final = await db.runTransaction(async (tx) => {
+    const cur = await tx.get(ref);
+    if (cur.exists && cur.data() && cur.data().secret) return String(cur.data().secret);
+    tx.set(ref, { secret: made, createdAt: Date.now() });
+    return made;
+  });
+  CACHED = final;
+  return CACHED;
+}
 
 /* ---------- Parol ---------- */
 
@@ -56,7 +93,7 @@ function sign(payloadStr) {
 }
 
 function makeToken(seller) {
-  if (!SECRET()) throw new Error('SELLER_SECRET sozlanmagan');
+  if (!SECRET()) throw new Error('Imzo kaliti tayyor emas');
   const payload = JSON.stringify({
     id: seller.id,
     u: seller.username,
@@ -98,4 +135,4 @@ async function requireSeller(event, db) {
   return s;
 }
 
-module.exports = { hashPassword, verifyPassword, makeToken, readToken, requireSeller, SESSION_DAYS };
+module.exports = { hashPassword, verifyPassword, makeToken, readToken, requireSeller, initSecret, SESSION_DAYS };

@@ -422,6 +422,13 @@ service cloud.firestore {
             || request.resource.data.uid is string);
     }
 
+    // Tizim kalitlari (sotuvchi seanslarini imzolaydigan maxfiy kalit
+    // va shunga o'xshash ichki sozlamalar). Brauzerdan O'QIB HAM,
+    // YOZIB HAM bo'lmaydi — faqat server funksiyalari (Admin SDK).
+    match /sys_config/{id} {
+      allow read, write: if false;
+    }
+
     // ---------------- SOTUVCHILAR (dilerlar) ----------------
     // `sellers` — parol xeshi shu yerda saqlanadi, shu sabab brauzerdan
     // O'QISH HAM, YOZISH HAM butunlay yopiq. Barcha ish faqat
