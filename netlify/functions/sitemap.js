@@ -29,7 +29,8 @@ exports.handler = async function () {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     { loc: SITE + '/', pri: '1.0', freq: 'daily' },
-    { loc: SITE + '/#/katalog', pri: '0.9', freq: 'daily' }
+    { loc: SITE + '/#/katalog', pri: '0.9', freq: 'daily' },
+    { loc: SITE + '/maxfiylik', pri: '0.3', freq: 'yearly' }
   ];
 
   try {

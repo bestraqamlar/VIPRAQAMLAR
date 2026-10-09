@@ -2,7 +2,7 @@
    Maqsad: internet umuman yo'q bo'lsa ham sayt ochilsin va keshdagi
    katalog ko'rinsin. Dinamik ma'lumot (Firestore, funksiyalar) HECH
    QACHON keshlanmaydi — ular doim jonli olinadi. */
-const CACHE = 'vipraqamlar-v1';
+const CACHE = 'vipraqamlar-v2';
 const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png'];
 
 self.addEventListener('install', (e) => {
@@ -24,6 +24,23 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
+
+  /* KATALOG INDEKSI — yagona istisno.
+     "Avval keshdan, fonda yangila": qayta kirganda katalog SHU ZAHOTI
+     ko'rinadi (tarmoqni kutmaydi), yangisi esa fonda olinib, keyingi
+     safar ishlatiladi. Internet umuman bo'lmasa ham katalog ochiladi. */
+  if (url.pathname === '/.netlify/functions/api-index') {
+    e.respondWith(
+      caches.open(CACHE).then(c => c.match(req).then(hit => {
+        const net = fetch(req).then(res => {
+          if (res && res.status === 200) c.put(req, res.clone()).catch(()=>{});
+          return res;
+        }).catch(() => hit);
+        return hit || net;
+      }))
+    );
+    return;
+  }
 
   /* Backend va Firebase — hech qachon keshlanmaydi */
   if (url.pathname.startsWith('/.netlify/') ||

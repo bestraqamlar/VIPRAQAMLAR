@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- VIP RAQAMLAR — ilova logosi.
+       "Muhr": oltin halqa ichida VIP. Harflar shrift emas, chizma —
+       shu sabab istalgan qurilmada AYNAN bir xil ko'rinadi. -->
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="512" y2="512">
+      <stop offset="0" stop-color="#16325F"/>
+      <stop offset="1" stop-color="#070F1F"/>
+    </linearGradient>
+    <linearGradient id="au" gradientUnits="userSpaceOnUse" x1="130" y1="120" x2="390" y2="400">
+      <stop offset="0" stop-color="#FFF1C9"/>
+      <stop offset=".46" stop-color="#E6C877"/>
+      <stop offset="1" stop-color="#AE8833"/>
+    </linearGradient>
+    <linearGradient id="sheen" gradientUnits="userSpaceOnUse" x1="60" y1="40" x2="300" y2="300">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#sheen)"/>
+
+  <!-- tashqi oltin halqa -->
+  <circle cx="256" cy="256" r="151" fill="none" stroke="url(#au)" stroke-width="14"/>
+  <!-- ichki nozik halqa -->
+  <circle cx="256" cy="256" r="129" fill="none" stroke="#E6C877" stroke-opacity=".26" stroke-width="3"/>
+
+  <!-- VIP — geometrik chizma -->
+  <g fill="none" stroke="url(#au)" stroke-width="23" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M174 221 L200 292 L226 221"/>
+    <path d="M253 221 L253 292"/>
+    <path d="M280 292 L280 221 L311 221 A25 25 0 0 1 311 271 L280 271"/>
+  </g>
+</svg>

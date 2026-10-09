@@ -1027,7 +1027,7 @@
   .cm-overdue{background:var(--red);color:#fff;}
 
   .cr-edit-label{display:block;font-size:11px;color:var(--muted);margin:8px 0 4px;}
-  .cr-edit-name, .cr-edit-phone, .cr-edit-region, .cr-edit-number, .cr-edit-monthly, .cr-edit-info,
+  .cr-edit-name, .cr-edit-phone, .cr-edit-region, .cr-edit-number, .cr-edit-monthly, .cr-edit-currency, .cr-edit-info,
   .cr-edit-passport, .cr-edit-birthdate, .cr-edit-address{
     width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--line);
     background:var(--panel-2);color:var(--text);font-size:12.5px;
@@ -4245,8 +4245,16 @@ body{
 
     <div class="bulk-toggle" id="bulkToggle">+ Ko'p raqamni birdan qo'shish</div>
     <div class="bulk-box" id="bulkBox">
-      <p class="bulk-hint">Har bir qatorga bitta raqam: <b>raqam, narx</b> (VIP bo'lsa oxiriga <b>, vip</b> qo'shing). Operator avtomatik aniqlanadi.</p>
-      <textarea id="bulkText" rows="6" placeholder="998907777777, 1500000&#10;998911234567, 80000, vip&#10;998332121212, 300000"></textarea>
+      <p class="bulk-hint">Har bir qatorga bitta raqam: <b>raqam, narx</b> (VIP bo'lsa oxiriga <b>, vip</b> qo'shing). Operator avtomatik aniqlanadi.<br>
+        Valyuta: pastdagi tanlov butun ro'yxatga tegishli. Agar ayrim raqamlargina boshqa valyutada bo'lsa, o'sha qator oxiriga <b>, usd</b> yoki <b>, som</b> deb yozing.</p>
+      <div style="display:flex;align-items:center;gap:10px;margin:0 0 9px;flex-wrap:wrap;">
+        <label for="bulkCurrency" style="font-size:12px;color:var(--muted);font-weight:700;">Valyuta (hammasi uchun)</label>
+        <select id="bulkCurrency" style="padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13px;font-weight:700;">
+          <option value="uzs">so'm (UZS)</option>
+          <option value="usd">dollar ($)</option>
+        </select>
+      </div>
+      <textarea id="bulkText" rows="6" placeholder="998907777777, 1500000&#10;998911234567, 80000, vip&#10;998332121212, 1200, usd"></textarea>
       <button id="bulkPreviewBtn">Tahlil qilish</button>
       <div class="bulk-preview" id="bulkPreview"></div>
     </div>
@@ -4351,6 +4359,16 @@ body{
             Eski narxi
           </label>
           <input type="number" id="aktOldPrice" placeholder="Masalan: 8 000 000">
+        </div>
+        <div class="akt-field">
+          <label for="aktCurrency">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a2 2 0 0 1 0 4h-3a2 2 0 0 0 0 4h4"/></svg>
+            Valyuta
+          </label>
+          <select id="aktCurrency" style="padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13.5px;font-weight:700;">
+            <option value="uzs">so'm (UZS)</option>
+            <option value="usd">dollar ($)</option>
+          </select>
         </div>
         <div class="akt-field akt-field-wide">
           <label>⏱ Muddati <span class="ig-field-hint">(necha soatdan keyin aksiya tugaydi — tanlamasangiz, muddatsiz qoladi)</span></label>
@@ -4845,8 +4863,15 @@ body{
           <input type="number" id="crMonths" placeholder="12">
         </div>
         <div class="cr-field">
-          <label for="crMonthly">Oyiga to'lov summasi (so'm)</label>
+          <label for="crMonthly">Oyiga to'lov summasi</label>
           <input type="number" id="crMonthly" placeholder="150000">
+        </div>
+        <div class="cr-field">
+          <label for="crCurrency">Valyuta</label>
+          <select id="crCurrency">
+            <option value="uzs">so'm (UZS)</option>
+            <option value="usd">dollar ($)</option>
+          </select>
         </div>
         <div class="cr-field">
           <label for="crStartDate">Shartnoma sanasi (kredit qachon berilgan)</label>
@@ -5184,6 +5209,13 @@ body{
           <option value="90">Oxirgi 90 kun</option>
         </select>
         <span class="muted" id="stNote" style="font-size:12px"></span>
+      </div>
+      <!-- Katalog indeksi: sayt raqamlarni shundan o'qiydi. Odatda o'zi
+           yangilanadi (panelda raqam o'zgarsa belgi qo'yiladi), bu tugma
+           esa "saytda eski narx turibdi" deb shubha qilsangiz uchun. -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-ghost" id="stReindex" type="button">Katalog indeksini yangilash</button>
+        <span class="muted" style="font-size:12px" id="stReindexMsg">Sayt raqamlarni tayyor indeksdan o'qiydi — shuning uchun bir zumda ochiladi. Indeks o'zgarishlardan keyin bir daqiqa ichida o'zi yangilanadi.</span>
       </div>
       <div class="st-kpis" id="stKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px"></div>
     </div>
@@ -5735,6 +5767,51 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
 const db = firebase.firestore();
+
+/* ================= KATALOG INDEKSINI "ESKIRGAN" DEB BELGILASH =================
+   Sayt katalogni endi Firestore'dan to'g'ridan-to'g'ri emas, tayyor
+   ixcham indeksdan o'qiydi (netlify/functions/api-index.js) — shu sabab
+   u mijozlarda bir zumda ochiladi. Lekin indeks o'z-o'zidan yangilanmaydi:
+   raqam qo'shilgani yoki o'chirilgani sonidan bilinadi, NARX TAHRIRI esa
+   bilinmaydi.
+
+   Shuning uchun panelda `numbers` to'plamiga har qanday yozuv amalga
+   oshganda shu yerda bitta kichik belgi qo'yiladi — keyingi so'rovda
+   indeks qaytadan quriladi (bir daqiqa ichida saytda ko'rinadi).
+
+   Bu yondashuvning afzalligi: panelning 14 ta turli joyidagi yozuvni
+   birma-bir tahrirlash shart emas — hammasi SHU YERDAN, bitta joydan
+   ushlanadi. Yangi yozuv kodi qo'shilsa ham o'zi ishlayveradi. */
+(function indeksBelgisi(){
+  let oxirgi = 0;
+  const belgila = ()=>{
+    const now = Date.now();
+    if(now - oxirgi < 1500) return;        // ketma-ket yozuvlarda bir marta
+    oxirgi = now;
+    db.collection('search_index').doc('dirty')
+      .set({ at: now }, { merge:true }).catch(()=>{});
+  };
+
+  const asl = db.collection.bind(db);
+  db.collection = function(name){
+    const c = asl(name);
+    if(name !== 'numbers') return c;
+
+    const aslAdd = c.add.bind(c);
+    c.add = (...a) => aslAdd(...a).then(r => { belgila(); return r; });
+
+    const aslDoc = c.doc.bind(c);
+    c.doc = function(...d){
+      const ref = aslDoc(...d);
+      for(const m of ['set','update','delete']){
+        const f = ref[m].bind(ref);
+        ref[m] = (...a) => f(...a).then(r => { belgila(); return r; });
+      }
+      return ref;
+    };
+    return c;
+  };
+})();
 
 /* telegram-notify kabi funksiyalarga so'rov yuborganda App Check tokenini
    ham qo'shib yuboramiz — xuddi index.html'dagi getAppCheckHeaders() kabi
@@ -8808,6 +8885,7 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     const data = await creCall('add', {
       customerName: name, customerPhone: phone, region, number,
       totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
+      currency: document.getElementById('crCurrency').value === 'usd' ? 'USD' : 'UZS',
       additionalInfo: info, startDate: startDateVal,
       passportNumber, birthDate, permanentAddress
     });
@@ -8863,6 +8941,7 @@ function refreshCrLivePreview(){
   const monthly = Number(V('crMonthly')) || 0;
   const payDay = Math.min(Math.max(Number(V('crPayDay')) || 1, 1), 31);
   const startVal = V('crStartDate');
+  const VAL = V('crCurrency') === 'usd' ? ' $' : " so'm";
 
   if(!months && !monthly){
     body.innerHTML = '<div class="cr-live-empty">Muddat va oylik to\'lovni kiriting — jami summa, oxirgi sana va dastlabki jadval shu yerda avtomatik chiqadi.</div>';
@@ -8873,8 +8952,8 @@ function refreshCrLivePreview(){
   let html = '';
   if(name) html += '<div class="cr-live-row"><span>Mijoz</span><b>' + escapeHtml(name.slice(0, 24)) + '</b></div>';
   html += '<div class="cr-live-row"><span>Muddat</span><b>' + (months ? months + ' oy' : '—') + '</b></div>';
-  html += '<div class="cr-live-row"><span>Oylik to\'lov</span><b>' + (monthly ? pul(monthly) + ' so\'m' : '—') + '</b></div>';
-  html += '<div class="cr-live-row is-big"><span>Jami summa</span><b>' + (jami ? pul(jami) + ' so\'m' : '—') + '</b></div>';
+  html += '<div class="cr-live-row"><span>Oylik to\'lov</span><b>' + (monthly ? pul(monthly) + VAL : '—') + '</b></div>';
+  html += '<div class="cr-live-row is-big"><span>Jami summa</span><b>' + (jami ? pul(jami) + VAL : '—') + '</b></div>';
 
   const boshlanish = startVal ? new Date(startVal + 'T00:00:00') : new Date();
   if(months){
@@ -8901,7 +8980,7 @@ function refreshCrLivePreview(){
 
   body.innerHTML = html;
 }
-['crName','crMonths','crMonthly','crPayDay','crStartDate'].forEach(id => {
+['crName','crMonths','crMonthly','crPayDay','crStartDate','crCurrency'].forEach(id => {
   const el = document.getElementById(id);
   if(el){ el.addEventListener('input', refreshCrLivePreview); el.addEventListener('change', refreshCrLivePreview); }
 });
@@ -8992,6 +9071,10 @@ async function loadCreditContracts(){
 const QZ_DAY = 86400000;
 let qzFilter = 'all';        // all | overdue | soon | done
 let qzSearchQuery = '';
+
+/* Shartnoma valyutasi — so'm yoki dollar. Shartnoma yozuvida
+   `currency` bo'lmasa (eski yozuvlar) so'm deb hisoblanadi. */
+function crVal(d){ return String((d && d.currency) || '').toUpperCase() === 'USD' ? ' $' : " so'm"; }
 
 function qzMoney(n){
   const v = Number(n) || 0;
@@ -9194,7 +9277,7 @@ function renderCreditList(contracts){
           '<span>' + a.next.month + '-oy to\'lovini tasdiqlash' +
             '<span class="qz-cta-sub">Muddati: ' + formatDate(a.next.dueDate) + (a.state === 'overdue' ? ' · ' + a.days + ' kun kechikkan' : '') + '</span>' +
           '</span>' +
-          '<span class="qz-cta-sum">' + qzMoney(a.monthly) + ' so\'m</span>' +
+          '<span class="qz-cta-sum">' + qzMoney(a.monthly) + crVal(d) + '</span>' +
         '</button>'
       : '<div class="qz-pay-done">✓ Barcha to\'lovlar yakunlangan</div>';
 
@@ -9220,7 +9303,7 @@ function renderCreditList(contracts){
         // 4-ustun: qolgan qarz
         '<span class="qzc qzc-debt' + (a.state === 'overdue' ? ' is-late' : '') + '">' +
           '<b>' + (a.debt > 0 ? qzMoney(a.debt) : '0') + '</b>' +
-          '<i>' + qzMoney(a.total * a.monthly) + ' dan</i>' +
+          '<i>' + qzMoney(a.total * a.monthly) + crVal(d) + ' dan</i>' +
         '</span>' +
         // 5-ustun: oylik to'lov va muddati
         '<span class="qzc qzc-month">' +
@@ -9246,7 +9329,7 @@ function renderCreditList(contracts){
           : payCta) +
 
         '<div class="cr-progress-wrap" style="margin:12px 0 4px;"><div class="cr-progress-bar" style="width:' + a.pct + '%;"></div></div>' +
-        '<p class="qz-hint">To\'langan: <b>' + qzMoney(a.paid * a.monthly) + ' so\'m</b> · Qolgan: <b>' + qzMoney(a.debt) + ' so\'m</b> · Har oyning ' + d.paymentDay + '-sanasida</p>' +
+        '<p class="qz-hint">To\'langan: <b>' + qzMoney(a.paid * a.monthly) + crVal(d) + '</b> · Qolgan: <b>' + qzMoney(a.debt) + crVal(d) + '</b> · Har oyning ' + d.paymentDay + '-sanasida</p>' +
 
         '<div class="qz-section-title">Oylar bo\'yicha jadval</div>' +
         '<div class="credit-months">' +
@@ -9285,7 +9368,11 @@ function renderCreditList(contracts){
               '<div style="grid-column:1/-1;"><label class="cr-edit-label">Doimiy yashash joyi</label><input type="text" class="cr-edit-address" value="' + escapeHtml(d.permanentAddress || '') + '" placeholder="Viloyat, tuman, ko\'cha, uy"></div>' +
               '<div><label class="cr-edit-label">Manzil (viloyat)</label><input type="text" class="cr-edit-region" value="' + escapeHtml(d.region || '') + '"></div>' +
               '<div><label class="cr-edit-label">Kreditga olingan raqam</label><input type="text" class="cr-edit-number" value="' + escapeHtml(d.number || '') + '"></div>' +
-              '<div><label class="cr-edit-label">Oylik to\'lov (so\'m)</label><input type="number" class="cr-edit-monthly" value="' + a.monthly + '"></div>' +
+              '<div><label class="cr-edit-label">Oylik to\'lov</label><input type="number" class="cr-edit-monthly" value="' + a.monthly + '"></div>' +
+              '<div><label class="cr-edit-label">Valyuta</label><select class="cr-edit-currency">' +
+                '<option value="uzs"' + (crVal(d) === " so\'m" ? ' selected' : '') + '>so\'m (UZS)</option>' +
+                '<option value="usd"' + (crVal(d) === ' $' ? ' selected' : '') + '>dollar ($)</option>' +
+              '</select></div>' +
               '<div><label class="cr-edit-label">Shartnoma sanasi</label><input type="date" class="cr-edit-date" value="' + (function(){ const t = Number(d.createdAt); const dd = new Date(Number.isFinite(t) && t > 0 ? t : Date.now()); return isNaN(dd) ? '' : dd.toISOString().slice(0, 10); })() + '"></div>' +
               '<div><label class="cr-edit-label">Har oyning nechinchi sanasida (1-31)</label><input type="number" class="cr-edit-payday" min="1" max="31" value="' + d.paymentDay + '"></div>' +
               '<div><label class="cr-edit-label">Necha oyga (jami muddat)</label><input type="number" class="cr-edit-months" min="1" value="' + a.total + '"></div>' +
@@ -9483,6 +9570,7 @@ function renderCreditList(contracts){
           region: card.querySelector('.cr-edit-region').value.trim(),
           number: card.querySelector('.cr-edit-number').value.trim(),
           monthlyPayment: Number(card.querySelector('.cr-edit-monthly').value) || 0,
+          currency: (card.querySelector('.cr-edit-currency') || {}).value === 'usd' ? 'USD' : 'UZS',
           additionalInfo: card.querySelector('.cr-edit-info').value.trim(),
           passportNumber: card.querySelector('.cr-edit-passport').value.trim(),
           birthDate: card.querySelector('.cr-edit-birthdate').value,
@@ -10050,7 +10138,7 @@ function confirmCreditPayment(contract, defaultMonth, opts){
         '<h3>' + (opts.isUndo ? "To'lovni bekor qilish" : "To'lovni tasdiqlash") + '</h3>' +
         '<p class="pcm-client">' + escapeHtml(contract.customerName || '') + ' &middot; ' + escapeHtml(contract.number || '') + '</p>' +
         monthField +
-        '<div class="pcm-amount' + (opts.isUndo ? ' is-danger' : '') + '"><span>Oylik to\'lov</span><span>' + qzMoney(contract.monthlyPayment || 0) + ' so\'m</span></div>' +
+        '<div class="pcm-amount' + (opts.isUndo ? ' is-danger' : '') + '"><span>Oylik to\'lov</span><span>' + qzMoney(contract.monthlyPayment || 0) + crVal(contract) + '</span></div>' +
         (code
           ? '<label class="pcm-label" for="pcmPinInput">Tasdiqlash kodi</label>' +
             '<input type="password" inputmode="numeric" id="pcmPinInput" autocomplete="off">' +
@@ -10339,6 +10427,17 @@ async function loadStats(){
     statsBusy = false;
   }
 }
+document.getElementById('stReindex') && document.getElementById('stReindex').addEventListener('click', async ()=>{
+  const m = document.getElementById('stReindexMsg');
+  m.textContent = 'Yuborilmoqda...';
+  try{
+    await db.collection('search_index').doc('dirty').set({ at: Date.now() }, { merge:true });
+    /* belgini qo'ygach darhol chaqirib qo'yamiz — indeks shu zahoti qayta quriladi */
+    fetch('/.netlify/functions/api-index', { cache:'reload' }).catch(()=>{});
+    m.textContent = "Tayyor. Yangi narxlar bir daqiqa ichida saytda ko'rinadi.";
+  }catch(e){ m.textContent = 'Xato: ' + e.message; }
+});
+
 document.getElementById('stReload') && document.getElementById('stReload').addEventListener('click', loadStats);
 document.getElementById('stRange') && document.getElementById('stRange').addEventListener('change', loadStats);
 
@@ -12820,6 +12919,8 @@ aktNumberSearchEl.addEventListener('input', debounce(()=>{
         document.getElementById('aktNewPrice').value = aktSelectedNumberData.price || '';
         document.getElementById('aktOldPrice').value = aktSelectedNumberData.oldPrice || '';
         document.getElementById('aktInstallment').checked = aktSelectedNumberData.installment;
+        document.getElementById('aktCurrency').value =
+          String(aktSelectedNumberData.currency || '').toUpperCase() === 'USD' ? 'usd' : 'uzs';
         aktShowSelectedChip();
         aktNumberResultsEl.classList.remove('show');
         aktNumberSearchEl.value = '';
@@ -12872,6 +12973,7 @@ function aktResetForm(){
   document.getElementById('aktNewPrice').value = '';
   document.getElementById('aktOldPrice').value = '';
   document.getElementById('aktInstallment').checked = false;
+  document.getElementById('aktCurrency').value = 'uzs';
   document.querySelectorAll('#aktFormWrap .akt-duration-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('aktDurationPicked').innerHTML = '';
   const hint = document.getElementById('aktFormHint');
@@ -12950,6 +13052,8 @@ function aktOpenEdit(item){
   document.getElementById('aktNewPrice').value = item.price || '';
   document.getElementById('aktOldPrice').value = item.oldPrice || '';
   document.getElementById('aktInstallment').checked = !!item.installment;
+  document.getElementById('aktCurrency').value =
+    String(item.currency || '').toUpperCase() === 'USD' ? 'usd' : 'uzs';
   const now = Date.now();
   if(item.dealExpiresAt){
     const hoursLeft = Math.max(0, Math.round((item.dealExpiresAt - now) / 3600000));
@@ -12978,9 +13082,14 @@ document.getElementById('aktSaveBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('aktSaveBtn');
   btn.disabled = true;
   try{
+    const aktCur = (document.getElementById('aktCurrency') || {}).value === 'usd' ? 'USD' : 'UZS';
+    /* Dollarlik narxda bo'lib to'lash bo'lmaydi — hisob-kitob so'mda
+       yuritiladi (raqam qo'shish formasidagi qoida bilan bir xil). */
+    const installmentCur = aktCur === 'USD' ? false : installment;
+
     if(aktEditingId){
       // Mavjud aksiyani tahrirlash.
-      const patch = { price: newPrice, oldPrice, onSale: oldPrice > newPrice, installment };
+      const patch = { price: newPrice, oldPrice, onSale: oldPrice > newPrice, installment: installmentCur, currency: aktCur };
       if(aktDurationHours > 0) patch.dealExpiresAt = Date.now() + aktDurationHours * 3600 * 1000;
       const finWrap = document.getElementById('aktFinPanelWrap');
       if(finWrap){
@@ -12992,7 +13101,7 @@ document.getElementById('aktSaveBtn').addEventListener('click', async ()=>{
       await db.collection('numbers').doc(aktEditingId).update(patch);
     }else if(aktSelectedNumberData){
       // Qidiruvdan tanlangan MAVJUD raqamni aksiyaga qo'yish.
-      const patch = { price: newPrice, oldPrice, onSale: oldPrice > newPrice, installment, dailyDeal: true };
+      const patch = { price: newPrice, oldPrice, onSale: oldPrice > newPrice, installment: installmentCur, currency: aktCur, dailyDeal: true };
       if(aktDurationHours > 0) patch.dealExpiresAt = Date.now() + aktDurationHours * 3600 * 1000;
       await db.collection('numbers').doc(aktSelectedNumberData.id).update(patch);
     }else{
@@ -13004,7 +13113,8 @@ document.getElementById('aktSaveBtn').addEventListener('click', async ()=>{
       const rawDigits = num.replace(/\D/g, '').slice(-9);
       await db.collection('numbers').add({
         number: num, operator: '', price: newPrice, oldPrice, onSale: oldPrice > newPrice,
-        installment, featured: false, dailyDeal: true, monthlyTariff: 0, tariffMonths: 0,
+        currency: aktCur,
+        installment: installmentCur, featured: false, dailyDeal: true, monthlyTariff: 0, tariffMonths: 0,
         dealExpiresAt: aktDurationHours > 0 ? Date.now() + aktDurationHours * 3600 * 1000 : null,
         dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
         ownershipTransfer: false, recommended: false, tag: 'oddiy',
@@ -13613,10 +13723,23 @@ function parseBulkLine(line){
   const code = raw.slice(0,2);
   const operator = CODE_TO_OPERATOR[code] || null;
   const price = Number(parts[1].replace(/\D/g,'')) || 0;
-  const tag = (parts[2] || 'oddiy').toLowerCase() === 'vip' ? 'vip' : 'oddiy';
 
-  return { number, operator, price, tag, raw };
+  /* 3-chi va keyingi bo'laklar tartibsiz bo'lishi mumkin: "vip", "usd",
+     "som" — qaysi biri yozilgan bo'lsa, o'shani olamiz. Yozilmasa,
+     valyuta yuqoridagi umumiy tanlovdan olinadi. */
+  const rest = parts.slice(2).map(x => x.toLowerCase());
+  const tag = rest.includes('vip') ? 'vip' : 'oddiy';
+  const umumiy = (document.getElementById('bulkCurrency') || {}).value === 'usd' ? 'USD' : 'UZS';
+  let currency = umumiy;
+  if(rest.includes('usd') || rest.includes('$') || rest.includes('dollar')) currency = 'USD';
+  if(rest.includes('som') || rest.includes("so'm") || rest.includes('uzs')) currency = 'UZS';
+
+  return { number, operator, price, tag, currency, raw };
 }
+
+document.getElementById('bulkCurrency').addEventListener('change', ()=>{
+  if(parsedBulkRows.length) document.getElementById('bulkPreviewBtn').click();
+});
 
 document.getElementById('bulkPreviewBtn').addEventListener('click', ()=>{
   const lines = bulkText.value.split('\n').map(l => l.trim()).filter(l => l !== '');
@@ -13632,7 +13755,7 @@ document.getElementById('bulkPreviewBtn').addEventListener('click', ()=>{
     <div class="bp-row ${r.operator ? '' : 'bad'}">
       <span class="bp-num">${r.number}</span>
       <span class="bp-op ${r.operator ? '' : 'unknown'}">${r.operator || 'Kod topilmadi'}</span>
-      <span class="bp-price">${r.price.toLocaleString('ru-RU').replace(/,/g,' ')} so'm</span>
+      <span class="bp-price">${r.price.toLocaleString('ru-RU').replace(/,/g,' ')}${r.currency === 'USD' ? ' $' : " so'm"}</span>
       <span class="bp-tag">${r.tag === 'vip' ? 'VIP' : 'Oddiy'}</span>
     </div>
   `).join('');
@@ -13673,8 +13796,11 @@ async function saveBulkRows(){
           price: row.price,
           oldPrice: 0,
           onSale: false,
+          currency: row.currency || 'UZS',
           tier: '',
           featured: false,
+          /* Dollarlik raqamda bo'lib to'lash bo'lmaydi — hisob-kitob
+             so'mda yuritiladi (bitta raqam qo'shishdagi qoida bilan bir xil). */
           installment: false,
           tag: row.tag,
           last1: row.raw.slice(-1), last2: row.raw.slice(-2), last3: row.raw.slice(-3), last4: row.raw.slice(-4),

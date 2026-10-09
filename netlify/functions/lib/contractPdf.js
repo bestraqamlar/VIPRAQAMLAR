@@ -38,8 +38,11 @@ const C = {
   overdue: '#B3261E'
 };
 
-function fmtMoney(n){
-  return Number(n || 0).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+/* Shartnoma so'mda ham, dollarda ham bo'lishi mumkin. `cur` berilmasa —
+   so'm (eski shartnomalarda `currency` maydoni yo'q edi). */
+function fmtMoney(n, cur){
+  const belgi = String(cur || '').toUpperCase() === 'USD' ? ' $' : " so'm";
+  return Number(n || 0).toLocaleString('ru-RU').replace(/,/g, ' ') + belgi;
 }
 function fmtNum(n){
   return Number(n || 0).toLocaleString('ru-RU').replace(/,/g, ' ');
@@ -248,9 +251,9 @@ function buildContractPdfBuffer(contract){
       doc.y += 4;
       termsTable(doc, [
         ['Sotilayotgan raqam', contract.number || '—', true],
-        ["Umumiy summa",       fmtMoney(total), true],
+        ["Umumiy summa",       fmtMoney(total, contract.currency), true],
         ["To'lov muddati",     `${months} oy`],
-        ["Oylik to'lov",       fmtMoney(monthly), true],
+        ["Oylik to'lov",       fmtMoney(monthly, contract.currency), true],
         ["To'lov kuni",        `Har oyning ${contract.paymentDay || 1}-sanasi`],
         ["Hozirgi holat",      `${paidCount} / ${months} oy to'langan`]
       ]);

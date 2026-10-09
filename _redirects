@@ -18,6 +18,10 @@
 # o'chirildi — u shu qoida tufayli baribir hech qachon ko'rsatilmasdi)
 /sitemap.xml   /.netlify/functions/sitemap   200
 
+# Maxfiylik siyosati — App Store va Play Market MAJBURIY talab qiladi
+/maxfiylik        /maxfiylik.html   200
+/maxfiylik.html   /maxfiylik.html   200
+
 # Sotuvchi kabineti — o'z fayli sifatida ishlaydi
 /sotuvchi       /sotuvchi.html   200
 /sotuvchi.html  /sotuvchi.html   200

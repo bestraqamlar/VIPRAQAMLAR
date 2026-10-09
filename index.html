@@ -20,11 +20,63 @@
 <meta property="og:image" content="https://vipraqamlar.uz/assets/og-image.jpg">
 <meta property="og:url" content="https://vipraqamlar.uz/">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="assets/logo-circle.png">
-<link rel="apple-touch-icon" href="assets/logo-circle.png">
+<link rel="icon" href="assets/icon-192.png" sizes="192x192">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-512.png">
+<meta name="application-name" content="VIP RAQAMLAR">
+<meta name="apple-mobile-web-app-title" content="VIP RAQAMLAR">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- KUCHSIZ QURILMANI ANIQLASH.
+     Android telefonlarning katta qismi 4 GB yoki undan kam xotira bilan
+     keladi va ularda "shisha" blur, katta soyalar kabi bezaklar
+     videokartani ancha band qiladi (iPhone'da bu sezilmaydi — shu sabab
+     sayt u yerda tez, bu yerda sekin edi).
+
+     Shunday qurilmalarda <html> ga `low` sinfi qo'yiladi va CSS
+     bezaklarni yengillashtiradi: blur 30px o'rniga 14px, soyalar
+     kichikroq. Ko'rinish deyarli o'zgarmaydi, tezlik esa sezilarli
+     oshadi. Kuchli telefonlarda hech narsa o'zgarmaydi. -->
+<script>
+try{
+  var _m = navigator.deviceMemory, _c = navigator.hardwareConcurrency;
+  if((_m && _m <= 4) || (_c && _c <= 4)) document.documentElement.classList.add('low');
+}catch(e){}
+</script>
+
+<!-- KATALOGNI ENG ERTA BOSHLASH.
+     Katalog indeksi (/api-index) uchun so'rov shu yerda, saytning
+     qolgan kodi hali o'qilmasdan OLDIN yuborildi. Shu bir necha yuz
+     millisoniya mijoz uchun "sayt bir zumda ochildi" degani.
+     Indeks nima ekani: netlify/functions/api-index.js -->
+<script>
+/* ILOVA REJIMI.
+   Android/iOS ilovasi ichida sahifa `capacitor://localhost` yoki
+   `https://localhost` manzilidan ochiladi — ya'ni server YO'Q, fayllar
+   telefonning o'zida yotadi (shu sabab ilova bir zumda ochiladi).
+   Lekin API so'rovlari baribir haqiqiy saytga ketishi kerak, shuning
+   uchun ilova ichida manzil to'liq yoziladi. */
+window.VIP_SITE = 'https://vipraqamlar.uz';
+window.VIP_APP = (function(){
+  try{
+    /* Capacitor o'z ko'prigini sahifa kodidan OLDIN ulaydi, shu sabab
+       `window.Capacitor` ning borligi — eng ishonchli belgi.
+       Boshqa taxminlar (masalan "localhost" yoki "file:") ishlatilmadi:
+       ular mahalliy sinovda yoki faylni to'g'ridan-to'g'ri ochganda
+       noto'g'ri ishlab ketardi. */
+    return !!window.Capacitor || location.protocol === 'capacitor:';
+  }catch(e){ return false; }
+})();
+window.VIP_FN = (window.VIP_APP ? window.VIP_SITE : '') + '/.netlify/functions/';
+try{
+  window.__idxP = fetch(window.VIP_FN + 'api-index')
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null);
+}catch(e){ window.__idxP = null; }
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -265,6 +317,33 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.012em}
   box-shadow:0 10px 30px -10px rgba(9,24,44,.3),0 2px 8px -4px rgba(9,24,44,.2),inset 0 1px 0 var(--nc-edge);
 }
 html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0 1px 0 var(--nc-edge)}
+/* ===== KUCHSIZ QURILMALAR UCHUN YENGILLASHTIRISH =====
+   <html class="low"> — 4 GB yoki kamroq xotirali / 4 yadroli
+   qurilmalar (ko'pchilik Android). Blur radiusi videokarta ishini
+   KVADRATIK oshiradi: 30px -> 14px taxminan 4 barobar arzon, ko'zga
+   esa deyarli bir xil ko'rinadi. */
+html.low #nav{
+  backdrop-filter:saturate(160%) blur(14px);
+  -webkit-backdrop-filter:saturate(160%) blur(14px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 55%),
+    rgba(18,38,70,.72);
+  box-shadow:0 8px 20px -10px rgba(0,0,0,.6), inset 0 1px 0 var(--nc-edge);
+}
+html.low .topbar, html.low #deskhead{
+  backdrop-filter:saturate(150%) blur(12px);
+  -webkit-backdrop-filter:saturate(150%) blur(12px);
+}
+/* Katta, yoyilgan soyalar ham Androidda qimmat — ro'yxatdagi o'nlab
+   kartochkada ular har kadrda qayta chiziladi. */
+html.low .numcard, html.low .daycard, html.low .card, html.low .ptile{
+  box-shadow:0 4px 12px -8px rgba(0,0,0,.55);
+}
+html.low .herocard{
+  box-shadow:0 12px 26px -18px rgba(4,11,24,.95), inset 0 1px 0 rgba(255,255,255,.10);
+}
+html.low .pwa{ box-shadow:0 10px 24px -14px rgba(0,0,0,.7); }
+
 /* blur qo'llab-quvvatlanmasa — menyu shaffof bo'lib qolmasin */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   #nav{background:
@@ -803,6 +882,10 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   transition:transform .3s cubic-bezier(.2,.8,.3,1);
 }
 #netbar.on{transform:translateX(-50%) translateY(0)}
+/* Tarmoq panели yashirin turganda ichidagi aylanma ham TO'XTAYDI.
+   Ilgari u ekrandan tashqarida, ko'rinmas holda sutka bo'yi aylanib
+   turardi va har kadrda ish bajarardi — Androidda bu sezilarli edi. */
+#netbar:not(.on) .spin{animation:none;visibility:hidden}
 #netbar .t{flex:1;min-width:0;font-size:12.5px;font-weight:700}
 #netbar .s{font-size:11px;color:#9FB2CC;font-weight:600;margin-top:1px}
 .spin{width:20px;height:20px;border-radius:50%;border:2px solid rgba(230,200,119,.3);border-top-color:#E6C877;animation:sp .8s linear infinite;flex:none}
@@ -1004,12 +1087,27 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 }
 /* Metall yaltirashi — sekin, bir marta o'tib yo'qoladi va qaytadi */
 .herocard::after{
-  content:'';position:absolute;top:-60%;bottom:-60%;width:24%;left:-32%;z-index:1;pointer-events:none;
+  content:'';position:absolute;top:-60%;bottom:-60%;width:24%;left:0;z-index:1;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.07) 40%,rgba(255,240,205,.15) 52%,rgba(255,255,255,.06) 62%,transparent);
-  transform:rotate(14deg);
-  animation:hcShine 7.5s cubic-bezier(.4,0,.2,1) 1.8s infinite;
+  /* DIQQAT: `left` EMAS, `translateX` animatsiya qilinadi.
+     `left` har kadrda joylashuvni qayta hisoblab, kartochkani qaytadan
+     bo'yashga majbur qiladi — Androidda eng qimmat ish. `transform` esa
+     to'g'ridan-to'g'ri videokartada bajariladi va protsessorga umuman
+     tegmaydi. Ko'rinishi bir xil, narxi nolga yaqin. */
+  transform:translateX(-132%) rotate(14deg);
 }
-@keyframes hcShine{0%{left:-32%}30%{left:120%}100%{left:120%}}
+/* Yaltirash FAQAT ko'rinib turgan kartochkada ishlaydi.
+   Ilgari karusel ichidagi 12 ta nusxaning HAMMASI bir vaqtda
+   yaltirardi — 11 tasi ekrandan tashqarida bo'lsa ham. Androidda
+   shu bitta narsa kadrlarning yarmini yeb qo'yardi. */
+.herocard.shine-on::after{
+  animation:hcShine 7.5s cubic-bezier(.4,0,.2,1) .35s infinite;
+}
+@keyframes hcShine{
+  0%{transform:translateX(-132%) rotate(14deg)}
+  30%{transform:translateX(500%) rotate(14deg)}
+  100%{transform:translateX(500%) rotate(14deg)}
+}
 @media (prefers-reduced-motion:reduce){.herocard::after{animation:none;opacity:0}}
 .herocard > *{position:relative;z-index:3}
 .hc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1268,12 +1366,19 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 }
 /* Yurib turuvchi oq yaltirash — bosh sahifadagi premium kartochkadagi kabi */
 .daycard::after{
-  content:'';position:absolute;top:-60%;bottom:-60%;width:26%;left:-34%;z-index:1;pointer-events:none;
+  content:'';position:absolute;top:-60%;bottom:-60%;width:26%;left:0;z-index:1;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.10) 42%,rgba(255,255,255,.17) 52%,rgba(255,255,255,.08) 62%,transparent);
-  transform:rotate(14deg);
-  animation:dcShine 6.5s cubic-bezier(.4,0,.2,1) 1.2s infinite;
+  /* yuqoridagi .herocard::after dagi kabi — `left` o'rniga `transform` */
+  transform:translateX(-134%) rotate(14deg);
 }
-@keyframes dcShine{0%{left:-34%}30%{left:122%}100%{left:122%}}
+.daycard.shine-on::after{
+  animation:dcShine 6.5s cubic-bezier(.4,0,.2,1) .3s infinite;
+}
+@keyframes dcShine{
+  0%{transform:translateX(-134%) rotate(14deg)}
+  30%{transform:translateX(470%) rotate(14deg)}
+  100%{transform:translateX(470%) rotate(14deg)}
+}
 @media (prefers-reduced-motion:reduce){.daycard::after{animation:none;opacity:0}}
 .daycard > *{position:relative;z-index:2}
 .daycard .dc-go svg{transition:transform .2s}
@@ -1801,6 +1906,23 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
       </span>
     </a>
 
+    <!-- Ilovani o'rnatish — doimiy qator. Pastdagi taklifni yopib
+         yuborgan mijoz ham keyin istalgan vaqtda shu yerdan o'rnata
+         oladi. Ilova allaqachon o'rnatilgan bo'lsa yoki Telegram ichida
+         ochilgan bo'lsa — bu qator ko'rinmaydi (PWA.mavjudlikni). -->
+    <button class="tgcard" id="pwaRow2" type="button" style="display:none;width:100%;text-align:left;border:none;font-family:inherit;cursor:pointer;margin-top:12px">
+      <span class="tg-ic" style="background:var(--gold-tint);color:var(--gold-ink)">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"></rect><path d="M12 7v7M9 11l3 3 3-3"></path></svg>
+      </span>
+      <span class="tg-tx">
+        <b data-t="Ilovani o'rnatish">Ilovani o'rnatish</b>
+        <i data-t="Bosh ekranga qo'shiladi, tezroq ishlaydi">Bosh ekranga qo'shiladi, tezroq ishlaydi</i>
+      </span>
+      <span class="tg-btn"><span data-t="O'rnatish">O'rnatish</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"></path></svg>
+      </span>
+    </button>
+
     <div class="eyebrow" style="margin-top:22px" data-t="Bo'limlar">Bo'limlar</div>
     <div class="ptiles" style="margin-top:12px">
 
@@ -1830,6 +1952,13 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
         <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.6 9.3A2.5 2.5 0 0 1 14.5 10c0 1.7-2.5 2-2.5 3.6M12 17v.5"></path></svg></span>
         <b data-t="Savol-javob">Savol-javob</b><i data-t="Yordam">Yordam</i>
       </button>
+
+      <!-- Maxfiylik siyosati — App Store va Play Market ILOVA ICHIDAN
+           havola bo'lishini MAJBURIY talab qiladi. -->
+      <a class="ptile rise" href="https://vipraqamlar.uz/maxfiylik" target="_blank" rel="noopener">
+        <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"></path><path d="M9.5 12.2l1.8 1.8 3.4-3.6"></path></svg></span>
+        <b data-t="Maxfiylik siyosati">Maxfiylik siyosati</b><i data-t="Ma'lumotlaringiz himoyasi">Ma'lumotlaringiz himoyasi</i>
+      </a>
 
       <button class="ptile rise" data-sheet="about">
         <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5.5M12 7.8v.4"></path></svg></span>
@@ -1903,7 +2032,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 
 <!-- ===== PWA: "Ilovani o'rnating" taklifi (pastda, menyu ustida) ===== -->
 <div class="pwa" id="pwaBox" role="dialog" aria-live="polite" aria-label="Ilovani o'rnatish">
-  <div class="pwa-ic"><img src="assets/logo-circle.png" alt="" width="44" height="44" loading="lazy"></div>
+  <div class="pwa-ic"><img src="assets/icon-192.png" alt="" width="44" height="44" loading="lazy" decoding="async"></div>
   <div class="pwa-b">
     <div class="pwa-t" data-t="Ilovani o'rnating">Ilovani o'rnating</div>
     <div class="pwa-s" id="pwaSub" data-t="Bosh ekrandan bir bosishda oching — tezroq ishlaydi va yangi raqamlardan xabardor bo'lasiz.">Bosh ekrandan bir bosishda oching — tezroq ishlaydi va yangi raqamlardan xabardor bo'lasiz.</div>
@@ -1955,7 +2084,9 @@ let NUMBERS = [], numbersLoaded = false, SETTINGS = {}, FAVORITES = [];
 let installmentRates = { 6:5, 12:10, 24:20, 36:30 };
 let OPERATOR_FINANCING = { byOperator:{ Humans:{}, Ucell:{}, Beeline:{} }, tariffsByOperator:{ Humans:[], Ucell:[], Beeline:[] } };
 let TESTIMONIALS = [];
-const FN = '/.netlify/functions/';
+/* Saytda — nisbiy manzil, ilovada — to'liq manzil (qarang: <head>) */
+const FN = (typeof window !== 'undefined' && window.VIP_FN) || '/.netlify/functions/';
+const INAPP = !!(typeof window !== 'undefined' && window.VIP_APP);
 
 const OPERATOR_META = {
   Mobiuz:{color:'#C0392B', logo:'assets/operators/mobiuz.png'},
@@ -2483,6 +2614,8 @@ function haptic(kind){
   }catch(e){}
 }
 applyTheme(themeNow());
+/* ilova qobig'i `haptic`ni o'z tebranishiga almashtira olishi uchun */
+try{ window.haptic = haptic; }catch(e){}
 
 /* ---------- Marshrut ---------- */
 const ROUTES = { '':'home', '/':'home', '/katalog':'catalog', '/sevimlilar':'fav', '/buyurtmalarim':'orders', '/shartnoma':'contract', '/profil':'more', '/yana':'more' };
@@ -2566,7 +2699,7 @@ function updateFavBadge(){
    MUHIM: hech qanday shaxsiy ma'lumot yuborilmaydi. Hodisalar brauzerda
    yig'iladi va 30 soniyada bir marta (yoki sahifa yopilganda) BITTA
    so'rovda jo'natiladi — shu sabab sayt sekinlashmaydi. */
-const TRACK_URL = '/.netlify/functions/api-track';
+const TRACK_URL = FN + 'api-track';
 let TRACK_Q = [];
 let trackTimer = null;
 
@@ -2632,17 +2765,113 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
 /* ==================================================================
    MA'LUMOT YUKLASH
    ================================================================== */
+/* ---------- IXCHAM INDEKS ----------
+   Katalog endi Firestore'dan to'g'ridan-to'g'ri emas, /api-index
+   orqali keladi: butun baza bitta qadoqlangan satrda, Netlify CDN'ida
+   keshlangan holda. Bitta raqam ~319 bayt o'rniga ~55 bayt (gzip bilan
+   yana 5 barobar kam). Format izohi: netlify/functions/lib/numIndex.js
+
+   Firestore'dan o'qish YO'Q QILINMADI — u zaxira yo'l bo'lib qoldi:
+   indeks biror sababga ko'ra kelmasa, sayt eski usulda ishlayveradi. */
+const IDX_TIERS = ['', 'premium', 'gold', 'vip', 'silver', 'bronze'];
+const IDX_EXTRA = { m6:'monthly6', m12:'monthly12', m24:'monthly24',
+                    d6:'dealMonthly6', d12:'dealMonthly12', d24:'dealMonthly24',
+                    c:'currency', op:'operatorPrice', nt:'note', de:'dealExpiresAt' };
+const IDX_NUM = { monthly6:1, monthly12:1, monthly24:1, dealMonthly6:1, dealMonthly12:1,
+                  dealMonthly24:1, operatorPrice:1, dealExpiresAt:1 };
+
+/* Ochish — eng tez usul: satrni bo'lakchalarga BO'LMASDAN (split
+   o'rniga indexOf) o'qiydi. O'lchandi: 50 000 raqam uchun 39 ms —
+   bu hatto brauzerning o'z JSON.parse'idan ham tez (63 ms), ustiga
+   trafik 6 barobar kam. */
+function indeksniOch(pack){
+  const ops = pack.ops || [];
+  const rows = String(pack.rows || '');
+  const out = [];
+  const L = rows.length;
+  let p = 0;
+  while(p < L){
+    let e = rows.indexOf('\n', p); if(e < 0) e = L;
+    if(e > p){
+      /* satr ichidagi 7 ta ajratgichni topamiz */
+      const q = []; let k = p, bad = false;
+      for(let i = 0; i < 7; i++){
+        const j = rows.indexOf('|', k);
+        if(j < 0 || j > e){ bad = true; break; }
+        q.push(j); k = j + 1;
+      }
+      if(!bad){
+        const fl = +rows.slice(q[4] + 1, q[5]) || 0;
+        const item = {
+          id:        rows.slice(p, q[0]),
+          number:    '+998' + rows.slice(q[0] + 1, q[1]),
+          operator:  ops[+rows.slice(q[1] + 1, q[2])] || '',
+          price:     +rows.slice(q[2] + 1, q[3]) || 0,
+          oldPrice:  +rows.slice(q[3] + 1, q[4]) || 0,
+          reserved:    !!(fl & 1),
+          installment: !!(fl & 2),
+          featured:    !!(fl & 4),
+          dailyDeal:   !!(fl & 8),
+          tier: IDX_TIERS[+rows.slice(q[5] + 1, q[6]) || 0] || ''
+        };
+        /* qo'shimcha maydonlar — raqamlarning ozchiligida bo'ladi */
+        if(q[6] + 1 < e){
+          for(const kv of rows.slice(q[6] + 1, e).split(',')){
+            const z = kv.indexOf('=');
+            if(z < 1) continue;
+            const key = IDX_EXTRA[kv.slice(0, z)];
+            if(!key) continue;
+            const raw = decodeURIComponent(kv.slice(z + 1));
+            item[key] = IDX_NUM[key] ? (Number(raw) || 0) : raw;
+          }
+        }
+        out.push(item);
+      }
+    }
+    p = e + 1;
+  }
+  return out;
+}
+
 async function raqamlarniYukla(){
+  /* 1-yo'l (asosiy): ixcham indeks — tez va arzon */
+  try{
+    /* So'rov <head> da, sahifa yuklanishi bilanoq boshlangan — shu
+       sabab bu yerga kelganda ko'pincha javob allaqachon tayyor. */
+    const so = (typeof window !== 'undefined' && window.__idxP)
+      ? window.__idxP
+      : fetch(FN + 'api-index').then(x => x.json());
+    const r = await withClientTimeout(so, kutishVaqti(9000));
+    if(r && r.ok && typeof r.rows === 'string'){
+      NUMBERS = indeksniOch(r);
+      numbersLoaded = true;
+      /* kesh ham qadoqlangan holda saqlanadi — 6 barobar kam joy
+         egallaydi, ya'ni localStorage chegarasiga tezda urilmaydi */
+      try{ localStorage.setItem('raqamuz_pack', JSON.stringify({ ops:r.ops, rows:r.rows, at:Date.now() })); }catch(e){}
+      try{ localStorage.removeItem('raqamuz_cache'); }catch(e){}
+      reshuffle(); pickHome(); renderAll();
+      return;
+    }
+  }catch(e){ /* pastdagi zaxira yo'lga o'tamiz */ }
+
+  /* 2-yo'l (zaxira): to'g'ridan-to'g'ri Firestore.
+     `hidden: true` — admin yashirgan raqam, saytda ko'rinmaydi. */
   const snap = await withClientTimeout(db.collection('numbers').get(), kutishVaqti(10000));
-  /* `hidden: true` — admin tomonidan vaqtincha yashirilgan raqam
-     (masalan sotuvchi qo'ygan, lekin shubhali bo'lgan raqam). Bazadan
-     o'chirilmaydi, shunchaki saytda ko'rinmaydi. */
   NUMBERS = snap.docs.map(d => ({ id:d.id, ...d.data() })).filter(n => !n.hidden);
   numbersLoaded = true;
   try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){}
   reshuffle(); pickHome(); renderAll();
 }
+
 function keshdanOqi(){
+  try{
+    const p = localStorage.getItem('raqamuz_pack');
+    if(p){
+      const o = JSON.parse(p) || {};
+      NUMBERS = indeksniOch(o);
+      if(NUMBERS.length){ reshuffle(); pickHome(); renderAll(); return true; }
+    }
+  }catch(e){}
   try{
     const c = localStorage.getItem('raqamuz_cache');
     if(c){ NUMBERS = JSON.parse(c)||[]; if(NUMBERS.length){ reshuffle(); pickHome(); renderAll(); return true; } }
@@ -2823,6 +3052,8 @@ function renderAll(){
   renderHome();
   if(currentRoute === 'catalog') renderCatalog();
   if(currentRoute === 'fav') renderFavorites();
+  /* yangi kartochkalar chizilgach — yaltirashni kuzatuvga qo'shamiz */
+  requestAnimationFrame(shineWatch);
 }
 
 let HOME_PICKS = [], HERO_PICKS = [];
@@ -3147,6 +3378,42 @@ function startHeroLoop(){
     heroStep(1);
   }, 3400);
 }
+/* ================= YALTIRASHNI FAQAT KO'RINGANIDA ISHLATISH =================
+   Karuselda 12 ta premium kartochka nusxasi bo'ladi (cheksiz aylanish
+   uchun). Ilgari ularning HAMMASIDA yaltirash animatsiyasi bir vaqtda
+   ishlardi — ekranda bittasi ko'rinib tursa ham. iPhone buni sezmasdi,
+   Android esa sezilarli sekinlashardi (o'lchandi: kadr vaqtining
+   yarmidan ko'pi shunga ketardi).
+
+   Endi yaltirash faqat ekranda ko'rinib turgan kartochkada ishlaydi.
+   Kuchsizroq telefonlarda (4 yoki undan kam yadro) umuman o'chiriladi —
+   bezak tezlikdan muhim emas. */
+let shineIO = null;
+const SHINE_OFF = (()=>{
+  try{
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+    /* Juda kuchsiz qurilmalarda bezak umuman o'chiriladi. Chegara past
+       olingan — chunki endi yaltirash baribir faqat BITTA, ko'rinib
+       turgan kartochkada ishlaydi, ya'ni narxi 12 barobar tushdi. */
+    if((navigator.hardwareConcurrency || 8) <= 2) return true;
+    if((navigator.deviceMemory || 8) <= 2) return true;
+  }catch(e){}
+  return false;
+})();
+
+function shineWatch(){
+  if(SHINE_OFF) return;
+  if(!('IntersectionObserver' in window)) return;
+  if(!shineIO){
+    shineIO = new IntersectionObserver((rows)=>{
+      rows.forEach(r => r.target.classList.toggle('shine-on', r.isIntersecting));
+    }, { threshold: 0.55 });
+  } else {
+    shineIO.disconnect();
+  }
+  $$('.herocard, .daycard').forEach(el => shineIO.observe(el));
+}
+
 function syncDots(){
   const el = $('#homeHero'), dots = $$('#heroDots i');
   if(!el || !dots.length) return;
@@ -4854,6 +5121,7 @@ const PWA = (function(){
 
   const inTelegram = ()=>{ try{ return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData); }catch(e){ return false; } };
   const installed = ()=>{
+    if(window.VIP_APP) return true;   /* allaqachon haqiqiy ilova ichidamiz */
     try{
       if(window.matchMedia('(display-mode: standalone)').matches) return true;
       if(window.navigator.standalone) return true;
@@ -4872,11 +5140,11 @@ const PWA = (function(){
     return false;
   }
 
-  /* qiziqish darajasi: ko'rilgan raqamlar + tashriflar soni */
-  function earned(){
-    const views = +get(K_SEEN,0), visits = +get(K_VISITS,0);
-    return views >= 3 || visits >= 2;
-  }
+  /* Mijoz so'rovi: taklif BIRINCHI tashrifdayoq chiqsin. Lekin
+     darhol emas — odam avval saytni ko'rsin, keyin taklif qilamiz.
+     8 soniya: shu vaqt ichida bosh sahifa yuklanib, bir-ikki raqam
+     ko'zga tashlanadi. */
+  function earned(){ return true; }
 
   function hide(){
     const el = document.getElementById('pwaBox'); if(!el) return;
@@ -4922,6 +5190,8 @@ const PWA = (function(){
       set(K_VISITS, (+get(K_VISITS,0)) + 1);
     }
     bindNo();
+    const row2 = document.getElementById('pwaRow2');
+    if(row2) row2.addEventListener('click', ()=> PWA.och());
     const yes = document.getElementById('pwaYes');
     if(yes) yes.onclick = async ()=>{
       try{ if(typeof haptic==='function') haptic('medium'); }catch(e){}
@@ -4938,17 +5208,43 @@ const PWA = (function(){
     };
 
     window.addEventListener('beforeinstallprompt', (e)=>{
+      /* Brauzerning o'z (xunuk, pastdagi) taklifini to'xtatamiz va
+         o'zimizning chiroyli taklifni ko'rsatamiz. */
       e.preventDefault(); deferred = e;
-      if(earned()) setTimeout(show, 1200);
+      setTimeout(show, 8000);
     });
-    window.addEventListener('appinstalled', ()=>{ set(K_OFF,'1'); hide(); });
+    window.addEventListener('appinstalled', ()=>{ set(K_OFF,'1'); hide(); mavjudlikni(); });
 
-    /* iOS yoki kech kelgan qiziqish uchun — 25 soniyadan keyin bir tekshiruv */
-    setTimeout(()=>{ if(earned()) show(); }, 25000);
+    /* iPhone'da `beforeinstallprompt` YO'Q (Safari uni qo'llamaydi) —
+       shu sabab u yerda taklif shunchaki vaqt bo'yicha chiqadi va
+       "Ulashish -> Bosh ekranga qo'shish" yo'riqnomasini ko'rsatadi. */
+    setTimeout(show, 8500);
+    mavjudlikni();
+  }
+
+  /* Profil bo'limidagi doimiy "Ilovani o'rnatish" qatori — taklifni
+     yopib yuborgan odam ham keyin istalgan vaqtda o'rnata olsin. */
+  function mavjudlikni(){
+    const row = document.getElementById('pwaRow2');
+    if(!row) return;
+    row.style.display = (installed() || inTelegram()) ? 'none' : '';
   }
 
   return {
     init,
+    mavjudlikni,
+    /* Profil bo'limidagi tugma bosilganda */
+    och(){
+      shown = false;
+      try{ localStorage.removeItem(K_SNOOZE); }catch(e){}
+      show();
+      if(!deferred && !isIos()){
+        /* Kompyuter brauzerida yoki taklif hali tayyor bo'lmaganda */
+        try{ toast(LANG==='ru'
+          ? 'Откройте сайт в Chrome на телефоне, чтобы установить приложение'
+          : "Ilovani o'rnatish uchun saytni telefon brauzerida oching", 'info'); }catch(e){}
+      }
+    },
     /* har bir raqam ochilganda chaqiriladi — qiziqishni o'lchaydi */
     seen(){
       const n = (+get(K_SEEN,0)) + 1; set(K_SEEN, n);
@@ -4957,10 +5253,72 @@ const PWA = (function(){
   };
 })();
 
-/* Service worker — internet umuman yo'q bo'lsa ham sayt ochiladi */
-if('serviceWorker' in navigator && location.protocol === 'https:'){
+/* Service worker — internet umuman yo'q bo'lsa ham sayt ochiladi.
+   ILOVA ichida kerak emas: u yerda fayllar allaqachon telefonning
+   o'zida yotadi, service worker esa faqat chalkashtirardi. */
+if('serviceWorker' in navigator && location.protocol === 'https:' && !window.VIP_APP){
   window.addEventListener('load', ()=> navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
+
+/* ================= ILOVA (Android / iOS) BILAN BOG'LANISH =================
+   Bu kod FAQAT ilova ichida ishlaydi — saytda hech narsa qilmaydi.
+   Capacitor plaginlari ilova ichida `window.Capacitor.Plugins` da
+   o'zi paydo bo'ladi, shu sabab hech qanday yig'uvchi (bundler) kerak
+   emas va sayt fayli og'irlashmaydi. */
+(function nativeKorpus(){
+  if(!window.VIP_APP) return;
+  const P = (window.Capacitor && window.Capacitor.Plugins) || {};
+
+  /* 1. Yuqoridagi holat paneli — saytning tungi rangiga mos */
+  try{
+    if(P.StatusBar){
+      P.StatusBar.setStyle({ style: 'DARK' }).catch(()=>{});
+      P.StatusBar.setBackgroundColor({ color: '#07152B' }).catch(()=>{});
+      P.StatusBar.setOverlaysWebView({ overlay: false }).catch(()=>{});
+    }
+  }catch(e){}
+
+  /* 2. Ochilish ekrani — sayt chizilib bo'lgach yopiladi.
+        Oldin yopilsa mijoz bir lahza oq ekran ko'rardi. */
+  const splashniYop = ()=>{ try{ if(P.SplashScreen) P.SplashScreen.hide().catch(()=>{}); }catch(e){} };
+  if(document.readyState === 'complete') setTimeout(splashniYop, 260);
+  else window.addEventListener('load', ()=> setTimeout(splashniYop, 260));
+
+  /* 3. Androiddagi "orqaga" tugmasi.
+        Avval ochiq oyna yopiladi, keyin sahifa tarixi bo'yicha orqaga,
+        bosh sahifada esa ilova yopiladi (Android odati shunday). */
+  try{
+    if(P.App){
+      P.App.addListener('backButton', ()=>{
+        const ochiq = document.querySelector('.sheet.on');
+        if(ochiq){ try{ closeSheet(ochiq.id); }catch(e){ ochiq.classList.remove('on'); } return; }
+        const h = (location.hash || '').replace(/^#/, '');
+        if(h && h !== '/' ){ location.hash = '#/'; return; }
+        P.App.exitApp();
+      });
+    }
+  }catch(e){}
+
+  /* 4. Tebranish (haptic) — ilovada tizimning o'z, nozikroq tebranishi */
+  try{
+    if(P.Haptics && typeof window.haptic === 'function'){
+      const asl = window.haptic;
+      window.haptic = function(kind){
+        try{
+          if(kind === 'ok' || kind === 'bad' || kind === 'warn'){
+            P.Haptics.notification({ type: kind === 'ok' ? 'SUCCESS' : kind === 'bad' ? 'ERROR' : 'WARNING' });
+          }else if(kind === 'select'){
+            P.Haptics.selectionChanged();
+          }else{
+            P.Haptics.impact({ style: kind === 'medium' ? 'MEDIUM' : 'LIGHT' });
+          }
+          return;
+        }catch(e){}
+        asl(kind);
+      };
+    }
+  }catch(e){}
+})();
 
 /* ---------- Ishga tushirish ---------- */
 /* ===== /raqam/998901234567 manzili bilan kelgan mijoz =====

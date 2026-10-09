@@ -98,6 +98,9 @@ async function addContract(body, decoded) {
   const birthDate = String(body.birthDate || '');
   const permanentAddress = String(body.permanentAddress || '').trim();
   const startDateVal = body.startDate;
+  /* Valyuta — so'm yoki dollar. Hisob-kitob o'zgarmaydi, faqat qaysi
+     valyutada ekani saqlanadi va hamma joyda shunday ko'rsatiladi. */
+  const currency = String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS';
 
   if (!name || !phone || !region || !number || months <= 0 || monthly <= 0) {
     const err = new Error("Barcha maydonlarni to'g'ri to'ldiring");
@@ -130,7 +133,7 @@ async function addContract(body, decoded) {
 
   await db.collection(COLLECTION).doc(contractId).set({
     contractId, customerName: name, customerPhone: phone, region, number,
-    totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
+    totalMonths: months, monthlyPayment: monthly, currency, paymentDay: payDay,
     additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active',
     customerChatId, passportNumber, birthDate, permanentAddress,
     // Kim qo'shgani — HAR DOIM tekshirilgan tokendan olinadi, mijoz
@@ -220,6 +223,7 @@ async function updateContract(body, decoded) {
     region: String(body.region || '').trim(),
     number: String(body.number || '').trim(),
     monthlyPayment: Number(body.monthlyPayment) || 0,
+    currency: String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS',
     additionalInfo: String(body.additionalInfo || '').trim(),
     passportNumber: String(body.passportNumber || '').trim(),
     birthDate: String(body.birthDate || ''),

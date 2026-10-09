@@ -422,6 +422,24 @@ service cloud.firestore {
             || request.resource.data.uid is string);
     }
 
+    // ---------------- KATALOG INDEKSI ----------------
+    // Tayyor, qadoqlangan katalog (netlify/functions/api-index.js uni
+    // qurib, shu yerda saqlaydi). Mijoz brauzeri uni Firestore'dan EMAS,
+    // CDN'da keshlangan funksiya javobidan oladi — shu sabab bu yerda
+    // o'qishga ham, yozishga ham ruxsat kerak emas.
+    match /search_index/{id} {
+      allow read, write: if false;
+    }
+    // Yagona istisno: admin panel raqam narxini tahrirlaganda "indeks
+    // eskirdi" belgisini qo'yadi. Faqat shu bitta hujjat, faqat admin,
+    // va faqat bitta `at` maydoni.
+    match /search_index/dirty {
+      allow read: if false;
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['at'])
+        && request.resource.data.at is number;
+    }
+
     // Tizim kalitlari (sotuvchi seanslarini imzolaydigan maxfiy kalit
     // va shunga o'xshash ichki sozlamalar). Brauzerdan O'QIB HAM,
     // YOZIB HAM bo'lmaydi — faqat server funksiyalari (Admin SDK).

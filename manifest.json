@@ -1,19 +1,43 @@
 {
+  "id": "/",
   "name": "VIP RAQAMLAR",
   "short_name": "VIP RAQAMLAR",
   "description": "O'zbekistonda chiroyli, oltin va VIP telefon raqamlarini tanlang va onlayn sotib oling.",
-  "start_url": "/",
+  "start_url": "/?mode=app",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0B1220",
-  "theme_color": "#0B1220",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "background_color": "#070F1F",
+  "theme_color": "#07152B",
   "orientation": "portrait",
   "lang": "uz",
+  "dir": "ltr",
+  "categories": ["shopping", "business"],
+  "prefer_related_applications": false,
   "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
     {
-      "src": "assets/logo-circle.png",
-      "sizes": "256x256",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "name": "Raqam qidirish",
+      "short_name": "Qidirish",
+      "url": "/#/katalog",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sevimlilar",
+      "short_name": "Sevimlilar",
+      "url": "/#/sevimlilar",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Buyurtmalarim",
+      "short_name": "Buyurtmalar",
+      "url": "/#/buyurtmalarim",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

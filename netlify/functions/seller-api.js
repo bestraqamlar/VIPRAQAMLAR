@@ -64,6 +64,14 @@ const OPERATORS = ['Beeline', 'Ucell', 'Humans', 'Uzmobile', 'UMS', 'Mobiuz', 'P
 // Bitta sotuvchi ko'pi bilan shuncha raqam qo'sha oladi (suiiste'molga qarshi)
 const MAX_NUMBERS = 2000;
 
+/* Sayt katalogi tayyor ixcham indeksdan o'qiladi (api-index.js). Raqam
+   qo'shilsa/o'zgarsa shu belgi qo'yiladi — keyingi so'rovda indeks
+   qaytadan quriladi va o'zgarish bir daqiqa ichida saytda ko'rinadi. */
+async function indeksEskirdi() {
+  try { await db.collection('search_index').doc('dirty').set({ at: Date.now() }, { merge: true }); }
+  catch (e) {}
+}
+
 /* ---------- Kirish ---------- */
 async function doLogin(body) {
   const username = clean(body.username, 40).toLowerCase();
@@ -144,6 +152,7 @@ async function addNumber(s, body) {
     createdAt: NOW(),
     createdAtSort: Date.now()
   });
+  await indeksEskirdi();
   return ok({ id: ref.id });
 }
 
@@ -164,6 +173,7 @@ async function updateNumber(s, body) {
   if (body.installment != null) patch.installment = !!body.installment;
   if (body.note != null) patch.sellerNote = clean(body.note, 300);
   await ref.update(patch);
+  await indeksEskirdi();
   return ok({});
 }
 
@@ -171,6 +181,7 @@ async function removeNumber(s, body) {
   const { ref, data } = await mineOrFail(s, body.id);
   if (data.reserved || data.sold) return bad("Band yoki sotilgan raqamni o'chirib bo'lmaydi");
   await ref.delete();
+  await indeksEskirdi();
   return ok({});
 }
 
