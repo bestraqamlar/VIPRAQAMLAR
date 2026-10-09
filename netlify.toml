@@ -14,7 +14,15 @@
   # (shartnoma yuklab olish) xato beradi. Bu Netlify'da pdfkit ishlatishning
   # mashhur "tuzog'i" — shrift fayllari avtomatik bog'lanmaydi (bundle),
   # shu sabab bu yerda ANIQ ko'rsatib qo'yamiz.
-  included_files = ["node_modules/pdfkit/js/data/*.afm"]
+  # index.html — seo-number.js funksiyasi uni o'qib, har bir raqam uchun
+  # <title>/tavsif/OG teglarni almashtiradi. Bu yerda ANIQ ko'rsatilmasa,
+  # Netlify uni funksiya paketiga qo'shmaydi va /raqam/... sahifalari
+  # bosh sahifaga yo'naltirilib qolardi.
+  included_files = ["node_modules/pdfkit/js/data/*.afm", "index.html"]
+
+[functions."seo-number"]
+  # Raqam sahifalari — Google va ijtimoiy tarmoq botlari uchun
+  included_files = ["index.html"]
 
 [functions."check-credit-payments"]
   schedule = "0 */6 * * *"
@@ -46,10 +54,10 @@
 # Har 10 daqiqada: raqamlar bazasi tez-tez o'zgarmaydi, lekin sotilgan
 # raqam keshda uzoq qolib ketmasligi kerak.
 #
-# ESKI sync-beeline.js (dilerlik/RMS login orqali) fayli loyihada endi
-# ishlatilmaydi (yangi, login talab qilmaydigan "ochiq" API bilan
-# almashtirildi — qarang: lib/operators.js), lekin fayl o'zi hali
-# saqlanadi, kerak bo'lib qolsa deb.
+# ESKI sync-beeline.js (dilerlik/RMS login orqali) fayli loyihadan
+# OLIB TASHLANDI (yangi, login talab qilmaydigan "ochiq" API bilan
+# almashtirildi — qarang: lib/operators.js). Nusxasi "qoshimcha/
+# ishlatilmaydi/" papkasida saqlanadi, kerak bo'lib qolsa deb.
 [functions."sync-beeline-background"]
   schedule = "*/10 * * * *"
 
@@ -167,6 +175,16 @@
     X-Robots-Tag = "noindex, nofollow, noarchive"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+
+# Sotuvchi kabineti — qidiruv tizimlari indekslamasin va boshqa
+# sahifaning <iframe> ichida ochilmasin (clickjacking).
+[[headers]]
+  for = "/sotuvchi.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Cache-Control = "no-cache, must-revalidate"
 
 # XAVFSIZLIK: barcha sahifalarga umumiy himoya sarlavhasi.
 # X-Content-Type-Options = "nosniff" — brauzer serverdan kelgan

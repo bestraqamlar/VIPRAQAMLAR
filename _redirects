@@ -8,6 +8,20 @@
 # Admin panel manzili — o'zining haqiqiy fayli sifatida ishlaydi (o'zgarishsiz).
 /panel-boshqaruv.html   /panel-boshqaruv.html   200
 
+# HAR BIR RAQAM UCHUN ALOHIDA SAHIFA (SEO) — /raqam/998901234567
+# Funksiya bazadan raqamni topib, <title>/tavsif/OG teglarni o'sha
+# raqamga moslab qaytaradi. Batafsil: netlify/functions/seo-number.js
+/raqam/*   /.netlify/functions/seo-number   200
+
+# Sitemap dinamik — har bir sotuvdagi raqam uchun manzil qo'shiladi.
+# Batafsil: netlify/functions/sitemap.js  (eski statik sitemap.xml fayli
+# o'chirildi — u shu qoida tufayli baribir hech qachon ko'rsatilmasdi)
+/sitemap.xml   /.netlify/functions/sitemap   200
+
+# Sotuvchi kabineti — o'z fayli sifatida ishlaydi
+/sotuvchi       /sotuvchi.html   200
+/sotuvchi.html  /sotuvchi.html   200
+
 # BOSHQA BARCHA manzillar (mavjud bo'lmagan/tasodifiy sahifalar, masalan
 # /qandaydir-notogri-havola.html) — bosh sahifaga (index.html) yo'naltiriladi.
 # DIQQAT: bu qoida faqat "fayl topilmagan" holatlarda ishlaydi — mavjud

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#07152B">
+<title>Sotuvchi kabineti — VIP RAQAMLAR</title>
+<link rel="icon" href="assets/logo-circle.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* SOTUVCHI KABINETI — asosiy saytdan alohida, soddalashtirilgan panel.
+   Ataylab yengil: hech qanday Firebase SDK yo'q, faqat bitta
+   funksiyaga (seller-api) so'rov. Shu sabab telefonda ham bir zumda
+   ochiladi. */
+:root{
+  --ground:#060E1C; --card:#0E1E38; --card-2:#13294C;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.16);
+  --ink:#F2F6FF; --muted:#9FB3D1; --faint:#6D86A8;
+  --blue:#3A6CF0; --blue-2:#2050DD; --blue-tint:rgba(58,108,240,.16); --blue-ink:#9CBCFF;
+  --green:#2FB87A; --amber:#E7B64A; --red:#E2564E;
+  --r:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;
+  padding-bottom:40px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:18px 16px 0}
+h1{font-size:19px;margin:0}
+h2{font-size:15px;margin:0 0 3px}
+.muted{color:var(--muted)}
+.sm{font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+label{display:block;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:0 0 6px}
+input,select,textarea{
+  width:100%;background:var(--card-2);border:1px solid var(--line);border-radius:11px;
+  padding:11px 13px;color:var(--ink);font-family:inherit;font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+.btn{
+  border:none;border-radius:11px;padding:11px 18px;cursor:pointer;
+  background:linear-gradient(180deg,var(--blue),var(--blue-2));color:#fff;
+  font-family:inherit;font-size:13.5px;font-weight:800;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;border:1px solid var(--line-2);color:var(--muted)}
+.btn.sm{padding:7px 12px;font-size:12px;border-radius:9px}
+.btn.danger{background:none;border:1px solid rgba(226,86,78,.5);color:#FF9A94}
+.top{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:rgba(6,14,28,.92);backdrop-filter:blur(14px);z-index:10}
+.top img{width:34px;height:34px;border-radius:9px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;max-width:860px;margin:0 auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tb{flex:none;padding:9px 15px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--muted);font-family:inherit;font-size:13px;font-weight:750;cursor:pointer;position:relative}
+.tb.on{background:var(--blue-tint);border-color:rgba(58,108,240,.5);color:#fff}
+.tb .dot{position:absolute;top:5px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.pane{display:none}
+.pane.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:7px 9px;font-weight:800}
+td{padding:9px;border-top:1px solid var(--line)}
+.num{font-family:'Space Grotesk',monospace;font-weight:700;letter-spacing:.01em}
+.pill{display:inline-block;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:800}
+.p-ok{background:rgba(47,184,122,.16);color:#7FE0B4}
+.p-band{background:rgba(231,182,74,.16);color:#F2CE7E}
+.p-off{background:rgba(255,255,255,.07);color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
+.kpi{background:var(--card-2);border-radius:13px;padding:13px}
+.kpi b{display:block;font-size:22px;font-weight:800;margin-top:3px}
+.msg{max-width:78%;padding:9px 13px;border-radius:14px;margin-bottom:8px;font-size:13.5px;line-height:1.45}
+.msg.me{margin-left:auto;background:linear-gradient(180deg,var(--blue),var(--blue-2));border-bottom-right-radius:5px}
+.msg.them{background:var(--card-2);border-bottom-left-radius:5px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:50;
+  background:var(--card-2);border:1px solid var(--line-2);border-radius:12px;padding:11px 17px;
+  font-size:13px;font-weight:700;box-shadow:0 18px 40px -14px rgba(0,0,0,.8);opacity:0;transition:opacity .25s}
+.toast.on{opacity:1}
+.toast.bad{border-color:rgba(226,86,78,.6);color:#FF9A94}
+.login{max-width:380px;margin:12vh auto 0;padding:0 16px}
+.login .card{padding:24px}
+.hide{display:none!important}
+.empty{color:var(--faint);font-size:13px;padding:14px 2px}
+/* Raqamlar ro'yxati — jadval emas, kartochka. Telefonda jadval chetga
+   chiqib ketardi (tugmalar ko'rinmasdi), kartochka esa har ikkala
+   ekranda ham to'liq sig'adi. */
+.nrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--card-2);margin-bottom:10px}
+.nrow .n-main{flex:1;min-width:150px}
+.nrow .n-num{font-family:'Space Grotesk',monospace;font-size:17px;font-weight:700;letter-spacing:.01em}
+.nrow .n-sub{font-size:11.5px;color:var(--muted);margin-top:2px;font-weight:650}
+.nrow .n-price{font-size:15px;font-weight:800;white-space:nowrap}
+.nrow .n-acts{display:flex;gap:7px;margin-left:auto}
+.nstat{display:flex;gap:14px;width:100%;padding-top:10px;margin-top:2px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--muted);font-weight:700}
+.nstat b{color:var(--ink);font-weight:800}
+</style>
+</head>
+<body>
+
+<!-- ======== KIRISH ======== -->
+<div class="login" id="loginBox">
+  <div style="text-align:center;margin-bottom:18px">
+    <img src="assets/logo-circle.png" alt="" width="54" height="54" style="border-radius:14px">
+    <h1 style="margin-top:12px">Sotuvchi kabineti</h1>
+    <p class="muted sm" style="margin:6px 0 0">Login va parolni administrator beradi</p>
+  </div>
+  <div class="card">
+    <div style="margin-bottom:12px"><label for="lgU">Login</label>
+      <input id="lgU" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+    <div style="margin-bottom:16px"><label for="lgP">Parol</label>
+      <input id="lgP" type="password" autocomplete="current-password"></div>
+    <button class="btn" id="lgBtn" style="width:100%">Kirish</button>
+    <div class="sm" id="lgErr" style="color:#FF9A94;margin-top:11px;display:none"></div>
+  </div>
+</div>
+
+<!-- ======== KABINET ======== -->
+<div id="app" class="hide">
+  <div class="top">
+    <img src="assets/logo-circle.png" alt="">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:800;font-size:14.5px" id="meName">—</div>
+      <div class="muted sm">Komissiya: <b id="mePct">0</b>%</div>
+    </div>
+    <button class="btn ghost sm" id="outBtn">Chiqish</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tb on" data-p="nums">Raqamlarim</button>
+    <button class="tb" data-p="add">Raqam qo'shish</button>
+    <button class="tb" data-p="money">Daromad</button>
+    <button class="tb" data-p="chat">Admin bilan<span class="dot hide" id="chatDot"></span></button>
+  </div>
+
+  <div class="wrap">
+    <!-- Raqamlarim -->
+    <div class="pane on" id="p-nums">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h2>Raqamlarim</h2>
+          <button class="btn ghost sm" id="numsReload">Yangilash</button>
+        </div>
+        <p class="muted sm" style="margin:0 0 12px">
+          <b>Ochilgan</b> — raqamingiz kartochkasi necha marta ochilgani.
+          Ko'p ochilib, buyurtma bo'lmasa — narx yuqori bo'lishi mumkin.
+        </p>
+        <div id="numsBox"><div class="empty">Yuklanmoqda…</div></div>
+      </div>
+    </div>
+
+    <!-- Qo'shish -->
+    <div class="pane" id="p-add">
+      <div class="card">
+        <h2>Yangi raqam</h2>
+        <p class="muted sm" style="margin:3px 0 16px">Narxni o'zingiz belgilaysiz. Raqam <b>darhol</b> saytda paydo bo'ladi.</p>
+        <div class="row" style="gap:12px">
+          <div style="flex:1;min-width:180px"><label for="adN">Raqam</label>
+            <input id="adN" inputmode="numeric" placeholder="901234567"></div>
+          <div style="flex:1;min-width:150px"><label for="adO">Operator</label>
+            <select id="adO">
+              <option value="">Tanlang</option>
+              <option>Beeline</option><option>Ucell</option><option>Humans</option>
+              <option>Uzmobile</option><option>UMS</option><option>Mobiuz</option><option>Perfectum</option>
+            </select></div>
+        </div>
+        <div class="row" style="gap:12px;margin-top:12px">
+          <div style="flex:1;min-width:180px"><label for="adP">Narx (so'm)</label>
+            <input id="adP" inputmode="numeric" placeholder="3 900 000"></div>
+          <div style="flex:1;min-width:150px;align-self:flex-end;padding-bottom:3px">
+            <label style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:9px;cursor:pointer;font-weight:700">
+              <input type="checkbox" id="adI" style="width:18px;height:18px;flex:none"> Bo'lib to'lash mumkin
+            </label></div>
+        </div>
+        <div style="margin-top:12px"><label for="adNote">Izoh (ixtiyoriy, faqat admin ko'radi)</label>
+          <input id="adNote" placeholder="Masalan: shoshilinch sotiladi"></div>
+        <button class="btn" id="adBtn" style="margin-top:16px">Qo'shish</button>
+      </div>
+    </div>
+
+    <!-- Daromad -->
+    <div class="pane" id="p-money">
+      <div class="card">
+        <h2>Daromad</h2>
+        <p class="muted sm" style="margin:3px 0 14px">Buyurtma <b>“Yakunlandi”</b> holatiga o'tganda komissiya hisoblanadi.</p>
+        <div class="kpis" id="moneyKpis"></div>
+      </div>
+      <div class="card"><div id="moneyBox"><div class="empty">Yuklanmoqda…</div></div></div>
+    </div>
+
+    <!-- Yozishma -->
+    <div class="pane" id="p-chat">
+      <div class="card">
+        <h2>Admin bilan yozishma</h2>
+        <div id="chatBox" style="margin:14px 0;max-height:52vh;overflow-y:auto"><div class="empty">Yuklanmoqda…</div></div>
+        <div class="row" style="gap:9px;flex-wrap:nowrap">
+          <input id="chatIn" placeholder="Xabar yozing…" style="flex:1">
+          <button class="btn" id="chatBtn">Yuborish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ Yordamchi funksiyalar ============ */
+const $ = (s) => document.querySelector(s);
+const API = '/.netlify/functions/seller-api';
+const KEY = 'vip_seller_token';
+let TOKEN = '';
+try { TOKEN = localStorage.getItem(KEY) || ''; } catch (e) {}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function pul(n){ return (Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' '); }
+function chiroyli(num){
+  const d = String(num||'').replace(/\D/g,'').replace(/^998/,'');
+  return d.length === 9 ? d.slice(0,2)+' '+d.slice(2,5)+' '+d.slice(5,7)+' '+d.slice(7) : String(num||'');
+}
+let toastT;
+function toast(msg, bad){
+  const el = $('#toast');
+  el.textContent = msg; el.classList.toggle('bad', !!bad); el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(()=> el.classList.remove('on'), 3000);
+}
+
+async function api(action, data){
+  const r = await fetch(API, {
+    method:'POST',
+    headers: Object.assign({'Content-Type':'application/json'}, TOKEN ? {Authorization:'Bearer '+TOKEN} : {}),
+    body: JSON.stringify(Object.assign({action}, data||{}))
+  });
+  let j = {};
+  try{ j = await r.json(); }catch(e){}
+  if(r.status === 401 || r.status === 403){
+    if(action !== 'login'){ chiqish(j.error || 'Kirish muddati tugadi'); throw new Error(j.error||''); }
+  }
+  if(!j.ok) throw new Error(j.error || 'Xatolik');
+  return j;
+}
+
+/* ============ Kirish / chiqish ============ */
+function chiqish(msg){
+  TOKEN = ''; try{ localStorage.removeItem(KEY); }catch(e){}
+  $('#app').classList.add('hide'); $('#loginBox').classList.remove('hide');
+  if(msg){ $('#lgErr').textContent = msg; $('#lgErr').style.display='block'; }
+}
+$('#outBtn').onclick = ()=> chiqish('');
+
+async function kir(){
+  const u = $('#lgU').value.trim(), p = $('#lgP').value;
+  if(!u || !p){ $('#lgErr').textContent='Login va parolni kiriting'; $('#lgErr').style.display='block'; return; }
+  $('#lgBtn').disabled = true; $('#lgBtn').textContent = 'Tekshirilmoqda…';
+  try{
+    const j = await api('login', {username:u, password:p});
+    TOKEN = j.token; try{ localStorage.setItem(KEY, TOKEN); }catch(e){}
+    $('#lgErr').style.display='none'; $('#lgP').value='';
+    ochKabinet(j.seller);
+  }catch(e){
+    $('#lgErr').textContent = e.message || 'Xatolik'; $('#lgErr').style.display='block';
+  }finally{
+    $('#lgBtn').disabled = false; $('#lgBtn').textContent = 'Kirish';
+  }
+}
+$('#lgBtn').onclick = kir;
+$('#lgP').addEventListener('keydown', e => { if(e.key === 'Enter') kir(); });
+
+function ochKabinet(s){
+  $('#loginBox').classList.add('hide'); $('#app').classList.remove('hide');
+  $('#meName').textContent = s.name || s.username;
+  $('#mePct').textContent = s.commissionPct || 0;
+  $('#chatDot').classList.toggle('hide', !(s.unread > 0));
+  yukNums();
+}
+
+/* ============ Bo'limlar ============ */
+document.querySelectorAll('.tb').forEach(b => b.onclick = ()=>{
+  document.querySelectorAll('.tb').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'p'+'-'+b.dataset.p));
+  if(b.dataset.p === 'money') yukMoney();
+  if(b.dataset.p === 'chat')  yukChat();
+  if(b.dataset.p === 'nums')  yukNums();
+});
+
+/* ---- Raqamlarim ---- */
+async function yukNums(){
+  const box = $('#numsBox');
+  try{
+    const j = await api('myNumbers');
+    if(!j.numbers.length){ box.innerHTML = '<div class="empty">Hali raqam qo’shmagansiz. “Raqam qo’shish” bo’limiga o’ting.</div>'; return; }
+    box.innerHTML = j.numbers.map(n => {
+      const cls = n.holat === 'Sotuvda' ? 'p-ok' : (n.holat === 'Band' ? 'p-band' : 'p-off');
+      const acts = (n.holat === 'Sotuvda')
+        ? '<div class="n-acts">' +
+            '<button class="btn ghost sm" data-ed="' + esc(n.id) + '">Narx</button>' +
+            '<button class="btn danger sm" data-rm="' + esc(n.id) + '">O\u2019chirish</button>' +
+          '</div>'
+        : '';
+      return '<div class="nrow">' +
+        '<div class="n-main">' +
+          '<div class="n-num">' + esc(chiroyli(n.number)) + '</div>' +
+          '<div class="n-sub">' + esc(n.operator) + (n.installment ? ' \u00B7 bo\u2019lib to\u2019lash' : '') + '</div>' +
+        '</div>' +
+        '<div class="n-price">' + pul(n.price) + '</div>' +
+        '<span class="pill ' + cls + '">' + esc(n.holat) + '</span>' +
+        acts +
+        '<div class="nstat"><span>Ochilgan: <b>' + (n.views || 0) + '</b></span>' +
+          '<span>Buyurtma: <b>' + (n.orders || 0) + '</b></span></div>' +
+      '</div>';
+    }).join('');
+
+    box.querySelectorAll('[data-ed]').forEach(b => b.onclick = async ()=>{
+      const v = prompt('Yangi narx (so’m):');
+      if(v == null) return;
+      const price = Number(String(v).replace(/\D/g,''));
+      if(!price){ toast("Narx noto'g'ri", true); return; }
+      try{ await api('updateNumber', {id:b.dataset.ed, price}); toast('Narx yangilandi'); yukNums(); }
+      catch(e){ toast(e.message, true); }
+    });
+    box.querySelectorAll('[data-rm]').forEach(b => b.onclick = async ()=>{
+      if(!confirm("Raqam o'chirilsinmi?")) return;
+      try{ await api('removeNumber', {id:b.dataset.rm}); toast("O'chirildi"); yukNums(); }
+      catch(e){ toast(e.message, true); }
+    });
+  }catch(e){ box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+}
+$('#numsReload').onclick = yukNums;
+
+/* ---- Qo'shish ---- */
+$('#adP').addEventListener('input', e => {
+  const d = e.target.value.replace(/\D/g,'');
+  e.target.value = d ? Number(d).toLocaleString('ru-RU').replace(/,/g,' ') : '';
+});
+$('#adBtn').onclick = async ()=>{
+  const number = $('#adN').value.replace(/\D/g,'');
+  const operator = $('#adO').value;
+  const price = Number($('#adP').value.replace(/\D/g,''));
+  if(!number || !operator || !price){ toast("Raqam, operator va narxni to'ldiring", true); return; }
+  $('#adBtn').disabled = true;
+  try{
+    await api('addNumber', {number, operator, price, installment: $('#adI').checked, note: $('#adNote').value});
+    toast('Raqam qo’shildi va saytda paydo bo’ldi');
+    $('#adN').value=''; $('#adP').value=''; $('#adNote').value=''; $('#adI').checked=false;
+    document.querySelector('.tb[data-p="nums"]').click();
+  }catch(e){ toast(e.message, true); }
+  finally{ $('#adBtn').disabled = false; }
+};
+
+/* ---- Daromad ---- */
+async function yukMoney(){
+  const box = $('#moneyBox'), k = $('#moneyKpis');
+  try{
+    const j = await api('earnings');
+    k.innerHTML =
+      '<div class="kpi"><span class="muted sm">Jami komissiya</span><b>' + pul(j.total) + '</b></div>' +
+      '<div class="kpi"><span class="muted sm">To’langan</span><b style="color:#7FE0B4">' + pul(j.paid) + '</b></div>' +
+      '<div class="kpi"><span class="muted sm">Kutilmoqda</span><b style="color:#F2CE7E">' + pul(j.unpaid) + '</b></div>';
+    if(!j.rows.length){ box.innerHTML = '<div class="empty">Hali yakunlangan sotuv yo’q.</div>'; return; }
+    box.innerHTML = j.rows.map(r =>
+      '<div class="nrow">' +
+        '<div class="n-main">' +
+          '<div class="n-num">' + esc(chiroyli(r.number)) + '</div>' +
+          '<div class="n-sub">' + esc(r.date) + ' \u00B7 sotuv ' + pul(r.price) + '</div>' +
+        '</div>' +
+        '<div class="n-price">' + pul(r.commission) +
+          '<div class="n-sub" style="text-align:right">' + r.pct + '%</div></div>' +
+        '<span class="pill ' + (r.paid ? 'p-ok' : 'p-band') + '">' + (r.paid ? "To'langan" : 'Kutilmoqda') + '</span>' +
+      '</div>'
+    ).join('');
+  }catch(e){ box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+}
+
+/* ---- Yozishma ---- */
+async function yukChat(){
+  const box = $('#chatBox');
+  try{
+    const j = await api('messages');
+    $('#chatDot').classList.add('hide');
+    box.innerHTML = j.rows.length
+      ? j.rows.map(m => '<div class="msg ' + (m.from === 'seller' ? 'me' : 'them') + '">' + esc(m.text) + '</div>').join('')
+      : '<div class="empty">Xabarlar yo’q. Savolingiz bo’lsa yozing.</div>';
+    box.scrollTop = box.scrollHeight;
+  }catch(e){ box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+}
+async function yubor(){
+  const t = $('#chatIn').value.trim();
+  if(!t) return;
+  $('#chatIn').value = '';
+  try{ await api('sendMessage', {text:t}); yukChat(); }
+  catch(e){ toast(e.message, true); }
+}
+$('#chatBtn').onclick = yubor;
+$('#chatIn').addEventListener('keydown', e => { if(e.key === 'Enter') yubor(); });
+
+/* ============ Boshlash ============ */
+(async function(){
+  if(!TOKEN) return;
+  try{ const j = await api('me'); ochKabinet(j.seller); }
+  catch(e){ chiqish(''); }
+})();
+</script>
+</body>
+</html>

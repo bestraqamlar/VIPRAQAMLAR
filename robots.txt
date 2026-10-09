@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /panel-boshqaruv.html
+Disallow: /sotuvchi.html
+Disallow: /sotuvchi
 Disallow: /.netlify/functions/
 
 Sitemap: https://vipraqamlar.uz/sitemap.xml

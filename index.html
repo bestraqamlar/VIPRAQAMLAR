@@ -35,6 +35,30 @@
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
 
+<!-- ================= YANDEX METRIKA (bepul analitika) =================
+     SOZLASH (bir martalik, 5 daqiqa):
+       1. metrika.yandex.ru -> "Добавить счётчик" -> sayt: vipraqamlar.uz
+       2. "Вебвизор" (ekran yozuvi) va "Карта скроллинга" ni YOQING —
+          mijoz saytda nima qilayotganini VIDEO kabi ko'rsatadi.
+       3. Hosil bo'lgan RAQAMNI (masalan 98765432) pastdagi YM_ID ga yozing.
+     YM_ID = 0 bo'lsa Metrika UMUMAN yuklanmaydi (sayt sekinlashmaydi).
+
+     Metrika nima beradi: kuniga nechta odam kirdi, qayerdan keldi
+     (Google / Instagram / Telegram), telefondan yoki kompyuterdan,
+     qaysi bo'limda qancha turdi, qaysi joyda chiqib ketdi.
+     Raqamlar bo'yicha batafsil statistika esa O'ZIMIZNING hisoblagichda
+     (admin panel -> Statistika) — qarang: netlify/functions/api-track.js -->
+<script>
+window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
+(function(){
+  if(!window.YM_ID) return;
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+  m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+  (window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+  ym(window.YM_ID,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+})();
+</script>
+
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Store","name":"VIP RAQAMLAR","url":"https://vipraqamlar.uz/","image":"https://vipraqamlar.uz/assets/og-image.jpg","telephone":"+998878880101","areaServed":"UZ","description":"O'zbekiston bo'ylab VIP va chiroyli telefon raqamlar savdosi.","address":{"@type":"PostalAddress","addressCountry":"UZ","addressLocality":"Toshkent"}}
 </script>
@@ -129,8 +153,8 @@ html[data-theme="dark"]{
   --vip-num:var(--ink);
   --vip-chip:rgba(230,200,119,.15);
   --vip-chip-ink:#F0E1B8;
-  --navbg:rgba(18,38,70,.6);
-  --navline:rgba(255,255,255,.14);
+  --navbg:rgba(18,38,70,.55);
+  --navline:rgba(255,255,255,.17);
   --navink:#8FA3C2;
   --navink-on:#FFFFFF;
   --navpill:rgba(255,255,255,.1);
@@ -220,16 +244,33 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.012em}
   bottom:calc(10px + var(--bot));
   width:calc(100% - 28px);max-width:calc(var(--app-w) - 28px);
   background:
+    /* 1. shisha ustidagi yorug'lik — tepadan pastga nozik nur */
+    linear-gradient(180deg, rgba(255,255,255,.085) 0%, rgba(255,255,255,.015) 38%, rgba(255,255,255,0) 60%),
+    /* 2. chetlardagi "qalinlashgan shisha" — linza effekti */
+    radial-gradient(120% 140% at 0% 50%, rgba(255,255,255,.055), transparent 32%),
+    radial-gradient(120% 140% at 100% 50%, rgba(255,255,255,.055), transparent 32%),
     radial-gradient(90px 46px at 12% 0%, var(--glow-a), transparent 72%),
     radial-gradient(110px 50px at 92% 100%, var(--glow-b), transparent 72%),
     var(--navbg);
-  backdrop-filter:saturate(170%) blur(26px);-webkit-backdrop-filter:saturate(170%) blur(26px);
+  /* Instagram uslubidagi "suv shisha": kuchli blur + to'yintirish +
+     ozgina yorqinlik. Bu FAQAT bitta qatlamda — shu sabab tez ishlaydi. */
+  backdrop-filter:saturate(195%) brightness(1.06) blur(30px);
+  -webkit-backdrop-filter:saturate(195%) brightness(1.06) blur(30px);
   border:1px solid var(--navline);border-radius:999px;
+  /* kompozitorga alohida qatlam sifatida beriladi — scroll paytida
+     qayta chizilmaydi, FPS tushmaydi */
+  transform:translateX(-50%) translateZ(0);
   padding:7px 9px;
   display:flex;justify-content:space-between;align-items:center;
   box-shadow:0 10px 30px -10px rgba(9,24,44,.3),0 2px 8px -4px rgba(9,24,44,.2),inset 0 1px 0 var(--nc-edge);
 }
 html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0 1px 0 var(--nc-edge)}
+/* blur qo'llab-quvvatlanmasa — menyu shaffof bo'lib qolmasin */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  #nav{background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 58%),
+    rgba(14,30,56,.96)}
+}
 #nav a{
   position:relative;flex:1;display:flex;align-items:center;justify-content:center;
   height:46px;border-radius:999px;color:var(--navink);
@@ -918,6 +959,8 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 }
 .heroscroll::-webkit-scrollbar{display:none}
 .heroscroll.drag{cursor:grabbing}
+/* qo'l tekkanda kartochka sal kichrayadi — "tetik" sezgi beradi */
+.heroscroll.drag .herocard{transform:scale(.976)}
 .heroscroll > *{flex:none}
 /* ================= PREMIUM KARTOCHKA (bosh sahifa karuseli) =================
    Bu kartochka saytdagi yagona "hashamat yuzasi" — qolgan hamma joy
@@ -949,6 +992,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
     inset 0 1px 0 rgba(255,255,255,.10);
   border:none;
   isolation:isolate;
+  transition:transform .3s cubic-bezier(.22,1,.3,1);
 }
 /* Oltin soch chizig'i — tepada yorqin, pastga qarab so'nadi */
 .herocard::before{
@@ -1461,6 +1505,61 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 /* 4 ta ustun qo'yilmaydi: sahifa kengligi 1240px bilan cheklangani uchun
    4 ta kartochka 280px gacha siqilib, raqam ham kichrayib ketardi.
    3 ta ustunda kartochka ~380px bo'ladi — raqam to'liq va yirik. */
+
+/* ================= PWA — "Ilovani o'rnating" taklifi =================
+   Pastdan, menyu USTIDA suzib chiqadi. Chaqirilishi ehtiyotkor: mijoz
+   saytda haqiqatan qiziqqanidan keyin (bir necha raqam ko'rgach yoki
+   ikkinchi tashrifda) bir marta ko'rsatiladi; yopilsa 21 kun tinch
+   turadi, o'rnatilsa boshqa chiqmaydi. */
+.pwa{
+  position:fixed;z-index:70;left:50%;
+  bottom:calc(76px + var(--bot));
+  width:calc(100% - 28px);max-width:calc(var(--app-w) - 28px);
+  transform:translateX(-50%) translateY(140%);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 52%),
+    radial-gradient(160px 90px at 0% 0%, var(--glow-a), transparent 70%),
+    var(--card);
+  border:1px solid var(--nc-line);border-radius:20px;
+  box-shadow:0 22px 48px -18px rgba(0,0,0,.72), inset 0 1px 0 var(--nc-edge);
+  padding:14px 14px 13px;
+  display:none;gap:12px;align-items:flex-start;
+  opacity:0;transition:transform .5s cubic-bezier(.2,.9,.26,1),opacity .34s ease;
+}
+.pwa.show{display:flex;transform:translateX(-50%) translateY(0);opacity:1}
+.pwa-ic{
+  width:44px;height:44px;border-radius:13px;flex:none;overflow:hidden;
+  background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line-3);
+  display:flex;align-items:center;justify-content:center;
+}
+.pwa-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.pwa-b{flex:1;min-width:0}
+.pwa-t{font-size:14px;font-weight:800;color:var(--ink);line-height:1.25}
+.pwa-s{margin-top:3px;font-size:11.5px;font-weight:650;color:var(--text-3);line-height:1.4}
+.pwa-row{display:flex;gap:8px;margin-top:11px}
+.pwa-yes{
+  flex:1;height:38px;border:none;border-radius:11px;cursor:pointer;
+  background:linear-gradient(180deg,#3A6CF0,#2050DD);color:#fff;
+  font-family:inherit;font-size:13px;font-weight:800;
+  transition:transform .16s cubic-bezier(.2,.8,.3,1),filter .16s;
+}
+.pwa-yes:active{transform:scale(.97)}
+.pwa-no{
+  height:38px;padding:0 14px;border-radius:11px;cursor:pointer;
+  background:transparent;border:1px solid var(--line-2);color:var(--text-3);
+  font-family:inherit;font-size:12.5px;font-weight:750;
+}
+.pwa-no:active{transform:scale(.97)}
+/* iOS yo'riqnomasi — Safari'da avtomatik o'rnatish yo'q, qo'lda ko'rsatamiz */
+.pwa-ios{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.pwa-step{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:var(--text-2)}
+.pwa-step b{
+  width:20px;height:20px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  background:var(--blue-tint);color:var(--blue-text);font-size:10.5px;font-weight:800;
+}
+.pwa-step svg{width:15px;height:15px;flex:none;color:var(--blue-text)}
+@media (prefers-reduced-motion:reduce){ .pwa{transition:none} }
+
 </style>
 </head>
 <body>
@@ -1799,6 +1898,25 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     <div class="hd"><h2 id="genTitle"></h2><button class="iconbtn" data-close aria-label="Yopish"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
     <div class="bodyscroll" id="genBody"></div>
     <div class="ft" id="genFoot" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ===== PWA: "Ilovani o'rnating" taklifi (pastda, menyu ustida) ===== -->
+<div class="pwa" id="pwaBox" role="dialog" aria-live="polite" aria-label="Ilovani o'rnatish">
+  <div class="pwa-ic"><img src="assets/logo-circle.png" alt="" width="44" height="44" loading="lazy"></div>
+  <div class="pwa-b">
+    <div class="pwa-t" data-t="Ilovani o'rnating">Ilovani o'rnating</div>
+    <div class="pwa-s" id="pwaSub" data-t="Bosh ekrandan bir bosishda oching — tezroq ishlaydi va yangi raqamlardan xabardor bo'lasiz.">Bosh ekrandan bir bosishda oching — tezroq ishlaydi va yangi raqamlardan xabardor bo'lasiz.</div>
+    <div class="pwa-row" id="pwaRow">
+      <button class="pwa-yes" id="pwaYes" type="button" data-t="O'rnatish">O'rnatish</button>
+      <button class="pwa-no" id="pwaNo" type="button" data-t="Keyinroq">Keyinroq</button>
+    </div>
+    <div class="pwa-ios" id="pwaIos" style="display:none">
+      <div class="pwa-step"><b>1</b><span data-t="Pastdagi">Pastdagi</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M5 14v5a1 1 0 001 1h12a1 1 0 001-1v-5"/></svg>
+        <span data-t="tugmasini bosing">tugmasini bosing</span></div>
+      <div class="pwa-step"><b>2</b><span data-t="«Bosh ekranga qo'shish» ni tanlang">«Bosh ekranga qo'shish» ni tanlang</span></div>
+    </div>
   </div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -2434,6 +2552,79 @@ function updateFavBadge(){
     if(FAVORITES.length){ b.textContent = txt; b.style.display = ''; } else b.style.display = 'none';
   });
 }
+
+/* ================= ANALITIKA =================
+   Ikki qatlam:
+   1) Yandex Metrika — umumiy tashriflar, qaysi sahifa, qayerdan kelgan.
+      BEPUL va O'zbekistonda eng ishonchli ishlaydi (Google Analytics'dan
+      farqli, bu yerda tezroq yuklanadi).
+   2) Ichki hisoblagich — qaysi RAQAM ko'p ko'rilgan/bosilgan va qaysi
+      qidiruv natija bermagan. Bu ma'lumot admin panelda ko'rinadi va
+      "qaysi raqamni oldinga chiqarish kerak", "qanaqa raqam yetishmayapti"
+      degan savollarga javob beradi.
+
+   MUHIM: hech qanday shaxsiy ma'lumot yuborilmaydi. Hodisalar brauzerda
+   yig'iladi va 30 soniyada bir marta (yoki sahifa yopilganda) BITTA
+   so'rovda jo'natiladi — shu sabab sayt sekinlashmaydi. */
+const TRACK_URL = '/.netlify/functions/api-track';
+let TRACK_Q = [];
+let trackTimer = null;
+
+function trackFlush(useBeacon){
+  if(!TRACK_Q.length) return;
+  const payload = JSON.stringify({ events: TRACK_Q.slice(0, 60) });
+  TRACK_Q = [];
+  try{
+    /* sahifa yopilayotganda oddiy fetch bekor qilinadi — sendBeacon esa
+       brauzer tomonidan oxirigacha yuboriladi */
+    if(useBeacon && navigator.sendBeacon){
+      navigator.sendBeacon(TRACK_URL, new Blob([payload], { type:'application/json' }));
+      return;
+    }
+    fetch(TRACK_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:payload, keepalive:true }).catch(()=>{});
+  }catch(e){}
+}
+function trackPush(ev){
+  if(location.protocol === 'file:') return;      /* mahalliy sinovda yubormaymiz */
+  TRACK_Q.push(ev);
+  if(TRACK_Q.length >= 40){ trackFlush(false); return; }
+  clearTimeout(trackTimer);
+  trackTimer = setTimeout(()=> trackFlush(false), 30000);
+}
+
+/* Yandex Metrika hodisasi (maqsadlar) + ichki hisoblagich */
+function track(name, params){
+  try{ if(window.ym && window.YM_ID) window.ym(window.YM_ID, 'reachGoal', name, params || {}); }catch(e){}
+}
+/* Raqam ko'rildi (ro'yxatda ko'rindi emas — OCHILDI) */
+function trackNumView(item){
+  if(!item || !item.id) return;
+  trackPush({ t:'view', id:item.id, n:item.number });
+  track('raqam_ochildi');
+}
+/* "Batafsil" bosildi */
+function trackNumClick(item){
+  if(!item || !item.id) return;
+  trackPush({ t:'click', id:item.id, n:item.number });
+}
+/* Buyurtma berildi */
+function trackNumOrder(item){
+  if(!item || !item.id) return;
+  trackPush({ t:'order', id:item.id, n:item.number });
+  track('buyurtma_berildi');
+  trackFlush(false);
+}
+/* Qidiruv natija bermadi — ENG QIMMATLI ma'lumot: mijoz nimani
+   qidiryapti-yu, bizda yo'q */
+function trackMiss(q){
+  const s = String(q||'').replace(/[^0-9*]/g,'');
+  if(s.length < 2) return;
+  trackPush({ t:'miss', q:s });
+  track('qidiruv_natijasiz');
+}
+window.addEventListener('pagehide', ()=> trackFlush(true));
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'hidden') trackFlush(true); });
+
 </script>
 <script>
 'use strict';
@@ -2443,7 +2634,10 @@ function updateFavBadge(){
    ================================================================== */
 async function raqamlarniYukla(){
   const snap = await withClientTimeout(db.collection('numbers').get(), kutishVaqti(10000));
-  NUMBERS = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  /* `hidden: true` — admin tomonidan vaqtincha yashirilgan raqam
+     (masalan sotuvchi qo'ygan, lekin shubhali bo'lgan raqam). Bazadan
+     o'chirilmaydi, shunchaki saytda ko'rinmaydi. */
+  NUMBERS = snap.docs.map(d => ({ id:d.id, ...d.data() })).filter(n => !n.hidden);
   numbersLoaded = true;
   try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){}
   reshuffle(); pickHome(); renderAll();
@@ -2543,6 +2737,7 @@ function yangiRaqamKuzatuvi(){
       snap.docChanges().forEach(ch => {
         if(ch.type === 'added'){
           const item = { id:ch.doc.id, ...ch.doc.data() };
+          if(item.hidden) return;
           if(!NUMBERS.some(n => n.id === item.id)){ NUMBERS.unshift(item); renderAll(); }
           /* Pastdagi kichik "toast" emas — tepadan tushadigan to'liq
              bildirishnoma: raqam, narxi va operatori bilan. */
@@ -2843,8 +3038,37 @@ function dayRowHtml(){
   </section>`;
 }
 
-/* ---------- Karusel: bitta-bittadan o'tadi, qo'l bilan ham suriladi ---------- */
-let heroTimer = null, heroPaused = 0;
+/* ---------- Karusel: bitta-bittadan o'tadi, qo'l bilan ham suriladi ----------
+   Brauzerning o'z `behavior:'smooth'` harakati bir xil tezlikda boradi va
+   "qotib qolgan" bo'lib seziladi. Shuning uchun o'zimiz chizamiz: barmoq
+   tezligiga qarab davomiylik hisoblanadi (tez surtsa — tez, sekin surtsa —
+   yumshoq), oxiri esa asta so'nadi. Chegaradan o'tganda "rezina" qarshilik
+   beradi — shundan "tetik" sezgi chiqadi. */
+let heroTimer = null, heroPaused = 0, heroRAF = 0;
+
+function heroStop(){ if(heroRAF){ cancelAnimationFrame(heroRAF); heroRAF = 0; } }
+
+/* easeOutQuint — boshida tez, oxirida juda yumshoq to'xtaydi */
+const heroEase = t => 1 - Math.pow(1 - t, 5);
+
+function heroGlide(el, to, vel){
+  heroStop();
+  const from = el.scrollLeft, dist = to - from;
+  if(Math.abs(dist) < 0.6){ el.scrollLeft = to; syncDots(); return; }
+  /* vel — px/ms. Tez flick => qisqa davomiylik (tetik), sekin => uzunroq */
+  const sp = Math.min(Math.abs(vel || 0), 2.6);
+  let dur = 430 - sp * 95 + Math.abs(dist) * 0.18;
+  dur = Math.max(230, Math.min(580, dur));
+  const t0 = performance.now();
+  const tick = (now)=>{
+    const t = Math.min(1, (now - t0) / dur);
+    el.scrollLeft = from + dist * heroEase(t);
+    if(t < 1){ heroRAF = requestAnimationFrame(tick); }
+    else { heroRAF = 0; el.scrollLeft = to; syncDots(); }
+  };
+  heroRAF = requestAnimationFrame(tick);
+}
+
 function heroStep(dir){
   const el = $('#homeHero'); if(!el) return;
   const card = el.querySelector('.herocard'); if(!card) return;
@@ -2853,7 +3077,7 @@ function heroStep(dir){
   let next = Math.round(el.scrollLeft / w) + (dir || 1);
   if(next * w >= half){ el.scrollLeft = el.scrollLeft - half; next = Math.round(el.scrollLeft / w) + 1; }
   if(next < 0) next = 0;
-  el.scrollTo({ left: next * w, behavior:'smooth' });
+  heroGlide(el, next * w, 0);
 }
 function startHeroLoop(){
   const el = $('#homeHero'); if(!el || el.dataset.loop) return;
@@ -2861,9 +3085,22 @@ function startHeroLoop(){
 
   /* Qo'l bilan surish — bir harakatda FAQAT bitta kartochka o'tadi */
   let down = false, sx = 0, sl = 0, startIdx = 0, dx = 0;
+  let lastX = 0, lastT = 0, vel = 0;   /* barmoq tezligi (px/ms) */
   const cardW = ()=>{ const c = el.querySelector('.herocard'); return c ? c.offsetWidth + 14 : 1; };
+
+  /* Rezina qarshilik: bitta kartochka masofasidan keyin barmoq ortidan
+     sekinroq boradi — chegara "devor" emas, "cho'ziladigan" bo'lib tuyuladi */
+  const rubber = (d, lim)=>{
+    const a = Math.abs(d), soft = lim * 0.82;
+    if(a <= soft) return d;
+    const over = a - soft;
+    return Math.sign(d) * (soft + (over * lim) / (over + lim) * 0.38);
+  };
+
   el.addEventListener('pointerdown', (e)=>{
+    heroStop();                               /* harakat ketayotgan bo'lsa — to'xtat */
     down = true; dx = 0; sx = e.clientX; sl = el.scrollLeft;
+    lastX = e.clientX; lastT = performance.now(); vel = 0;
     startIdx = Math.round(sl / cardW());
     heroPaused = Date.now() + 6000;
     el.classList.add('drag'); try{ el.setPointerCapture(e.pointerId); }catch(err){}
@@ -2871,22 +3108,30 @@ function startHeroLoop(){
   el.addEventListener('pointermove', (e)=>{
     if(!down) return;
     dx = e.clientX - sx;
-    /* bitta kartochkadan nariga siljimaydi */
-    const lim = cardW();
-    const clamped = Math.max(-lim, Math.min(lim, dx));
-    el.scrollLeft = sl - clamped;
-  });
+    const now = performance.now(), dt = now - lastT;
+    if(dt > 0){
+      const v = (e.clientX - lastX) / dt;
+      vel = vel * 0.55 + v * 0.45;            /* silliqlangan tezlik */
+      window.__heroVel = vel;
+      lastX = e.clientX; lastT = now;
+    }
+    el.scrollLeft = sl - rubber(dx, cardW());
+  }, { passive:true });
+
   const up = ()=>{
     if(!down) return;
     down = false; el.classList.remove('drag');
     heroPaused = Date.now() + 5000;
+    /* barmoq uzilishidan oldin to'xtab qolgan bo'lsa — tezlikni nolga tushir */
+    if(performance.now() - lastT > 140) vel = 0;
     const w = cardW(), half = el.scrollWidth / 2;
+    const FLICK = 0.25;                        /* px/ms — shundan tez bo'lsa "silkitish" */
     let target = startIdx;
-    if(dx <= -40) target = startIdx + 1;
-    else if(dx >= 40) target = startIdx - 1;
+    if(vel <= -FLICK || dx <= -w * 0.20) target = startIdx + 1;
+    else if(vel >= FLICK || dx >= w * 0.20)  target = startIdx - 1;
     if(target < 0){ el.scrollLeft += half; target = Math.round(el.scrollLeft / w) - 1; }
     if(target * w >= half){ el.scrollLeft -= half; target = Math.round(el.scrollLeft / w) + 1; }
-    el.scrollTo({ left: Math.max(0, target) * w, behavior:'smooth' });
+    heroGlide(el, Math.max(0, target) * w, vel);
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
@@ -3159,7 +3404,11 @@ async function liveSearch(){
   renderCatalog();
   const total = catalogItems().length;
   haptic(total ? 'ok' : 'warn');
-  if(!total) toast(LANG==='ru'?'Ничего не найдено':'Hech narsa topilmadi','info');
+  if(!total){
+    toast(LANG==='ru'?'Ничего не найдено':'Hech narsa topilmadi','info');
+    /* analitika: mijoz nimani qidirdi-yu, bizda yo'q */
+    try{ trackMiss(typedPattern()); }catch(e){}
+  }
 }
 </script>
 <script>
@@ -3179,6 +3428,9 @@ const findItem = (id) =>
 function openDetail(id){
   const item = findItem(id); if(!item) return;
   CURRENT = item;
+  /* analitika: qaysi raqam qancha ochildi */
+  try{ trackNumClick(item); trackNumView(item); }catch(e){}
+  try{ if(window.PWA) PWA.seen(); }catch(e){}
   const m = opMeta(item.operator), fav = isFav(item.id), disc = discountPct(item);
   const fin = installmentFinancingFor(item);
 
@@ -3289,6 +3541,7 @@ const STEP_TITLES = ['Buyurtma xulosasi',"Ma'lumotlaringiz",'Tasdiqlash','SMS ta
 
 function openOrder(id){
   const item = findItem(id); if(!item || item.reserved) return;
+  try{ trackNumOrder(item); }catch(e){}
   Object.assign(ORD, { item, step:1, paymentType: (item.installment && installmentAllowed(item)) ? 'installment' : 'cash',
     months:6, monthly:0, down:0, location:null, orderId:null });
   try{
@@ -4589,21 +4842,157 @@ function initHints(){
   go2();
 })();
 
+/* ================= PWA: "Ilovani o'rnating" =================
+   Qoida: HECH QACHON zo'rlamaymiz. Taklif faqat mijoz saytga haqiqatan
+   qiziqqanidan keyin chiqadi (kamida 3 ta raqam ko'rgan YOKI ikkinchi
+   marta kirgan va 25 soniya qolgan bo'lsa). "Keyinroq" bosilsa 21 kun
+   ko'rinmaydi, o'rnatilsa butunlay o'chadi.
+   Telegram mini-ilovada va allaqachon o'rnatilgan holatda chiqmaydi. */
+const PWA = (function(){
+  const K_OFF='vip_pwa_off', K_SNOOZE='vip_pwa_snooze', K_VISITS='vip_pwa_visits', K_SEEN='vip_pwa_views';
+  let deferred = null, shown = false;
+
+  const inTelegram = ()=>{ try{ return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData); }catch(e){ return false; } };
+  const installed = ()=>{
+    try{
+      if(window.matchMedia('(display-mode: standalone)').matches) return true;
+      if(window.navigator.standalone) return true;
+    }catch(e){}
+    return false;
+  };
+  const isIos = ()=>/iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
+  const get = (k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:v; }catch(e){ return d; } };
+  const set = (k,v)=>{ try{ localStorage.setItem(k,String(v)); }catch(e){} };
+
+  function blocked(){
+    if(installed() || inTelegram()) return true;
+    if(get(K_OFF)) return true;
+    const sn = +get(K_SNOOZE,0);
+    if(sn && Date.now() < sn) return true;
+    return false;
+  }
+
+  /* qiziqish darajasi: ko'rilgan raqamlar + tashriflar soni */
+  function earned(){
+    const views = +get(K_SEEN,0), visits = +get(K_VISITS,0);
+    return views >= 3 || visits >= 2;
+  }
+
+  function hide(){
+    const el = document.getElementById('pwaBox'); if(!el) return;
+    el.classList.remove('show');
+    setTimeout(()=>{ el.style.display='none'; }, 520);
+  }
+
+  function show(){
+    if(shown || blocked()) return;
+    const el = document.getElementById('pwaBox'); if(!el) return;
+    /* Android/Chrome: brauzer ruxsat bergan bo'lsa haqiqiy o'rnatish.
+       iOS Safari: qo'lda yo'riqnoma. Boshqa holatda umuman chiqarmaymiz. */
+    if(!deferred && !isIos()) return;
+    shown = true;
+    document.getElementById('pwaRow').style.display = deferred ? 'flex' : 'none';
+    document.getElementById('pwaIos').style.display = deferred ? 'none' : 'flex';
+    if(!deferred){
+      /* iOS'da "O'rnatish" tugmasi yo'q — faqat yopish kerak */
+      const row = document.getElementById('pwaRow');
+      row.style.display='flex';
+      row.innerHTML = '<button class="pwa-no" id="pwaNo" type="button" style="flex:1" data-t="Tushunarli">Tushunarli</button>';
+      bindNo();
+    }
+    el.style.display='flex';
+    requestAnimationFrame(()=> requestAnimationFrame(()=> el.classList.add('show')));
+    try{ if(typeof track==='function') track('pwa_taklif_korsatildi'); }catch(e){}
+  }
+
+  function bindNo(){
+    const no = document.getElementById('pwaNo'); if(!no) return;
+    no.onclick = ()=>{
+      set(K_SNOOZE, Date.now() + 21*24*3600*1000);
+      hide();
+      try{ if(typeof haptic==='function') haptic('light'); }catch(e){}
+      try{ if(typeof track==='function') track('pwa_keyinroq'); }catch(e){}
+    };
+  }
+
+  function init(){
+    /* tashriflar sonini oshirish (bir sessiyada bir marta) */
+    if(!sessionStorage.getItem('vip_pwa_v')){
+      try{ sessionStorage.setItem('vip_pwa_v','1'); }catch(e){}
+      set(K_VISITS, (+get(K_VISITS,0)) + 1);
+    }
+    bindNo();
+    const yes = document.getElementById('pwaYes');
+    if(yes) yes.onclick = async ()=>{
+      try{ if(typeof haptic==='function') haptic('medium'); }catch(e){}
+      if(!deferred){ hide(); return; }
+      hide();
+      try{
+        deferred.prompt();
+        const res = await deferred.userChoice;
+        if(res && res.outcome === 'accepted'){ set(K_OFF,'1'); }
+        else { set(K_SNOOZE, Date.now() + 21*24*3600*1000); }
+        try{ if(typeof track==='function') track('pwa_tanlov_' + ((res&&res.outcome)||'?')); }catch(e){}
+      }catch(e){}
+      deferred = null;
+    };
+
+    window.addEventListener('beforeinstallprompt', (e)=>{
+      e.preventDefault(); deferred = e;
+      if(earned()) setTimeout(show, 1200);
+    });
+    window.addEventListener('appinstalled', ()=>{ set(K_OFF,'1'); hide(); });
+
+    /* iOS yoki kech kelgan qiziqish uchun — 25 soniyadan keyin bir tekshiruv */
+    setTimeout(()=>{ if(earned()) show(); }, 25000);
+  }
+
+  return {
+    init,
+    /* har bir raqam ochilganda chaqiriladi — qiziqishni o'lchaydi */
+    seen(){
+      const n = (+get(K_SEEN,0)) + 1; set(K_SEEN, n);
+      if(n === 3 && deferred) setTimeout(show, 900);
+    }
+  };
+})();
+
 /* Service worker — internet umuman yo'q bo'lsa ham sayt ochiladi */
 if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', ()=> navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
 
 /* ---------- Ishga tushirish ---------- */
+/* ===== /raqam/998901234567 manzili bilan kelgan mijoz =====
+   Bu sahifani netlify/functions/seo-number.js tayyorlaydi: u <head>
+   ichiga window.__SEO_NUMBER ni yozib qo'yadi. Bazа yuklangach o'sha
+   raqam kartochkasi O'ZI ochiladi, manzil esa chiroyli ko'rinishda
+   qoladi (Google ham, mijoz ham shu havolani ulashadi). */
+function seoRaqamniOch(){
+  const want = String(window.__SEO_NUMBER || '').replace(/\D/g,'');
+  if(!want) return;
+  window.__SEO_NUMBER = '';
+  let n = 0;
+  const urin = ()=>{
+    const list = (typeof NUMBERS !== 'undefined' && NUMBERS) ? NUMBERS : [];
+    const hit = list.find(x => String(x.number||'').replace(/\D/g,'') === want);
+    if(hit){ try{ openDetail(hit.id); }catch(e){} return; }
+    if(++n < 25) setTimeout(urin, 240);
+  };
+  urin();
+}
+
 (function boot(){
   applyLang();
   loadFavorites();
+  PWA.init();
   netBarRender();
   /* Kompyuterda sayt birinchi marta Katalog bo'limi bilan ochiladi */
   if(!location.hash && window.matchMedia('(min-width:900px)').matches){
     location.replace('#/katalog');
   }
   renderRoute();
+  seoRaqamniOch();
 
   if(!keshdanOqi()){
     $('#homeFeatured').innerHTML = skeletons(3);

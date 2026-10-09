@@ -422,6 +422,39 @@ service cloud.firestore {
             || request.resource.data.uid is string);
     }
 
+    // ---------------- SOTUVCHILAR (dilerlar) ----------------
+    // `sellers` — parol xeshi shu yerda saqlanadi, shu sabab brauzerdan
+    // O'QISH HAM, YOZISH HAM butunlay yopiq. Barcha ish faqat
+    // netlify/functions/seller-api.js va admin-sellers.js orqali
+    // (Admin SDK bu qoidalardan o'tmaydi).
+    match /sellers/{id} {
+      allow read, write: if false;
+    }
+    // Yozishma — xuddi shunday, faqat server orqali.
+    match /seller_messages/{id} {
+      allow read, write: if false;
+    }
+
+    // ---------------- STATISTIKA ----------------
+    // Yozuv FAQAT server tomonidan (netlify/functions/api-track.js,
+    // Firebase Admin SDK) amalga oshiriladi — brauzerga yozish huquqi
+    // berilsa, har kim istalgan raqamning ko'rishlar sonini shishirib
+    // yuborishi va butun statistikani yaroqsiz qilishi mumkin edi.
+    // O'qish esa faqat adminlarga — bu tijorat ma'lumoti (qaysi raqam
+    // qancha qiziqish uyg'otayotgani raqobatchilarga kerak emas).
+    match /stats_numbers/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /stats_searches/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /stats_daily/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // MUHIM: quyidagi kolleksiyalar faqat Netlify funksiyalari (Telegram
     // botlar, admin AI yordamchisi, admin-manage-admins.js) orqali,
     // Firebase Admin SDK bilan ishlatiladi — brauzerdan (Firestore Client

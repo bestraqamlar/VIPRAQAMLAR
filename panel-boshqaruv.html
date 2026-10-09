@@ -3897,6 +3897,45 @@ body{
 .dash-trend-bar.empty{background:var(--line);box-shadow:none;}
 .dash-trend-num{font-size:11px;font-weight:800;color:var(--text);}
 .dash-trend-label{font-size:10.5px;color:var(--muted);font-weight:600;}
+
+/* ===== "Sotuvchilar" va "Statistika" bo'limlari uchun umumiy uslublar.
+   Bu ikki bo'lim keyinroq qo'shilgani uchun ular panelning eski
+   sinflariga tayanmaydi — o'z, mustaqil uslublariga ega. ===== */
+#paneSellers .card, #paneStats .card{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px;
+}
+#paneSellers .lbl, #paneStats .lbl{
+  display:block; font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); margin:0 0 6px;
+}
+#paneSellers .inp, #paneStats .inp{
+  width:100%; background:var(--panel-2); border:1px solid var(--line); border-radius:9px;
+  padding:10px 12px; color:var(--text); font-family:inherit; font-size:13.5px; outline:none;
+}
+#paneSellers .inp:focus, #paneStats .inp:focus{ border-color:var(--amber); }
+#paneSellers .btn, #paneStats .btn{
+  border:none; border-radius:9px; padding:10px 16px; cursor:pointer; background:var(--amber);
+  color:#fff; font-family:inherit; font-size:13px; font-weight:800; transition:filter .15s, transform .12s;
+}
+#paneSellers .btn:hover, #paneStats .btn:hover{ filter:brightness(1.12); }
+#paneSellers .btn:active, #paneStats .btn:active{ transform:scale(.97); }
+#paneSellers .btn-ghost, #paneStats .btn-ghost{
+  background:transparent; border:1px solid var(--line); color:var(--muted);
+}
+#paneSellers .btn-sm{ padding:6px 11px; font-size:12px; border-radius:7px; }
+#paneSellers .btn-dan{ background:transparent; border:1px solid rgba(255,92,92,.45); color:#FF8D8D; }
+#paneSellers table, #paneStats table{ width:100%; border-collapse:collapse; font-size:13px; }
+#paneSellers td{ padding:10px 9px; border-top:1px solid var(--line); vertical-align:middle; }
+#paneSellers th{ text-align:left; padding:7px 9px; font-size:11px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--muted); font-weight:800; }
+#paneSellers .sv-pill{ display:inline-block; padding:3px 9px; border-radius:7px; font-size:11px; font-weight:800; }
+#paneSellers .sv-on{ background:rgba(51,226,140,.15); color:#7CEFB8; }
+#paneSellers .sv-off{ background:rgba(255,92,92,.15); color:#FF8D8D; }
+#paneSellers .sv-msg{ max-width:78%; padding:9px 13px; border-radius:13px; margin-bottom:8px; font-size:13px; line-height:1.45; }
+#paneSellers .sv-msg.adm{ margin-left:auto; background:var(--amber); color:#fff; border-bottom-right-radius:4px; }
+#paneSellers .sv-msg.sel{ background:var(--panel-2); border-bottom-left-radius:4px; }
+#paneSellers code{ background:var(--panel-2); padding:1px 6px; border-radius:5px; font-size:12px; }
+
 </style>
 </head>
 <body>
@@ -4003,6 +4042,8 @@ body{
           <div class="tab-group-body">
           <button class="tab" data-tab="vazifalar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="tab-label">Vazifalar</span><span class="task-tab-badge" id="taskTabBadge" style="display:none;">0</span></button>
           <button class="tab" data-tab="operators"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6.5"/><path d="M8.3 16.3a5.2 5.2 0 0 1 7.4 0"/><path d="M5 13a10 10 0 0 1 14 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span><span class="tab-label">Operatorlar</span></button>
+          <button class="tab" data-tab="sellers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><path d="M17 11h4M19 9v4"/></svg></span><span class="tab-label">Sotuvchilar</span><span class="task-tab-badge" id="selTabBadge" style="display:none;">0</span></button>
+          <button class="tab" data-tab="stats"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="11" width="3.4" height="7" rx="1"/><rect x="10.3" y="6" width="3.4" height="12" rx="1"/><rect x="15.6" y="14" width="3.4" height="4" rx="1"/></svg></span><span class="tab-label">Statistika</span></button>
           <button class="tab" data-tab="sessions"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><span class="tab-label">Seanslar</span></button>
           <button class="tab" data-tab="settings"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg></span><span class="tab-label">Sozlamalar</span></button>
           </div>
@@ -5084,6 +5125,82 @@ body{
        holatini ko'rsatadi. Pastdagi "Qo'lda kiritish" faqat ZAXIRA — agar
        avtomatik sinxronizatsiya xato bersa (masalan Chatplace API manzili
        hali noto'g'ri bo'lsa), shu yerda "lastError" xabari ko'rinadi. -->
+  <!-- ======================= SOTUVCHILAR =======================
+       Hamkor dilerlar o'z raqamlarini saytga qo'yadi, biz komissiya
+       olamiz. Hisobni FAQAT shu yerdan admin yaratadi — o'z-o'zidan
+       ro'yxatdan o'tish yo'q. Sotuvchi kabineti: /sotuvchi.html
+       Server tomoni: netlify/functions/admin-sellers.js va seller-api.js -->
+  <div class="pane" id="paneSellers">
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin:0 0 4px;font-size:14.5px">Yangi sotuvchi hisobi</h3>
+      <p class="muted" style="margin:0 0 14px;font-size:12px">
+        Login va parolni <b>siz</b> belgilaysiz va sotuvchiga o'zingiz yetkazasiz.
+        U <code>vipraqamlar.uz/sotuvchi.html</code> manzilidan kiradi.
+        Qo'shgan raqami <b>darhol</b> saytda paydo bo'ladi — keyin istalgan paytda
+        yashirishingiz yoki sotuvchini bloklashingiz mumkin.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+        <div><label class="lbl">Ism / firma</label><input class="inp" id="selName" placeholder="Akmal Diler"></div>
+        <div><label class="lbl">Login</label><input class="inp" id="selUser" placeholder="akmal" autocapitalize="off"></div>
+        <div><label class="lbl">Parol (kamida 8 belgi)</label><input class="inp" id="selPass" placeholder="••••••••"></div>
+        <div><label class="lbl">Telefon</label><input class="inp" id="selPhone" placeholder="+998 90 123 45 67"></div>
+        <div><label class="lbl">Komissiya %</label><input class="inp" id="selPct" type="number" min="0" max="90" value="10"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="selCreate" type="button">Hisob yaratish</button>
+        <span class="muted" id="selMsg" style="font-size:12.5px"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+        <h3 style="margin:0;font-size:14.5px">Sotuvchilar</h3>
+        <button class="btn btn-ghost" id="selReload" type="button">Yangilash</button>
+      </div>
+      <div id="selList" class="muted" style="font-size:13px">Yuklanmoqda...</div>
+    </div>
+
+    <div class="card" id="selChatCard" style="display:none">
+      <h3 style="margin:0 0 10px;font-size:14.5px">Yozishma — <span id="selChatWho"></span></h3>
+      <div id="selChatBox" style="max-height:42vh;overflow-y:auto;margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px">
+        <input class="inp" id="selChatIn" placeholder="Javob yozing..." style="flex:1">
+        <button class="btn" id="selChatSend" type="button">Yuborish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= STATISTIKA =======================
+       Manba: netlify/functions/api-track.js saytdan yig'ib yozadigan
+       uchta to'plam — stats_numbers, stats_searches, stats_daily.
+       Bu yerda hech narsa yozilmaydi, faqat O'QILADI. -->
+  <div class="pane" id="paneStats">
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="btn" id="stReload" type="button">Yangilash</button>
+        <select id="stRange" class="inp" style="width:auto">
+          <option value="7">Oxirgi 7 kun</option>
+          <option value="30" selected>Oxirgi 30 kun</option>
+          <option value="90">Oxirgi 90 kun</option>
+        </select>
+        <span class="muted" id="stNote" style="font-size:12px"></span>
+      </div>
+      <div class="st-kpis" id="stKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin:0 0 4px;font-size:14.5px">Eng ko'p qiziqish uyg'otgan raqamlar</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:12px">Raqam kartochkasi necha marta ochilgani va nechtasi buyurtmaga aylangani. <b>Konversiya</b> past bo'lsa — narx yoki shartlar mijozni to'xtatyapti.</p>
+      <div id="stTop" class="muted" style="font-size:13px">Yuklanmoqda...</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 4px;font-size:14.5px">Natija bermagan qidiruvlar</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:12px">Mijozlar shu kombinatsiyalarni qidirgan, lekin bazada mos raqam topilmagan. <b>Bu ro'yxat — qanday raqam sotib olish kerakligining to'g'ridan-to'g'ri javobi.</b></p>
+      <div id="stMiss" class="muted" style="font-size:13px">Yuklanmoqda...</div>
+    </div>
+  </div>
+
   <div class="pane" id="paneSessions">
     <div class="mgmt-hint" id="sessionsFilterBanner" style="display:none;"></div>
     <div class="sessions-list" id="sessionsList"></div>
@@ -8070,6 +8187,8 @@ function openGroupOfTab(tab){
       ['paneBazaraqam',    'Baza raqam',     "Barcha manbalardan yig'ilgan xomashyo ro'yxati, operator bo'yicha hisob."],
       ['paneWatch',        'Kuzatuv',        "Mijozlar kutayotgan raqamlar, avtomatik tekshiruv."],
       ['paneUzex',         'UZEX auksion',   "Davlat auksionidagi raqamlarni kuzatish va saqlab qo'yish."],
+      ['paneSellers',      'Sotuvchilar',    "Hamkor sotuvchilar (dilerlar): hisob yaratish, komissiya, raqamlari va yozishma."],
+      ['paneStats',        'Statistika',     "Qaysi raqamga ko'p qiziqishyapti va mijozlar nimani qidirib topolmayapti."],
       ['paneSessions',     'Seanslar',       "Panelga kim, qachon va qaysi qurilmadan kirgani."],
       ['paneVazifalar',    'Vazifalar',      "Xodimlarga topshiriqlar, muddatlari va bajarilishi."],
       ['paneVakansiya',    'Vakansiya',      "Ish e'lonlari va nomzodlardan kelgan arizalar."],
@@ -8433,7 +8552,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -8477,6 +8596,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
     }
     if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); loadManualCustomersCount(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
+    if(tab.dataset.tab === 'stats'){ loadStats(); }
+    if(tab.dataset.tab === 'sellers'){ loadSellers(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
     if(tab.dataset.tab === 'watch'){ loadWatchList(); }
@@ -9987,6 +10108,239 @@ document.getElementById('savePaymentCodeBtn').addEventListener('click', async ()
     msg.className = 'settings-msg bad';
   }
 });
+
+/* ================= SOTUVCHILAR (dilerlar) =================
+   Hamkor sotuvchilar o'z raqamlarini saytga qo'yadi, biz komissiya
+   olamiz. Butun mantiq serverda (netlify/functions/admin-sellers.js) —
+   bu yerda faqat ko'rinish va so'rovlar.
+   Sotuvchi kabineti: /sotuvchi.html */
+async function selCall(action, extra){
+  const idToken = await firebase.auth().currentUser.getIdToken();
+  const res = await fetch('/.netlify/functions/admin-sellers', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + idToken },
+    body: JSON.stringify(Object.assign({ action }, extra || {}))
+  });
+  const data = await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+let SEL_CHAT_ID = null;
+
+async function loadSellers(){
+  const box = document.getElementById('selList');
+  if(!box) return;
+  box.innerHTML = 'Yuklanmoqda...';
+  try{
+    const j = await selCall('list');
+    const unread = j.sellers.reduce((a,x) => a + (x.unread || 0), 0);
+    const badge = document.getElementById('selTabBadge');
+    if(badge){ badge.textContent = unread; badge.style.display = unread > 0 ? '' : 'none'; }
+
+    if(!j.sellers.length){ box.innerHTML = "Hali sotuvchi yo'q. Yuqoridagi shakldan birinchi hisobni yarating."; return; }
+
+    box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr>' +
+      '<th>Sotuvchi</th><th>Login</th><th style="text-align:right">Raqamlar</th>' +
+      '<th style="text-align:right">Komissiya</th><th>Holat</th><th></th>' +
+      '</tr></thead><tbody>' +
+      j.sellers.map(x =>
+        '<tr>' +
+        '<td><b>' + escapeHtml(x.name) + '</b>' +
+          (x.phone ? '<div class="muted" style="font-size:11.5px">' + escapeHtml(x.phone) + '</div>' : '') + '</td>' +
+        '<td><code>' + escapeHtml(x.username) + '</code></td>' +
+        '<td style="text-align:right">' + x.numbers + '</td>' +
+        '<td style="text-align:right"><input class="inp" style="width:72px;padding:6px 8px;text-align:right" ' +
+          'type="number" min="0" max="90" value="' + (x.commissionPct||0) + '" data-pct="' + escapeHtml(x.id) + '"> %</td>' +
+        '<td><span class="sv-pill ' + (x.blocked ? 'sv-off' : 'sv-on') + '">' + (x.blocked ? 'Bloklangan' : 'Faol') + '</span></td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+          '<button class="btn btn-ghost btn-sm" data-chat="' + escapeHtml(x.id) + '" data-who="' + escapeHtml(x.name) + '">Yozishma' +
+            (x.unread ? ' (' + x.unread + ')' : '') + '</button> ' +
+          '<button class="btn btn-ghost btn-sm" data-pass="' + escapeHtml(x.id) + '">Parol</button> ' +
+          '<button class="btn btn-ghost btn-sm" data-block="' + escapeHtml(x.id) + '" data-now="' + (x.blocked?'1':'0') + '">' +
+            (x.blocked ? 'Ochish' : 'Bloklash') + '</button> ' +
+          '<button class="btn btn-dan btn-sm" data-del="' + escapeHtml(x.id) + '">&#10005;</button>' +
+        '</td></tr>'
+      ).join('') + '</tbody></table></div>';
+
+    /* komissiya foizini joyida o'zgartirish */
+    box.querySelectorAll('[data-pct]').forEach(el => el.addEventListener('change', async ()=>{
+      try{ await selCall('update', { id: el.dataset.pct, commissionPct: Number(el.value) || 0 });
+           el.style.borderColor = 'var(--green)'; setTimeout(()=> el.style.borderColor = '', 900); }
+      catch(e){ alert(e.message); }
+    }));
+    box.querySelectorAll('[data-block]').forEach(b => b.onclick = async ()=>{
+      try{ await selCall('update', { id: b.dataset.block, blocked: b.dataset.now !== '1' }); loadSellers(); }
+      catch(e){ alert(e.message); }
+    });
+    box.querySelectorAll('[data-pass]').forEach(b => b.onclick = async ()=>{
+      const pw = prompt('Yangi parol (kamida 8 belgi):');
+      if(!pw) return;
+      try{ await selCall('resetPassword', { id: b.dataset.pass, password: pw });
+           alert("Parol o'zgartirildi. Sotuvchiga yangi parolni yetkazing."); }
+      catch(e){ alert(e.message); }
+    });
+    box.querySelectorAll('[data-del]').forEach(b => b.onclick = async ()=>{
+      if(!confirm("Sotuvchi hisobi o'chirilsinmi?")) return;
+      try{ await selCall('remove', { id: b.dataset.del }); loadSellers(); }
+      catch(e){ alert(e.message); }
+    });
+    box.querySelectorAll('[data-chat]').forEach(b => b.onclick = ()=> selOpenChat(b.dataset.chat, b.dataset.who));
+  }catch(e){
+    box.innerHTML = 'Xato: ' + escapeHtml(e.message);
+  }
+}
+
+async function selOpenChat(id, who){
+  SEL_CHAT_ID = id;
+  const card = document.getElementById('selChatCard');
+  document.getElementById('selChatWho').textContent = who || '';
+  card.style.display = '';
+  const box = document.getElementById('selChatBox');
+  box.innerHTML = 'Yuklanmoqda...';
+  try{
+    const j = await selCall('messages', { id });
+    box.innerHTML = j.rows.length
+      ? j.rows.map(m => '<div class="sv-msg ' + (m.from === 'admin' ? 'adm' : 'sel') + '">' + escapeHtml(m.text) + '</div>').join('')
+      : '<div class="muted">Xabarlar yo’q.</div>';
+    box.scrollTop = box.scrollHeight;
+    card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }catch(e){ box.innerHTML = 'Xato: ' + escapeHtml(e.message); }
+}
+
+document.getElementById('selCreate') && document.getElementById('selCreate').addEventListener('click', async ()=>{
+  const msg = document.getElementById('selMsg');
+  const data = {
+    name: document.getElementById('selName').value.trim(),
+    username: document.getElementById('selUser').value.trim().toLowerCase(),
+    password: document.getElementById('selPass').value,
+    phone: document.getElementById('selPhone').value.trim(),
+    commissionPct: Number(document.getElementById('selPct').value) || 0
+  };
+  msg.textContent = 'Yaratilmoqda...';
+  try{
+    await selCall('create', data);
+    msg.textContent = "Tayyor. Login va parolni sotuvchiga yetkazing.";
+    document.getElementById('selName').value = '';
+    document.getElementById('selUser').value = '';
+    document.getElementById('selPass').value = '';
+    document.getElementById('selPhone').value = '';
+    loadSellers();
+  }catch(e){ msg.textContent = 'Xato: ' + e.message; }
+});
+
+document.getElementById('selReload') && document.getElementById('selReload').addEventListener('click', loadSellers);
+document.getElementById('selChatSend') && document.getElementById('selChatSend').addEventListener('click', async ()=>{
+  const inp = document.getElementById('selChatIn');
+  const text = inp.value.trim();
+  if(!text || !SEL_CHAT_ID) return;
+  inp.value = '';
+  try{ await selCall('reply', { id: SEL_CHAT_ID, text }); selOpenChat(SEL_CHAT_ID, document.getElementById('selChatWho').textContent); }
+  catch(e){ alert(e.message); }
+});
+document.getElementById('selChatIn') && document.getElementById('selChatIn').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('selChatSend').click();
+});
+
+/* ================= STATISTIKA =================
+   Uchta Firestore to'plamini o'qiydi (yozmaydi):
+     stats_numbers/{id}   — har raqam bo'yicha views / clicks / orders
+     stats_searches/{key} — natija bermagan qidiruvlar va necha marta
+     stats_daily/{sana}   — kunlik umumiy yig'indi
+   Ularni sayt o'zi emas, netlify/functions/api-track.js to'ldiradi
+   (mijoz brauzeridan to'g'ridan-to'g'ri yozishga ruxsat yo'q — aks holda
+   har kim sonlarni shishirib yuborishi mumkin edi). */
+let statsBusy = false;
+
+function stNum(n){ return (Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' '); }
+
+function stKpi(label, value, hint){
+  return '<div class="card" style="padding:14px;margin:0">' +
+    '<div class="muted" style="font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">' + escapeHtml(label) + '</div>' +
+    '<div style="font-size:24px;font-weight:800;margin-top:5px">' + escapeHtml(String(value)) + '</div>' +
+    (hint ? '<div class="muted" style="font-size:11.5px;margin-top:3px">' + escapeHtml(hint) + '</div>' : '') +
+    '</div>';
+}
+
+async function loadStats(){
+  if(statsBusy) return;
+  statsBusy = true;
+  const days = Number((document.getElementById('stRange')||{}).value) || 30;
+  const note = document.getElementById('stNote');
+  const kpis = document.getElementById('stKpis');
+  const topBox = document.getElementById('stTop');
+  const missBox = document.getElementById('stMiss');
+  if(note) note.textContent = 'Yuklanmoqda...';
+
+  try{
+    /* --- 1. Kunlik yig'indi --- */
+    const from = new Date(Date.now() - days*86400000).toISOString().slice(0,10);
+    const daily = await db.collection('stats_daily').orderBy(firebase.firestore.FieldPath.documentId(), 'desc').limit(120).get();
+    let V=0, C=0, O=0, M=0, kun=0;
+    daily.forEach(d => {
+      if(d.id < from) return;
+      const x = d.data() || {};
+      V += Number(x.views)||0; C += Number(x.clicks)||0;
+      O += Number(x.orders)||0; M += Number(x.misses)||0; kun++;
+    });
+    const konv = V ? Math.round(O / V * 1000) / 10 : 0;
+    if(kpis) kpis.innerHTML =
+      stKpi('Raqam ochilgan', stNum(V), kun ? ('kuniga o’rtacha ' + stNum(Math.round(V/kun))) : '') +
+      stKpi('Buyurtma', stNum(O), 'shu davrda') +
+      stKpi('Konversiya', konv + '%', 'ochilgandan buyurtmagacha') +
+      stKpi('Natijasiz qidiruv', stNum(M), 'yetishmayotgan raqamlar');
+
+    /* --- 2. Eng ko'p ochilgan raqamlar --- */
+    const top = await db.collection('stats_numbers').orderBy('views','desc').limit(25).get();
+    if(top.empty){
+      topBox.innerHTML = 'Hali ma’lumot yig’ilmagan. Saytga mijozlar kira boshlagach shu yerda ko’rinadi.';
+    } else {
+      let rows = '';
+      top.forEach(d => {
+        const x = d.data() || {};
+        const v = Number(x.views)||0, o = Number(x.orders)||0;
+        const k = v ? Math.round(o/v*1000)/10 : 0;
+        const bad = v >= 20 && k < 2;     /* ko'p ko'rilgan-u, olinmagan */
+        rows += '<tr>' +
+          '<td style="padding:8px 10px;font-weight:700">' + escapeHtml(x.number || d.id) + '</td>' +
+          '<td style="padding:8px 10px;text-align:right">' + stNum(v) + '</td>' +
+          '<td style="padding:8px 10px;text-align:right">' + stNum(o) + '</td>' +
+          '<td style="padding:8px 10px;text-align:right;' + (bad ? 'color:var(--amber);font-weight:800' : '') + '">' + k + '%' +
+            (bad ? ' — narxni ko’rib chiqing' : '') + '</td>' +
+          '</tr>';
+      });
+      topBox.innerHTML =
+        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        '<thead><tr style="text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em">' +
+        '<th style="padding:6px 10px">Raqam</th><th style="padding:6px 10px;text-align:right">Ochilgan</th>' +
+        '<th style="padding:6px 10px;text-align:right">Buyurtma</th><th style="padding:6px 10px;text-align:right">Konversiya</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    /* --- 3. Natijasiz qidiruvlar --- */
+    const miss = await db.collection('stats_searches').orderBy('count','desc').limit(30).get();
+    if(miss.empty){
+      missBox.innerHTML = 'Hozircha natijasiz qidiruv qayd etilmagan.';
+    } else {
+      let chips = '';
+      miss.forEach(d => {
+        const x = d.data() || {};
+        chips += '<span style="display:inline-flex;align-items:center;gap:7px;margin:0 7px 7px 0;padding:6px 11px;border-radius:9px;background:var(--panel-2,rgba(255,255,255,.05));border:1px solid var(--line,rgba(255,255,255,.1));font-size:13px;font-weight:700">' +
+          escapeHtml(x.q || d.id) +
+          '<b style="color:var(--amber);font-weight:800">' + stNum(x.count) + '</b></span>';
+      });
+      missBox.innerHTML = chips;
+    }
+
+    if(note) note.textContent = 'Oxirgi yangilanish: ' + new Date().toLocaleTimeString('uz-UZ');
+  }catch(e){
+    if(note) note.textContent = 'Xato: ' + (e && e.message || e);
+  }finally{
+    statsBusy = false;
+  }
+}
+document.getElementById('stReload') && document.getElementById('stReload').addEventListener('click', loadStats);
+document.getElementById('stRange') && document.getElementById('stRange').addEventListener('change', loadStats);
 
 /* ---- Seanslar ro'yxati ---- */
 const sessionsList = document.getElementById('sessionsList');
