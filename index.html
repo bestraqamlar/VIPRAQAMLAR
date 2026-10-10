@@ -1691,120 +1691,112 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 @media (prefers-reduced-motion:reduce){ .pwa{transition:none} }
 
 /* ==================================================================
-   "BO'LIB TO'LASHGA RAQAMLAR" TUGMASI  (bosh sahifa, v27)
+   BOSH SAHIFADAGI YAGONA PREMIUM KARTOCHKA (v26)
    ------------------------------------------------------------------
-   Bu kartochka EMAS — bu TUGMA. Ichida narx ham, raqam ham, son ham
-   yo'q: u shunchaki bo'lib to'lashga chiqadigan raqamlar ro'yxatini
-   ochadi.
+   Mijoz so'rovi: karusel emas — FAQAT BITTA kartochka. Ichida bazadan
+   tasodifiy olingan qisqa raqam naqshlari (7777, 0000, 0707...) jonli
+   almashib turadi. Bosilsa — bo'lib to'lashga chiqadigan raqamlar
+   ro'yxati ochiladi.
 
-   RANGI ATAYLAB BOSHQACHA. Saytning qolgan hamma joyi to'q ko'k va
-   oltin — shu sabab bu tugma binafsha-siyoh va firuza rangda. Mijoz
-   uni bir qarashda ajratadi: "bu — boshqa narsa, bosiladigan narsa".
-
-   TEZLIK: faqat `transform` va `opacity` animatsiya qilinadi
-   (videokartada bajariladi). Ekranda ko'rinmasa — animatsiya
-   butunlay to'xtaydi (`.vis` klassi).
+   TEZLIK QOIDASI (o'zgarmaydi): faqat `transform` va `opacity`
+   animatsiya qilinadi — ikkisi ham videokartada bajariladi, asosiy
+   oqimga (JS/joylashuv/bo'yash) tegmaydi. Shu sabab Androidda ham
+   qaltiramaydi. Kartochka ekranda ko'rinmasa — animatsiya butunlay
+   to'xtaydi (.shine-on klassi IntersectionObserver bilan qo'yiladi).
    ================================================================== */
 .heroscroll{display:block;padding:0;margin:0;overflow:visible;cursor:auto;touch-action:auto}
 .herodots{display:none}
-
-.insbtn{
-  position:relative;overflow:hidden;isolation:isolate;
-  width:100%;display:flex;align-items:center;gap:12px;
-  padding:14px 14px 14px 15px;border:none;border-radius:22px;
-  cursor:pointer;text-align:left;color:#fff;font-family:inherit;
-  background:linear-gradient(116deg,#7B3FF2 0%,#5733E6 38%,#2B4FE0 72%,#1E6BE8 100%);
-  box-shadow:
-    0 20px 40px -22px rgba(86,45,220,.95),
-    0 2px 8px -4px rgba(10,16,40,.6),
-    inset 0 1px 0 rgba(255,255,255,.22);
+.promo{
+  width:100%;max-width:none;cursor:pointer;
+  padding:17px 18px 16px;
   -webkit-tap-highlight-color:transparent;
-  transition:transform .22s cubic-bezier(.2,.8,.3,1),box-shadow .22s;
 }
-.insbtn:active{transform:scale(.982);box-shadow:0 10px 22px -16px rgba(86,45,220,.95)}
-
-/* --- Suzib yuradigan ikkita rangli nur --- */
-.ib-bg{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}
-.ib-bg i{
-  position:absolute;border-radius:50%;display:block;
-  transform:translate3d(0,0,0);will-change:transform;
+.promo:active{transform:scale(.985)}
+/* Sekin suzib yuradigan nur — kartochkani "tirik" qiladi.
+   Faqat transform animatsiya qilinadi. */
+.pr-aura{
+  position:absolute;left:-30%;top:-70%;width:80%;height:240%;z-index:0;
+  pointer-events:none;border-radius:50%;
+  background:radial-gradient(closest-side, rgba(240,216,152,.20), rgba(240,216,152,0) 72%);
+  transform:translate3d(0,0,0);
+  will-change:transform;
 }
-.ib-bg i:nth-child(1){
-  width:62%;height:230%;left:-14%;top:-66%;
-  background:radial-gradient(closest-side, rgba(34,211,238,.55), rgba(34,211,238,0) 70%);
+.promo.shine-on.vis .pr-aura{animation:prAura 13s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes prAura{
+  0%  {transform:translate3d(0,0,0)}
+  50% {transform:translate3d(110%,6%,0)}
+  100%{transform:translate3d(0,0,0)}
 }
-.ib-bg i:nth-child(2){
-  width:56%;height:210%;right:-10%;top:-52%;
-  background:radial-gradient(closest-side, rgba(236,72,153,.42), rgba(236,72,153,0) 70%);
+.pr-top{display:flex;align-items:center;gap:8px}
+.pr-pill{
+  margin-left:auto;font-size:10.5px;font-weight:800;letter-spacing:.02em;
+  color:#CFE0FF;background:rgba(74,124,240,.18);
+  box-shadow:inset 0 0 0 1px rgba(124,166,255,.26);
+  padding:4px 10px;border-radius:999px;white-space:nowrap;
 }
-.insbtn.vis .ib-bg i:nth-child(1){animation:ibA 12s cubic-bezier(.45,0,.55,1) infinite}
-.insbtn.vis .ib-bg i:nth-child(2){animation:ibB 15s cubic-bezier(.45,0,.55,1) infinite}
-@keyframes ibA{
-  0%  {transform:translate3d(0,0,0) scale(1)}
-  50% {transform:translate3d(78%,9%,0) scale(1.14)}
-  100%{transform:translate3d(0,0,0) scale(1)}
+.pr-h{margin-top:15px;line-height:1.12}
+.pr-h span{
+  display:block;font-size:12.5px;font-weight:750;letter-spacing:.02em;
+  color:#A8C0E6;text-transform:none;
 }
-@keyframes ibB{
-  0%  {transform:translate3d(0,0,0) scale(1.06)}
-  50% {transform:translate3d(-72%,-8%,0) scale(.92)}
-  100%{transform:translate3d(0,0,0) scale(1.06)}
+.pr-h b{
+  display:block;margin-top:3px;font-size:25px;font-weight:800;letter-spacing:-.015em;
+  background:linear-gradient(176deg,#FFFFFF 0%,#FFFFFF 40%,#FBEFD2 74%,#EFD9A4 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 2px 9px rgba(4,11,24,.6));
 }
-/* --- Ustidan sekin o'tadigan yorug'lik --- */
-.ib-shine{
-  position:absolute;top:-60%;bottom:-60%;width:26%;left:0;z-index:1;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.16) 42%,rgba(255,255,255,.30) 52%,rgba(255,255,255,.14) 62%,transparent);
-  transform:translateX(-160%) rotate(14deg);
+/* Qisqa naqshlar — to'rtta "oyna" plastinka. Har biri navbati bilan
+   yangi raqamga almashadi. */
+.pr-toks{
+  margin-top:15px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
 }
-.insbtn.vis .ib-shine{animation:ibShine 6.5s cubic-bezier(.4,0,.2,1) .5s infinite}
-@keyframes ibShine{
-  0%{transform:translateX(-160%) rotate(14deg)}
-  34%,100%{transform:translateX(520%) rotate(14deg)}
+.pr-tok{
+  position:relative;overflow:hidden;
+  height:46px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,.022));
+  box-shadow:
+    inset 0 0 0 1px rgba(240,216,152,.19),
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 6px 14px -10px rgba(2,8,20,.9);
 }
-/* --- Ichki qismlar --- */
-.insbtn > *:not(.ib-bg):not(.ib-shine){position:relative;z-index:2}
-.ib-ic{
-  width:42px;height:42px;border-radius:14px;flex:none;
-  display:flex;align-items:center;justify-content:center;color:#fff;
-  background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.10));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),inset 0 1px 0 rgba(255,255,255,.45);
+.pr-tok i{
+  font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;
+  font-style:normal;font-size:17px;font-weight:700;letter-spacing:.055em;
+  color:#FBEFD6;
+  transform:translate3d(0,0,0);
+  will-change:transform,opacity;
 }
-.ib-ic svg{width:21px;height:21px}
-.ib-tx{flex:1;min-width:0;display:block}
-.ib-tx b{
-  display:block;font-size:15.5px;font-weight:800;letter-spacing:-.012em;line-height:1.22;
-  text-shadow:0 1px 10px rgba(12,10,48,.4);
+/* Almashish: eski raqam yuqoriga chiqib ketadi, yangisi pastdan
+   ko'tariladi. 50% da matn JS bilan almashtiriladi — shu sabab bitta
+   element bilan "ikki qavat" effekti chiqadi, qo'shimcha DOM yo'q. */
+.pr-tok.sw i{animation:prSwap .54s cubic-bezier(.33,0,.25,1) both}
+@keyframes prSwap{
+  0%  {transform:translate3d(0,0,0);opacity:1}
+  46% {transform:translate3d(0,-120%,0);opacity:0}
+  54% {transform:translate3d(0,120%,0);opacity:0}
+  100%{transform:translate3d(0,0,0);opacity:1}
 }
-.ib-tx i{
-  display:block;margin-top:4px;font-style:normal;
-  font-size:11px;font-weight:650;color:rgba(255,255,255,.84);line-height:1.35;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+/* Almashayotgan plastinka bir lahza yoriqlashadi */
+.pr-tok.sw{animation:prTile .54s ease both}
+@keyframes prTile{
+  0%,100%{box-shadow:inset 0 0 0 1px rgba(240,216,152,.19),inset 0 1px 0 rgba(255,255,255,.14),0 6px 14px -10px rgba(2,8,20,.9)}
+  50%    {box-shadow:inset 0 0 0 1px rgba(240,216,152,.5),inset 0 1px 0 rgba(255,255,255,.26),0 6px 16px -9px rgba(2,8,20,.9)}
 }
-.ib-go{
-  width:38px;height:38px;border-radius:50%;flex:none;
-  display:flex;align-items:center;justify-content:center;color:#3A26B4;
-  background:#fff;box-shadow:0 8px 18px -10px rgba(8,10,40,.9);
-}
-.ib-go svg{width:16px;height:16px;transform:translate3d(0,0,0)}
-.insbtn.vis .ib-go svg{animation:ibGo 2.6s cubic-bezier(.4,0,.2,1) infinite}
-@keyframes ibGo{
-  0%,62%,100%{transform:translate3d(0,0,0)}
-  74%{transform:translate3d(3.5px,0,0)}
-  86%{transform:translate3d(0,0,0)}
-}
+.promo .hc-bot{margin-top:16px;padding-top:14px}
+.promo .hc-cta{height:40px;padding:0 15px 0 17px;font-size:13px}
 @media (prefers-reduced-motion:reduce){
-  .insbtn.vis .ib-bg i,.insbtn.vis .ib-shine,.insbtn.vis .ib-go svg{animation:none}
+  .pr-tok.sw i,.pr-tok.sw,.promo .pr-aura{animation:none}
 }
-/* Past quvvatli telefonlarda faqat yorug'lik o'chadi — rangli nurlar
-   qoladi, chunki ular butunlay videokartada chiziladi va deyarli
-   bepul. Tugma shunda ham tirik ko'rinadi. */
-html.low .ib-shine{display:none}
+/* Past quvvatli telefonlarda bezak qatlamlari o'chadi */
+html.low .pr-aura{display:none}
 @media (min-width:980px){
-  .insbtn{padding:20px 20px 20px 22px;gap:16px;border-radius:26px}
-  .ib-ic{width:54px;height:54px;border-radius:18px}
-  .ib-ic svg{width:27px;height:27px}
-  .ib-tx b{font-size:19px}
-  .ib-tx i{font-size:12.5px}
-  .ib-go{width:46px;height:46px}
+  .promo{padding:26px 28px 24px}
+  .pr-h b{font-size:31px}
+  .pr-toks{gap:10px}
+  .pr-tok{height:54px}
+  .pr-tok i{font-size:20px}
 }
 
 /* ==================================================================
@@ -2369,7 +2361,6 @@ const RU = {
   "Bo'lib to'lashga":"В рассрочку","Premium Raqamlar":"Премиум номера",
   "Bo'lib to'lashga Premium Raqamlar":"Премиум номера в рассрочку",
   "Bo'lib to'lashga raqamlar":"Номера в рассрочку","raqam":"номеров",
-  "Oldindan to'lovsiz":"Без первого взноса",
   "Oldindan to'lovsiz, rasmiy shartnoma bilan":"Без первого взноса, по официальному договору",
   "Xabarlar":"Сообщения","Xabar yo'q":"Нет сообщений","Ko'rish":"Открыть",
   "hozir":"сейчас","daqiqa oldin":"мин. назад","soat oldin":"ч. назад",
@@ -3430,15 +3421,38 @@ function shuffled(arr){
    xona: 7777, 0000, 0707...) jonli almashib turadi. Naqshlar har
    yangilanishda tasodifiy tanlanadi.
    ================================================================== */
-let PROMO_COUNT = 0;
+let PROMO_TOKS = [], PROMO_COUNT = 0, PROMO_TEASER = '';
 
-/* Bo'lib to'lashga chiqadigan raqamlar bormi? Kartochkada son ham,
-   narx ham ko'rsatilmaydi — u shunchaki "ro'yxatni ochish" tugmasi.
-   Son faqat kartochkani umuman ko'rsatish/ko'rsatmaslik uchun kerak. */
-function promoTanla(){
-  PROMO_COUNT = NUMBERS.filter(n => !n.reserved && installmentAllowed(n)).length;
+function promoBazasi(){
+  const ins = NUMBERS.filter(n => !n.reserved && installmentAllowed(n));
+  return ins.length ? ins : NUMBERS.filter(n => !n.reserved);
 }
+/* Naqshlar + "eng arzon oylik" matni. Faqat raqamlar o'zgarganda
+   qayta hisoblanadi (pastdagi imzoga qarang) — shu sabab kartochka
+   o'z-o'zidan qayta chizilib, animatsiyani uzmaydi. */
+function promoTanla(){
+  const baza = promoBazasi();
+  const ins = NUMBERS.filter(n => !n.reserved && installmentAllowed(n));
+  PROMO_COUNT = ins.length;
 
+  const bor = new Set(), toks = [];
+  /* Avval "chiroyli" naqshlar (AAAA, ABAB, AABB) — ular ko'zni tortadi */
+  const chiroy = (x) => /^(\d)\1{3}$/.test(x) ? 3 : (/^(\d)(\d)\1\2$/.test(x) ? 2 : (/^(\d)\1(\d)\2$/.test(x) ? 2 : (/^0+\d*$/.test(x) ? 1 : 0)));
+  shuffled(baza).forEach(n => {
+    const d = String(n.number || '').replace(/\D/g, '');
+    const t4 = d.slice(-4);
+    if(t4.length === 4 && !bor.has(t4)){ bor.add(t4); toks.push(t4); }
+  });
+  /* Avval chiroylilikka ko'ra tartiblanadi, keyin eng yaxshi 12 tasi
+     ARALASHTIRILADI — shu sabab har yangilanishda boshqa to'rtlik
+     chiqadi, lekin har doim chiroyli naqshlar tushadi. */
+  toks.sort((a,b) => chiroy(b) - chiroy(a));
+  PROMO_TOKS = shuffled(toks.slice(0, 12)).concat(toks.slice(12, 20));
+  if(!PROMO_TOKS.length) PROMO_TOKS = ['7777','0000','0707','0101'];
+
+  const arzon = ins.slice().sort((a,b) => (a.price||0) - (b.price||0))[0];
+  PROMO_TEASER = arzon ? (installmentTeaser(arzon) || t("Bo'lib to'lash mavjud")) : '';
+}
 /* Bosh sahifadagi tanlov — pastdagi 15 ta ro'yxat har safar yangi
    tasodifiy bo'ladi, karusel esa O'ZGARMAY turadi. */
 function pickHome(){
@@ -3460,13 +3474,13 @@ function renderHome(){
   const hb = $('#homeHero');
   if(hb){
     if(!numbersLoaded && !NUMBERS.length){
-      hb.innerHTML = '<div class="sk shim" style="height:78px;border-radius:22px"></div>';
+      hb.innerHTML = '<div class="sk shim" style="height:230px"></div>';
     }else{
       /* Kartochka FAQAT tarkibi o'zgarganda qayta quriladi. Shu bitta
          qoida "qotib qolish"ning oldini oladi: bosh sahifa bir necha
          sabab bilan qayta chiziladi (sozlamalar keldi, baza yangilandi),
          lekin DOM tegilmasa animatsiya uzilmaydi. */
-      const imzo = (PROMO_COUNT > 0 ? 'bor' : 'yoq') + '|' + LANG;
+      const imzo = PROMO_TOKS.slice(0,4).join(',') + '|' + PROMO_COUNT + '|' + PROMO_TEASER + '|' + LANG;
       if(hb.dataset.sig !== imzo){
         hb.dataset.sig = imzo;
         hb.innerHTML = promoCardHtml();
@@ -3661,7 +3675,7 @@ function shineWatch(){
   } else {
     shineIO.disconnect();
   }
-  $$('.daycard').forEach(el => shineIO.observe(el));
+  $$('.daycard, .promo').forEach(el => shineIO.observe(el));
 }
 
 /* ==================================================================
@@ -3680,35 +3694,89 @@ function shineWatch(){
    Shu sabab u batareyani ham, kadrlarni ham yemaydi.
    ================================================================== */
 function promoCardHtml(){
-  if(!PROMO_COUNT) return '';
-  return `<button class="insbtn" type="button" data-promo="1">
-    <span class="ib-bg" aria-hidden="true"><i></i><i></i></span>
-    <span class="ib-shine" aria-hidden="true"></span>
-    <span class="ib-ic" aria-hidden="true">${IC_IB}</span>
-    <span class="ib-tx">
-      <b>${t("Bo'lib to'lashga raqamlar")}</b>
-      <i>${t("Oldindan to'lovsiz")}</i>
-    </span>
-    <span class="ib-go" aria-hidden="true">${ICO_ARR}</span>
-  </button>`;
+  const toks = (PROMO_TOKS.length ? PROMO_TOKS : ['7777','0000','0707','0101']).slice(0, 4);
+  const son = PROMO_COUNT > 0
+    ? PROMO_COUNT + ' ' + t('raqam')
+    : t("Bo'lib to'lash");
+  return `<article class="herocard promo" data-promo="1" role="button" tabindex="0"
+      aria-label="${esc(t("Bo'lib to'lashga Premium Raqamlar"))}">
+    <span class="pr-aura" aria-hidden="true"></span>
+    <div class="pr-top">
+      <span class="hc-badge">${t('PREMIUM')}</span>
+      <span class="pr-pill">${esc(son)}</span>
+    </div>
+    <div class="pr-h">
+      <span>${t("Bo'lib to'lashga")}</span>
+      <b>${t('Premium Raqamlar')}</b>
+    </div>
+    <div class="pr-toks" id="prToks">
+      ${toks.map((x,i) => `<span class="pr-tok" data-i="${i}"><i>${esc(x)}</i></span>`).join('')}
+    </div>
+    <div class="hc-bot">
+      <div class="hc-price"><div class="pv ins2 sg">${esc(PROMO_TEASER || t("Bo'lib to'lash mavjud"))}</div></div>
+      <span class="hc-cta">${t('Batafsil')}${ICO_ARR}</span>
+    </div>
+  </article>`;
 }
-const IC_IB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="5.5" width="18.8" height="13.4" rx="3.4"/><path d="M2.6 10h18.8"/><path d="M15.5 15.2h3"/></svg>';
 
-/* Kartochka ekranda ko'rinib turganda `vis` klassi qo'yiladi —
-   animatsiya faqat shunda ishlaydi, qolgan vaqtda butunlay to'xtaydi
-   (batareya ham, kadrlar ham tejaladi). */
-let promoIO = null;
+let promoTimer = null, promoSlot = 0, promoIO = null;
+
+/* Kartochka ekranda ko'rinib turganda `vis` klassi qo'yiladi.
+   MUHIM: bu alohida kuzatuvchi — chunki metall yaltirashi past
+   quvvatli telefonlarda butunlay o'chadi (SHINE_OFF), lekin raqamlar
+   almashinuvi juda arzon va u HAR DOIM ishlashi kerak. */
 function promoKoz(){
-  const el = document.querySelector('.insbtn'); if(!el) return;
+  const el = document.querySelector('.promo'); if(!el) return;
   if(!('IntersectionObserver' in window)){ el.classList.add('vis'); return; }
   if(promoIO) promoIO.disconnect();
   promoIO = new IntersectionObserver((rows)=>{
     rows.forEach(r => r.target.classList.toggle('vis', r.isIntersecting));
-  }, { threshold: 0.25 });
+  }, { threshold: 0.3 });
   promoIO.observe(el);
 }
+
+/* "Harakatni kamaytir" yoqilgan bo'lsa — hech qanday almashinuv yo'q.
+   Juda past quvvatli telefonda — sekinroq (lekin bor). */
+const PROMO_OFF = (()=>{ try{
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}catch(e){ return false; } })();
+const PROMO_SUR = (()=>{ try{
+  if((navigator.hardwareConcurrency || 8) <= 2) return 3200;
+  if((navigator.deviceMemory || 8) <= 2) return 3200;
+}catch(e){} return 1800; })();
+function promoKeyingi(hozir){
+  if(PROMO_TOKS.length < 5) return hozir;
+  const box = document.getElementById('prToks');
+  const ekranda = box ? Array.from(box.children).map(c => (c.querySelector('i')||{}).textContent) : [];
+  const zaxira = PROMO_TOKS.filter(x => ekranda.indexOf(x) === -1);
+  if(!zaxira.length) return hozir;
+  return zaxira[Math.floor(Math.random() * zaxira.length)];
+}
 function promoStart(){
+  clearInterval(promoTimer);
+  promoSlot = 0;
   requestAnimationFrame(()=>{ shineWatch(); promoKoz(); });
+  if(PROMO_OFF) return;
+  promoTimer = setInterval(promoQadam, PROMO_SUR);
+}
+function promoQadam(){
+  if(document.hidden) return;
+  const home = document.getElementById('sc-home');
+  if(!home || !home.classList.contains('on')) return;
+  const box = document.getElementById('prToks'); if(!box) return;
+  const karta = box.closest('.promo');
+  if(!karta || !karta.classList.contains('vis')) return;        /* ko'rinmayapti */
+  const n = box.children.length; if(!n) return;
+
+  const el = box.children[promoSlot % n]; promoSlot++;
+  const ichi = el.querySelector('i'); if(!ichi) return;
+  const yangi = promoKeyingi(ichi.textContent);
+  if(yangi === ichi.textContent) return;
+
+  el.classList.remove('sw');
+  void el.offsetWidth;                   /* animatsiyani qaytadan boshlash */
+  el.classList.add('sw');
+  setTimeout(()=>{ ichi.textContent = yangi; }, 250);
 }
 
 /* ---------- Mijozlar video fikrlari ---------- */
@@ -5848,7 +5916,7 @@ function seoRaqamniOch(){
 
   if(!keshdanOqi()){
     $('#homeFeatured').innerHTML = skeletons(3);
-    $('#homeHero').innerHTML = '<div class="sk shim" style="height:78px;border-radius:22px"></div>';
+    $('#homeHero').innerHTML = '<div class="sk shim" style="height:230px"></div>';
   }
   xabarlarKeshdan();
   syncDigits();
