@@ -11,6 +11,11 @@
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 const admin = require('firebase-admin');
+
+/* Instagram sahifamiz — BITTA joyda. Nik o'zgarsa faqat shu ikki
+   qator tahrirlanadi (sayt tomonida ham shu nik ishlatiladi). */
+const INSTAGRAM_NIK = 'vipnumbers_uz';
+const INSTAGRAM_URL = 'https://instagram.com/' + INSTAGRAM_NIK;
 const { getBotControl } = require('./lib/botControl');
 const { checkAndMarkKnown } = require('./lib/knownCustomers');
 const { updateAdminList } = require('./lib/adminList');
@@ -1216,6 +1221,14 @@ exports.handler = async function (event) {
       `<b>VIP RAQAMLAR</b> rasmiy botiga xush kelibsiz.\n\n` +
       `Chiroyli va vip raqamni tanlash uchun kerakli tugmani tanlang 👇`,
       mainMenuKeyboard());
+    /* Mijoz botga yozgan zahoti Instagram sahifamiz ham ko'rinib
+       tursin — havola bitta joyda (INSTAGRAM_URL) saqlanadi, nik
+       o'zgarsa faqat o'sha qator tahrirlanadi. */
+    await tg('sendMessage', {
+      chat_id: chatId,
+      text: `📸 Yangi raqamlar va aksiyalar Instagram sahifamizda: @${INSTAGRAM_NIK}`,
+      reply_markup: inlineKb([[{ text: '📸 Instagram sahifamiz', url: INSTAGRAM_URL }]])
+    });
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -1374,6 +1387,7 @@ exports.handler = async function (event) {
 ☎️ Call Markaz: <b>87 888 01 01</b> | <b>88 862 01 01</b>
 👨‍💻 Operator: @Vip_raqamlar_admin
 🆔 Telegram kanal: @Vip_raqamlar_uz
+📸 Instagram: @${INSTAGRAM_NIK}
 
 🚚 O'zbekistonning istalgan hududiga yetkazib berish mavjud.`;
       await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
@@ -1381,7 +1395,10 @@ exports.handler = async function (event) {
         chat_id: chatId,
         text: contactText,
         parse_mode: 'HTML',
-        reply_markup: inlineKb([[{ text: "📋 VIP RAQAMLAR RO'YXATI", url: 'https://t.me/vip_raqamlar_uz' }]])
+        reply_markup: inlineKb([
+          [{ text: "📋 VIP RAQAMLAR RO'YXATI", url: 'https://t.me/vip_raqamlar_uz' }],
+          [{ text: '📸 Instagram sahifamiz', url: INSTAGRAM_URL }]
+        ])
       });
       return { statusCode: 200, body: 'ok' };
     }

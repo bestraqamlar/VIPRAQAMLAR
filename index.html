@@ -1805,16 +1805,64 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 
 
 
-/* Toifa havolalari (Profil bo'limi) */
-.tfl{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
-.tfl a{
-  display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:10px;
-  background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
-  color:var(--text-2);font-size:12px;font-weight:700;white-space:nowrap;
-  transition:transform .16s cubic-bezier(.2,.8,.3,1),border-color .16s,color .16s;
+
+
+/* "Yana ko'rsatish" bilan qo'shilgan kartochkalar — yumshoq chiqadi.
+   Faqat transform va opacity: videokartada chiziladi, ro'yxat uzun
+   bo'lsa ham qotmaydi. */
+.numcard.yangi{animation:ncKel .44s cubic-bezier(.2,.85,.3,1) both}
+@keyframes ncKel{
+  from{opacity:0;transform:translate3d(0,14px,0) scale(.985)}
+  to  {opacity:1;transform:none}
 }
-.tfl a:active{transform:scale(.96)}
-.tfl a:hover{border-color:var(--blue);color:var(--blue-text)}
+@media (prefers-reduced-motion:reduce){ .numcard.yangi{animation:none} }
+
+/* ==================================================================
+   BILDIRISHNOMA TAKLIFI (pastdan chiqadigan kichik kartochka)
+   ================================================================== */
+.pask{
+  position:fixed;z-index:72;left:50%;bottom:calc(74px + var(--bot));
+  width:min(calc(100vw - 24px), calc(var(--app-w) - 24px), 420px);
+  transform:translateX(-50%) translate3d(0,150%,0);
+  display:none;flex-wrap:wrap;align-items:center;gap:11px;
+  padding:13px 14px;border-radius:19px;opacity:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 60%),rgba(16,34,62,.97);
+  box-shadow:0 22px 44px -22px rgba(2,8,20,.95),inset 0 0 0 1px var(--nc-line);
+  backdrop-filter:saturate(170%) blur(16px);-webkit-backdrop-filter:saturate(170%) blur(16px);
+  transition:transform .52s cubic-bezier(.2,.9,.26,1),opacity .3s ease;
+}
+.pask.show{display:flex;transform:translateX(-50%) translate3d(0,0,0);opacity:1}
+.pask-ic{
+  width:38px;height:38px;border-radius:12px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(74,124,240,.2);color:#9CB8FF;
+}
+.pask-ic svg{width:20px;height:20px}
+.pask-b{flex:1;min-width:140px}
+.pask-b b{display:block;font-size:13.5px;font-weight:800;color:#fff;line-height:1.3}
+.pask-b i{display:block;margin-top:3px;font-style:normal;font-size:11.5px;color:#C6D6EE;line-height:1.45}
+.pask-row{display:flex;gap:8px;align-items:center;margin-left:auto}
+.pask-yes{
+  height:34px;padding:0 15px;border:none;border-radius:999px;cursor:pointer;
+  background:linear-gradient(180deg,#3A6CF0,#2050DD);color:#fff;
+  font-family:inherit;font-size:12.5px;font-weight:800;white-space:nowrap;
+  transition:transform .16s cubic-bezier(.2,.8,.3,1);
+}
+.pask-yes:active{transform:scale(.95)}
+.pask-no{
+  height:34px;padding:0 11px;border:none;border-radius:999px;cursor:pointer;
+  background:transparent;color:var(--faint);
+  font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;
+}
+.pask-no:active{transform:scale(.95)}
+@media (prefers-reduced-motion:reduce){ .pask{transition:opacity .2s ease} }
+
+/* Bildirishnoma qatori — matni uzunroq, shu sabab o'zi uchun
+   biroz ixchamroq o'lchamlar (kesilib qolmasin). */
+#pushRow .tg-tx b{font-size:13px;white-space:normal}
+#pushRow .tg-tx i{-webkit-line-clamp:2}
+#pushRow .tg-btn{padding:0 12px;font-size:11.5px}
+#pushRow.on .tg-btn{background:linear-gradient(135deg,#2E9E63,#1F7A49);box-shadow:0 8px 18px -10px rgba(46,158,99,.9)}
 
 </style>
 </head>
@@ -2099,9 +2147,9 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 
 
 
-      <a class="ptile rise" id="moreInsta" href="https://instagram.com/vipraqamlar.uz" target="_blank" rel="noopener">
+      <a class="ptile rise" id="moreInsta" href="https://instagram.com/vipnumbers_uz" target="_blank" rel="noopener">
         <span class="pi" style="background:var(--gold-tint);color:var(--gold-ink)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"></rect><circle cx="12" cy="12" r="3.6"></circle><circle cx="17" cy="7" r="1.1" fill="currentColor"></circle></svg></span>
-        <b data-t="Instagram kanal">Instagram kanal</b><i>@vipraqamlar.uz</i>
+        <b data-t="Instagram kanal">Instagram kanal</b><i>@vipnumbers_uz</i>
       </a>
 
       <button class="ptile rise" data-sheet="faq">
@@ -2125,25 +2173,6 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
       <div style="font-size:12px;color:var(--text-2);font-weight:600;line-height:1.55" id="moreDelivery" data-t="O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.">O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.</div>
     </div>
 
-    <!-- TOIFALAR. Ikki foyda: mijoz tez topadi, Google esa shu
-         sahifalarni haqiqiy havola orqali ko'rib indekslaydi. -->
-    <div class="eyebrow" style="margin-top:22px" data-t="Toifalar">Toifalar</div>
-    <div class="tfl" id="toifaLinks">
-      <a href="/ucell-vip-raqamlar">Ucell VIP</a>
-      <a href="/beeline-vip-raqamlar">Beeline VIP</a>
-      <a href="/mobiuz-vip-raqamlar">Mobiuz VIP</a>
-      <a href="/humans-vip-raqamlar">Humans VIP</a>
-      <a href="/uzmobile-vip-raqamlar">Uzmobile VIP</a>
-      <a href="/perfektum-vip-raqamlar">Perfektum VIP</a>
-      <a href="/bolib-tolashga-raqamlar" data-t="Bo'lib to'lashga">Bo'lib to'lashga</a>
-      <a href="/arzon-vip-raqamlar" data-t="Arzon raqamlar">Arzon raqamlar</a>
-      <a href="/premium-vip-raqamlar" data-t="Premium raqamlar">Premium raqamlar</a>
-      <a href="/bir-xil-raqamlar">7777</a>
-      <a href="/juft-raqamlar">0707</a>
-      <a href="/ikki-juft-raqamlar">7788</a>
-      <a href="/ketma-ket-raqamlar">1234</a>
-      <a href="/yumaloq-raqamlar">00</a>
-    </div>
   </div>
 </section>
 
@@ -2196,6 +2225,23 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     <div class="hd"><h2 id="genTitle"></h2><button class="iconbtn" data-close aria-label="Yopish"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
     <div class="bodyscroll" id="genBody"></div>
     <div class="ft" id="genFoot" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ===== Bildirishnomani yoqish taklifi =====
+     Brauzer ruxsat oynasini O'ZI ocholmaydi — faqat odam bosgandan
+     keyin ochiladi. Shu sabab avval shu kichik taklif chiqadi. -->
+<div class="pask" id="pushAsk" role="dialog" aria-live="polite">
+  <div class="pask-ic">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"></path><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"></path></svg>
+  </div>
+  <div class="pask-b">
+    <b data-t="Yangi raqamlardan xabardor bo'ling">Yangi raqamlardan xabardor bo'ling</b>
+    <i data-t="Yangi VIP raqam va aksiyalar chiqqanda xabar beramiz">Yangi VIP raqam va aksiyalar chiqqanda xabar beramiz</i>
+  </div>
+  <div class="pask-row">
+    <button class="pask-yes" id="pushAskYes" type="button" data-t="Ha, yoqing">Ha, yoqing</button>
+    <button class="pask-no" id="pushAskNo" type="button" data-t="Keyinroq">Keyinroq</button>
   </div>
 </div>
 
@@ -2278,8 +2324,13 @@ const RU = {
   "Bildirishnomalarni yoqish":"Включить уведомления","Bildirishnoma yoqilgan":"Уведомления включены",
   "Bildirishnoma o'chirilgan":"Уведомления отключены","Yoqish":"Включить","Yoqilgan":"Включено","O'chirilgan":"Отключено",
   "Yangi raqamlar va aksiyalardan xabardor bo'ling":"Узнавайте о новых номерах и акциях",
-  "Yangi raqam va aksiyalardan xabardor bo'lasiz":"Вы будете получать новости о номерах и акциях",
+  "Yangi raqamlardan xabardor bo'lasiz":"Вы будете получать уведомления о новых номерах",
   "Brauzer sozlamalaridan qayta yoqsangiz bo'ladi":"Можно включить обратно в настройках браузера",
+  "Yangi raqamlardan xabardor bo'ling":"Узнавайте о новых номерах первыми",
+  "Yangi VIP raqam va aksiyalar chiqqanda xabar beramiz":"Сообщим, когда появятся новые VIP номера и акции",
+  "Ha, yoqing":"Да, включить","Keyinroq":"Позже",
+  "Bosh ekranga qo'shsangiz ishlaydi":"Работает, если добавить сайт на экран «Домой»",
+  "Bu brauzer qo'llamaydi":"Этот браузер не поддерживает","Qanday?":"Как?","Mavjud emas":"Недоступно",
   "hozir":"сейчас","daqiqa oldin":"мин. назад","soat oldin":"ч. назад",
   "kecha":"вчера","kun oldin":"дн. назад",
   "Chiroyli raqamlar":"Красивые номера","Bosh sahifa":"Главная","Katalog":"Каталог","Sevimlilar":"Избранное",
@@ -2743,6 +2794,7 @@ function openSheet(id){
   el.style.zIndex = String(100 + sheetStack.length);
   /* Oyna ochilganda tepadagi push bildirishnomasi yo'q bo'lsin */
   try{ if(typeof pushniYop === 'function') pushniYop(); }catch(e){}
+  try{ if(typeof PUSH !== 'undefined' && PUSH.taklifYop) PUSH.taklifYop(false); }catch(e){}
   document.body.classList.add('noscroll');
   haptic('light');
   setTimeout(()=>{ if(typeof upperAll === 'function') upperAll(el); }, 0);
@@ -3168,9 +3220,9 @@ async function sozlamalarniYukla(){
      bo'lishidan qat'i nazar, boshqa sahifaga olib ketmaydi. */
   const ig = $('#moreInsta');
   if(ig){
-    ig.href = 'https://instagram.com/vipraqamlar.uz';
+    ig.href = 'https://instagram.com/vipnumbers_uz';
     const sub = ig.querySelector('i');
-    if(sub) sub.textContent = '@vipraqamlar.uz';
+    if(sub) sub.textContent = '@vipnumbers_uz';
   }
   if(s.deliveryText){ const d=$('#moreDelivery'); d.textContent = s.deliveryText; d.removeAttribute('data-t'); }
   /* Bildirishnoma kaliti shu hujjatda keladi — qator endi ko'rinishi
@@ -3674,12 +3726,49 @@ function heroW(){
 function heroBazaga(){
   const tr = heroEl(); if(!tr) return;
   tr.classList.remove('glide','snapback');
+  tr.style.transition = '';
   tr.style.transform = 'translate3d(' + (-heroW()) + 'px,0,0)';
 }
 function heroQoy(x, sinf){
   const tr = heroEl(); if(!tr) return;
   tr.classList.remove('glide','snapback');
+  tr.style.transition = '';
   if(sinf) tr.classList.add(sinf);
+  tr.style.transform = 'translate3d(' + x + 'px,0,0)';
+}
+
+/* ==================================================================
+   BARMOQ UZILGANDAN KEYINGI HARAKAT
+   ------------------------------------------------------------------
+   MUAMMO (mijoz aytgan): qo'l bilan surganda kartochkaning joyiga
+   o'tirishi noqulay edi. Sababi — qancha masofa qolganidan va
+   barmoq qanchalik tez harakatlanganidan QAT'I NAZAR har doim bir
+   xil 0,62 s ishlatilardi. Ya'ni:
+     • deyarli oxirigacha surilgan bo'lsa ham yana 0,62 s kutilardi
+       (sust tuyuladi),
+     • tez silkitilganda esa oxirida keskin to'xtardi.
+
+   KATTA ILOVALARDA QANDAY: davomiylik QOLGAN MASOFA / TEZLIK dan
+   hisoblanadi va chegaralanadi, egri chiziq esa oxirida yumshoq
+   so'nadi. Shuni qildik:
+     davomiylik = qolgan masofa / barmoq tezligi,  260...540 ms
+     egri chiziq = cubic-bezier(.25,1,.5,1)  (oxiri silliq so'nadi)
+   Natijada harakat barmoq tezligining davomidek tuyuladi. */
+const HERO_EGRI = 'cubic-bezier(.25,1,.5,1)';
+function heroVaqt(masofa, tezlik){
+  const m = Math.abs(masofa);
+  /* Pastki chegara ataylab baland: barmoq sekin uzilganda ham
+     kartochka "sudralib" bormaydi, o'rtacha tezlikda o'tiradi. */
+  const v = Math.max(0.45, Math.abs(tezlik || 0));   /* px/ms */
+  return Math.max(240, Math.min(460, Math.round(m / v)));
+}
+/* Berilgan davomiylik bilan siljitish (sinf emas — aniq vaqt) */
+function heroSur(x, ms){
+  const tr = heroEl(); if(!tr) return;
+  tr.classList.remove('glide','snapback');
+  tr.style.transition = 'transform ' + ms + 'ms ' + HERO_EGRI;
+  /* brauzer boshlang'ich holatni bir marta hisoblab olsin */
+  void tr.offsetWidth;
   tr.style.transform = 'translate3d(' + x + 'px,0,0)';
 }
 /* O'tish tugaganini kutadi. Agar `transitionend` kelmay qolsa
@@ -3697,36 +3786,43 @@ function heroKut(tr, ish, ms){
   setTimeout(bajar, ms || 900);
 }
 
-function heroOldinga(){
+/* ms berilmasa — avtomatik o'tish (tinch, 620 ms).
+   ms berilsa — barmoq uzilgandan keyingi hisoblangan vaqt. */
+function heroOldinga(ms){
   const tr = heroEl(); if(!tr || tr.children.length < 3 || heroBusy) return;
   heroBusy = true;
   const w = heroW();
-  heroQoy(-2 * w, 'glide');
+  const dav = ms || 620;
+  heroSur(-2 * w, dav);
   heroKut(tr, ()=>{
     tr.classList.remove('glide','snapback');
+    tr.style.transition = '';
     tr.appendChild(tr.firstElementChild);     /* birinchisi oxiriga */
     tr.style.transform = 'translate3d(' + (-w) + 'px,0,0)';
     void tr.offsetWidth;
     heroBusy = false;
     heroIdx = (heroIdx + 1) % heroJami;
     syncDots(); heroShine();
-  }, 900);
+  }, dav + 240);
 }
-function heroOrqaga(){
+function heroOrqaga(ms){
   const tr = heroEl(); if(!tr || tr.children.length < 3 || heroBusy) return;
   heroBusy = true;
   const w = heroW();
+  const dav = ms || 620;
   tr.classList.remove('glide','snapback');
+  tr.style.transition = '';
   tr.insertBefore(tr.lastElementChild, tr.firstElementChild);  /* oxirgisi boshiga */
   tr.style.transform = 'translate3d(' + (-2 * w) + 'px,0,0)';
   void tr.offsetWidth;
-  heroQoy(-w, 'glide');
+  heroSur(-w, dav);
   heroKut(tr, ()=>{
     tr.classList.remove('glide','snapback');
+    tr.style.transition = '';
     heroBusy = false;
     heroIdx = (heroIdx - 1 + heroJami) % heroJami;
     syncDots(); heroShine();
-  }, 900);
+  }, dav + 240);
 }
 
 function startHeroLoop(){
@@ -3752,7 +3848,8 @@ function startHeroLoop(){
     sx = e.clientX; sy = e.clientY;
     lastX = e.clientX; lastT = performance.now(); vel = 0;
     heroPaused = Date.now() + 6000;
-    const t = heroEl(); if(t) t.classList.remove('glide','snapback');
+    const t = heroEl();
+    if(t){ t.classList.remove('glide','snapback'); t.style.transition = ''; }
     box.classList.add('drag');
     try{ box.setPointerCapture(e.pointerId); }catch(err){}
   }, { passive:true });
@@ -3783,12 +3880,25 @@ function startHeroLoop(){
     down = false;
     box.classList.remove('drag');
     heroPaused = Date.now() + 5000;
+    /* Barmoq to'xtab turib uzilgan bo'lsa — tezlik hisobga olinmaydi */
     if(performance.now() - lastT > 140) vel = 0;
 
-    const w = heroW(), FLICK = 0.25;          /* px/ms */
-    if(vel <= -FLICK || dx <= -w * 0.20){ heroOldinga(); return; }
-    if(vel >=  FLICK || dx >=  w * 0.20){ heroOrqaga(); return; }
-    heroQoy(-w, 'snapback');                  /* yetmadi — joyiga */
+    const w = heroW();
+    const FLICK = 0.18;                       /* px/ms — sezgirroq */
+    const chegara = w * 0.18;                 /* masofa chegarasi */
+
+    /* Oldinga (chapga surilgan) */
+    if(vel <= -FLICK || dx <= -chegara){
+      heroOldinga(heroVaqt(w + dx, vel));     /* qolgan masofa = w - |dx| */
+      return;
+    }
+    /* Orqaga (o'ngga surilgan) */
+    if(vel >= FLICK || dx >= chegara){
+      heroOrqaga(heroVaqt(w - dx, vel));
+      return;
+    }
+    /* Yetmadi — joyiga qaytadi. Bu ham qolgan masofaga qarab. */
+    heroSur(-w, heroVaqt(dx, vel * 0.6));
   };
   box.addEventListener('pointerup', up, { passive:true });
   box.addEventListener('pointercancel', up, { passive:true });
@@ -3887,6 +3997,17 @@ function naqshMos(n, k){
 }
 let RK = {};
 function reshuffle(){ RK = {}; NUMBERS.forEach(n => { RK[n.id] = Math.random(); }); }
+/* Tartib kaliti. MUHIM: ilgari ro'yxatda bo'lmagan raqam uchun
+   `Math.random()` TO'G'RIDAN-TO'G'RI solishtirishda chaqirilardi —
+   ya'ni har solishtirishda boshqa son chiqib, tartib BEQAROR bo'lardi.
+   Natijada "Yana ko'rsatish" bosilganda butun ro'yxat qaytadan
+   aralashib ketardi. Endi kalit bir marta beriladi va eslab qolinadi. */
+function rkOf(n){
+  const id = n && n.id;
+  if(!id) return 0;
+  if(RK[id] == null) RK[id] = Math.random();
+  return RK[id];
+}
 let LIVE_RESULTS = [], liveBusy = false;
 /* Qidiruv FAQAT tugma bosilganda ishga tushadi.
    COMMITTED — tasdiqlangan naqsh; kiritish paytida ro'yxat o'zgarmaydi. */
@@ -3918,7 +4039,7 @@ function catalogItems(){
     if(catSort === 'cheap') return (a.price||0)-(b.price||0);
     if(catSort === 'expensive') return (b.price||0)-(a.price||0);
     /* standart tartib — har safar bo'limga kirganda tasodifiy */
-    return (RK[a.id] ?? Math.random()) - (RK[b.id] ?? Math.random());
+    return rkOf(a) - rkOf(b);
   });
   return list;
 }
@@ -4000,7 +4121,45 @@ function renderCatalog(){
       t('Maxsus buyurtma'), 'data-sheet="custom"');
     $('#catMore').style.display='none'; return;
   }
-  $('#catList').innerHTML = list.slice(0, catShown).map(n => numCard(n)).join('');
+  /* ===== RO'YXAT: QAYTA QURILMAYDI, QO'SHILADI =====
+     "Yana ko'rsatish" bosilganda ilgari butun ro'yxat qaytadan
+     chizilardi: mijoz o'qiyotgan joyi yo'qolib, kartochkalar boshidan
+     paydo bo'lardi. Endi filtr o'zgarmagan bo'lsa FAQAT yangi 15 ta
+     kartochka oxiriga qo'shiladi — ko'z o'sha joyda qoladi, yangilari
+     esa birin-ketin yumshoq chiqadi. */
+  const lst = $('#catList');
+  const kesim = list.slice(0, catShown);
+  const imzo = [catOp, catSort, catNaqsh, catOnlyInstallment ? 1 : 0,
+                (COMMITTED || []).join(''), list.length, LIVE_RESULTS.length].join('|');
+
+  if(lst.dataset.sig === imzo && lst.children.length && kesim.length > lst.children.length){
+    const bor = lst.children.length;
+    const yangi = kesim.slice(bor);
+    const vaqt = document.createElement('div');
+    vaqt.innerHTML = yangi.map(n => numCard(n)).join('');
+    const frag = document.createDocumentFragment();
+    let i = 0;
+    while(vaqt.firstElementChild){
+      const el = vaqt.firstElementChild;
+      el.classList.add('yangi');
+      /* bir-biridan 45 ms kechikib chiqadi — "to'kilib tushgan" emas,
+         ketma-ket ochilgandek ko'rinadi */
+      el.style.animationDelay = (i++ * 45) + 'ms';
+      frag.appendChild(el);
+    }
+    lst.appendChild(frag);
+    /* animatsiya tugagach sinf olib tashlanadi, aks holda keyingi
+       chizishda qaytadan o'ynardi */
+    setTimeout(()=>{
+      lst.querySelectorAll('.numcard.yangi').forEach(el => {
+        el.classList.remove('yangi'); el.style.animationDelay = '';
+      });
+    }, 700 + yangi.length * 45);
+  }else{
+    lst.dataset.sig = imzo;
+    lst.innerHTML = kesim.map(n => numCard(n)).join('');
+  }
+
   const more = list.length > catShown;
   $('#catMore').style.display = more ? '' : 'none';
   if(more) $('#catMore').textContent = `${t("Yana ko'rsatish")} (${Math.min(PAGE_SIZE, list.length - catShown)})`;
@@ -4216,6 +4375,8 @@ function openDetail(id){
        </div>
        <button class="btn" data-order="${esc(item.id)}" style="flex:1">${t('Buyurtma berish')}</button>`;
   openSheet('shDetail');
+  /* Mijoz raqamlarga qiziqyapti — bildirishnoma taklifi uchun belgi */
+  try{ if(typeof PUSH !== 'undefined' && PUSH.qiziqdi) PUSH.qiziqdi(); }catch(e){}
 }
 
 function numberFacts(item){
@@ -5507,20 +5668,25 @@ const PUSH = (function(){
 
   const qollabQuvvat = ()=>{
     try{
-      /* `isSecureContext` — brauzerning O'ZI qo'yadigan shart.
-         "location.protocol === https" deb yozish noto'g'ri edi:
-         localhost ham xavfsiz hisoblanadi va u yerda ishlab chiqish
-         imkoni yo'qolardi. */
-      return ('Notification' in window) && ('serviceWorker' in navigator) &&
-             ('PushManager' in window) && window.isSecureContext !== false;
+      /* Tekshiruv ATAYLAB qat'iy: ba'zi brauzerlarda (ayniqsa
+         iPhone Safari'ning oddiy oynasida) `Notification` nomi bor,
+         lekin ishlamaydi. Shu sabab nomning borligi emas, FUNKSIYA
+         borligi tekshiriladi — aks holda mijozga "yoqib bo'lmadi"
+         degan tushunarsiz xato chiqardi.
+         `isSecureContext` — brauzerning o'zi qo'yadigan shart
+         (localhost ham xavfsiz hisoblanadi). */
+      return typeof Notification !== 'undefined'
+          && typeof Notification.requestPermission === 'function'
+          && ('serviceWorker' in navigator)
+          && typeof PushManager !== 'undefined'
+          && window.isSecureContext !== false;
     }catch(e){ return false; }
   };
-  const iphone = ()=>{ try{
+  /* Apple qurilmasi (iPhone/iPad). Faqat YO'RIQNOMA matnini
+     tanlash uchun kerak — imkoniyatni bu emas, brauzer hal qiladi. */
+  const appleQurilma = ()=>{ try{
     return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  }catch(e){ return false; } };
-  const ornatilgan = ()=>{ try{
-    return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   }catch(e){ return false; } };
   const holat = ()=>{ try{ return Notification.permission; }catch(e){ return 'default'; } };
 
@@ -5563,18 +5729,25 @@ const PUSH = (function(){
 
   /* Mijoz tugmani bosganda */
   async function yoq(){
+    /* MUHIM: qurilma nomiga qarab OLDINDAN taqiqlamaymiz.
+       Safari (Mac'da) bildirishnomani oddiy oynada ham qo'llaydi,
+       iPhone'da esa faqat sayt "Bosh ekranga qo'shish" orqali
+       o'rnatilgan bo'lsa. Buni brauzerning o'zi bildiradi — shu
+       sabab faqat haqiqiy imkoniyat tekshiriladi. */
     if(!qollabQuvvat()){
-      toast(iphone()
-        ? (LANG==='ru' ? 'На iPhone нужно сначала добавить сайт на экран «Домой»'
-                       : "iPhone'da avval saytni \"Bosh ekranga qo'shish\" kerak")
+      toast(appleQurilma()
+        ? (LANG==='ru' ? 'Нажмите «Поделиться» → «На экран «Домой»», затем включите уведомления'
+                       : "\"Ulashish\" → \"Bosh ekranga qo'shish\" qiling, so'ng yoqing")
         : (LANG==='ru' ? 'Этот браузер не поддерживает уведомления'
                        : 'Bu brauzer bildirishnomani qo\'llamaydi'), 'warn');
       return false;
     }
-    if(iphone() && !ornatilgan()){
-      toast(LANG==='ru'
-        ? 'Откройте «Поделиться» → «На экран «Домой»», затем включите уведомления'
-        : "\"Ulashish\" → \"Bosh ekranga qo'shish\" qiling, so'ng yoqing", 'warn');
+    /* Kalit admin paneldan kelmagan bo'lsa — brauzerdan ruxsat
+       so'rashning ma'nosi yo'q: baribir token olinmaydi. Mijozga
+       "yoqib bo'lmadi" deb tushunarsiz xabar chiqarmaymiz. */
+    if(!(SETTINGS && SETTINGS.webPushKey)){
+      toast(LANG==='ru' ? 'Уведомления пока не настроены' : 'Bildirishnoma hali sozlanmagan', 'warn');
+      try{ if(typeof track==='function') track('push_kalit_yoq'); }catch(e){}
       return false;
     }
     try{
@@ -5593,7 +5766,11 @@ const PUSH = (function(){
       try{ if(typeof track==='function') track('push_yoqildi'); }catch(e){}
       return true;
     }catch(e){
-      toast(LANG==='ru' ? 'Не получилось включить' : 'Yoqib bo\'lmadi', 'bad');
+      /* Sababini yashirmaymiz — admin nimani tuzatish kerakligini
+         bilishi uchun xato matni ham ko'rsatiladi. */
+      const sabab = String((e && e.message) || '').slice(0, 60);
+      toast((LANG==='ru' ? 'Не получилось включить' : 'Yoqib bo\'lmadi') + (sabab ? ': ' + sabab : ''), 'bad');
+      try{ if(typeof track==='function') track('push_xato'); }catch(e2){}
       return false;
     }
   }
@@ -5615,36 +5792,129 @@ const PUSH = (function(){
     const row = document.getElementById('pushRow');
     if(!row) return;
     const b = row.querySelector('b'), i = row.querySelector('i'), btn = row.querySelector('.tg-btn span');
-    if(!qollabQuvvat()){ row.style.display = 'none'; return; }
+
+    /* MUHIM: matnni shunchaki textContent bilan qo'yish YETARLI EMAS.
+       applyLang() keyinroq ishlaganda `data-t` dagi asl matnni qayta
+       tiklab, bizning yozuvimizni o'chirib yuborardi. Shu sabab
+       `data-t` ning O'ZI ham yangilanadi. */
+    const qoy = (el, kalit)=>{
+      if(!el) return;
+      el.setAttribute('data-t', kalit);
+      el.textContent = t(kalit);
+    };
+
+    /* Qator HAR DOIM ko'rinadi. Mijoz "Keyinroq" bosgan bo'lsa ham,
+       brauzer qo'llamasa ham — Profil bo'limidan istalgan vaqtda
+       yoqa olishi (yoki nima qilish kerakligini bilishi) uchun. */
     row.style.display = '';
+
+    if(!qollabQuvvat()){
+      qoy(b, 'Bildirishnomalarni yoqish');
+      qoy(i, appleQurilma() ? "Bosh ekranga qo'shsangiz ishlaydi" : "Bu brauzer qo'llamaydi");
+      qoy(btn, appleQurilma() ? 'Qanday?' : 'Mavjud emas');
+      row.classList.remove('on');
+      return;
+    }
+
     const h = holat();
     if(h === 'granted'){
-      if(b) b.textContent = t('Bildirishnoma yoqilgan');
-      if(i) i.textContent = t('Yangi raqam va aksiyalardan xabardor bo\'lasiz');
-      if(btn) btn.textContent = t('Yoqilgan');
+      qoy(b, 'Bildirishnoma yoqilgan');
+      qoy(i, "Yangi raqamlardan xabardor bo'lasiz");
+      qoy(btn, 'Yoqilgan');
       row.classList.add('on');
     }else if(h === 'denied'){
-      if(b) b.textContent = t('Bildirishnoma o\'chirilgan');
-      if(i) i.textContent = t('Brauzer sozlamalaridan qayta yoqsangiz bo\'ladi');
-      if(btn) btn.textContent = t('O\'chirilgan');
+      qoy(b, "Bildirishnoma o'chirilgan");
+      qoy(i, "Brauzer sozlamalaridan qayta yoqsangiz bo'ladi");
+      qoy(btn, "O'chirilgan");
       row.classList.remove('on');
     }else{
-      if(b) b.textContent = t('Bildirishnomalarni yoqish');
-      if(i) i.textContent = t('Yangi raqamlar va aksiyalardan xabardor bo\'ling');
-      if(btn) btn.textContent = t('Yoqish');
+      qoy(b, 'Bildirishnomalarni yoqish');
+      qoy(i, "Yangi raqamlar va aksiyalardan xabardor bo'ling");
+      qoy(btn, 'Yoqish');
       row.classList.remove('on');
     }
+  }
+
+  /* ================= AVTOMATIK TAKLIF =================
+     Savol: "hamma saytga kirganga o'zi yoqib qo'ysak bo'lmaydimi?"
+     Javob: brauzer bunga YO'L QO'YMAYDI. Ruxsat so'rash oynasi faqat
+     odam biror narsani bosgandan keyin ochiladi — aks holda Chrome
+     ham, Safari ham so'rovni jimgina rad etadi (spamning oldini
+     olish uchun shunday qilingan).
+
+     Shu sabab qonuniy va eng samarali yo'l: BIZ o'zimiz chiroyli
+     kichik taklif chiqaramiz, mijoz "Ha" bossa — brauzer oynasi
+     ochiladi. Amalda odamlarning katta qismi shu yo'l bilan yoqadi.
+
+     Taklif bezor qilmasligi uchun:
+       • mijoz saytda biroz yurgandan keyin chiqadi (2 ta raqam ochsa
+         yoki 40 soniya o'tsa),
+       • bir sessiyada bir marta,
+       • "Keyinroq" bosilsa 14 kun ko'rinmaydi,
+       • allaqachon yoqilgan yoki rad etilgan bo'lsa umuman chiqmaydi.
+     ================================================================= */
+  const K_KEYIN = 'vip_push_keyin';
+  let korildi = false, ochilgan = 0;
+
+  function taklifBormi(){
+    if(korildi) return false;
+    if(!qollabQuvvat()) return false;
+    if(holat() !== 'default') return false;          /* yoqilgan yoki rad etilgan */
+    if(!(SETTINGS && SETTINGS.webPushKey)) return false;
+    /* Qurilma turiga qarab taqiq yo'q — brauzer qo'llasa, taklif
+       chiqaveradi (qollabQuvvat() yuqorida allaqachon tekshirildi). */
+    try{
+      const k = +localStorage.getItem(K_KEYIN) || 0;
+      if(k && Date.now() < k) return false;
+    }catch(e){}
+    try{ if(sessionStorage.getItem('vip_push_tak')) return false; }catch(e){}
+    return true;
+  }
+
+  function taklifKorsat(){
+    if(!taklifBormi()) return;
+    korildi = true;
+    try{ sessionStorage.setItem('vip_push_tak','1'); }catch(e){}
+    const box = document.getElementById('pushAsk');
+    if(!box) return;
+    box.style.display = 'flex';
+    void box.offsetWidth;
+    setTimeout(()=> box.classList.add('show'), 40);
+    try{ if(typeof track==='function') track('push_taklif_korsatildi'); }catch(e){}
+  }
+  function taklifYop(keyinroq){
+    const box = document.getElementById('pushAsk');
+    if(!box) return;
+    box.classList.remove('show');
+    setTimeout(()=>{ box.style.display = 'none'; }, 520);
+    if(keyinroq){
+      try{ localStorage.setItem(K_KEYIN, String(Date.now() + 14*24*3600*1000)); }catch(e){}
+      try{ if(typeof track==='function') track('push_keyinroq'); }catch(e){}
+    }
+  }
+  /* Raqam ochilganda chaqiriladi — qiziqish belgisi */
+  function qiziqdi(){
+    ochilgan++;
+    if(ochilgan >= 2) setTimeout(taklifKorsat, 1200);
   }
 
   function init(){
     belgini();
     const row = document.getElementById('pushRow');
     if(row) row.addEventListener('click', ()=>{ if(holat() !== 'granted') yoq(); });
+
+    const ha = document.getElementById('pushAskYes');
+    if(ha) ha.addEventListener('click', async ()=>{ taklifYop(false); await yoq(); });
+    const yoqq = document.getElementById('pushAskNo');
+    if(yoqq) yoqq.addEventListener('click', ()=> taklifYop(true));
+
     /* Ruxsat bor bo'lsa — tokenni jimgina yangilab qo'yamiz */
     setTimeout(jimYangila, 3000);
+    /* Hech narsa bosmagan mijozga ham — 40 soniyadan keyin */
+    setTimeout(taklifKorsat, 40000);
   }
 
-  return { init, yoq, belgini, holat, qollabQuvvat };
+  return { init, yoq, belgini, holat, qollabQuvvat, qiziqdi, taklifYop };
 })();
 
 </script>
