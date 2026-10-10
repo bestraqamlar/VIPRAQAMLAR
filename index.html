@@ -20,8 +20,7 @@
 <meta property="og:image" content="https://vipraqamlar.uz/assets/og-image.jpg">
 <meta property="og:url" content="https://vipraqamlar.uz/">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="assets/icon-192.png" sizes="192x192">
-<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/logo-circle.png">
 <link rel="apple-touch-icon" href="assets/icon-512.png">
 <meta name="application-name" content="VIP RAQAMLAR">
 <meta name="apple-mobile-web-app-title" content="VIP RAQAMLAR">
@@ -53,26 +52,8 @@ try{
      millisoniya mijoz uchun "sayt bir zumda ochildi" degani.
      Indeks nima ekani: netlify/functions/api-index.js -->
 <script>
-/* ILOVA REJIMI.
-   Android/iOS ilovasi ichida sahifa `capacitor://localhost` yoki
-   `https://localhost` manzilidan ochiladi — ya'ni server YO'Q, fayllar
-   telefonning o'zida yotadi (shu sabab ilova bir zumda ochiladi).
-   Lekin API so'rovlari baribir haqiqiy saytga ketishi kerak, shuning
-   uchun ilova ichida manzil to'liq yoziladi. */
-window.VIP_SITE = 'https://vipraqamlar.uz';
-window.VIP_APP = (function(){
-  try{
-    /* Capacitor o'z ko'prigini sahifa kodidan OLDIN ulaydi, shu sabab
-       `window.Capacitor` ning borligi — eng ishonchli belgi.
-       Boshqa taxminlar (masalan "localhost" yoki "file:") ishlatilmadi:
-       ular mahalliy sinovda yoki faylni to'g'ridan-to'g'ri ochganda
-       noto'g'ri ishlab ketardi. */
-    return !!window.Capacitor || location.protocol === 'capacitor:';
-  }catch(e){ return false; }
-})();
-window.VIP_FN = (window.VIP_APP ? window.VIP_SITE : '') + '/.netlify/functions/';
 try{
-  window.__idxP = fetch(window.VIP_FN + 'api-index')
+  window.__idxP = fetch('/.netlify/functions/api-index')
     .then(r => r.ok ? r.json() : null)
     .catch(() => null);
 }catch(e){ window.__idxP = null; }
@@ -343,6 +324,31 @@ html.low .herocard{
   box-shadow:0 12px 26px -18px rgba(4,11,24,.95), inset 0 1px 0 rgba(255,255,255,.10);
 }
 html.low .pwa{ box-shadow:0 10px 24px -14px rgba(0,0,0,.7); }
+
+/* ===== AYLANTIRISH PAYTIDA BLUR O'CHADI =====
+   `backdrop-filter` har kadrda menyu ortidagi rasmni qaytadan o'qib,
+   qaytadan xiralashtiradi. Sahifa turganda bu bepul (rasm o'zgarmaydi),
+   lekin AYLANTIRGANDA har kadrda qaytadan hisoblanadi — Androidda
+   aynan shu "qotib qolish" ni keltirib chiqaradi.
+
+   Yechim: barmoq aylantirayotganda blur vaqtincha o'chadi va menyu
+   to'qroq fonga o'tadi; aylantirish tugagach 160 ms ichida qaytadi.
+   Harakat paytida ko'z blurni baribir ilg'amaydi — lekin kadrlar
+   silliq bo'lib qoladi. */
+html.scrolling #nav,
+html.scrolling .topbar,
+html.scrolling #deskhead{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+html.scrolling #nav{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 55%),
+    rgba(14,30,56,.93);
+}
+html.scrolling .topbar, html.scrolling #deskhead{ background:rgba(8,20,40,.95) }
+/* qaytganda sakrab ketmasin */
+#nav{transition:background .18s linear}
 
 /* blur qo'llab-quvvatlanmasa — menyu shaffof bo'lib qolmasin */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
@@ -1953,11 +1959,9 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
         <b data-t="Savol-javob">Savol-javob</b><i data-t="Yordam">Yordam</i>
       </button>
 
-      <!-- Maxfiylik siyosati — App Store va Play Market ILOVA ICHIDAN
-           havola bo'lishini MAJBURIY talab qiladi. -->
-      <a class="ptile rise" href="https://vipraqamlar.uz/maxfiylik" target="_blank" rel="noopener">
-        <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"></path><path d="M9.5 12.2l1.8 1.8 3.4-3.6"></path></svg></span>
-        <b data-t="Maxfiylik siyosati">Maxfiylik siyosati</b><i data-t="Ma'lumotlaringiz himoyasi">Ma'lumotlaringiz himoyasi</i>
+      <a class="ptile rise" href="/ilova">
+        <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"></rect><path d="M12 7v7M9 11l3 3 3-3"></path></svg></span>
+        <b data-t="Ilovani yuklab olish">Ilovani yuklab olish</b><i data-t="Android va iPhone uchun">Android va iPhone uchun</i>
       </a>
 
       <button class="ptile rise" data-sheet="about">
@@ -2032,7 +2036,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 
 <!-- ===== PWA: "Ilovani o'rnating" taklifi (pastda, menyu ustida) ===== -->
 <div class="pwa" id="pwaBox" role="dialog" aria-live="polite" aria-label="Ilovani o'rnatish">
-  <div class="pwa-ic"><img src="assets/icon-192.png" alt="" width="44" height="44" loading="lazy" decoding="async"></div>
+  <div class="pwa-ic"><img src="assets/logo-circle.png" alt="" width="44" height="44" loading="lazy" decoding="async"></div>
   <div class="pwa-b">
     <div class="pwa-t" data-t="Ilovani o'rnating">Ilovani o'rnating</div>
     <div class="pwa-s" id="pwaSub" data-t="Bosh ekrandan bir bosishda oching — tezroq ishlaydi va yangi raqamlardan xabardor bo'lasiz.">Bosh ekrandan bir bosishda oching — tezroq ishlaydi va yangi raqamlardan xabardor bo'lasiz.</div>
@@ -2084,9 +2088,7 @@ let NUMBERS = [], numbersLoaded = false, SETTINGS = {}, FAVORITES = [];
 let installmentRates = { 6:5, 12:10, 24:20, 36:30 };
 let OPERATOR_FINANCING = { byOperator:{ Humans:{}, Ucell:{}, Beeline:{} }, tariffsByOperator:{ Humans:[], Ucell:[], Beeline:[] } };
 let TESTIMONIALS = [];
-/* Saytda — nisbiy manzil, ilovada — to'liq manzil (qarang: <head>) */
-const FN = (typeof window !== 'undefined' && window.VIP_FN) || '/.netlify/functions/';
-const INAPP = !!(typeof window !== 'undefined' && window.VIP_APP);
+const FN = '/.netlify/functions/';
 
 const OPERATOR_META = {
   Mobiuz:{color:'#C0392B', logo:'assets/operators/mobiuz.png'},
@@ -2614,8 +2616,6 @@ function haptic(kind){
   }catch(e){}
 }
 applyTheme(themeNow());
-/* ilova qobig'i `haptic`ni o'z tebranishiga almashtira olishi uchun */
-try{ window.haptic = haptic; }catch(e){}
 
 /* ---------- Marshrut ---------- */
 const ROUTES = { '':'home', '/':'home', '/katalog':'catalog', '/sevimlilar':'fav', '/buyurtmalarim':'orders', '/shartnoma':'contract', '/profil':'more', '/yana':'more' };
@@ -4896,7 +4896,12 @@ document.addEventListener('click', (e)=>{
   }
 
   const c = e.target.closest('[data-card]');
-  if(c){ openDetail(c.dataset.card); return; }
+  if(c){
+    /* tez bosish allaqachon ochgan bo'lsa — ikkinchi marta ochmaymiz */
+    if(Date.now() - (window.__tezOchildi || 0) < 700) return;
+    openDetail(c.dataset.card);
+    return;
+  }
 
   const o = e.target.closest('[data-order]');
   if(o){ closeSheet('shDetail'); setTimeout(()=> openOrder(o.dataset.order), 180); return; }
@@ -5121,7 +5126,6 @@ const PWA = (function(){
 
   const inTelegram = ()=>{ try{ return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData); }catch(e){ return false; } };
   const installed = ()=>{
-    if(window.VIP_APP) return true;   /* allaqachon haqiqiy ilova ichidamiz */
     try{
       if(window.matchMedia('(display-mode: standalone)').matches) return true;
       if(window.navigator.standalone) return true;
@@ -5253,72 +5257,10 @@ const PWA = (function(){
   };
 })();
 
-/* Service worker — internet umuman yo'q bo'lsa ham sayt ochiladi.
-   ILOVA ichida kerak emas: u yerda fayllar allaqachon telefonning
-   o'zida yotadi, service worker esa faqat chalkashtirardi. */
-if('serviceWorker' in navigator && location.protocol === 'https:' && !window.VIP_APP){
+/* Service worker — internet umuman yo'q bo'lsa ham sayt ochiladi */
+if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', ()=> navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
-
-/* ================= ILOVA (Android / iOS) BILAN BOG'LANISH =================
-   Bu kod FAQAT ilova ichida ishlaydi — saytda hech narsa qilmaydi.
-   Capacitor plaginlari ilova ichida `window.Capacitor.Plugins` da
-   o'zi paydo bo'ladi, shu sabab hech qanday yig'uvchi (bundler) kerak
-   emas va sayt fayli og'irlashmaydi. */
-(function nativeKorpus(){
-  if(!window.VIP_APP) return;
-  const P = (window.Capacitor && window.Capacitor.Plugins) || {};
-
-  /* 1. Yuqoridagi holat paneli — saytning tungi rangiga mos */
-  try{
-    if(P.StatusBar){
-      P.StatusBar.setStyle({ style: 'DARK' }).catch(()=>{});
-      P.StatusBar.setBackgroundColor({ color: '#07152B' }).catch(()=>{});
-      P.StatusBar.setOverlaysWebView({ overlay: false }).catch(()=>{});
-    }
-  }catch(e){}
-
-  /* 2. Ochilish ekrani — sayt chizilib bo'lgach yopiladi.
-        Oldin yopilsa mijoz bir lahza oq ekran ko'rardi. */
-  const splashniYop = ()=>{ try{ if(P.SplashScreen) P.SplashScreen.hide().catch(()=>{}); }catch(e){} };
-  if(document.readyState === 'complete') setTimeout(splashniYop, 260);
-  else window.addEventListener('load', ()=> setTimeout(splashniYop, 260));
-
-  /* 3. Androiddagi "orqaga" tugmasi.
-        Avval ochiq oyna yopiladi, keyin sahifa tarixi bo'yicha orqaga,
-        bosh sahifada esa ilova yopiladi (Android odati shunday). */
-  try{
-    if(P.App){
-      P.App.addListener('backButton', ()=>{
-        const ochiq = document.querySelector('.sheet.on');
-        if(ochiq){ try{ closeSheet(ochiq.id); }catch(e){ ochiq.classList.remove('on'); } return; }
-        const h = (location.hash || '').replace(/^#/, '');
-        if(h && h !== '/' ){ location.hash = '#/'; return; }
-        P.App.exitApp();
-      });
-    }
-  }catch(e){}
-
-  /* 4. Tebranish (haptic) — ilovada tizimning o'z, nozikroq tebranishi */
-  try{
-    if(P.Haptics && typeof window.haptic === 'function'){
-      const asl = window.haptic;
-      window.haptic = function(kind){
-        try{
-          if(kind === 'ok' || kind === 'bad' || kind === 'warn'){
-            P.Haptics.notification({ type: kind === 'ok' ? 'SUCCESS' : kind === 'bad' ? 'ERROR' : 'WARNING' });
-          }else if(kind === 'select'){
-            P.Haptics.selectionChanged();
-          }else{
-            P.Haptics.impact({ style: kind === 'medium' ? 'MEDIUM' : 'LIGHT' });
-          }
-          return;
-        }catch(e){}
-        asl(kind);
-      };
-    }
-  }catch(e){}
-})();
 
 /* ---------- Ishga tushirish ---------- */
 /* ===== /raqam/998901234567 manzili bilan kelgan mijoz =====
@@ -5491,6 +5433,84 @@ window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
   };
   document.addEventListener('pointerup', tugadi, {passive:true, capture:true});
   document.addEventListener('pointercancel', ()=> tozala(), {passive:true, capture:true});
+})();
+
+/* ================= KARTOCHKANI TEZ OCHISH =================
+   MUAMMO (Androidda): barmoq bilan tez pastga tushib, so'ng kartochkaga
+   bosilganda u ochilmay qolardi. Sabab — `click` hodisasi: brauzer uni
+   barmoq uzilgandan keyin yuboradi va aylantirish inertsiyasi davom
+   etayotgan bo'lsa UMUMAN yubormasligi mumkin. iPhone'da bu kamroq
+   seziladi, Androidda esa aniq "bosdim — ochilmadi" bo'lib chiqadi.
+
+   YECHIM: kartochka `pointerup` da ochiladi — ya'ni barmoq uzilishi
+   bilanoq. Tasodifan ochilib ketmasligi uchun uchta shart:
+     • barmoq 12 px dan ko'p siljimagan bo'lsin (aylantirish emas),
+     • bosish 600 ms dan qisqa bo'lsin (uzoq bosish emas),
+     • sahifa aylanayotgan bo'lmasin.
+   Keyin kelgan `click` takrorlamasligi uchun yuqorida 700 ms himoya bor. */
+(function kartochkaTezOchilsin(){
+  let x0=0, y0=0, t0=0, nishon=null;
+  addEventListener('pointerdown', (e)=>{
+    nishon = null;
+    if(e.pointerType === 'mouse') return;        /* sichqonchada `click` yaxshi ishlaydi */
+    const c = e.target.closest('[data-card]');
+    if(!c) return;
+    /* kartochka ichidagi tugmalar o'z ishini qilsin */
+    if(e.target.closest('button, a, [data-fav], [data-order], [data-copy]')) return;
+    nishon = c; x0 = e.clientX; y0 = e.clientY; t0 = Date.now();
+  }, { passive:true });
+
+  addEventListener('pointermove', (e)=>{
+    if(!nishon) return;
+    if(Math.abs(e.clientX - x0) > 12 || Math.abs(e.clientY - y0) > 12) nishon = null;
+  }, { passive:true });
+
+  const bekor = ()=>{ nishon = null; };
+  addEventListener('pointercancel', bekor, { passive:true });
+
+  addEventListener('pointerup', (e)=>{
+    const c = nishon; nishon = null;
+    if(!c) return;
+    if(Date.now() - t0 > 600) return;
+    if(document.documentElement.classList.contains('scrolling')) return;
+    if(document.querySelector('.sheet.on')) return;
+    try{
+      const sel = (window.getSelection && window.getSelection().toString()) || '';
+      if(sel.trim().length > 2) return;
+    }catch(err){}
+    window.__tezOchildi = Date.now();
+
+    /* "Arvoh klik" muammosi: barmoq uzilgach brauzer `click` ni ham
+       yuboradi. Oyna shu zahoti ochilgani uchun u klik endi oynaning
+       ORQA FONIGA tushadi va oynani darhol yopib yuboradi — mijoz
+       "bosdim, ochildi-yu yopilib ketdi" deb ko'radi.
+       Shuning uchun keyingi BITTA klikni butunlay yutib yuboramiz. */
+    const yut = (ev)=>{ ev.preventDefault(); ev.stopPropagation(); };
+    addEventListener('click', yut, { capture:true, once:true });
+    setTimeout(()=> removeEventListener('click', yut, { capture:true }), 700);
+
+    openDetail(c.dataset.card);
+  }, { passive:true });
+})();
+
+/* ================= AYLANTIRISH HOLATI =================
+   Aylantirish boshlanganda <html> ga `scrolling` sinfi qo'yiladi,
+   tugaganda olinadi. CSS shu paytda menyu blurini o'chiradi —
+   izohi 02-css.html da.
+
+   Hodisa `passive` va ishi minimal: faqat sinf qo'yiladi/olinadi,
+   hech qanday o'lchov yoki qayta chizish so'ralmaydi. */
+(function aylantirishHolati(){
+  const el = document.documentElement;
+  let t = 0, on = false;
+  const tugadi = ()=>{ on = false; el.classList.remove('scrolling'); };
+  addEventListener('scroll', ()=>{
+    if(!on){ on = true; el.classList.add('scrolling'); }
+    clearTimeout(t);
+    t = setTimeout(tugadi, 160);
+  }, { passive:true });
+  /* barmoq uzilsa — darhol qaytarmaymiz, inertsiya hali davom etishi mumkin */
+  addEventListener('pointercancel', ()=>{ clearTimeout(t); t = setTimeout(tugadi, 160); }, { passive:true });
 })();
 
 setTimeout(moveNavPill, 60);

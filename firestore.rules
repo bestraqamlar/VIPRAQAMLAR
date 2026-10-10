@@ -422,6 +422,14 @@ service cloud.firestore {
             || request.resource.data.uid is string);
     }
 
+    // Push-bildirishnoma tokenlari — faqat server (api-push-token.js va
+    // xabar yuboruvchi funksiya) ishlatadi. Brauzerdan o'qib ham, yozib
+    // ham bo'lmaydi: aks holda kimdir boshqa odamlarning telefoniga
+    // xabar yubora olishi mumkin edi.
+    match /push_tokens/{id} {
+      allow read, write: if false;
+    }
+
     // ---------------- KATALOG INDEKSI ----------------
     // Tayyor, qadoqlangan katalog (netlify/functions/api-index.js uni
     // qurib, shu yerda saqlaydi). Mijoz brauzeri uni Firestore'dan EMAS,

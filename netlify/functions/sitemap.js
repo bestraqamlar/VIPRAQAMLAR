@@ -30,7 +30,8 @@ exports.handler = async function () {
   const urls = [
     { loc: SITE + '/', pri: '1.0', freq: 'daily' },
     { loc: SITE + '/#/katalog', pri: '0.9', freq: 'daily' },
-    { loc: SITE + '/maxfiylik', pri: '0.3', freq: 'yearly' }
+    { loc: SITE + '/maxfiylik', pri: '0.3', freq: 'yearly' },
+    { loc: SITE + '/ilova', pri: '0.7', freq: 'monthly' }
   ];
 
   try {

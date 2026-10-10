@@ -1,0 +1,8 @@
+Yig'ilgan `app-release.apk` faylini SHU PAPKAGA, `vipraqamlar.apk`
+nomi bilan qo'ying.
+
+Shundan keyin vipraqamlar.uz/ilova sahifasidagi "Yuklab olish" tugmasi
+ishlaydi.
+
+APK ni qanday yig'ish — ilova loyihasidagi ILOVA-OQING.md da yozilgan
+(GitHub Actions orqali, kompyuteringizga hech narsa o'rnatmasdan).
