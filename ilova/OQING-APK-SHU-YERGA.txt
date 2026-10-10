@@ -1,8 +1,38 @@
-Yig'ilgan `app-release.apk` faylini SHU PAPKAGA, `vipraqamlar.apk`
-nomi bilan qo'ying.
+APK FAYLINI SHU PAPKAGA QO'YING
+================================
 
-Shundan keyin vipraqamlar.uz/ilova sahifasidagi "Yuklab olish" tugmasi
-ishlaydi.
+Nomi ANIQ shunday bo'lsin:   vipraqamlar.apk
 
-APK ni qanday yig'ish — ilova loyihasidagi ILOVA-OQING.md da yozilgan
-(GitHub Actions orqali, kompyuteringizga hech narsa o'rnatmasdan).
+
+QAYSI FAYLNI QO'YISH KERAK
+---------------------------
+GitHub Actions ikkita fayl beradi:
+
+  app-release.aab   <- FAQAT Play Market'ga yuklash uchun.
+                       Telefonga o'rnatib BO'LMAYDI!
+  app-release.apk   <- SHUNI qo'ying. Telefonga o'rnatiladi.
+
+.aab ni .apk deb nomlab qo'ysangiz, Android:
+"Paketni tahlil qilishda muammo yuzaga keldi" deb xato beradi.
+
+
+TEKSHIRISH
+----------
+Fayl qo'yilib, sayt yuklangach:
+
+  curl -I https://vipraqamlar.uz/ilova/vipraqamlar.apk
+
+Javobda shunday bo'lishi kerak:
+  content-type: application/vnd.android.package-archive
+  content-length: 6000000 atrofida (bir necha million)
+
+Agar "content-type: text/html" chiqsa - fayl hali yo'q.
+
+
+SAHIFA O'ZI BILADI
+------------------
+vipraqamlar.uz/ilova sahifasi faylni avtomatik tekshiradi:
+  - fayl yo'q bo'lsa    -> "Tez orada" deb turadi
+  - haqiqiy .apk bo'lsa -> yuklab olish tugmasi paydo bo'ladi
+
+Ya'ni fayl qo'yilmaguncha mijoz noto'g'ri fayl yuklab ololmaydi.

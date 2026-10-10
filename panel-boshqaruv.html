@@ -3936,6 +3936,100 @@ body{
 #paneSellers .sv-msg.sel{ background:var(--panel-2); border-bottom-left-radius:4px; }
 #paneSellers code{ background:var(--panel-2); padding:1px 6px; border-radius:5px; font-size:12px; }
 
+
+/* ================= SAYTGA XABAR YUBORISH ================= */
+#paneXabarlar .lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;}
+#paneXabarlar .inp{
+  width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--text);font-family:inherit;font-size:13px;
+}
+#paneXabarlar .inp:focus{border-color:var(--amber);outline:none;}
+#paneXabarlar textarea.inp{resize:vertical;line-height:1.55;}
+#paneXabarlar .btn{
+  padding:11px 20px;border-radius:10px;border:none;cursor:pointer;
+  background:var(--amber);color:#fff;font-family:inherit;font-size:13.5px;font-weight:800;
+}
+#paneXabarlar .btn:hover{filter:brightness(1.1);}
+#paneXabarlar .btn:active{transform:scale(.98);}
+#paneXabarlar .btn[disabled]{opacity:.55;cursor:default;}
+#paneXabarlar .xb-req{color:#FF8D8D;}
+#paneXabarlar .xb-count{text-align:right;font-size:10.5px;color:var(--muted);margin-top:4px;}
+#paneXabarlar .xb-hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;}
+#paneXabarlar .xb-hint code{background:var(--panel-2);padding:1px 5px;border-radius:4px;}
+#paneXabarlar .xb-kinds{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+#paneXabarlar .xb-kind{
+  display:inline-flex;align-items:center;width:auto;flex:none;
+  padding:8px 13px;border-radius:9px;cursor:pointer;
+  background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+  font-family:inherit;font-size:12.5px;font-weight:700;
+}
+#paneXabarlar .xb-kind.active{border-color:var(--amber);background:rgba(224,160,40,.14);}
+#paneXabarlar .xb-check{
+  display:flex !important;width:100%;max-width:none;text-align:left;
+  gap:9px;align-items:flex-start;font-size:12.5px;color:var(--text);
+  cursor:pointer;line-height:1.5;position:static;margin:0;
+}
+#paneXabarlar .xb-check input[type=checkbox]{
+  margin:2px 0 0;flex:none;width:16px;height:16px;position:static;appearance:auto;opacity:1;
+}
+#paneXabarlar .xb-check span{flex:1;min-width:0;display:block;position:static;}
+#paneXabarlar .settings-form{max-width:none;}
+#paneXabarlar .xb-msg{margin-top:10px;font-size:12.5px;font-weight:700;min-height:16px;}
+#paneXabarlar .xb-msg.ok{color:#7CEFB8;}
+#paneXabarlar .xb-msg.bad{color:#FF8D8D;}
+#paneXabarlar .xb-wrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start;}
+@media (max-width:900px){ .xb-wrap{grid-template-columns:1fr;} }
+#paneXabarlar .xb-prev-h{font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:9px;}
+#paneXabarlar .xb-phone{
+  border-radius:22px;padding:10px;background:#0B1B33;
+  box-shadow:0 18px 40px -22px rgba(0,0,0,.8),inset 0 0 0 1px rgba(124,166,255,.18);
+}
+#paneXabarlar .xb-phone-top{display:flex;gap:4px;justify-content:center;padding:4px 0 10px;}
+#paneXabarlar .xb-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.22);}
+#paneXabarlar .xb-push{
+  display:flex;gap:9px;padding:10px 11px;border-radius:15px;
+  background:rgba(22,44,80,.97);box-shadow:inset 0 0 0 1px rgba(124,166,255,.26);
+}
+#paneXabarlar .xb-push-ic{
+  width:30px;height:30px;border-radius:10px;flex:none;background:#000;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;letter-spacing:.04em;
+}
+#paneXabarlar .xb-push-b{flex:1;min-width:0;}
+#paneXabarlar .xb-push-h{display:flex;align-items:baseline;gap:6px;}
+#paneXabarlar .xb-push-h span{font-size:10px;font-weight:800;color:#9FB8E0;}
+#paneXabarlar .xb-push-h i{margin-left:auto;font-style:normal;font-size:9.5px;color:#7F97BF;font-weight:700;}
+#paneXabarlar .xb-push-t{margin-top:2px;font-size:12.5px;font-weight:800;color:#fff;line-height:1.3;word-break:break-word;}
+#paneXabarlar .xb-push-x{margin-top:2px;font-size:11.5px;color:#C6D6EE;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+#paneXabarlar .xb-phone-body{margin-top:12px;padding:10px;border-radius:15px;background:rgba(10,24,46,.9);}
+#paneXabarlar .xb-item{display:flex;gap:9px;}
+#paneXabarlar .xb-item-ic{
+  width:32px;height:32px;border-radius:10px;flex:none;font-size:15px;
+  display:flex;align-items:center;justify-content:center;background:rgba(74,124,240,.18);
+}
+#paneXabarlar .xb-item-t{font-size:12.5px;font-weight:800;color:#fff;line-height:1.3;word-break:break-word;}
+#paneXabarlar .xb-item-x{margin-top:3px;font-size:11.5px;color:#C6D6EE;line-height:1.45;white-space:pre-line;}
+#paneXabarlar .xb-item-f{margin-top:6px;display:flex;align-items:center;gap:8px;}
+#paneXabarlar .xb-item-f span{font-size:9.5px;color:#7F97BF;font-weight:700;}
+#paneXabarlar .xb-item-f b{font-size:10.5px;font-weight:800;color:#fff;background:#2050DD;padding:4px 10px;border-radius:999px;}
+#paneXabarlar .xb-row{
+  display:flex;gap:11px;align-items:flex-start;padding:12px;border-radius:12px;
+  background:var(--panel-2);margin-bottom:9px;
+}
+#paneXabarlar .xb-row-ic{width:32px;height:32px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:rgba(224,160,40,.14);font-size:15px;}
+#paneXabarlar .xb-row b{display:block;font-size:13px;}
+#paneXabarlar .xb-row p{margin:4px 0 0;font-size:11.5px;color:var(--muted);line-height:1.5;white-space:pre-line;}
+#paneXabarlar .xb-row small{display:block;margin-top:5px;font-size:10.5px;color:var(--muted);}
+#paneXabarlar .xb-row-acts{display:flex;gap:6px;flex:none;}
+#paneXabarlar .xb-row-acts button{
+  width:auto;flex:none;
+  padding:5px 10px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:800;
+  background:transparent;border:1px solid var(--line);color:var(--text);
+}
+#paneXabarlar .xb-row-acts .off{border-color:rgba(255,92,92,.45);color:#FF8D8D;}
+#paneXabarlar .xb-row.disabled{opacity:.5;}
+
 </style>
 </head>
 <body>
@@ -4027,6 +4121,7 @@ body{
           <div class="tab-group-body">
           <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
           <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
+          <button class="tab" data-tab="xabarlar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"/><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"/></svg></span><span class="tab-label">Saytga xabar</span></button>
           <button class="tab" data-tab="kuntavsiyasi"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Kun tavsiyasi</span></button>
           <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
           <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
@@ -4523,6 +4618,87 @@ body{
         <button type="button" class="akt-save-btn" id="daySaveBtn">&#128190; Saqlash</button>
       </div>
       <div id="dayList" class="dash-recent-list"><div class="wt-empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <!-- ==================================================================
+       SAYTGA XABAR YUBORISH
+       Bu yerda yozilgan xabar site_settings/xabarlar hujjatiga tushadi.
+       Sayt uni ochilganda BIR MARTA o'qiydi (bitta hujjat — baza
+       xarajati deyarli nol) va tepadagi qo'ng'iroqchada ko'rsatadi.
+       "Telefonga bildirishnoma kabi chiqsin" yoqilgan bo'lsa, mijoz
+       saytni ochganda tepadan push ko'rinishidagi kartochka tushadi.
+       =================================================================== -->
+  <div class="pane" id="paneXabarlar">
+    <div class="xb-wrap">
+      <div class="xb-form">
+        <div class="settings-form">
+          <label class="lbl">Sarlavha <span class="xb-req">*</span></label>
+          <input class="inp" id="xbTitle" maxlength="80" placeholder="Masalan: Yangi premium raqamlar keldi">
+          <div class="xb-count"><span id="xbTitleN">0</span>/80</div>
+
+          <label class="lbl" style="margin-top:12px">Xabar matni</label>
+          <textarea class="inp" id="xbBody" rows="4" maxlength="400" placeholder="Qisqa va aniq yozing — telefonda 2 qator ko'rinadi."></textarea>
+          <div class="xb-count"><span id="xbBodyN">0</span>/400</div>
+
+          <label class="lbl" style="margin-top:12px">Turi</label>
+          <div class="xb-kinds">
+            <button type="button" class="xb-kind active" data-kind="xabar">💬 Oddiy xabar</button>
+            <button type="button" class="xb-kind" data-kind="aksiya">🔥 Aksiya</button>
+            <button type="button" class="xb-kind" data-kind="ogoh">⚠️ Ogohlantirish</button>
+          </div>
+
+          <label class="lbl" style="margin-top:12px">Havola (ixtiyoriy)</label>
+          <input class="inp" id="xbLink" maxlength="300" placeholder="#/katalog  yoki  https://...">
+          <div class="xb-hint">Sayt ichidagi bo'lim: <code>#/katalog</code>, <code>#/sevimlilar</code>, <code>#/profil</code>. Tashqi sayt uchun to'liq havola yozing.</div>
+
+          <label class="lbl" style="margin-top:12px">Havola tugmasi matni</label>
+          <input class="inp" id="xbLinkText" maxlength="30" placeholder="Ko'rish">
+
+          <label class="lbl" style="margin-top:12px">Qachongacha ko'rinsin (ixtiyoriy)</label>
+          <input class="inp" id="xbUntil" type="date">
+          <div class="xb-hint">Bo'sh qoldirilsa — siz o'chirmaguningizcha turadi.</div>
+
+          <label class="xb-check" style="margin-top:14px">
+            <input type="checkbox" id="xbPush" checked>
+            <span>Telefonga bildirishnoma kabi chiqsin (tepadan tushadigan kartochka)</span>
+          </label>
+
+          <button class="btn" id="xbSend" style="margin-top:16px">Xabarni yuborish</button>
+          <div class="xb-msg" id="xbMsg"></div>
+        </div>
+      </div>
+
+      <div class="xb-prev">
+        <div class="xb-prev-h">Mijoz telefonida shunday ko'rinadi</div>
+        <div class="xb-phone">
+          <div class="xb-phone-top"><span class="xb-dot"></span><span class="xb-dot"></span><span class="xb-dot"></span></div>
+          <div class="xb-push" id="xbPrevPush">
+            <div class="xb-push-ic">VIP</div>
+            <div class="xb-push-b">
+              <div class="xb-push-h"><span>VIP RAQAMLAR</span><i>hozir</i></div>
+              <div class="xb-push-t" id="xbPrevTitle">Sarlavha shu yerda</div>
+              <div class="xb-push-x" id="xbPrevBody">Xabar matni shu yerda ko'rinadi.</div>
+            </div>
+          </div>
+          <div class="xb-phone-body">
+            <div class="xb-item">
+              <div class="xb-item-ic" id="xbPrevIc">💬</div>
+              <div style="flex:1;min-width:0">
+                <div class="xb-item-t" id="xbPrevTitle2">Sarlavha shu yerda</div>
+                <div class="xb-item-x" id="xbPrevBody2">Xabar matni shu yerda ko'rinadi.</div>
+                <div class="xb-item-f"><span>hozir</span><b id="xbPrevBtn" style="display:none">Ko'rish</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-form" style="margin-top:18px">
+      <h3 style="margin:0 0 4px;font-size:14.5px">Yuborilgan xabarlar</h3>
+      <p style="margin:0 0 12px;color:var(--muted);font-size:12px">O'chirilgan xabar saytda darhol yo'qoladi.</p>
+      <div id="xbList"><div class="wt-empty">Yuklanmoqda...</div></div>
     </div>
   </div>
 
@@ -8265,6 +8441,7 @@ function openGroupOfTab(tab){
       ['paneWatch',        'Kuzatuv',        "Mijozlar kutayotgan raqamlar, avtomatik tekshiruv."],
       ['paneUzex',         'UZEX auksion',   "Davlat auksionidagi raqamlarni kuzatish va saqlab qo'yish."],
       ['paneSellers',      'Sotuvchilar',    "Hamkor sotuvchilar (dilerlar): hisob yaratish, komissiya, raqamlari va yozishma."],
+      ['paneXabarlar',     'Saytga xabar',   "Mijozlarga saytda ko'rinadigan bildirishnoma yuborish: qo'ng'iroqcha va telefon push ko'rinishi."],
       ['paneStats',        'Statistika',     "Qaysi raqamga ko'p qiziqishyapti va mijozlar nimani qidirib topolmayapti."],
       ['paneSessions',     'Seanslar',       "Panelga kim, qachon va qaysi qurilmadan kirgani."],
       ['paneVazifalar',    'Vazifalar',      "Xodimlarga topshiriqlar, muddatlari va bajarilishi."],
@@ -8629,7 +8806,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -8675,6 +8852,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'stats'){ loadStats(); }
     if(tab.dataset.tab === 'sellers'){ loadSellers(); }
+    if(tab.dataset.tab === 'xabarlar'){ loadXabarlar(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
     if(tab.dataset.tab === 'watch'){ loadWatchList(); }
@@ -11760,7 +11938,7 @@ const MGMT_FEATURE_LABELS = {
   watch:'🎯 Kuzatuv', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
-  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya'
+  finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya', xabarlar:'🔔 Saytga xabar'
 };
 const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
 
@@ -14427,6 +14605,182 @@ window.panelToast = panelToast;
   else ulash();
   // Sozlamalar bo'limi kech chizilsa ham ulanib qolsin
   setTimeout(ulash, 1200);
+})();
+
+/* ==================================================================
+   SAYTGA XABAR YUBORISH
+   ------------------------------------------------------------------
+   Barcha xabarlar BITTA hujjatda saqlanadi: site_settings/xabarlar
+   { list: [ {id,title,body,kind,link,linkText,at,until,push,active} ] }
+
+   NEGA bitta hujjat: mijoz sayti uni ochilganda bir marta o'qiydi.
+   Alohida kolleksiya bo'lganida har tashrifda o'nlab o'qish bo'lardi —
+   bu baza hisobini bejiz shishirardi. Bitta hujjat = bitta o'qish.
+
+   Saytda xabar qanday ko'rinadi:
+     • tepadagi qo'ng'iroqchada o'qilmaganlar soni,
+     • qo'ng'iroqcha bosilsa — xabarlar ro'yxati,
+     • "push" yoqilgan bo'lsa — tepadan tushadigan kartochka
+       (katta kompaniyalar ilovasidagi bildirishnoma kabi).
+   ================================================================== */
+let XB_LIST = [], XB_KIND = 'xabar';
+const XB_IKON = { xabar:'💬', aksiya:'🔥', ogoh:'⚠️' };
+
+function xbEsc(x){ return String(x == null ? '' : x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function xbPreview(){
+  const t = (document.getElementById('xbTitle').value || '').trim();
+  const b = (document.getElementById('xbBody').value || '').trim();
+  const lt = (document.getElementById('xbLinkText').value || '').trim();
+  const lk = (document.getElementById('xbLink').value || '').trim();
+  const bosh = t || 'Sarlavha shu yerda';
+  const matn = b || "Xabar matni shu yerda ko'rinadi.";
+  document.getElementById('xbPrevTitle').textContent = bosh;
+  document.getElementById('xbPrevTitle2').textContent = bosh;
+  document.getElementById('xbPrevBody').textContent = matn;
+  document.getElementById('xbPrevBody2').textContent = matn;
+  document.getElementById('xbPrevIc').textContent = XB_IKON[XB_KIND] || '💬';
+  const btn = document.getElementById('xbPrevBtn');
+  btn.style.display = lk ? '' : 'none';
+  btn.textContent = lt || "Ko'rish";
+  document.getElementById('xbPrevPush').style.display =
+    document.getElementById('xbPush').checked ? '' : 'none';
+  document.getElementById('xbTitleN').textContent = t.length;
+  document.getElementById('xbBodyN').textContent = b.length;
+}
+
+function xbVaqt(ms){
+  try{ return new Date(Number(ms) || 0).toLocaleString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  catch(e){ return ''; }
+}
+
+async function loadXabarlar(){
+  const box = document.getElementById('xbList');
+  if(!box) return;
+  try{
+    const doc = await db.collection('site_settings').doc('xabarlar').get();
+    XB_LIST = ((doc.exists ? doc.data() : {}) || {}).list || [];
+  }catch(e){
+    box.innerHTML = '<div class="wt-empty">Yuklab bo\'lmadi: ' + xbEsc(e.message) + '</div>';
+    return;
+  }
+  xbRender();
+}
+
+function xbRender(){
+  const box = document.getElementById('xbList');
+  if(!box) return;
+  if(!XB_LIST.length){ box.innerHTML = '<div class="wt-empty">Hali xabar yuborilmagan.</div>'; return; }
+  box.innerHTML = XB_LIST.map((m, i) => `
+    <div class="xb-row${m.active === false ? ' disabled' : ''}">
+      <div class="xb-row-ic">${XB_IKON[m.kind] || '💬'}</div>
+      <div style="flex:1;min-width:0">
+        <b>${xbEsc(m.title)}</b>
+        ${m.body ? `<p>${xbEsc(m.body)}</p>` : ''}
+        <small>${xbVaqt(m.at)}${m.link ? ' · havola: ' + xbEsc(m.link) : ''}${m.push === false ? '' : ' · bildirishnoma'}${m.until ? ' · ' + xbVaqt(m.until) + ' gacha' : ''}</small>
+      </div>
+      <div class="xb-row-acts">
+        <button type="button" data-xbtoggle="${i}">${m.active === false ? 'Yoqish' : "O'chirib turish"}</button>
+        <button type="button" class="off" data-xbdel="${i}">O'chirish</button>
+      </div>
+    </div>`).join('');
+}
+
+async function xbSaqla(){
+  /* Eng yangisi birinchi, jami 30 ta saqlanadi (hujjat kichik qolsin) */
+  const list = XB_LIST.slice(0, 30);
+  await db.collection('site_settings').doc('xabarlar').set({ list }, { merge: true });
+  XB_LIST = list;
+}
+
+async function xbYubor(){
+  const btn = document.getElementById('xbSend');
+  const msg = document.getElementById('xbMsg');
+  const title = (document.getElementById('xbTitle').value || '').trim();
+  const body  = (document.getElementById('xbBody').value || '').trim();
+  const link  = (document.getElementById('xbLink').value || '').trim();
+  const linkText = (document.getElementById('xbLinkText').value || '').trim();
+  const untilRaw = document.getElementById('xbUntil').value;
+  const push = document.getElementById('xbPush').checked;
+
+  msg.className = 'xb-msg';
+  if(!title){ msg.className = 'xb-msg bad'; msg.textContent = 'Sarlavha yozilishi shart.'; return; }
+  if(link && !/^#\//.test(link) && !/^https?:\/\//i.test(link)){
+    msg.className = 'xb-msg bad';
+    msg.textContent = 'Havola "#/" bilan (sayt ichi) yoki "https://" bilan boshlanishi kerak.';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Yuborilmoqda...';
+  try{
+    XB_LIST.unshift({
+      id: 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      title, body,
+      kind: XB_KIND,
+      link: link || '',
+      linkText: linkText || '',
+      at: Date.now(),
+      until: untilRaw ? new Date(untilRaw + 'T23:59:59').getTime() : 0,
+      push: !!push,
+      active: true
+    });
+    await xbSaqla();
+    xbRender();
+    document.getElementById('xbTitle').value = '';
+    document.getElementById('xbBody').value = '';
+    document.getElementById('xbLink').value = '';
+    document.getElementById('xbLinkText').value = '';
+    document.getElementById('xbUntil').value = '';
+    xbPreview();
+    msg.className = 'xb-msg ok';
+    msg.textContent = 'Yuborildi. Mijozlar saytni ochganda ko\'radi.';
+  }catch(e){
+    msg.className = 'xb-msg bad';
+    msg.textContent = 'Saqlab bo\'lmadi: ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = 'Xabarni yuborish';
+}
+
+(function xbUlash(){
+  const pane = document.getElementById('paneXabarlar');
+  if(!pane) return;
+  ['xbTitle','xbBody','xbLink','xbLinkText'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', xbPreview);
+  });
+  const pc = document.getElementById('xbPush');
+  if(pc) pc.addEventListener('change', xbPreview);
+  pane.querySelectorAll('.xb-kind').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      pane.querySelectorAll('.xb-kind').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      XB_KIND = b.dataset.kind;
+      xbPreview();
+    });
+  });
+  const send = document.getElementById('xbSend');
+  if(send) send.addEventListener('click', xbYubor);
+
+  pane.addEventListener('click', async (e)=>{
+    const tg = e.target.closest('[data-xbtoggle]');
+    if(tg){
+      const i = Number(tg.dataset.xbtoggle);
+      if(!XB_LIST[i]) return;
+      XB_LIST[i].active = XB_LIST[i].active === false;
+      try{ await xbSaqla(); xbRender(); }catch(err){ alert('Saqlab bo\'lmadi: ' + err.message); }
+      return;
+    }
+    const dl = e.target.closest('[data-xbdel]');
+    if(dl){
+      const i = Number(dl.dataset.xbdel);
+      if(!XB_LIST[i]) return;
+      if(!confirm('Shu xabar o\'chirilsinmi? Saytda darhol yo\'qoladi.')) return;
+      XB_LIST.splice(i, 1);
+      try{ await xbSaqla(); xbRender(); }catch(err){ alert('O\'chirib bo\'lmadi: ' + err.message); }
+      return;
+    }
+  });
+  xbPreview();
 })();
 
 </script>

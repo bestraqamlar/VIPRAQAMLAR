@@ -22,6 +22,13 @@
 /ilova        /ilova.html   200
 /ilova.html   /ilova.html   200
 
+# MUHIM: /ilova/ papkasidagi fayllar (apk) — O'ZI bo'lsa beriladi,
+# bo'lmasa 404 qaytadi. Bu qoidasiz pastdagi umumiy "/* -> index.html"
+# ishga tushib, mavjud bo'lmagan .apk o'rniga saytning HTML sahifasi
+# yuborilar edi. Android esa uni ochib: "Paketni tahlil qilishda
+# muammo yuzaga keldi" deb xato berardi.
+/ilova/*   /ilova/:splat   200
+
 # Maxfiylik siyosati — App Store va Play Market MAJBURIY talab qiladi
 /maxfiylik        /maxfiylik.html   200
 /maxfiylik.html   /maxfiylik.html   200
