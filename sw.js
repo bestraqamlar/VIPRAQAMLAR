@@ -2,12 +2,20 @@
    Maqsad: internet umuman yo'q bo'lsa ham sayt ochilsin va keshdagi
    katalog ko'rinsin. Dinamik ma'lumot (Firestore, funksiyalar) HECH
    QACHON keshlanmaydi — ular doim jonli olinadi. */
-const CACHE = 'vipraqamlar-v2';
-const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png'];
+const CACHE = 'vipraqamlar-v3';
+const SHELL = ['/', '/index.html', '/assets/logo-circle.png'];
 
 self.addEventListener('install', (e) => {
+  /* DIQQAT: `addAll` BO'LINMAS — ro'yxatdagi bitta manzil ham
+     topilmasa (404), HECH NARSA keshlanmaydi va oflayn rejim butunlay
+     ishlamay qoladi. Ilgari ro'yxatda `/manifest.json` bor edi; u
+     saytdan olib tashlangach, jimgina shu holat yuzaga kelgandi.
+     Endi har bir fayl ALOHIDA keshlanadi — biri yo'q bo'lsa qolgani
+     baribir saqlanadi. */
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL).catch(()=>{})).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => Promise.all(SHELL.map(u => c.add(u).catch(()=>{}))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -77,4 +85,66 @@ self.addEventListener('fetch', (e) => {
       })
     );
   }
+});
+
+/* ===================================================================
+   BRAUZER BILDIRISHNOMASI (sayt yopiq bo'lsa ham keladi)
+   -------------------------------------------------------------------
+   Admin "Saytga xabar" bo'limidan yuborgan xabar shu yerga keladi va
+   telefon ekranida oddiy bildirishnoma bo'lib chiqadi — mijoz saytni
+   yopib qo'ygan bo'lsa ham.
+
+   NEGA AYNAN SHU FAYLDA: bitta manzilda (scope) faqat BITTA xizmatchi
+   ishlay oladi. Alohida `firebase-messaging-sw.js` qo'yilsa, u shu
+   fayldagi oflayn keshni ALMASHTIRIB yuborardi va sayt internetsiz
+   ochilmay qolardi.
+
+   NEGA try/catch ICHIDA: `importScripts` tashqi manzildan yuklaydi.
+   Internet bo'lmasa u xato beradi va xizmatchi UMUMAN ishga
+   tushmaydi — ya'ni oflayn rejim ham yo'qoladi. Shu sabab yuqoridagi
+   kesh mantig'i OLDIN yoziladi, bildirishnoma esa himoyalangan holda
+   oxirida ulanadi: yuklanmasa ham sayt oflayn ishlashda davom etadi.
+   =================================================================== */
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
+
+  firebase.initializeApp({
+    apiKey: "AIzaSyAZVM_C5tRYe77j4OvQtrBhV3dpEZAxk_A",
+    authDomain: "vip-raqamlar.firebaseapp.com",
+    projectId: "vip-raqamlar",
+    storageBucket: "vip-raqamlar.firebasestorage.app",
+    messagingSenderId: "872049914686",
+    appId: "1:872049914686:web:32fd7945238fdbf5eeb26f"
+  });
+
+  firebase.messaging().onBackgroundMessage((payload) => {
+    const d = payload.data || {};
+    const n = payload.notification || {};
+    self.registration.showNotification(d.title || n.title || 'VIP RAQAMLAR', {
+      body: d.body || n.body || '',
+      icon: '/assets/logo-circle.png',
+      badge: '/assets/logo-circle.png',
+      tag: d.id || 'vip-xabar',       /* bir xil xabar ikki marta chiqmaydi */
+      data: { link: d.link || '/' }
+    });
+  });
+} catch (e) { /* bildirishnoma ulanmasa ham oflayn rejim ishlaydi */ }
+
+/* Bildirishnoma bosilganda — sayt ochiq bo'lsa o'sha oynaga o'tamiz,
+   bo'lmasa yangisini ochamiz. */
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const link = (e.notification.data && e.notification.data.link) || '/';
+  e.waitUntil((async () => {
+    const oynalar = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of oynalar) {
+      if (c.url.indexOf(self.location.origin) === 0) {
+        await c.focus();
+        try { await c.navigate(link); } catch (err) {}
+        return;
+      }
+    }
+    await clients.openWindow(link);
+  })());
 });

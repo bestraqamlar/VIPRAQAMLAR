@@ -50,7 +50,8 @@ exports.handler = async function (event) {
   if (token.length < 64 || token.length > 400) {
     return { statusCode: 400, headers: H, body: JSON.stringify({ ok: false, error: 'token notogri' }) };
   }
-  if (platform !== 'android' && platform !== 'ios') {
+  /* "web" — brauzer bildirishnomasi (sayt yopiq bo'lsa ham keladi) */
+  if (platform !== 'android' && platform !== 'ios' && platform !== 'web') {
     return { statusCode: 400, headers: H, body: JSON.stringify({ ok: false, error: 'platform notogri' }) };
   }
 

@@ -30,9 +30,20 @@ exports.handler = async function () {
   const urls = [
     { loc: SITE + '/', pri: '1.0', freq: 'daily' },
     { loc: SITE + '/#/katalog', pri: '0.9', freq: 'daily' },
-    { loc: SITE + '/maxfiylik', pri: '0.3', freq: 'yearly' },
-    { loc: SITE + '/ilova', pri: '0.7', freq: 'monthly' }
+    { loc: SITE + '/maxfiylik', pri: '0.3', freq: 'yearly' }
   ];
+
+  /* TOIFA SAHIFALARI — operator, narx va naqsh bo'yicha.
+     Bular Google'da "ucell vip raqamlar", "bo'lib to'lashga raqam",
+     "7777 raqam" kabi so'rovlarga chiqadi. Ro'yxat seo-toifa.js
+     bilan bir xil bo'lishi shart. */
+  [
+    'ucell-vip-raqamlar', 'beeline-vip-raqamlar', 'mobiuz-vip-raqamlar',
+    'humans-vip-raqamlar', 'uzmobile-vip-raqamlar', 'perfektum-vip-raqamlar',
+    'bolib-tolashga-raqamlar', 'arzon-vip-raqamlar', 'premium-vip-raqamlar',
+    'bir-xil-raqamlar', 'juft-raqamlar', 'ikki-juft-raqamlar',
+    'ketma-ket-raqamlar', 'yumaloq-raqamlar'
+  ].forEach(slug => urls.push({ loc: SITE + '/' + slug, pri: '0.85', freq: 'daily' }));
 
   try {
     const snap = await db.collection('numbers').limit(MAX).get();

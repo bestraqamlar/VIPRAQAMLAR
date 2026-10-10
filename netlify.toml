@@ -24,6 +24,16 @@
   # Raqam sahifalari — Google va ijtimoiy tarmoq botlari uchun
   included_files = ["index.html"]
 
+[functions."seo-toifa"]
+  # Toifa sahifalari (operator / narx / naqsh) — ular ham index.html ni o'qiydi
+  included_files = ["index.html"]
+
+# RAQAM TO'LOVI — eslatmalar. Har 5 daqiqada tekshiradi, chunki har
+# raqam uchun eslatma VAQTI alohida belgilanadi (masalan 08:00, 10:30) —
+# soatiga bir marta tekshirilsa, belgilangan vaqtdan ancha kech ketardi.
+[functions."tolov-eslatma-background"]
+  schedule = "*/5 * * * *"
+
 [functions."check-credit-payments"]
   schedule = "0 */6 * * *"
 
@@ -176,14 +186,8 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
 
-# Android ilovasi (.apk) — brauzer uni MATN deb ochib yubormasin,
-# balki YUKLAB OLSIN. Netlify .apk turini o'zi bilmaydi.
-[[headers]]
-  for = "/ilova/*.apk"
-  [headers.values]
-    Content-Type = "application/vnd.android.package-archive"
-    Content-Disposition = "attachment; filename=vipraqamlar.apk"
-    Cache-Control = "public, max-age=300"
+# (Android .apk sarlavhalari hozircha olib tashlandi — ilova
+# sahifasi qaytarilganda shu blok ham qaytariladi.)
 
 # Sotuvchi kabineti — qidiruv tizimlari indekslamasin va boshqa
 # sahifaning <iframe> ichida ochilmasin (clickjacking).

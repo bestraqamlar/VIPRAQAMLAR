@@ -18,16 +18,25 @@
 # o'chirildi — u shu qoida tufayli baribir hech qachon ko'rsatilmasdi)
 /sitemap.xml   /.netlify/functions/sitemap   200
 
-# Ilovani yuklab olish sahifasi
-/ilova        /ilova.html   200
-/ilova.html   /ilova.html   200
+# (Ilovani yuklab olish sahifasi hozircha olib tashlandi — keyin
+# qaytarilganda shu yerga /ilova qoidalari qayta qo'yiladi.)
 
-# MUHIM: /ilova/ papkasidagi fayllar (apk) — O'ZI bo'lsa beriladi,
-# bo'lmasa 404 qaytadi. Bu qoidasiz pastdagi umumiy "/* -> index.html"
-# ishga tushib, mavjud bo'lmagan .apk o'rniga saytning HTML sahifasi
-# yuborilar edi. Android esa uni ochib: "Paketni tahlil qilishda
-# muammo yuzaga keldi" deb xato berardi.
-/ilova/*   /ilova/:splat   200
+# TOIFA SAHIFALARI (SEO) — operator, narx va naqsh bo'yicha.
+# Batafsil: netlify/functions/seo-toifa.js
+/ucell-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/beeline-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/mobiuz-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/humans-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/uzmobile-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/perfektum-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/bolib-tolashga-raqamlar   /.netlify/functions/seo-toifa   200
+/arzon-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/premium-vip-raqamlar   /.netlify/functions/seo-toifa   200
+/bir-xil-raqamlar   /.netlify/functions/seo-toifa   200
+/juft-raqamlar   /.netlify/functions/seo-toifa   200
+/ikki-juft-raqamlar   /.netlify/functions/seo-toifa   200
+/ketma-ket-raqamlar   /.netlify/functions/seo-toifa   200
+/yumaloq-raqamlar   /.netlify/functions/seo-toifa   200
 
 # Maxfiylik siyosati — App Store va Play Market MAJBURIY talab qiladi
 /maxfiylik        /maxfiylik.html   200
