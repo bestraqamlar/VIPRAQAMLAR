@@ -186,11 +186,7 @@ service cloud.firestore {
         (doc == 'instagram_bot' && hasPerm('instagram'))
         || (doc == 'telegram_bot' && hasPerm('telegramai'))
         || (doc == 'daily_picks' && (hasPerm('aksiya') || hasPerm('numbers') || hasPerm('settings')))
-        // "xabarlar" — saytdagi bildirishnomalar (admin paneldagi "Saytga
-        // xabar" bo'limi). O'qish hammaga ochiq (yuqoridagi `allow read`),
-        // yozish esa faqat shu bo'limga yoki "Sozlamalar"ga ruxsati borlarga.
-        || (doc == 'xabarlar' && (hasPerm('xabarlar') || hasPerm('settings')))
-        || (doc != 'instagram_bot' && doc != 'telegram_bot' && doc != 'daily_picks' && doc != 'xabarlar' && (hasPerm('styles') || hasPerm('settings')));
+        || (doc != 'instagram_bot' && doc != 'telegram_bot' && doc != 'daily_picks' && (hasPerm('styles') || hasPerm('settings')));
     }
 
     match /active_sessions/{doc} {
