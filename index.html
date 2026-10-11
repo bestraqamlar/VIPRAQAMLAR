@@ -70,22 +70,36 @@ try{
 }catch(e){ window.__idxP = null; }
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com">
 <link rel="preconnect" href="https://firestore.googleapis.com">
-<!-- SHRIFT — ekranni TO'SMAYDI.
-     Ilgari bu oddiy <link rel=stylesheet> edi: brauzer uni yuklab
-     bo'lmaguncha sahifaning BIRINCHI PIKSELINI ham chizmasdi. Sekin
-     tarmoqda bu 300-600 ms "oq ekran" degani edi.
-     Endi u "print" sifatida yuklanadi (ya'ni ekranga taalluqli emas),
-     yuklanib bo'lgach "all" ga o'tadi — matn esa shu zahoti tizim
-     shrifti bilan chiqadi va keyin o'z shriftiga almashadi
-     (`display=swap` allaqachon shuni ta'minlaydi).
-     JS o'chirilgan brauzer uchun pastda <noscript> zaxirasi bor. -->
-<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"></noscript>
+<!-- SHRIFT — O'Z SERVERIMIZDA.
+     Ilgari shriftlar Google'dan (fonts.googleapis.com + fonts.gstatic.com)
+     yuklanardi. Bu uchta muammo tug'dirardi:
+       1. ikkita BEGONA domenga ulanish — DNS + TLS, O'zbekistonda
+          ko'pincha 150-400 ms;
+       2. avval CSS fayl, keyin undan shrift fayli — ketma-ket IKKI
+          marta kutish;
+       3. Google bloklansa yoki sekinlashsa — sayt ham ta'sirlanardi.
+     Endi ikkala shrift ham `assets/fonts/` da, O'ZGARUVCHAN (variable)
+     ko'rinishda: bitta fayl 400 dan 800 gacha barcha qalinlikni
+     beradi, ya'ni 8 ta fayl o'rniga 1 ta. Jami 49 KB.
+     `preload` + `font-display:swap`: matn darhol tizim shrifti bilan
+     chiqadi, shrift kelgach almashadi — "oq ekran" yo'q. -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
+<style>
+@font-face{
+  font-family:'Plus Jakarta Sans';
+  src:url('assets/fonts/jakarta.woff2') format('woff2-variations');
+  font-weight:200 800;font-style:normal;font-display:swap;
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:'Space Grotesk';
+  src:url('assets/fonts/grotesk.woff2') format('woff2-variations');
+  font-weight:300 700;font-style:normal;font-display:swap;
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+</style>
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
@@ -333,7 +347,7 @@ html.low #nav{
     rgba(18,38,70,.72);
   box-shadow:0 8px 20px -10px rgba(0,0,0,.6), inset 0 1px 0 var(--nc-edge);
 }
-html.low .topbar, html.low #deskhead{
+html.low .topbar, html.low .apbar, html.low #deskhead{
   backdrop-filter:saturate(150%) blur(12px);
   -webkit-backdrop-filter:saturate(150%) blur(12px);
 }
@@ -359,9 +373,20 @@ html.low .pwa{ box-shadow:0 10px 24px -14px rgba(0,0,0,.7); }
    silliq bo'lib qoladi. */
 html.scrolling #nav,
 html.scrolling .topbar,
+html.scrolling .apbar,
 html.scrolling #deskhead{
   backdrop-filter:none;
   -webkit-backdrop-filter:none;
+}
+/* `.apbar` (mobil tepa panel) `position:sticky` — aylantirganda ham
+   ekranda turadi, ya'ni uning blur'i HAR KADRDA qaytadan hisoblanardi.
+   Ro'yxatdan pastga tushayotganda "sakrash"ning sezilarli qismi shu
+   edi. Endi harakat paytida blur o'chadi, fon esa to'qroq rangga
+   o'tadi — ko'z farqini ilg'amaydi. */
+html.scrolling .apbar{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 60%),
+    rgba(12,27,51,.94);
 }
 html.scrolling #nav{
   background:
@@ -710,6 +735,14 @@ input[data-upper]{text-transform:uppercase}
   /* backdrop-filter yo'q — yuqoridagi izohga qarang (unumdorlik) */
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
   transition:transform .24s cubic-bezier(.2,.8,.3,1),box-shadow .24s,border-color .24s,background .24s;
+  /* Ekrandan tashqarida qolgan kartochkani brauzer CHIZMAYDI.
+     Ro'yxat uzun bo'lganda (45–60 ta kartochka) aylantirish paytida
+     har kadrda hammasi emas, faqat ko'rinib turganlari hisoblanadi.
+     `contain-intrinsic-size` — chizilmagan kartochkaning taxminiy
+     balandligi (o'lchandi: 159px); usiz aylantirish chizg'ichi
+     sakrab ketardi. */
+  content-visibility:auto;
+  contain-intrinsic-size:auto 159px;
 }
 /* ---------- A-VARIANT: NEYTRAL KARTOCHKA + INGICHKA TOIFA CHIZIG'I ----------
    Mijoz so'rovi: sayt juda ko'p rangdan iborat bo'lib ketgandi. Endi
@@ -1114,30 +1147,47 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
    Har bir qatlam alohida juda past shaffoflikda — shu sabab natija
    "bezakli" emas, "qimmat" ko'rinadi. */
 .herocard{
-  width:min(84vw,360px);border-radius:26px;padding:20px 21px 19px;
+  width:min(84vw,360px);border-radius:28px;padding:20px 19px 19px;
+  /* ZAMONAVIY + TEZ.
+     Avval 6 ta fon qatlami bor edi: ikkita `repeating-gradient`
+     (giloshe va "ipak chiziqlar"), ikkita nur, vinyetka va asos.
+     Ikkala takrorlanuvchi naqsh .022–.026 shaffoflikda — ko'z ilg'amas
+     darajada — lekin brauzer ularni HAR SAFAR kartochka qayta
+     chizilganda piksel-piksel hisoblardi. Endi 3 ta qatlam qoldi:
+     ikki yumshoq nur va asos gradienti. Ko'rinishi tozaroq, tiniqroq —
+     2025 yilgi karta dizaynlari aynan shunday "flat + nur". */
   background:
-    /* 1. Giloshe — pul va bank kartalaridagi kabi ingichka yoy naqsh,
-          zo'rg'a sezilarli: naqsh emas, "to'qima" bo'lib turishi kerak */
-    repeating-radial-gradient(circle at 114% -16%, rgba(240,216,152,.026) 0 1px, transparent 1px 11px),
-    /* 2. Ipak chiziqlar */
-    repeating-linear-gradient(118deg, rgba(255,255,255,.022) 0 1px, transparent 1px 10px),
-    /* 3. Oltin nur (tepa o'ng) va ko'k nur (past chap) */
-    radial-gradient(200px 168px at 100% 0%, rgba(230,200,119,.34), transparent 66%),
-    radial-gradient(210px 180px at 0% 100%, rgba(64,118,235,.22), transparent 70%),
-    /* 4. Vinyetka — chekkalar to'qlashadi, kartochka "og'ir" ko'rinadi */
-    radial-gradient(126% 106% at 50% 10%, transparent 34%, rgba(2,8,20,.66) 100%),
-    /* 5. Asos */
-    linear-gradient(152deg,#0D1D3B 0%,#17315C 46%,#081426 100%);
+    /* 0. SETKA — mijoz so'rovi bo'yicha qaytarildi. Bank kartalaridagi
+          kabi ingichka to'qima: bitta aylanma (giloshe) va bitta
+          qiya chiziqli naqsh. Ular `::after` ga emas, aynan shu
+          fon ro'yxatiga qo'yilgan — shunda qo'shimcha qatlam
+          yaratilmaydi, ustiga `contain:paint` bilan birga faqat
+          ko'rinib turgan kartochkada hisoblanadi. */
+    repeating-radial-gradient(circle at 114% -16%, rgba(240,216,152,.030) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(118deg, rgba(255,255,255,.026) 0 1px, transparent 1px 10px),
+    /* 1. Oltin nur — tepa o'ng burchakdan tushadi */
+    radial-gradient(260px 215px at 104% -14%, rgba(246,223,164,.42), rgba(246,223,164,.11) 44%, transparent 68%),
+    /* 2. Ko'k nur — past chapdan */
+    radial-gradient(300px 250px at -14% 116%, rgba(70,126,245,.26), transparent 68%),
+    /* 3. Vinyetka — chekkalar to'qlashadi, raqam "oldinga chiqadi" */
+    radial-gradient(130% 110% at 50% 12%, transparent 38%, rgba(2,8,20,.62) 100%),
+    /* 4. Asos */
+    linear-gradient(156deg,#102548 0%,#1A3A6B 42%,#060E1E 100%);
   position:relative;overflow:hidden;color:#fff;
+  /* Soyalar: tashqi chuqurlik + tepada yorug'lik qirrasi + pastda
+     to'q qirra (kartochka "qalinroq" ko'rinadi) */
   box-shadow:
-    0 26px 56px -26px rgba(4,11,24,.98),
-    0 2px 10px -4px rgba(5,14,30,.6),
-    inset 0 1px 0 rgba(255,255,255,.10);
+    0 22px 46px -24px rgba(3,9,20,.96),
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -1px 0 rgba(0,0,0,.38);
   border:none;
   isolation:isolate;
+  /* `contain` — brauzerga "bu kartochkaning ichi tashqarisiga ta'sir
+     qilmaydi" deb aytadi. Shunda karusel surilganda u faqat shu
+     kartochkani tekshiradi, butun sahifani emas. */
+  contain:layout paint style;
   transition:transform .3s cubic-bezier(.22,1,.3,1);
 }
-/* Oltin soch chizig'i — tepada yorqin, pastga qarab so'nadi */
 .herocard::before{
   content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;
   background:linear-gradient(150deg,rgba(240,216,152,.75) 0%,rgba(240,216,152,.18) 34%,rgba(255,255,255,.06) 62%,rgba(240,216,152,.26) 100%);
@@ -1174,9 +1224,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 /* Oltin folga yorlig'i */
 .hc-badge{
   font-size:9.5px;font-weight:800;letter-spacing:.15em;color:#201702;
-  background:
-    linear-gradient(104deg,transparent 28%,rgba(255,255,255,.55) 42%,transparent 56%),
-    linear-gradient(135deg,#FBF0CF 0%,#EDD79A 38%,#D7B straight 0%,#C9A041 100%);
+  /* (eski, xato yozilgan gradient qatori olib tashlandi) */
   background:
     linear-gradient(104deg,transparent 28%,rgba(255,255,255,.5) 42%,transparent 56%),
     linear-gradient(135deg,#FBF0CF 0%,#EDD79A 40%,#D5B059 72%,#B8902F 100%);
@@ -1193,11 +1241,15 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 /* Raqam — metallga o'yib yozilgandek: ustidan oq, pastdan sutli oltin,
    tagida chuqur soya va yuqorida ingichka yorug'lik qirrasi. */
 .herocard .num{
-  font-size:32px;font-weight:700;margin-top:18px;letter-spacing:.015em;
-  background:linear-gradient(176deg,#FFFFFF 0%,#FFFFFF 42%,#FBEFD2 72%,#EFD9A4 100%);
+  font-size:33px;font-weight:700;margin-top:18px;letter-spacing:.012em;
+  background:linear-gradient(176deg,#FFFFFF 0%,#FFFFFF 46%,#FCF1D8 74%,#F0DCAC 100%);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
-  filter:drop-shadow(0 2px 10px rgba(4,11,24,.65)) drop-shadow(0 1px 0 rgba(255,255,255,.14));
+  /* Avval ikkita `drop-shadow()` filtri bor edi. Filtr matnni avval
+     rasmga aylantirib, so'ng xiralashtiradi — kartochka har qayta
+     chizilganda takrorlanadi va Androidda eng qimmat amal shu edi.
+     Soyasiz ham raqam fonda yaxshi ko'rinadi (fon ataylab
+     to'qlashtirildi), ustiga yozuv ancha tiniqroq chiqadi. */
 }
 /* Pastki qator. `flex-wrap` MUHIM: "1 250 000 so'mdan / 24 oy" kabi
    uzun narx tugma yoniga sig'masa, u butun qatorni egallaydi va
@@ -1207,7 +1259,7 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
    avvalgidek yonma-yon turadi. */
 .hc-bot{
   position:relative;margin-top:19px;padding-top:16px;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:13px;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;row-gap:13px;
 }
 /* Ajratgich — o'rtasi yorqin, ikki chekkasi so'nadigan oltin soch chiziq */
 .hc-bot::before{
@@ -1220,21 +1272,26 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
    Avval `flex:1` (basis 0) edi: blok hech qachon o'tmay, matn
    "25 000 00…" bo'lib kesilardi. */
 .hc-price{flex:1 1 auto;min-width:0}
-.hc-price.keng{flex:1 1 auto}
+/* BO'LIB TO'LASH kartochkasi — mijoz so'rovi: "Batafsil" tugmasi
+   AVVALGIDAY narxning to'g'risida, bir qatorda tursin.
+   `flex-basis:0` => blok hech qachon pastki qatorga o'tmaydi, tugma
+   doim yonida qoladi. Matn sig'masa (360px li telefonda sig'maydi)
+   oxiri "…" bilan kesiladi — mijoz shuni tanladi. */
+.hc-price.keng{flex:1 1 0%;min-width:0}
 .hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Bo'lib to'lash narxi — ILGARI bir qatorga majburlangandi va
-   "900 000 so'mdan / 24 oy" kabi uzun matn tor telefonlarda (360px)
-   kesilib, "..." bo'lib qolardi. Endi ikkinchi qatorga o'tadi:
-   narx hech qachon yashirin qolmaydi. */
+/* Bo'lib to'lash narxi. Shrift 13.5px da qat'iy — kichraymaydi.
+   So'zlar bo'linmaydi va "oy" pastga tushmaydi; tor ekranda matn
+   oxiri "…" bilan kesiladi, tugma esa o'z joyida, narx to'g'risida
+   turaveradi. */
 .hc-price .pv.ins2{
-  font-size:13.5px;line-height:1.3;color:#F0D898;letter-spacing:-.01em;
-  white-space:nowrap;            /* so'zlar bo'linmaydi */
+  font-size:13px;line-height:1.3;color:#F0D898;letter-spacing:-.03em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .hc-price .pv small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:#9FB4D4;font-weight:600}
 .hc-price .pi2{display:inline-block;margin-top:5px;font-size:10.5px;color:#F0D898;font-weight:700;background:rgba(230,200,119,.14);padding:3px 8px;border-radius:7px;white-space:nowrap}
 .hc-cta{
   position:relative;overflow:hidden;margin-left:auto;   /* o'ng chekkada */
-  height:43px;padding:0 17px 0 19px;border-radius:15px;flex:none;
+  height:43px;padding:0 12px 0 14px;border-radius:15px;flex:none;
   background:
     linear-gradient(100deg,transparent 30%,rgba(255,255,255,.42) 44%,transparent 58%),
     linear-gradient(180deg,#FBEDC6 0%,#EFD596 40%,#DCB864 72%,#C9A041 100%);
