@@ -22,10 +22,21 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/logo-circle.png">
 <link rel="apple-touch-icon" href="assets/icon-512.png">
-<!-- Ilova (PWA) sozlamalari hozircha olib tashlandi — mijoz so'roviga
-     ko'ra sayt "o'rnatiladigan ilova" sifatida taklif qilinmaydi.
-     Qaytarish kerak bo'lsa: manifest havolasi va apple-mobile-web-app-*
-     teglari shu yerga qayta qo'yiladi. -->
+<!-- IPHONE'DA BILDIRISHNOMA UCHUN KERAK.
+     Apple qoidasi: veb-sayt bildirishnoma yubora olishi uchun u
+     "Bosh ekranga qo'shish" orqali qo'shilgan bo'lishi SHART, va
+     buning uchun saytda manifest hamda quyidagi teglar bo'lishi
+     kerak. Biz bularni bir marta olib tashlagan edik — o'shanda
+     iPhone'da bildirishnomani yoqish butunlay imkonsiz bo'lib
+     qolgandi.
+     DIQQAT: bu teglar saytda hech qanday "ilovani o'rnating" taklifi
+     chiqarmaydi — bizning taklifimiz alohida va o'chirilgan
+     (index.html ichidagi PWA_OCHIQ = false). -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VIP RAQAMLAR">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="VIP RAQAMLAR">
 
 <!-- KUCHSIZ QURILMANI ANIQLASH.
@@ -1189,7 +1200,14 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 }
 .hc-price{flex:1;min-width:0}
 .hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc-price .pv.ins2{font-size:13.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#F0D898;letter-spacing:-.01em}
+/* Bo'lib to'lash narxi — ILGARI bir qatorga majburlangandi va
+   "900 000 so'mdan / 24 oy" kabi uzun matn tor telefonlarda (360px)
+   kesilib, "..." bo'lib qolardi. Endi ikkinchi qatorga o'tadi:
+   narx hech qachon yashirin qolmaydi. */
+.hc-price .pv.ins2{
+  font-size:13px;line-height:1.28;color:#F0D898;letter-spacing:-.01em;
+  white-space:normal;overflow:visible;text-overflow:clip;
+}
 .hc-price .pv small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:#9FB4D4;font-weight:600}
 .hc-price .pi2{display:inline-block;margin-top:5px;font-size:10.5px;color:#F0D898;font-weight:700;background:rgba(230,200,119,.14);padding:3px 8px;border-radius:7px;white-space:nowrap}
 .hc-cta{
@@ -1479,7 +1497,14 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 .ptile:active{transform:scale(.975)}
 .ptile:hover{transform:translateY(-3px);box-shadow:var(--sh-2);border-color:var(--nc-hov)}
 .ptile .pi{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line-3)}
-.ptile b{display:block;margin-top:30px;font-size:14.5px;font-weight:800;line-height:1.3}
+/* "Shartnomalarim" kabi uzun BITTA so'z tor telefonlarda (360px)
+   plitkaga sig'may, chekkasidan chiqib ketardi. Endi shrift ekran
+   kengligiga qarab biroz kichrayadi va zarur bo'lsa so'z ko'chiriladi. */
+.ptile b{
+  display:block;margin-top:30px;font-weight:800;line-height:1.3;
+  font-size:clamp(12.5px, 3.7vw, 14.5px);
+  overflow-wrap:break-word;
+}
 .ptile i{display:block;margin-top:5px;font-size:11.5px;color:var(--muted-2);font-weight:600;font-style:normal}
 .ptile .pb{position:absolute;top:16px;right:16px;min-width:20px;height:20px;border-radius:10px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px}
 
@@ -1723,32 +1748,61 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
    ================================================================== */
 .bell{position:relative}
 .bell svg{width:20px;height:20px}
+/* Belgi — tugmadan TASHQARIDA chiziladi (position:absolute), shu
+   sabab tugma o'lchamiga umuman ta'sir qilmaydi. */
 .bell .cnt{
-  position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;
+  position:absolute;top:-4px;right:-4px;
+  min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;
   border-radius:999px;background:var(--red);color:#fff;
-  font-size:10px;font-weight:800;line-height:17px;text-align:center;
+  font-size:9.5px;font-weight:800;line-height:16px;text-align:center;
   box-shadow:0 0 0 2px var(--card);
+  pointer-events:none;
+  animation:bellNuq .3s cubic-bezier(.2,.9,.3,1) both;
 }
-/* yangi xabar bo'lsa qo'ng'iroqcha bir marta chayqaladi */
-.bell.ring svg{animation:bellRing 1.1s cubic-bezier(.36,.07,.19,.97) 2}
-@keyframes bellRing{
-  0%,100%{transform:rotate(0)}
-  12%{transform:rotate(13deg)} 24%{transform:rotate(-11deg)}
-  36%{transform:rotate(8deg)}  48%{transform:rotate(-6deg)}
-  60%{transform:rotate(3deg)}  72%{transform:rotate(0)}
+@keyframes bellNuq{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .bell .cnt{animation:none} }
+/* DIQQAT: bu yerda ilgari `.bell.ring` degan sinf bor edi va
+   qo'ng'iroqcha chayqalardi. Saytda ALLAQACHON `.ring` degan boshqa
+   sinf bor ekan (92x92 o'lchamdagi doira ko'rsatkich) — ikkisi
+   to'qnashib, xabar kelganda qo'ng'iroqcha 40px dan 92px ga
+   kattalashib, butun tepa qatorni buzib yuborardi.
+   Endi chayqalish umuman yo'q: tugma joyida qimirlamay turadi,
+   faqat ustidagi kichik son o'zgaradi. */
+/* ---- Xabarlar ro'yxati ----
+   Katta ilovalardagidek: har xabar bitta qator, o'qilmagani ko'k
+   nuqta va to'q fon bilan ajralib turadi. Bosilsa to'liq ochiladi
+   va AYNAN O'SHA o'qilgan hisoblanadi (hammasi birdan emas).
+   Ochilish balandligi JS bilan o'lchanmaydi — CSS grid 0fr -> 1fr. */
+.msg-head{
+  display:flex;align-items:center;gap:8px;margin-bottom:11px;
+  font-size:12px;font-weight:800;color:var(--blue-text);
 }
+.msg-head.done{color:var(--green)}
+.msg-head svg{width:14px;height:14px}
+.msg-nuq{width:7px;height:7px;border-radius:50%;background:var(--blue);flex:none}
+.msg-all{
+  margin-left:auto;padding:5px 10px;border-radius:8px;cursor:pointer;
+  background:transparent;border:1px solid var(--line-2);color:var(--text-2);
+  font-family:inherit;font-size:11px;font-weight:700;
+}
+.msg-all:active{transform:scale(.95)}
+
 .msg{
-  position:relative;display:flex;gap:11px;align-items:flex-start;
-  padding:13px 13px 13px 14px;border-radius:16px;margin-bottom:9px;
+  position:relative;overflow:hidden;
+  border-radius:15px;margin-bottom:8px;
   background:var(--card);box-shadow:inset 0 0 0 1px var(--line);
+  transition:box-shadow .2s;
 }
 .msg.unread{
   background:linear-gradient(180deg,rgba(74,124,240,.10),rgba(74,124,240,.03));
-  box-shadow:inset 0 0 0 1px rgba(124,166,255,.3);
+  box-shadow:inset 0 0 0 1px rgba(124,166,255,.32);
 }
-.msg.unread::after{
-  content:'';position:absolute;top:14px;right:13px;
-  width:7px;height:7px;border-radius:50%;background:var(--blue);
+.msg.open{box-shadow:inset 0 0 0 1px var(--line),0 10px 24px -18px rgba(4,11,24,.8)}
+
+.msg-qator{
+  width:100%;display:flex;align-items:flex-start;gap:11px;
+  padding:13px 13px 13px 14px;border:none;background:transparent;cursor:pointer;
+  font-family:inherit;text-align:left;color:var(--ink);
 }
 .msg-ic{
   width:38px;height:38px;border-radius:12px;flex:none;overflow:hidden;
@@ -1759,18 +1813,47 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 .msg-ic svg{width:19px;height:19px}
 .msg.k-ogoh .msg-ic{background:rgba(224,160,40,.18);color:#F0C878}
 .msg.k-aksiya .msg-ic{background:rgba(226,74,74,.16);color:#FF9A9A}
-.msg-b{flex:1;min-width:0;padding-right:14px}
-.msg-t{font-size:13.5px;font-weight:800;line-height:1.3}
-.msg-x{margin-top:4px;font-size:12.5px;color:var(--text-2);line-height:1.52;white-space:pre-line}
-.msg-f{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.msg-d{font-size:10.5px;color:var(--faint);font-weight:700}
+.msg-b{flex:1;min-width:0;display:block}
+.msg-t{
+  display:block;font-size:13.5px;font-weight:650;line-height:1.3;color:var(--text-2);
+}
+.msg.unread .msg-t{font-weight:800;color:var(--ink)}
+/* Yopiq holatda matn bir qatorda ko'rinadi (qidirib topish uchun) */
+.msg-p{
+  display:block;margin-top:3px;font-size:12px;color:var(--muted);line-height:1.4;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.msg.open .msg-p{display:none}
+.msg-d{display:block;margin-top:5px;font-size:10.5px;color:var(--faint);font-weight:700}
+.msg-dot{
+  width:8px;height:8px;border-radius:50%;flex:none;margin-top:6px;
+  background:var(--blue);opacity:0;transition:opacity .2s;
+}
+.msg.unread .msg-dot{opacity:1}
+.msg-chev{
+  width:22px;height:22px;flex:none;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;color:var(--faint);
+  transition:transform .28s cubic-bezier(.2,.8,.3,1);
+}
+.msg-chev svg{width:14px;height:14px}
+.msg.open .msg-chev{transform:rotate(180deg)}
+
+.msg-ochiq{
+  display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .32s cubic-bezier(.2,.8,.3,1);
+}
+.msg.open .msg-ochiq{grid-template-rows:1fr}
+.msg-ichki{overflow:hidden;min-height:0}
+.msg.open .msg-ichki{padding:0 14px 14px 63px}
+.msg-x{font-size:12.5px;color:var(--text-2);line-height:1.6;white-space:pre-line}
 .msg-go{
-  height:30px;padding:0 13px;border-radius:999px;border:none;cursor:pointer;
+  margin-top:11px;height:32px;padding:0 14px;border-radius:999px;border:none;cursor:pointer;
   background:linear-gradient(180deg,#3A6CF0,#2050DD);color:#fff;
   font-family:inherit;font-size:11.5px;font-weight:800;
   display:inline-flex;align-items:center;
 }
 .msg-go:active{transform:scale(.96)}
+@media (prefers-reduced-motion:reduce){ .msg-ochiq{transition:none} }
 
 /* ---- Telefonga tushadigan bildirishnoma ko'rinishi (tepadan) ----
    Katta kompaniyalarning ilovasidagi push xabari kabi: tepadan
@@ -1863,6 +1946,8 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 #pushRow .tg-tx i{-webkit-line-clamp:2}
 #pushRow .tg-btn{padding:0 12px;font-size:11.5px}
 #pushRow.on .tg-btn{background:linear-gradient(135deg,#2E9E63,#1F7A49);box-shadow:0 8px 18px -10px rgba(46,158,99,.9)}
+
+
 
 </style>
 </head>
@@ -2321,6 +2406,7 @@ const RU = {
   "Oldindan to'lovsiz":"Без первого взноса",
   "Oldindan to'lovsiz, rasmiy shartnoma bilan":"Без первого взноса, по официальному договору",
   "Xabarlar":"Сообщения","Xabar yo'q":"Нет сообщений","Ko'rish":"Открыть",
+  "ta yangi xabar":"новых сообщений","Hammasini o'qildi":"Прочитать все","Hammasi o'qilgan":"Все прочитано",
   "Bildirishnomalarni yoqish":"Включить уведомления","Bildirishnoma yoqilgan":"Уведомления включены",
   "Bildirishnoma o'chirilgan":"Уведомления отключены","Yoqish":"Включить","Yoqilgan":"Включено","O'chirilgan":"Отключено",
   "Yangi raqamlar va aksiyalardan xabardor bo'ling":"Узнавайте о новых номерах и акциях",
@@ -5533,10 +5619,13 @@ function xabarlarKeshdan(){
 
 function msgBelginiYangila(){
   const n = msgOqilmagan().length;
-  [['bellCnt','bellBtn'],['bellCnt2','bellBtn2']].forEach(([c,b])=>{
-    const cnt = document.getElementById(c), btn = document.getElementById(b);
-    if(cnt){ cnt.style.display = n ? '' : 'none'; cnt.textContent = n > 9 ? '9+' : String(n); }
-    if(btn) btn.classList.toggle('ring', n > 0);
+  [['bellCnt','bellBtn'],['bellCnt2','bellBtn2']].forEach(([c])=>{
+    const cnt = document.getElementById(c);
+    if(!cnt) return;
+    /* Tugmaga HECH QANDAY sinf qo'shilmaydi — u joyida qimirlamay
+       turadi. Faqat kichik son ko'rinadi/yo'qoladi. */
+    cnt.style.display = n ? '' : 'none';
+    cnt.textContent = n > 9 ? '9+' : String(n);
   });
 }
 
@@ -5556,10 +5645,25 @@ function openXabarlar(){
   $('#genFoot').style.display = 'none';
   renderXabarlar();
   openSheet('shGen');
-  /* ochilgani bilanoq hammasi "o'qilgan" bo'ladi */
-  msgOqilganYoz(MSGS.map(m => m.id));
-  setTimeout(msgBelginiYangila, 420);
+  /* DIQQAT: oyna ochilgani bilan hammasi "o'qilgan" bo'lib
+     QOLMAYDI. Katta ilovalardagi kabi: har bir xabar BOSILGANDA
+     ochiladi va aynan o'sha o'qilgan hisoblanadi. Shunda mijoz
+     qaysinisini ko'rganini aniq biladi. */
   try{ if(typeof track === 'function') track('xabarlar_ochildi'); }catch(e){}
+}
+
+/* Bitta xabarni ochish/yopish */
+function msgBos(id){
+  const karta = document.querySelector('.msg[data-msg="' + CSS.escape(id) + '"]');
+  if(!karta) return;
+  const ochiq = karta.classList.toggle('open');
+  if(ochiq && karta.classList.contains('unread')){
+    karta.classList.remove('unread');
+    const o = msgOqilgan();
+    if(o.indexOf(id) === -1){ o.push(id); msgOqilganYoz(o); }
+    msgBelginiYangila();
+    try{ haptic('light'); }catch(e){}
+  }
 }
 
 function renderXabarlar(){
@@ -5570,21 +5674,45 @@ function renderXabarlar(){
     return;
   }
   const oqilgan = new Set(msgOqilgan());
-  body.innerHTML = MSGS.map(m => {
+  const yangiSon = MSGS.filter(m => !oqilgan.has(m.id)).length;
+
+  /* Tepada qisqa sarhisob — nechtasi o'qilmagani darhol ko'rinadi */
+  const bosh = yangiSon
+    ? `<div class="msg-head"><span class="msg-nuq"></span>${esc(yangiSon + ' ' + t('ta yangi xabar'))}
+         <button type="button" class="msg-all" id="msgAll">${t('Hammasini o\'qildi')}</button></div>`
+    : `<div class="msg-head done">${IC_OK_S}${esc(t('Hammasi o\'qilgan'))}</div>`;
+
+  body.innerHTML = bosh + MSGS.map(m => {
     const yangi = !oqilgan.has(m.id);
     const kind = String(m.kind || 'xabar');
     return `<div class="msg k-${esc(kind)}${yangi ? ' unread' : ''}" data-msg="${esc(m.id)}">
-      <div class="msg-ic">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" decoding="async">` : msgIkon(kind)}</div>
-      <div class="msg-b">
-        <div class="msg-t">${esc(m.title)}</div>
-        ${m.body ? `<div class="msg-x">${esc(m.body)}</div>` : ''}
-        <div class="msg-f">
+      <button type="button" class="msg-qator" data-msgopen="${esc(m.id)}">
+        <span class="msg-ic">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" decoding="async">` : msgIkon(kind)}</span>
+        <span class="msg-b">
+          <span class="msg-t">${esc(m.title)}</span>
+          ${m.body ? `<span class="msg-p">${esc(m.body)}</span>` : ''}
           <span class="msg-d">${esc(msgVaqt(m.at))}</span>
-          ${m.link ? `<button class="msg-go" data-msglink="${esc(m.link)}">${esc(m.linkText || t("Ko'rish"))}</button>` : ''}
-        </div>
-      </div>
+        </span>
+        <span class="msg-dot" aria-hidden="true"></span>
+        <span class="msg-chev" aria-hidden="true">${IC_CHEV}</span>
+      </button>
+      <div class="msg-ochiq"><div class="msg-ichki">
+        ${m.body ? `<div class="msg-x">${esc(m.body)}</div>` : ''}
+        ${m.link ? `<button class="msg-go" data-msglink="${esc(m.link)}">${esc(m.linkText || t("Ko'rish"))}</button>` : ''}
+      </div></div>
     </div>`;
   }).join('');
+}
+
+const IC_OK_S = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const IC_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>';
+
+/* "Hammasini o'qildi" */
+function msgHammasi(){
+  msgOqilganYoz(MSGS.map(m => m.id));
+  msgBelginiYangila();
+  renderXabarlar();
+  try{ haptic('ok'); }catch(e){}
 }
 
 /* ---- Telefonga tushadigan push ko'rinishi ----
@@ -5735,11 +5863,12 @@ const PUSH = (function(){
        o'rnatilgan bo'lsa. Buni brauzerning o'zi bildiradi — shu
        sabab faqat haqiqiy imkoniyat tekshiriladi. */
     if(!qollabQuvvat()){
-      toast(appleQurilma()
-        ? (LANG==='ru' ? 'Нажмите «Поделиться» → «На экран «Домой»», затем включите уведомления'
-                       : "\"Ulashish\" → \"Bosh ekranga qo'shish\" qiling, so'ng yoqing")
-        : (LANG==='ru' ? 'Этот браузер не поддерживает уведомления'
-                       : 'Bu brauzer bildirishnomani qo\'llamaydi'), 'warn');
+      /* iPhone — qisqa toast yetarli emas: mijoz nima qilishni
+         bilmay qoladi. Shu sabab rasmli, qadamba-qadam yo'riqnoma
+         ochiladi. Boshqa brauzerlarda oddiy xabar. */
+      if(appleQurilma()){ iphoneIzoh(); return false; }
+      toast(LANG==='ru' ? 'Этот браузер не поддерживает уведомления'
+                        : 'Bu brauzer bildirishnomani qo\'llamaydi', 'warn');
       return false;
     }
     /* Kalit admin paneldan kelmagan bo'lsa — brauzerdan ruxsat
@@ -5835,6 +5964,19 @@ const PUSH = (function(){
     }
   }
 
+  /* iPhone uchun QISQA izoh.
+     Ilgari bu yerda uch qadamli katta oyna ochilardi — mijoz uni
+     o'qimasdan yopib yuborardi. Endi bir qatorli xabar: nima qilish
+     kerakligi aytiladi, xolos. Android va kompyuterda esa tugma
+     bosilishi bilan bildirishnoma DARHOL yoqiladi (bu yergacha
+     umuman yetib kelinmaydi). */
+  function iphoneIzoh(){
+    toast(LANG==='ru'
+      ? 'На iPhone: «Поделиться» → «На экран «Домой»», затем включите здесь'
+      : "iPhone'da: “Ulashish” → “Bosh ekranga qo'shish”, so'ng shu yerdan yoqing", 'warn');
+    try{ if(typeof track==='function') track('push_iphone_izoh'); }catch(e){}
+  }
+
   /* ================= AVTOMATIK TAKLIF =================
      Savol: "hamma saytga kirganga o'zi yoqib qo'ysak bo'lmaydimi?"
      Javob: brauzer bunga YO'L QO'YMAYDI. Ruxsat so'rash oynasi faqat
@@ -5901,7 +6043,11 @@ const PUSH = (function(){
   function init(){
     belgini();
     const row = document.getElementById('pushRow');
-    if(row) row.addEventListener('click', ()=>{ if(holat() !== 'granted') yoq(); });
+    if(row) row.addEventListener('click', ()=>{
+      if(holat() === 'granted') return;
+      if(!qollabQuvvat() && appleQurilma()){ iphoneIzoh(); return; }
+      yoq();
+    });
 
     const ha = document.getElementById('pushAskYes');
     if(ha) ha.addEventListener('click', async ()=>{ taklifYop(false); await yoq(); });
@@ -5965,7 +6111,7 @@ const HAP_SEL = [
   '[data-card]','[data-order]','[data-sheet]','[data-close]',
   '[data-fav]','[data-copy]','[data-pay]','[data-sort]','[data-catop]',
   '[data-opgo]','[data-nav]','[data-lang-toggle]','[data-tier]','[data-msg]',
-  '.op','.chip','.tpick','.ptile','.tag','.row','.btn','.nc-cta','.hc-cta',
+  '.op','.chip','.tpick','.ptile','.tag','.row','.btn','.nc-cta','.hc-cta','[data-msgopen]',
   '.seg > *','.steps .s','#nav a','.vcard','.daycard','.msg'
 ].join(',');
 document.addEventListener('pointerdown', (e)=>{
@@ -6139,6 +6285,9 @@ document.addEventListener('click', (e)=>{
   if(e.target.closest('#btnFilter')){ openFilter(); return; }
   /* Tepadagi qo'ng'iroqcha -> xabarlar */
   if(e.target.closest('#bellBtn, #bellBtn2')){ openXabarlar(); return; }
+  const mo = e.target.closest('[data-msgopen]');
+  if(mo){ msgBos(mo.dataset.msgopen); return; }
+  if(e.target.closest('#msgAll')){ msgHammasi(); return; }
   const ml = e.target.closest('[data-msglink]');
   if(ml){
     const u = ml.dataset.msglink || '';

@@ -3,7 +3,7 @@
    katalog ko'rinsin. Dinamik ma'lumot (Firestore, funksiyalar) HECH
    QACHON keshlanmaydi — ular doim jonli olinadi. */
 const CACHE = 'vipraqamlar-v3';
-const SHELL = ['/', '/index.html', '/assets/logo-circle.png'];
+const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png'];
 
 self.addEventListener('install', (e) => {
   /* DIQQAT: `addAll` BO'LINMAS — ro'yxatdagi bitta manzil ham
