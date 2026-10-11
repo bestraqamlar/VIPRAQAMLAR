@@ -4578,6 +4578,18 @@ body{
         <input type="checkbox" id="newInstallment">
         Bo'lib to'lash mumkin
       </label>
+      <!-- Bo'lib to'lashning ANIQ oylik summalari. Bo'sh qoldirsangiz
+           sayt foiz sozlamasidan taxminiy hisoblaydi. -->
+      <div id="newInsWrap" style="display:none;grid-column:1/-1;display:none">
+        <div style="font-size:12.5px;color:var(--muted);font-weight:700;margin:2px 0 8px">
+          Aniq oylik to'lov (bo'sh qoldirsangiz — taxminiy hisoblanadi)
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <input type="number" id="newM6"  placeholder="6 oy — oyiga">
+          <input type="number" id="newM12" placeholder="12 oy — oyiga">
+          <input type="number" id="newM24" placeholder="24 oy — oyiga">
+        </div>
+      </div>
       <select id="newTier" title="Toifa">
         <option value="">Toifasiz (oddiy)</option>
         <option value="vip">VIP — binafsha</option>
@@ -13349,6 +13361,13 @@ function renderAdminNumbers(numbers){
               <input type="checkbox" class="an-installment" ${item.installment ? 'checked' : ''}>
               Bo'lib to'lash
             </label>
+            <!-- ANIQ OYLIK TO'LOV. Bo'sh qoldirilsa sayt foiz
+                 sozlamasidan TAXMINIY hisoblaydi va mijozga
+                 "Taxminiy hisob" deb yozadi. To'ldirilsa — aynan shu
+                 summa ko'rsatiladi va izoh yozilmaydi. -->
+            <input class="an-m6"  type="number" placeholder="6 oy — oyiga (aniq)"  value="${escapeHtml(item.monthly6  || '')}">
+            <input class="an-m12" type="number" placeholder="12 oy — oyiga (aniq)" value="${escapeHtml(item.monthly12 || '')}">
+            <input class="an-m24" type="number" placeholder="24 oy — oyiga (aniq)" value="${escapeHtml(item.monthly24 || '')}">
             <select class="an-tier" title="Toifa">
               <option value="" ${!item.tier?'selected':''}>Toifasiz</option>
               <option value="vip" ${item.tier==='vip'?'selected':''}>VIP — binafsha</option>
@@ -13441,6 +13460,9 @@ function renderAdminNumbers(numbers){
           dailyDeal: row.querySelector('.an-dailydeal').checked,
           monthlyTariff: Number(row.querySelector('.an-monthlytariff').value) || 0,
           tariffMonths: Number(row.querySelector('.an-tariffmonths').value) || 0,
+          monthly6:  Number(row.querySelector('.an-m6').value)  || 0,
+          monthly12: Number(row.querySelector('.an-m12').value) || 0,
+          monthly24: Number(row.querySelector('.an-m24').value) || 0,
           ownershipTransfer: row.querySelector('.an-ownership').checked,
           recommended: row.querySelector('.an-recommended').checked,
           tag: row.querySelector('.an-tag').value
@@ -13701,6 +13723,9 @@ document.getElementById('aktSaveBtn').addEventListener('click', async ()=>{
         installment: installmentCur, featured: false, dailyDeal: true, monthlyTariff: 0, tariffMonths: 0,
         dealExpiresAt: aktDurationHours > 0 ? Date.now() + aktDurationHours * 3600 * 1000 : null,
         dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
+      monthly6:  Number(document.getElementById('newM6').value)  || 0,
+      monthly12: Number(document.getElementById('newM12').value) || 0,
+      monthly24: Number(document.getElementById('newM24').value) || 0,
         ownershipTransfer: false, recommended: false, tag: 'oddiy',
         last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
         addedAt: Date.now(), randomKey: Math.random()
@@ -14238,6 +14263,9 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       tariffMonths: 0,
       dealExpiresAt: null,
       dealDown6: 0, dealMonthly6: 0, dealDown12: 0, dealMonthly12: 0, dealDown24: 0, dealMonthly24: 0,
+      monthly6:  Number(document.getElementById('newM6').value)  || 0,
+      monthly12: Number(document.getElementById('newM12').value) || 0,
+      monthly24: Number(document.getElementById('newM24').value) || 0,
       ownershipTransfer: false,
       recommended: document.getElementById('newRecommended').checked,
       tag: document.getElementById('newTag').value,
@@ -14252,6 +14280,8 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     curEl.value = 'uzs';
     curEl.dispatchEvent(new Event('change'));
     document.getElementById('newInstallment').checked = false;
+    ['newM6','newM12','newM24'].forEach(k=>{ const e=document.getElementById(k); if(e) e.value=''; });
+    const insWrap = document.getElementById('newInsWrap'); if(insWrap) insWrap.style.display='none';
     document.getElementById('newFeatured').checked = false;
     document.getElementById('newTier').value = '';
     document.getElementById('newRecommended').checked = false;
@@ -14279,7 +14309,13 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
     }
   };
   cur.addEventListener('change', sync);
-  sync();
+  /* "Bo'lib to'lash mumkin" belgilansa — aniq summa maydonlari ochiladi */
+  const insCb = document.getElementById('newInstallment');
+  const insWrap = document.getElementById('newInsWrap');
+  const insSync = ()=>{ if(insWrap) insWrap.style.display = (insCb && insCb.checked && cur.value !== 'usd') ? 'block' : 'none'; };
+  if(insCb) insCb.addEventListener('change', insSync);
+  cur.addEventListener('change', insSync);
+  sync(); insSync();
 })();
 
 /* ---- Ko'p raqamni birdan qo'shish ---- */

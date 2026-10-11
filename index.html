@@ -1527,6 +1527,74 @@ html[data-theme="dark"] ::selection{background:transparent}
 .daycard.res .dc-go{background-image:none;background-color:var(--card-3);color:var(--faint);box-shadow:none}
 
 /* ---------- Telegram kanal kartochkasi ---------- */
+/* ==========================================================================
+   BILDIRISHNOMA KARTASI (#pushRow) — profil bo'limining eng pastida
+   Telegram kartasidan ATAYLAB farq qiladi: u ko'k/havorang va qator
+   ko'rinishida, bu esa oltin nurli va butun enli tugmali. Shunda
+   mijoz ikkalasini aralashtirmaydi.
+   ========================================================================== */
+.bnote{
+  display:block;width:100%;margin-top:18px;padding:17px 17px 15px;
+  border-radius:22px;border:none;font-family:inherit;text-align:left;cursor:pointer;
+  position:relative;overflow:hidden;color:var(--text);
+  background:
+    radial-gradient(190px 120px at 100% 0%, rgba(230,200,119,.20), transparent 68%),
+    radial-gradient(170px 120px at 0% 100%, rgba(64,118,235,.12), transparent 70%),
+    var(--card);
+  box-shadow:var(--sh-1), inset 0 0 0 1px rgba(230,200,119,.26);
+  transition:transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .22s;
+}
+.bnote:active{transform:scale(.985)}
+.bnote-top{display:flex;align-items:flex-start;gap:12px}
+.bnote-ic{
+  width:42px;height:42px;border-radius:14px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,rgba(230,200,119,.26),rgba(201,160,65,.14));
+  box-shadow:inset 0 0 0 1px rgba(230,200,119,.42);
+  color:var(--gold-ink);
+  transition:background .25s, color .25s, box-shadow .25s;
+}
+.bnote-tx{flex:1;min-width:0;padding-top:1px}
+.bnote-tx b{display:block;font-size:14.5px;font-weight:800;line-height:1.3}
+.bnote-tx i{
+  display:block;margin-top:4px;font-size:11.5px;color:var(--muted);
+  font-weight:600;font-style:normal;line-height:1.45;
+}
+/* Butun enli tugma — "katta kompaniya" uslubi */
+.bnote .bnote-act{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  margin-top:14px;height:44px;border-radius:14px;
+  font-size:13.5px;font-weight:800;letter-spacing:.01em;
+  color:#1A1203;
+  background:
+    linear-gradient(100deg,transparent 30%,rgba(255,255,255,.4) 44%,transparent 58%),
+    linear-gradient(180deg,#FBEDC6 0%,#EFD596 40%,#DCB864 72%,#C9A041 100%);
+  box-shadow:
+    0 12px 24px -14px rgba(224,188,101,.95),
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -1.5px 0 rgba(120,88,20,.3);
+  transition:background .25s, color .25s, box-shadow .25s;
+}
+.bnote .bnote-ok{display:none}
+/* ----- YOQILGAN holat: yashil, bosilmaydiganday ko'rinadi ----- */
+.bnote.on{
+  background:
+    radial-gradient(190px 120px at 100% 0%, rgba(42,180,120,.16), transparent 68%),
+    var(--card);
+  box-shadow:var(--sh-1), inset 0 0 0 1px rgba(42,180,120,.3);
+  cursor:default;
+}
+.bnote.on .bnote-ic{
+  background:var(--green-tint);color:var(--green);
+  box-shadow:inset 0 0 0 1px rgba(42,180,120,.35);
+}
+.bnote.on .bnote-act{
+  background:var(--green-tint);color:var(--green);
+  box-shadow:inset 0 0 0 1px rgba(42,180,120,.3);
+}
+.bnote.on .bnote-ok{display:block}
+.bnote.on:active{transform:none}
+
 .tgcard{
   display:flex;align-items:center;gap:11px;margin-top:14px;
   padding:13px 13px 13px 14px;border-radius:20px;color:inherit;position:relative;overflow:hidden;
@@ -2282,20 +2350,6 @@ html[data-theme="dark"] ::selection{background:transparent}
       </span>
     </a>
 
-    <!-- Bildirishnoma — sayt yopiq bo'lsa ham xabar keladi -->
-    <button class="tgcard" id="pushRow" type="button" style="display:none;width:100%;text-align:left;border:none;font-family:inherit;cursor:pointer;margin-top:12px">
-      <span class="tg-ic" style="background:var(--blue-tint);color:var(--blue-text)">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"></path><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"></path></svg>
-      </span>
-      <span class="tg-tx">
-        <b data-t="Bildirishnomalarni yoqish">Bildirishnomalarni yoqish</b>
-        <i data-t="Yangi raqamlar va aksiyalardan xabardor bo'ling">Yangi raqamlar va aksiyalardan xabardor bo'ling</i>
-      </span>
-      <span class="tg-btn"><span data-t="Yoqish">Yoqish</span>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"></path></svg>
-      </span>
-    </button>
-
     <div class="eyebrow" style="margin-top:22px" data-t="Bo'limlar">Bo'limlar</div>
     <div class="ptiles" style="margin-top:12px">
 
@@ -2341,6 +2395,28 @@ html[data-theme="dark"] ::selection{background:transparent}
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top:1px"><path d="M3 16V7h10v9"></path><path d="M13 10h4l3 3.2V16"></path><circle cx="7" cy="18" r="1.9"></circle><circle cx="17" cy="18" r="1.9"></circle></svg>
       <div style="font-size:12px;color:var(--text-2);font-weight:600;line-height:1.55" id="moreDelivery" data-t="O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.">O'zbekiston bo'ylab bepul yetkazib berish. Kuryer bilan birga rasmiy shartnoma va SIM-karta keladi.</div>
     </div>
+
+    <!-- ===== BILDIRISHNOMA — profil bo'limining ENG PASTIDA =====
+         Mijoz so'rovi: Telegram kanal qatorining tagida turmasin,
+         eng pastda, boshqacha va zamonaviyroq tugma bilan tursin.
+         Shuning uchun bu endi "tgcard" nusxasi emas, o'zining
+         alohida ko'rinishiga ega: oltin nurli karta + butun enli
+         tugma. Holatga qarab rangi o'zgaradi (.on = yoqilgan). -->
+    <button class="bnote" id="pushRow" type="button" style="display:none">
+      <span class="bnote-top">
+        <span class="bnote-ic">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"></path><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"></path></svg>
+        </span>
+        <span class="bnote-tx">
+          <b data-t="Bildirishnomalarni yoqish">Bildirishnomalarni yoqish</b>
+          <i data-t="Yangi raqamlar va aksiyalardan xabardor bo'ling">Yangi raqamlar va aksiyalardan xabardor bo'ling</i>
+        </span>
+      </span>
+      <span class="tg-btn bnote-act">
+        <svg class="bnote-ok" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"></path></svg>
+        <span data-t="Yoqish">Yoqish</span>
+      </span>
+    </button>
 
   </div>
 </section>
@@ -2670,26 +2746,87 @@ function installmentAllowed(item){
   if(!item) return false;
   if(isUsd(item)) return false;   /* dollarlik raqam — faqat naqt to'lov */
   if(item.installment === true) return true;
-  if(installmentFinancingFor(item)) return true;
-  if(item.dailyDeal && (item.dealMonthly6 || item.dealMonthly12 || item.dealMonthly24)) return true;
+  if(oylikMuddatlar(item).length) return true;
   return false;
+}
+
+/* ==================================================================
+   BO'LIB TO'LASH — YAGONA MANBA
+   Ilgari oylik summa to'rt xil joyda, TO'RT XIL yo'l bilan
+   hisoblanardi: kartochkadagi yozuv operator jadvalidan olardi,
+   raqam oynasining pastki qatori esa foizli formuladan. Natijada
+   bitta raqamda ikki xil summa ko'rinardi.
+   Endi hammasi shu uch funksiyadan o'tadi.
+
+   Ustuvorlik (yuqoridagisi kuchliroq):
+     1. Adminda shu raqamga QO'LDA kiritilgan summa (monthly6/12/24).
+        Bu maydon avvaldan bor edi, lekin faqat BITTA joyda
+        ishlatilardi — qolgan joylar uni ko'rmay formuladan
+        hisoblardi. "Umuman boshqa summa" ning asosiy sababi shu.
+     2. Operator moliyalashtirish jadvali (jonli raqamlar)
+     3. Kun taklifining summalari         (dealMonthly6/12/24)
+     4. Foizli formula                    (taxminiy)
+   ================================================================== */
+/* Adminda shu raqam uchun QO'LDA kiritilgan oylik summa.
+   `monthly6/12/24` maydoni allaqachon indeks orqali keladi — yangi
+   maydon o'ylab topilmadi, shunisi ishlatiladi. */
+function insAniqSumma(item, months){
+  if(!item) return 0;
+  return Number(item['monthly' + months]) || 0;
+}
+/* Shu muddat uchun oylik to'lov. 0 — bu muddat mavjud emas. */
+function oylikTolov(item, months){
+  if(!item || isUsd(item)) return 0;
+  const aniq = insAniqSumma(item, months);
+  if(aniq) return aniq;
+  const fin = installmentFinancingFor(item);
+  if(fin) return Number(fin.monthly[months]) || 0;
+  if(item.dailyDeal){
+    const d = Number(item['dealMonthly' + months]) || 0;
+    if(d) return d;
+  }
+  if(item.installment === true) return installmentMonthlyFor(item, months);
+  return 0;
+}
+/* Shu muddat uchun bosh to'lov (hozircha faqat operator jadvalida bor) */
+function oylikBoshTolov(item, months){
+  const fin = installmentFinancingFor(item);
+  return (fin && Number(fin.down[months])) || 0;
+}
+/* Qaysi muddatlar mavjud */
+function oylikMuddatlar(item){
+  if(!item || isUsd(item)) return [];
+  const aniq = [6,12,24,36].filter(m => insAniqSumma(item, m));
+  if(aniq.length) return aniq;
+  const fin = installmentFinancingFor(item);
+  if(fin) return [6,12,24].filter(m => fin.monthly[m]);
+  if(item.dailyDeal){
+    const l = [6,12,24].filter(m => Number(item['dealMonthly' + m]) > 0);
+    if(l.length) return l;
+  }
+  if(item.installment === true) return [6,12,24,36];
+  return [];
+}
+/* Kartochkada ko'rsatiladigan ASOSIY variant: 24 oy bo'lsa o'sha,
+   bo'lmasa eng uzun muddat. `aniq` — summa haqiqiymi yoki formula
+   bilan taxmin qilinganmi (shunga qarab izoh yoziladi). */
+function oylikAsosiy(item){
+  const ms = oylikMuddatlar(item);
+  if(!ms.length) return null;
+  const m = ms.indexOf(24) !== -1 ? 24 : ms[ms.length - 1];
+  const summa = oylikTolov(item, m);
+  if(!summa) return null;
+  return { months:m, monthly:summa, down:oylikBoshTolov(item, m),
+           aniq: !!(insAniqSumma(item, m) ||
+                    installmentFinancingFor(item) ||
+                    (item.dailyDeal && Number(item['dealMonthly' + m]) > 0)) };
 }
 
 function installmentTeaser(item){
   if(!item || isUsd(item)) return '';
-  if(!(item.installment === true || item.live || item.dailyDeal)) return '';
-  const fin = installmentFinancingFor(item);
-  if(fin){
-    for(const m of [24,12,6]) if(fin.monthly[m]) return `${formatPrice(fin.monthly[m])} ${t("so'mdan")} / ${m} ${t('oy')}`;
-    return t("Bo'lib to'lash mavjud");
-  }
-  if(item.dailyDeal){
-    if(item.dealMonthly24) return `${formatPrice(item.dealMonthly24)} ${t("so'mdan")} / 24 ${t('oy')}`;
-    if(item.dealMonthly12) return `${formatPrice(item.dealMonthly12)} ${t("so'mdan")} / 12 ${t('oy')}`;
-    if(item.dealMonthly6)  return `${formatPrice(item.dealMonthly6)} ${t("so'mdan")} / 6 ${t('oy')}`;
-  }
-  if(item.installment) return `${formatPrice(installmentMonthlyFor(item,24))} ${t("so'mdan")} / 24 ${t('oy')}`;
-  return '';
+  const a = oylikAsosiy(item);
+  if(!a) return (item.live || item.installment) ? '' : '';
+  return `${formatPrice(a.monthly)} ${t("so'mdan")} / ${a.months} ${t('oy')}`;
 }
 RU["so'mdan"] = 'сум';
 
@@ -3812,7 +3949,10 @@ function dayCard(item){
   const res = !!item.reserved;
   /* Toifa yorlig'i oddiy kartochkadagi bilan AYNAN bir xil rangda bo'lsin */
   const dTier = tierOf(item);
-  const ins = installmentTeaser(item) || (item.live && item.monthly24 ? `${formatPrice(item.monthly24)} ${SUM()}dan / 24 oy` : '');
+  /* Zaxira shart olib tashlandi: `monthly24` endi `oylikTolov()`
+     ichida, ya'ni `installmentTeaser()` uni allaqachon hisobga oladi.
+     Ikki xil yo'l qolsa — yana ikki xil summa chiqardi. */
+  const ins = installmentTeaser(item);
   const showCash = !item.installment && (item.price > 0);
   return `<article class="daycard${res?' res':''}" data-card="${esc(item.id)}">
     <span class="dc-rib">${ICO_STAR}${t('KUN TAVSIYASI')}</span>
@@ -4488,8 +4628,9 @@ async function liveSearch(){
   const total = catalogItems().length;
   haptic(total ? 'ok' : 'warn');
   if(!total){
-    toast(LANG==='ru'?'Ничего не найдено':'Hech narsa topilmadi','info');
-    /* analitika: mijoz nimani qidirdi-yu, bizda yo'q */
+    /* Pastdan chiqadigan xabar YO'Q — mijoz so'rovi. Ro'yxat
+       o'rnida "topilmadi" oynasi allaqachon chiqadi, ikki marta
+       aytish shart emas. Analitika esa ishlayveradi. */
     try{ trackMiss(typedPattern()); }catch(e){}
   }
 }
@@ -4538,7 +4679,10 @@ function openDetail(id){
     </div>
   </div>`;
 
-  const priceCard = (item.installment && !isUsd(item))
+  /* `item.installment` emas, `installmentAllowed` — operator
+     moliyalashtirishi yoki kun taklifi bo'lgan raqamda ham
+     bo'lib to'lash ko'rsatilsin. */
+  const priceCard = (installmentAllowed(item) && !isUsd(item))
     ? `<div class="card">
         <div class="eyebrow">${t("Bo'lib to'lash")}</div>
         <div class="sg" style="margin-top:8px;font-size:23px;font-weight:700;color:var(--blue-text)">${esc(installmentTeaser(item))}</div>
@@ -4553,28 +4697,25 @@ function openDetail(id){
           <span class="tag green" style="display:inline-block;margin-top:6px;font-size:10.5px">−${disc}%</span></div>` : ''}
        </div>`;
 
+  /* Muddatlar jadvali — endi BITTA yo'l bilan quriladi (yagona manba).
+     Summa aniq bo'lsa "Taxminiy hisob" izohi YOZILMAYDI. */
   let insCard = '';
-  if(fin){
-    const rows = [6,12,24].filter(mo => fin.monthly[mo]);
-    if(rows.length) insCard = `<div class="card" style="margin-top:12px">
-      <div class="eyebrow">${t("Bo'lib to'lash shartlari")}</div>
-      <div style="margin-top:11px;display:flex;flex-direction:column;gap:11px">
-        ${rows.map(mo => `<div style="display:flex;align-items:center;gap:10px">
-          <span style="flex:1;font-size:13.5px;font-weight:700">${mo} ${t('oy')}</span>
-          ${fin.down[mo]?`<span style="font-size:11.5px;color:var(--muted-2);font-weight:600">${t('Bosh to\'lov')} ${formatPrice(fin.down[mo])}</span>`:''}
-          <span class="sg" style="font-size:13.5px;font-weight:700;color:var(--blue-text)">${formatPrice(fin.monthly[mo])}/${t('oy')}</span>
-        </div>`).join('')}
-      </div></div>`;
-  }else if(installmentAllowed(item) && item.price){
+  const muddatlar = oylikMuddatlar(item);
+  if(muddatlar.length){
+    const asos = oylikAsosiy(item);
+    const aniqmi = !!(asos && asos.aniq);
     insCard = `<div class="card" style="margin-top:12px">
-      <div class="eyebrow">${t("Bo'lib to'lash hisob-kitobi")}</div>
+      <div class="eyebrow">${aniqmi ? t("Bo'lib to'lash shartlari") : t("Bo'lib to'lash hisob-kitobi")}</div>
       <div style="margin-top:11px;display:flex;flex-direction:column;gap:11px">
-        ${[6,12,24,36].map(mo => `<div style="display:flex;align-items:center;gap:10px">
+        ${muddatlar.map(mo => {
+          const d = oylikBoshTolov(item, mo);
+          return `<div style="display:flex;align-items:center;gap:10px">
           <span style="flex:1;font-size:13.5px;font-weight:700">${mo} ${t('oy')}</span>
-          <span class="sg" style="font-size:13.5px;font-weight:700;color:var(--blue-text)">${formatPrice(installmentMonthlyFor(item,mo))}/${t('oy')}</span>
-        </div>`).join('')}
+          ${d?`<span style="font-size:11.5px;color:var(--muted-2);font-weight:600">${t('Bosh to\'lov')} ${formatPrice(d)}</span>`:''}
+          <span class="sg" style="font-size:13.5px;font-weight:700;color:var(--blue-text)">${formatPrice(oylikTolov(item,mo))}/${t('oy')}</span>
+        </div>`; }).join('')}
       </div>
-      <div style="margin-top:11px;font-size:11px;color:var(--muted-2);font-weight:600">${t('Taxminiy hisob. Aniq shartlar shartnomada ko\'rsatiladi.')}</div></div>`;
+      ${aniqmi ? '' : `<div style="margin-top:11px;font-size:11px;color:var(--muted-2);font-weight:600">${t('Taxminiy hisob. Aniq shartlar shartnomada ko\'rsatiladi.')}</div>`}</div>`;
   }
 
   $('#dtBody').innerHTML = `${priceCard}${insCard}
@@ -4588,11 +4729,15 @@ function openDetail(id){
     </div>
     <div style="height:8px"></div>`;
 
+  /* Pastki qatordagi summa kartochkadagi bilan AYNAN BIR XIL bo'lishi
+     uchun o'sha `oylikAsosiy()` dan olinadi (avval foizli formuladan
+     olinardi — shuning uchun ikki xil summa chiqardi). */
+  const dtAsos = oylikAsosiy(item);
   $('#dtFoot').innerHTML = item.reserved
     ? `<div style="flex:1;text-align:center;font-size:13.5px;font-weight:700;color:var(--muted)">${t('Bu raqam allaqachon band qilingan')}</div>`
     : `<div style="flex:none">
-         <div style="font-size:10.5px;color:var(--muted-2);font-weight:600">${(item.installment && !isUsd(item))?t('Oyiga'):t('Jami')}</div>
-         <div class="sg" style="font-size:17px;font-weight:700">${(item.installment && !isUsd(item)) ? formatPrice(installmentMonthlyFor(item,24)) : formatPrice(item.price) + (isUsd(item)?' $':'')}</div>
+         <div style="font-size:10.5px;color:var(--muted-2);font-weight:600">${dtAsos?t('Oyiga'):t('Jami')}</div>
+         <div class="sg" style="font-size:17px;font-weight:700">${dtAsos ? formatPrice(dtAsos.monthly) : formatPrice(item.price) + (isUsd(item)?' $':'')}</div>
        </div>
        <button class="btn" data-order="${esc(item.id)}" style="flex:1">${t('Buyurtma berish')}</button>`;
   openSheet('shDetail');
@@ -4639,9 +4784,8 @@ function openOrder(id){
 }
 function recalcMonthly(){
   const it = ORD.item; if(!it) return;
-  const fin = installmentFinancingFor(it);
-  if(fin){ ORD.monthly = fin.monthly[ORD.months]||0; ORD.down = fin.down[ORD.months]||0; }
-  else { ORD.monthly = installmentMonthlyFor(it, ORD.months); ORD.down = 0; }
+  ORD.monthly = oylikTolov(it, ORD.months);
+  ORD.down    = oylikBoshTolov(it, ORD.months);
 }
 function finalPrice(){ return Math.max(0, (ORD.item.price||0)); }
 
@@ -4664,7 +4808,7 @@ function renderOrder(){
   if(ORD.step === 1){
     const fin = installmentFinancingFor(it);
     const canIns = installmentAllowed(it);
-    const months = fin ? [6,12,24].filter(m => fin.monthly[m]) : [6,12,24,36];
+    const months = oylikMuddatlar(it);
     body.innerHTML = `
       <div class="card">
         <div style="display:flex;align-items:flex-start;gap:12px">
@@ -6272,7 +6416,10 @@ document.addEventListener('click', (e)=>{
       row.style.height = '0'; row.style.marginTop = '0';
       setTimeout(()=> renderFavorites(), 280);
     } else renderFavorites();
-    toast(t("Sevimlilardan olib tashlandi"), 'info');
+    /* Xabar (toast) YO'Q — mijoz so'rovi. Kartochka ro'yxatdan
+       chiqib ketishining o'zi ko'rinib turibdi, ustiga vibratsiya
+       bor. Pastdan chiqadigan yozuv faqat ASOSIY ishlarda
+       (buyurtma, nusxa olish, xatolik) qoladi. */
     return;
   }
   if(e.target.closest('#favEdit')){ FAV_EDIT = !FAV_EDIT; haptic('select'); renderFavorites(); return; }
@@ -6284,7 +6431,8 @@ document.addEventListener('click', (e)=>{
     f.classList.toggle('on', on);
     const svg = f.querySelector('svg'); if(svg) svg.setAttribute('fill', on ? 'currentColor' : 'none');
     haptic(on ? 'ok' : 'light');
-    toast(on ? t('Sevimlilarga qo\'shildi') : t('Sevimlilardan olib tashlandi'), on ? 'ok' : 'info');
+    /* Xabar YO'Q — yurakchaning to'lishi/bo'shashi va yumshoq
+       vibratsiya yetarli javob. */
     if(currentRoute === 'fav') renderFavorites();
     return;
   }
@@ -6413,7 +6561,7 @@ document.addEventListener('click', (e)=>{
     LIVE_RESULTS = []; COMMITTED = null; catOp = ''; catOnlyInstallment = false;
     catSort = 'default'; catShown = PAGE_SIZE;
     catNaqsh = ''; reshuffle(); renderCatalog(); closeSheet('shGen');
-    toast(LANG==='ru'?'Фильтры сброшены':'Filtrlar tozalandi','info');
+    /* Xabar YO'Q — ro'yxatning o'zi yangilanib ko'rinadi. */
     return;
   }
   if(e.target.closest('#insMore')){ INS_SHOWN += PAGE_SIZE; renderBolib(); return; }
