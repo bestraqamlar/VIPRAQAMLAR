@@ -28,6 +28,12 @@
   # Toifa sahifalari (operator / narx / naqsh) — ular ham index.html ni o'qiydi
   included_files = ["index.html"]
 
+# ULASHISH KARTOCHKASI — raqam rasmi. Shriftlar funksiyaning O'ZI ichida
+# (base64) saqlanadi, shu sabab included_files kerak emas.
+[functions."og-raqam"]
+  node_bundler = "esbuild"
+  external_node_modules = ["@resvg/resvg-js"]
+
 # RAQAM TO'LOVI — eslatmalar. Har 5 daqiqada tekshiradi, chunki har
 # raqam uchun eslatma VAQTI alohida belgilanadi (masalan 08:00, 10:30) —
 # soatiga bir marta tekshirilsa, belgilangan vaqtdan ancha kech ketardi.
@@ -227,3 +233,14 @@
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
+    # Brauzer saytimizni FAQAT HTTPS orqali ochsin. Bir marta kirgandan
+    # keyin "http://" yozilsa ham brauzer o'zi HTTPS'ga o'tadi — ya'ni
+    # ochiq (shifrlanmagan) ulanish umuman bo'lmaydi. Bu umumiy Wi-Fi'da
+    # trafikni o'qib/o'zgartirib qo'yish hujumining oldini oladi.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    # Mijoz bizning saytdan boshqa saytga o'tganda, u sayt mijoz QAYSI
+    # raqam sahifasida bo'lganini bilmaydi — faqat domen nomini ko'radi.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Saytga kerak bo'lmagan qurilma imkoniyatlari butunlay o'chirilgan —
+    # biror skript (yoki reklama qo'shimchasi) ularni so'ray olmaydi.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"

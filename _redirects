@@ -13,6 +13,11 @@
 # raqamga moslab qaytaradi. Batafsil: netlify/functions/seo-number.js
 /raqam/*   /.netlify/functions/seo-number   200
 
+# ULASHISH KARTOCHKASI — har bir raqam uchun chizilgan rasm.
+# Telegram/Instagram/WhatsApp havolani ochganda shuni ko'rsatadi.
+# Batafsil: netlify/functions/og-raqam.js
+/og/raqam/*   /.netlify/functions/og-raqam   200
+
 # Sitemap dinamik — har bir sotuvdagi raqam uchun manzil qo'shiladi.
 # Batafsil: netlify/functions/sitemap.js  (eski statik sitemap.xml fayli
 # o'chirildi — u shu qoida tufayli baribir hech qachon ko'rsatilmasdi)

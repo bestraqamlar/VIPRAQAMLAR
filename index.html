@@ -19,6 +19,13 @@
 <meta property="og:title" content="VIP RAQAMLAR — chiroyli va VIP telefon raqamlar">
 <meta property="og:description" content="Barcha operatorlar bo'yicha VIP raqamlar. Bo'lib to'lash, bepul yetkazib berish, rasmiy shartnoma.">
 <meta property="og:image" content="https://vipraqamlar.uz/assets/og-image.jpg">
+<!-- O'lcham ko'rsatilsa Telegram va Facebook rasmni KATTA qilib chiqaradi
+     (ko'rsatilmasa ba'zan kichkina kvadrat bo'lib qoladi). Har bir raqam
+     sahifasida bu teg netlify/functions/seo-number.js tomonidan o'sha
+     raqamning kartochkasiga almashtiriladi. -->
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://vipraqamlar.uz/assets/og-image.jpg">
 <meta property="og:url" content="https://vipraqamlar.uz/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/logo-circle.png">
@@ -1195,7 +1202,12 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask-composite:exclude;
 }
-/* Metall yaltirashi — sekin, bir marta o'tib yo'qoladi va qaytadi */
+/* Metall yaltirashi — MIJOZ SO'ROVI BO'YICHA O'CHIRILDI.
+   Kartochka surilayotganda bu yorug'lik ham harakatlanardi: ikki
+   harakat ustma-ust tushib, surish "qotib o'tayotganday" ko'rinardi.
+   Endi kartochka hech qanday qo'shimcha animatsiyasiz, o'z holicha
+   yumshoq suriladi. Element o'chirilmadi (shaffof qoldi) — keyin
+   kerak bo'lsa `opacity` ni qaytarish kifoya. */
 .herocard::after{
   content:'';position:absolute;top:-60%;bottom:-60%;width:24%;left:0;z-index:1;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.07) 40%,rgba(255,240,205,.15) 52%,rgba(255,255,255,.06) 62%,transparent);
@@ -1205,19 +1217,15 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
      to'g'ridan-to'g'ri videokartada bajariladi va protsessorga umuman
      tegmaydi. Ko'rinishi bir xil, narxi nolga yaqin. */
   transform:translateX(-132%) rotate(14deg);
+  opacity:0;                    /* yaltirash ko'rinmaydi */
 }
 /* Yaltirash FAQAT ko'rinib turgan kartochkada ishlaydi.
    Ilgari karusel ichidagi 12 ta nusxaning HAMMASI bir vaqtda
    yaltirardi — 11 tasi ekrandan tashqarida bo'lsa ham. Androidda
    shu bitta narsa kadrlarning yarmini yeb qo'yardi. */
-.herocard.shine-on::after{
-  animation:hcShine 7.5s cubic-bezier(.4,0,.2,1) .35s infinite;
-}
-@keyframes hcShine{
-  0%{transform:translateX(-132%) rotate(14deg)}
-  30%{transform:translateX(500%) rotate(14deg)}
-  100%{transform:translateX(500%) rotate(14deg)}
-}
+/* `.shine-on` sinfi JS tomonidan hali qo'yiladi, lekin hech qanday
+   animatsiya bermaydi — surish butunlay toza bo'lsin. */
+.herocard.shine-on::after{ animation:none; }
 @media (prefers-reduced-motion:reduce){.herocard::after{animation:none;opacity:0}}
 .herocard > *{position:relative;z-index:3}
 .hc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -2829,6 +2837,7 @@ function installmentTeaser(item){
   return `${formatPrice(a.monthly)} ${t("so'mdan")} / ${a.months} ${t('oy')}`;
 }
 RU["so'mdan"] = 'сум';
+RU["Bo'lib to'lash bor"] = 'Есть рассрочка';
 
 /* ---------- Tarmoq ---------- */
 function withClientTimeout(p, ms){
@@ -3513,6 +3522,11 @@ async function raqamlarniYukla(){
     if(r && r.ok && typeof r.rows === 'string'){
       NUMBERS = indeksniOch(r);
       numbersLoaded = true;
+      /* `total` — bazadagi HAQIQIY raqam soni. U bizdagidan katta
+         bo'lsa, demak katalog to'liq yuklanmagan (server eng kerakli
+         8000 tasini berdi) — bunday holda qidiruv SERVERDA bajariladi.
+         Katalog kichik bo'lsa hammasi avvalgidek, brauzerda. */
+      KATALOG_JAMI = Number(r.total) || NUMBERS.length;
       /* kesh ham qadoqlangan holda saqlanadi — 6 barobar kam joy
          egallaydi, ya'ni localStorage chegarasiga tezda urilmaydi */
       try{ localStorage.setItem('raqamuz_pack', JSON.stringify({ ops:r.ops, rows:r.rows, at:Date.now() })); }catch(e){}
@@ -3792,7 +3806,16 @@ function renderHome(){
   const heroes = HERO_PICKS.map(id => NUMBERS.find(n => n.id === id)).filter(Boolean);
   if(heroes.length){
     const card = (h) => {
-      const ins = installmentTeaser(h);
+      /* PREMIUM KARTOCHKADA TAXMINIY SUMMA KO'RSATILMAYDI.
+         `oylikAsosiy().aniq` — summa haqiqiymi (adminda kiritilgan,
+         operator jadvalidan yoki kun taklifidan) yoki foizli
+         formuladan chiqarilganmi. Faqat HAQIQIY summa yoziladi;
+         aks holda naqt narx va "Bo'lib to'lash bor" yorlig'i
+         chiqadi — mijozga noto'g'ri raqam ko'rsatilmaydi. */
+      const asos = oylikAsosiy(h);
+      const aniq = !!(asos && asos.aniq);
+      const ins  = aniq ? installmentTeaser(h) : '';
+      const bor  = !aniq && installmentAllowed(h);
       return `<div class="herocard" data-card="${esc(h.id)}">
         <div class="hc-top">
           <span class="hc-badge">${t('PREMIUM')}</span>
@@ -3800,11 +3823,12 @@ function renderHome(){
         </div>
         <div class="num sg">${esc(shortNumber(h.number))}</div>
         <div class="hc-bot">
-          <div class="hc-price${h.installment ? ' keng' : ''}">
-            ${h.installment
+          <div class="hc-price${(h.installment && aniq) ? ' keng' : ''}">
+            ${(h.installment && aniq)
               ? `<div class="pv ins2 sg">${esc(ins)}</div>`
               : `<div class="pv sg">${formatPrice(h.price)} ${UNITH(h)}</div>
-                 ${ins?`<div class="pi2">${esc(ins)}</div>`:''}`}
+                 ${ins ? `<div class="pi2">${esc(ins)}</div>`
+                       : (bor ? `<div class="pi2">${t("Bo'lib to'lash bor")}</div>` : '')}`}
           </div>
           <span class="hc-cta">${t('Batafsil')}${ICO_ARR}</span>
         </div>
@@ -3816,7 +3840,15 @@ function renderHome(){
        almashtirilsa, u BOSHIGA qaytib ketardi — mijoz buni "kartochka
        o'tayotganda qotib, orqaga sakrab ketyapti" deb ko'rardi.
        Endi karusel faqat RO'YXAT O'ZGARGANDA qayta quriladi. */
-    const imzo = heroes.map(h => h.id + ':' + h.price + ':' + (h.reserved?1:0)).join(',') + '|' + LANG;
+    /* IMZOGA BO'LIB TO'LASH SUMMASI HAM KIRADI.
+       Avval imzo faqat id/narx/band dan tuzilardi. Operator
+       moliyalashtirish jadvali va sozlamalar esa karusel
+       chizilgandan KEYIN kelardi — imzo o'zgarmagani uchun karusel
+       qayta chizilmasdi va premium kartochkada eski (taxminiy yoki
+       umuman yo'q) summa turib qolardi. Endi summaning o'zi imzoda:
+       haqiqiy raqam kelishi bilan karusel yangilanadi. */
+    const imzo = heroes.map(h => h.id + ':' + h.price + ':' + (h.reserved?1:0)
+                   + ':' + installmentTeaser(h) + ':' + ((oylikAsosiy(h)||{}).aniq?1:0)).join(',') + '|' + LANG;
     if(hb.dataset.sig !== imzo){
       hb.dataset.sig = imzo;
       /* Kartochkalar ichki "yo'lak" (track) ichida — uni butunlay
@@ -4049,11 +4081,11 @@ function shineWatch(){
    yo'lakdagi 2-bola (1-indeks): 0-chisi chap chetda "turib turadi"
    (orqaga surish uchun zaxira). */
 function heroShine(){
-  if(SHINE_OFF) return;
-  const tr = document.getElementById('heroTrack'); if(!tr) return;
-  for(let k = 0; k < tr.children.length; k++){
-    tr.children[k].classList.toggle('shine-on', k === 1);
-  }
+  /* Yaltirash mijoz so'rovi bilan o'chirildi (02-css izohiga qarang).
+     Shu sabab bu yerda endi hech narsa qilinmaydi — surish paytida
+     bitta ham qo'shimcha sinf almashmaydi, ya'ni brauzer kartochkani
+     qayta tekshirmaydi ham. */
+  return;
 }
 
 /* ================= CHEKSIZ PREMIUM KARUSEL =================
@@ -4370,6 +4402,9 @@ function rkOf(n){
   return RK[id];
 }
 let LIVE_RESULTS = [], liveBusy = false;
+/* Bazadagi jami raqam soni va "katalog to'liq yuklanganmi" belgisi */
+let KATALOG_JAMI = 0;
+const katalogKesilgan = () => KATALOG_JAMI > NUMBERS.length + 50;
 /* Qidiruv FAQAT tugma bosilganda ishga tushadi.
    COMMITTED — tasdiqlangan naqsh; kiritish paytida ro'yxat o'zgarmaydi. */
 let COMMITTED = null;
@@ -4386,8 +4421,15 @@ function localMatch(list){
     return p.every((ch,i) => !ch || d[i] === ch);
   });
 }
+let SERVER_TOPILDI = [], SERVER_SONI = 0;
 function catalogItems(){
   let list = localMatch(NUMBERS.slice());
+  /* Serverdan kelgan natijalar — bazamizdagilar bilan birlashtiriladi
+     (takrorlanmasligi uchun raqam bo'yicha tekshiriladi) */
+  if(SERVER_TOPILDI.length){
+    const bor = new Set(list.map(n => String(n.number).replace(/\D/g,'').slice(-9)));
+    list = list.concat(SERVER_TOPILDI.filter(x => !bor.has(String(x.number).replace(/\D/g,'').slice(-9))));
+  }
   if(LIVE_RESULTS.length){
     const have = new Set(list.map(n => String(n.number).replace(/\D/g,'').slice(-9)));
     list = list.concat(LIVE_RESULTS.filter(l => !have.has(String(l.number).replace(/\D/g,'').slice(-9))));
@@ -4587,7 +4629,7 @@ async function liveSearch(){
   const mask = currentMask();
   if(mask === '_______'){
     /* raqam kiritilmagan bo'lsa — har safar bazadan tasodifiy raqamlar */
-    COMMITTED = null; LIVE_RESULTS = [];
+    COMMITTED = null; LIVE_RESULTS = []; SERVER_TOPILDI = []; SERVER_SONI = 0;
     catSort = 'default'; catOnlyInstallment = false; catNaqsh = ''; reshuffle(); catShown = PAGE_SIZE;
     haptic('light');
     liveBusy = true; renderCatalog();
@@ -4597,7 +4639,8 @@ async function liveSearch(){
     return;
   }
   haptic('light');
-  liveBusy = true; LIVE_RESULTS = []; COMMITTED = null; catShown = PAGE_SIZE; renderCatalog();
+  liveBusy = true; LIVE_RESULTS = []; SERVER_TOPILDI = []; SERVER_SONI = 0;
+  COMMITTED = null; catShown = PAGE_SIZE; renderCatalog();
   const started = Date.now();
   const url = FN + 'api-live-search?limit=40&mask=' + encodeURIComponent(mask);
   const once = async ()=>{
@@ -4618,6 +4661,24 @@ async function liveSearch(){
   }catch(err){
     toast(xatoMatni(err),'bad');   /* server javob bermasa ham bazamizdan ko'rsatamiz */
   }
+
+  /* ---- KATTA KATALOG: qidiruv serverda ----
+     Katalog 8000 tadan oshsa, brauzerda hammasi bo'lmaydi. Shu sabab
+     naqsh bo'yicha qidiruv SERVERGA yuboriladi: u millionlab raqam
+     ichidan `last1..last4` indeksi orqali bir zumda topadi va
+     natijani o'sha qadoqlangan formatda qaytaradi. */
+  if(katalogKesilgan()){
+    try{
+      const u = FN + 'api-index?p=' + encodeURIComponent(mask) + '&limit=80'
+              + (catOp ? '&op=' + encodeURIComponent(catOp) : '')
+              + (catOnlyInstallment ? '&ins=1' : '');
+      const sr = await withClientTimeout(fetch(u).then(x=>x.json()), kutishVaqti(9000));
+      if(sr && sr.ok && typeof sr.rows === 'string'){
+        SERVER_TOPILDI = indeksniOch(sr);
+        SERVER_SONI = Number(sr.topildi) || SERVER_TOPILDI.length;
+      }
+    }catch(e){ /* topilmasa bazamizdagidan ko'rsatamiz */ }
+  }else{ SERVER_TOPILDI = []; SERVER_SONI = 0; }
   /* animatsiya "lip etib" o'tib ketmasligi uchun kamida 900 ms ko'rsatiladi */
   const wait = 900 - (Date.now() - started);
   if(wait > 0) await new Promise(r => setTimeout(r, wait));
@@ -4665,9 +4726,13 @@ function openDetail(id){
       <button class="iconbtn" data-close aria-label="Yopish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
       <span style="flex:1"></span>
-      <!-- MIJOZ SO'ROVI: "Nusxa olish" va "Ulashish" tugmalari olib
-           tashlandi — sarlavha avvalgidek sodda qoladi. Raqamning
-           O'ZIGA bosilsa baribir nusxalanadi (belgisiz). -->
+      <!-- ULASHISH. Havola do'stga yuborilganda Telegram/Instagram
+           shu raqamning kartochkasini (raqam, operator, narx) chizib
+           ko'rsatadi — netlify/functions/og-raqam.js.
+           "Nusxa olish" tugmasi esa mijoz so'roviga ko'ra yo'q:
+           raqamning O'ZIGA bosilsa baribir nusxalanadi. -->
+      <button class="iconbtn" data-share aria-label="Ulashish" style="background:rgba(255,255,255,.12);border-color:transparent;color:#fff;margin-right:8px">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-7"></path><path d="M12 3v12M8 6.5 12 3l4 3.5"></path></svg></button>
       <button class="iconbtn" data-fav="${esc(item.id)}" aria-label="Sevimlilar" style="background:rgba(230,200,119,.18);border-color:transparent;color:#E6C877">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="${fav?'currentColor':'none'}" stroke="#E6C877" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg></button>
     </div>
@@ -6211,9 +6276,13 @@ const PUSH = (function(){
       el.textContent = t(kalit);
     };
 
-    /* Qator HAR DOIM ko'rinadi. Mijoz "Keyinroq" bosgan bo'lsa ham,
-       brauzer qo'llamasa ham — Profil bo'limidan istalgan vaqtda
-       yoqa olishi (yoki nima qilish kerakligini bilishi) uchun. */
+    /* ALLAQACHON YOQILGAN bo'lsa — karta UMUMAN ko'rsatilmaydi
+       (mijoz so'rovi). Ish bajarilgan, qayta eslatishning hojati yo'q.
+       Qolgan barcha holatlarda (yoqilmagan, rad etilgan, iPhone,
+       brauzer qo'llamaydi) karta ko'rinadi — profil bo'limidan
+       istalgan vaqtda yoqa olishi yoki nima qilish kerakligini
+       bilishi uchun. */
+    if(holat() === 'granted'){ row.style.display = 'none'; return; }
     row.style.display = '';
 
     if(!qollabQuvvat()){
@@ -6225,12 +6294,7 @@ const PUSH = (function(){
     }
 
     const h = holat();
-    if(h === 'granted'){
-      qoy(b, 'Bildirishnoma yoqilgan');
-      qoy(i, "Yangi raqamlardan xabardor bo'lasiz");
-      qoy(btn, 'Yoqilgan');
-      row.classList.add('on');
-    }else if(h === 'denied'){
+    if(h === 'denied'){
       qoy(b, "Bildirishnoma o'chirilgan");
       qoy(i, "Brauzer sozlamalaridan qayta yoqsangiz bo'ladi");
       qoy(btn, "O'chirilgan");
@@ -6462,9 +6526,18 @@ document.addEventListener('click', (e)=>{
   if(o){ closeSheet('shDetail'); setTimeout(()=> openOrder(o.dataset.order), 180); return; }
 
   if(e.target.closest('[data-share]') && CURRENT){
+    /* AVVAL bu yerda saytning BOSH SAHIFASI ulashilardi (location.origin) —
+       do'stiga yuborilgan havolada qaysi raqam ekani ko'rinmasdi.
+       Endi AYNAN SHU RAQAMNING manzili ulashiladi; Telegram va
+       Instagram o'sha manzildagi `og:image` ni — raqam, operator va
+       narx chizilgan kartochkani — ko'rsatadi
+       (netlify/functions/og-raqam.js). */
+    const raqamli = String(CURRENT.number || '').replace(/\D/g,'');
+    const havola  = location.origin + '/raqam/' + raqamli;
     const txt = `${shortNumber(CURRENT.number)} — ${formatPriceUzs(CURRENT.price)} · VIP RAQAMLAR`;
-    if(navigator.share) navigator.share({ title:'VIP RAQAMLAR', text:txt, url:location.origin }).catch(()=>{});
-    else { try{ navigator.clipboard.writeText(txt + ' ' + location.origin); toast(LANG==='ru'?'Скопировано':'Nusxa olindi'); }catch(err){} }
+    haptic('light');
+    if(navigator.share){ navigator.share({ title:'VIP RAQAMLAR', text:txt, url:havola }).catch(()=>{}); }
+    else { try{ navigator.clipboard.writeText(havola); toast(LANG==='ru'?'Ссылка скопирована':'Havola nusxalandi'); }catch(err){} }
     return;
   }
 

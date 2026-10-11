@@ -89,6 +89,8 @@ exports.handler = async function (event) {
   const op = esc(item.operator || '');
   const narx = item.price ? pul(item.price) + " so'm" : '';
   const url = SITE + '/raqam/' + String(item.number || '').replace(/\D/g, '');
+  // Ulashish kartochkasi — shu raqam uchun chizilgan rasm (og-raqam.js)
+  const rasm = SITE + '/og/raqam/' + String(item.number || '').replace(/\D/g, '') + '.png';
 
   const title = nice + (op ? ' — ' + op : '') + ' VIP raqam' + (narx ? ' | ' + narx : '') + ' | VIP RAQAMLAR';
   const desc = nice + ' — ' + (op ? op + ' operatori ' : '') + 'VIP telefon raqami' +
@@ -103,7 +105,7 @@ exports.handler = async function (event) {
     description: desc,
     sku: item.id,
     brand: { '@type': 'Brand', name: op || 'VIP RAQAMLAR' },
-    image: SITE + '/assets/og-image.jpg',
+    image: rasm,
     url,
     offers: {
       '@type': 'Offer',
@@ -122,6 +124,9 @@ exports.handler = async function (event) {
   out = out.replace(/<meta property="og:title" content="[^"]*">/i, '<meta property="og:title" content="' + esc(title) + '">');
   out = out.replace(/<meta property="og:description" content="[^"]*">/i, '<meta property="og:description" content="' + esc(desc) + '">');
   out = out.replace(/<meta property="og:url" content="[^"]*">/i, '<meta property="og:url" content="' + esc(url) + '">');
+  // Rasm — umumiy logotip emas, AYNAN SHU RAQAMNING kartochkasi
+  out = out.replace(/<meta property="og:image" content="[^"]*">/i, '<meta property="og:image" content="' + esc(rasm) + '">');
+  out = out.replace(/<meta name="twitter:image" content="[^"]*">/i, '<meta name="twitter:image" content="' + esc(rasm) + '">');
   out = out.replace('</head>',
     '<script type="application/ld+json">' + JSON.stringify(ld) + '</script>\n' +
     // Ilova ochilganda shu raqam kartochkasi darhol ochilishi uchun

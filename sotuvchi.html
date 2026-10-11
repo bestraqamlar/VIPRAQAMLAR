@@ -2,228 +2,595 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#07152B">
+<meta name="theme-color" content="#060E1C">
 <title>Sotuvchi kabineti — VIP RAQAMLAR</title>
 <link rel="icon" href="assets/logo-circle.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+<!-- Shriftlar O'Z SERVERIMIZDA — Google'ga ulanish yo'q, kabinet
+     telefonda ham bir zumda ochiladi. -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
 <style>
-/* SOTUVCHI KABINETI — asosiy saytdan alohida, soddalashtirilgan panel.
-   Ataylab yengil: hech qanday Firebase SDK yo'q, faqat bitta
-   funksiyaga (seller-api) so'rov. Shu sabab telefonda ham bir zumda
-   ochiladi. */
+@font-face{font-family:'Plus Jakarta Sans';src:url('assets/fonts/jakarta.woff2') format('woff2-variations');
+  font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('assets/fonts/grotesk.woff2') format('woff2-variations');
+  font-weight:300 700;font-style:normal;font-display:swap}
+
+/* ==========================================================================
+   SOTUVCHI KABINETI
+   Asosiy sayt bilan BIR XIL ko'rinishda (to'q ko'k + oltin), lekin
+   ataylab yengil: Firebase SDK yo'q, bitta funksiyaga (seller-api)
+   so'rov qilinadi, shriftlar o'z serverimizda.
+   ========================================================================== */
 :root{
-  --ground:#060E1C; --card:#0E1E38; --card-2:#13294C;
-  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.16);
+  --ground:#060E1C; --card:#0E1E38; --card-2:#13294C; --card-3:#17315A;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.17);
   --ink:#F2F6FF; --muted:#9FB3D1; --faint:#6D86A8;
   --blue:#3A6CF0; --blue-2:#2050DD; --blue-tint:rgba(58,108,240,.16); --blue-ink:#9CBCFF;
-  --green:#2FB87A; --amber:#E7B64A; --red:#E2564E;
-  --r:14px;
+  --green:#2FB87A; --green-tint:rgba(47,184,122,.16);
+  --gold:#E6C877; --gold-ink:#F0D898; --gold-tint:rgba(230,200,119,.14);
+  --red:#E2564E; --red-tint:rgba(226,86,78,.14);
+  --r:16px;
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--ground);color:var(--ink);
-  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;
-  padding-bottom:40px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:860px;margin:0 auto;padding:18px 16px 0}
-h1{font-size:19px;margin:0}
-h2{font-size:15px;margin:0 0 3px}
-.muted{color:var(--muted)}
-.sm{font-size:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-label{display:block;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:0 0 6px}
-input,select,textarea{
-  width:100%;background:var(--card-2);border:1px solid var(--line);border-radius:11px;
-  padding:11px 13px;color:var(--ink);font-family:inherit;font-size:14px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--blue)}
-.btn{
-  border:none;border-radius:11px;padding:11px 18px;cursor:pointer;
-  background:linear-gradient(180deg,var(--blue),var(--blue-2));color:#fff;
-  font-family:inherit;font-size:13.5px;font-weight:800;transition:transform .15s}
-.btn:active{transform:scale(.97)}
-.btn.ghost{background:transparent;border:1px solid var(--line-2);color:var(--muted)}
-.btn.sm{padding:7px 12px;font-size:12px;border-radius:9px}
-.btn.danger{background:none;border:1px solid rgba(226,86,78,.5);color:#FF9A94}
-.top{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);
-  position:sticky;top:0;background:rgba(6,14,28,.92);backdrop-filter:blur(14px);z-index:10}
-.top img{width:34px;height:34px;border-radius:9px}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;max-width:860px;margin:0 auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tb{flex:none;padding:9px 15px;border-radius:999px;border:1px solid var(--line);background:transparent;
-  color:var(--muted);font-family:inherit;font-size:13px;font-weight:750;cursor:pointer;position:relative}
-.tb.on{background:var(--blue-tint);border-color:rgba(58,108,240,.5);color:#fff}
-.tb .dot{position:absolute;top:5px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--red)}
-.pane{display:none}
-.pane.on{display:block}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:7px 9px;font-weight:800}
-td{padding:9px;border-top:1px solid var(--line)}
-.num{font-family:'Space Grotesk',monospace;font-weight:700;letter-spacing:.01em}
-.pill{display:inline-block;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:800}
-.p-ok{background:rgba(47,184,122,.16);color:#7FE0B4}
-.p-band{background:rgba(231,182,74,.16);color:#F2CE7E}
-.p-off{background:rgba(255,255,255,.07);color:var(--muted)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
-.kpi{background:var(--card-2);border-radius:13px;padding:13px}
-.kpi b{display:block;font-size:22px;font-weight:800;margin-top:3px}
-.msg{max-width:78%;padding:9px 13px;border-radius:14px;margin-bottom:8px;font-size:13.5px;line-height:1.45}
-.msg.me{margin-left:auto;background:linear-gradient(180deg,var(--blue),var(--blue-2));border-bottom-right-radius:5px}
-.msg.them{background:var(--card-2);border-bottom-left-radius:5px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:50;
-  background:var(--card-2);border:1px solid var(--line-2);border-radius:12px;padding:11px 17px;
-  font-size:13px;font-weight:700;box-shadow:0 18px 40px -14px rgba(0,0,0,.8);opacity:0;transition:opacity .25s}
-.toast.on{opacity:1}
-.toast.bad{border-color:rgba(226,86,78,.6);color:#FF9A94}
-.login{max-width:380px;margin:12vh auto 0;padding:0 16px}
-.login .card{padding:24px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{-webkit-user-select:none;user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+body{margin:0;background:
+    radial-gradient(900px 500px at 100% -10%, rgba(230,200,119,.07), transparent 60%),
+    radial-gradient(800px 500px at -10% 100%, rgba(58,108,240,.10), transparent 62%),
+    var(--ground);
+  background-attachment:fixed;
+  color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  font-size:14px;line-height:1.5;padding-bottom:40px;-webkit-font-smoothing:antialiased}
+.sg{font-family:'Space Grotesk','Plus Jakarta Sans',monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:900px;margin:0 auto;padding:16px 16px 0}
 .hide{display:none!important}
-.empty{color:var(--faint);font-size:13px;padding:14px 2px}
-/* Raqamlar ro'yxati — jadval emas, kartochka. Telefonda jadval chetga
-   chiqib ketardi (tugmalar ko'rinmasdi), kartochka esa har ikkala
-   ekranda ham to'liq sig'adi. */
-.nrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-  padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--card-2);margin-bottom:10px}
-.nrow .n-main{flex:1;min-width:150px}
-.nrow .n-num{font-family:'Space Grotesk',monospace;font-size:17px;font-weight:700;letter-spacing:.01em}
-.nrow .n-sub{font-size:11.5px;color:var(--muted);margin-top:2px;font-weight:650}
-.nrow .n-price{font-size:15px;font-weight:800;white-space:nowrap}
-.nrow .n-acts{display:flex;gap:7px;margin-left:auto}
-.nstat{display:flex;gap:14px;width:100%;padding-top:10px;margin-top:2px;border-top:1px solid var(--line);
-  font-size:11.5px;color:var(--muted);font-weight:700}
-.nstat b{color:var(--ink);font-weight:800}
+.muted{color:var(--muted)} .faint{color:var(--faint)} .sm{font-size:12px}
+h1{font-size:19px;margin:0} h2{font-size:15.5px;margin:0 0 3px;font-weight:800}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;
+  box-shadow:0 10px 26px -20px rgba(0,0,0,.9)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:0 0 6px}
+input,select,textarea{width:100%;background:var(--card-2);border:1.5px solid var(--line);border-radius:12px;
+  padding:12px 14px;color:var(--ink);font-family:inherit;font-size:15px;outline:none;transition:border-color .18s,background .18s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(--card-3)}
+input::placeholder{color:#50678A}
+.btn{border:none;border-radius:12px;padding:12px 18px;cursor:pointer;
+  background:linear-gradient(180deg,var(--blue),var(--blue-2));color:#fff;
+  font-family:inherit;font-size:13.5px;font-weight:800;transition:transform .14s,opacity .18s}
+.btn:active{transform:scale(.97)} .btn[disabled]{opacity:.55}
+.btn.gold{background:linear-gradient(180deg,#FBEDC6,#EFD596 40%,#DCB864 72%,#C9A041);color:#1A1203}
+.btn.ghost{background:transparent;border:1.5px solid var(--line-2);color:var(--muted)}
+.btn.sm{padding:8px 13px;font-size:12.5px;border-radius:10px}
+.btn.danger{background:none;border:1.5px solid rgba(226,86,78,.45);color:#FF9A94}
+.btn.full{width:100%}
+
+/* ---------- Yuqori panel ---------- */
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:rgba(6,14,28,.88);backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);z-index:20}
+.top img{width:38px;height:38px;border-radius:11px}
+.pct{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;color:var(--gold-ink);
+  background:var(--gold-tint);padding:3px 9px;border-radius:8px;margin-top:3px}
+
+/* ---------- KPI plitkalari ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:620px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;inset:0;background:radial-gradient(120px 70px at 100% 0%,rgba(230,200,119,.10),transparent 70%);pointer-events:none}
+.kpi .k{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.kpi .v{font-family:'Space Grotesk',monospace;font-size:25px;font-weight:700;margin-top:5px;line-height:1.1}
+.kpi .s{font-size:11px;color:var(--muted);font-weight:600;margin-top:3px}
+.kpi.g .v{color:var(--gold-ink)} .kpi.b .v{color:var(--blue-ink)} .kpi.gr .v{color:var(--green)}
+
+/* ---------- Tablar ---------- */
+.tabs{display:flex;gap:7px;overflow-x:auto;padding:14px 16px 2px;max-width:900px;margin:0 auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tb{flex:none;padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);background:transparent;
+  color:var(--muted);font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;position:relative;
+  transition:background .18s,color .18s,border-color .18s}
+.tb.on{background:var(--blue-tint);border-color:rgba(58,108,240,.55);color:#fff}
+.tb .dot{position:absolute;top:4px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.pane{display:none;animation:fade .16s ease both}
+.pane.on{display:block}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+
+/* ---------- Raqam kartochkasi ---------- */
+.nrow{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-bottom:10px;
+  transition:border-color .18s,transform .14s}
+.nrow:active{transform:scale(.995)}
+.nrow.sotildi{opacity:.6}
+.nhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.nnum{font-family:'Space Grotesk',monospace;font-size:20px;font-weight:700;letter-spacing:.01em}
+.chip{font-size:10.5px;font-weight:800;letter-spacing:.04em;padding:4px 9px;border-radius:8px;white-space:nowrap}
+.chip.op{background:rgba(255,255,255,.07);color:#D7E3F6;box-shadow:inset 0 0 0 1px var(--line)}
+.chip.ok{background:var(--green-tint);color:var(--green)}
+.chip.band{background:rgba(255,255,255,.08);color:var(--muted)}
+.chip.sot{background:var(--blue-tint);color:var(--blue-ink)}
+.chip.hid{background:rgba(255,255,255,.06);color:var(--faint)}
+.chip.aks{background:var(--red-tint);color:#FF9A94}
+.chip.ins{background:var(--gold-tint);color:var(--gold-ink)}
+.nprice{display:flex;align-items:baseline;gap:9px;margin-top:9px;flex-wrap:wrap}
+.nprice b{font-family:'Space Grotesk',monospace;font-size:17.5px;font-weight:700}
+.nprice s{font-family:'Space Grotesk',monospace;font-size:13px;color:var(--faint)}
+.nstat{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.nstat div{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+.nstat b{font-family:'Space Grotesk',monospace;color:var(--ink);font-size:13.5px}
+.nstat svg{width:15px;height:15px;stroke:var(--faint);fill:none;stroke-width:2}
+.nact{display:flex;gap:8px;margin-top:11px}
+
+/* ---------- Qidiruv va filtr ---------- */
+.srch{position:relative;margin-bottom:11px}
+.srch input{padding-left:42px}
+.srch svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;
+  stroke:var(--faint);fill:none;stroke-width:2}
+.fchips{display:flex;gap:7px;overflow-x:auto;padding-bottom:11px;scrollbar-width:none}
+.fchips::-webkit-scrollbar{display:none}
+.fc{flex:none;padding:7px 13px;border-radius:999px;border:1.5px solid var(--line);background:transparent;
+  color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.fc.on{background:rgba(255,255,255,.09);border-color:var(--line-2);color:#fff}
+
+/* ---------- Shakl (qo'shish/tahrirlash) ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.fld{margin-bottom:13px}
+.numin{font-family:'Space Grotesk',monospace;font-size:19px;font-weight:700;letter-spacing:.02em}
+.opbox{display:flex;align-items:center;gap:9px;background:var(--card-2);border:1.5px solid var(--line);
+  border-radius:12px;padding:12px 14px;min-height:49px}
+.opbox i{width:11px;height:11px;border-radius:4px;background:var(--faint);flex:none}
+.opbox b{font-size:15px;font-weight:700}
+.opbox span{font-size:12.5px;color:var(--faint)}
+.seg{display:flex;background:var(--card-2);border:1.5px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:14px;
+  font-weight:800;padding:9px 0;border-radius:9px;cursor:pointer;transition:background .18s,color .18s}
+.seg button.on{background:var(--blue);color:#fff}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card-2);
+  border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.sw .t b{display:block;font-size:14px;font-weight:700}
+.sw .t span{font-size:11.5px;color:var(--faint)}
+.sw i{width:46px;height:27px;border-radius:999px;background:rgba(255,255,255,.14);flex:none;position:relative;
+  transition:background .2s}
+.sw i::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;
+  transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}
+.sw.on i{background:var(--green)} .sw.on i::after{transform:translateX(19px)}
+.hintline{font-size:11.5px;color:var(--faint);margin-top:6px;line-height:1.45}
+.aksbadge{display:inline-block;font-size:11.5px;font-weight:800;color:#FF9A94;background:var(--red-tint);
+  padding:4px 9px;border-radius:8px;margin-top:7px}
+
+.empty{text-align:center;padding:34px 16px;color:var(--faint);font-size:13.5px}
+.sk{height:92px;border-radius:15px;background:linear-gradient(100deg,var(--card) 30%,var(--card-2) 50%,var(--card) 70%);
+  background-size:220% 100%;animation:shim 1.3s linear infinite;margin-bottom:10px}
+@keyframes shim{to{background-position:-220% 0}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:#13294C;border:1px solid var(--line-2);color:var(--ink);padding:12px 18px;border-radius:13px;
+  font-size:13.5px;font-weight:700;z-index:60;transition:opacity .2s,transform .2s;box-shadow:0 16px 36px -18px #000}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.bad{border-color:rgba(226,86,78,.5);color:#FFB3AE}
+.login{max-width:380px;margin:12vh auto 0;padding:0 18px}
+.lg-logo{width:62px;height:62px;border-radius:19px;display:block;margin:0 auto 16px}
+.mrow{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.mrow:last-child{border:none}
+.msg{max-width:84%;padding:10px 13px;border-radius:14px;margin-bottom:9px;font-size:13.5px;line-height:1.45;word-break:break-word}
+.msg.me{margin-left:auto;background:var(--blue-tint);border:1px solid rgba(58,108,240,.35)}
+.msg.ad{background:var(--card-2);border:1px solid var(--line)}
+.msg .w{display:block;font-size:10.5px;color:var(--faint);margin-top:4px}
+
+/* ---------- Yuqoridagi ikonka tugmasi (yozishma) ---------- */
+.iconbtn{position:relative;width:40px;height:40px;flex:none;border-radius:13px;border:1.5px solid var(--line);
+  background:rgba(255,255,255,.05);color:var(--muted);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .18s,color .18s}
+.iconbtn:active{transform:scale(.94)}
+.iconbtn svg{width:19px;height:19px}
+.iconbtn .dot{position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;
+  background:var(--red);border:2px solid var(--ground)}
+
+/* ==========================================================================
+   PASTKI MENYU — asosiy saytdagidek "suzuvchi shisha" panel.
+   To'rtta bo'lim: Asosiy · Joylash · Statistika · Buyurtma.
+   Tanlangan bo'limga kapsula suriladi, ikonka chiziqlidan to'ldirilganga
+   o'tadi. Faqat transform/opacity animatsiya qilinadi — videokartada
+   bajariladi, telefonda ham silliq.
+   ========================================================================== */
+body{padding-bottom:104px}
+#snav{
+  position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateZ(0);z-index:50;
+  width:calc(100% - 24px);max-width:460px;
+  display:flex;align-items:center;justify-content:space-between;gap:2px;
+  padding:7px 8px;border-radius:999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.085) 0%, rgba(255,255,255,.015) 38%, rgba(255,255,255,0) 60%),
+    radial-gradient(90px 46px at 12% 0%, rgba(230,200,119,.16), transparent 72%),
+    radial-gradient(110px 50px at 92% 100%, rgba(58,108,240,.20), transparent 72%),
+    rgba(14,30,56,.82);
+  backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 16px 38px -14px rgba(0,0,0,.72), inset 0 1px 0 rgba(255,255,255,.10);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  #snav{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 55%), rgba(16,34,62,.97)}
+}
+.snavpill{
+  position:absolute;left:0;top:7px;height:52px;width:0;border-radius:999px;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  transform:translateX(0);opacity:0;pointer-events:none;
+  transition:transform .28s cubic-bezier(.2,.9,.25,1),width .28s cubic-bezier(.2,.9,.25,1),opacity .18s;
+  will-change:transform,width;
+}
+.snavpill.on{opacity:1}
+#snav button{
+  position:relative;flex:1;min-width:0;height:52px;border:none;background:transparent;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:#8FA6C6;font-family:inherit;padding:0;border-radius:999px;
+  transition:color .18s;
+}
+#snav button.on{color:#FFFFFF}
+#snav .ico{position:relative;width:23px;height:23px;flex:none}
+#snav .ico svg{position:absolute;inset:0;width:23px;height:23px;
+  transition:opacity .14s linear, transform .26s cubic-bezier(.2,.9,.3,1.55)}
+#snav .ic-o{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#snav .ic-f{fill:currentColor;stroke:none;transform:scale(.6);opacity:0}
+#snav button.on .ic-f{transform:scale(1);opacity:1;animation:snPop .3s cubic-bezier(.2,.9,.3,1.5) both}
+#snav button.on .ic-o{transform:scale(1.14);opacity:0}
+@keyframes snPop{0%{transform:scale(.72)}55%{transform:scale(1.13)}100%{transform:scale(1)}}
+#snav b{font-size:10px;font-weight:800;letter-spacing:.01em;line-height:1;white-space:nowrap}
+#snav button:active .ico{transform:scale(.9);transition-duration:.08s}
+#snav .nb{position:absolute;top:4px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;
+  border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* ---------- Statistika bo'limi ---------- */
+.bar{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.bar:last-child{border:none}
+.bar .n{font-family:'Space Grotesk',monospace;font-size:14px;font-weight:700;width:112px;flex:none}
+.bar .t{flex:1;height:9px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,#3A6CF0,#6D9BFF);transform-origin:left;
+  animation:grow .5s cubic-bezier(.2,.9,.3,1) both}
+.bar.g .t i{background:linear-gradient(90deg,#C9A041,#F0D898)}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.bar .v{font-family:'Space Grotesk',monospace;font-size:13.5px;font-weight:700;width:52px;text-align:right;flex:none}
+.split{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.spl{background:var(--card-2);border:1px solid var(--line);border-radius:13px;padding:12px 13px}
+.spl .k{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.spl .v{font-family:'Space Grotesk',monospace;font-size:21px;font-weight:700;margin-top:4px}
+.sechd{display:flex;align-items:baseline;gap:9px;margin:0 0 10px}
+.sechd h2{margin:0}
+.sechd span{font-size:11.5px;color:var(--faint);font-weight:700}
+
+
+/* ==========================================================================
+   YIG'ILGAN RO'YXAT — minglab raqam uchun
+   Har bir qator: raqam + narx, xolos. Bosilsa pastdan tafsilot
+   ochiladi (CSS `grid-template-rows: 0fr -> 1fr` — JS'siz, silliq).
+   Shunda 2000 ta raqam ham bir ekranga sig'adigan darajada ixcham
+   bo'ladi va ro'yxat tez chiziladi.
+   ========================================================================== */
+/* Har bir raqam — ALOHIDA kartochka, lekin iloji boricha ixcham:
+   balandligi 44px, oralig'i 7px. 10 000 ta raqamda ham ro'yxat
+   ko'zni charchatmaydi va tez chiziladi. */
+.nr{background:var(--card);border:1px solid var(--line);border-radius:13px;
+  margin-bottom:7px;overflow:hidden;transition:border-color .16s}
+.nr.ochiq{border-color:var(--line-2);background:var(--card-2)}
+.nr-h{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;
+  transition:background .14s;user-select:none;min-height:44px}
+.nr-h:active{background:rgba(255,255,255,.05)}
+.nr-dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--green)}
+.nr-dot.band{background:var(--muted)} .nr-dot.sot{background:var(--blue)} .nr-dot.hid{background:var(--faint)}
+.nr-n{font-family:'Space Grotesk',monospace;font-size:15.5px;font-weight:700;letter-spacing:.01em;
+  white-space:nowrap}
+.nr-sp{flex:1;min-width:8px}
+.nr-p{font-family:'Space Grotesk',monospace;font-size:13.5px;font-weight:700;white-space:nowrap}
+.nr-p u{font-family:'Plus Jakarta Sans';font-size:11px;color:var(--muted);text-decoration:none;margin-left:3px}
+.nr-mk{display:flex;gap:4px;flex:none}
+.nr-mk i{width:7px;height:7px;border-radius:2px;display:block}
+.nr-mk i.a{background:#FF9A94} .nr-mk i.b{background:var(--gold)}
+.nr-ch{width:16px;height:16px;flex:none;stroke:var(--faint);fill:none;stroke-width:2.4;
+  transition:transform .24s cubic-bezier(.2,.9,.3,1)}
+.nr.ochiq .nr-ch{transform:rotate(180deg)}
+.nr-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.2,.9,.3,1)}
+.nr.ochiq .nr-b{grid-template-rows:1fr}
+.nr-in{overflow:hidden}
+.nr-pad{padding:2px 13px 13px}
+.nr-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.nr-line{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:5px 0;color:var(--muted)}
+.nr-line b{color:var(--ink);font-family:'Space Grotesk',monospace;font-weight:700}
+.nr-act{display:flex;gap:8px;margin-top:11px}
+.yana{width:100%;margin-top:12px}
+.sanoq{font-size:12px;color:var(--faint);font-weight:700;margin:0 2px 9px;display:flex;justify-content:space-between}
+
+
+/* ---------- Ko'p raqam joylash ---------- */
+textarea{resize:vertical;min-height:120px}
+.kp{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kp:last-child{border:none}
+.kp b{font-family:'Space Grotesk',monospace;font-weight:700}
+.kp .ok{color:var(--green);font-size:11.5px;font-weight:800}
+.kp .er{color:#FF9A94;font-size:11.5px;font-weight:800;text-align:right}
+.kpsum{display:flex;gap:9px;margin:12px 0}
+.kpsum div{flex:1;background:var(--card-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpsum .k{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.kpsum .v{font-family:'Space Grotesk',monospace;font-size:20px;font-weight:700;margin-top:3px}
+.kpsum .v.g{color:var(--green)} .kpsum .v.r{color:#FF9A94}
+.kplist{max-height:260px;overflow-y:auto;background:var(--card-2);border:1px solid var(--line);
+  border-radius:12px;padding:4px 12px;margin-bottom:12px}
+.prog{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#C9A041,#F0D898);transition:width .3s}
 </style>
 </head>
 <body>
 
-<!-- ======== KIRISH ======== -->
+<!-- ======================= KIRISH ======================= -->
 <div class="login" id="loginBox">
-  <div style="text-align:center;margin-bottom:18px">
-    <img src="assets/logo-circle.png" alt="" width="54" height="54" style="border-radius:14px">
-    <h1 style="margin-top:12px">Sotuvchi kabineti</h1>
-    <p class="muted sm" style="margin:6px 0 0">Login va parolni administrator beradi</p>
-  </div>
+  <img class="lg-logo" src="assets/logo-circle.png" alt="">
   <div class="card">
-    <div style="margin-bottom:12px"><label for="lgU">Login</label>
+    <h1 style="text-align:center">Sotuvchi kabineti</h1>
+    <div class="muted sm" style="text-align:center;margin:5px 0 18px">VIP RAQAMLAR hamkorlari uchun</div>
+    <div class="fld"><label>Login</label>
       <input id="lgU" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
-    <div style="margin-bottom:16px"><label for="lgP">Parol</label>
+    <div class="fld"><label>Parol</label>
       <input id="lgP" type="password" autocomplete="current-password"></div>
-    <button class="btn" id="lgBtn" style="width:100%">Kirish</button>
+    <button class="btn full" id="lgBtn">Kirish</button>
     <div class="sm" id="lgErr" style="color:#FF9A94;margin-top:11px;display:none"></div>
   </div>
+  <div class="sm faint" style="text-align:center">Hisob yo‘qmi? Administrator bilan bog‘laning.</div>
 </div>
 
-<!-- ======== KABINET ======== -->
+<!-- ======================= KABINET ======================= -->
 <div id="app" class="hide">
+
   <div class="top">
     <img src="assets/logo-circle.png" alt="">
     <div style="flex:1;min-width:0">
-      <div style="font-weight:800;font-size:14.5px" id="meName">—</div>
-      <div class="muted sm">Komissiya: <b id="mePct">0</b>%</div>
+      <div style="font-weight:800;font-size:15px" id="meName">—</div>
+      <span class="pct">Komissiya <b id="mePct">0</b>%</span>
     </div>
+    <button class="iconbtn" id="chatBtnTop" aria-label="Admin bilan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H8.5L4 20.5z"/></svg>
+      <i class="dot hide" id="chatDot"></i>
+    </button>
     <button class="btn ghost sm" id="outBtn">Chiqish</button>
   </div>
 
-  <div class="tabs">
-    <button class="tb on" data-p="nums">Raqamlarim</button>
-    <button class="tb" data-p="add">Raqam qo'shish</button>
-    <button class="tb" data-p="money">Daromad</button>
-    <button class="tb" data-p="chat">Admin bilan<span class="dot hide" id="chatDot"></span></button>
-  </div>
-
   <div class="wrap">
-    <!-- Raqamlarim -->
-    <div class="pane on" id="p-nums">
-      <div class="card">
-        <div class="row" style="justify-content:space-between;margin-bottom:10px">
-          <h2>Raqamlarim</h2>
-          <button class="btn ghost sm" id="numsReload">Yangilash</button>
-        </div>
-        <p class="muted sm" style="margin:0 0 12px">
-          <b>Ochilgan</b> — raqamingiz kartochkasi necha marta ochilgani.
-          Ko'p ochilib, buyurtma bo'lmasa — narx yuqori bo'lishi mumkin.
-        </p>
-        <div id="numsBox"><div class="empty">Yuklanmoqda…</div></div>
+
+    <!-- ================= ASOSIY ================= -->
+    <div class="pane on" id="p-home">
+      <div class="kpis" style="margin-bottom:14px">
+        <div class="kpi"><div class="k">Sotuvda</div><div class="v sg" id="kSot">—</div><div class="s" id="kSotS">&nbsp;</div></div>
+        <div class="kpi b"><div class="k">Ko‘rishlar</div><div class="v sg" id="kKor">—</div><div class="s">raqamlaringiz bo‘yicha</div></div>
+        <div class="kpi gr"><div class="k">Buyurtmalar</div><div class="v sg" id="kBuy">—</div><div class="s" id="kBuyS">&nbsp;</div></div>
+        <div class="kpi g"><div class="k">Jami qiymat</div><div class="v sg" id="kQiy">—</div><div class="s">sotuvdagi raqamlar</div></div>
       </div>
+
+      <div class="srch">
+        <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        <input id="qIn" placeholder="Raqam bo‘yicha qidirish…" inputmode="numeric">
+      </div>
+      <div class="fchips" id="fchips">
+        <button class="fc on" data-f="all">Hammasi</button>
+        <button class="fc" data-f="sotuvda">Sotuvda</button>
+        <button class="fc" data-f="aksiya">Aksiya</button>
+        <button class="fc" data-f="bolib">Bo‘lib to‘lash</button>
+        <button class="fc" data-f="band">Band</button>
+        <button class="fc" data-f="sotildi">Sotilgan</button>
+      </div>
+      <div id="numsBox"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
     </div>
 
-    <!-- Qo'shish -->
+    <!-- ================= RAQAM JOYLASH ================= -->
     <div class="pane" id="p-add">
-      <div class="card">
-        <h2>Yangi raqam</h2>
-        <p class="muted sm" style="margin:3px 0 16px">Narxni o'zingiz belgilaysiz. Raqam <b>darhol</b> saytda paydo bo'ladi.</p>
-        <div class="row" style="gap:12px">
-          <div style="flex:1;min-width:180px"><label for="adN">Raqam</label>
-            <input id="adN" inputmode="numeric" placeholder="901234567"></div>
-          <div style="flex:1;min-width:150px"><label for="adO">Operator</label>
-            <select id="adO">
-              <option value="">Tanlang</option>
-              <option>Beeline</option><option>Ucell</option><option>Humans</option>
-              <option>Uzmobile</option><option>UMS</option><option>Mobiuz</option><option>Perfectum</option>
-            </select></div>
+      <div class="seg" id="adMode" style="margin-bottom:14px">
+        <button type="button" class="on" data-m="bir">Bitta raqam</button>
+        <button type="button" data-m="kop">Ko‘p raqam</button>
+      </div>
+
+      <!-- ====== KO'P RAQAM ====== -->
+      <div class="card hide" id="kopBox">
+        <h2>Ko‘p raqamni birdaniga joylash</h2>
+        <div class="muted sm" style="margin-bottom:14px">
+          Har qatorga bitta raqam va narx. Excel yoki bloknotdan to‘g‘ridan-to‘g‘ri nusxalasangiz bo‘ladi.
         </div>
-        <div class="row" style="gap:12px;margin-top:12px">
-          <div style="flex:1;min-width:180px"><label for="adP">Narx (so'm)</label>
-            <input id="adP" inputmode="numeric" placeholder="3 900 000"></div>
-          <div style="flex:1;min-width:150px;align-self:flex-end;padding-bottom:3px">
-            <label style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:9px;cursor:pointer;font-weight:700">
-              <input type="checkbox" id="adI" style="width:18px;height:18px;flex:none"> Bo'lib to'lash mumkin
-            </label></div>
+        <div class="fld">
+          <textarea id="kopIn" rows="8" placeholder="901234567 3900000&#10;+998 93 777 77 77 ; 25 000 000&#10;94 555 00 00, 8500000, bo‘lib to‘lash&#10;995550000 4500 $"
+            style="font-family:'Space Grotesk',monospace;font-size:14px;line-height:1.7"></textarea>
+          <div class="hintline">
+            Har qatorga: <b>raqam</b> va <b>narx</b>. Ajratgich — bo‘shliq, vergul yoki nuqtali vergul.<br>
+            Qatorning oxiriga <b>bo‘lib to‘lash</b> deb yozsangiz (yoki qisqacha <b>bt</b>, <b>muddatli</b>,
+            <b>rassrochka</b>) — o‘sha raqamga bo‘lib to‘lash belgilanadi.<br>
+            <b>$</b> belgisi qo‘yilsa — narx dollarda deb olinadi.
+          </div>
         </div>
-        <div style="margin-top:12px"><label for="adNote">Izoh (ixtiyoriy, faqat admin ko'radi)</label>
-          <input id="adNote" placeholder="Masalan: shoshilinch sotiladi"></div>
-        <button class="btn" id="adBtn" style="margin-top:16px">Qo'shish</button>
+        <div id="kopKor"></div>
+        <button class="btn gold full" id="kopBtn" style="margin-top:4px">Tekshirish</button>
+      </div>
+
+      <div class="card" id="birBox">
+        <h2 id="fTitle">Raqam joylash</h2>
+        <div class="muted sm" style="margin-bottom:16px">Raqamni kiriting — operator o‘zi aniqlanadi.</div>
+
+        <div class="fld">
+          <label>Telefon raqami</label>
+          <input id="adN" class="numin" inputmode="numeric" placeholder="+998 __ ___ __ __" maxlength="19">
+          <div class="hintline">Faqat raqamlarni tering — bo‘shliqlar o‘zi qo‘yiladi.</div>
+        </div>
+
+        <div class="fld">
+          <label>Operator</label>
+          <div class="opbox" id="adOpBox"><i id="adOpDot"></i><b id="adOpName" class="muted">—</b>
+            <span id="adOpHint">raqam kiritilganda aniqlanadi</span></div>
+        </div>
+
+        <div class="fld">
+          <label>Valyuta</label>
+          <div class="seg" id="adCur">
+            <button type="button" class="on" data-c="UZS">so‘m</button>
+            <button type="button" data-c="USD">$ dollar</button>
+          </div>
+          <div class="hintline" id="curHint">Dollarlik raqamda bo‘lib to‘lash taklif qilinmaydi.</div>
+        </div>
+
+        <div class="grid2">
+          <div class="fld"><label>Narxi</label>
+            <input id="adP" class="sg" inputmode="numeric" placeholder="3 900 000"></div>
+          <div class="fld"><label>Aksiya — eski narx</label>
+            <input id="adOld" class="sg" inputmode="numeric" placeholder="ixtiyoriy">
+            <div id="adAks"></div></div>
+        </div>
+
+        <div class="fld">
+          <div class="sw" id="adI"><div class="t"><b>Bo‘lib to‘lash mumkin</b>
+            <span>Mijoz oylik to‘lov bilan sotib oladi</span></div><i></i></div>
+        </div>
+
+        <div id="adInsBox" class="hide">
+          <div class="fld">
+            <label>Aniq oylik to‘lov</label>
+            <div class="grid2" style="gap:10px">
+              <input id="adM6" class="sg" inputmode="numeric" placeholder="6 oy — oyiga">
+              <input id="adM12" class="sg" inputmode="numeric" placeholder="12 oy — oyiga">
+            </div>
+            <input id="adM24" class="sg" inputmode="numeric" placeholder="24 oy — oyiga" style="margin-top:10px">
+            <div class="hintline">Bo‘sh qoldirsangiz — saytdagi umumiy foizdan taxminiy hisoblanadi.</div>
+          </div>
+        </div>
+
+        <div class="fld"><label>Izoh (ixtiyoriy)</label>
+          <input id="adNote" placeholder="Masalan: shoshilinch sotiladi" maxlength="300"></div>
+
+        <div class="row" style="margin-top:4px;flex-wrap:nowrap">
+          <button class="btn gold" id="adBtn" style="flex:1">Joylash</button>
+          <button class="btn ghost hide" id="adCancel">Bekor</button>
+        </div>
       </div>
     </div>
 
-    <!-- Daromad -->
-    <div class="pane" id="p-money">
-      <div class="card">
-        <h2>Daromad</h2>
-        <p class="muted sm" style="margin:3px 0 14px">Buyurtma <b>“Yakunlandi”</b> holatiga o'tganda komissiya hisoblanadi.</p>
-        <div class="kpis" id="moneyKpis"></div>
+    <!-- ================= STATISTIKA ================= -->
+    <div class="pane" id="p-stat">
+      <div class="kpis" style="margin-bottom:14px">
+        <div class="kpi b"><div class="k">Ko‘rishlar</div><div class="v sg" id="sKor">—</div><div class="s">jami</div></div>
+        <div class="kpi gr"><div class="k">Buyurtmalar</div><div class="v sg" id="sBuy">—</div><div class="s">jami</div></div>
+        <div class="kpi g"><div class="k">Konversiya</div><div class="v sg" id="sKon">—</div><div class="s">ko‘rish → buyurtma</div></div>
+        <div class="kpi"><div class="k">O‘rtacha</div><div class="v sg" id="sOrt">—</div><div class="s">bitta raqamga ko‘rish</div></div>
       </div>
-      <div class="card"><div id="moneyBox"><div class="empty">Yuklanmoqda…</div></div></div>
+
+      <div class="card">
+        <div class="sechd"><h2>Eng ko‘p ko‘rilgan</h2><span id="sTopN"></span></div>
+        <div id="sTop"><div class="sk" style="height:40px"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="sechd"><h2>Eng ko‘p buyurtma</h2><span>raqam bo‘yicha</span></div>
+        <div id="sOrd"><div class="sk" style="height:40px"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="sechd"><h2>Raqamlar holati</h2></div>
+        <div class="split" id="sHol"></div>
+      </div>
     </div>
 
-    <!-- Yozishma -->
+    <!-- ================= BUYURTMALAR ================= -->
+    <div class="pane" id="p-ord">
+      <div class="kpis" id="moneyKpis" style="margin-bottom:14px"></div>
+      <div class="card">
+        <div class="sechd"><h2>Yakunlangan sotuvlar</h2><span>komissiya bilan</span></div>
+        <div id="moneyBox"><div class="sk" style="height:48px"></div></div>
+      </div>
+    </div>
+
+    <!-- ================= ADMIN BILAN (yuqoridagi tugmadan) ================= -->
     <div class="pane" id="p-chat">
       <div class="card">
-        <h2>Admin bilan yozishma</h2>
-        <div id="chatBox" style="margin:14px 0;max-height:52vh;overflow-y:auto"><div class="empty">Yuklanmoqda…</div></div>
-        <div class="row" style="gap:9px;flex-wrap:nowrap">
+        <h2>Administrator bilan yozishma</h2>
+        <div id="chatBox" style="margin:14px 0;max-height:52vh;overflow-y:auto"><div class="sk" style="height:40px"></div></div>
+        <div class="row" style="flex-wrap:nowrap">
           <input id="chatIn" placeholder="Xabar yozing…" style="flex:1">
           <button class="btn" id="chatBtn">Yuborish</button>
         </div>
       </div>
     </div>
+
   </div>
+
+  <!-- ================= PASTKI MENYU ================= -->
+  <nav id="snav" aria-label="Asosiy menyu"><span class="snavpill" id="snavPill" aria-hidden="true"></span>
+    <button data-p="home" class="on">
+      <span class="ico">
+        <svg class="ic-o" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5.5 10v9.5h13V10"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path d="M3.2 10.6 12 3.6l8.8 7v8.5a1.6 1.6 0 0 1-1.6 1.6h-3.6v-5.8H8.4v5.8H4.8a1.6 1.6 0 0 1-1.6-1.6z"/></svg>
+      </span><b>Asosiy</b></button>
+    <button data-p="add">
+      <span class="ico">
+        <svg class="ic-o" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path d="M12 2.8a9.2 9.2 0 1 0 0 18.4 9.2 9.2 0 0 0 0-18.4zm1.15 8.05h3.1v2.3h-3.1v3.1h-2.3v-3.1h-3.1v-2.3h3.1v-3.1h2.3z"/></svg>
+      </span><b>Joylash</b></button>
+    <button data-p="stat">
+      <span class="ico">
+        <svg class="ic-o" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path d="M2.8 18.9h18.4v2.1H2.8zM3 9.4h2.6v8.1H3zM9 3.6h2.6v13.9H9zM15 11.8h2.6v5.7H15z"/></svg>
+      </span><b>Statistika</b></button>
+    <button data-p="ord">
+      <span class="ico">
+        <svg class="ic-o" viewBox="0 0 24 24"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"/><path d="M4 7.5 12 11l8-3.5M12 11v9"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path d="M12 3.1 3.4 6.9 12 10.7l8.6-3.8zM2.6 8.5v8.1L11 20.6v-8.3zM13 12.3v8.3l8.4-4V8.5z"/></svg>
+      </span><b>Buyurtma</b></button>
+  </nav>
+
 </div>
 
 <div class="toast" id="toast"></div>
-
 <script>
-/* ============ Yordamchi funksiyalar ============ */
+/* ==========================================================================
+   SOTUVCHI KABINETI — mantiq
+   Hech qanday kutubxona yo'q: bitta fayl, bitta API funksiyasi.
+   ========================================================================== */
 const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
 const API = '/.netlify/functions/seller-api';
 const KEY = 'vip_seller_token';
 let TOKEN = '';
 try { TOKEN = localStorage.getItem(KEY) || ''; } catch (e) {}
 
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function pul(n){ return (Number(n)||0).toLocaleString('ru-RU').replace(/,/g,' '); }
+let NUMS = [], FILTER = 'all', QIDIR = '', TAHRIR = null, CUR = 'UZS', INS = false;
+
+/* ---------- Yordamchilar ---------- */
+const esc = (s) => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pul = (n) => (Number(n)||0).toLocaleString('ru-RU').replace(/[, ]/g,' ');
+const sonla = (v) => String(v||'').replace(/\D/g,'');
 function chiroyli(num){
-  const d = String(num||'').replace(/\D/g,'').replace(/^998/,'');
+  const d = sonla(num).replace(/^998/,'');
   return d.length === 9 ? d.slice(0,2)+' '+d.slice(2,5)+' '+d.slice(5,7)+' '+d.slice(7) : String(num||'');
+}
+function qisqa(n){
+  n = Number(n)||0;
+  if(n >= 1e9) return (n/1e9).toFixed(n%1e9?1:0).replace('.0','') + ' mlrd';
+  if(n >= 1e6) return (n/1e6).toFixed(n%1e6?1:0).replace('.0','') + ' mln';
+  if(n >= 1e3) return Math.round(n/1e3) + ' ming';
+  return String(n);
 }
 let toastT;
 function toast(msg, bad){
   const el = $('#toast');
   el.textContent = msg; el.classList.toggle('bad', !!bad); el.classList.add('on');
-  clearTimeout(toastT); toastT = setTimeout(()=> el.classList.remove('on'), 3000);
+  clearTimeout(toastT); toastT = setTimeout(()=> el.classList.remove('on'), 3200);
 }
+function vib(ms){ try{ navigator.vibrate && navigator.vibrate(ms||8); }catch(e){} }
+
+/* Operator kodlari — server bilan BIR XIL jadval */
+const KOD_OP = {
+  '91':'Beeline','90':'Beeline','92':'Beeline',
+  '33':'Humans',
+  '50':'Ucell','94':'Ucell','93':'Ucell',
+  '88':'Mobiuz','97':'Mobiuz','87':'Mobiuz',
+  '77':'Uzmobile','70':'Uzmobile','95':'Uzmobile','99':'Uzmobile',
+  '98':'Perfektum','80':'Perfektum'
+};
+const OP_RANG = { Beeline:'#FFCC00', Ucell:'#FFC800', Humans:'#7B4EFF',
+                  Mobiuz:'#00B8A9', Uzmobile:'#2E9BFF', Perfektum:'#FF5C5C' };
+const opAniqla = (raqam) => KOD_OP[sonla(raqam).replace(/^998/,'').slice(0,2)] || '';
 
 async function api(action, data){
   const r = await fetch(API, {
@@ -233,14 +600,14 @@ async function api(action, data){
   });
   let j = {};
   try{ j = await r.json(); }catch(e){}
-  if(r.status === 401 || r.status === 403){
-    if(action !== 'login'){ chiqish(j.error || 'Kirish muddati tugadi'); throw new Error(j.error||''); }
+  if((r.status === 401 || r.status === 403) && action !== 'login'){
+    chiqish(j.error || 'Kirish muddati tugadi'); throw new Error(j.error||'');
   }
   if(!j.ok) throw new Error(j.error || 'Xatolik');
   return j;
 }
 
-/* ============ Kirish / chiqish ============ */
+/* ---------- Kirish / chiqish ---------- */
 function chiqish(msg){
   TOKEN = ''; try{ localStorage.removeItem(KEY); }catch(e){}
   $('#app').classList.add('hide'); $('#loginBox').classList.remove('hide');
@@ -258,146 +625,602 @@ async function kir(){
     $('#lgErr').style.display='none'; $('#lgP').value='';
     ochKabinet(j.seller);
   }catch(e){
-    $('#lgErr').textContent = e.message || 'Xatolik'; $('#lgErr').style.display='block';
-  }finally{
-    $('#lgBtn').disabled = false; $('#lgBtn').textContent = 'Kirish';
-  }
+    $('#lgErr').textContent = e.message || 'Kirib bo‘lmadi'; $('#lgErr').style.display='block';
+  }finally{ $('#lgBtn').disabled=false; $('#lgBtn').textContent='Kirish'; }
 }
 $('#lgBtn').onclick = kir;
-$('#lgP').addEventListener('keydown', e => { if(e.key === 'Enter') kir(); });
+['#lgU','#lgP'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key==='Enter') kir(); }));
 
 function ochKabinet(s){
   $('#loginBox').classList.add('hide'); $('#app').classList.remove('hide');
-  $('#meName').textContent = s.name || s.username;
-  $('#mePct').textContent = s.commissionPct || 0;
-  $('#chatDot').classList.toggle('hide', !(s.unread > 0));
-  yukNums();
+  $('#meName').textContent = s.name || s.username || 'Sotuvchi';
+  $('#mePct').textContent = Number(s.commissionPct) || 0;
+  $('#chatDot').classList.toggle('hide', !(Number(s.unread) > 0));
+  yukNums(); yukStats();
+  requestAnimationFrame(pillniSur); setTimeout(pillniSur, 240);
 }
 
-/* ============ Bo'limlar ============ */
-document.querySelectorAll('.tb').forEach(b => b.onclick = ()=>{
-  document.querySelectorAll('.tb').forEach(x => x.classList.toggle('on', x === b));
-  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'p'+'-'+b.dataset.p));
-  if(b.dataset.p === 'money') yukMoney();
-  if(b.dataset.p === 'chat')  yukChat();
-  if(b.dataset.p === 'nums')  yukNums();
-});
-
-/* ---- Raqamlarim ---- */
-async function yukNums(){
-  const box = $('#numsBox');
-  try{
-    const j = await api('myNumbers');
-    if(!j.numbers.length){ box.innerHTML = '<div class="empty">Hali raqam qo’shmagansiz. “Raqam qo’shish” bo’limiga o’ting.</div>'; return; }
-    box.innerHTML = j.numbers.map(n => {
-      const cls = n.holat === 'Sotuvda' ? 'p-ok' : (n.holat === 'Band' ? 'p-band' : 'p-off');
-      const acts = (n.holat === 'Sotuvda')
-        ? '<div class="n-acts">' +
-            '<button class="btn ghost sm" data-ed="' + esc(n.id) + '">Narx</button>' +
-            '<button class="btn danger sm" data-rm="' + esc(n.id) + '">O\u2019chirish</button>' +
-          '</div>'
-        : '';
-      return '<div class="nrow">' +
-        '<div class="n-main">' +
-          '<div class="n-num">' + esc(chiroyli(n.number)) + '</div>' +
-          '<div class="n-sub">' + esc(n.operator) + (n.installment ? ' \u00B7 bo\u2019lib to\u2019lash' : '') + '</div>' +
-        '</div>' +
-        '<div class="n-price">' + pul(n.price) + '</div>' +
-        '<span class="pill ' + cls + '">' + esc(n.holat) + '</span>' +
-        acts +
-        '<div class="nstat"><span>Ochilgan: <b>' + (n.views || 0) + '</b></span>' +
-          '<span>Buyurtma: <b>' + (n.orders || 0) + '</b></span></div>' +
-      '</div>';
-    }).join('');
-
-    box.querySelectorAll('[data-ed]').forEach(b => b.onclick = async ()=>{
-      const v = prompt('Yangi narx (so’m):');
-      if(v == null) return;
-      const price = Number(String(v).replace(/\D/g,''));
-      if(!price){ toast("Narx noto'g'ri", true); return; }
-      try{ await api('updateNumber', {id:b.dataset.ed, price}); toast('Narx yangilandi'); yukNums(); }
-      catch(e){ toast(e.message, true); }
-    });
-    box.querySelectorAll('[data-rm]').forEach(b => b.onclick = async ()=>{
-      if(!confirm("Raqam o'chirilsinmi?")) return;
-      try{ await api('removeNumber', {id:b.dataset.rm}); toast("O'chirildi"); yukNums(); }
-      catch(e){ toast(e.message, true); }
-    });
-  }catch(e){ box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+/* ---------- Pastki menyu ----------
+   Kapsula tanlangan tugmaga suriladi. O'lchov faqat shu yerda
+   olinadi (bo'lim almashganda va ekran burilganda) — aylantirish
+   paytida hech narsa hisoblanmaydi. */
+function pillniSur(){
+  const nav = $('#snav'), pill = $('#snavPill');
+  const on = nav && nav.querySelector('button.on');
+  if(!nav || !pill || !on){ pill && pill.classList.remove('on'); return; }
+  const r = on.getBoundingClientRect(), nr = nav.getBoundingClientRect();
+  pill.style.width = r.width + 'px';
+  pill.style.transform = 'translateX(' + (r.left - nr.left) + 'px)';
+  pill.classList.add('on');
 }
-$('#numsReload').onclick = yukNums;
+addEventListener('resize', pillniSur);
 
-/* ---- Qo'shish ---- */
-$('#adP').addEventListener('input', e => {
-  const d = e.target.value.replace(/\D/g,'');
-  e.target.value = d ? Number(d).toLocaleString('ru-RU').replace(/,/g,' ') : '';
-});
-$('#adBtn').onclick = async ()=>{
-  const number = $('#adN').value.replace(/\D/g,'');
-  const operator = $('#adO').value;
-  const price = Number($('#adP').value.replace(/\D/g,''));
-  if(!number || !operator || !price){ toast("Raqam, operator va narxni to'ldiring", true); return; }
-  $('#adBtn').disabled = true;
-  try{
-    await api('addNumber', {number, operator, price, installment: $('#adI').checked, note: $('#adNote').value});
-    toast('Raqam qo’shildi va saytda paydo bo’ldi');
-    $('#adN').value=''; $('#adP').value=''; $('#adNote').value=''; $('#adI').checked=false;
-    document.querySelector('.tb[data-p="nums"]').click();
-  }catch(e){ toast(e.message, true); }
-  finally{ $('#adBtn').disabled = false; }
+function panelGa(p){
+  $$('#snav button').forEach(x => x.classList.toggle('on', x.dataset.p === p));
+  $$('.pane').forEach(el => el.classList.toggle('on', el.id === 'p-' + p));
+  requestAnimationFrame(pillniSur);
+  vib(6);
+  if(p === 'ord')  yukMoney();
+  if(p === 'stat') chizStat();
+  if(p === 'chat'){ yukChat(); $('#chatDot').classList.add('hide'); }
+  if(p === 'add' && !TAHRIR) shaklTozala();
+  window.scrollTo({top:0});
+}
+$$('#snav button').forEach(b => b.onclick = ()=> panelGa(b.dataset.p));
+const tabGa = panelGa;
+$('#chatBtnTop').onclick = ()=>{
+  /* Yozishma pastki menyuda emas — u yuqoridagi tugmadan ochiladi.
+     Shunda pastki menyuda faqat TO'RTTA asosiy bo'lim qoladi. */
+  $$('#snav button').forEach(x => x.classList.remove('on'));
+  $$('.pane').forEach(el => el.classList.toggle('on', el.id === 'p-chat'));
+  $('#snavPill').classList.remove('on');
+  yukChat(); $('#chatDot').classList.add('hide'); vib(6);
+  window.scrollTo({top:0});
 };
 
-/* ---- Daromad ---- */
+/* ---------- Umumiy statistika ---------- */
+let STAT = {};
+async function yukStats(){
+  try{
+    const j = await api('stats');
+    const t = STAT = j.stats || {};
+    $('#kSot').textContent = t.sotuvda ?? 0;
+    $('#kSotS').textContent = 'jami ' + (t.jami ?? 0) + ' ta raqam';
+    $('#kKor').textContent = pul(t.views || 0);
+    $('#kBuy').textContent = t.orders || 0;
+    $('#kBuyS').textContent = (t.sotilgan || 0) + ' ta sotilgan';
+    $('#kQiy').textContent = qisqa(t.qiymat || 0);
+  }catch(e){}
+}
+
+/* ---------- Raqamlar ro'yxati ---------- */
+const IC_KOZ = '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"></path><circle cx="12" cy="12" r="2.6"></circle></svg>';
+const IC_SAV = '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"></path><path d="M4 7.5 12 11l8-3.5M12 11v9"></path></svg>';
+
+/* ---------- Raqamlarni yuklash ----------
+   Server qadoqlangan satr qaytaradi: bitta raqam bitta qator,
+   maydonlar `|` bilan ajratilgan. 10 000 ta raqam ~550 KB (JSON'da
+   ~1 MB bo'lardi), gzip bilan ~70 KB.
+   Birinchi bo'lak kelishi bilan ro'yxat chiziladi, qolgani orqa
+   fonda yuklanib, ro'yxat jimgina to'ldirib boriladi. */
+const OP_IDX = ['', 'Beeline', 'Ucell', 'Uzmobile', 'Mobiuz', 'Humans', 'Perfektum'];
+
+function ochQadoq(matn){
+  const out = [];
+  if(!matn) return out;
+  const qatorlar = matn.split('\n');
+  for(let i = 0; i < qatorlar.length; i++){
+    const r = qatorlar[i]; if(!r) continue;
+    const c = r.split('|');
+    const fl = +c[5] || 0;
+    out.push({
+      id: c[0],
+      number: '+998' + c[1],
+      operator: OP_IDX[+c[2] || 0] || '',
+      price: +c[3] || 0,
+      oldPrice: +c[4] || 0,
+      reserved: !!(fl & 1), hidden: !!(fl & 2), sold: !!(fl & 4),
+      installment: !!(fl & 8),
+      currency: (fl & 16) ? 'USD' : 'UZS',
+      monthly6: +c[6] || 0, monthly12: +c[7] || 0, monthly24: +c[8] || 0,
+      createdAtSort: +c[9] || 0,
+      note: c[10] || ''
+    });
+  }
+  return out;
+}
+
+let YUKLANYAPTI = false;
+async function yukNums(){
+  if(YUKLANYAPTI) return;
+  YUKLANYAPTI = true;
+  NUMS = []; KORSATILGAN = SAHIFA;
+  let after = '', birinchi = true, himoya = 0;
+  try{
+    do{
+      const j = await api('myNumbers', after ? { after } : {});
+      const bolak = ochQadoq(j.rows || '');
+      NUMS = NUMS.concat(bolak);
+      after = j.next || '';
+      // Birinchi bo'lak kelishi bilan ko'rsatamiz — kutib turilmaydi
+      if(birinchi || !after){ saralaOxirgi(); chizNums(); birinchi = false; }
+      else chizSanoq();
+    } while(after && ++himoya < 12);
+  }catch(e){
+    if(!NUMS.length) $('#numsBox').innerHTML = '<div class="empty">' + esc(e.message) + '</div>';
+  }finally{ YUKLANYAPTI = false; }
+}
+const saralaOxirgi = () => NUMS.sort((a,b)=>(b.createdAtSort||0)-(a.createdAtSort||0));
+function chizSanoq(){
+  const el = $('#sanoqJami'); if(el) el.textContent = NUMS.length + ' ta raqam';
+}
+
+function holatChip(n){
+  if(n.sold)     return '<span class="chip sot">Sotilgan</span>';
+  if(n.reserved) return '<span class="chip band">Band</span>';
+  if(n.hidden)   return '<span class="chip hid">Yashirilgan</span>';
+  return '<span class="chip ok">Sotuvda</span>';
+}
+const holatSinf = (n) => n.sold ? 'sot' : (n.reserved ? 'band' : (n.hidden ? 'hid' : ''));
+
+/* ---------- Ro'yxat: YIG'ILGAN va SAHIFALANGAN ----------
+   Sotuvchida minglab raqam bo'lishi mumkin. Hammasi birdan
+   chizilsa brauzer qotadi, shu sabab bir martada 50 tasi
+   chiziladi va "Yana ko'rsatish" bilan davom etadi.
+   Statistika esa FAQAT chizilganlari uchun so'raladi. */
+const SAHIFA = 50;
+let KORSATILGAN = SAHIFA;
+const STATS_KESH = {};      // {raqamId: {views, orders}}
+
+function saralangan(){
+  const q = sonla(QIDIR);
+  return NUMS.filter(n => {
+    if(q && sonla(n.number).indexOf(q) === -1) return false;
+    if(FILTER === 'sotuvda') return !n.sold && !n.reserved && !n.hidden;
+    if(FILTER === 'aksiya')  return Number(n.oldPrice) > Number(n.price);
+    if(FILTER === 'bolib')   return !!n.installment;
+    if(FILTER === 'band')    return !!n.reserved && !n.sold;
+    if(FILTER === 'sotildi') return !!n.sold;
+    return true;
+  });
+}
+
+function chizNums(){
+  const hammasi = saralangan();
+
+  if(!hammasi.length){
+    $('#numsBox').innerHTML = '<div class="empty">' +
+      (NUMS.length ? 'Bu filtrga mos raqam yo\u2018q.' : 'Hali raqam joylamagansiz.<br><br>' +
+       '<button class="btn gold sm" onclick="tabGa(\'add\')">Birinchi raqamni joylash</button>') + '</div>';
+    return;
+  }
+
+  const list = hammasi.slice(0, KORSATILGAN);
+  const qolgan = hammasi.length - list.length;
+
+  const qatorlar = list.map(n => {
+    const usd = String(n.currency||'UZS').toUpperCase() === 'USD';
+    const aks = (Number(n.oldPrice) > Number(n.price));
+    return '<div class="nr" data-id="' + esc(n.id) + '">' +
+      '<div class="nr-h">' +
+        '<span class="nr-dot ' + holatSinf(n) + '"></span>' +
+        '<span class="nr-n">' + esc(chiroyli(n.number)) + '</span>' +
+        '<span class="nr-sp"></span>' +
+        ((aks || n.installment) ? '<span class="nr-mk">' +
+            (aks ? '<i class="a"></i>' : '') + (n.installment ? '<i class="b"></i>' : '') + '</span>' : '') +
+        '<span class="nr-p">' + pul(n.price) + (usd ? ' $' : '<u>so\u2018m</u>') + '</span>' +
+        '<svg class="nr-ch" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</div>' +
+      '<div class="nr-b"><div class="nr-in"><div class="nr-pad" data-body="' + esc(n.id) + '"></div></div></div>' +
+    '</div>';
+  }).join('');
+
+  $('#numsBox').innerHTML =
+    '<div class="sanoq"><span id="sanoqJami">' + hammasi.length + ' ta raqam</span>' +
+      (hammasi.length > list.length ? '<span>' + list.length + ' tasi ko\u2018rsatilyapti</span>' : '') + '</div>' +
+    qatorlar +
+    (qolgan > 0 ? '<button class="btn ghost yana" id="yanaBtn">Yana ' +
+        Math.min(SAHIFA, qolgan) + ' ta ko\u2018rsatish</button>' : '');
+
+  $$('.nr-h').forEach(h => h.onclick = ()=> ochYop(h.parentElement));
+  const yb = $('#yanaBtn');
+  if(yb) yb.onclick = ()=>{ KORSATILGAN += SAHIFA; chizNums(); };
+  statYukla(list.map(n => n.id));
+}
+
+/* Qatorni ochish/yopish — tafsilot FAQAT ochilganda chiziladi */
+function ochYop(row){
+  const id = row.dataset.id;
+  const ochiq = row.classList.contains('ochiq');
+  $$('.nr.ochiq').forEach(r => { if(r !== row) r.classList.remove('ochiq'); });
+  if(ochiq){ row.classList.remove('ochiq'); return; }
+  const box = row.querySelector('[data-body]');
+  if(box && !box.dataset.tayyor){ box.innerHTML = tafsilot(id); box.dataset.tayyor = '1'; bogla(box, id); }
+  row.classList.add('ochiq');
+  vib(6);
+}
+
+function tafsilot(id){
+  const n = NUMS.find(x => x.id === id); if(!n) return '';
+  const usd = String(n.currency||'UZS').toUpperCase() === 'USD';
+  const chegirma = (Number(n.oldPrice) > Number(n.price)) ? Math.round((1 - n.price / n.oldPrice) * 100) : 0;
+  const oylik = n.monthly24 || n.monthly12 || n.monthly6;
+  const oyMud = n.monthly24 ? 24 : (n.monthly12 ? 12 : 6);
+  const st = STATS_KESH[id] || {};
+  const tahrirMumkin = !n.sold && !n.reserved;
+  return '<div class="nr-chips">' +
+      '<span class="chip op"><span style="display:inline-block;width:8px;height:8px;border-radius:3px;background:' +
+        (OP_RANG[n.operator]||'#9FB3D1') + ';margin-right:5px"></span>' + esc(n.operator||'') + '</span>' +
+      holatChip(n) +
+      (chegirma ? '<span class="chip aks">\u2212' + chegirma + '%</span>' : '') +
+      (n.installment ? '<span class="chip ins">Bo\u2018lib to\u2018lash</span>' : '') +
+    '</div>' +
+    (chegirma ? '<div class="nr-line"><span>Eski narx</span><b style="text-decoration:line-through;color:var(--faint)">' + pul(n.oldPrice) + '</b></div>' : '') +
+    (n.installment && oylik ? '<div class="nr-line"><span>' + oyMud + ' oyga</span><b style="color:var(--gold-ink)">' + pul(oylik) + ' so\u2018mdan</b></div>' : '') +
+    '<div class="nr-line"><span>Ko\u2018rishlar</span><b data-v="' + esc(id) + '">' + (st.views != null ? pul(st.views) : '\u2026') + '</b></div>' +
+    '<div class="nr-line"><span>Buyurtmalar</span><b data-o="' + esc(id) + '">' + (st.orders != null ? st.orders : '\u2026') + '</b></div>' +
+    (n.note ? '<div class="nr-line"><span>Izoh</span><span style="color:var(--ink);text-align:right">' + esc(n.note) + '</span></div>' : '') +
+    (tahrirMumkin ? '<div class="nr-act">' +
+      '<button class="btn ghost sm" data-ed="' + esc(id) + '" style="flex:1">Tahrirlash</button>' +
+      '<button class="btn danger sm" data-del="' + esc(id) + '">O\u2018chirish</button>' +
+    '</div>' : '');
+}
+
+function bogla(box, id){
+  const e = box.querySelector('[data-ed]'); if(e) e.onclick = (ev)=>{ ev.stopPropagation(); tahrirla(id); };
+  const d = box.querySelector('[data-del]'); if(d) d.onclick = (ev)=>{ ev.stopPropagation(); ochir(id); };
+}
+
+/* Ko'rinib turgan raqamlarning statistikasi — bitta so'rovda */
+async function statYukla(ids){
+  const kerak = ids.filter(id => !(id in STATS_KESH));
+  if(!kerak.length) return;
+  try{
+    const j = await api('numberStats', { ids: kerak.slice(0, 60) });
+    Object.assign(STATS_KESH, j.stats || {});
+    kerak.forEach(id => { if(!(id in STATS_KESH)) STATS_KESH[id] = { views:0, orders:0 }; });
+    // Ochiq qatorlardagi raqamlarni joyida yangilaymiz
+    $$('[data-v]').forEach(el => { const st = STATS_KESH[el.dataset.v]; if(st) el.textContent = pul(st.views||0); });
+    $$('[data-o]').forEach(el => { const st = STATS_KESH[el.dataset.o]; if(st) el.textContent = st.orders||0; });
+  }catch(e){}
+}
+
+/* ---------- Statistika bo'limi ----------
+   "Eng ko'p ko'rilgan" ro'yxatlari SERVERDAN keladi: kabinet faqat
+   ko'rinib turgan 50 ta raqamni biladi, shu sabab o'zi hisoblasa
+   noto'g'ri chiqardi. */
+function chizStat(){
+  const t = STAT || {};
+  const kor = Number(t.views) || 0, buy = Number(t.orders) || 0;
+  const qam = Number(t.qamrov) || 0;
+  $('#sKor').textContent = pul(kor);
+  $('#sBuy').textContent = buy;
+  $('#sKon').textContent = kor ? ((buy / kor) * 100).toFixed(1).replace('.0','') + '%' : '\u2014';
+  $('#sOrt').textContent = Math.round(kor / Math.max(1, qam || t.jami || 1));
+  // Raqam juda ko'p bo'lsa — ko'rsatkich qamrovini ochiq aytamiz
+  const izoh = $('#sKor').nextElementSibling;
+  if(izoh) izoh.textContent = (qam && Number(t.jami) > qam) ? ('oxirgi ' + qam + ' ta raqam bo\u2018yicha') : 'jami';
+
+  const qator = (arr, kalit, oltin) => {
+    const eng = Math.max(1, ...arr.map(n => Number(n[kalit]) || 0));
+    return arr.map(n => '<div class="bar' + (oltin?' g':'') + '">' +
+      '<span class="n">' + esc(chiroyli(n.number)) + '</span>' +
+      '<span class="t"><i style="width:' + Math.max(3, Math.round((Number(n[kalit])||0) / eng * 100)) + '%"></i></span>' +
+      '<span class="v">' + pul(n[kalit] || 0) + '</span></div>').join('');
+  };
+
+  const top = Array.isArray(t.topViews)  ? t.topViews  : [];
+  const ord = Array.isArray(t.topOrders) ? t.topOrders : [];
+  $('#sTop').innerHTML = top.length ? qator(top, 'views')  : '<div class="empty">Hali ko\u2018rishlar yo\u2018q.</div>';
+  $('#sTopN').textContent = top.length ? 'eng yuqori ' + top.length + ' ta' : '';
+  $('#sOrd').innerHTML = ord.length ? qator(ord, 'orders', true) : '<div class="empty">Hali buyurtma yo\u2018q.</div>';
+
+  const H = [['Sotuvda', t.sotuvda], ['Band', t.band], ['Sotilgan', t.sotilgan],
+             ['Aksiyada', t.aksiya], ['Bo\u2018lib to\u2018lash', t.bolib], ['Jami', t.jami]];
+  $('#sHol').innerHTML = H.map(([k,v]) =>
+    '<div class="spl"><div class="k">' + k + '</div><div class="v sg">' + (v ?? 0) + '</div></div>').join('');
+}
+
+let qT;
+$('#qIn').addEventListener('input', e => {
+  QIDIR = e.target.value; KORSATILGAN = SAHIFA;
+  clearTimeout(qT); qT = setTimeout(chizNums, 120);   /* yozayotganda har harfda qayta chizilmaydi */
+});
+$$('.fc').forEach(b => b.onclick = ()=>{
+  $$('.fc').forEach(x => x.classList.toggle('on', x===b));
+  FILTER = b.dataset.f; KORSATILGAN = SAHIFA; vib(6); chizNums();
+});
+
+/* ---------- Raqam maydonini formatlash: +998 90 123 45 67 ---------- */
+function raqamFormat(v){
+  let d = sonla(v);
+  if(d.startsWith('998')) d = d.slice(3);
+  d = d.slice(0, 9);
+  if(!d) return '';
+  let out = '+998 ' + d.slice(0,2);
+  if(d.length > 2) out += ' ' + d.slice(2,5);
+  if(d.length > 5) out += ' ' + d.slice(5,7);
+  if(d.length > 7) out += ' ' + d.slice(7,9);
+  return out;
+}
+$('#adN').addEventListener('input', e => {
+  const oxirida = e.target.selectionStart >= e.target.value.length;
+  e.target.value = raqamFormat(e.target.value);
+  if(oxirida) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+  opKorsat();
+});
+function opKorsat(){
+  const op = opAniqla($('#adN').value);
+  $('#adOpDot').style.background = op ? (OP_RANG[op]||'#9FB3D1') : 'var(--faint)';
+  $('#adOpName').textContent = op || '—';
+  $('#adOpName').className = op ? '' : 'muted';
+  $('#adOpHint').textContent = op ? 'avtomatik aniqlandi' : 'raqam kiritilganda aniqlanadi';
+}
+
+/* ---------- Narx maydonlari: yozayotganda bo'shliq qo'yiladi ---------- */
+function narxFormat(el){
+  el.addEventListener('input', ()=>{
+    const d = sonla(el.value);
+    el.value = d ? pul(d) : '';
+    aksiyaKorsat();
+  });
+}
+['#adP','#adOld','#adM6','#adM12','#adM24'].forEach(id => narxFormat($(id)));
+
+function aksiyaKorsat(){
+  const p = Number(sonla($('#adP').value)) || 0;
+  const o = Number(sonla($('#adOld').value)) || 0;
+  const box = $('#adAks');
+  if(o && p && o > p){
+    box.innerHTML = '<span class="aksbadge">−' + Math.round((1 - p/o)*100) + '% chegirma</span>';
+  }else if(o && p && o <= p){
+    box.innerHTML = '<span class="aksbadge">Eski narx yangisidan katta bo‘lishi kerak</span>';
+  }else box.innerHTML = '';
+}
+
+/* ---------- Valyuta va bo'lib to'lash ---------- */
+$$('#adCur button').forEach(b => b.onclick = ()=>{
+  $$('#adCur button').forEach(x => x.classList.toggle('on', x===b));
+  CUR = b.dataset.c; vib(6);
+  const usd = CUR === 'USD';
+  if(usd && INS) insHolat(false);
+  $('#adI').style.opacity = usd ? '.45' : '';
+  $('#adI').style.pointerEvents = usd ? 'none' : '';
+  $('#curHint').textContent = usd
+    ? 'Dollarlik raqamda bo‘lib to‘lash taklif qilinmaydi — hisob-kitob so‘mda yuritiladi.'
+    : 'Dollarlik raqamda bo‘lib to‘lash taklif qilinmaydi.';
+});
+function insHolat(on){
+  INS = !!on;
+  $('#adI').classList.toggle('on', INS);
+  $('#adInsBox').classList.toggle('hide', !INS);
+}
+$('#adI').onclick = ()=>{ insHolat(!INS); vib(8); };
+
+/* ---------- Shaklni tozalash / to'ldirish ---------- */
+function shaklTozala(){
+  TAHRIR = null;
+  ['#adN','#adP','#adOld','#adM6','#adM12','#adM24','#adNote'].forEach(id => $(id).value = '');
+  CUR = 'UZS';
+  $$('#adCur button').forEach(x => x.classList.toggle('on', x.dataset.c === 'UZS'));
+  $('#adI').style.opacity=''; $('#adI').style.pointerEvents='';
+  insHolat(false); aksiyaKorsat(); opKorsat();
+  $('#fTitle').textContent = 'Raqam joylash';
+  $('#adBtn').textContent = 'Joylash';
+  $('#adCancel').classList.add('hide');
+}
+function tahrirla(id){
+  const n = NUMS.find(x => x.id === id); if(!n) return;
+  TAHRIR = id;
+  $('#adN').value = raqamFormat(n.number); opKorsat();
+  $('#adP').value = n.price ? pul(n.price) : '';
+  $('#adOld').value = n.oldPrice ? pul(n.oldPrice) : '';
+  $('#adM6').value  = n.monthly6  ? pul(n.monthly6)  : '';
+  $('#adM12').value = n.monthly12 ? pul(n.monthly12) : '';
+  $('#adM24').value = n.monthly24 ? pul(n.monthly24) : '';
+  $('#adNote').value = n.note || '';
+  CUR = String(n.currency||'UZS').toUpperCase() === 'USD' ? 'USD' : 'UZS';
+  $$('#adCur button').forEach(x => x.classList.toggle('on', x.dataset.c === CUR));
+  insHolat(!!n.installment);
+  aksiyaKorsat();
+  $('#fTitle').textContent = 'Raqamni tahrirlash';
+  $('#adBtn').textContent = 'Saqlash';
+  $('#adCancel').classList.remove('hide');
+  tabGa('add');
+}
+$('#adCancel').onclick = shaklTozala;
+
+/* ---------- Saqlash ---------- */
+$('#adBtn').onclick = async ()=>{
+  const raqam = sonla($('#adN').value);
+  if(raqam.replace(/^998/,'').length !== 9){ toast('Raqamni to‘liq kiriting', true); $('#adN').focus(); return; }
+  const op = opAniqla(raqam);
+  if(!op){ toast('Operator aniqlanmadi — raqamni tekshiring', true); return; }
+  const narx = Number(sonla($('#adP').value)) || 0;
+  if(!narx){ toast('Narxni kiriting', true); $('#adP').focus(); return; }
+
+  const data = {
+    number: raqam, operator: op, price: narx,
+    oldPrice: Number(sonla($('#adOld').value)) || 0,
+    currency: CUR,
+    installment: INS,
+    monthly6:  INS ? (Number(sonla($('#adM6').value))  || 0) : 0,
+    monthly12: INS ? (Number(sonla($('#adM12').value)) || 0) : 0,
+    monthly24: INS ? (Number(sonla($('#adM24').value)) || 0) : 0,
+    note: $('#adNote').value.trim()
+  };
+
+  $('#adBtn').disabled = true;
+  const eski = $('#adBtn').textContent;
+  $('#adBtn').textContent = 'Saqlanmoqda…';
+  try{
+    if(TAHRIR){ data.id = TAHRIR; await api('updateNumber', data); toast('Saqlandi'); }
+    else { await api('addNumber', data); toast('Raqam joylandi'); }
+    vib(14);
+    shaklTozala();
+    await yukNums(); await yukStats();
+    tabGa('home');
+  }catch(e){ toast(e.message || 'Xatolik', true); }
+  finally{ $('#adBtn').disabled=false; $('#adBtn').textContent = eski; }
+};
+
+async function ochir(id){
+  const n = NUMS.find(x => x.id === id);
+  if(!confirm((n ? chiroyli(n.number) : 'Raqam') + ' o‘chirilsinmi?')) return;
+  try{ await api('removeNumber', {id}); toast('O‘chirildi'); await yukNums(); yukStats(); }
+  catch(e){ toast(e.message || 'Xatolik', true); }
+}
+
+/* ==========================================================================
+   KO'P RAQAMNI BIRDANIGA JOYLASH
+   Diler ro'yxatni nusxalab qo'yadi -> tahlil qilinadi -> ko'rib
+   chiqiladi -> 200 tadan serverga yuboriladi.
+   ========================================================================== */
+$$('#adMode button').forEach(b => b.onclick = ()=>{
+  $$('#adMode button').forEach(x => x.classList.toggle('on', x===b));
+  const kop = b.dataset.m === 'kop';
+  $('#kopBox').classList.toggle('hide', !kop);
+  $('#birBox').classList.toggle('hide', kop);
+  vib(6);
+});
+
+/* Bitta qatorni tahlil qilish.
+   Qabul qilinadi: "901234567 3900000", "+998 93 777 77 77; 25 000 000",
+   "94 555 00 00, 8500000, bt", oxirida "$" bo'lsa — dollarda. */
+function qatorTahlil(qator){
+  const xom = String(qator||'').trim();
+  if(!xom) return null;
+  const dollar = /\$/.test(xom);
+  const bolib  = /\b(bt|bo.?lib|rassrochka|muddatli)\b/i.test(xom);
+  // Ajratgichlar bo'yicha bo'laklarga ajratamiz
+  const boylab = xom.replace(/[;,]/g, ' ').split(/\s+/).filter(Boolean);
+  // Birinchi uzun raqamlar ketma-ketligi = telefon
+  let telefon = '', narx = 0, qoldi = [];
+  const hammaSon = xom.replace(/[^\d+]/g, '');
+  // Telefon: boshidan 9 yoki 12 xonali
+  let t = hammaSon.replace(/\+/g,'');
+  if(t.startsWith('998')) t = t.slice(0,12); else t = t.slice(0,9);
+  if(t.length === 12) t = t.slice(3);
+  if(t.length !== 9) return { xato: 'Raqam topilmadi', xom };
+  telefon = t;
+  // Narx: telefondan keyingi raqamlar
+  const qolgan = hammaSon.replace(/\+/g,'').replace(t, '').replace(/^998/, '');
+  narx = Number(qolgan) || 0;
+  if(!narx) return { xato: 'Narx topilmadi', xom, number: telefon };
+  const op = opAniqla(telefon);
+  if(!op) return { xato: 'Operator aniqlanmadi', xom, number: telefon };
+  return { number: telefon, operator: op, price: narx,
+           currency: dollar ? 'USD' : 'UZS', installment: dollar ? false : bolib };
+}
+
+let KOP_TAYYOR = [];
+$('#kopBtn').onclick = async ()=>{
+  const btn = $('#kopBtn');
+  if(btn.dataset.holat === 'yuborish') return kopYubor();
+
+  const qatorlar = $('#kopIn').value.split('\n').map(qatorTahlil).filter(Boolean);
+  if(!qatorlar.length){ toast("Ro\u2018yxat bo\u2018sh", true); return; }
+  // Ro'yxat ichidagi takrorlar va bazada bor raqamlar darhol belgilanadi
+  const korildi = new Set(), bazada = new Set(NUMS.map(n => sonla(n.number).replace(/^998/,'')));
+  qatorlar.forEach(r => {
+    if(r.xato || !r.number) return;
+    if(korildi.has(r.number)) r.xato = 'Ro\u2018yxatda takrorlangan';
+    else if(bazada.has(r.number)) r.xato = 'Sizda allaqachon bor';
+    else korildi.add(r.number);
+  });
+  const yaxshi = qatorlar.filter(r => !r.xato);
+  const yomon  = qatorlar.filter(r => r.xato);
+  KOP_TAYYOR = yaxshi;
+
+  $('#kopKor').innerHTML =
+    '<div class="kpsum">' +
+      '<div><div class="k">Tayyor</div><div class="v g">' + yaxshi.length + '</div></div>' +
+      '<div><div class="k">Xato</div><div class="v ' + (yomon.length?'r':'') + '">' + yomon.length + '</div></div>' +
+      '<div><div class="k">Jami</div><div class="v">' + qatorlar.length + '</div></div>' +
+    '</div>' +
+    '<div class="kplist">' + qatorlar.slice(0, 200).map(r => '<div class="kp">' +
+      '<b>' + esc(r.number ? chiroyli(r.number) : (r.xom||'').slice(0,22)) + '</b>' +
+      (r.xato ? '<span class="er">' + esc(r.xato) + '</span>'
+              : '<span>' + pul(r.price) + (r.currency==='USD'?' $':' so\u2018m') +
+                (r.installment ? ' <span class="ok">\u00b7 BT</span>' : '') + '</span>') +
+    '</div>').join('') + '</div>' +
+    (qatorlar.length > 200 ? '<div class="hintline">Birinchi 200 tasi ko\u2018rsatildi.</div>' : '');
+
+  if(!yaxshi.length){ toast("To\u2018g\u2018ri qator topilmadi", true); return; }
+  btn.dataset.holat = 'yuborish';
+  btn.textContent = yaxshi.length + ' ta raqamni joylash';
+};
+
+async function kopYubor(){
+  const btn = $('#kopBtn');
+  btn.disabled = true;
+  const jami = KOP_TAYYOR.length;
+  let yozildi = 0, xato = 0;
+  $('#kopKor').insertAdjacentHTML('afterbegin', '<div class="prog"><i id="kopProg" style="width:0%"></i></div>');
+  try{
+    for(let i = 0; i < jami; i += 200){
+      const bolak = KOP_TAYYOR.slice(i, i + 200);
+      btn.textContent = 'Joylanmoqda\u2026 ' + Math.min(i + bolak.length, jami) + '/' + jami;
+      const j = await api('addBulk', { rows: bolak });
+      yozildi += Number(j.yozildi) || 0;
+      xato    += Number(j.xatoSoni) || 0;
+      const pr = $('#kopProg'); if(pr) pr.style.width = Math.round((i + bolak.length) / jami * 100) + '%';
+    }
+    toast(yozildi + ' ta raqam joylandi' + (xato ? ' \u00b7 ' + xato + ' tasi o\u2018tmadi' : ''));
+    vib(18);
+    $('#kopIn').value = ''; $('#kopKor').innerHTML = ''; KOP_TAYYOR = [];
+    btn.dataset.holat = ''; btn.textContent = 'Tekshirish';
+    await yukNums(); yukStats(); tabGa('home');
+  }catch(e){ toast(e.message || 'Xatolik', true); btn.textContent = 'Qayta urinish'; }
+  finally{ btn.disabled = false; }
+}
+
+/* ---------- Daromad ---------- */
 async function yukMoney(){
-  const box = $('#moneyBox'), k = $('#moneyKpis');
   try{
     const j = await api('earnings');
-    k.innerHTML =
-      '<div class="kpi"><span class="muted sm">Jami komissiya</span><b>' + pul(j.total) + '</b></div>' +
-      '<div class="kpi"><span class="muted sm">To’langan</span><b style="color:#7FE0B4">' + pul(j.paid) + '</b></div>' +
-      '<div class="kpi"><span class="muted sm">Kutilmoqda</span><b style="color:#F2CE7E">' + pul(j.unpaid) + '</b></div>';
-    if(!j.rows.length){ box.innerHTML = '<div class="empty">Hali yakunlangan sotuv yo’q.</div>'; return; }
-    box.innerHTML = j.rows.map(r =>
-      '<div class="nrow">' +
-        '<div class="n-main">' +
-          '<div class="n-num">' + esc(chiroyli(r.number)) + '</div>' +
-          '<div class="n-sub">' + esc(r.date) + ' \u00B7 sotuv ' + pul(r.price) + '</div>' +
-        '</div>' +
-        '<div class="n-price">' + pul(r.commission) +
-          '<div class="n-sub" style="text-align:right">' + r.pct + '%</div></div>' +
-        '<span class="pill ' + (r.paid ? 'p-ok' : 'p-band') + '">' + (r.paid ? "To'langan" : 'Kutilmoqda') + '</span>' +
-      '</div>'
-    ).join('');
-  }catch(e){ box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+    $('#moneyKpis').innerHTML =
+      '<div class="kpi g"><div class="k">Jami</div><div class="v sg">' + qisqa(j.total) + '</div><div class="s">komissiya</div></div>' +
+      '<div class="kpi gr"><div class="k">To‘langan</div><div class="v sg">' + qisqa(j.paid) + '</div><div class="s">&nbsp;</div></div>' +
+      '<div class="kpi b"><div class="k">Kutilmoqda</div><div class="v sg">' + qisqa(j.unpaid) + '</div><div class="s">&nbsp;</div></div>' +
+      '<div class="kpi"><div class="k">Sotuvlar</div><div class="v sg">' + (j.rows||[]).length + '</div><div class="s">yakunlangan</div></div>';
+    const rows = j.rows || [];
+    $('#moneyBox').innerHTML = rows.length
+      ? rows.map(r => '<div class="mrow"><div><b class="sg">' + esc(chiroyli(r.number)) + '</b>' +
+          '<div class="faint sm">' + esc(r.date) + ' · ' + pul(r.price) + ' so‘m · ' + r.pct + '%</div></div>' +
+          '<div style="text-align:right"><b class="sg" style="color:var(--gold-ink)">' + pul(r.commission) + '</b>' +
+          '<div class="sm ' + (r.paid?'':'faint') + '" style="color:' + (r.paid?'var(--green)':'') + '">' +
+          (r.paid ? 'To‘langan' : 'Kutilmoqda') + '</div></div></div>').join('')
+      : '<div class="empty">Hali yakunlangan sotuv yo‘q.</div>';
+  }catch(e){ $('#moneyBox').innerHTML = '<div class="empty">'+esc(e.message)+'</div>'; }
 }
 
-/* ---- Yozishma ---- */
+/* ---------- Admin bilan yozishma ---------- */
 async function yukChat(){
-  const box = $('#chatBox');
   try{
     const j = await api('messages');
-    $('#chatDot').classList.add('hide');
-    box.innerHTML = j.rows.length
-      ? j.rows.map(m => '<div class="msg ' + (m.from === 'seller' ? 'me' : 'them') + '">' + esc(m.text) + '</div>').join('')
-      : '<div class="empty">Xabarlar yo’q. Savolingiz bo’lsa yozing.</div>';
-    box.scrollTop = box.scrollHeight;
-  }catch(e){ box.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+    const rows = j.rows || [];
+    $('#chatBox').innerHTML = rows.length
+      ? rows.map(m => '<div class="msg ' + (m.from === 'seller' ? 'me' : 'ad') + '">' + esc(m.text) +
+          '<span class="w">' + new Date(m.at).toLocaleString('uz-UZ') + '</span></div>').join('')
+      : '<div class="empty">Yozishma bo‘sh. Savolingizni yozing.</div>';
+    const b = $('#chatBox'); b.scrollTop = b.scrollHeight;
+  }catch(e){ $('#chatBox').innerHTML = '<div class="empty">'+esc(e.message)+'</div>'; }
 }
 async function yubor(){
-  const t = $('#chatIn').value.trim();
-  if(!t) return;
-  $('#chatIn').value = '';
-  try{ await api('sendMessage', {text:t}); yukChat(); }
-  catch(e){ toast(e.message, true); }
+  const t = $('#chatIn').value.trim(); if(!t) return;
+  $('#chatBtn').disabled = true;
+  try{ await api('sendMessage', {text:t}); $('#chatIn').value=''; await yukChat(); }
+  catch(e){ toast(e.message || 'Xatolik', true); }
+  finally{ $('#chatBtn').disabled = false; }
 }
 $('#chatBtn').onclick = yubor;
-$('#chatIn').addEventListener('keydown', e => { if(e.key === 'Enter') yubor(); });
+$('#chatIn').addEventListener('keydown', e => { if(e.key==='Enter') yubor(); });
 
-/* ============ Boshlash ============ */
+/* ---------- Boshlanish ---------- */
 (async function(){
   if(!TOKEN) return;
-  try{ const j = await api('me'); ochKabinet(j.seller); }
-  catch(e){ chiqish(''); }
+  try{ const j = await api('me'); ochKabinet(j.seller); }catch(e){}
 })();
 </script>
 </body>
