@@ -1281,6 +1281,30 @@ document.documentElement.setAttribute('data-theme', 'dark');
      faqat shaffoflik/bosilish o'chadi, keyin aynan o'sha joyda qaytadi. */
   .bottom-nav.nav-hidden{opacity:0;pointer-events:none;transition:opacity .18s ease;}
 </style>
+<!-- NUSXA QALQONI: Telegram ilovasida ham saytdagidek matn
+     belgilanmaydi va nusxa olinmaydi (mijoz so'rovi). Kiritish
+     maydonlari va saytning o'z "Nusxa olish" tugmasi ishlayveradi. -->
+<style>
+html,body{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable="true"],[data-nusxa]{
+  -webkit-user-select:text;-moz-user-select:text;user-select:text;-webkit-touch-callout:default}
+img,svg,a{-webkit-user-drag:none}
+::selection{background:transparent}
+</style>
+<script>
+(function(){
+  function kiritish(el){ return !!(el && el.closest && el.closest('input,textarea,select,[contenteditable="true"],[data-nusxa]')); }
+  document.addEventListener('selectstart', function(e){ if(!kiritish(e.target)) e.preventDefault(); });
+  ['copy','cut'].forEach(function(n){ document.addEventListener(n, function(e){
+    if(window.__nusxaRuxsat || kiritish(e.target)) return; e.preventDefault(); }); });
+  document.addEventListener('contextmenu', function(e){ if(!kiritish(e.target)) e.preventDefault(); });
+  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  ['gesturestart','gesturechange','gestureend'].forEach(function(n){
+    document.addEventListener(n, function(e){ e.preventDefault(); }, {passive:false}); });
+  document.addEventListener('touchmove', function(e){ if(e.touches && e.touches.length > 1) e.preventDefault(); }, {passive:false});
+  document.addEventListener('wheel', function(e){ if(e.ctrlKey) e.preventDefault(); }, {passive:false});
+})();
+</script>
 </head>
 <body>
 

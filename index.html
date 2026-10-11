@@ -6,10 +6,11 @@
      va uni almashtirish tugmasi olib tashlandi. -->
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
 <meta charset="UTF-8">
-<!-- Mijoz so'rovi: barmoq bilan yaqinlashtirish/uzoqlashtirish MUMKIN bo'lsin.
-     (Ikki marta bosganda sakrab zoom bo'lishi body{touch-action:manipulation}
-     bilan baribir o'chirilgan — ya'ni faqat ikki barmoq bilan ishlaydi.) -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<!-- Mijoz so'rovi: sayt YAQINLASHTIRILMAYDI (zoom o'chirilgan).
+     Ikki barmoq bilan ham, ikki marta bosganda ham o'lcham o'zgarmaydi —
+     ilovadek qat'iy turadi. iPhone `user-scalable=no` ni mensimaydi,
+     shu sabab 08-js-boot.html ichida qo'shimcha JS himoya bor. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#07152B">
 <title>VIP RAQAMLAR — chiroyli va VIP telefon raqamlar</title>
 <meta name="description" content="O'zbekiston bo'ylab VIP, oltin va chiroyli telefon raqamlar. Barcha operatorlar, bo'lib to'lash, bepul yetkazib berish va rasmiy shartnoma.">
@@ -382,7 +383,7 @@ html.scrolling .topbar, html.scrolling #deskhead{ background:rgba(8,20,40,.95) }
   height:46px;border-radius:999px;color:var(--navink);
   transition:color .2s,background .22s cubic-bezier(.2,.8,.3,1);
 }
-#nav a svg{width:24px;height:24px;stroke-width:2;position:relative;z-index:1;transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+#nav a svg{width:24px;height:24px;stroke-width:2;position:relative;z-index:1;transition:transform .18s cubic-bezier(.2,.8,.3,1)}
 /* Instagram uslubi: tanlangan bo'lim ikonkasi TO'LIQ to'ldirilgan,
    qolganlari nozik chiziqli. Har bir tugmada ikkala ko'rinish ham
    turadi, faqat biri ko'rsatiladi — JS kerak emas, DOM almashmaydi,
@@ -390,13 +391,21 @@ html.scrolling .topbar, html.scrolling #deskhead{ background:rgba(8,20,40,.95) }
 /* Belgi keskin almashmaydi: to'ldirilgani ichkaridan yumshoq "chiqadi",
    chiziqlisi esa ozgina kattalashib so'nadi. */
 #nav a .ic-o,#nav a .ic-f{
-  transition:opacity .3s cubic-bezier(.22,.9,.26,1),transform .34s cubic-bezier(.2,.9,.3,1.5);
+  transition:opacity .14s linear,transform .26s cubic-bezier(.2,.9,.3,1.55);
 }
 #nav a .ic-f{
   position:absolute;left:50%;top:50%;
   transform:translate(-50%,-50%) scale(.55);opacity:0;
 }
-#nav a.on .ic-f{transform:translate(-50%,-50%) scale(1);opacity:1}
+#nav a.on .ic-f{transform:translate(-50%,-50%) scale(1);opacity:1;
+  animation:navPop .3s cubic-bezier(.2,.9,.3,1.5) both}
+/* Telegramdagidek kichik "chertish": tanlangan ikonka bir marta
+   sapchib joyiga tushadi. Faqat `transform` — arzon. */
+@keyframes navPop{
+  0%  {transform:translate(-50%,-50%) scale(.72)}
+  55% {transform:translate(-50%,-50%) scale(1.14)}
+  100%{transform:translate(-50%,-50%) scale(1)}
+}
 #nav a.on .ic-o{transform:scale(1.18);opacity:0}
 #nav a span.lbl{display:none}
 #nav a.on{color:var(--navink-on)}
@@ -410,12 +419,12 @@ html.scrolling .topbar, html.scrolling #deskhead{ background:rgba(8,20,40,.95) }
   backdrop-filter:blur(10px) saturate(160%);-webkit-backdrop-filter:blur(10px) saturate(160%);
   border:1px solid var(--navpill-line);
   transform:translateX(0);opacity:0;pointer-events:none;
-  transition:transform .42s cubic-bezier(.22,1,.3,1),width .42s cubic-bezier(.22,1,.3,1),opacity .25s;
+  transition:transform .28s cubic-bezier(.2,.9,.25,1),width .28s cubic-bezier(.2,.9,.25,1),opacity .18s;
   will-change:transform,width;
 }
 .navpill.on{opacity:1}
 @media (prefers-reduced-motion:reduce){.navpill{transition:opacity .2s}}
-#nav a:active svg{transform:scale(.9)}
+#nav a:active svg{transform:scale(.88);transition-duration:.08s}
 #nav .badge{
   position:absolute;top:4px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;
   background:var(--red);color:#fff;font-size:9.5px;font-weight:800;z-index:2;
@@ -1190,28 +1199,41 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   -webkit-text-fill-color:transparent;color:transparent;
   filter:drop-shadow(0 2px 10px rgba(4,11,24,.65)) drop-shadow(0 1px 0 rgba(255,255,255,.14));
 }
+/* Pastki qator. `flex-wrap` MUHIM: "1 250 000 so'mdan / 24 oy" kabi
+   uzun narx tugma yoniga sig'masa, u butun qatorni egallaydi va
+   tugma pastga, o'ng chekkaga tushadi. Shunda narx HAR DOIM bitta
+   qatorda, to'liq ko'rinadi — na kesiladi, na "oy" so'zi yakka
+   qolib ikkinchi qatorga tushadi. Keng ekranda esa ikkalasi
+   avvalgidek yonma-yon turadi. */
 .hc-bot{
-  position:relative;margin-top:19px;padding-top:16px;display:flex;align-items:center;gap:12px;
+  position:relative;margin-top:19px;padding-top:16px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:13px;
 }
 /* Ajratgich — o'rtasi yorqin, ikki chekkasi so'nadigan oltin soch chiziq */
 .hc-bot::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(240,216,152,.55) 22%,rgba(255,255,255,.18) 58%,transparent);
 }
-.hc-price{flex:1;min-width:0}
+/* Narx bloki: asosiy o'lcham MATNGA teng (`flex-basis:auto`).
+   Shuning uchun matn tugma bilan bir qatorga sig'sa — yonma-yon turadi,
+   sig'masa flex-wrap uni butunligicha ikkinchi qatorga o'tkazadi.
+   Avval `flex:1` (basis 0) edi: blok hech qachon o'tmay, matn
+   "25 000 00…" bo'lib kesilardi. */
+.hc-price{flex:1 1 auto;min-width:0}
+.hc-price.keng{flex:1 1 auto}
 .hc-price .pv{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Bo'lib to'lash narxi — ILGARI bir qatorga majburlangandi va
    "900 000 so'mdan / 24 oy" kabi uzun matn tor telefonlarda (360px)
    kesilib, "..." bo'lib qolardi. Endi ikkinchi qatorga o'tadi:
    narx hech qachon yashirin qolmaydi. */
 .hc-price .pv.ins2{
-  font-size:13px;line-height:1.28;color:#F0D898;letter-spacing:-.01em;
-  white-space:normal;overflow:visible;text-overflow:clip;
+  font-size:13.5px;line-height:1.3;color:#F0D898;letter-spacing:-.01em;
+  white-space:nowrap;            /* so'zlar bo'linmaydi */
 }
 .hc-price .pv small{font-family:'Plus Jakarta Sans';font-size:11.5px;color:#9FB4D4;font-weight:600}
 .hc-price .pi2{display:inline-block;margin-top:5px;font-size:10.5px;color:#F0D898;font-weight:700;background:rgba(230,200,119,.14);padding:3px 8px;border-radius:7px;white-space:nowrap}
 .hc-cta{
-  position:relative;overflow:hidden;
+  position:relative;overflow:hidden;margin-left:auto;   /* o'ng chekkada */
   height:43px;padding:0 17px 0 19px;border-radius:15px;flex:none;
   background:
     linear-gradient(100deg,transparent 30%,rgba(255,255,255,.42) 44%,transparent 58%),
@@ -1279,21 +1301,25 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 }
 
 
-/* ---------- Nusxa olish ----------
-   Mijoz so'rovi: saytdagi matnni (ayniqsa raqam va narxni) barmoq bilan
-   belgilab, nusxa olish mumkin bo'lsin. Tugmalar va boshqaruv elementlari
-   esa belgilanmaydi — ular bosiladi, o'qilmaydi. */
-body{-webkit-user-select:text;user-select:text}
-button,.nc-cta,.hc-cta,.dc-go,.tag,.chip,.op,.nc-op,.hc-badge,.dc-rib,
-#nav,#nav *,.navpill,.srch-dash,.iconbtn,.tgn-x,.tgn-ic,.herodots{
-  -webkit-user-select:none;user-select:none;
+/* ---------- Nusxa olish TAQIQLANGAN ----------
+   Mijoz so'rovi: saytdagi hech narsani belgilab, nusxa olib bo'lmasin
+   (raqamlar bazasi ko'chirib olinmasin). Shuning uchun:
+     * butun hujjatda matn belgilanmaydi,
+     * uzoq bosilganda iOS'dagi "Copy / Look Up" oynasi chiqmaydi,
+     * rasm va havolalarni sudrab olib bo'lmaydi.
+   ISTISNO: kiritish maydonlari — ularsiz qidiruv va buyurtma ishlamaydi.
+   Raqamni mijoz baribir "Nusxa olish" TUGMASI orqali oladi. */
+html,body{
+  -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
 }
-.nc-num,.dc-num,.herocard .num,.nc-price,.dc-price,.hc-price,.tgn-n,.tgn-s{
+input,textarea,select,[contenteditable="true"]{
+  -webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text;
   -webkit-touch-callout:default;
 }
-/* Belgilangan matn ko'rinishi */
-::selection{background:rgba(36,87,230,.3);color:inherit}
-html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
+img,svg,a{-webkit-user-drag:none;user-drag:none}
+::selection{background:transparent}
+html[data-theme="dark"] ::selection{background:transparent}
 
 /* ---------- Bildirishnoma belgisi (yangi, ixchamroq) ---------- */
 .tgn-ic{
@@ -1308,11 +1334,10 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 .tgn-ic svg{width:17px;height:17px}
 
 
-/* Raqam oynasidagi katta raqam — hech qanday belgisiz, lekin bosilsa
-   nusxalanadi (mijoz so'roviga ko'ra belgi olib tashlandi). */
+/* Raqam oynasidagi katta raqam. Belgilab bo'lmaydi (mijoz so'rovi) —
+   mijoz uni "Nusxa olish" tugmasi orqali oladi. */
 .dt-num{
   margin-top:14px;font-size:31px;font-weight:700;color:#fff;letter-spacing:.012em;
-  -webkit-user-select:text;user-select:text;
 }
 
 /* ---------- Ofis manzili ("Biz haqimizda") ---------- */
@@ -1540,15 +1565,17 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
 .rise:nth-child(7){animation-delay:.2s}.rise:nth-child(8){animation-delay:.23s}
 .rise:nth-child(9){animation-delay:.26s}.rise:nth-child(10){animation-delay:.29s}
 .rise:nth-child(n+11){animation-delay:.32s}
-/* Bo'lim almashuvi — YUMSHOQ.
-   Avval 0 shaffoflikdan boshlanardi: ekran bir lahza bo'sh qolib,
-   keyin "sakrab" paydo bo'lardi — qattiq tuyulardi. Endi deyarli
-   ko'rinib turgan holatdan (.42) boshlanadi, biroz pastdan ko'tariladi
-   va ozgina kattalashadi — "sakrash" emas, yumshoq joylashish. */
-.screen.on{animation:scrfade .58s cubic-bezier(.22,.9,.26,1) both}
+/* Bo'lim almashuvi — INSTAGRAM/TELEGRAM uslubi.
+   Avval butun ekran 0.58 soniya davomida pastdan ko'tarilib,
+   kattalashib chiqardi: chiroyli, lekin SEKIN edi va butun sahifani
+   qayta chizishga majbur qilardi. Instagram va Telegramda bo'lim
+   almashuvi deyarli bir zumda bo'ladi — faqat nozik so'nish.
+   Endi shunday: 0.16s, faqat `opacity` (transform yo'q => sahifa
+   qayta joylashmaydi, faqat kompozitor ishlaydi => qotish yo'q). */
+.screen.on{animation:scrfade .16s cubic-bezier(.33,1,.68,1) both}
 @keyframes scrfade{
-  from{opacity:.42;transform:translateY(16px) scale(.993)}
-  to  {opacity:1;transform:translateY(0) scale(1)}
+  from{opacity:.55}
+  to  {opacity:1}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
@@ -1969,7 +1996,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
     <nav class="dh-nav">
       <a href="#/" data-nav="home" data-t="Bosh sahifa">Bosh sahifa</a>
       <a href="#/katalog" data-nav="catalog" data-t="Katalog">Katalog</a>
-      <a href="#/sevimlilar" data-nav="fav" data-t="Sevimlilar">Sevimlilar<span class="nb" id="dhFavBadge" style="display:none">0</span></a>
+      <a href="#/sevimlilar" data-nav="fav" data-t="Sevimlilar">Sevimlilar</a>
       <a href="#/profil" data-nav="more" data-t="Profil">Profil</a>
     </nav>
     <div class="dh-act" style="display:flex;gap:8px;align-items:center">
@@ -2270,7 +2297,7 @@ html[data-theme="dark"] ::selection{background:rgba(143,180,255,.34)}
   <a href="#/katalog" data-nav="catalog"><span class="pill"></span>
     <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M11 3a8 8 0 1 0 4.72 14.46l3.37 3.37a1.25 1.25 0 0 0 1.77-1.77l-3.37-3.37A8 8 0 0 0 11 3zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path></svg><span class="lbl" data-t="Katalog">Katalog</span></a>
   <a href="#/sevimlilar" data-nav="fav"><span class="pill"></span>
-    <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 20.3s-7.3-4.8-7.3-9.7A4.1 4.1 0 0 1 12 7.8a4.1 4.1 0 0 1 7.3 2.8c0 4.9-7.3 9.7-7.3 9.7z"></path></svg><span class="lbl" data-t="Sevimli">Sevimli</span><span class="badge" id="navFavBadge" style="display:none">0</span></a>
+    <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 20.3s-7.3-4.8-7.3-9.7A4.1 4.1 0 0 1 12 7.8a4.1 4.1 0 0 1 7.3 2.8c0 4.9-7.3 9.7-7.3 9.7z"></path></svg><span class="lbl" data-t="Sevimli">Sevimli</span></a>
   <a href="#/profil" data-nav="more"><span class="pill"></span>
     <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.4"></circle><path d="M5 20c0-3.7 3.1-6.2 7-6.2s7 2.5 7 6.2"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="8.3" r="3.8"></circle><path d="M4.8 20.4c0-3.9 3.3-6.6 7.2-6.6s7.2 2.7 7.2 6.6a1 1 0 0 1-1 1H5.8a1 1 0 0 1-1-1z"></path></svg><span class="lbl" data-t="Profil">Profil</span></a>
 </nav>
@@ -2829,6 +2856,7 @@ function nusxaOl(txt, xabar){
        "Nusxa olish" ni bosadi (brauzerning o'z menyusi orqali). */
     try{
       const d = document.createElement('div');
+      d.setAttribute('data-nusxa','1');   /* nusxa qalqoniga istisno */
       d.textContent = txt;
       d.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;'
         + 'padding:14px 18px;border-radius:14px;font-size:19px;font-weight:700;'
@@ -2860,10 +2888,13 @@ function nusxaOl(txt, xabar){
 function nusxaZaxira(txt){
   try{
     const ta = document.createElement('textarea');
+    ta.setAttribute('data-nusxa','1');   /* nusxa qalqoniga istisno */
     ta.value = txt; ta.setAttribute('readonly','');
     ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
     document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, 99999);
+    window.__nusxaRuxsat = 1;            /* o'z tugmamiz — ruxsat */
     const ok = document.execCommand('copy');
+    window.__nusxaRuxsat = 0;
     ta.remove();
     return ok;
   }catch(e){ return false; }
@@ -3084,12 +3115,47 @@ function toggleFav(id){
   if(i === -1){ FAVORITES.push(id); favSnapshot(id); saveFavorites(); return true; }
   FAVORITES.splice(i,1); delete FAV_ITEMS[id]; saveFavItems(); saveFavorites(); return false;
 }
+/* Sevimlilar SONI endi hech qayerda ko'rsatilmaydi (mijoz so'rovi).
+   Avval pastki menyudagi yurakcha ustida son turardi va u SAQLANGAN
+   ID'lar sonini sanardi — ro'yxatning o'zi esa faqat MA'LUMOTI BOR
+   raqamlarni ko'rsatardi. Sotilgan/o'chirilgan raqam qolib ketsa,
+   "Sevimlilar bo'sh" yozilib turib, menyuda "5" chiqardi. Ikkita
+   manbaning biri olib tashlandi — endi bunday nomuvofiqlik yo'q.
+   Funksiya o'rnida qoldi: uni chaqiradigan joylar ko'p, ustiga
+   eski brauzerda sahifada qolib ketgan belgini yashiradi. */
 function updateFavBadge(){
-  const txt = FAVORITES.length > 99 ? '99+' : String(FAVORITES.length);
   ['#navFavBadge','#dhFavBadge','#profFavBadge'].forEach(sel => {
-    const b = $(sel); if(!b) return;
-    if(FAVORITES.length){ b.textContent = txt; b.style.display = ''; } else b.style.display = 'none';
+    const b = $(sel); if(b) b.style.display = 'none';
   });
+}
+
+/* ---------- Sevimlilarni tozalash ----------
+   Katalog YUKLANGANDAN KEYIN chaqiriladi. Ikki ish qiladi:
+     1. Na katalogda, na zaxira nusxada bo'lgan ID'ni o'chiradi —
+        bunday raqam ro'yxatda hech qachon ko'rinmaydi, faqat
+        xotirani band qilib yotadi.
+     2. Sevimlilardan chiqarilgan raqamlarning zaxira nusxasini
+        o'chiradi (localStorage behuda to'lib ketmasin).
+   Katalog yuklanmagan bo'lsa (internet uzilgan) — HECH NARSA
+   o'chirilmaydi, aks holda mijozning sevimlilari yo'qolardi. */
+function favTozala(){
+  try{
+    if(typeof NUMBERS === 'undefined' || !NUMBERS.length) return;
+    const bor = new Map(NUMBERS.map(n => [n.id, n]));
+    /* Zaxira nusxani YANGILAYMIZ: narx tushgan yoki raqam band
+       bo'lgan bo'lsa, Sevimlilarda eski ma'lumot turib qolmasin. */
+    FAVORITES.forEach(id => { if(bor.has(id)) favSnapshot(id); });
+    const oldin = FAVORITES.length;
+    FAVORITES = FAVORITES.filter(id => bor.has(id) || FAV_ITEMS[id]);
+    const qoldi = new Set(FAVORITES);
+    let tozalandi = false;
+    Object.keys(FAV_ITEMS).forEach(id => { if(!qoldi.has(id)){ delete FAV_ITEMS[id]; tozalandi = true; } });
+    if(tozalandi) saveFavItems();
+    if(FAVORITES.length !== oldin){
+      saveFavorites();
+      if(currentRoute === 'fav' && typeof renderFavorites === 'function') renderFavorites();
+    }
+  }catch(e){}
 }
 
 /* ================= ANALITIKA =================
@@ -3271,11 +3337,20 @@ async function raqamlarniYukla(){
   reshuffle(); pickHome(); renderAll();
 }
 
+/* Keshning eng uzoq yaroqlilik muddati. Undan oshsa ko'rsatilmaydi:
+   bir oy kirmagan mijozga allaqachon SOTILGAN raqamlar chiqib
+   turmasin. Yangi ro'yxat baribir shu zahoti tarmoqdan keladi. */
+const KESH_UMRI = 14 * 24 * 60 * 60 * 1000;   /* 14 kun */
+
 function keshdanOqi(){
   try{
     const p = localStorage.getItem('raqamuz_pack');
     if(p){
       const o = JSON.parse(p) || {};
+      if(o.at && (Date.now() - o.at) > KESH_UMRI){
+        try{ localStorage.removeItem('raqamuz_pack'); }catch(e){}
+        return false;
+      }
       NUMBERS = indeksniOch(o);
       if(NUMBERS.length){ reshuffle(); pickHome(); renderAll(); return true; }
     }
@@ -3460,6 +3535,9 @@ const IC_BOX = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stro
    ================================================================== */
 function renderAll(){
   applyLang();
+  /* Katalog kelgach sevimlilarni tozalaymiz: ko'rsatib bo'lmaydigan
+     ID'lar qolib ketmasin (pastki menyudagi "5" xatosining sababi). */
+  try{ if(typeof favTozala === 'function') favTozala(); }catch(e){}
   renderHome();
   if(currentRoute === 'catalog') renderCatalog();
   if(currentRoute === 'fav') renderFavorites();
@@ -3528,7 +3606,7 @@ function renderHome(){
         </div>
         <div class="num sg">${esc(shortNumber(h.number))}</div>
         <div class="hc-bot">
-          <div class="hc-price">
+          <div class="hc-price${h.installment ? ' keng' : ''}">
             ${h.installment
               ? `<div class="pv ins2 sg">${esc(ins)}</div>`
               : `<div class="pv sg">${formatPrice(h.price)} ${UNITH(h)}</div>
@@ -6837,6 +6915,76 @@ window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
 
 setTimeout(moveNavPill, 60);
 setTimeout(moveNavPill, 400);
+
+/* ==================================================================
+   NUSXA OLISH VA ZOOM QALQONI
+   Mijoz so'rovi: saytdagi hech narsani nusxa olib bo'lmasin va
+   sayt yaqinlashtirilmasin (ilovadek qat'iy tursin).
+
+   Qoidalar:
+     - kiritish maydonlari (input/textarea) TEGILMAYDI — ularsiz
+       qidiruv, telefon kiritish va buyurtma ishlamaydi;
+     - saytning o'z "Nusxa olish" tugmasi ishlayveradi
+       (`window.__nusxaRuxsat` va `[data-nusxa]` istisnolari).
+   ================================================================== */
+(function(){
+  /* Kiritish maydonimi? */
+  function kiritish(el){
+    if(!el || !el.closest) return false;
+    return !!el.closest('input,textarea,select,[contenteditable="true"],[data-nusxa]');
+  }
+
+  /* --- 1. Belgilash (selection) --- */
+  document.addEventListener('selectstart', function(e){
+    if(!kiritish(e.target)) e.preventDefault();
+  });
+
+  /* --- 2. Nusxa olish / kesish --- */
+  ['copy','cut'].forEach(function(nom){
+    document.addEventListener(nom, function(e){
+      if(window.__nusxaRuxsat) return;          /* o'z tugmamiz */
+      if(kiritish(e.target)) return;            /* maydon ichida — mayli */
+      e.preventDefault();
+      try{ e.clipboardData && e.clipboardData.setData('text/plain',''); }catch(err){}
+    });
+  });
+  /* "Qo'yish" (paste) TAQIQLANMAYDI — telefon raqamini qo'yish kerak. */
+
+  /* --- 3. O'ng tugma / uzoq bosish menyusi --- */
+  document.addEventListener('contextmenu', function(e){
+    if(!kiritish(e.target)) e.preventDefault();
+  });
+
+  /* --- 4. Rasm va havolani sudrab olish --- */
+  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+
+  /* --- 5. Klaviatura: Ctrl/Cmd + C, X, A, S, U, P va F12 --- */
+  document.addEventListener('keydown', function(e){
+    const mod = e.ctrlKey || e.metaKey;
+    if(!mod) return;
+    const k = (e.key || '').toLowerCase();
+    if(kiritish(e.target) && (k === 'c' || k === 'x' || k === 'a' || k === 'v')) return;
+    if(['c','x','a','s','u','p'].indexOf(k) !== -1) e.preventDefault();
+    /* Ctrl +, Ctrl -, Ctrl 0 — brauzer zoomi */
+    if(k === '+' || k === '-' || k === '=' || k === '0') e.preventDefault();
+  });
+
+  /* --- 6. Zoom: iPhone `user-scalable=no` ni mensimaydi --- */
+  ['gesturestart','gesturechange','gestureend'].forEach(function(nom){
+    document.addEventListener(nom, function(e){ e.preventDefault(); }, { passive:false });
+  });
+  /* Ikki barmoq bilan chimdish */
+  document.addEventListener('touchmove', function(e){
+    if(e.touches && e.touches.length > 1) e.preventDefault();
+  }, { passive:false });
+  /* Ikki marta bosib yaqinlashtirish `body{touch-action:manipulation}`
+     bilan allaqachon o'chirilgan. Bu yerda touchend'ni to'xtatmaymiz:
+     to'xtatilsa ketma-ket tez bosilgan tugma "bosilmay" qolardi. */
+  /* Kompyuterda Ctrl + g'ildirak */
+  document.addEventListener('wheel', function(e){
+    if(e.ctrlKey) e.preventDefault();
+  }, { passive:false });
+})();
 </script>
 </body>
 </html>

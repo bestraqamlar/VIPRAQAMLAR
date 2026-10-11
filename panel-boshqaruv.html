@@ -10917,13 +10917,26 @@ async function loadStats(){
   const missBox = document.getElementById('stMiss');
   if(note) note.textContent = 'Yuklanmoqda...';
 
+  /* HAR BO'LIM ALOHIDA tekshiriladi. Ilgari uchala so'rov bitta
+     `try` ichida edi: birinchisi xato bersa, qolgan ikkitasi umuman
+     ishlamay, ekranda abadiy "Yuklanmoqda..." bo'lib qolardi. */
+  let xatolar = [];
+
   try{
-    /* --- 1. Kunlik yig'indi --- */
+    /* --- 1. Kunlik yig'indi ---
+       ILGARI bu yerda `.orderBy(documentId(), 'desc')` ishlatilardi va
+       Firestore "The query requires an index" deb XATO berardi:
+       hujjat nomi bo'yicha TESKARI tartiblash uchun qo'lda indeks
+       yaratish kerak ekan. Buning hojati yo'q — hujjat nomi
+       "YYYY-MM-DD" bo'lgani uchun oddiy "shu sanadan keyingilari"
+       shartining o'zi yetarli. Bu indeks talab qilmaydi va ortiqcha
+       hujjat ham o'qilmaydi (ilgari har safar 120 tasi o'qilardi). */
     const from = new Date(Date.now() - days*86400000).toISOString().slice(0,10);
-    const daily = await db.collection('stats_daily').orderBy(firebase.firestore.FieldPath.documentId(), 'desc').limit(120).get();
+    const daily = await db.collection('stats_daily')
+      .where(firebase.firestore.FieldPath.documentId(), '>=', from)
+      .get();
     let V=0, C=0, O=0, M=0, kun=0;
     daily.forEach(d => {
-      if(d.id < from) return;
       const x = d.data() || {};
       V += Number(x.views)||0; C += Number(x.clicks)||0;
       O += Number(x.orders)||0; M += Number(x.misses)||0; kun++;
@@ -10934,7 +10947,12 @@ async function loadStats(){
       stKpi('Buyurtma', stNum(O), 'shu davrda') +
       stKpi('Konversiya', konv + '%', 'ochilgandan buyurtmagacha') +
       stKpi('Natijasiz qidiruv', stNum(M), 'yetishmayotgan raqamlar');
+  }catch(e){
+    xatolar.push('ko\'rsatkichlar');
+    if(kpis) kpis.innerHTML = '<div style="color:var(--muted);font-size:12.5px">Ko\'rsatkichlarni o\'qib bo\'lmadi: ' + escapeHtml(e.message || '') + '</div>';
+  }
 
+  try{
     /* --- 2. Eng ko'p ochilgan raqamlar --- */
     const top = await db.collection('stats_numbers').orderBy('views','desc').limit(25).get();
     if(top.empty){
@@ -10961,7 +10979,12 @@ async function loadStats(){
         '<th style="padding:6px 10px;text-align:right">Buyurtma</th><th style="padding:6px 10px;text-align:right">Konversiya</th>' +
         '</tr></thead><tbody>' + rows + '</tbody></table></div>';
     }
+  }catch(e){
+    xatolar.push('raqamlar ro\'yxati');
+    topBox.innerHTML = 'O\'qib bo\'lmadi: ' + escapeHtml(e.message || '');
+  }
 
+  try{
     /* --- 3. Natijasiz qidiruvlar --- */
     const miss = await db.collection('stats_searches').orderBy('count','desc').limit(30).get();
     if(miss.empty){
@@ -10976,13 +10999,17 @@ async function loadStats(){
       });
       missBox.innerHTML = chips;
     }
-
-    if(note) note.textContent = 'Oxirgi yangilanish: ' + new Date().toLocaleTimeString('uz-UZ');
   }catch(e){
-    if(note) note.textContent = 'Xato: ' + (e && e.message || e);
-  }finally{
-    statsBusy = false;
+    xatolar.push('qidiruvlar');
+    missBox.innerHTML = 'O\'qib bo\'lmadi: ' + escapeHtml(e.message || '');
   }
+
+  if(note){
+    note.textContent = xatolar.length
+      ? ('Ba\'zi bo\'limlar yuklanmadi: ' + xatolar.join(', '))
+      : ('Oxirgi yangilanish: ' + new Date().toLocaleTimeString('uz-UZ'));
+  }
+  statsBusy = false;
 }
 document.getElementById('stReindex') && document.getElementById('stReindex').addEventListener('click', async ()=>{
   const m = document.getElementById('stReindexMsg');
