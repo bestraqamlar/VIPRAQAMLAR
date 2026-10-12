@@ -51,6 +51,10 @@
 /sotuvchi       /sotuvchi.html   200
 /sotuvchi.html  /sotuvchi.html   200
 
+# TARIF TO'LOVI — Payme va Click shu manzilga murojaat qiladi.
+# Ularning kabinetida qisqa manzilni ko'rsatish qulayroq.
+/tarif-tolov    /.netlify/functions/tarif-callback   200
+
 # BOSHQA BARCHA manzillar (mavjud bo'lmagan/tasodifiy sahifalar, masalan
 # /qandaydir-notogri-havola.html) — bosh sahifaga (index.html) yo'naltiriladi.
 # DIQQAT: bu qoida faqat "fayl topilmagan" holatlarda ishlaydi — mavjud

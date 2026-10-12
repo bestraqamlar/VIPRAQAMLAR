@@ -95,6 +95,13 @@
 [functions."personal-bot-anomaly-check"]
   schedule = "0 16 * * *"
 
+# TARIF MUDDATI — har kuni 04:40 (UTC) da bir marta tekshiradi:
+# tugashiga 3 kun qolganlarni ogohlantiradi, tugaganlarining
+# toifalarini (VIP/Premium/Gold/Mashhur) avtomatik o'chiradi.
+# Batafsil izoh funksiya faylida.
+[functions."tarif-muddat-background"]
+  schedule = "40 4 * * *"
+
 # XAVFSIZLIK: buyurtmasiz, soxta "band qilingan" raqamlarni har 10
 # daqiqada avtomatik bo'shatadi (batafsili izoh funksiya faylida).
 [functions."release-stale-reservations"]

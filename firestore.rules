@@ -150,6 +150,9 @@ service cloud.firestore {
                 && request.resource.data.location.lat >= -90 && request.resource.data.location.lat <= 90
                 && request.resource.data.location.lng is number
                 && request.resource.data.location.lng >= -180 && request.resource.data.location.lng <= 180))
+        && (!request.resource.data.keys().hasAny(['sellerId'])
+            || (request.resource.data.sellerId is string
+                && request.resource.data.sellerId.size() < 60))
         && orderPriceOk(request.resource.data);
       allow read, update, delete: if hasPerm('orders');
     }
@@ -479,6 +482,21 @@ service cloud.firestore {
     }
     // Yozishma — xuddi shunday, faqat server orqali.
     match /seller_messages/{id} {
+      allow read, write: if false;
+    }
+
+    // ---------------- TARIF (Pro / Max) TO'LOVLARI ----------------
+    // Diler tarif so'rovi va to'lov tranzaksiyalari. Brauzerdan
+    // O'QISH HAM, YOZISH HAM butunlay yopiq: agar diler bu
+    // hujjatlarni o'zi yozsa, o'ziga pul to'lamasdan tarif yoqib
+    // olardi. Barcha ish faqat server funksiyalari orqali:
+    //   seller-api.js      — so'rov yaratadi
+    //   admin-sellers.js   — admin tasdiqlaydi
+    //   tarif-callback.js  — Payme/Click to'lovini tekshiradi
+    match /seller_plan_requests/{id} {
+      allow read, write: if false;
+    }
+    match /tolov_tranzaksiya/{id} {
       allow read, write: if false;
     }
 

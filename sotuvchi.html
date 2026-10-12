@@ -241,6 +241,7 @@ body{padding-bottom:104px}
   border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:800;
   display:flex;align-items:center;justify-content:center;line-height:1}
 
+
 /* ---------- Statistika bo'limi ---------- */
 .bar{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
 .bar:last-child{border:none}
@@ -318,6 +319,65 @@ textarea{resize:vertical;min-height:120px}
   border-radius:12px;padding:4px 12px;margin-bottom:12px}
 .prog{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0}
 .prog i{display:block;height:100%;background:linear-gradient(90deg,#C9A041,#F0D898);transition:width .3s}
+/* ---------- TARIF (Pro / Max) ----------
+   Dilerning obunasi. Yuqoridagi yorliq, "Tarif" bo'limidagi
+   kartochkalar va raqam ichidagi toifa tanlagich. */
+.plan{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;
+  padding:3px 9px;border-radius:8px;background:var(--gold-tint);color:var(--gold-ink);
+  border:none;font-family:inherit;cursor:pointer}
+.plan.off{background:rgba(255,255,255,.07);color:var(--faint)}
+.plan.soon{background:var(--red-tint);color:#FF9A94}
+.tgrid{display:grid;gap:12px}
+.tc{position:relative;border-radius:18px;padding:17px 16px 16px;background:var(--card-2);
+  border:1px solid var(--line);overflow:hidden;contain:layout paint style}
+.tc.on{border-color:rgba(240,216,152,.48);background:
+  radial-gradient(160px 120px at 100% 0%, rgba(240,216,152,.10), transparent 70%), var(--card-2)}
+.tc .tn{font-size:17.5px;font-weight:800;letter-spacing:-.015em}
+.tc .tp{font-family:'Space Grotesk',monospace;font-size:25px;font-weight:700;
+  color:var(--gold-ink);line-height:1.2;margin-top:2px}
+.tc .tp s{font-size:12.5px;font-weight:700;color:var(--faint);text-decoration:none;letter-spacing:0}
+.tc .td{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+.tc ul{list-style:none;margin:11px 0 0;padding:0;display:grid;gap:7px}
+.tc li{display:flex;gap:8px;font-size:12.5px;color:#D7E3F6;line-height:1.45;align-items:flex-start}
+.tc li svg{width:15px;height:15px;flex:none;margin-top:2px;stroke:var(--gold-ink);fill:none;
+  stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.tbdg{position:absolute;top:14px;right:14px;font-size:9.5px;font-weight:800;letter-spacing:.07em;
+  padding:4px 8px;border-radius:7px;background:var(--gold-tint);color:var(--gold-ink)}
+.tq{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0 6px}
+.tq i{display:block;height:100%;background:linear-gradient(90deg,#C9A041,#F0D898);
+  transition:width .35s cubic-bezier(.2,.9,.3,1)}
+/* Raqam ichidagi toifa tanlagich */
+.tsel{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 2px}
+.tsel button{font-size:11px;font-weight:800;letter-spacing:.03em;padding:7px 11px;border-radius:10px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);
+  font-family:inherit;cursor:pointer;transition:transform .12s, background .16s, color .16s}
+.tsel button.on{background:var(--gold-tint);color:var(--gold-ink);border-color:rgba(240,216,152,.45)}
+.tsel button:disabled{opacity:.32;cursor:default}
+.tsel button:active:not(:disabled){transform:scale(.94)}
+.nr-mk i.c{background:#8FB6FF}
+/* ---------- BUYURTMALAR (diler kabinetida) ----------
+   Admin panelidagi buyurtma kartochkasi bilan bir xil ma'lumot,
+   kabinetning o'z uslubida: yig'ilgan qator, bosilsa ochiladi. */
+.bo{background:var(--card);border:1px solid var(--line);border-radius:15px;margin-bottom:9px;
+  overflow:hidden;contain:layout paint style}
+.bo-h{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;min-height:47px}
+.bo-dot{width:8px;height:8px;border-radius:3px;flex:none;background:var(--faint)}
+.bo-dot.yangi{background:var(--green);box-shadow:0 0 0 3px var(--green-tint)}
+.bo-dot.bog{background:#8FB6FF} .bo-dot.yak{background:var(--gold)} .bo-dot.bek{background:#FF9A94}
+.bo-n{font-family:'Space Grotesk',monospace;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.bo-who{font-size:11.5px;color:var(--faint);font-weight:700;margin-top:2px}
+.bo-sp{flex:1}
+.bo-t{font-size:10.5px;color:var(--faint);font-weight:700;white-space:nowrap}
+.bo-ch{width:16px;height:16px;flex:none;stroke:var(--faint);fill:none;stroke-width:2.4;
+  transition:transform .24s cubic-bezier(.2,.9,.3,1)}
+.bo.ochiq .bo-ch{transform:rotate(180deg)}
+.bo-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.2,.9,.3,1)}
+.bo.ochiq .bo-b{grid-template-rows:1fr}
+.bo-in{overflow:hidden}
+.bo-pad{padding:2px 13px 13px}
+.bonb{position:absolute;top:4px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;
+  border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;line-height:1}
 </style>
 </head>
 <body>
@@ -345,7 +405,8 @@ textarea{resize:vertical;min-height:120px}
     <img src="assets/logo-circle.png" alt="">
     <div style="flex:1;min-width:0">
       <div style="font-weight:800;font-size:15px" id="meName">—</div>
-      <span class="pct">Komissiya <b id="mePct">0</b>%</span>
+      <button class="plan off" id="mePlan" type="button">Tarif yo&#8216;q</button>
+      <span class="pct hide" id="mePctBox">Komissiya <b id="mePct">0</b>%</span>
     </div>
     <button class="iconbtn" id="chatBtnTop" aria-label="Admin bilan">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H8.5L4 20.5z"/></svg>
@@ -494,10 +555,45 @@ textarea{resize:vertical;min-height:120px}
 
     <!-- ================= BUYURTMALAR ================= -->
     <div class="pane" id="p-ord">
-      <div class="kpis" id="moneyKpis" style="margin-bottom:14px"></div>
-      <div class="card">
-        <div class="sechd"><h2>Yakunlangan sotuvlar</h2><span>komissiya bilan</span></div>
+      <div class="kpis" id="boKpis" style="margin-bottom:14px"></div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="sechd"><h2>Buyurtmalar</h2><span id="boSana"></span></div>
+        <div class="fchips" id="bochips" style="margin-bottom:4px">
+          <button class="fc on" data-b="all">Hammasi</button>
+          <button class="fc" data-b="Yangi">Yangi</button>
+          <button class="fc" data-b="Bog‘lanildi">Bog‘lanildi</button>
+          <button class="fc" data-b="Yakunlandi">Yakunlandi</button>
+          <button class="fc" data-b="Bekor qilindi">Bekor</button>
+        </div>
+        <div id="boBox"><div class="sk" style="height:48px"></div></div>
+      </div>
+      <div class="card hide" id="moneyCard">
+        <div class="sechd"><h2>Komissiya</h2><span>yakunlangan sotuvlar</span></div>
+        <div class="kpis" id="moneyKpis" style="margin:10px 0 14px"></div>
         <div id="moneyBox"><div class="sk" style="height:48px"></div></div>
+      </div>
+    </div>
+
+    <!-- ================= TARIF (Pro / Max) =================
+         Obuna — dilerning raqamlarini saytda AJRATIB ko'rsatish
+         imkoniyati. Narx, muddat va shartlar serverdan keladi
+         (sys_config/tariflar) — admin ularni istalgan paytda
+         o'zgartiradi, bu sahifa o'zi moslashadi. -->
+    <div class="pane" id="p-tarif">
+      <div class="card" id="tHolat" style="margin-bottom:14px">
+        <div class="sk" style="height:46px"></div>
+      </div>
+      <div class="tgrid" id="tList"></div>
+      <div class="card" style="margin-top:14px">
+        <div class="sechd"><h2>Qanday ishlaydi</h2></div>
+        <div class="muted sm" style="line-height:1.6">
+          Oddiy raqam joylash — <b>bepul</b> va cheklovsiz. Tarif esa raqamni
+          <b>ajratib ko&#8216;rsatish</b> uchun: kartochka VIP / Premium / Gold rangiga kiradi,
+          mijoz ro&#8216;yxatda uni birinchi ko&#8216;radi. Tarifni tanlaganingizdan keyin to&#8216;lovni
+          tasdiqlaymiz va imkoniyat darhol ochiladi. Muddat tugashiga <b>3 kun</b> qolganda
+          eslatma yuboriladi; to&#8216;lanmasa toifa belgilari o&#8216;zi olib tashlanadi, lekin
+          <b>raqamlaringiz saytda qolaveradi</b>.
+        </div>
       </div>
     </div>
 
@@ -536,7 +632,12 @@ textarea{resize:vertical;min-height:120px}
       <span class="ico">
         <svg class="ic-o" viewBox="0 0 24 24"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"/><path d="M4 7.5 12 11l8-3.5M12 11v9"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24"><path d="M12 3.1 3.4 6.9 12 10.7l8.6-3.8zM2.6 8.5v8.1L11 20.6v-8.3zM13 12.3v8.3l8.4-4V8.5z"/></svg>
-      </span><b>Buyurtma</b></button>
+      </span><b>Buyurtma</b><i class="bonb hide" id="boBadge">0</i></button>
+    <button data-p="tarif">
+      <span class="ico">
+        <svg class="ic-o" viewBox="0 0 24 24"><path d="M3 7.5 7 11l5-6.5L17 11l4-3.5-1.6 10.5H4.6z"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path d="M2.6 6.6 7 10.5 12 3.6l5 6.9 4.4-3.9-1.8 12.2a1.2 1.2 0 0 1-1.2 1H5.6a1.2 1.2 0 0 1-1.2-1z"/></svg>
+      </span><b>Tarif</b></button>
   </nav>
 
 </div>
@@ -634,9 +735,17 @@ $('#lgBtn').onclick = kir;
 function ochKabinet(s){
   $('#loginBox').classList.add('hide'); $('#app').classList.remove('hide');
   $('#meName').textContent = s.name || s.username || 'Sotuvchi';
-  $('#mePct').textContent = Number(s.commissionPct) || 0;
+  /* Komissiya endi majburiy emas (daromad obunadan) — faqat
+     admin nolga teng bo'lmagan foiz qo'ygan dilerga ko'rinadi. */
+  const pct = Number(s.commissionPct) || 0;
+  $('#mePct').textContent = pct;
+  $('#mePctBox').classList.toggle('hide', !pct);
+  planChip(s);
   $('#chatDot').classList.toggle('hide', !(Number(s.unread) > 0));
   yukNums(); yukStats();
+  /* Tarif holati fonda olinadi: raqam ochilganda toifa tanlagichi
+     darhol to'g'ri ko'rinsin (yana bir so'rov kutilmaydi). */
+  yukTarif();
   requestAnimationFrame(pillniSur); setTimeout(pillniSur, 240);
 }
 
@@ -660,10 +769,11 @@ function panelGa(p){
   $$('.pane').forEach(el => el.classList.toggle('on', el.id === 'p-' + p));
   requestAnimationFrame(pillniSur);
   vib(6);
-  if(p === 'ord')  yukMoney();
+  if(p === 'ord')  yukBuyurtma();
   if(p === 'stat') chizStat();
   if(p === 'chat'){ yukChat(); $('#chatDot').classList.add('hide'); }
   if(p === 'add' && !TAHRIR) shaklTozala();
+  if(p === 'tarif') yukTarif();
   window.scrollTo({top:0});
 }
 $$('#snav button').forEach(b => b.onclick = ()=> panelGa(b.dataset.p));
@@ -690,6 +800,7 @@ async function yukStats(){
     $('#kBuy').textContent = t.orders || 0;
     $('#kBuyS').textContent = (t.sotilgan || 0) + ' ta sotilgan';
     $('#kQiy').textContent = qisqa(t.qiymat || 0);
+    boBelgi(Number(t.yangiBuyurtma) || 0);
   }catch(e){}
 }
 
@@ -704,6 +815,9 @@ const IC_SAV = '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M4 7.5 
    Birinchi bo'lak kelishi bilan ro'yxat chiziladi, qolgani orqa
    fonda yuklanib, ro'yxat jimgina to'ldirib boriladi. */
 const OP_IDX = ['', 'Beeline', 'Ucell', 'Uzmobile', 'Mobiuz', 'Humans', 'Perfektum'];
+// Toifa qadoqda raqam bilan keladi (seller-api.js bilan BIR XIL tartib)
+const TOIFA_IDX = ['', 'vip', 'premium', 'gold'];
+const TOIFA_NOM = { vip:'VIP', premium:'PREMIUM', gold:'GOLD' };
 
 function ochQadoq(matn){
   const out = [];
@@ -724,7 +838,9 @@ function ochQadoq(matn){
       currency: (fl & 16) ? 'USD' : 'UZS',
       monthly6: +c[6] || 0, monthly12: +c[7] || 0, monthly24: +c[8] || 0,
       createdAtSort: +c[9] || 0,
-      note: c[10] || ''
+      note: c[10] || '',
+      featured: !!(fl & 32),
+      tier: TOIFA_IDX[+c[11] || 0] || ''
     });
   }
   return out;
@@ -806,8 +922,9 @@ function chizNums(){
         '<span class="nr-dot ' + holatSinf(n) + '"></span>' +
         '<span class="nr-n">' + esc(chiroyli(n.number)) + '</span>' +
         '<span class="nr-sp"></span>' +
-        ((aks || n.installment) ? '<span class="nr-mk">' +
-            (aks ? '<i class="a"></i>' : '') + (n.installment ? '<i class="b"></i>' : '') + '</span>' : '') +
+        ((aks || n.installment || n.tier || n.featured) ? '<span class="nr-mk">' +
+            (aks ? '<i class="a"></i>' : '') + (n.installment ? '<i class="b"></i>' : '') +
+            ((n.tier || n.featured) ? '<i class="c"></i>' : '') + '</span>' : '') +
         '<span class="nr-p">' + pul(n.price) + (usd ? ' $' : '<u>so\u2018m</u>') + '</span>' +
         '<svg class="nr-ch" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
       '</div>' +
@@ -854,12 +971,15 @@ function tafsilot(id){
       holatChip(n) +
       (chegirma ? '<span class="chip aks">\u2212' + chegirma + '%</span>' : '') +
       (n.installment ? '<span class="chip ins">Bo\u2018lib to\u2018lash</span>' : '') +
+      (n.tier ? '<span class="chip ins">' + esc(TOIFA_NOM[n.tier] || n.tier) + '</span>' : '') +
+      (n.featured ? '<span class="chip ins">Mashhur</span>' : '') +
     '</div>' +
     (chegirma ? '<div class="nr-line"><span>Eski narx</span><b style="text-decoration:line-through;color:var(--faint)">' + pul(n.oldPrice) + '</b></div>' : '') +
     (n.installment && oylik ? '<div class="nr-line"><span>' + oyMud + ' oyga</span><b style="color:var(--gold-ink)">' + pul(oylik) + ' so\u2018mdan</b></div>' : '') +
     '<div class="nr-line"><span>Ko\u2018rishlar</span><b data-v="' + esc(id) + '">' + (st.views != null ? pul(st.views) : '\u2026') + '</b></div>' +
     '<div class="nr-line"><span>Buyurtmalar</span><b data-o="' + esc(id) + '">' + (st.orders != null ? st.orders : '\u2026') + '</b></div>' +
     (n.note ? '<div class="nr-line"><span>Izoh</span><span style="color:var(--ink);text-align:right">' + esc(n.note) + '</span></div>' : '') +
+    (tahrirMumkin ? toifaBlok(n) : '') +
     (tahrirMumkin ? '<div class="nr-act">' +
       '<button class="btn ghost sm" data-ed="' + esc(id) + '" style="flex:1">Tahrirlash</button>' +
       '<button class="btn danger sm" data-del="' + esc(id) + '">O\u2018chirish</button>' +
@@ -869,6 +989,14 @@ function tafsilot(id){
 function bogla(box, id){
   const e = box.querySelector('[data-ed]'); if(e) e.onclick = (ev)=>{ ev.stopPropagation(); tahrirla(id); };
   const d = box.querySelector('[data-del]'); if(d) d.onclick = (ev)=>{ ev.stopPropagation(); ochir(id); };
+  // Toifa tanlagich (VIP / Premium / Gold / Mashhur)
+  box.querySelectorAll('[data-tier]').forEach(b => b.onclick = (ev)=>{
+    ev.stopPropagation();
+    if(b.disabled) return;
+    toifaQoy(b.dataset.tier, b.dataset.val);
+  });
+  const tg = box.querySelector('[data-tarifga]');
+  if(tg) tg.onclick = (ev)=>{ ev.stopPropagation(); panelGa('tarif'); };
 }
 
 /* Ko'rinib turgan raqamlarning statistikasi — bitta so'rovda */
@@ -883,6 +1011,174 @@ async function statYukla(ids){
     $$('[data-v]').forEach(el => { const st = STATS_KESH[el.dataset.v]; if(st) el.textContent = pul(st.views||0); });
     $$('[data-o]').forEach(el => { const st = STATS_KESH[el.dataset.o]; if(st) el.textContent = st.orders||0; });
   }catch(e){}
+}
+
+
+/* ==========================================================================
+   TARIF (Pro / Max) — DILERNING OBUNASI
+   --------------------------------------------------------------------------
+   Oddiy raqam joylash bepul. Tarif raqamni AJRATIB ko'rsatish uchun:
+   VIP / Premium / Gold kartochka va bosh sahifadagi "Mashhur" aylanma.
+
+   MUHIM: narx, muddat, qaysi toifalar va nechta raqam — hammasi
+   SERVERDAN keladi. Admin tarifni o'zgartirsa yoki yangisini qo'shsa,
+   bu sahifaga tegish kerak emas: o'zi moslashadi.
+   ========================================================================== */
+let TARIF = null;        // {plans, my, sorov, usullar}
+
+const IC_TICK = '<svg viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg>';
+
+function planChip(s){
+  const el = $('#mePlan'); if(!el) return;
+  const kun = s && s.planKun != null ? Number(s.planKun) : null;
+  if(s && s.plan && kun != null && kun > 0){
+    el.className = 'plan' + (kun <= 3 ? ' soon' : '');
+    el.textContent = (s.planName || s.plan) + ' · ' + kun + ' kun';
+  }else{
+    el.className = 'plan off';
+    el.textContent = 'Tarif yo‘q';
+  }
+}
+$('#mePlan').onclick = ()=> panelGa('tarif');
+
+async function yukTarif(){
+  try{
+    TARIF = await api('tariflar');
+    chizTarif();
+  }catch(e){
+    $('#tHolat').innerHTML = '<div class="empty">' + esc(e.message) + '</div>';
+  }
+}
+
+function chizTarif(){
+  const t = TARIF; if(!t) return;
+  const my = t.my || {};
+  const faol = !!my.plan;
+  const band = Number(my.band) || 0, quota = Number(my.quota) || 0;
+  const foiz = quota ? Math.min(100, Math.round(band / quota * 100)) : 0;
+
+  /* ---- Hozirgi holat ---- */
+  let h = '';
+  if(faol){
+    h = '<div class="sechd"><h2>' + esc(my.name) + ' tarifi</h2>' +
+        '<span>' + (my.kun > 0 ? my.kun + ' kun qoldi' : 'tugadi') + '</span></div>' +
+      '<div class="nr-line"><span>Amal qiladi</span><b>' +
+        (my.until ? new Date(my.until).toLocaleDateString('ru-RU') : '—') + '</b></div>' +
+      '<div class="nr-line" style="border:none"><span>Ajratilgan raqamlar</span><b>' +
+        band + ' / ' + quota + '</b></div>' +
+      '<div class="tq"><i style="width:' + foiz + '%"></i></div>' +
+      '<div class="muted sm">' +
+        (band >= quota
+          ? 'Joy tugadi. Yangi raqamni ajratish uchun boshqasidan toifani olib tashlang yoki tarifni oshiring.'
+          : 'Yana ' + (quota - band) + ' raqamga toifa qo‘yishingiz mumkin — ro‘yxatdan raqamni bosib.') +
+      '</div>';
+  }else{
+    h = '<div class="sechd"><h2>Tarif tanlanmagan</h2></div>' +
+      '<div class="muted sm" style="line-height:1.6">Raqamlaringiz hozir oddiy ko‘rinishda. ' +
+      'Tarif olsangiz — kartochka VIP / Premium / Gold rangiga kiradi va mijoz ro‘yxatda ' +
+      'uni birinchi ko‘radi.</div>';
+  }
+  if(t.sorov){
+    h += '<div class="nr-line" style="margin-top:12px;border:none;color:var(--gold-ink)">' +
+      '<span>So‘rovingiz ko‘rib chiqilmoqda</span><b>' + esc(t.sorov.planId) + '</b></div>';
+  }
+  $('#tHolat').innerHTML = h;
+
+  /* ---- Tariflar ro'yxati ---- */
+  $('#tList').innerHTML = (t.plans || []).map(p => {
+    const shuTarif = my.plan === p.id;
+    const imkon = [];
+    if(p.tiers && p.tiers.length){
+      imkon.push(p.tiers.map(x => TOIFA_NOM[x] || x).join(' · ') + ' kartochka');
+    }
+    if(p.featured) imkon.push('Bosh sahifadagi aylanma bo‘limga tushish ("Mashhur")');
+    imkon.push(p.quota + ' ta raqam uchun');
+    imkon.push('Muddati ' + p.days + ' kun');
+    return '<div class="tc' + (shuTarif ? ' on' : '') + '">' +
+      (shuTarif ? '<span class="tbdg">FAOL</span>' : '') +
+      '<div class="tn">' + esc(p.name) + '</div>' +
+      '<div class="tp">' + pul(p.price) + ' <s>so‘m / oy</s></div>' +
+      (p.desc ? '<div class="td">' + esc(p.desc) + '</div>' : '') +
+      '<ul>' + imkon.map(x => '<li>' + IC_TICK + '<span>' + esc(x) + '</span></li>').join('') + '</ul>' +
+      '<button class="btn ' + (shuTarif ? 'ghost' : 'gold') + ' full" style="margin-top:14px" ' +
+        'data-buy="' + esc(p.id) + '"' + (t.sorov ? ' disabled' : '') + '>' +
+        (t.sorov ? 'So‘rov yuborilgan' : (shuTarif ? 'Uzaytirish' : (faol ? p.name + ' ga o‘tish' : p.name + ' ni olish'))) +
+      '</button></div>';
+  }).join('');
+
+  $$('[data-buy]').forEach(b => b.onclick = ()=> tarifOl(b.dataset.buy));
+}
+
+async function tarifOl(planId){
+  const p = (TARIF.plans || []).find(x => x.id === planId); if(!p) return;
+  const u = (TARIF.usullar) || {};
+  const onlayn = u.payme || u.click;
+  if(!confirm(p.name + ' tarifi — ' + pul(p.price) + " so'm / " + p.days + ' kun.\n\n' +
+     (onlayn ? 'Davom etsangiz to‘lov sahifasi ochiladi.'
+             : 'So‘rov administratorga yuboriladi. To‘lovni tasdiqlagandan keyin tarif darhol yoqiladi.'))) return;
+  try{
+    const j = await api('tarifSorov', { planId, usul: onlayn ? 'online' : 'qolda' });
+    const link = j.payme || j.click;
+    if(link){ location.href = link; return; }
+    toast(j.ogohlantirish || 'So‘rov yuborildi — tasdiqlanishini kuting');
+    yukTarif(); yukMe();
+  }catch(e){ toast(e.message, 1); }
+}
+
+/* Raqam ichidagi toifa tanlagich. Tarifda yo'q toifa o'chirilgan
+   holatda ko'rinadi — diler nimaga erisha olishini ko'rib turadi. */
+function toifaBlok(n){
+  const my = (TARIF && TARIF.my) || null;
+  const ruxsat = my && my.plan ? (my.tiers || []) : [];
+  const mashhurMumkin = !!(my && my.plan && my.featured);
+  const band = my ? Number(my.band) || 0 : 0;
+  const quota = my ? Number(my.quota) || 0 : 0;
+  const shuAjratilgan = !!(n.tier || n.featured);
+  const joyBor = shuAjratilgan || band < quota;
+
+  if(!my || !my.plan){
+    return '<div class="nr-line" style="border:none;margin-top:6px">' +
+      '<span>Kartochka ko‘rinishi</span>' +
+      '<button class="btn ghost sm" data-tarifga="1">Tarif olish</button></div>';
+  }
+
+  const tugma = (val, nom, mumkin, tanlangan) =>
+    '<button data-tier="' + esc(n.id) + '" data-val="' + esc(val) + '"' +
+      (tanlangan ? ' class="on"' : '') +
+      ((mumkin && (joyBor || tanlangan)) ? '' : ' disabled') + '>' + esc(nom) + '</button>';
+
+  return '<div class="nr-line" style="border:none;margin-top:6px;display:block">' +
+    '<div style="margin-bottom:7px">Kartochka ko‘rinishi' +
+      (quota ? ' <b style="font-family:inherit;font-weight:800;color:var(--faint)">' +
+        band + '/' + quota + '</b>' : '') + '</div>' +
+    '<div class="tsel">' +
+      tugma('', 'Oddiy', true, !n.tier && !n.featured) +
+      ['vip','premium','gold'].map(x =>
+        tugma(x, TOIFA_NOM[x], ruxsat.indexOf(x) !== -1, n.tier === x)).join('') +
+      tugma('mashhur', 'Mashhur', mashhurMumkin, !!n.featured && !n.tier) +
+    '</div>' +
+    (!joyBor ? '<div class="muted sm" style="margin-top:6px">Joy tugadi — boshqa raqamdan toifani olib tashlang.</div>' : '') +
+  '</div>';
+}
+
+async function toifaQoy(id, val){
+  const n = NUMS.find(x => x.id === id); if(!n) return;
+  const tier = (val === 'mashhur' || val === '') ? '' : val;
+  // "Mashhur" toifa bilan birga ham ishlaydi: toifa tanlansa
+  // mashhurlik saqlanadi, "Mashhur" tanlansa toifa olinadi.
+  const featured = val === 'mashhur' ? true : (val === '' ? false : !!n.featured);
+  try{
+    const j = await api('toifaQoy', { id, tier, featured });
+    n.tier = tier; n.featured = featured;
+    if(TARIF && TARIF.my) TARIF.my.band = Number(j.band) || 0;
+    toast(tier || featured ? 'Saqlandi' : 'Toifa olib tashlandi');
+    const row = document.querySelector('.nr[data-id="' + id.replace(/"/g,'') + '"]');
+    chizNums();
+    if(row){
+      const yangi = document.querySelector('.nr[data-id="' + id.replace(/"/g,'') + '"]');
+      if(yangi) ochYop(yangi);
+    }
+  }catch(e){ toast(e.message, 1); }
 }
 
 /* ---------- Statistika bo'limi ----------
@@ -1176,6 +1472,122 @@ async function kopYubor(){
 }
 
 /* ---------- Daromad ---------- */
+
+/* ==========================================================================
+   BUYURTMALAR — mijoz raqamga buyurtma bersa shu yerga tushadi
+   --------------------------------------------------------------------------
+   Admin panelidagi buyurtma kartochkasi bilan AYNAN bir xil ma'lumot:
+   mijozning ismi, viloyati, telefoni, narx, to'lov turi (naqd yoki
+   bo'lib to'lash — necha oyga, oyiga qancha) va holati.
+
+   Holatni (Yangi -> Bog'lanildi -> Yakunlandi) ADMIN o'zgartiradi:
+   shartnoma, to'lov va rasmiylashtirish admin tomonida bo'ladi, shu
+   sabab ikki joydan bir vaqtda o'zgartirilsa chalkashlik chiqardi.
+   Diler buyurtmani ko'radi va mijozga darhol qo'ng'iroq qila oladi.
+   ========================================================================== */
+let BUY = [], BUY_FILTR = 'all';
+
+const BO_SINF = { 'Yangi':'yangi', 'Bog‘lanildi':'bog', "Bog'lanildi":'bog',
+                  'Yakunlandi':'yak', 'Bekor qilindi':'bek' };
+const IC_TEL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z"/></svg>';
+
+function qachon(at){
+  if(!at) return '';
+  const f = Math.floor((Date.now() - at) / 60000);
+  if(f < 1) return 'hozir';
+  if(f < 60) return f + ' daq';
+  const soat = Math.floor(f / 60);
+  if(soat < 24) return soat + ' soat';
+  const kun = Math.floor(soat / 24);
+  if(kun < 30) return kun + ' kun';
+  return new Date(at).toLocaleDateString('ru-RU');
+}
+
+async function yukBuyurtma(){
+  try{
+    const j = await api('buyurtmalar', { korildi: true });
+    BUY = j.rows || [];
+    boBelgi(0);                       // ro'yxat ochildi — belgi so'nadi
+    chizBuyurtma();
+  }catch(e){
+    $('#boBox').innerHTML = '<div class="empty">' + esc(e.message) + '</div>';
+  }
+  yukMoney();
+}
+
+function boBelgi(n){
+  const el = $('#boBadge'); if(!el) return;
+  el.textContent = n > 99 ? '99+' : n;
+  el.classList.toggle('hide', !(n > 0));
+}
+
+function chizBuyurtma(){
+  const hammasi = BUY;
+  const list = BUY_FILTR === 'all' ? hammasi : hammasi.filter(o => (o.status || 'Yangi') === BUY_FILTR);
+
+  const son = (st) => hammasi.filter(o => (o.status || 'Yangi') === st).length;
+  $('#boKpis').innerHTML =
+    '<div class="kpi gr"><div class="k">Yangi</div><div class="v sg">' + son('Yangi') + '</div><div class="s">javob kutmoqda</div></div>' +
+    '<div class="kpi b"><div class="k">Bog‘lanildi</div><div class="v sg">' + (son('Bog‘lanildi') + son("Bog'lanildi")) + '</div><div class="s">&nbsp;</div></div>' +
+    '<div class="kpi g"><div class="k">Yakunlandi</div><div class="v sg">' + son('Yakunlandi') + '</div><div class="s">sotildi</div></div>' +
+    '<div class="kpi"><div class="k">Jami</div><div class="v sg">' + hammasi.length + '</div><div class="s">buyurtma</div></div>';
+  $('#boSana').textContent = hammasi.length ? ('oxirgisi ' + qachon(hammasi[0].at)) : '';
+
+  if(!list.length){
+    $('#boBox').innerHTML = '<div class="empty">' +
+      (hammasi.length ? 'Bu holatda buyurtma yo‘q.'
+        : 'Hali buyurtma tushmagan.<br><br>Mijoz saytdan sizning raqamingizga buyurtma bersa — shu yerda darhol ko‘rinadi.') +
+      '</div>';
+    return;
+  }
+
+  $('#boBox').innerHTML = list.map(o => {
+    const usd = o.currency === 'USD';
+    const narx = pul(o.price) + (usd ? ' $' : ' so‘m');
+    const tolov = o.paymentType === 'installment'
+      ? ('Bo‘lib to‘lash — ' + (o.months || '?') + ' oyga, oyiga ' + pul(o.monthly) + (o.down ? ' (bosh to‘lov ' + pul(o.down) + ')' : ''))
+      : 'Naqd to‘lov';
+    return '<div class="bo" data-bo="' + esc(o.id) + '">' +
+      '<div class="bo-h">' +
+        '<span class="bo-dot ' + (BO_SINF[o.status] || 'yangi') + '"></span>' +
+        '<span style="min-width:0"><span class="bo-n">' + esc(chiroyli(o.number)) + '</span>' +
+          '<div class="bo-who">' + esc(o.name || 'Mijoz') + '</div></span>' +
+        '<span class="bo-sp"></span>' +
+        '<span class="chip ' + (o.paymentType === 'installment' ? 'ins' : 'ok') + '">' +
+          (o.paymentType === 'installment' ? (o.months || '') + ' oy' : 'Naqd') + '</span>' +
+        '<span class="bo-t">' + esc(qachon(o.at)) + '</span>' +
+        '<svg class="bo-ch" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</div>' +
+      '<div class="bo-b"><div class="bo-in"><div class="bo-pad">' +
+        '<div class="nr-chips"><span class="chip ' + (o.status === 'Yakunlandi' ? 'sot' : (o.status === 'Bekor qilindi' ? 'aks' : 'ok')) + '">' +
+          esc(o.status || 'Yangi') + '</span>' +
+          '<span class="chip op">' + esc(o.source || 'Sayt') + '</span></div>' +
+        '<div class="nr-line"><span>Mijoz</span><b style="font-family:inherit">' + esc(o.name || '—') + '</b></div>' +
+        '<div class="nr-line"><span>Telefon</span><b>' + esc(o.phone || '—') + '</b></div>' +
+        (o.region ? '<div class="nr-line"><span>Viloyat</span><span style="color:var(--ink);text-align:right">' + esc(o.region) + '</span></div>' : '') +
+        '<div class="nr-line"><span>Narxi</span><b>' + narx + '</b></div>' +
+        '<div class="nr-line"><span>To‘lov</span><span style="color:var(--gold-ink);text-align:right;font-weight:700">' + esc(tolov) + '</span></div>' +
+        (o.sana ? '<div class="nr-line"><span>Vaqti</span><span style="color:var(--muted);text-align:right">' + esc(o.sana) + '</span></div>' : '') +
+        (o.phone ? '<div class="nr-act"><a class="btn gold sm" style="flex:1;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px" href="tel:' +
+            esc(String(o.phone).replace(/[^+\d]/g,'')) + '">' + IC_TEL + ' Qo‘ng‘iroq qilish</a></div>' : '') +
+        '<div class="muted sm" style="margin-top:9px">Holatni administrator o‘zgartiradi — shartnoma va to‘lov rasmiylashtiruvi admin tomonida.</div>' +
+      '</div></div></div>' +
+    '</div>';
+  }).join('');
+
+  $$('.bo-h').forEach(h => h.onclick = ()=>{
+    const row = h.parentElement, ochiq = row.classList.contains('ochiq');
+    $$('.bo.ochiq').forEach(r => { if(r !== row) r.classList.remove('ochiq'); });
+    row.classList.toggle('ochiq', !ochiq);
+    vib(6);
+  });
+}
+
+$$('#bochips .fc').forEach(b => b.onclick = ()=>{
+  $$('#bochips .fc').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); BUY_FILTR = b.dataset.b; chizBuyurtma(); vib(5);
+});
+
 async function yukMoney(){
   try{
     const j = await api('earnings');
@@ -1185,6 +1597,9 @@ async function yukMoney(){
       '<div class="kpi b"><div class="k">Kutilmoqda</div><div class="v sg">' + qisqa(j.unpaid) + '</div><div class="s">&nbsp;</div></div>' +
       '<div class="kpi"><div class="k">Sotuvlar</div><div class="v sg">' + (j.rows||[]).length + '</div><div class="s">yakunlangan</div></div>';
     const rows = j.rows || [];
+    /* Komissiya endi majburiy emas (daromad tarifdan) — bo'lim
+       faqat haqiqatan komissiya bor dilerga ko'rinadi. */
+    $('#moneyCard').classList.toggle('hide', !(Number(j.total) || rows.length));
     $('#moneyBox').innerHTML = rows.length
       ? rows.map(r => '<div class="mrow"><div><b class="sg">' + esc(chiroyli(r.number)) + '</b>' +
           '<div class="faint sm">' + esc(r.date) + ' · ' + pul(r.price) + ' so‘m · ' + r.pct + '%</div></div>' +

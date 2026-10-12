@@ -8,7 +8,45 @@
 <meta name="robots" content="noindex, nofollow">
 <title>VIP RAQAMLAR &mdash; Admin panel</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800&display=swap');
+  /* ==================================================================
+     SHRIFTLAR — ENDI O'Z SERVERIMIZDAN (tashqi so'rov YO'Q)
+     ------------------------------------------------------------------
+     ILGARI shu yerda Google Fonts'ga `@import` turardi va u TO'RTTA
+     oilani (Space Mono, Sora, Inter, Unbounded) ko'plab qalinlikda
+     tortardi. `@import` — RENDERNI TO'XTATUVCHI so'rov: u javob
+     bermaguncha brauzer sahifani UMUMAN chizmaydi. O'zbekistondagi
+     mobil internetda bu bir necha soniya, ba'zan esa butunlay
+     javobsiz qolardi — panel aynan shu sabab "qotib" turgandek
+     ko'rinardi va telefonlarda ochilmay qolardi.
+
+     ENDI: saytning o'zida allaqachon bor ikkita o'zgaruvchan
+     (variable) shrift ishlatiladi. Yangi fayl QO'SHILMADI:
+       Inter / Sora / Unbounded  ->  Plus Jakarta Sans (jakarta.woff2)
+       Space Mono                ->  Space Grotesk    (grotesk.woff2)
+     Nomlar o'sha-o'shaligicha qoldirildi, shu sabab CSS'dagi
+     yuzlab `font-family:'Space Mono'` qatorini o'zgartirish kerak
+     emas — ular avtomatik yangi shriftga tushadi. Natijada panel
+     tashqi domenga UMUMAN murojaat qilmaydi. */
+  @font-face{
+    font-family:'Inter';
+    src:url('assets/fonts/jakarta.woff2') format('woff2-variations');
+    font-weight:200 800;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:'Sora';
+    src:url('assets/fonts/jakarta.woff2') format('woff2-variations');
+    font-weight:200 800;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:'Unbounded';
+    src:url('assets/fonts/jakarta.woff2') format('woff2-variations');
+    font-weight:200 800;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:'Space Mono';
+    src:url('assets/fonts/grotesk.woff2') format('woff2-variations');
+    font-weight:300 700;font-style:normal;font-display:swap;
+  }
   :root{
     --bg:#0B1220; --panel:#121B2E; --panel-2:#17223A; --line:#263450;
     --amber:#1546D6; --amber-soft:rgba(21,70,214,0.15); --green:#33E28C;
@@ -4295,6 +4333,194 @@ body{
 }
 :root[data-theme="dark"] #paneTolov .tlv-warnbox.soft{color:#F0C878}
 
+/* ==================================================================
+   TELEFON KO'RINISHI — PASTKI MENYU va BO'LIM KARTOCHKALARI
+   ------------------------------------------------------------------
+   Muammo edi: 28 ta bo'lim yon menyuda edi; telefonda uni ochish,
+   aylantirish va kerakli bo'limni topish noqulay. Endi telefonda
+   (900px dan tor ekran) pastda ilovadagidek BESHTA asosiy bo'lim
+   turadi: Asosiy, To'lovlar, Buyurtmalar, Statistika, Profil.
+   Bittasiga bosilsa — o'sha guruhdagi bo'limlar KARTOCHKA ko'rinishida
+   chiqadi, kartochkaga bosilsa bo'limning o'zi ochiladi.
+
+   MUHIM: bu qatlam mavjud mantiqqa TEGMAYDI — kartochka bosilganda
+   eski yon menyudagi o'sha tugmaning o'zi "bosiladi". Ya'ni barcha
+   ruxsatlar, sonlar va yuklash mantiqlari avvalgiday ishlaydi.
+   Kompyuterda hech narsa o'zgarmaydi (bu blok faqat 900px gacha).
+   ================================================================== */
+@media (max-width:900px){
+  .main-content{padding-bottom:92px;}
+
+  /* ---- Bo'lim kartochkalari ---- */
+  #mgrid{display:none;padding:14px 14px 10px;}
+  #mgrid.on{display:block;}
+  .mg-h{font-family:'Sora',sans-serif;font-size:19px;font-weight:800;
+    letter-spacing:-.02em;margin:2px 2px 3px;}
+  .mg-s{font-size:12.5px;color:var(--muted);margin:0 2px 15px;font-weight:600;}
+  .mg-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .mg-card{
+    position:relative;display:flex;flex-direction:column;gap:9px;
+    padding:15px 14px 14px;border-radius:17px;text-align:left;
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    font-family:inherit;cursor:pointer;overflow:hidden;
+    contain:layout paint style;
+    transition:transform .14s cubic-bezier(.2,.9,.3,1), border-color .18s, background .18s;
+  }
+  .mg-card::before{
+    content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
+    background:radial-gradient(120px 80px at 100% 0%, rgba(21,70,214,.18), transparent 70%);
+  }
+  .mg-card:active{transform:scale(.96);border-color:var(--amber);}
+  .mg-ico{
+    width:38px;height:38px;border-radius:12px;flex:none;display:flex;
+    align-items:center;justify-content:center;
+    background:rgba(21,70,214,.14);color:#7FA4FF;
+  }
+  .mg-ico svg{width:20px;height:20px;}
+  .mg-nom{font-size:13.5px;font-weight:700;line-height:1.3;letter-spacing:-.01em;}
+  .mg-badge{
+    position:absolute;top:12px;right:12px;min-width:19px;height:19px;padding:0 6px;
+    border-radius:99px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+
+  /* ---- Pastki menyu ---- */
+  #mnav{
+    position:fixed;left:50%;bottom:calc(9px + env(safe-area-inset-bottom));
+    transform:translateX(-50%) translateZ(0);z-index:60;
+    width:calc(100% - 20px);max-width:470px;
+    display:flex;align-items:center;gap:2px;padding:6px 7px;border-radius:99px;
+    /* Rang mavzuga moslashadi: qorong'i ham, yorug' ham to'g'ri chiqadi */
+    background:color-mix(in srgb, var(--panel) 93%, transparent);
+    border:1px solid var(--line);
+    box-shadow:0 16px 34px -14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+  }
+  #mnav .mn-pill{
+    position:absolute;left:0;top:6px;height:50px;width:0;border-radius:99px;
+    background:rgba(21,70,214,.22);border:1px solid rgba(21,70,214,.45);
+    transform:translateX(0);opacity:0;pointer-events:none;
+    transition:transform .26s cubic-bezier(.2,.9,.25,1),width .26s cubic-bezier(.2,.9,.25,1),opacity .16s;
+    will-change:transform,width;
+  }
+  #mnav .mn-pill.on{opacity:1;}
+  #mnav button{
+    position:relative;flex:1;min-width:0;height:50px;border:none;background:transparent;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    color:var(--muted);font-family:inherit;padding:0;border-radius:99px;cursor:pointer;
+    transition:color .16s;
+  }
+  #mnav button.on{color:var(--text);}
+  #mnav button:active{transform:none;}
+  #mnav svg{width:21px;height:21px;flex:none;}
+  #mnav b{font-size:9.5px;font-weight:800;letter-spacing:.01em;line-height:1;white-space:nowrap;}
+  #mnav .mn-nb[hidden]{display:none;}
+  #mnav .mn-nb{
+    position:absolute;top:3px;right:calc(50% - 19px);min-width:15px;height:15px;padding:0 4px;
+    border-radius:99px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+
+  /* ---- Yuqoridagi "orqaga" tugmasi ---- */
+  #mback{
+    display:none;align-items:center;justify-content:center;flex:none;
+    width:36px;height:36px;border-radius:11px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);cursor:pointer;margin-right:2px;
+  }
+  #mback.on{display:flex;}
+  #mback svg{width:18px;height:18px;}
+  /* Telefonda yon menyu tugmasi endi kerak emas — pastki menyu bor */
+  .sidebar-toggle{display:none;}
+}
+@media (min-width:901px){
+  #mnav,#mgrid,#mback{display:none !important;}
+}
+/* ==================================================================
+   RAQAM RO'YXATLARI — HAR BIRI ALOHIDA KARTOCHKA
+   ------------------------------------------------------------------
+   Mijoz so'rovi: "raqamlar bo'limidagi kartochkalar alohida-alohida
+   bo'lsin, raqam bor joylarning hammasi shunaqa bo'lsin".
+
+   Ilgari ro'yxat bitta katta QUTI ichida, qatorlar esa ingichka
+   chiziq bilan ajratilgan JADVAL edi. Endi har bir raqam — o'z
+   chegarasi, o'z foni va o'z burchagi bor ALOHIDA kartochka.
+
+   Bu blok uchta ro'yxatga BIRDAN ta'sir qiladi (ya'ni "raqam bor
+   joylarning hammasi"):
+     * Raqamlar       (.admin-list / .admin-row-collapsed)
+     * Buyurtmalar    (#adminOrdersList — o'sha klasslar)
+     * Kredit         (.qz-list / .qz-item)
+   "Raqam to'lovi" bo'limi allaqachon kartochka ko'rinishida edi.
+
+   TEZLIK: har bir kartochkaga `content-visibility:auto` qo'yilgan —
+   ekrandan tashqarida turgan kartochkani brauzer UMUMAN chizmaydi va
+   joylashtirmaydi. 300 ta raqamli ro'yxatda bu sezilarli farq beradi.
+   `contain` esa bitta kartochkadagi o'zgarish butun sahifani qayta
+   hisoblatmasligini ta'minlaydi.
+   ================================================================== */
+.admin-list, .qz-list{
+  background:none;border:none;border-radius:0;overflow:visible;box-shadow:none;
+  display:flex;flex-direction:column;gap:9px;
+}
+.an-thead, .qz-thead{
+  background:none;border:none;height:auto;padding:0 18px 2px;
+  color:var(--muted);opacity:.9;
+}
+.admin-row-collapsed, .qz-item{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  border-radius:15px;
+  overflow:hidden;
+  contain:layout paint style;
+  content-visibility:auto;
+  contain-intrinsic-size:auto 62px;
+  transition:border-color .18s ease, background .18s ease;
+}
+.admin-list .admin-row-collapsed:last-child,
+.qz-list .qz-item:last-child{border-bottom:1px solid var(--line);}
+.admin-row-collapsed.an-open, .qz-item.is-open{
+  background:var(--panel-2);
+  border-color:var(--amber);
+  /* ochilgan kartochka to'liq chizilsin */
+  content-visibility:visible;
+}
+.an-summary:hover, .qz-head:hover{background:transparent;}
+.admin-row-collapsed:active, .qz-item:active{border-color:var(--amber);}
+/* Buyurtma kartochkasidagi chap rangli chiziq kartochka burchagiga mos tursin */
+.admin-row-collapsed.oc-wrap{border-left-width:4px;}
+
+@media (max-width:900px){
+  .admin-list, .qz-list{gap:10px;}
+  .an-thead, .qz-thead{display:none;}
+  .admin-row-collapsed, .qz-item{border-radius:16px;contain-intrinsic-size:auto 104px;}
+
+  /* RAQAM KARTOCHKASINING ICHI — telefonda.
+     Ilgari bu yerda CSS-grid ishlatilardi va operator, toifa hamda
+     holat nishonlari BITTA katakka ("meta") tushib qolardi — natijada
+     "VIP" va "Band qilingan" yozuvlari USTMA-UST chiqardi. Endi
+     oddiy, ishonchli tartib: elementlar qatorga tizilib, joy
+     yetmasa keyingi qatorga o'zi o'tadi. */
+  .an-summary{
+    display:flex;flex-wrap:wrap;align-items:center;gap:7px 10px;
+    padding:13px 14px;min-height:0;grid-template-areas:none;
+  }
+  .an-summary > .an-select-cb{order:0;flex:none;}
+  .an-summary .anc-num{order:1;flex:1 1 auto;min-width:0;}
+  .an-summary .anc-price{order:2;flex:none;margin-left:auto;text-align:right;}
+  /* Raqam va narx — birinchi qatorda. Keyin majburiy qator uzilishi,
+     shunda operator va nishonlar narxga yopishib qolmaydi. */
+  .an-summary::after{content:'';flex:1 0 100%;height:0;order:3;}
+  .an-summary .anc-op{order:4;flex:none;margin:0;}
+  .an-summary .anc-tag{order:5;flex:none;margin:0;}
+  .an-summary .anc-state{order:6;flex:none;margin:0;}
+  /* Tahrir/o'chirish tugmalari nishonlar bilan BIR QATORDA, o'ng
+     chekkada — kartochka past va ixcham qoladi. */
+  .an-summary .anc-act{order:7;flex:none;margin-left:auto;display:flex;gap:7px;}
+  .an-summary .an-ib{width:32px;height:32px;}
+  .an-summary .anc-num b{font-size:16px;white-space:nowrap;}
+  .an-summary .anc-price b{font-size:15px;white-space:nowrap;}
+}
 </style>
 </head>
 <body>
@@ -5740,6 +5966,47 @@ body{
         <button class="btn" id="selCreate" type="button">Hisob yaratish</button>
         <span class="muted" id="selMsg" style="font-size:12.5px"></span>
       </div>
+    </div>
+
+    <!-- ======================= TARIFLAR (Pro / Max) =======================
+         ASOSIY DAROMAD. Diler oddiy raqamni bepul joylaydi; raqamni
+         AJRATIB ko'rsatish (VIP / Premium / Gold kartochka va bosh
+         sahifadagi "Mashhur" aylanma) esa pullik obuna orqali.
+
+         Hammasi SHU YERDAN boshqariladi: narx, muddat, qaysi toifalarni
+         ochishi, nechta raqamga yetishi. Yangi tarif ham qo'shish mumkin
+         (masalan "Biznes — 500 000 so'm, 50 raqam") — dasturchi kerak
+         emas, diler kabineti o'zi moslashadi.
+         Server tomoni: netlify/functions/lib/tariflar.js -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
+        <h3 style="margin:0;font-size:14.5px">Tariflar</h3>
+        <button class="btn btn-ghost btn-sm" id="trfReload" type="button">Yangilash</button>
+      </div>
+      <p class="muted" style="margin:0 0 14px;font-size:12px">
+        <b>Narx</b> — oylik to'lov (so'm). <b>Kun</b> — bir to'lov necha kunga amal qiladi.
+        <b>Raqam</b> — shu tarifda bir vaqtda nechta raqamni ajratib ko'rsatish mumkin.
+        <b>Toifalar</b> — diler qaysi kartochka ko'rinishini tanlay oladi.
+        <b>Mashhur</b> — bosh sahifada aylanib turadigan bo'limga tushish huquqi.
+        O'zgarish darhol kuchga kiradi; muddati ketayotgan obunalar buzilmaydi.
+      </p>
+      <div id="trfBox" class="muted" style="font-size:13px">Yuklanmoqda...</div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="trfSave" type="button">Saqlash</button>
+        <button class="btn btn-ghost" id="trfAdd" type="button">+ Yangi tarif</button>
+        <span class="muted" id="trfMsg" style="font-size:12.5px"></span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin:0 0 4px;font-size:14.5px">To'lov so'rovlari</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:12px">
+        Diler kabinetda tarifni tanlaganda shu yerda paydo bo'ladi. Pul kelganiga
+        ishonch hosil qilgandan keyin <b>Tasdiqlash</b> ni bosing — tarif darhol
+        yoqiladi va dilerga xabar ketadi. Onlayn to'lov (Payme/Click) yoqilgan bo'lsa,
+        bu ro'yxat o'zi "tasdiqlandi" bo'lib boradi.
+      </p>
+      <div id="trfSorov" class="muted" style="font-size:13px">Yuklanmoqda...</div>
     </div>
 
     <div class="card">
@@ -9241,7 +9508,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); loadManualCustomersCount(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'stats'){ loadStats(); }
-    if(tab.dataset.tab === 'sellers'){ loadSellers(); }
+    if(tab.dataset.tab === 'sellers'){ loadSellers(); loadTariffs(); }
     if(tab.dataset.tab === 'xabarlar'){ loadXabarlar(); xbVapidYukla(); }
     if(tab.dataset.tab === 'tolov'){ loadTolov(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
@@ -10799,14 +11066,18 @@ async function loadSellers(){
 
     box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr>' +
       '<th>Sotuvchi</th><th>Login</th><th style="text-align:right">Raqamlar</th>' +
-      '<th style="text-align:right">Komissiya</th><th>Holat</th><th></th>' +
+      '<th>Tarif</th><th style="text-align:right">Komissiya</th><th>Holat</th><th></th>' +
       '</tr></thead><tbody>' +
       j.sellers.map(x =>
         '<tr>' +
         '<td><b>' + escapeHtml(x.name) + '</b>' +
           (x.phone ? '<div class="muted" style="font-size:11.5px">' + escapeHtml(x.phone) + '</div>' : '') + '</td>' +
         '<td><code>' + escapeHtml(x.username) + '</code></td>' +
-        '<td style="text-align:right">' + x.numbers + '</td>' +
+        '<td style="text-align:right">' + x.numbers +
+          (x.promo ? '<div class="muted" style="font-size:11px">' + x.promo + ' ajratilgan</div>' : '') + '</td>' +
+        '<td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" data-trf="' + escapeHtml(x.id) + '">' +
+          (x.plan ? escapeHtml(String(x.plan).toUpperCase()) + (x.planKun != null ? ' \u00B7 ' + x.planKun + ' kun' : '') : 'Tarif yo\u2018q') +
+        '</button></td>' +
         '<td style="text-align:right"><input class="inp" style="width:72px;padding:6px 8px;text-align:right" ' +
           'type="number" min="0" max="90" value="' + (x.commissionPct||0) + '" data-pct="' + escapeHtml(x.id) + '"> %</td>' +
         '<td><span class="sv-pill ' + (x.blocked ? 'sv-off' : 'sv-on') + '">' + (x.blocked ? 'Bloklangan' : 'Faol') + '</span></td>' +
@@ -10843,9 +11114,156 @@ async function loadSellers(){
       catch(e){ alert(e.message); }
     });
     box.querySelectorAll('[data-chat]').forEach(b => b.onclick = ()=> selOpenChat(b.dataset.chat, b.dataset.who));
+    box.querySelectorAll('[data-trf]').forEach(b => b.onclick = ()=> tarifQolda(b.dataset.trf));
   }catch(e){
     box.innerHTML = 'Xato: ' + escapeHtml(e.message);
   }
+}
+
+
+/* ================= TARIFLAR (Pro / Max) =================
+   Dilerlardan keladigan asosiy daromad. Narx, muddat, toifalar va
+   limit Firestore'dagi bitta hujjatda (sys_config/tariflar) turadi;
+   shu yerdan tahrirlanadi. Yangi tarif qo'shish uchun ham kodga
+   tegish kerak emas.
+   Server: netlify/functions/admin-sellers.js (action: tariflar*) */
+let TRF = [], TRF_TOIFA = ['vip','premium','gold'];
+
+async function loadTariffs(){
+  const box = document.getElementById('trfBox');
+  const sbox = document.getElementById('trfSorov');
+  if(!box) return;
+  box.innerHTML = 'Yuklanmoqda...';
+  try{
+    const j = await selCall('tariflar');
+    TRF = j.plans || [];
+    if(Array.isArray(j.toifalar) && j.toifalar.length) TRF_TOIFA = j.toifalar;
+    renderTariffs();
+    renderTarifSorov(j.sorovlar || []);
+  }catch(e){
+    box.innerHTML = 'Xato: ' + escapeHtml(e.message);
+    if(sbox) sbox.innerHTML = '';
+  }
+}
+
+function renderTariffs(){
+  const box = document.getElementById('trfBox');
+  box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr>' +
+    '<th>ID</th><th>Nomi</th><th style="text-align:right">Narx</th>' +
+    '<th style="text-align:right">Kun</th><th style="text-align:right">Raqam</th>' +
+    '<th>Toifalar</th><th>Mashhur</th><th>Izoh</th><th></th>' +
+    '</tr></thead><tbody>' +
+    TRF.map((p, i) =>
+      '<tr>' +
+      '<td><input class="inp" style="width:80px;padding:6px 8px" value="' + escapeHtml(p.id) + '" data-t="id" data-i="' + i + '"></td>' +
+      '<td><input class="inp" style="width:96px;padding:6px 8px" value="' + escapeHtml(p.name) + '" data-t="name" data-i="' + i + '"></td>' +
+      '<td style="text-align:right"><input class="inp" style="width:104px;padding:6px 8px;text-align:right" type="number" min="0" step="1000" value="' + (Number(p.price)||0) + '" data-t="price" data-i="' + i + '"></td>' +
+      '<td style="text-align:right"><input class="inp" style="width:62px;padding:6px 8px;text-align:right" type="number" min="1" max="3650" value="' + (Number(p.days)||30) + '" data-t="days" data-i="' + i + '"></td>' +
+      '<td style="text-align:right"><input class="inp" style="width:62px;padding:6px 8px;text-align:right" type="number" min="0" max="100000" value="' + (Number(p.quota)||0) + '" data-t="quota" data-i="' + i + '"></td>' +
+      '<td style="white-space:nowrap">' + TRF_TOIFA.map(t =>
+          '<label style="margin-right:8px;font-size:11.5px;white-space:nowrap">' +
+          '<input type="checkbox" data-t="tier" data-i="' + i + '" data-v="' + escapeHtml(t) + '"' +
+          ((p.tiers||[]).indexOf(t) !== -1 ? ' checked' : '') + '> ' + escapeHtml(t.toUpperCase()) + '</label>').join('') + '</td>' +
+      '<td><input type="checkbox" data-t="featured" data-i="' + i + '"' + (p.featured ? ' checked' : '') + '></td>' +
+      '<td><input class="inp" style="min-width:180px;padding:6px 8px" value="' + escapeHtml(p.desc||'') + '" data-t="desc" data-i="' + i + '"></td>' +
+      '<td style="text-align:right"><button class="btn btn-dan btn-sm" data-trfdel="' + i + '">&#10005;</button></td>' +
+      '</tr>').join('') + '</tbody></table></div>';
+
+  box.querySelectorAll('[data-t]').forEach(el => el.addEventListener('change', ()=>{
+    const i = Number(el.dataset.i), k = el.dataset.t, p = TRF[i]; if(!p) return;
+    if(k === 'tier'){
+      p.tiers = p.tiers || [];
+      const v = el.dataset.v, j = p.tiers.indexOf(v);
+      if(el.checked && j === -1) p.tiers.push(v);
+      if(!el.checked && j !== -1) p.tiers.splice(j, 1);
+    }else if(k === 'featured'){ p.featured = el.checked; }
+    else if(k === 'price' || k === 'days' || k === 'quota'){ p[k] = Number(el.value) || 0; }
+    else { p[k] = el.value; }
+  }));
+  box.querySelectorAll('[data-trfdel]').forEach(b => b.onclick = ()=>{
+    if(!confirm("Tarif ro'yxatdan olinsinmi? (Saqlash bosilgandan keyin kuchga kiradi)")) return;
+    TRF.splice(Number(b.dataset.trfdel), 1); renderTariffs();
+  });
+}
+
+document.getElementById('trfAdd') && document.getElementById('trfAdd').addEventListener('click', ()=>{
+  TRF.push({ id:'tarif' + (TRF.length+1), name:'Yangi tarif', price:0, days:30, quota:10,
+    tiers:['vip'], featured:false, order:TRF.length+1, desc:'' });
+  renderTariffs();
+});
+
+document.getElementById('trfSave') && document.getElementById('trfSave').addEventListener('click', async ()=>{
+  const msg = document.getElementById('trfMsg');
+  msg.textContent = 'Saqlanmoqda...';
+  try{
+    const j = await selCall('tariflarSaqla', { plans: TRF });
+    TRF = j.plans || TRF;
+    renderTariffs();
+    msg.textContent = 'Saqlandi. Diler kabinetida darhol ko‘rinadi.';
+    setTimeout(()=>{ msg.textContent = ''; }, 4000);
+  }catch(e){ msg.textContent = 'Xato: ' + e.message; }
+});
+
+document.getElementById('trfReload') && document.getElementById('trfReload').addEventListener('click', loadTariffs);
+
+function renderTarifSorov(rows){
+  const box = document.getElementById('trfSorov');
+  if(!box) return;
+  const kut = rows.filter(r => r.status === 'kutilmoqda');
+  const boshqa = rows.filter(r => r.status !== 'kutilmoqda').slice(0, 20);
+  if(!rows.length){ box.innerHTML = "Hali so'rov yo'q."; return; }
+  const qator = (r) =>
+    '<tr>' +
+    '<td><b>' + escapeHtml(r.sellerName || r.sellerId) + '</b></td>' +
+    '<td>' + escapeHtml(r.planName || r.planId) + '</td>' +
+    '<td style="text-align:right">' + (Number(r.price)||0).toLocaleString('ru-RU') + "</td>" +
+    '<td>' + (r.usul === 'online' ? 'onlayn' : "qo'lda") + '</td>' +
+    '<td>' + (r.at ? new Date(r.at).toLocaleString('ru-RU') : '') + '</td>' +
+    '<td style="text-align:right;white-space:nowrap">' +
+      (r.status === 'kutilmoqda'
+        ? '<button class="btn btn-sm" data-trfok="' + escapeHtml(r.id) + '">Tasdiqlash</button> ' +
+          '<button class="btn btn-ghost btn-sm" data-trfno="' + escapeHtml(r.id) + '">Rad</button>'
+        : '<span class="sv-pill ' + (r.status === 'tasdiqlandi' ? 'sv-on' : 'sv-off') + '">' +
+          escapeHtml(r.status) + '</span>') +
+    '</td></tr>';
+  box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr>' +
+    '<th>Sotuvchi</th><th>Tarif</th><th style="text-align:right">Summa</th>' +
+    '<th>Usul</th><th>Vaqti</th><th></th></tr></thead><tbody>' +
+    kut.map(qator).join('') + boshqa.map(qator).join('') + '</tbody></table></div>';
+
+  box.querySelectorAll('[data-trfok]').forEach(b => b.onclick = async ()=>{
+    if(!confirm("Pul kelganini tekshirdingizmi? Tasdiqlansa tarif darhol yoqiladi.")) return;
+    b.disabled = true;
+    try{ await selCall('tarifTasdiq', { id: b.dataset.trfok }); loadTariffs(); loadSellers(); }
+    catch(e){ alert(e.message); b.disabled = false; }
+  });
+  box.querySelectorAll('[data-trfno]').forEach(b => b.onclick = async ()=>{
+    const izoh = prompt('Rad etish sababi (dilerga yuboriladi):') || '';
+    try{ await selCall('tarifRad', { id: b.dataset.trfno, izoh }); loadTariffs(); }
+    catch(e){ alert(e.message); }
+  });
+}
+
+/* Dilerga tarifni QO'LDA yoqish / to'xtatish (to'lov so'rovisiz) */
+async function tarifQolda(sellerId){
+  if(!TRF.length){ await loadTariffs(); }
+  const nomlar = TRF.map((p,i) => (i+1) + ') ' + p.name + ' — ' + (Number(p.price)||0).toLocaleString('ru-RU') + " so'm / " + p.days + ' kun').join('\n');
+  const tanlov = prompt('Qaysi tarif yoqilsin?\n\n' + nomlar + '\n\nRaqamini kiriting (yoki 0 — tarifni to‘xtatish):');
+  if(tanlov == null) return;
+  const n = Number(tanlov);
+  try{
+    if(n === 0){
+      if(!confirm("Tarif to'xtatilsinmi? Raqamlardagi toifa belgilari DARHOL olib tashlanadi.")) return;
+      const j = await selCall('tarifOchir', { sellerId });
+      alert("To'xtatildi. " + (j.raqam || 0) + ' raqamdan toifa olindi.');
+    }else{
+      const p = TRF[n-1]; if(!p) return alert("Bunday tarif yo'q");
+      const kun = Number(prompt('Necha kunga?', String(p.days)) || p.days);
+      await selCall('tarifQoy', { sellerId, planId: p.id, days: kun });
+      alert(p.name + ' yoqildi.');
+    }
+    loadSellers(); loadTariffs();
+  }catch(e){ alert(e.message); }
 }
 
 async function selOpenChat(id, who){
@@ -10886,7 +11304,7 @@ document.getElementById('selCreate') && document.getElementById('selCreate').add
   }catch(e){ msg.textContent = 'Xato: ' + e.message; }
 });
 
-document.getElementById('selReload') && document.getElementById('selReload').addEventListener('click', loadSellers);
+document.getElementById('selReload') && document.getElementById('selReload').addEventListener('click', ()=>{ loadSellers(); loadTariffs(); });
 document.getElementById('selChatSend') && document.getElementById('selChatSend').addEventListener('click', async ()=>{
   const inp = document.getElementById('selChatIn');
   const text = inp.value.trim();
@@ -13316,6 +13734,15 @@ function renderAdminNumbers(numbers){
   const shown = numbers.slice(0, RENDER_LIMIT);
   const hiddenCount = numbers.length - shown.length;
 
+  /* TEZLIK: tahrirlash formasi (22 ta maydon!) ENDI DARHOL
+     chizilmaydi. Avval 300 ta raqam uchun 300 ta forma, ya'ni ~6600
+     ta qo'shimcha element birdan yaratilardi — panel aynan shu sabab
+     "qotib" qolardi. Endi forma qator OCHILGANDA, faqat o'sha qator
+     uchun bir marta quriladi. Ro'yxat bir necha barobar yengillashdi,
+     tahrirlash esa avvalgiday ishlaydi. */
+  NB_ITEMS = {};
+  shown.forEach(it => { NB_ITEMS[it.id] = it; });
+
   adminNumbersList.innerHTML = nbJadvalBoshi() + shown.map(item => `
     <div class="admin-row-collapsed" data-id="${item.id}">
       <div class="an-summary" data-id="${item.id}">
@@ -13338,8 +13765,64 @@ function renderAdminNumbers(numbers){
           <button type="button" class="an-ib an-ib-del" data-id="${item.id}" title="O'chirish" aria-label="O'chirish"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
         </span>
       </div>
-      <div class="an-body" style="display:none;">
-        <div class="admin-row" data-id="${item.id}">
+      <div class="an-body" style="display:none;"></div>
+    </div>
+  `).join('') + (hiddenCount > 0
+    ? `<div class="empty-admin">... va yana ${hiddenCount} ta raqam. Ro'yxat juda katta bo'lgani uchun faqat birinchi ${RENDER_LIMIT} tasi ko'rsatilmoqda — kerakli raqamni topish uchun yuqoridagi qidiruvdan foydalaning.</div>`
+    : '');
+
+  /* Qalam — qatorni ochadi, savat — o'chiradi. */
+  adminNumbersList.querySelectorAll('.an-ib-edit').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const sum = btn.closest('.an-summary');
+      if(sum) sum.click();
+    });
+  });
+  adminNumbersList.querySelectorAll('.an-ib-del').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      if(!confirm('Rostdan ham o\'chirilsinmi?')) return;
+      try{
+        await db.collection('numbers').doc(btn.dataset.id).delete();
+        refreshNumbers();
+      }catch(err){ alert('O\'chirishda xato: ' + err.message); }
+    });
+  });
+
+  adminNumbersList.querySelectorAll('.an-summary').forEach(summary=>{
+    summary.addEventListener('click', ()=>{
+      const wrap = summary.closest('.admin-row-collapsed');
+      const body = wrap.querySelector('.an-body');
+      const arrow = summary.querySelector('.an-summary-arrow');
+      const isOpen = body.style.display !== 'none';
+      if(!isOpen && !body.dataset.tayyor){
+        body.innerHTML = nbTahrirHtml(NB_ITEMS[wrap.dataset.id] || {});
+        body.dataset.tayyor = '1';
+        nbTahrirBogla(body);
+      }
+      body.style.display = isOpen ? 'none' : 'block';
+      if(arrow) arrow.textContent = isOpen ? '▾' : '▴';
+      wrap.classList.toggle('an-open', !isOpen);
+    });
+  });
+
+  adminNumbersList.querySelectorAll('.an-select-cb').forEach(cb=>{
+    cb.addEventListener('click', (e)=> e.stopPropagation());
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) nbSelectedIds.add(cb.dataset.id);
+      else nbSelectedIds.delete(cb.dataset.id);
+      updateBulkBar();
+    });
+  });
+}
+
+/* Ochilgan qator uchun tahrirlash formasi. Faqat KERAK BO'LGANDA
+   chaqiriladi (yuqoridagi izohga qarang). */
+let NB_ITEMS = {};
+function nbTahrirHtml(item){
+  return `
+<div class="admin-row" data-id="${item.id}">
           <input class="an-number" value="${escapeHtml(item.number)}">
           <select class="an-operator">${operatorOptionsHtml(item.operator)}</select>
           <input class="an-price" type="number" value="${escapeHtml(item.price)}">
@@ -13391,98 +13874,56 @@ function renderAdminNumbers(numbers){
               ⭐ ASOSIY'da "Tavsiya etiladi"da
             </label>
           </div>
-        </div>
-      </div>
-    </div>
-  `).join('') + (hiddenCount > 0
-    ? `<div class="empty-admin">... va yana ${hiddenCount} ta raqam. Ro'yxat juda katta bo'lgani uchun faqat birinchi ${RENDER_LIMIT} tasi ko'rsatilmoqda — kerakli raqamni topish uchun yuqoridagi qidiruvdan foydalaning.</div>`
-    : '');
+        `;
+}
 
-  /* Qalam — qatorni ochadi, savat — ichkaridagi o'chirish tugmasini bosadi.
-     Ikkalasi ham mavjud mantiqdan foydalanadi, yangi kod yozilmaydi. */
-  adminNumbersList.querySelectorAll('.an-ib-edit').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      const sum = btn.closest('.an-summary');
-      if(sum) sum.click();
-    });
-  });
-  adminNumbersList.querySelectorAll('.an-ib-del').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      const wrap = btn.closest('.admin-row-collapsed');
-      const del = wrap && wrap.querySelector('.an-delete');
-      if(del) del.click();
-    });
-  });
-
-  adminNumbersList.querySelectorAll('.an-summary').forEach(summary=>{
-    summary.addEventListener('click', ()=>{
-      const wrap = summary.closest('.admin-row-collapsed');
-      const body = wrap.querySelector('.an-body');
-      const arrow = summary.querySelector('.an-summary-arrow');
-      const isOpen = body.style.display !== 'none';
-      body.style.display = isOpen ? 'none' : 'block';
-      if(arrow) arrow.textContent = isOpen ? '▾' : '▴';
-      wrap.classList.toggle('an-open', !isOpen);
-    });
-  });
-
-  adminNumbersList.querySelectorAll('.an-select-cb').forEach(cb=>{
-    cb.addEventListener('click', (e)=> e.stopPropagation());
-    cb.addEventListener('change', ()=>{
-      if(cb.checked) nbSelectedIds.add(cb.dataset.id);
-      else nbSelectedIds.delete(cb.dataset.id);
-      updateBulkBar();
-    });
+/* Shu bitta forma uchun "Saqlash" va "O'chirish" tugmalarini bog'laydi. */
+function nbTahrirBogla(body){
+  const sv = body.querySelector('.an-save');
+  if(sv) sv.addEventListener('click', async ()=>{
+    const row = sv.closest('.admin-row');
+    const id = row.dataset.id;
+    let numVal = row.querySelector('.an-number').value.trim();
+    if(numVal && !numVal.startsWith('+')) numVal = '+' + numVal;
+    try{
+      const priceVal = Number(row.querySelector('.an-price').value) || 0;
+      const oldPriceVal = Number(row.querySelector('.an-oldprice').value) || 0;
+      await db.collection('numbers').doc(id).update({
+        number: numVal,
+        operator: row.querySelector('.an-operator').value,
+        price: priceVal,
+        oldPrice: oldPriceVal,
+        onSale: oldPriceVal > priceVal,
+        currency: row.querySelector('.an-currency').value === 'usd' ? 'USD' : 'UZS',
+        installment: row.querySelector('.an-currency').value === 'usd'
+          ? false : row.querySelector('.an-installment').checked,
+        tier: row.querySelector('.an-tier').value,
+        featured: row.querySelector('.an-featured').checked || !!row.querySelector('.an-tier').value,
+        dailyDeal: row.querySelector('.an-dailydeal').checked,
+        monthlyTariff: Number(row.querySelector('.an-monthlytariff').value) || 0,
+        tariffMonths: Number(row.querySelector('.an-tariffmonths').value) || 0,
+        monthly6:  Number(row.querySelector('.an-m6').value)  || 0,
+        monthly12: Number(row.querySelector('.an-m12').value) || 0,
+        monthly24: Number(row.querySelector('.an-m24').value) || 0,
+        ownershipTransfer: row.querySelector('.an-ownership').checked,
+        recommended: row.querySelector('.an-recommended').checked,
+        tag: row.querySelector('.an-tag').value
+      });
+      sv.textContent = '✓ Saqlandi';
+      sv.classList.add('saved-flash');
+      vibrate(80);
+      setTimeout(()=>{ sv.textContent = 'Saqlash'; sv.classList.remove('saved-flash'); }, 1200);
+    }catch(err){ alert('Saqlashda xato: ' + err.message); }
   });
 
-  adminNumbersList.querySelectorAll('.an-save').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const row = btn.closest('.admin-row');
-      const id = row.dataset.id;
-      let numVal = row.querySelector('.an-number').value.trim();
-      if(numVal && !numVal.startsWith('+')) numVal = '+' + numVal;
-      try{
-        const priceVal = Number(row.querySelector('.an-price').value) || 0;
-        const oldPriceVal = Number(row.querySelector('.an-oldprice').value) || 0;
-        await db.collection('numbers').doc(id).update({
-          number: numVal,
-          operator: row.querySelector('.an-operator').value,
-          price: priceVal,
-          oldPrice: oldPriceVal,
-          onSale: oldPriceVal > priceVal,
-          currency: row.querySelector('.an-currency').value === 'usd' ? 'USD' : 'UZS',
-          installment: row.querySelector('.an-currency').value === 'usd'
-            ? false : row.querySelector('.an-installment').checked,
-          tier: row.querySelector('.an-tier').value,
-          featured: row.querySelector('.an-featured').checked || !!row.querySelector('.an-tier').value,
-          dailyDeal: row.querySelector('.an-dailydeal').checked,
-          monthlyTariff: Number(row.querySelector('.an-monthlytariff').value) || 0,
-          tariffMonths: Number(row.querySelector('.an-tariffmonths').value) || 0,
-          monthly6:  Number(row.querySelector('.an-m6').value)  || 0,
-          monthly12: Number(row.querySelector('.an-m12').value) || 0,
-          monthly24: Number(row.querySelector('.an-m24').value) || 0,
-          ownershipTransfer: row.querySelector('.an-ownership').checked,
-          recommended: row.querySelector('.an-recommended').checked,
-          tag: row.querySelector('.an-tag').value
-        });
-        btn.textContent = '✓ Saqlandi';
-        btn.classList.add('saved-flash');
-        vibrate(80);
-        setTimeout(()=>{ btn.textContent = 'Saqlash'; btn.classList.remove('saved-flash'); }, 1200);
-      }catch(err){ alert('Saqlashda xato: ' + err.message); }
-    });
-  });
-  adminNumbersList.querySelectorAll('.an-delete').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const row = btn.closest('.admin-row');
-      if(!confirm('Rostdan ham o\'chirilsinmi?')) return;
-      try{
-        await db.collection('numbers').doc(row.dataset.id).delete();
-        refreshNumbers();
-      }catch(err){ alert('O\'chirishda xato: ' + err.message); }
-    });
+  const dl = body.querySelector('.an-delete');
+  if(dl) dl.addEventListener('click', async ()=>{
+    const row = dl.closest('.admin-row');
+    if(!confirm('Rostdan ham o\'chirilsinmi?')) return;
+    try{
+      await db.collection('numbers').doc(row.dataset.id).delete();
+      refreshNumbers();
+    }catch(err){ alert('O\'chirishda xato: ' + err.message); }
   });
 }
 
@@ -14728,6 +15169,211 @@ function renderAdminOrders(orders){
     });
   });
 }
+
+
+/* ==================================================================
+   TELEFON KO'RINISHI — PASTKI MENYU va BO'LIM KARTOCHKALARI
+   ------------------------------------------------------------------
+   Telefonda (900px dan tor ekran) pastda ilovadagidek BESHTA bo'lim
+   turadi. Bittasiga bosilsa — guruhdagi bo'limlar kartochka bo'lib
+   chiqadi; kartochkaga bosilsa bo'limning o'zi ochiladi.
+
+   QANDAY ISHLAYDI: kartochka bosilganda eski yon menyudagi O'SHA
+   tugmaning `click()` i chaqiriladi. Ya'ni bu qatlam panelning
+   mantiqiga umuman tegmaydi — ruxsatlar, sonlar, yuklash, hammasi
+   avvalgiday. Kompyuterda bu kod ishga ham tushmaydi.
+
+   BO'LIMLARNI BOSHQA GURUHGA KO'CHIRISH: faqat quyidagi `MOBIL_GURUH`
+   jadvalidagi nomni ko'chirib qo'ying — boshqa hech narsa kerak emas.
+   ================================================================== */
+(function(){
+  const MQ = window.matchMedia('(max-width:900px)');
+
+  const IC = {
+    asosiy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5.5 10v9.5h13V10"/></svg>',
+    tolov:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/><path d="M7 15h4"/></svg>',
+    buyurtma:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"/><path d="M4 7.5 12 11l8-3.5M12 11v9"/></svg>',
+    stat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    profil:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.5 20c.9-3.8 3.9-5.8 7.5-5.8s6.6 2 7.5 5.8"/></svg>'
+  };
+
+  const MOBIL_GURUH = [
+    { id:'asosiy',   nom:'Asosiy',      izoh:'Kundalik ish: raqamlar va kuzatuv',
+      tabs:['dashboard','numbers','bazaraqam','uzex','watch','kuntavsiyasi','aksiya'] },
+    { id:'tolov',    nom:"To'lovlar",   izoh:"Pul bilan bog'liq barcha bo'limlar",
+      tabs:['tolov','credit','finance','personalbase'] },
+    { id:'buyurtma', nom:'Buyurtmalar', izoh:'Mijoz va hamkorlar bilan ish',
+      tabs:['orders','zakaz','sellers','vakansiya'] },
+    { id:'stat',     nom:'Statistika',  izoh:'Hisobotlar, vazifalar va AI',
+      tabs:['stats','sessions','vazifalar','ai','telegramai','instagram'] },
+    { id:'profil',   nom:'Profil',      izoh:'Sozlamalar, kontent va boshqaruv',
+      tabs:['settings','management','operators','styles','xabarlar','videos','premiumvideo'] }
+  ];
+
+  let JORIY = 'asosiy';
+  let nav, grid, back;
+
+  const tabTugma = (k) => document.querySelector('.tab[data-tab="' + k + '"]');
+  /* Ruxsati yo'q bo'lim yon menyuda yashirilgan — kartochkada ham
+     ko'rinmasligi kerak. Ruxsat mantiqi (applyAccessControl) tugmaga
+     `style.display='none'` qo'yadi, shu sabab AYNAN shu tekshiriladi
+     (`offsetParent` emas: yon menyu telefonda chetga surilgan bo'ladi
+     va u holda hamma tugma "ko'rinmaydi" bo'lib chiqardi). */
+  const korinadimi = (btn) => !!btn && btn.style.display !== 'none';
+
+  function qur(){
+    const mc = document.querySelector('.main-content');
+    if(!mc || document.getElementById('mnav')) return;
+
+    grid = document.createElement('div');
+    grid.id = 'mgrid';
+    /* Kartochkalar yuqoridagi qator (topbar) dan KEYIN tursin */
+    const tbar = mc.querySelector('.topbar');
+    if(tbar && tbar.nextSibling) mc.insertBefore(grid, tbar.nextSibling);
+    else mc.appendChild(grid);
+
+    nav = document.createElement('nav');
+    nav.id = 'mnav';
+    nav.setAttribute('aria-label', 'Asosiy menyu');
+    nav.innerHTML = '<span class="mn-pill" id="mnPill" aria-hidden="true"></span>' +
+      MOBIL_GURUH.map(g =>
+        '<button type="button" data-g="' + g.id + '">' + IC[g.id] +
+        '<b>' + g.nom + '</b><i class="mn-nb" data-nb="' + g.id + '" hidden>0</i></button>').join('');
+    document.body.appendChild(nav);
+
+    nav.querySelectorAll('button').forEach(b => b.addEventListener('click', ()=> guruhOch(b.dataset.g)));
+
+    // Yuqoridagi "orqaga" tugmasi — kartochkalar ro'yxatiga qaytaradi
+    back = document.createElement('button');
+    back.id = 'mback'; back.type = 'button'; back.setAttribute('aria-label','Orqaga');
+    back.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+    back.addEventListener('click', ()=> guruhOch(JORIY));
+    const tb = document.querySelector('.topbar');
+    if(tb) tb.insertBefore(back, tb.firstChild);
+  }
+
+  /* Guruh kartochkalarini chizish */
+  function guruhOch(gid){
+    const g = MOBIL_GURUH.find(x => x.id === gid) || MOBIL_GURUH[0];
+    JORIY = g.id;
+
+    const kartalar = g.tabs.map(k => {
+      const btn = tabTugma(k);
+      if(!korinadimi(btn)) return '';
+      const ico = (btn.querySelector('.tab-ico') || {}).innerHTML || '';
+      const nom = ((btn.querySelector('.tab-label') || {}).textContent || k).trim();
+      const bdg = btn.querySelector('.task-tab-badge, .tab-count.is-alert');
+      const son = (bdg && bdg.offsetParent !== null) ? (bdg.textContent || '').trim() : '';
+      return '<button type="button" class="mg-card" data-mt="' + k + '">' +
+        (son && son !== '0' ? '<span class="mg-badge">' + son + '</span>' : '') +
+        '<span class="mg-ico">' + ico + '</span>' +
+        '<span class="mg-nom">' + nom + '</span></button>';
+    }).join('');
+
+    grid.innerHTML = '<div class="mg-h">' + g.nom + '</div>' +
+      '<div class="mg-s">' + g.izoh + '</div>' +
+      '<div class="mg-grid">' + (kartalar || '<div class="empty-admin">Bu guruhda sizga ruxsat etilgan bo‘lim yo‘q.</div>') + '</div>';
+
+    grid.querySelectorAll('[data-mt]').forEach(c => c.addEventListener('click', ()=>{
+      const b = tabTugma(c.dataset.mt);
+      if(b) b.click();
+      bolimKorsat();
+    }));
+
+    // Bo'limlarni yashirib, kartochkalarni ko'rsatamiz
+    document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
+    grid.classList.add('on');
+    back.classList.remove('on');
+    belgila();
+    window.scrollTo({ top:0 });
+  }
+
+  /* Kartochka bosildi — bo'lim ochildi */
+  function bolimKorsat(){
+    grid.classList.remove('on');
+    back.classList.add('on');
+    window.scrollTo({ top:0 });
+  }
+
+  /* Guruhdagi bo'limlarning qizil sonlarini qo'shib, pastki menyuga
+     chiqaradi — telefonda "qayerda yangi ish bor" darhol ko'rinadi. */
+  function sonlar(){
+    MOBIL_GURUH.forEach(g => {
+      let n = 0;
+      g.tabs.forEach(k => {
+        const btn = tabTugma(k);
+        if(!korinadimi(btn)) return;
+        btn.querySelectorAll('.task-tab-badge, .tab-count.is-alert').forEach(x => {
+          if(x.style.display === 'none' || x.hidden) return;
+          n += Number(String(x.textContent || '').replace(/\D/g, '')) || 0;
+        });
+      });
+      const el = nav.querySelector('[data-nb="' + g.id + '"]');
+      if(el){ el.textContent = n > 99 ? '99+' : n; el.hidden = !(n > 0); }
+    });
+  }
+
+  function belgila(){
+    sonlar();
+    nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.g === JORIY));
+    const on = nav.querySelector('button.on'), pill = document.getElementById('mnPill');
+    if(on && pill){
+      const r = on.getBoundingClientRect(), nr = nav.getBoundingClientRect();
+      pill.style.width = r.width + 'px';
+      pill.style.transform = 'translateX(' + (r.left - nr.left) + 'px)';
+      pill.classList.add('on');
+    }
+  }
+
+  /* Yon menyudan (yoki kod ichidan) bo'lim ochilsa — pastki menyu
+     ham o'sha guruhga o'tsin, "orqaga" tugmasi to'g'ri ishlasin. */
+  function tabKuzat(){
+    document.querySelectorAll('.tab[data-tab]').forEach(b => b.addEventListener('click', ()=>{
+      if(!MQ.matches) return;
+      const k = b.dataset.tab;
+      const g = MOBIL_GURUH.find(x => x.tabs.indexOf(k) !== -1);
+      if(g) JORIY = g.id;
+      setTimeout(()=>{ bolimKorsat(); belgila(); }, 0);
+    }, true));
+  }
+
+  function boshla(){
+    if(!MQ.matches) return;
+    qur();
+    if(!nav) return;
+    tabKuzat();
+    klaviatura();
+    JORIY = 'asosiy';
+    // Boshida boshqaruv paneli ochiq turadi, "orqaga" bossa kartochkalar
+    belgila();
+    bolimKorsat();
+  }
+
+  /* KLAVIATURA OCHILGANDA PASTKI MENYU YASHIRINADI.
+     iPhone'da pastda turgan "fixed" panel klaviatura chiqqanda
+     maydonning ustini yopib qo'yishi mumkin — odam yozayotganini
+     ko'rmaydi va "yozib bo'lmayapti" deb o'ylaydi. Shu sabab matn
+     maydoniga kirilganda menyu vaqtincha olib turiladi. */
+  function klaviatura(){
+    const matnmi = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+                                  el.tagName === 'SELECT' || el.isContentEditable);
+    document.addEventListener('focusin', (e)=>{
+      if(MQ.matches && nav && matnmi(e.target)) nav.style.display = 'none';
+    });
+    document.addEventListener('focusout', ()=>{
+      if(!nav) return;
+      setTimeout(()=>{ if(!matnmi(document.activeElement)) nav.style.display = ''; }, 60);
+    });
+  }
+
+  // Panel kirishdan keyin quriladi (yon menyu DOM'da bo'lishi kerak)
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boshla);
+  else boshla();
+  window.addEventListener('resize', ()=>{ if(MQ.matches && nav) belgila(); });
+  /* Kompyuterdan telefon o'lchamiga o'tilsa (ekran burilishi, oynani
+     kichraytirish) — menyu o'sha payt quriladi. */
+  try{ MQ.addEventListener('change', (e)=>{ if(e.matches && !nav) boshla(); }); }catch(e){}
+})();
 
 document.addEventListener('copy', (e) => e.preventDefault());
 document.addEventListener('contextmenu', (e) => e.preventDefault());

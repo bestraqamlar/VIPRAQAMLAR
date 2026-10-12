@@ -1310,7 +1310,17 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
     inset 0 -1.5px 0 rgba(120,88,20,.3);
   transition:transform .18s,box-shadow .18s;
 }
+.hc-cta b{font-weight:800}
 .herocard:active .hc-cta{transform:scale(.97)}
+/* JUDA TOR EKRAN (320px li eski iPhone SE va shunga o'xshashlar).
+   Endi kartochkada FAQAT bo'lib to'lash summasi turadi — uni "…" bilan
+   kesib bo'lmaydi, mijoz asosiy narsani ko'rmay qoladi. Shu sabab shu
+   kenglikda tugmaning YOZUVI olinadi, faqat strelka qoladi: 50px dan
+   ko'proq joy bo'shaydi va summa to'liq sig'adi. */
+@media (max-width:345px){
+  .hc-cta b{display:none}
+  .hc-cta{padding:0 12px;gap:0}
+}
 .herodots{display:flex;gap:5px;justify-content:center;margin-top:12px}
 .herodots i{width:6px;height:6px;border-radius:3px;background:var(--line-2);transition:width .25s,background .25s}
 .herodots i.on{width:18px;background:var(--blue)}
@@ -2836,6 +2846,30 @@ function installmentTeaser(item){
   if(!a) return (item.live || item.installment) ? '' : '';
   return `${formatPrice(a.monthly)} ${t("so'mdan")} / ${a.months} ${t('oy')}`;
 }
+
+/* ==================================================================
+   KARTOCHKADAGI NARX QATORI — RAQAM OYNASI BILAN AYNAN BIR XIL
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: bosh sahifada "Bo'lib to'lash bor" degan YOZUV
+   chiqmasin — ichkaridagi 24 oylik SUMMANING O'ZI chiqsin. Naqt
+   summa esa faqat raqam ochilganda (mijoz naqt to'lovni tanlaganda)
+   ko'rinadi.
+
+   Ilgari kartochka va raqam oynasi IKKI XIL qoida bilan ishlardi:
+   oyna har doim oylik summani yozardi, kartochka esa summa "aniq"
+   bo'lmasa naqt narx + "Bo'lib to'lash bor" yorlig'ini. Shu sabab
+   bir xil raqam ikki joyda ikki xil ko'rinardi.
+
+   Endi IKKALASI HAM shu funksiyadan o'tadi (raqam oynasidagi
+   `priceCard` bilan bir xil shart) — qoida bitta joyda.
+   ================================================================== */
+function kartaNarx(item){
+  if(installmentAllowed(item) && !isUsd(item)){
+    const ins = installmentTeaser(item);
+    if(ins) return { bolib: true, ins };
+  }
+  return { bolib: false, ins: '' };
+}
 RU["so'mdan"] = 'сум';
 RU["Bo'lib to'lash bor"] = 'Есть рассрочка';
 
@@ -2979,9 +3013,8 @@ function tgNote(sarlavha, item){
   /* Bir vaqtda ko'pi bilan 2 ta — ekran to'lib ketmasin */
   while(box.children.length >= 2) box.firstElementChild.remove();
 
-  const narx = item ? (item.installment && !isUsd(item)
-      ? (installmentTeaser(item) || t("Bo'lib to'lash"))
-      : (formatPrice(item.price) + ' ' + UNIT(item))) : '';
+  const kn = item ? kartaNarx(item) : null;
+  const narx = item ? (kn.bolib ? kn.ins : (formatPrice(item.price) + ' ' + UNIT(item))) : '';
   const el = document.createElement('div');
   el.className = 'tgnote';
   el.innerHTML =
@@ -3451,7 +3484,8 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
 const IDX_TIERS = ['', 'premium', 'gold', 'vip', 'silver', 'bronze'];
 const IDX_EXTRA = { m6:'monthly6', m12:'monthly12', m24:'monthly24',
                     d6:'dealMonthly6', d12:'dealMonthly12', d24:'dealMonthly24',
-                    c:'currency', op:'operatorPrice', nt:'note', de:'dealExpiresAt' };
+                    c:'currency', op:'operatorPrice', nt:'note', de:'dealExpiresAt',
+                    sid:'sellerId' };
 const IDX_NUM = { monthly6:1, monthly12:1, monthly24:1, dealMonthly6:1, dealMonthly12:1,
                   dealMonthly24:1, operatorPrice:1, dealExpiresAt:1 };
 
@@ -3696,15 +3730,16 @@ function tierOf(item){
 }
 function numCard(item){
   const fav = isFav(item.id), disc = discountPct(item);
-  const res = !!item.reserved, ins = installmentTeaser(item), showCash = !item.installment;
+  const res = !!item.reserved;
+  /* Narx qatori raqam oynasi bilan AYNAN bir xil qoidada (kartaNarx) */
+  const kn = kartaNarx(item), showCash = !kn.bolib;
   const tier = tierOf(item), vip = !!tier;
   let price = '';
   if(showCash){
     price = `<div class="p sg">${formatPrice(item.price)} ${UNITH(item)}</div>`;
     if(hasActiveDiscount(item)) price += `<div class="old sg">${formatPrice(item.oldPrice)}</div>`;
-    if(ins) price += `<div class="ins">${esc(ins)}</div>`;
   }else{
-    price = `<div class="ins solo" style="margin-top:0">${esc(ins || t("Bo'lib to'lash"))}</div>`;
+    price = `<div class="ins solo" style="margin-top:0">${esc(kn.ins)}</div>`;
   }
   const cls = res ? ' res' : (vip ? ' vipc t-' + tier : (installmentAllowed(item) ? ' insc' : ''));
   return `<article class="numcard${cls}" data-card="${esc(item.id)}">
@@ -3806,16 +3841,11 @@ function renderHome(){
   const heroes = HERO_PICKS.map(id => NUMBERS.find(n => n.id === id)).filter(Boolean);
   if(heroes.length){
     const card = (h) => {
-      /* PREMIUM KARTOCHKADA TAXMINIY SUMMA KO'RSATILMAYDI.
-         `oylikAsosiy().aniq` — summa haqiqiymi (adminda kiritilgan,
-         operator jadvalidan yoki kun taklifidan) yoki foizli
-         formuladan chiqarilganmi. Faqat HAQIQIY summa yoziladi;
-         aks holda naqt narx va "Bo'lib to'lash bor" yorlig'i
-         chiqadi — mijozga noto'g'ri raqam ko'rsatilmaydi. */
-      const asos = oylikAsosiy(h);
-      const aniq = !!(asos && asos.aniq);
-      const ins  = aniq ? installmentTeaser(h) : '';
-      const bor  = !aniq && installmentAllowed(h);
+      /* NARX QATORI — raqam oynasidagi bilan AYNAN bir xil.
+         Mijoz so'rovi: "Bo'lib to'lash bor" degan yozuv emas,
+         ichkaridagi 24 oylik summaning O'ZI chiqsin. Naqt summa
+         faqat raqam ochilganda ko'rinadi. */
+      const kn = kartaNarx(h);
       return `<div class="herocard" data-card="${esc(h.id)}">
         <div class="hc-top">
           <span class="hc-badge">${t('PREMIUM')}</span>
@@ -3823,14 +3853,12 @@ function renderHome(){
         </div>
         <div class="num sg">${esc(shortNumber(h.number))}</div>
         <div class="hc-bot">
-          <div class="hc-price${(h.installment && aniq) ? ' keng' : ''}">
-            ${(h.installment && aniq)
-              ? `<div class="pv ins2 sg">${esc(ins)}</div>`
-              : `<div class="pv sg">${formatPrice(h.price)} ${UNITH(h)}</div>
-                 ${ins ? `<div class="pi2">${esc(ins)}</div>`
-                       : (bor ? `<div class="pi2">${t("Bo'lib to'lash bor")}</div>` : '')}`}
+          <div class="hc-price${kn.bolib ? ' keng' : ''}">
+            ${kn.bolib
+              ? `<div class="pv ins2 sg">${esc(kn.ins)}</div>`
+              : `<div class="pv sg">${formatPrice(h.price)} ${UNITH(h)}</div>`}
           </div>
-          <span class="hc-cta">${t('Batafsil')}${ICO_ARR}</span>
+          <span class="hc-cta"><b>${t('Batafsil')}</b>${ICO_ARR}</span>
         </div>
       </div>`;
     };
@@ -3848,7 +3876,7 @@ function renderHome(){
        umuman yo'q) summa turib qolardi. Endi summaning o'zi imzoda:
        haqiqiy raqam kelishi bilan karusel yangilanadi. */
     const imzo = heroes.map(h => h.id + ':' + h.price + ':' + (h.reserved?1:0)
-                   + ':' + installmentTeaser(h) + ':' + ((oylikAsosiy(h)||{}).aniq?1:0)).join(',') + '|' + LANG;
+                   + ':' + installmentTeaser(h)).join(',') + '|' + LANG;
     if(hb.dataset.sig !== imzo){
       hb.dataset.sig = imzo;
       /* Kartochkalar ichki "yo'lak" (track) ichida — uni butunlay
@@ -3984,8 +4012,8 @@ function dayCard(item){
   /* Zaxira shart olib tashlandi: `monthly24` endi `oylikTolov()`
      ichida, ya'ni `installmentTeaser()` uni allaqachon hisobga oladi.
      Ikki xil yo'l qolsa — yana ikki xil summa chiqardi. */
-  const ins = installmentTeaser(item);
-  const showCash = !item.installment && (item.price > 0);
+  const kn = kartaNarx(item);
+  const showCash = !kn.bolib && (item.price > 0);
   return `<article class="daycard${res?' res':''}" data-card="${esc(item.id)}">
     <span class="dc-rib">${ICO_STAR}${t('KUN TAVSIYASI')}</span>
     <div class="dc-num sg">${esc(shortNumber(item.number))}</div>
@@ -3999,7 +4027,7 @@ function dayCard(item){
     <div class="dc-bot">
       <div class="dc-price">
         ${showCash ? `<b class="sg">${formatPrice(item.price)} ${UNITH(item)}</b>` : ''}
-        ${ins ? `<i>${esc(ins)}</i>` : (showCash ? '' : `<i>${t("Bo'lib to'lash")}</i>`)}
+        ${kn.bolib ? `<i>${esc(kn.ins)}</i>` : ''}
       </div>
       <span class="dc-go">${res ? t('Band') : t('Batafsil')}${res ? '' : ICO_ARR}</span>
     </div>
@@ -5226,6 +5254,12 @@ function buildPayload(){
   };
   /* Dollarlik raqam — adminka va Telegram xabari summani $ bilan ko'rsatishi uchun */
   if(isUsd(it)) p.currency = 'USD';
+  /* RAQAM DILERNIKI bo'lsa — buyurtma uning kabinetiga ham tushsin.
+     Serverda diler ro'yxatni ko'rganda har bir buyurtmaning raqami
+     HAQIQATAN o'ziniki ekani qayta tekshiriladi (seller-api.js,
+     `buyurtmalar`) — ya'ni bu maydonni o'zgartirib boshqa dilerning
+     buyurtmasini ko'rib bo'lmaydi. */
+  if(it.sellerId) p.sellerId = String(it.sellerId).slice(0, 60);
   if(ORD.paymentType === 'installment'){
     p.installmentMonths = ORD.months;
     p.monthlyPayment = ORD.monthly;
