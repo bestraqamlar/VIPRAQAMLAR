@@ -31,6 +31,8 @@
 
 const admin = require('firebase-admin');
 const { verifyPassword, makeToken, requireSeller, initSecret } = require('./lib/sellerAuth');
+const TARIF = require('./lib/tariflar');
+const TOLOV = require('./lib/tolovlar');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -185,6 +187,8 @@ async function doLogin(body) {
 */
 const SAHIFA_SERVER = 1500;
 const OP_IDX = ['', 'Beeline', 'Ucell', 'Uzmobile', 'Mobiuz', 'Humans', 'Perfektum'];
+// Toifa qadoqda raqam bilan yuboriladi (kabinet shu ro'yxatdan ochadi)
+const TOIFA_IDX = ['', 'vip', 'premium', 'gold'];
 
 // `|` va yangi qator qadoq formatini buzmasligi uchun almashtiriladi
 const qEsc = (v) => String(v == null ? '' : v).replace(/[|\r\n]/g, ' ').slice(0, 120);
@@ -197,6 +201,7 @@ function qadoqla(id, x) {
   if (x.sold) fl |= 4;
   if (x.installment) fl |= 8;
   if (String(x.currency || '').toUpperCase() === 'USD') fl |= 16;
+  if (x.featured) fl |= 32;                       // "Mashhur" — bosh sahifa aylanmasi
   const op = OP_IDX.indexOf(x.operator || '');
   return [
     id, digits, (op < 0 ? 0 : op),
@@ -207,7 +212,8 @@ function qadoqla(id, x) {
     Number(x.monthly12) || 0,
     Number(x.monthly24) || 0,
     Number(x.createdAtSort) || 0,
-    qEsc(x.sellerNote)
+    qEsc(x.sellerNote),
+    Math.max(0, TOIFA_IDX.indexOf(String(x.tier || '').toLowerCase()))
   ].join('|');
 }
 
@@ -216,7 +222,7 @@ async function myNumbers(s, body) {
   let q = db.collection('numbers').where('sellerId', '==', s.id)
     .select('number', 'operator', 'price', 'oldPrice', 'currency', 'installment',
             'monthly6', 'monthly12', 'monthly24', 'reserved', 'hidden', 'sold',
-            'sellerNote', 'createdAtSort')
+            'sellerNote', 'createdAtSort', 'tier', 'featured')
     .limit(SAHIFA_SERVER);
   if (after) q = q.startAfter(await db.collection('numbers').doc(after).get());
 
@@ -283,6 +289,27 @@ function narxMaydonlari(body, eski) {
   return { valyuta, price, oldPrice, installment, oylik };
 }
 
+/* So'ralgan toifa/"Mashhur" ni tarif va limit bilan solishtiradi.
+   `eski` berilsa (tahrirlash) — allaqachon egallangan joy qayta
+   hisoblanmaydi. Qaytaradi: {tier, featured} yoki {xato}. */
+async function toifaTekshir(s, body, eski) {
+  const tier = String((body && body.tier) || '').toLowerCase();
+  const featured = !!(body && body.featured);
+  if (!tier && !featured) return { tier: '', featured: false };
+  if (tier && TARIF.TOIFALAR.indexOf(tier) === -1) return { xato: "Noma'lum toifa" };
+
+  const { tarif, band } = await tarifHolat(s);
+  const r = TARIF.ruxsatmi(tarif, tier, featured);
+  if (r.xato) return { xato: r.xato };
+
+  const eskiBand = !!(eski && eski.promoSeller);
+  if (!eskiBand && tarif && band >= tarif.quota) {
+    return { xato: tarif.name + ' tarifida ' + tarif.quota + ' raqamga ruxsat. ' +
+      'Avval boshqa raqamdan toifani olib tashlang yoki tarifni oshiring.' };
+  }
+  return { tier, featured };
+}
+
 async function addNumber(s, body) {
   const number = normNumber(body.number);
   if (!number) return bad("Raqam noto'g'ri. Masalan: 901234567");
@@ -298,6 +325,10 @@ async function addNumber(s, body) {
   const cnt = await db.collection('numbers').where('sellerId', '==', s.id).count().get().catch(() => null);
   if (cnt && cnt.data().count >= MAX_NUMBERS) return bad('Raqamlar soni chegarasiga yetdingiz');
 
+  // Toifa so'ralgan bo'lsa — tarif va limit tekshiriladi
+  const tv = await toifaTekshir(s, body);
+  if (tv.xato) return bad(tv.xato);
+
   const ref = await db.collection('numbers').add({
     number, operator, price,
     oldPrice: n.oldPrice,
@@ -305,8 +336,13 @@ async function addNumber(s, body) {
     currency: n.valyuta,
     installment: n.installment,
     monthly6: n.oylik.monthly6, monthly12: n.oylik.monthly12, monthly24: n.oylik.monthly24,
-    reserved: false, featured: false, hidden: false,
-    tier: '',                                   // toifasiz — rang qo'shilmaydi
+    reserved: false, hidden: false,
+    /* TOIFA va "MASHHUR" — faqat faol tarifda va faqat limit ichida.
+       Tarif yo'q yoki joy tugagan bo'lsa, so'rov ANIQ xato bilan
+       rad etiladi (yuqoridagi `toifaTekshir`) — raqam "jimgina
+       oddiy bo'lib" qo'shilmaydi, aks holda diler toifa qo'ydim
+       deb o'ylab qolardi. Toifa so'ralmagan bo'lsa — oddiy raqam. */
+    tier: tv.tier, featured: tv.featured,
     sellerId: s.id,
     sellerName: s.name || s.username,
     sellerCommissionPct: Number(s.commissionPct) || 0,   // qo'shilgan paytdagi foiz "muzlatiladi"
@@ -320,6 +356,7 @@ async function addNumber(s, body) {
     createdAt: NOW(),
     createdAtSort: Date.now()
   });
+  if (tv.tier || tv.featured) await ref.update({ promoSeller: s.id }).catch(() => {});
   await indeksEskirdi();
   return ok({ id: ref.id });
 }
@@ -415,6 +452,20 @@ async function updateNumber(s, body) {
     monthly6: n.oylik.monthly6, monthly12: n.oylik.monthly12, monthly24: n.oylik.monthly24
   };
   if (body.note != null) patch.sellerNote = clean(body.note, 300);
+
+  /* Toifa/"Mashhur" shu so'rovda ham o'zgartirilishi mumkin —
+     kabinetdagi tahrirlash oynasi bitta tugma bilan saqlasin. */
+  if (body.tier != null || body.featured != null) {
+    const tv = await toifaTekshir(s, {
+      tier: body.tier != null ? body.tier : data.tier,
+      featured: body.featured != null ? body.featured : data.featured
+    }, data);
+    if (tv.xato) return bad(tv.xato);
+    patch.tier = tv.tier;
+    patch.featured = tv.featured;
+    patch.promoSeller = (tv.tier || tv.featured) ? s.id : admin.firestore.FieldValue.delete();
+  }
+
   await ref.update(patch);
   await indeksEskirdi();
   return ok({});
@@ -516,18 +567,28 @@ async function umumiy(s) {
   const qiymat  = nums.filter(n => !n.sold && String(n.currency || 'UZS').toUpperCase() !== 'USD')
                       .reduce((a, n) => a + (Number(n.price) || 0), 0);
 
+  // Hali ko'rilmagan buyurtmalar — pastki menyudagi qizil belgi uchun
+  const yangiBuyurtma = await yangiBuyurtmaSoni(s);
+
   return ok({ stats: { jami: nums.length, sotuvda, band, sotilgan, aksiya, bolib, views, orders, qiymat,
-                       qamrov: ids.length, topViews: top6('views'), topOrders: top6('orders') } });
+                       qamrov: ids.length, yangiBuyurtma,
+                       topViews: top6('views'), topOrders: top6('orders') } });
 }
 
 /* ---------- Admin bilan yozishma ---------- */
 async function messages(s) {
+  /* DIQQAT: `where(...) + orderBy(boshqa maydon)` Firestore'da QO'SHIMCHA
+     indeks (composite index) talab qiladi — ya'ni siz Firebase konsolida
+     qo'lda indeks yaratmasangiz, yozishma umuman ochilmaydi. Shuni
+     talab qilmaslik uchun tartiblash SERVER XOTIRASIDA bajariladi:
+     bitta dilerning yozishmasi ko'pi bilan bir necha yuz xabar — bu
+     mutlaqo arzon. Natijada Firestore'da hech narsa sozlash kerak emas. */
   const q = await db.collection('seller_messages')
-    .where('sellerId', '==', s.id).orderBy('createdAtSort', 'desc').limit(100).get();
+    .where('sellerId', '==', s.id).limit(400).get();
   const rows = q.docs.map(d => {
     const x = d.data() || {};
     return { id: d.id, from: x.from || 'seller', text: x.text || '', at: Number(x.createdAtSort) || 0 };
-  }).reverse();
+  }).sort((a, b) => a.at - b.at).slice(-100);
   await db.collection('sellers').doc(s.id).update({ unreadForSeller: 0 }).catch(() => {});
   return ok({ rows });
 }
@@ -544,6 +605,252 @@ async function sendMessage(s, body) {
     lastMessageAt: NOW()
   }).catch(() => {});
   return ok({});
+}
+
+
+/* ==================================================================
+   TARIFLAR (Pro / Max) — DILERDAN KELADIGAN ASOSIY DAROMAD
+   ------------------------------------------------------------------
+   Oddiy raqam qo'yish BEPUL. Raqamni ajratib ko'rsatish (VIP /
+   Premium / Gold rang-yorliq va bosh sahifadagi "Mashhur" aylanma)
+   pullik obuna orqali ishlaydi.
+
+   HISOB-KITOB BITTA JOYDA. "Nechta ajratilgan raqamim bor" degan son
+   HECH QAYERDA alohida saqlanmaydi — har safar bazadan sanaladi.
+   Shu sabab u hech qachon haqiqatdan chetlashib qolmaydi (sanoqni
+   qo'lda oshirib-kamaytirish eng ko'p xato chiqaradigan joy).
+
+   Sanoq ARZON: `promoSeller` maydoni FAQAT ajratilgan raqamlarda
+   bo'ladi, ya'ni 10 000 raqamli dilerda ham so'rov 15 ta hujjatga
+   tegadi, ustiga Firestore'ning `count()` agregati ishlatiladi
+   (1000 hujjat = 1 o'qish). Qo'shimcha indeks ham kerak emas —
+   so'rov BITTA maydon bo'yicha.
+   ================================================================== */
+
+async function ishlatilgan(sellerId) {
+  const c = await db.collection('numbers').where('promoSeller', '==', sellerId)
+    .count().get().catch(() => null);
+  return c ? Number(c.data().count) || 0 : 0;
+}
+
+/* Dilerning tarif holati: faol tarif, muddat, sarflangan joy. */
+async function tarifHolat(s) {
+  const plans = await TARIF.tariflarniOl(db);
+  const tarif = TARIF.faolTarif(s, plans);
+  const band = await ishlatilgan(s.id);
+  return { plans, tarif, band };
+}
+
+/* Diler kabineti "Tarif" bo'limini shundan chizadi. */
+async function tariflar(s) {
+  const { plans, tarif, band } = await tarifHolat(s);
+  // Kutilayotgan so'rov bormi (admin hali tasdiqlamagan)
+  let sorov = null;
+  const q = await db.collection('seller_plan_requests')
+    .where('sellerId', '==', s.id).limit(20).get().catch(() => null);
+  if (q && !q.empty) {
+    const rows = q.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+      .sort((a, b) => (Number(b.createdAtSort) || 0) - (Number(a.createdAtSort) || 0));
+    const kut = rows.find(r => r.status === 'kutilmoqda');
+    if (kut) sorov = { id: kut.id, planId: kut.planId, price: Number(kut.price) || 0, at: Number(kut.createdAtSort) || 0 };
+  }
+  return ok({
+    plans,
+    my: {
+      plan: tarif ? tarif.id : '',
+      name: tarif ? tarif.name : '',
+      until: Number(s.planUntil) || 0,
+      kun: TARIF.qolganKun(s),
+      quota: tarif ? tarif.quota : 0,
+      band,
+      tiers: tarif ? tarif.tiers : [],
+      featured: tarif ? !!tarif.featured : false
+    },
+    sorov,
+    usullar: TOLOV.usullar()
+  });
+}
+
+/* "Pro olish" tugmasi. Qo'lda to'lov: so'rov admin panelga tushadi.
+   Onlayn: Payme/Click sahifasining manzili qaytariladi. */
+async function tarifSorov(s, body) {
+  const plans = await TARIF.tariflarniOl(db);
+  const p = plans.find(x => x.id === String(body.planId || ''));
+  if (!p) return bad('Tarif topilmadi');
+
+  // Bitta vaqtda bitta kutilayotgan so'rov — admin chalkashmasin
+  const bor = await db.collection('seller_plan_requests')
+    .where('sellerId', '==', s.id).limit(20).get().catch(() => null);
+  if (bor && !bor.empty) {
+    const kut = bor.docs.map(d => d.data() || {}).find(r => r.status === 'kutilmoqda');
+    if (kut) return bad("Oldingi so'rovingiz hali tasdiqlanmagan. Admin bilan bog'laning.");
+  }
+
+  const ref = await db.collection('seller_plan_requests').add({
+    sellerId: s.id, sellerName: s.name || s.username,
+    planId: p.id, planName: p.name, price: p.price, days: p.days,
+    usul: String(body.usul || 'qolda') === 'online' ? 'online' : 'qolda',
+    status: 'kutilmoqda',
+    createdAt: NOW(), createdAtSort: Date.now()
+  });
+
+  // Adminga Telegram orqali xabar (token qo'yilgan bo'lsa)
+  xabarAdminga("\uD83D\uDCB3 Tarif so'rovi\n" + (s.name || s.username) +
+    " \u2014 " + p.name + " (" + p.price.toLocaleString('ru-RU') + " so'm)").catch(() => {});
+
+  const javob = { id: ref.id, plan: p };
+  if (String(body.usul || '') === 'online') {
+    javob.payme = TOLOV.paymeUrl(ref.id, p.price);
+    javob.click = TOLOV.clickUrl(ref.id, p.price);
+    if (!javob.payme && !javob.click) {
+      javob.ogohlantirish = "Onlayn to'lov hali yoqilmagan \u2014 admin tasdiqlashini kuting.";
+    }
+  }
+  return ok(javob);
+}
+
+async function xabarAdminga(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) return;
+  await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chat, text })
+  }).catch(() => {});
+}
+
+/* Raqamga toifa / "Mashhur" belgisini qo'yish yoki olib tashlash.
+   Tekshiruvlar ketma-ketligi MUHIM: avval arzonlari (qoida), keyin
+   bazaga tegadigani (joy sanog'i). */
+async function toifaQoy(s, body) {
+  const { ref, data } = await mineOrFail(s, body.id);
+  if (data.sold) return bad("Sotilgan raqamni o'zgartirib bo'lmaydi");
+
+  const tier = String(body.tier || '').toLowerCase();
+  if (tier && TARIF.TOIFALAR.indexOf(tier) === -1) return bad("Noma'lum toifa");
+  const featured = !!body.featured;
+
+  const { tarif, band } = await tarifHolat(s);
+  const r = TARIF.ruxsatmi(tarif, tier, featured);
+  if (r.xato) return bad(r.xato);
+
+  const eskiBand = !!data.promoSeller;
+  const yangiBand = !!(tier || featured);
+
+  // Yangi joy egallanayotgan bo'lsa — limit tekshiriladi
+  if (yangiBand && !eskiBand && tarif && band >= tarif.quota) {
+    return bad(tarif.name + ' tarifida ' + tarif.quota + ' raqamga ruxsat. ' +
+      'Avval boshqa raqamdan toifani olib tashlang yoki tarifni oshiring.');
+  }
+
+  const patch = {
+    tier: tier || '',
+    featured: featured,
+    updatedAt: NOW()
+  };
+  patch.promoSeller = yangiBand ? s.id : admin.firestore.FieldValue.delete();
+  await ref.update(patch);
+  await indeksEskirdi();
+  return ok({ band: yangiBand ? (eskiBand ? band : band + 1) : Math.max(0, band - (eskiBand ? 1 : 0)) });
+}
+
+
+/* ==================================================================
+   BUYURTMALAR — DILERGA HAM TUSHADI
+   ------------------------------------------------------------------
+   Mijoz saytda raqamga buyurtma bersa, u endi ikki joyga tushadi:
+   admin paneliga va O'SHA RAQAM EGASI bo'lgan dilerning kabinetiga.
+
+   QANDAY TOPILADI. Buyurtma hujjatida `sellerId` bor (saytni o'zi
+   yozadi — raqamning egasi indeksda ko'rsatilgan). Shu sabab so'rov
+   BITTA maydon bo'yicha ketadi va bir zumda javob beradi. Aks holda
+   dilerning 10 000 raqam ID'sini bo'lak-bo'lak solishtirish kerak
+   bo'lardi — bu 1000 ta so'rov degani.
+
+   XAVFSIZLIK. `sellerId` brauzerdan keladi, ya'ni unga KO'R-KO'RONA
+   ishonib bo'lmaydi. Shu sabab ro'yxat chizilishidan oldin har bir
+   buyurtmaning `numberId` si HAQIQATAN shu dilerniki ekani bazadan
+   qayta tekshiriladi (10 tadan guruhlab). Mos kelmagani tashlab
+   yuboriladi — ya'ni maydonni o'zgartirib boshqa dilerning mijozini
+   ko'rib bo'lmaydi.
+   ================================================================== */
+const BUYURTMA_CAP = 300;     // bazadan olinadigan eng ko'p buyurtma
+const BUYURTMA_SAHIFA = 60;   // kabinetga yuboriladigan son
+
+async function buyurtmalar(s, body) {
+  const q = await db.collection('orders')
+    .where('sellerId', '==', s.id).limit(BUYURTMA_CAP).get().catch(() => null);
+  if (!q || q.empty) return ok({ rows: [], jami: 0, yangi: 0 });
+
+  const hammasi = q.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+    .sort((a, b) => (Number(b.createdAtSort) || 0) - (Number(a.createdAtSort) || 0));
+  const kesilgan = hammasi.slice(0, BUYURTMA_SAHIFA);
+
+  /* --- Egalik tekshiruvi --- */
+  const idlar = Array.from(new Set(kesilgan.map(o => o.numberId).filter(Boolean)));
+  const meniki = {};
+  for (let i = 0; i < idlar.length; i += 10) {
+    const chunk = idlar.slice(i, i + 10);
+    const r = await db.collection('numbers')
+      .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
+      .select('sellerId').get().catch(() => null);
+    if (r) r.forEach(d => { if ((d.data() || {}).sellerId === s.id) meniki[d.id] = 1; });
+  }
+
+  const rows = kesilgan.filter(o => o.numberId && meniki[o.numberId]).map(o => ({
+    id: o.id,
+    number: o.number || '',
+    name: o.name || '',
+    phone: o.phone || '',
+    region: o.region || '',
+    price: Number(o.price) || 0,
+    currency: o.currency === 'USD' ? 'USD' : 'UZS',
+    status: o.status || 'Yangi',
+    paymentType: o.paymentType === 'installment' ? 'installment' : 'cash',
+    months: Number(o.installmentMonths) || 0,
+    monthly: Number(o.monthlyPayment) || 0,
+    down: Number(o.installmentDownPayment) || 0,
+    source: o.source || 'Sayt',
+    at: Number(o.createdAtSort) || 0,
+    sana: o.createdAt || ''
+  }));
+
+  /* "Yangi" (hali ko'rilmagan) sanog'i — pastki menyudagi belgi uchun */
+  const korilgan = Number(s.ordersSeenAt) || 0;
+  const yangi = rows.filter(o => o.at > korilgan).length;
+
+  // Diler ro'yxatni ochdi — belgini so'ndiramiz
+  if (body && body.korildi) {
+    await db.collection('sellers').doc(s.id)
+      .update({ ordersSeenAt: Date.now() }).catch(() => {});
+  }
+  return ok({ rows, jami: hammasi.length, yangi });
+}
+
+/* Pastki menyudagi belgi uchun yengil sanoq (ro'yxat yuklanmasdan).
+   FAQAT yangi (hali ko'rilmagan) buyurtmalar tekshiriladi — ular
+   odatda bir nechta, shu sabab egalik tekshiruvi ham shu yerda
+   arzonga tushadi va belgi ro'yxat bilan BIR XIL sonni ko'rsatadi. */
+async function yangiBuyurtmaSoni(s) {
+  const korilgan = Number(s.ordersSeenAt) || 0;
+  try {
+    const q = await db.collection('orders').where('sellerId', '==', s.id)
+      .select('createdAtSort', 'numberId').limit(BUYURTMA_CAP).get();
+    const yangilar = [];
+    q.forEach(d => {
+      const x = d.data() || {};
+      if ((Number(x.createdAtSort) || 0) > korilgan && x.numberId) yangilar.push(x.numberId);
+    });
+    if (!yangilar.length) return 0;
+    const idlar = Array.from(new Set(yangilar)).slice(0, 60);
+    const meniki = {};
+    for (let i = 0; i < idlar.length; i += 10) {
+      const r = await db.collection('numbers')
+        .where(admin.firestore.FieldPath.documentId(), 'in', idlar.slice(i, i + 10))
+        .select('sellerId').get().catch(() => null);
+      if (r) r.forEach(d => { if ((d.data() || {}).sellerId === s.id) meniki[d.id] = 1; });
+    }
+    return yangilar.filter(id => meniki[id]).length;
+  } catch (e) { return 0; }
 }
 
 /* ---------- Kirish nuqtasi ---------- */
@@ -567,7 +874,20 @@ exports.handler = async function (event) {
 
     const s = await requireSeller(event, db);
     switch (action) {
-      case 'me':           return ok({ seller: { id: s.id, name: s.name || '', username: s.username, commissionPct: Number(s.commissionPct) || 0, unread: Number(s.unreadForSeller) || 0 } });
+      case 'me': {
+        /* Kabinet ochilishi bilan tarif holatini ham oladi — "Tarif"
+           bo'limiga kirmasdan ham yuqorida ko'rinib turadi. */
+        const plans = await TARIF.tariflarniOl(db);
+        const t = TARIF.faolTarif(s, plans);
+        return ok({ seller: {
+          id: s.id, name: s.name || '', username: s.username,
+          commissionPct: Number(s.commissionPct) || 0,
+          unread: Number(s.unreadForSeller) || 0,
+          plan: t ? t.id : '', planName: t ? t.name : '',
+          planUntil: Number(s.planUntil) || 0, planKun: TARIF.qolganKun(s),
+          quota: t ? t.quota : 0
+        } });
+      }
       case 'myNumbers':    return await myNumbers(s, body);
       case 'stats':        return await umumiy(s);
       case 'numberStats':  return await numberStats(s, body);
@@ -575,6 +895,10 @@ exports.handler = async function (event) {
       case 'addBulk':      return await addBulk(s, body);
       case 'updateNumber': return await updateNumber(s, body);
       case 'removeNumber': return await removeNumber(s, body);
+      case 'tariflar':     return await tariflar(s);
+      case 'tarifSorov':   return await tarifSorov(s, body);
+      case 'toifaQoy':     return await toifaQoy(s, body);
+      case 'buyurtmalar':  return await buyurtmalar(s, body);
       case 'earnings':     return await earnings(s);
       case 'messages':     return await messages(s);
       case 'sendMessage':  return await sendMessage(s, body);

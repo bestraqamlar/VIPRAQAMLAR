@@ -41,6 +41,11 @@ function packRow(id, x, opIdx) {
   put('d6', x.dealMonthly6); put('d12', x.dealMonthly12); put('d24', x.dealMonthly24);
   put('c', x.currency); put('op', x.operatorPrice); put('nt', x.note);
   put('de', x.dealExpiresAt);
+  /* Diler ID'si. Sayt buni buyurtma hujjatiga yozadi — shunda
+     buyurtma o'sha dilerning kabinetiga ham tushadi (aks holda
+     dilerning 10 000 raqamini birma-bir solishtirish kerak bo'lardi).
+     Maxfiy ma'lumot emas: raqamning kimga tegishliligi xolos. */
+  put('sid', x.sellerId);
 
   const ti = Math.max(0, TIERS.indexOf(String(x.tier || '').toLowerCase()));
   const digits = String(x.number || '').replace(/\D/g, '').slice(-9);
