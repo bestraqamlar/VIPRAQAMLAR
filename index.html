@@ -5096,10 +5096,24 @@ function renderOrder(){
 
 function bindPhoneMask(){
   const inp = $('#inPhone'); if(!inp) return;
+  /* IPHONE: yozayotganda maydon qiymatiga TEGILMAYDI.
+     Har bir harfda `inp.value` qayta yozilsa, iOS kursorni ko'chiradi
+     va klaviatura ustidagi bashorat paneli bilan sinxronlash
+     kechikadi — mijoz buni "qotib qoldi, harf kech chiqyapti" deb
+     his qiladi va ba'zan buyurtmani tashlab ketadi.
+     Endi yozish erkin; bo'shliqlar maydondan CHIQQANDA qo'yiladi.
+     `ORD.phoneRaw` esa avvalgiday har harfda yangilanadi (u faqat
+     raqamlarni saqlaydi, ko'rinishga ta'sir qilmaydi). */
+  inp.setAttribute('inputmode', 'tel');
   inp.addEventListener('input', ()=>{
-    const raw = extractRawDigits(inp.value);
-    inp.value = formatUzNumber(raw); ORD.phoneRaw = raw;
+    ORD.phoneRaw = extractRawDigits(inp.value);
     $('#fPhone').classList.remove('bad');
+  });
+  inp.addEventListener('blur', ()=>{
+    const raw = extractRawDigits(inp.value);
+    const f = formatUzNumber(raw);
+    if(f !== inp.value) inp.value = f;
+    ORD.phoneRaw = raw;
   });
 }
 function bindRegion(){
@@ -5611,7 +5625,10 @@ function renderCustom(){
       b.addEventListener('keydown', e => { if(e.key==='Backspace' && !b.value && boxes[i-1]) boxes[i-1].focus(); });
     });
     const p = $('#coInPhone');
-    if(p) p.addEventListener('input', ()=>{ p.value = formatUzNumber(extractRawDigits(p.value)); $('#coPhone').classList.remove('bad'); });
+    /* iPhone: yozayotganda tegilmaydi, format chiqishda qo'yiladi */
+    if(p){ p.setAttribute('inputmode','tel');
+      p.addEventListener('input', ()=>{ $('#coPhone').classList.remove('bad'); });
+      p.addEventListener('blur', ()=>{ p.value = formatUzNumber(extractRawDigits(p.value)); }); }
   }, 0);
 }
 async function loadCustomPrice(){
@@ -5826,7 +5843,9 @@ function openVacForm(id){
     <button class="btn" id="vfSubmit" style="margin-top:16px" disabled>Arizani yuborish</button><div style="height:6px"></div>`;
   setTimeout(()=>{
     const p = $('#vfInPhone');
-    p.addEventListener('input', ()=>{ p.value = formatUzNumber(extractRawDigits(p.value)); $('#vfPhone').classList.remove('bad'); });
+    p.setAttribute('inputmode','tel');
+    p.addEventListener('input', ()=>{ $('#vfPhone').classList.remove('bad'); });
+    p.addEventListener('blur', ()=>{ p.value = formatUzNumber(extractRawDigits(p.value)); });
     $('#vfConsent').addEventListener('change', e => { $('#vfSubmit').disabled = !e.target.checked; });
   }, 0);
 }
@@ -6732,7 +6751,9 @@ function openFilter(){
 
 ['oqPhone','ctPhone'].forEach(id => {
   const el = document.getElementById(id);
-  if(el) el.addEventListener('input', ()=>{ el.value = formatUzNumber(extractRawDigits(el.value)); });
+  /* iPhone: yozayotganda tegilmaydi, format maydondan chiqishda */
+  if(el){ el.setAttribute('inputmode','tel');
+    el.addEventListener('blur', ()=>{ el.value = formatUzNumber(extractRawDigits(el.value)); }); }
 });
 (function(){
   const boxes = $$('#oqDigits input'), hidden = $('#oqLast');

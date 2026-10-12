@@ -1239,12 +1239,15 @@ function raqamFormat(v){
   if(d.length > 7) out += ' ' + d.slice(7,9);
   return out;
 }
-$('#adN').addEventListener('input', e => {
-  const oxirida = e.target.selectionStart >= e.target.value.length;
-  e.target.value = raqamFormat(e.target.value);
-  if(oxirida) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
-  opKorsat();
-});
+/* IPHONE: yozayotganda maydon qiymatiga TEGILMAYDI.
+   Har bir harfda `value` qayta yozilsa, iOS kursorni ko'chiradi va
+   klaviatura ustidagi bashorat paneli bilan sinxronlash kechikadi —
+   odam buni "qotib qoldi, harf kech chiqyapti" deb his qiladi.
+   Endi yozish butunlay erkin, bo'shliqlar esa maydondan CHIQQANDA
+   qo'yiladi. Operator aniqlash yengil ish — u darhol ishlaydi. */
+$('#adN').setAttribute('inputmode', 'tel');
+$('#adN').addEventListener('input', opKorsat);
+$('#adN').addEventListener('blur', e => { e.target.value = raqamFormat(e.target.value); opKorsat(); });
 function opKorsat(){
   const op = opAniqla($('#adN').value);
   $('#adOpDot').style.background = op ? (OP_RANG[op]||'#9FB3D1') : 'var(--faint)';
@@ -1255,7 +1258,11 @@ function opKorsat(){
 
 /* ---------- Narx maydonlari: yozayotganda bo'shliq qo'yiladi ---------- */
 function narxFormat(el){
-  el.addEventListener('input', ()=>{
+  el.setAttribute('inputmode', 'numeric');
+  /* Yozayotganda tegilmaydi (yuqoridagi izohga qarang) — bo'shliqlar
+     maydondan chiqqanda qo'yiladi. */
+  el.addEventListener('input', aksiyaKorsat);
+  el.addEventListener('blur', ()=>{
     const d = sonla(el.value);
     el.value = d ? pul(d) : '';
     aksiyaKorsat();

@@ -4016,7 +4016,14 @@ body{
 #paneXabarlar .xb-msg.ok{color:#7CEFB8;}
 #paneXabarlar .xb-msg.bad{color:#FF8D8D;}
 #paneXabarlar .xb-wrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start;}
-@media (max-width:900px){ .xb-wrap{grid-template-columns:1fr;} }
+/* DIQQAT: tanlagich `#paneXabarlar` bilan yozilishi SHART — aks holda
+   yuqoridagi id'li qoida (specificity) buni bosib ketadi va telefonda
+   oldindan ko'rish bloki ikkinchi ustunda qolib, ekrandan chiqib
+   ketadi (360px da o'lchangan: o'ng chekkasi 362px). */
+@media (max-width:900px){
+  #paneXabarlar .xb-wrap{grid-template-columns:minmax(0,1fr);}
+  #paneXabarlar .xb-prev{max-width:100%;}
+}
 #paneXabarlar .xb-prev-h{font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:9px;}
 #paneXabarlar .xb-phone{
   border-radius:22px;padding:10px;background:#0B1B33;
@@ -4352,32 +4359,72 @@ body{
   .main-content{padding-bottom:92px;}
 
   /* ---- Bo'lim kartochkalari ---- */
-  #mgrid{display:none;padding:14px 14px 10px;}
+  #mgrid{display:none;padding:12px 14px 10px;}
   #mgrid.on{display:block;}
-  .mg-h{font-family:'Sora',sans-serif;font-size:19px;font-weight:800;
-    letter-spacing:-.02em;margin:2px 2px 3px;}
-  .mg-s{font-size:12.5px;color:var(--muted);margin:0 2px 15px;font-weight:600;}
-  .mg-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
-  .mg-card{
-    position:relative;display:flex;flex-direction:column;gap:9px;
-    padding:15px 14px 14px;border-radius:17px;text-align:left;
+
+  /* Qidiruv — 28 ta bo'limni aylantirib o'tirmaslik uchun */
+  .mg-search{
+    position:relative;display:flex;align-items:center;margin:0 0 16px;
+  }
+  .mg-search svg{
+    position:absolute;left:13px;width:17px;height:17px;color:var(--muted);pointer-events:none;
+  }
+  .mg-search input{
+    width:100%;height:46px;padding:0 40px 0 39px;border-radius:14px;
     background:var(--panel);border:1px solid var(--line);color:var(--text);
-    font-family:inherit;cursor:pointer;overflow:hidden;
-    contain:layout paint style;
-    transition:transform .14s cubic-bezier(.2,.9,.3,1), border-color .18s, background .18s;
+    font-family:inherit;font-size:15px;font-weight:600;
+    -webkit-appearance:none;appearance:none;
+  }
+  .mg-search input::-webkit-search-cancel-button{display:none;}
+  .mg-search input:focus{outline:none;border-color:var(--amber);}
+  .mg-x{
+    position:absolute;right:7px;width:32px;height:32px;border-radius:10px;border:none;
+    background:transparent;color:var(--muted);font-size:14px;cursor:pointer;
+  }
+
+  .mg-h{
+    font-family:'Sora',sans-serif;font-size:19px;font-weight:800;
+    letter-spacing:-.025em;margin:2px 2px 3px;
+  }
+  .mg-h.sm{
+    font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);margin:0 2px 9px;
+  }
+  .mg-s{font-size:12.5px;color:var(--muted);margin:0 2px 14px;font-weight:600;}
+  .mg-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px;}
+
+  .mg-card{
+    position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:11px;
+    padding:15px 13px 14px;border-radius:18px;text-align:left;min-height:124px;
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    font-family:inherit;cursor:pointer;overflow:hidden;contain:layout paint style;
+    transition:transform .13s cubic-bezier(.2,.9,.3,1), border-color .18s, background .18s;
   }
   .mg-card::before{
-    content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
-    background:radial-gradient(120px 80px at 100% 0%, rgba(21,70,214,.18), transparent 70%);
+    content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:radial-gradient(130px 86px at 100% 0%, rgba(21,70,214,.16), transparent 72%);
   }
-  .mg-card:active{transform:scale(.96);border-color:var(--amber);}
+  .mg-card:active{transform:scale(.955);border-color:var(--amber);}
   .mg-ico{
-    width:38px;height:38px;border-radius:12px;flex:none;display:flex;
+    width:40px;height:40px;border-radius:13px;flex:none;display:flex;
     align-items:center;justify-content:center;
-    background:rgba(21,70,214,.14);color:#7FA4FF;
+    background:rgba(21,70,214,.13);color:#7FA4FF;
   }
-  .mg-ico svg{width:20px;height:20px;}
-  .mg-nom{font-size:13.5px;font-weight:700;line-height:1.3;letter-spacing:-.01em;}
+  .mg-ico svg{width:21px;height:21px;}
+  /* MATN BLOKI — nom va izoh HECH QACHON ustma-ust tushmaydi:
+     ular alohida qatorlar, nom ko'pi bilan 2 qator, izoh 2 qator,
+     ortig'i "…" bilan kesiladi. */
+  .mg-txt{display:flex;flex-direction:column;gap:3px;min-width:0;width:100%;}
+  .mg-nom{
+    font-size:13.5px;font-weight:700;line-height:1.28;letter-spacing:-.012em;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;word-break:break-word;
+  }
+  .mg-izoh{
+    font-size:11px;font-weight:600;line-height:1.35;color:var(--muted);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;word-break:break-word;
+  }
   .mg-badge{
     position:absolute;top:12px;right:12px;min-width:19px;height:19px;padding:0 6px;
     border-radius:99px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;
@@ -4400,7 +4447,7 @@ body{
     position:absolute;left:0;top:6px;height:50px;width:0;border-radius:99px;
     background:rgba(21,70,214,.22);border:1px solid rgba(21,70,214,.45);
     transform:translateX(0);opacity:0;pointer-events:none;
-    transition:transform .26s cubic-bezier(.2,.9,.25,1),width .26s cubic-bezier(.2,.9,.25,1),opacity .16s;
+    transition:transform .22s cubic-bezier(.2,.9,.25,1),width .22s cubic-bezier(.2,.9,.25,1),opacity .14s;
     will-change:transform,width;
   }
   #mnav .mn-pill.on{opacity:1;}
@@ -4413,7 +4460,15 @@ body{
   #mnav button.on{color:var(--text);}
   #mnav button:active{transform:none;}
   #mnav svg{width:21px;height:21px;flex:none;}
-  #mnav b{font-size:9.5px;font-weight:800;letter-spacing:.01em;line-height:1;white-space:nowrap;}
+  /* YOZUV TUGMASIDAN CHIQIB KETMASIN (320px li telefonda
+     "Buyurtmalar" qo'shni yozuvga tegib ketardi). Endi yorliqlar
+     qisqa, ustiga tugma kengligidan oshsa "…" bilan kesiladi. */
+  #mnav b{
+    font-size:9.5px;font-weight:800;letter-spacing:.005em;line-height:1;
+    max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    padding:0 2px;
+  }
+  @media (max-width:360px){ #mnav b{font-size:9px;letter-spacing:-.01em;} }
   #mnav .mn-nb[hidden]{display:none;}
   #mnav .mn-nb{
     position:absolute;top:3px;right:calc(50% - 19px);min-width:15px;height:15px;padding:0 4px;
@@ -4493,7 +4548,7 @@ body{
 @media (max-width:900px){
   .admin-list, .qz-list{gap:10px;}
   .an-thead, .qz-thead{display:none;}
-  .admin-row-collapsed, .qz-item{border-radius:16px;contain-intrinsic-size:auto 104px;}
+  .admin-row-collapsed, .qz-item{border-radius:16px;contain-intrinsic-size:auto 115px;}
 
   /* RAQAM KARTOCHKASINING ICHI — telefonda.
      Ilgari bu yerda CSS-grid ishlatilardi va operator, toifa hamda
@@ -4520,6 +4575,89 @@ body{
   .an-summary .an-ib{width:32px;height:32px;}
   .an-summary .anc-num b{font-size:16px;white-space:nowrap;}
   .an-summary .anc-price b{font-size:15px;white-space:nowrap;}
+}
+/* ==================================================================
+   TELEFON: BO'LIMLAR ICHI TARTIBGA SOLINDI + INSTAGRAM USLUBIDAGI
+   O'TISHLAR
+   ------------------------------------------------------------------
+   Mijoz: "kartochka va ochgandagi oynalar aniq emas, betartib
+   joylashib yotibdi; menyu o'tishlari juda oddiy".
+
+   1) TARTIB. 28 ta bo'lim turli vaqtda yozilgani uchun har birida
+      o'z o'lchami, o'z bo'shlig'i va 2-3 ustunli formalar bor edi —
+      telefonda ular siqilib, maydonlar yarim enli bo'lib qolardi.
+      Endi telefonda HAMMASI bitta qoidaga bo'ysunadi: bitta ustun,
+      to'liq enli maydonlar, bir xil burchak, bir xil ichki bo'shliq,
+      barmoqqa qulay (46px) tugmalar.
+
+   2) O'TISHLAR. Bo'lim kartochkasi bosilganda sahifa Instagram'dagi
+      kabi O'NGDAN suriladi, "orqaga" bosilganda CHAPDAN qaytadi.
+      Animatsiya faqat `transform` va `opacity` ustida ishlaydi —
+      ya'ni protsessorni emas, videokartani band qiladi va eski
+      telefonda ham silliq chiqadi (0,2 soniya, "tez" his beriladi).
+   ================================================================== */
+@media (max-width:900px){
+  /* ---------- 1) TARTIB ---------- */
+  .pane{overflow-x:hidden;}
+
+  /* DIQQAT: ko'p bo'limlarda "qo'shish" formasi ish paytida MODAL
+     oynaga (.vm-back) ko'chiriladi — shu sabab har bir qoida ikkala
+     joyga ham yoziladi, aks holda oynadagi forma tartibsiz qolardi. */
+
+  /* Ko'p ustunli formalar bitta ustunga */
+  .pane .cr-form-grid, .pane .akt-form-grid, .pane .ig-form-grid,
+  .pane .form-grid, .pane .settings-grid, .pane .zk-form-grid,
+  .pane .pv-form-grid, .pane .vz-form-grid, .pane .add-form,
+  .vm-back .cr-form-grid, .vm-back .akt-form-grid, .vm-back .ig-form-grid,
+  .vm-back .form-grid, .vm-back .settings-grid, .vm-back .zk-form-grid,
+  .vm-back .pv-form-grid, .vm-back .vz-form-grid, .vm-back .add-form{
+    display:grid !important;grid-template-columns:1fr !important;gap:11px !important;
+  }
+  .pane .cr-form-split, .pane .cr-form-2col,
+  .vm-back .cr-form-split, .vm-back .cr-form-2col{display:block !important;}
+  .pane .cr-field-wide, .pane .akt-field-wide,
+  .vm-back .cr-field-wide, .vm-back .akt-field-wide{grid-column:auto !important;}
+
+  /* Maydonlar to'liq enli va bir xil balandlikda */
+  .pane input:not([type="checkbox"]):not([type="radio"]),
+  .pane select, .pane textarea,
+  .vm-back input:not([type="checkbox"]):not([type="radio"]),
+  .vm-back select, .vm-back textarea{
+    width:100%;min-height:46px;border-radius:12px;
+  }
+  .pane textarea, .vm-back textarea{min-height:92px;}
+  .pane label, .vm-back label{font-size:12px;}
+
+  /* Kartochkalar — bir xil burchak va ichki bo'shliq */
+  .pane .settings-form, .pane .card, .pane .dash-card, .pane .mgmt-card{
+    border-radius:16px;padding:15px 14px;margin-bottom:12px;
+  }
+  .pane h3, .vm-back h3{font-size:15px;margin:0 0 11px;}
+
+  /* Tugmalar barmoqqa qulay */
+  .pane .settings-form button, .pane .card > button,
+  .pane .primary-btn, .pane .add-btn,
+  .vm-back .settings-form button, .vm-back .vm-foot button{min-height:46px;}
+
+  /* Keng jadvallar sahifani cho'zib yubormasin */
+  .pane table{display:block;width:100%;overflow-x:auto;}
+
+  /* ---------- 2) INSTAGRAM USLUBIDAGI O'TISHLAR ---------- */
+  @keyframes mOldinga{from{opacity:0;transform:translate3d(16px,0,0)}
+                      to{opacity:1;transform:none}}
+  @keyframes mOrqaga{from{opacity:0;transform:translate3d(-16px,0,0)}
+                     to{opacity:1;transform:none}}
+  .m-oldinga .pane.active{animation:mOldinga .16s cubic-bezier(.22,.9,.3,1) both;}
+  #mgrid.on{animation:mOrqaga .16s cubic-bezier(.22,.9,.3,1) both;}
+  .m-almash #mgrid.on{animation:mOldinga .16s cubic-bezier(.22,.9,.3,1) both;}
+
+  /* Menyu belgisi — bosilganda "sakrab" qaytadi (ilovalardagi kabi) */
+  @keyframes mnPop{0%{transform:scale(.78)}55%{transform:scale(1.14)}100%{transform:scale(1)}}
+  #mnav button.on svg{animation:mnPop .3s cubic-bezier(.2,.9,.3,1.5) both;}
+  #mnav button:active svg{transform:scale(.88);transition:transform .08s;}
+  /* Kartochka bosilganda — darhol javob */
+  .mg-card{transition:transform .12s cubic-bezier(.2,.9,.3,1), border-color .16s;}
+  .mg-card:active{transform:scale(.955);}
 }
 </style>
 </head>
@@ -7634,36 +7772,30 @@ const ICONS = {
    o'tirishi shart emas. */
 function attachUzPhoneAutoFormat(el){
   if(!el) return;
-  el.addEventListener('focus', ()=>{
-    if(!el.value) el.value = '+998 ';
-  });
-  el.addEventListener('input', ()=>{
-    // iPhone'da "yozayotganda harf darhol ko'rinmayabdi, qotib qolgandek"
-    // degan shikoyat: el.value 'input' hodisasi ICHIDA, HAR bir harfda
-    // SINXRON qayta yozilsa, ba'zi iOS Safari versiyalarida klaviatura
-    // ustidagi bashorat (QuickType) paneli bilan matnni sinxronlash
-    // kechikadi — natijada yangi harf zumda emas, biroz kech chiqadi.
-    // Shu sabab formatlashni joriy hodisa siklidan CHIQARAMIZ —
-    // requestAnimationFrame keyingi chizish siklida bajaradi, brauzer esa
-    // shu orada mijoz yozgan harfni odatdagidek, kechikishsiz chizib
-    // ulguradi. `raw` solishtiruvi — orada yana yozib yuborilgan bo'lsa,
-    // eskirgan formatni qo'llamaslik uchun.
-    const raw = el.value;
-    requestAnimationFrame(()=>{
-      if(el.value !== raw) return;
-      let digits = raw.replace(/\D/g, '');
-      if(digits.startsWith('998')) digits = digits.slice(3);
-      digits = digits.slice(0, 9);
-      let out = '+998';
-      if(digits.length > 0) out += ' ' + digits.slice(0, 2);
-      if(digits.length > 2) out += ' ' + digits.slice(2, 5);
-      if(digits.length > 5) out += '-' + digits.slice(5, 7);
-      if(digits.length > 7) out += '-' + digits.slice(7, 9);
-      if(out !== el.value) el.value = out;
-    });
-  });
+  el.setAttribute('inputmode', 'tel');
+  el.setAttribute('autocomplete', 'off');
+  el.setAttribute('autocorrect', 'off');
+  el.setAttribute('spellcheck', 'false');
+
+  /* MUHIM: yozayotganda `el.value` ga UMUMAN TEGILMAYDI.
+     Aynan shu — iPhone'dagi "qotib qolish"ning sababi: har bir
+     harfda qiymat qayta yozilsa, iOS kursorni ko'chiradi va
+     klaviatura ustidagi bashorat paneli bilan sinxronlash
+     kechikadi. (Avval buni requestAnimationFrame bilan
+     yumshatishga urinilgan edi — yetarli bo'lmadi.)
+     Endi "Vazifa qo'shish" maydonidagi kabi: yozish butunlay
+     erkin, format esa maydondan CHIQQANDA bir marta qo'yiladi. */
   el.addEventListener('blur', ()=>{
-    if(el.value.replace(/\D/g, '') === '998' || el.value.trim() === '+998') el.value = '';
+    let digits = String(el.value || '').replace(/\D/g, '');
+    if(digits.startsWith('998')) digits = digits.slice(3);
+    digits = digits.slice(0, 9);
+    if(!digits){ el.value = ''; return; }
+    let out = '+998';
+    out += ' ' + digits.slice(0, 2);
+    if(digits.length > 2) out += ' ' + digits.slice(2, 5);
+    if(digits.length > 5) out += '-' + digits.slice(5, 7);
+    if(digits.length > 7) out += '-' + digits.slice(7, 9);
+    el.value = out;
   });
 }
 
@@ -7672,17 +7804,12 @@ function attachUzPhoneAutoFormat(el){
    ulanadi. Haqiqiy sonni olish uchun vzParseSum() ishlatiladi. */
 function attachThousandsFormat(el){
   if(!el) return;
-  el.addEventListener('input', ()=>{
-    // attachUzPhoneAutoFormat'dagi kabi: iPhone'da yozish "qotib
-    // qolgandek" ko'rinmasligi uchun el.value qayta yozilishi
-    // requestAnimationFrame bilan keyingi chizish sikliga kechiktiriladi.
-    const raw = el.value;
-    requestAnimationFrame(()=>{
-      if(el.value !== raw) return;
-      const digits = raw.replace(/\D/g, '');
-      const out = digits ? Number(digits).toLocaleString('ru-RU').replace(/,/g, ' ') : '';
-      if(out !== el.value) el.value = out;
-    });
+  el.setAttribute('inputmode', 'numeric');
+  /* Yozayotganda tegilmaydi (attachUzPhoneAutoFormat izohiga qarang) —
+     bo'shliqlar maydondan chiqqanda qo'yiladi. */
+  el.addEventListener('blur', ()=>{
+    const digits = String(el.value || '').replace(/\D/g, '');
+    el.value = digits ? Number(digits).toLocaleString('ru-RU').replace(/,/g, ' ') : '';
   });
 }
 function parseSumInput(val){
@@ -9660,24 +9787,12 @@ function formatDate(ts){
   return d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric' });
 }
 
-/* Kredit formasidagi telefon maydonlarini avtomatik formatlash */
-['crPhone','crNumber'].forEach(id=>{
-  const el = document.getElementById(id);
-  el.addEventListener('input', ()=>{
-    // iPhone'da yozish kechikmasligi uchun (qarang: attachUzPhoneAutoFormat
-    // izohi) — el.value qayta yozilishi keyingi chizish sikliga
-    // kechiktiriladi.
-    const raw0 = el.value;
-    requestAnimationFrame(()=>{
-      if(el.value !== raw0) return;
-      const formatted = formatUzNumber(extractRawDigits(raw0));
-      if(formatted !== el.value) el.value = formatted;
-    });
-  });
-  el.addEventListener('focus', ()=>{
-    if(!el.value) el.value = '+998 ';
-  });
-});
+/* Kredit formasidagi telefon maydonlari — saytdagi BOSHQA barcha
+   telefon maydonlari bilan AYNAN bir xil, iPhone'da qotmaydigan
+   usul (attachUzPhoneAutoFormat izohiga qarang): yozayotganda
+   qiymatga tegilmaydi, format maydondan chiqqanda qo'yiladi. */
+attachUzPhoneAutoFormat(document.getElementById('crPhone'));
+attachUzPhoneAutoFormat(document.getElementById('crNumber'));
 
 // XAVFSIZLIK / IZOLYATSIYA: "Kredit" bo'limi endi to'g'ridan-to'g'ri
 // Firestore Client SDK orqali emas, balki admin-credit.js (Admin SDK,
@@ -9816,9 +9931,16 @@ function refreshCrLivePreview(){
 
   body.innerHTML = html;
 }
+/* TEZLIK (iPhone): jonli ko'rinish (to'lov jadvali) HAR BIR HARFDA
+   qayta chizilardi — u butun blokni `innerHTML` bilan yangilaydi,
+   ya'ni klaviatura ochiq turganda telefon har harfda sahifani qayta
+   joylashtirardi. "Kredit bo'limida yozsam qotib qolyapti" ning
+   asosiy sababi aynan shu edi. Endi yozish tingach (250 ms) bir
+   marta chiziladi — natija bir xil, yozish esa mutlaqo erkin. */
+const crLiveKechikkan = debounce(refreshCrLivePreview, 250);
 ['crName','crMonths','crMonthly','crPayDay','crStartDate','crCurrency'].forEach(id => {
   const el = document.getElementById(id);
-  if(el){ el.addEventListener('input', refreshCrLivePreview); el.addEventListener('change', refreshCrLivePreview); }
+  if(el){ el.addEventListener('input', crLiveKechikkan); el.addEventListener('change', refreshCrLivePreview); }
 });
 refreshCrLivePreview();
 
@@ -14643,19 +14765,17 @@ const newNumberInput = document.getElementById('newNumber');
 const newOperatorSelect = document.getElementById('newOperator');
 const codeHint = document.getElementById('codeHint');
 
+/* RAQAM QO'SHISH maydoni — iPhone'da qotmaydigan usul: yozayotganda
+   qiymatga TEGILMAYDI, faqat operator aniqlanadi (yengil ish).
+   Format maydondan chiqqanda qo'yiladi. */
+newNumberInput.setAttribute('inputmode', 'tel');
+newNumberInput.addEventListener('blur', ()=>{
+  const raw = extractRawDigits(newNumberInput.value);
+  const formatted = raw ? formatUzNumber(raw) : '';
+  if(formatted !== newNumberInput.value) newNumberInput.value = formatted;
+});
 newNumberInput.addEventListener('input', ()=>{
-  // iPhone'da yozish kechikmasligi uchun (qarang: attachUzPhoneAutoFormat
-  // izohi) — el.value qayta yozilishi requestAnimationFrame bilan
-  // kechiktiriladi, kod aniqlash esa (visual kechikish keltirmaydigan
-  // yengil ish) darhol bajariladi.
-  const rawValueAtInput = newNumberInput.value;
-  const raw = extractRawDigits(rawValueAtInput);
-  requestAnimationFrame(()=>{
-    if(newNumberInput.value !== rawValueAtInput) return;
-    const formatted = formatUzNumber(raw);
-    if(formatted !== newNumberInput.value) newNumberInput.value = formatted;
-  });
-
+  const raw = extractRawDigits(newNumberInput.value);
   const code = raw.slice(0,2);
   if(code.length === 2){
     const found = CODE_TO_OPERATOR[code];
@@ -15198,17 +15318,38 @@ function renderAdminOrders(orders){
   };
 
   const MOBIL_GURUH = [
-    { id:'asosiy',   nom:'Asosiy',      izoh:'Kundalik ish: raqamlar va kuzatuv',
+    { id:'asosiy',   nom:'Asosiy',      yorliq:'Asosiy',   izoh:'Kundalik ish: raqamlar va kuzatuv',
       tabs:['dashboard','numbers','bazaraqam','uzex','watch','kuntavsiyasi','aksiya'] },
-    { id:'tolov',    nom:"To'lovlar",   izoh:"Pul bilan bog'liq barcha bo'limlar",
+    { id:'tolov',    nom:"To'lovlar",   yorliq:"To'lov",   izoh:"Pul bilan bog'liq barcha bo'limlar",
       tabs:['tolov','credit','finance','personalbase'] },
-    { id:'buyurtma', nom:'Buyurtmalar', izoh:'Mijoz va hamkorlar bilan ish',
+    { id:'buyurtma', nom:'Buyurtmalar', yorliq:'Buyurtma', izoh:'Mijoz va hamkorlar bilan ish',
       tabs:['orders','zakaz','sellers','vakansiya'] },
-    { id:'stat',     nom:'Statistika',  izoh:'Hisobotlar, vazifalar va AI',
+    { id:'stat',     nom:'Statistika',  yorliq:'Hisobot',  izoh:'Hisobotlar, vazifalar va AI',
       tabs:['stats','sessions','vazifalar','ai','telegramai','instagram'] },
-    { id:'profil',   nom:'Profil',      izoh:'Sozlamalar, kontent va boshqaruv',
+    { id:'profil',   nom:'Profil',      yorliq:'Profil',   izoh:'Sozlamalar, kontent va boshqaruv',
       tabs:['settings','management','operators','styles','xabarlar','videos','premiumvideo'] }
   ];
+
+  /* Har bir bo'lim nima uchun kerakligi — kartochkada bitta qatorda
+     yoziladi. Katta kompaniyalarning panellarida menyu faqat nom
+     emas, NIMA QILISHINI ham aytadi: yangi xodim ham adashmaydi. */
+  const BOLIM_IZOH = {
+    dashboard:'Kunlik ko\u2018rsatkichlar', numbers:'Sotuvdagi raqamlar',
+    bazaraqam:'Operator bazasidan qidirish', uzex:'Auksion raqamlari',
+    watch:'Raqamni kuzatib borish', kuntavsiyasi:'Bosh sahifadagi taklif',
+    aksiya:'Chegirmalar va muddat',
+    tolov:'Mijoz to\u2018lovlari va eslatma', credit:'Bo\u2018lib to\u2018lash shartnomalari',
+    finance:'Kirim-chiqim hisobi', personalbase:'Shaxsiy mijozlar bazasi',
+    orders:'Saytdan kelgan buyurtmalar', zakaz:'Qo\u2018lda kiritilgan zakazlar',
+    sellers:'Dilerlar va ularning tarifi', vakansiya:'Ish o\u2018rinlari va arizalar',
+    stats:'Ko\u2018rishlar va qidiruvlar', sessions:'Kim, qachon kirgan',
+    vazifalar:'Dedlayn va topshiriqlar', ai:'Savol bering, hisobot oling',
+    telegramai:'Telegram bot javoblari', instagram:'Instagram javoblari',
+    settings:'Sayt sozlamalari', management:'Adminlar va ruxsatlar',
+    operators:'Operator narx jadvali', styles:'Sayt ko\u2018rinishi',
+    xabarlar:'Mijozlarga bildirishnoma', videos:'Mijoz sharhlari',
+    premiumvideo:'Bosh sahifadagi video'
+  };
 
   let JORIY = 'asosiy';
   let nav, grid, back;
@@ -15237,8 +15378,9 @@ function renderAdminOrders(orders){
     nav.setAttribute('aria-label', 'Asosiy menyu');
     nav.innerHTML = '<span class="mn-pill" id="mnPill" aria-hidden="true"></span>' +
       MOBIL_GURUH.map(g =>
-        '<button type="button" data-g="' + g.id + '">' + IC[g.id] +
-        '<b>' + g.nom + '</b><i class="mn-nb" data-nb="' + g.id + '" hidden>0</i></button>').join('');
+        '<button type="button" data-g="' + g.id + '" aria-label="' + g.nom + '">' + IC[g.id] +
+        '<b>' + (g.yorliq || g.nom) + '</b>' +
+        '<i class="mn-nb" data-nb="' + g.id + '" hidden>0</i></button>').join('');
     document.body.appendChild(nav);
 
     nav.querySelectorAll('button').forEach(b => b.addEventListener('click', ()=> guruhOch(b.dataset.g)));
@@ -15252,46 +15394,149 @@ function renderAdminOrders(orders){
     if(tb) tb.insertBefore(back, tb.firstChild);
   }
 
+  /* ==================================================================
+     BO'LIM KARTOCHKALARI
+     ------------------------------------------------------------------
+     Katta kompaniyalarning panellarida menyu uch narsani beradi:
+       1. QIDIRUV — 28 ta bo'limni aylantirib o'tirmaysiz, nomini
+          yozasiz (hamma guruhdan birdan qidiradi);
+       2. TEZ-TEZ ISHLATILADIGAN — eng ko'p ochiladigan 4 ta bo'lim
+          doim eng tepada (telefonda o'zi saqlanadi);
+       3. IZOH — har bir kartochkada "bu nima uchun" degan bitta
+          qator, shunda yangi xodim ham adashmaydi.
+     ================================================================== */
+  const SON_KALIT = 'vip_adm_bolim_soni';
+  function sonlarOqi(){
+    try{ return JSON.parse(localStorage.getItem(SON_KALIT) || '{}') || {}; }catch(e){ return {}; }
+  }
+  function sonOshir(tab){
+    try{
+      const d = sonlarOqi(); d[tab] = (d[tab] || 0) + 1;
+      localStorage.setItem(SON_KALIT, JSON.stringify(d));
+    }catch(e){}
+  }
+  function tezTez(){
+    const d = sonlarOqi();
+    return Object.keys(d)
+      .filter(k => korinadimi(tabTugma(k)))
+      .sort((a, b) => d[b] - d[a]).slice(0, 4);
+  }
+
+  function kartaHtml(k){
+    const btn = tabTugma(k);
+    if(!korinadimi(btn)) return '';
+    const ico = (btn.querySelector('.tab-ico') || {}).innerHTML || '';
+    const nom = ((btn.querySelector('.tab-label') || {}).textContent || k).trim();
+    const bdg = btn.querySelector('.task-tab-badge, .tab-count.is-alert');
+    const son = (bdg && bdg.style.display !== 'none' && !bdg.hidden) ? (bdg.textContent || '').trim() : '';
+    const izoh = BOLIM_IZOH[k] || '';
+    return '<button type="button" class="mg-card" data-mt="' + k + '">' +
+      (son && son !== '0' ? '<span class="mg-badge">' + son + '</span>' : '') +
+      '<span class="mg-ico">' + ico + '</span>' +
+      '<span class="mg-txt"><span class="mg-nom">' + nom + '</span>' +
+        (izoh ? '<span class="mg-izoh">' + izoh + '</span>' : '') + '</span></button>';
+  }
+
+  function qidiruvHtml(){
+    return '<div class="mg-search">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
+      '<input id="mgQ" type="search" placeholder="Bo‘lim qidirish…" autocomplete="off" ' +
+      'autocapitalize="off" spellcheck="false" value="' + (QIDIRUV || '') + '">' +
+      (QIDIRUV ? '<button type="button" class="mg-x" id="mgX" aria-label="Tozalash">&#10005;</button>' : '') +
+      '</div>';
+  }
+
+  let QIDIRUV = '';
+
   /* Guruh kartochkalarini chizish */
   function guruhOch(gid){
     const g = MOBIL_GURUH.find(x => x.id === gid) || MOBIL_GURUH[0];
+    const almash = (g.id !== JORIY);        // boshqa guruhga o'tilyaptimi
     JORIY = g.id;
-
-    const kartalar = g.tabs.map(k => {
-      const btn = tabTugma(k);
-      if(!korinadimi(btn)) return '';
-      const ico = (btn.querySelector('.tab-ico') || {}).innerHTML || '';
-      const nom = ((btn.querySelector('.tab-label') || {}).textContent || k).trim();
-      const bdg = btn.querySelector('.task-tab-badge, .tab-count.is-alert');
-      const son = (bdg && bdg.offsetParent !== null) ? (bdg.textContent || '').trim() : '';
-      return '<button type="button" class="mg-card" data-mt="' + k + '">' +
-        (son && son !== '0' ? '<span class="mg-badge">' + son + '</span>' : '') +
-        '<span class="mg-ico">' + ico + '</span>' +
-        '<span class="mg-nom">' + nom + '</span></button>';
-    }).join('');
-
-    grid.innerHTML = '<div class="mg-h">' + g.nom + '</div>' +
-      '<div class="mg-s">' + g.izoh + '</div>' +
-      '<div class="mg-grid">' + (kartalar || '<div class="empty-admin">Bu guruhda sizga ruxsat etilgan bo‘lim yo‘q.</div>') + '</div>';
-
-    grid.querySelectorAll('[data-mt]').forEach(c => c.addEventListener('click', ()=>{
-      const b = tabTugma(c.dataset.mt);
-      if(b) b.click();
-      bolimKorsat();
-    }));
+    QIDIRUV = '';                           // menyu bosilsa qidiruv tozalanadi
+    chizGrid();
 
     // Bo'limlarni yashirib, kartochkalarni ko'rsatamiz
     document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
+    /* Menyudan BOSHQA guruhga o'tilsa — o'ngdan, bo'lim ichidan
+       "orqaga" qaytilsa — chapdan suriladi (Instagram kabi). */
+    const mc = document.querySelector('.main-content');
+    if(mc){
+      mc.classList.toggle('m-almash', almash);
+      grid.classList.remove('on');
+      void grid.offsetWidth;                 // animatsiya qayta boshlansin
+    }
     grid.classList.add('on');
     back.classList.remove('on');
     belgila();
     window.scrollTo({ top:0 });
   }
 
-  /* Kartochka bosildi — bo'lim ochildi */
+  function chizGrid(){
+    const g = MOBIL_GURUH.find(x => x.id === JORIY) || MOBIL_GURUH[0];
+    let h = qidiruvHtml();
+
+    if(QIDIRUV){
+      /* --- QIDIRUV: hamma guruhdan birdan --- */
+      const q = QIDIRUV.toLowerCase();
+      const topildi = [];
+      MOBIL_GURUH.forEach(gr => gr.tabs.forEach(k => {
+        const btn = tabTugma(k);
+        if(!korinadimi(btn)) return;
+        const nom = ((btn.querySelector('.tab-label') || {}).textContent || k).toLowerCase();
+        if(nom.indexOf(q) !== -1 || (BOLIM_IZOH[k] || '').toLowerCase().indexOf(q) !== -1) topildi.push(k);
+      }));
+      h += '<div class="mg-h">Qidiruv</div>' +
+        '<div class="mg-s">' + (topildi.length ? topildi.length + ' ta bo‘lim topildi' : 'Hech narsa topilmadi') + '</div>' +
+        '<div class="mg-grid">' + topildi.map(kartaHtml).join('') + '</div>';
+    }else{
+      const tez = (JORIY === 'asosiy') ? tezTez() : [];
+      if(tez.length >= 2){
+        h += '<div class="mg-h sm">Tez-tez ishlatiladigan</div>' +
+             '<div class="mg-grid">' + tez.map(kartaHtml).join('') + '</div>';
+      }
+      const kartalar = g.tabs.map(kartaHtml).join('');
+      h += '<div class="mg-h">' + g.nom + '</div>' +
+           '<div class="mg-s">' + g.izoh + '</div>' +
+           '<div class="mg-grid">' + (kartalar ||
+             '<div class="empty-admin">Bu guruhda sizga ruxsat etilgan bo‘lim yo‘q.</div>') + '</div>';
+    }
+
+    grid.innerHTML = h;
+
+    grid.querySelectorAll('[data-mt]').forEach(c => c.addEventListener('click', ()=>{
+      const k = c.dataset.mt;
+      sonOshir(k);
+      const b = tabTugma(k);
+      if(b) b.click();
+      bolimKorsat();
+    }));
+
+    const q = grid.querySelector('#mgQ');
+    if(q){
+      let t;
+      q.addEventListener('input', ()=>{
+        clearTimeout(t);
+        const v = q.value;
+        t = setTimeout(()=>{
+          QIDIRUV = v.trim();
+          const joy = q.selectionStart;
+          chizGrid();
+          const yangi = grid.querySelector('#mgQ');
+          if(yangi){ yangi.focus(); try{ yangi.setSelectionRange(joy, joy); }catch(e){} }
+        }, 160);
+      });
+    }
+    const x = grid.querySelector('#mgX');
+    if(x) x.addEventListener('click', ()=>{ QIDIRUV = ''; chizGrid(); });
+  }
+
+  /* Kartochka bosildi — bo'lim ochildi (o'ngdan suriladi) */
   function bolimKorsat(){
-    grid.classList.remove('on');
-    back.classList.add('on');
+    const mc = document.querySelector('.main-content');
+    if(mc){ mc.classList.add('m-oldinga'); setTimeout(()=> mc.classList.remove('m-oldinga'), 260); }
+    if(grid) grid.classList.remove('on');
+    if(back) back.classList.add('on');
     window.scrollTo({ top:0 });
   }
 
@@ -15339,6 +15584,7 @@ function renderAdminOrders(orders){
 
   function boshla(){
     if(!MQ.matches) return;
+    if(!kirganmi()) return;              // login qilinmagan — menyu chiqmaydi
     qur();
     if(!nav) return;
     tabKuzat();
@@ -15366,9 +15612,39 @@ function renderAdminOrders(orders){
     });
   }
 
-  // Panel kirishdan keyin quriladi (yon menyu DOM'da bo'lishi kerak)
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boshla);
-  else boshla();
+  /* MENYU FAQAT LOGIN QILINGANDAN KEYIN CHIQADI.
+     Ilgari u sahifa ochilishi bilan paydo bo'lardi — ya'ni login
+     ekranining pastida menyu turardi. Endi `#dashboard` ko'rinmaguncha
+     (login va ruxsat tekshiruvi tugamaguncha) menyu umuman
+     yaratilmaydi; chiqilganda esa olib tashlanadi. */
+  function kirganmi(){
+    const d = document.getElementById('dashboard');
+    return !!d && getComputedStyle(d).display !== 'none';
+  }
+  function ochir(){
+    if(nav){ nav.remove(); nav = null; }
+    if(grid){ grid.remove(); grid = null; }
+    if(back){ back.remove(); back = null; }
+  }
+  /* `#dashboard` ko'rinishi o'zgarishini kuzatamiz — login bo'lganda
+     menyu o'zi paydo bo'ladi, chiqilganda o'zi yo'qoladi. */
+  function kuzat(){
+    const d = document.getElementById('dashboard');
+    if(!d) return;
+    let oxirgi = kirganmi();
+    try{
+      new MutationObserver(()=>{
+        const hozir = kirganmi();
+        if(hozir === oxirgi) return;
+        oxirgi = hozir;
+        if(hozir) boshla(); else ochir();
+      }).observe(d, { attributes:true, attributeFilter:['style','class'] });
+    }catch(e){}
+  }
+
+  function ishgaTushir(){ kuzat(); boshla(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ishgaTushir);
+  else ishgaTushir();
   window.addEventListener('resize', ()=>{ if(MQ.matches && nav) belgila(); });
   /* Kompyuterdan telefon o'lchamiga o'tilsa (ekran burilishi, oynani
      kichraytirish) — menyu o'sha payt quriladi. */
