@@ -188,6 +188,32 @@
     Cache-Control = "public, max-age=31536000, immutable"
     Access-Control-Allow-Origin = "*"
 
+# ADMIN PANELNING USLUB va MANTIQ fayllari — BIR YILGA keshlanadi.
+#
+# Ular ilgari panel-boshqaruv.html ICHIDA edi (254 KB uslub + 483 KB
+# mantiq) va panel HAR ochilganda qaytadan yuklanardi — telefonda,
+# ayniqsa iPhone'da, sezilarli kechikish shundan edi. HTML esa
+# keshlanmaydi (unda "no-cache" turibdi, va shunday bo'lishi kerak:
+# yangi versiya darhol yetib borsin).
+#
+# Endi bu ikki fayl alohida va "immutable" bilan keshlanadi: brauzer
+# ularni BIR MARTA yuklaydi, keyin diskdan oladi. Ikkinchi ochilishda
+# 737 KB umuman yuklanmaydi, ustiga Safari skriptning kompilyatsiya
+# natijasini ham keshlaydi.
+#
+# YANGI VERSIYA CHIQARGANDA: HTML'dagi havolaning oxiridagi raqamni
+# (?v=68) oshiring — manzil o'zgargani uchun brauzer yangi nusxani
+# oladi, eski keshdan emas.
+[[headers]]
+  for = "/assets/panel.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/panel.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
   for = "/assets/*"
   [headers.values]
