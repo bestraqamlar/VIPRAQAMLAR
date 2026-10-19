@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=71">
-<link rel="preload" as="script" href="assets/panel.js?v=71">
+<link rel="preload" as="style" href="assets/panel.css?v=75">
+<link rel="preload" as="script" href="assets/panel.js?v=75">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=71">
+<link rel="stylesheet" href="assets/panel.css?v=75">
 </head>
 <body>
 
@@ -1996,6 +1996,32 @@
 
   <div class="pane" id="paneSettings">
     <div class="settings-grid">
+
+    <!-- ======================= XAVFSIZLIK =======================
+         Telegram botlarining webhook manzili ochiq: manzilni bilgan har
+         kim unga o'zi yasagan "xabar" yuborib, botni aldashi va bazaga
+         soxta buyurtma yozdirishi mumkin. Telegram'ning o'z himoyasi —
+         `secret_token`: shu tugma uni bir bosishda yoqadi (tasodifiy
+         so'z yasaydi, Telegram'ga bildiradi, Firestore'ga yozadi).
+         Server: netlify/functions/admin-bot-security.js -->
+    <div class="settings-form" id="xavfBox">
+      <h3>Xavfsizlik — Telegram botlar</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:12.5px;line-height:1.55">
+        Botlarning manzili ochiq bo'lgani uchun, uni bilgan odam bot nomidan
+        soxta so'rov yuborishi mumkin. Quyidagi tugma Telegram'ning o'z
+        himoyasini (<b>maxfiy so'z</b>) yoqadi — shundan keyin faqat
+        Telegram'ning o'zi yuborgan so'rovlar qabul qilinadi.
+        Botlar ishlashdan to'xtamaydi, manzil o'zgarmaydi.
+      </p>
+      <div id="xavfList" class="muted" style="font-size:13px;margin-bottom:12px">Yuklanmoqda...</div>
+      <div id="xavfUrinish" style="margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button id="xavfYoqBtn" type="button">Botlarni himoyalash</button>
+        <button class="btn btn-ghost btn-sm" id="xavfReload" type="button">Yangilash</button>
+      </div>
+      <div class="settings-msg" id="xavfMsg"></div>
+    </div>
+
     <div class="settings-form">
       <h3>Parolni almashtirish</h3>
       <label for="curPasswordInput">Joriy parol</label>
@@ -2122,6 +2148,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=71"></script>
+<script defer src="assets/panel.js?v=75"></script>
 </body>
 </html>

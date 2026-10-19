@@ -277,3 +277,21 @@
     # Saytga kerak bo'lmagan qurilma imkoniyatlari butunlay o'chirilgan —
     # biror skript (yoki reklama qo'shimchasi) ularni so'ray olmaydi.
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    # ================= CSP (Content-Security-Policy) =================
+    # Nima beradi: agar biror yo'l bilan sahifaga BEGONA skript qo'shib
+    # qo'yishsa ham (XSS), brauzer uni ISHGA TUSHIRMAYDI — chunki faqat
+    # quyida sanab o'tilgan manbalardan skript yuklashga ruxsat bor.
+    # Shuningdek: begona saytga forma yuborish, <base> bilan havolalarni
+    # o'g'irlash va Flash/applet kabi plaginlar butunlay taqiqlanadi.
+    #
+    # 'unsafe-inline' ATAYLAB qoldirilgan: saytning o'z mantig'i inline
+    # <script> bloklarida (bitta fayl — tez ochilishi uchun). Shu sabab
+    # CSP bu yerda "inline skriptni to'xtatuvchi" emas, "begona
+    # manbalarni to'suvchi" qatlam sifatida ishlaydi — ya'ni hujumchi
+    # o'z serveridagi skriptni ulay olmaydi va o'g'irlagan ma'lumotini
+    # o'z serveriga YUBORA OLMAYDI (connect-src).
+    #
+    # frame-ancestors: Telegram Mini App sifatida ochilishi uchun
+    # web.telegram.org ga ruxsat (admin panel va sotuvchi kabineti esa
+    # yuqorida X-Frame-Options: DENY bilan butunlay yopilgan).
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://api-maps.yandex.ru https://mc.yandex.ru https://yastatic.net https://telegram.org https://*.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseinstallations.googleapis.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseappcheck.googleapis.com https://api-maps.yandex.ru https://*.maps.yandex.net https://mc.yandex.ru https://yandex.uz; frame-src 'self' https://*.yandex.ru https://*.yandex.uz; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org; upgrade-insecure-requests"

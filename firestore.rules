@@ -107,6 +107,85 @@ service cloud.firestore {
     // holat). "Standart" (jonli, operatordan qidirilgan) raqamlarda
     // haqiqiy 'numbers' hujjati yo'q — ular uchun bu tekshiruv o'tkazib
     // yuboriladi (numberId == null bo'ladi).
+    /* ==================================================================
+       MIJOZ BRAUZERIDAN KELADIGAN MA'LUMOT SHAKLI (V73)
+       ------------------------------------------------------------------
+       SABAB: ilgari buyurtma yaratishda faqat uzunlik tekshirilardi
+       ("ism < 200 belgi"). Shu sabab kimdir ochiq Firebase Web API
+       kalitidan foydalanib, brauzer konsolidan yoki oddiy skript bilan
+       bazaga SOXTA buyurtma yozib qo'ya olardi: ism o'rnida raqam,
+       telefon o'rnida "00 000 00 00", raqam o'rnida "+998 00-000-00-00".
+       Endi SHAKL ham tekshiriladi va faqat saytning o'zi yozadigan
+       ko'rinishdagi qiymatlar qabul qilinadi.
+       ------------------------------------------------------------------
+       Operator kodlari — O'zbekistonda HAQIQATAN mavjud bo'lganlari.
+       "00", "01", "11" kabi uydirma kodlar o'tmaydi. */
+    function uzTelOk(v){
+      /* Ajratgich bo'shliq ham, chiziqcha ham bo'lishi mumkin (sayt
+         bo'shliq, bot chiziqcha qo'yadi) — lekin OPERATOR KODI albatta
+         haqiqiy bo'lishi shart va raqamlar soni aniq. */
+      return v is string
+        && v.matches('^\\+998[ ]?(20|33|50|55|70|77|78|80|87|88|90|91|92|93|94|95|97|98|99)[ -][0-9]{3}[ -][0-9]{2}[ -][0-9]{2}$');
+    }
+    /* Ism: kamida ikkita HARF bo'lishi shart — ya'ni "331010111" yoki
+       "00000" kabi qiymat ism sifatida o'tmaydi. */
+    function ismOk(v){
+      return v is string && v.size() >= 2 && v.size() <= 100
+        && v.matches('.*\\p{L}.*\\p{L}.*')
+        && !v.matches('.*[<>].*');          // HTML/skript urinishlari o'tmaydi
+    }
+    /* Manzil ham matn bo'lishi kerak (faqat raqam emas). */
+    function manzilOk(v){
+      return v is string && v.size() >= 2 && v.size() <= 200
+        && v.matches('.*\\p{L}.*\\p{L}.*')
+        && !v.matches('.*[<>].*');
+    }
+    /* Vaqt: hujjatdagi `createdAtSort` server vaqtiga yaqin bo'lishi
+       shart — "o'tmishga" yoki "kelajakka" yozib, ro'yxatni chalkashtirib
+       bo'lmaydi. */
+    function vaqtOk(data){
+      /* Mijoz telefonidagi soat noto'g'ri bo'lishi mumkin, shu sabab
+         chegara keng (24 soat) — maqsad "2099-yil" kabi uydirma sanalar
+         bilan ro'yxatni chalkashtirishning oldini olish. */
+      return data.createdAtSort is number
+        && data.createdAtSort >= request.time.toMillis() - 86400000
+        && data.createdAtSort <= request.time.toMillis() + 86400000;
+    }
+    /* Brauzerdan kelgan buyurtma FAQAT "Sayt" manbasi bilan yoziladi —
+       kimdir uni "Telegram bot" yoki "Mobil ilova" deb ko'rsatib,
+       kelib chiqishini yashira olmaydi. */
+    /* RUXSAT ETILGAN MAYDONLAR RO'YXATI (V75).
+       ------------------------------------------------------------------
+       SABAB: ilgari qoidalar faqat `name/phone/region/number/price` ni
+       tekshirardi, lekin hujjatga YANA 20 taga yaqin ISTALGAN nomli
+       maydon qo'shsa bo'lardi. Hujumchi shundan foydalanib, masalan
+       `monthlyTariff` maydoniga HTML/skript yozib qo'yardi — admin
+       panelda o'sha qiymat ekranga chiqqanda skript ishga tushib,
+       ADMIN huquqlari bilan ish ko'rishi mumkin edi (eng xavfli yo'l).
+       Endi: faqat quyidagi maydonlar ruxsat etiladi va har bir SON
+       maydon haqiqatan son ekani tekshiriladi — ya'ni ularga umuman
+       matn yozib bo'lmaydi. */
+    function sonOk(data, kalit){
+      return !data.keys().hasAny([kalit]) || data[kalit] is number;
+    }
+    function mantiqOk(data, kalit){
+      return !data.keys().hasAny([kalit]) || data[kalit] is bool;
+    }
+    /* Qisqa, TEXNIK matn maydonlari (operator nomi, tarif nomi, valyuta...).
+       Bularda qo'shtirnoq ham, HTML belgisi ham HECH QACHON bo'lmaydi —
+       shu sabab ular butunlay taqiqlanadi. (Ism va manzilda apostrof
+       bo'lishi tabiiy — "O'tkir" — shuning uchun u yerda faqat < va >
+       taqiqlanadi, qolganini ekranga chiqarishda escapeHtml hal qiladi.) */
+    function qisqaMatnOk(data, kalit, uzunlik){
+      return !data.keys().hasAny([kalit])
+        || (data[kalit] is string && data[kalit].size() <= uzunlik
+            && !data[kalit].matches('.*[<>"\'`\\\\].*'));
+    }
+
+    function manbaOk(data){
+      return !data.keys().hasAny(['source']) || data.source == 'Sayt';
+    }
+
     function orderPriceOk(data){
       // YANGI (mijoz so'roviga ko'ra qo'shilgan Naqt to'lov + Tarif
       // tanlash bosqichi — index.html'dagi confirmBtn payload'iga
@@ -139,12 +218,44 @@ service cloud.firestore {
       // "location" mavjud bo'lsa — u albatta {lat, lng} raqamlardan
       // iborat, haqiqiy dunyo koordinatalari chegarasida bo'lishi shart
       // (soxta/haddan tashqari katta qiymatlar yozilmasin).
-      allow create: if request.resource.data.keys().size() <= 24
+      allow create: if hasPerm('orders') || (
+        /* V75: faqat shu maydonlar — boshqa nomdagi maydon qo'shib bo'lmaydi */
+        request.resource.data.keys().hasOnly([
+          'number', 'price', 'currency', 'name', 'region', 'phone', 'phoneNormalized',
+          'source', 'paymentType', 'operator', 'catalogType', 'smsVerified',
+          'numberId', 'status', 'createdAt', 'createdAtSort',
+          'installmentMonths', 'monthlyPayment', 'installmentDownPayment',
+          'installmentTariff', 'cashTariffName', 'cashTariffPrice',
+          'location', 'sellerId', 'promoCode', 'discount'
+        ])
         && request.resource.data.status == 'Yangi'
-        && request.resource.data.name is string && request.resource.data.name.size() < 200
-        && request.resource.data.phone is string && request.resource.data.phone.size() < 50
-        && request.resource.data.region is string && request.resource.data.region.size() < 300
-        && request.resource.data.price is number && request.resource.data.price >= 0
+        /* Har bir SON maydon — haqiqatan son (matn/HTML yozib bo'lmaydi) */
+        && sonOk(request.resource.data, 'installmentMonths')
+        && sonOk(request.resource.data, 'monthlyPayment')
+        && sonOk(request.resource.data, 'installmentDownPayment')
+        && sonOk(request.resource.data, 'cashTariffPrice')
+        && sonOk(request.resource.data, 'discount')
+        && mantiqOk(request.resource.data, 'smsVerified')
+        && qisqaMatnOk(request.resource.data, 'operator', 40)
+        && qisqaMatnOk(request.resource.data, 'catalogType', 20)
+        && qisqaMatnOk(request.resource.data, 'paymentType', 20)
+        && qisqaMatnOk(request.resource.data, 'currency', 8)
+        && qisqaMatnOk(request.resource.data, 'installmentTariff', 60)
+        && qisqaMatnOk(request.resource.data, 'cashTariffName', 60)
+        && qisqaMatnOk(request.resource.data, 'promoCode', 40)
+        && qisqaMatnOk(request.resource.data, 'createdAt', 40)
+        /* --- V73: SHAKL TEKSHIRUVI (yuqoridagi izohga qarang) --- */
+        && ismOk(request.resource.data.name)
+        && uzTelOk(request.resource.data.phone)
+        && manzilOk(request.resource.data.region)
+        && uzTelOk(request.resource.data.number)
+        && (!request.resource.data.keys().hasAny(['phoneNormalized'])
+            || (request.resource.data.phoneNormalized is string
+                && request.resource.data.phoneNormalized.matches('^[0-9]{9}$')))
+        && manbaOk(request.resource.data)
+        && vaqtOk(request.resource.data)
+        && request.resource.data.price is number
+        && request.resource.data.price >= 0 && request.resource.data.price <= 10000000000
         && (!request.resource.data.keys().hasAny(['location'])
             || (request.resource.data.location.lat is number
                 && request.resource.data.location.lat >= -90 && request.resource.data.location.lat <= 90
@@ -153,7 +264,8 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['sellerId'])
             || (request.resource.data.sellerId is string
                 && request.resource.data.sellerId.size() < 60))
-        && orderPriceOk(request.resource.data);
+        && orderPriceOk(request.resource.data)
+      );
       allow read, update, delete: if hasPerm('orders');
     }
 
@@ -175,6 +287,14 @@ service cloud.firestore {
     }
 
     match /site_settings/{doc} {
+      /* DIQQAT: bu hujjatlar SAYTGA OCHIQ o'qiladi (katalog uslubi,
+         aloqa havolalari, ish vaqti va h.k. mijoz brauzeriga kerak).
+         SHU SABAB BU YERGA HECH QACHON MAXFIY MA'LUMOT YOZILMAYDI —
+         parol, kod, API kalit va shunga o'xshashlar. Ular uchun:
+           • adminlarga kerak bo'lsa  -> `admin_meta` (faqat admin o'qiydi)
+           • faqat serverga kerak bo'lsa -> `sys_config` (brauzerga butunlay yopiq)
+         (V75: "to'lovni tasdiqlash kodi" aynan shu sabab `admin_meta/pay`
+         hujjatiga ko'chirildi.) */
       allow read: if true;
       // "instagram_bot" va "telegram_bot" hujjatlari mos ravishda
       // Instagram AI / Telegram AI bo'limlariga tegishli — faqat o'sha
@@ -269,14 +389,40 @@ service cloud.firestore {
       // aksiya, bo'lib to'lash va "nomiga chiqadimi" kabi ko'proq
       // ma'lumotni birga saqlaydi (saytdan HAM, Telegram botdan HAM) —
       // shu sabab maydonlar chegarasi (avval 20) ko'tarildi.
-      allow create: if request.resource.data.keys().size() <= 30
+      allow create: if hasPerm('zakaz') || (
+        /* V75: faqat shu maydonlar (qarang: orders dagi izoh) */
+        request.resource.data.keys().hasOnly([
+          'pattern', 'operator', 'name', 'region', 'phone', 'status', 'source',
+          'fullPrice', 'monthlyTariff', 'onSale', 'salePrice', 'saleMonthlyTariff',
+          'installmentAvailable', 'installmentMonths', 'installmentMonthly',
+          'downPayment', 'ownershipTransfer', 'tariffMonths',
+          'createdAt', 'createdAtSort'
+        ])
         && request.resource.data.status == 'Yangi'
-        && request.resource.data.name is string && request.resource.data.name.size() < 200
-        && request.resource.data.phone is string && request.resource.data.phone.size() < 50
-        && request.resource.data.region is string && request.resource.data.region.size() < 300
-        && request.resource.data.pattern is string && request.resource.data.pattern.size() == 4
+        && sonOk(request.resource.data, 'fullPrice')
+        && sonOk(request.resource.data, 'monthlyTariff')
+        && sonOk(request.resource.data, 'salePrice')
+        && sonOk(request.resource.data, 'saleMonthlyTariff')
+        && sonOk(request.resource.data, 'installmentMonths')
+        && sonOk(request.resource.data, 'installmentMonthly')
+        && sonOk(request.resource.data, 'downPayment')
+        && sonOk(request.resource.data, 'tariffMonths')
+        && mantiqOk(request.resource.data, 'onSale')
+        && mantiqOk(request.resource.data, 'installmentAvailable')
+        && mantiqOk(request.resource.data, 'ownershipTransfer')
+        && qisqaMatnOk(request.resource.data, 'operator', 40)
+        && qisqaMatnOk(request.resource.data, 'createdAt', 40)
+        /* --- V73: SHAKL TEKSHIRUVI --- */
+        && ismOk(request.resource.data.name)
+        && uzTelOk(request.resource.data.phone)
+        && manzilOk(request.resource.data.region)
+        && manbaOk(request.resource.data)
+        && vaqtOk(request.resource.data)
+        && request.resource.data.pattern is string
+        && request.resource.data.pattern.matches('^[0-9]{4}$')
         && request.resource.data.operator is string
-        && customOrderPriceOk(request.resource.data);
+        && customOrderPriceOk(request.resource.data)
+      );
       allow read, update, delete: if hasPerm('zakaz');
     }
 
@@ -474,6 +620,14 @@ service cloud.firestore {
     // qurib, shu yerda saqlaydi). Mijoz brauzeri uni Firestore'dan EMAS,
     // CDN'da keshlangan funksiya javobidan oladi — shu sabab bu yerda
     // o'qishga ham, yozishga ham ruxsat kerak emas.
+    /* KIRISH URINISHLARI (5 daqiqada 3 marta qoidasi) — hisoblagichlar
+       FAQAT server funksiyalari (Admin SDK) uchun. Brauzerdan o'qib ham,
+       yozib ham bo'lmaydi: aks holda hujumchi o'z hisoblagichini
+       nolga qaytarib, qulfni aylanib o'tgan bo'lardi. */
+    match /login_attempts/{id} {
+      allow read, write: if false;
+    }
+
     match /search_index/{id} {
       allow read, write: if false;
     }

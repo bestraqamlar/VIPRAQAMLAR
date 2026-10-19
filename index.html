@@ -541,6 +541,12 @@ html[data-theme="dark"] .chip.on{background:var(--blue);border-color:var(--blue)
 /* haqiqiy logotip — oq plitka ichida */
 .op .av.logo{width:30px;border-radius:9px;background:#fff;padding:3px 4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 .op .av.logo img{width:100%;height:100%;object-fit:contain;display:block}
+/* Logotip yuklanmasa — rasm o'zini olib tashlaydi (onerror="this.remove()")
+   va shu yerda operator rangidagi ikki harfli zaxira ko'rinish qoladi.
+   Ilgari buni inline JS qilardi; endi faqat CSS — ya'ni atribut ichida
+   hech qanday skript yo'q (XSS yo'li yopiq). */
+.op .av.logo:not(:has(img)){background:var(--av-rang,#334);padding:0}
+.op .av.logo:not(:has(img))::after{content:attr(data-ini)}
 .op .cnt{
   font-size:10px;font-weight:800;padding:1px 5px;border-radius:6px;
   background:var(--card-2);color:var(--muted);
@@ -4648,9 +4654,13 @@ function renderCatalog(){
   const total = all.length + LIVE_RESULTS.length;
   const opAv = (op) => {
     const m = opMeta(op), ini = esc(String(op||'?').slice(0,2).toUpperCase());
+    /* XAVFSIZLIK (V75): ilgari bu yerda inline `onerror="...'${ini}'..."`
+       ishlatilardi — ya'ni ma'lumot HTML atributi ICHIDAGI JS satriga
+       tushardi (u yerda `esc()` himoya qilmaydi: `&#39;` brauzerda
+       yana apostrofga aylanadi). Endi inline hodisa YO'Q: rasm
+       yuklanmasa, zaxira ko'rinish CSS klassi bilan hal qilinadi. */
     return m.logo
-      ? `<span class="av logo"><img src="${m.logo}" alt="${esc(op||'')}" loading="lazy" decoding="async"
-           onerror="this.parentElement.className='av';this.parentElement.style.background='${m.color}';this.parentElement.textContent='${ini}'"></span>`
+      ? `<span class="av logo" style="--av-rang:${m.color}" data-ini="${ini}"><img src="${m.logo}" alt="${esc(op||'')}" loading="lazy" decoding="async" onerror="this.remove()"></span>`
       : `<span class="av" style="background:${m.color}">${ini}</span>`;
   };
   $('#catOps').innerHTML =
@@ -5574,7 +5584,7 @@ async function lookupOrders(){
             <div style="flex:1;min-width:0">
               <div class="big sg">${esc(shortNumber(o.number))}</div>
               <div class="sub">${o.paymentType === 'installment'
-                  ? `${t("Bo'lib to'lash")}${o.installmentMonths?' · '+o.installmentMonths+' '+t('oy'):''}${o.monthlyPayment?' · '+formatPrice(o.monthlyPayment)+' '+SUM()+'/'+t('oy'):''}`
+                  ? `${t("Bo'lib to'lash")}${o.installmentMonths?' · '+esc(o.installmentMonths)+' '+t('oy'):''}${o.monthlyPayment?' · '+formatPrice(o.monthlyPayment)+' '+SUM()+'/'+t('oy'):''}`
                   : t("To'liq to'lov")}</div>
             </div>
             <div class="amt sg">${formatPrice(o.price)}${o.currency==='USD'?' $':''}</div>

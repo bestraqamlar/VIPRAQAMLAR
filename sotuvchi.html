@@ -885,6 +885,10 @@ async function api(action, data){
        ko'rsatadi (shunchaki xato yozuvi emas). */
     err.tarifKerak = !!j.tarifKerak;
     err.limitTugadi = !!j.limitTugadi;
+    /* Kirish qulfi (5 daqiqada 3 urinish) — serverdan keladi */
+    err.qulf = !!j.qulf;
+    err.qoldiMs = Number(j.qoldiMs) || 0;
+    err.qolganUrinish = j.qolganUrinish;
     throw err;
   }
   return j;
@@ -898,6 +902,33 @@ function chiqish(msg){
 }
 $('#outBtn').onclick = ()=> chiqish('');
 
+/* KIRISH QULFI — 5 daqiqada 3 marta urinish.
+   Hisob SERVERDA (lib/kirishQulf.js): brauzerni yangilash yoki
+   "Incognito" oynasi bilan aylanib o'tib bo'lmaydi. Qulflanganda
+   tugma o'chadi va ekranda sanoq ketadi. */
+let qulfTimer = null;
+function qulfSanoq(qoldiMs){
+  clearInterval(qulfTimer);
+  let qoldi = Math.ceil((Number(qoldiMs) || 0) / 1000);
+  const btn = $('#lgBtn'), err = $('#lgErr');
+  const chiz = ()=>{
+    if(qoldi <= 0){
+      clearInterval(qulfTimer);
+      btn.disabled = false; btn.textContent = 'Kirish';
+      err.style.display = 'none';
+      return;
+    }
+    const d = Math.floor(qoldi / 60), q = qoldi % 60;
+    err.textContent = "Ko‘p marta xato kiritildi. Qayta urinish: " +
+      (d ? d + ':' + String(q).padStart(2, '0') : q + ' soniya');
+    err.style.display = 'block';
+    btn.disabled = true; btn.textContent = 'Kutilmoqda…';
+    qoldi--;
+  };
+  chiz();
+  qulfTimer = setInterval(chiz, 1000);
+}
+
 async function kir(){
   const u = $('#lgU').value.trim(), p = $('#lgP').value;
   if(!u || !p){ $('#lgErr').textContent='Login va parolni kiriting'; $('#lgErr').style.display='block'; return; }
@@ -906,10 +937,17 @@ async function kir(){
     const j = await api('login', {username:u, password:p});
     TOKEN = j.token; try{ localStorage.setItem(KEY, TOKEN); }catch(e){}
     $('#lgErr').style.display='none'; $('#lgP').value='';
+    clearInterval(qulfTimer);
     ochKabinet(j.seller);
   }catch(e){
-    $('#lgErr').textContent = e.message || 'Kirib bo‘lmadi'; $('#lgErr').style.display='block';
-  }finally{ $('#lgBtn').disabled=false; $('#lgBtn').textContent='Kirish'; }
+    if(e.qulf){ qulfSanoq(e.qoldiMs); return; }
+    $('#lgErr').textContent = e.message || 'Kirib bo‘lmadi';
+    $('#lgErr').style.display='block';
+  }finally{
+    if(!qulfTimer || $('#lgBtn').textContent !== 'Kutilmoqda…'){
+      $('#lgBtn').disabled=false; $('#lgBtn').textContent='Kirish';
+    }
+  }
 }
 $('#lgBtn').onclick = kir;
 ['#lgU','#lgP'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key==='Enter') kir(); }));
@@ -1405,7 +1443,11 @@ async function tarifOl(planId){
   try{
     const j = await api('tarifSorov', { planId, usul: onlayn ? 'online' : 'qolda' });
     const link = j.payme || j.click;
-    if(link){ location.href = link; return; }
+    /* XAVFSIZLIK (V75): manzil FAQAT https bo'lsa ochiladi — aks holda
+       (sozlama hujjati biror yo'l bilan buzilsa) `javascript:` kabi
+       manzil bilan kabinetda skript ishga tushishi mumkin edi. */
+    if(link && /^https:\/\//i.test(String(link))){ location.href = link; return; }
+    if(link){ toast("To'lov manzili noto'g'ri — admin bilan bog'laning", 1); return; }
     toast(j.ogohlantirish || 'So‘rov yuborildi — tasdiqlanishini kuting');
     yukTarif(); yukMe();
   }catch(e){ toast(e.message, 1); }
