@@ -128,8 +128,21 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    /* DUBLIKAT NAZORATI — bitta raqam bazada faqat bir marta turadi.
+       Bazada bor bo'lgan (yoki xabarda ikki marta yozilgan) raqam
+       o'tkazib yuboriladi, qolgani yoziladi; oxirida bot nechtasi
+       o'tkazib yuborilganini aytadi. */
+    const DUB = require('./lib/dublikat');
+    const { yangi, dublikat } = await DUB.ajrat(db, parsed);
+    if (!yangi.length) {
+      await replyToUser(message.chat.id,
+        'Birorta ham yangi raqam yo\u2018q \u2014 ' + dublikat.length +
+        ' ta raqam bazada allaqachon bor yoki takrorlangan.');
+      return { statusCode: 200, body: 'ok' };
+    }
+
     const batch = db.batch();
-    parsed.forEach(item => {
+    yangi.forEach(item => {
       const ref = db.collection('numbers').doc();
       batch.set(ref, {
         number: item.number,
@@ -147,7 +160,7 @@ exports.handler = async function (event) {
     });
     await withRetry(() => batch.commit());
 
-    const summary = parsed.map(p => {
+    const summary = yangi.map(p => {
       const _usd = String(p.currency || '').toLowerCase() === 'usd';
       let line = `• ${p.number} — ${p.operator} — ${p.price.toLocaleString('ru-RU')}${_usd ? ' $' : " so'm"}`;
       if(p.tag === 'vip') line += ' — VIP';
@@ -155,7 +168,13 @@ exports.handler = async function (event) {
       if(p.onSale) line += ` — Aksiya (eski narx: ${p.oldPrice.toLocaleString('ru-RU')})`;
       return line;
     }).join('\n');
-    await replyToUser(message.chat.id, `✅ ${parsed.length} ta raqam bazaga qo'shildi:\n\n${summary}`);
+    await replyToUser(message.chat.id,
+      `✅ ${yangi.length} ta raqam bazaga qo'shildi:\n\n${summary}` +
+      (dublikat.length
+        ? `\n\n⚠️ ${dublikat.length} ta o'tkazib yuborildi (bazada bor yoki takrorlangan):\n` +
+          dublikat.slice(0, 10).map(d => `• ${d.number} — ${d.sabab}`).join('\n') +
+          (dublikat.length > 10 ? `\n... va yana ${dublikat.length - 10} ta` : '')
+        : ''));
   }catch(err){
     console.error('BOT-WEBHOOK XATOSI:', err);
     try{ await replyToUser(update.message.chat.id, `❌ Xato: ${err.message}`); }catch(e){}

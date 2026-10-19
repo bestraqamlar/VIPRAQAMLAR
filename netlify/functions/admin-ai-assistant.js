@@ -30,6 +30,7 @@
 //   (bular boshqa funksiyalarda ham ishlatiladi, allaqachon sozlangan bo'lishi kerak)
 
 const admin = require('firebase-admin');
+const DUBL = require('./lib/dublikat');
 const { requireAdmin } = require('./lib/adminAuth');
 const { searchUzex } = require('./lib/uzexClient');
 
@@ -356,6 +357,13 @@ async function execAdd(input) {
       randomKey: Math.random()
     };
     try {
+      /* DUBLIKAT NAZORATI — AI yordamchi orqali qo'shilganda ham
+         bitta raqam bazada faqat bir marta turadi. */
+      const bor = await DUBL.bormi(db, num);
+      if (bor) {
+        results.push({ ok: false, error: 'Bu raqam bazada allaqachon bor', input: n });
+        continue;
+      }
       const ref = await db.collection('numbers').add(doc);
       results.push({ ok: true, id: ref.id, number: num });
     } catch (err) {

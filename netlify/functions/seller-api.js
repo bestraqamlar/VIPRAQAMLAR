@@ -33,6 +33,7 @@ const admin = require('firebase-admin');
 const { verifyPassword, makeToken, requireSeller, initSecret } = require('./lib/sellerAuth');
 const TARIF = require('./lib/tariflar');
 const TOLOV = require('./lib/tolovlar');
+const DUBL = require('./lib/dublikat');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -319,8 +320,12 @@ async function addNumber(s, body) {
   if (n.xato) return bad(n.xato);
   const price = n.price;
 
-  const dup = await db.collection('numbers').where('number', '==', number).limit(1).get();
-  if (!dup.empty) return bad('Bu raqam bazada allaqachon bor');
+  /* DUBLIKAT: bitta raqam butun bazada faqat bir marta turadi.
+     Oddiy `number == ...` yetmaydi — admin panel raqamni boshqa
+     ko'rinishda ("+998 90 111-22-33") saqlagan bo'lishi mumkin.
+     `DUBL.bormi` har qanday ko'rinishni 9 xonaga keltirib solishtiradi. */
+  const dup = await DUBL.bormi(db, number);
+  if (dup) return bad('Bu raqam bazada allaqachon bor');
 
   const cnt = await db.collection('numbers').where('sellerId', '==', s.id).count().get().catch(() => null);
   if (cnt && cnt.data().count >= MAX_NUMBERS) return bad('Raqamlar soni chegarasiga yetdingiz');
@@ -394,19 +399,24 @@ async function addBulk(s, body) {
     tayyor.push({ number, operator, n, note: clean(r.note, 300) });
   });
 
-  // 2-bosqich: bazada bor-yo'qligini tekshirish (10 tadan)
-  const raqamlar = tayyor.map(t => t.number);
+  /* 2-bosqich: bazada bor-yo'qligini tekshirish.
+     `number` bo'yicha to'g'ridan-to'g'ri solishtirish YETARLI EMAS —
+     admin panel yoki bot raqamni boshqa ko'rinishda saqlagan bo'lishi
+     mumkin ("+998 90 111-22-33"). Shu sabab oxirgi 4 raqam bo'yicha
+     qidirib, 9 xonali ko'rinishda solishtiramiz (lib/dublikat.js). */
   const bazada = new Set();
-  await Promise.all(bolaklar(raqamlar, 10).map(async chunk => {
-    const q = await db.collection('numbers').where('number', 'in', chunk).limit(10).get().catch(() => null);
-    if (q) q.forEach(d => bazada.add((d.data() || {}).number));
+  const oxirgi4 = Array.from(new Set(tayyor.map(t => DUBL.raqam9(t.number).slice(-4))));
+  await Promise.all(oxirgi4.map(async l4 => {
+    const q = await db.collection('numbers').where('last4', '==', l4)
+      .select('number').limit(200).get().catch(() => null);
+    if (q) q.forEach(d => bazada.add(DUBL.raqam9((d.data() || {}).number)));
   }));
 
   // 3-bosqich: yozish
   const batch = db.batch();
   let yozildi = 0;
   for (const t of tayyor) {
-    if (bazada.has(t.number)) { xatolar.push({ number: t.number, xato: 'Bazada allaqachon bor' }); continue; }
+    if (bazada.has(DUBL.raqam9(t.number))) { xatolar.push({ number: t.number, xato: 'Bazada allaqachon bor' }); continue; }
     const ref = db.collection('numbers').doc();
     batch.set(ref, {
       number: t.number, operator: t.operator,
