@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "BU_YERGA_TEAM_ID.uz.vipraqamlar.app",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

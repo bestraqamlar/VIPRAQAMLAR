@@ -18,13 +18,44 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 db.settings({ preferRest: true });
 
+/* XAVFSIZLIK: ilgari bu funksiyada HECH QANDAY tekshiruv yo'q edi — istalgan
+   kishi to'g'ridan-to'g'ri chaqirib, botimiz nomidan ixtiyoriy xabar
+   yuborishi (spam yoki soxta "buyurtma" bildirishnomasi, hatto soxta
+   inline tugmali xabar) mumkin edi. Endi ikki xil qonuniy chaqiruvchi
+   ruxsat etiladi:
+   1) Saytning O'ZI (index.html, panel-boshqaruv.html) — App Check tokeni
+      bilan (xuddi check-my-orders.js, check-promo-code.js'dagi kabi bir
+      xil naqsh), token HAQIQIY bo'lishi shart.
+   2) SERVER-SERVERGA chaqiruvlar (masalan api-create-order.js — mobil
+      ilova uchun) — App Check tokeni bo'lishi shart emas (mobil ilova
+      brauzer emas), o'rniga xuddi api-create-order.js'dagi bilan bir xil
+      "x-api-key" (MOBILE_API_KEY muhit o'zgaruvchisi) qabul qilinadi.
+   Ikkalasi ham bo'lmasa — so'rov rad etiladi. */
+async function verifyCaller(event){
+  const apiKey = (event.headers && (event.headers['x-api-key'] || event.headers['X-Api-Key'])) || '';
+  const expectedApiKey = process.env.MOBILE_API_KEY;
+  if(expectedApiKey && apiKey === expectedApiKey) return true;
+
+  const token = (event.headers && (event.headers['x-firebase-appcheck'] || event.headers['X-Firebase-AppCheck'])) || '';
+  if(!token) return false;
+  try{
+    await admin.appCheck().verifyToken(token);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
+  if(!(await verifyCaller(event))){
+    return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
+  }
 
   try {
-    const { text, orderId } = JSON.parse(event.body || '{}');
+    const { text, orderId, mapUrl } = JSON.parse(event.body || '{}');
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -37,13 +68,19 @@ exports.handler = async function (event) {
 
     const body = { chat_id: chatId, text };
     if (orderId) {
-      body.reply_markup = {
-        inline_keyboard: [
-          [{ text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` }],
-          [{ text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` }],
-          [{ text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }]
-        ]
-      };
+      const inline_keyboard = [
+        [{ text: "📞 Bog'lanildi", callback_data: `st|${orderId}|B` }],
+        [{ text: '✅ Yakunlandi', callback_data: `st|${orderId}|Y` }],
+        [{ text: '❌ Bekor qilindi', callback_data: `st|${orderId}|C` }]
+      ];
+      // YANGI (mijoz so'roviga ko'ra): mijoz saytda xaritada aniq
+      // joylashuvini belgilagan bo'lsa — endi bu oddiy MATN havolasi
+      // sifatida emas, alohida TUGMA sifatida chiqadi, bosilganda
+      // to'g'ridan-to'g'ri Yandex Go ochiladi.
+      if (typeof mapUrl === 'string' && /^https:\/\//.test(mapUrl)) {
+        inline_keyboard.push([{ text: "🗺️ Xaritaga o'tish", url: mapUrl }]);
+      }
+      body.reply_markup = { inline_keyboard };
     }
 
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -65,4 +102,29 @@ exports.handler = async function (event) {
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
+};
+
+/* ================= CORS (mobil ilova uchun) =================
+   Sayt bilan bu funksiya bitta manzilda turadi, shu sabab brauzerda
+   CORS kerak emas edi. Lekin Android/iOS ilovasi ichida sahifa
+   `https://localhost` manzilidan ochiladi — ya'ni so'rov "boshqa
+   saytdan" kelgan hisoblanadi va CORS sarlavhalarisiz brauzer uni
+   bloklaydi.
+
+   Shuning uchun asl `handler` o'rab olindi: javobga CORS sarlavhalari
+   qo'shiladi va brauzerning dastlabki OPTIONS so'roviga javob beriladi.
+   Funksiyaning ichki mantig'i UMUMAN o'zgarmadi. */
+const __CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'content-type, x-firebase-appcheck, x-api-key',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400'
+};
+const __inner = exports.handler;
+exports.handler = async function (event, context) {
+  if (event && event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: __CORS, body: '' };
+  }
+  const res = await __inner(event, context);
+  return Object.assign({}, res, { headers: Object.assign({}, res && res.headers, __CORS) });
 };

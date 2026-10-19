@@ -65,3 +65,28 @@ exports.handler = async function (event) {
     return { statusCode: 500, body: JSON.stringify({ ok: false, error: err.message }) };
   }
 };
+
+/* ================= CORS (mobil ilova uchun) =================
+   Sayt bilan bu funksiya bitta manzilda turadi, shu sabab brauzerda
+   CORS kerak emas edi. Lekin Android/iOS ilovasi ichida sahifa
+   `https://localhost` manzilidan ochiladi — ya'ni so'rov "boshqa
+   saytdan" kelgan hisoblanadi va CORS sarlavhalarisiz brauzer uni
+   bloklaydi.
+
+   Shuning uchun asl `handler` o'rab olindi: javobga CORS sarlavhalari
+   qo'shiladi va brauzerning dastlabki OPTIONS so'roviga javob beriladi.
+   Funksiyaning ichki mantig'i UMUMAN o'zgarmadi. */
+const __CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'content-type, x-firebase-appcheck, x-api-key',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400'
+};
+const __inner = exports.handler;
+exports.handler = async function (event, context) {
+  if (event && event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: __CORS, body: '' };
+  }
+  const res = await __inner(event, context);
+  return Object.assign({}, res, { headers: Object.assign({}, res && res.headers, __CORS) });
+};

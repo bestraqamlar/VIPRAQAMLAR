@@ -53,6 +53,44 @@ async function getEskizToken() {
   return cachedToken;
 }
 
+// XAVFSIZLIK: yuqoridagi kunlik/daqiqalik chegara faqat BITTA telefon
+// raqamiga nisbatan ishlaydi — u bitta mijoz (bitta IP) KO'PLAB TURLI
+// telefon raqamlariga SMS yuborishidan (masalan boshqa odamlarni bezovta
+// qilish yoki Eskiz balansini tugatish uchun) HIMOYA QILMAYDI. Shu sabab
+// bu yerga QO'SHIMCHA, IP manzili bo'yicha soatlik umumiy chegara
+// qo'shildi — xuddi shu (Firestore hisoblagich hujjati) naqsh bilan.
+// MUHIM (mijoz xabar bergan "ko'p mijoz SMS kod bilan buyurtma
+// berolmayapti" muammosini tekshirganda topildi): O'zbekistondagi mobil
+// operatorlar (Beeline, Ucell, Uzmobile va h.k.) ko'pincha "CGNAT"
+// texnologiyasidan foydalanadi — bitta IP manzil ORQALI BIR VAQTDA
+// YUZLAB, hatto MINGLAB turli mijozlar internetga chiqadi. Avvalgi
+// chegara (15/soat) juda past edi — bir nechta mijoz aynan shu daqiqada
+// SMS so'rasa, o'sha IP ORTIDAGI BOSHQA, umuman aloqasi yo'q mijozlar
+// ham "juda ko'p urinish" xatosiga uchrab, SMS ololmay qolishi mumkin
+// edi (garchi bu SMS'siz ham buyurtma davom etsa-da, tasdiqlashsiz
+// qolish ishonchni pasaytiradi). Chegara ancha yuqoriga ko'tarildi —
+// haqiqiy suiiste'molni baribir to'xtatadi, lekin CGNAT ortidagi oddiy
+// mijozlarga deyarli ta'sir qilmaydi.
+const IP_HOURLY_LIMIT = 60;
+async function checkIpRateLimit(event) {
+  const ip = (event.headers && (
+    event.headers['x-nf-client-connection-ip']
+    || event.headers['client-ip']
+    || ((event.headers['x-forwarded-for'] || '').split(',')[0].trim())
+  )) || 'unknown';
+  const hourKey = new Date().toISOString().slice(0, 13);
+  const rateLimitRef = db.collection('sms_verifications_ip').doc(ip.replace(/[^\w.:-]/g, '_') || 'unknown');
+  const snap = await rateLimitRef.get();
+  let count = 0;
+  if (snap.exists) {
+    const data = snap.data();
+    if (data.hourKey === hourKey) count = data.count || 0;
+  }
+  if (count >= IP_HOURLY_LIMIT) return false;
+  await rateLimitRef.set({ hourKey, count: count + 1, lastAttemptAt: Date.now() });
+  return true;
+}
+
 exports.handler = async function (event) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -70,6 +108,9 @@ exports.handler = async function (event) {
     const cleanPhone = String(phone || '').replace(/\D/g, '');
     if (cleanPhone.length < 9) {
       return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: "Telefon raqam noto'g'ri" }) };
+    }
+    if (!(await checkIpRateLimit(event))) {
+      return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p urinish. Birozdan so'ng qayta urinib ko'ring." }) };
     }
     // Eskiz formatida: 998 bilan boshlanadigan 12 xonali raqam
     const fullPhone = cleanPhone.length === 9 ? '998' + cleanPhone : cleanPhone;
@@ -97,7 +138,15 @@ exports.handler = async function (event) {
     }
 
     const code = String(Math.floor(1000 + Math.random() * 9000));
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 daqiqa
+    // MUHIM (mijoz xabar bergan "sms kod bilan bog'liq" muammoni
+    // tekshirganda topildi): avval 5 daqiqa edi — Eskiz.uz SMS'ni ba'zan
+    // (ayniqsa peak vaqtlarda) 1-3 daqiqa kechikib yetkazadi, mijoz
+    // xabarni ochib kodni yozguncha 5 daqiqa ba'zan yetarli bo'lmagan
+    // (ayniqsa xarita/tarif kabi qo'shimcha qadamlarda vaqt ketgan
+    // bo'lsa). 10 daqiqaga oshirildi — xavfsizlikka deyarli ta'sir
+    // qilmaydi (kod baribir bir martalik va 5 urinishdan keyin bekor
+    // bo'ladi), lekin haqiqiy mijozlarga ancha ko'proq nafas oladi.
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 daqiqa
 
     await rateLimitRef.set({
       code, expiresAt, sentAt: Date.now(), attempts: 0,

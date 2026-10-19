@@ -139,6 +139,46 @@ async function deleteManyWatches(body) {
   return { ok: true, deleted: ids.length };
 }
 
+// "Baza raqam" topilganda, asosiy botdan TASHQARI, xabar yuborilishi
+// kerak bo'lgan qo'shimcha Telegram ID'lar ro'yxati (qarang:
+// number-watch-check-background.js -> notifyAdmin()). Bu — Client SDK
+// orqali EMAS, faqat shu funksiya orqali (requireAdmin bilan himoyalangan)
+// boshqariladi, chunki bu ham "Baza raqam"ga tegishli operatsion
+// ma'lumot (qarang: fayl boshidagi umumiy izoh).
+const NOTIFY_COLLECTION = 'watch_notify_recipients';
+
+function isValidTelegramId(id) {
+  // Telegram foydalanuvchi/kanal ID'lari — musbat yoki manfiy (guruh/kanal
+  // uchun manfiy) butun son bo'ladi.
+  return /^-?\d{5,15}$/.test(String(id || '').trim());
+}
+
+async function listNotifyIds() {
+  const snap = await db.collection(NOTIFY_COLLECTION).orderBy('addedAt', 'desc').get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function addNotifyId(body) {
+  const chatId = String(body.chatId || '').trim();
+  if (!isValidTelegramId(chatId)) {
+    const err = new Error("Telegram ID noto'g'ri — faqat raqamlardan iborat bo'lishi kerak (masalan 1141202069)");
+    err.statusCode = 400;
+    throw err;
+  }
+  const label = String(body.label || '').trim().slice(0, 60);
+  const ref = await db.collection(NOTIFY_COLLECTION).add({
+    chatId, label, addedAt: Date.now()
+  });
+  return { id: ref.id };
+}
+
+async function deleteNotifyId(body) {
+  const id = String(body.id || '');
+  if (!id) { const err = new Error('id kerak'); err.statusCode = 400; throw err; }
+  await db.collection(NOTIFY_COLLECTION).doc(id).delete();
+  return { ok: true };
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -162,6 +202,9 @@ exports.handler = async function (event) {
       case 'toggle': result = await toggleWatch(body); break;
       case 'delete': result = await deleteWatch(body); break;
       case 'deleteMany': result = await deleteManyWatches(body); break;
+      case 'listNotifyIds':  result = { recipients: await listNotifyIds() }; break;
+      case 'addNotifyId':    result = await addNotifyId(body); break;
+      case 'deleteNotifyId': result = await deleteNotifyId(body); break;
       default: {
         const err = new Error("Noma'lum amal");
         err.statusCode = 400;

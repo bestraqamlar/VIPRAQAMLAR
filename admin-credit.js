@@ -98,6 +98,9 @@ async function addContract(body, decoded) {
   const birthDate = String(body.birthDate || '');
   const permanentAddress = String(body.permanentAddress || '').trim();
   const startDateVal = body.startDate;
+  /* Valyuta — so'm yoki dollar. Hisob-kitob o'zgarmaydi, faqat qaysi
+     valyutada ekani saqlanadi va hamma joyda shunday ko'rsatiladi. */
+  const currency = String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS';
 
   if (!name || !phone || !region || !number || months <= 0 || monthly <= 0) {
     const err = new Error("Barcha maydonlarni to'g'ri to'ldiring");
@@ -130,13 +133,30 @@ async function addContract(body, decoded) {
 
   await db.collection(COLLECTION).doc(contractId).set({
     contractId, customerName: name, customerPhone: phone, region, number,
-    totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
+    totalMonths: months, monthlyPayment: monthly, currency, paymentDay: payDay,
     additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active',
     customerChatId, passportNumber, birthDate, permanentAddress,
     // Kim qo'shgani — HAR DOIM tekshirilgan tokendan olinadi, mijoz
     // tomonidan yuborilmaydi (qarang: getSummary/list izolyatsiya mantig'i).
     addedByUid: decoded.uid
   });
+
+  // Agar shu raqam "Shaxsiy baza"da (o'zimizning qo'limizdagi raqamlar
+  // ro'yxati) mavjud bo'lsa — endi mijozga kredit sifatida berilgani
+  // uchun avtomatik "yopiq" deb belgilaymiz (band bo'lib qoldi).
+  try {
+    const numDigits = number.replace(/\D/g, '');
+    if (numDigits) {
+      const personalSnap = await db.collection('personal_numbers').get();
+      const match = personalSnap.docs.find(d => {
+        const pd = String(d.data().number || '').replace(/\D/g, '');
+        return pd && (pd === numDigits || pd.slice(-9) === numDigits.slice(-9));
+      });
+      if (match && match.data().status !== 'yopiq') {
+        await match.ref.update({ status: 'yopiq', closedAt: Date.now(), linkedContractId: contractId });
+      }
+    }
+  } catch (e) { console.error('Shaxsiy bazani avtomatik yopishda xato:', e); }
 
   return { id: contractId, contractId, customerChatId };
 }
@@ -203,6 +223,7 @@ async function updateContract(body, decoded) {
     region: String(body.region || '').trim(),
     number: String(body.number || '').trim(),
     monthlyPayment: Number(body.monthlyPayment) || 0,
+    currency: String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS',
     additionalInfo: String(body.additionalInfo || '').trim(),
     passportNumber: String(body.passportNumber || '').trim(),
     birthDate: String(body.birthDate || ''),

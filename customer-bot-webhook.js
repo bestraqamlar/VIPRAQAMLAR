@@ -11,6 +11,11 @@
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 const admin = require('firebase-admin');
+
+/* Instagram sahifamiz — BITTA joyda. Nik o'zgarsa faqat shu ikki
+   qator tahrirlanadi (sayt tomonida ham shu nik ishlatiladi). */
+const INSTAGRAM_NIK = 'vipnumbers_uz';
+const INSTAGRAM_URL = 'https://instagram.com/' + INSTAGRAM_NIK;
 const { getBotControl } = require('./lib/botControl');
 const { checkAndMarkKnown } = require('./lib/knownCustomers');
 const { updateAdminList } = require('./lib/adminList');
@@ -132,19 +137,30 @@ function regionDisplayName(region){
 }
 const BTN = {
   CHOOSE: '🔢 Raqam tanlash',
-  PREMIUM: '💎 VIP raqamlar',
-  STANDARD: '🌐 Standart raqamlar',
+  PREMIUM: '💎 Premium raqamlar',
+  STANDARD: '🌐 Standart raqamlar', // ENDI asosiy menyuda ko'rsatilmaydi (pastga qarang), lekin kod ishlab turadi
   SALE: '🔥 Aksiya raqamlar',
+  ZAKAZ: '🛒 Zakaz qilish',
   CONTACT: '📞 Biz bilan aloqa',
   MYORDERS: '📋 Buyurtmalarim',
   CONTRACTS: '📄 Shartnomalarim',
-  PREV_PAGE: '◀️ Oldingi',
+  INSTALLMENT: "💳 Bo'lib to'lashga Raqamlar",
+  PREV_PAGE: '◀️ Orqaga',
   NEXT_PAGE: 'Keyingisi ▶️',
   BACK: '⬅️ Orqaga',
   CANCEL: '🔁 Bekor qilish',
   STEP_BACK: '🔙 Orqaga',
-  SHARE_CONTACT: '📱 Raqamimni yuborish'
+  SHARE_CONTACT: '📱 Raqamimni yuborish',
+  CONFIRM_YES: '✅ Tasdiqlash',
+  CONFIRM_NO: '❌ Bekor qilish'
 };
+/* "Zakaz qilish" bo'limida mijoz tanlaydigan kompaniyalar — admin panelda
+   xuddi shu 4 ta operator uchun narx belgilanadi (number_price_categories). */
+const ZAKAZ_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz', 'Uzmobile', 'Perfektum'];
+// "Raqam tanlash" — saytdagi kabi, mijoz aniq bitta kompaniyani tanlashi
+// (yoki "Barchasi") mumkin. Tartib saytdagi kartochkalar bilan bir xil.
+const RAQAM_BARCHASI = '🌐 Barchasi';
+const RAQAM_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz', 'Uzmobile', 'Perfektum'];
 
 /* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
 async function getSession(chatId){
@@ -189,23 +205,66 @@ async function tg(method, payload){
   });
   return res.json();
 }
-async function send(chatId, text, keyboard){
+async function send(chatId, text, keyboard, opts){
   await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
   const payload = { chat_id: chatId, text };
   if(keyboard) payload.reply_markup = keyboard;
+  if(opts && opts.html) payload.parse_mode = 'HTML';
   return tg('sendMessage', payload);
+}
+/* Professional ko'rinish uchun — HTML formatlangan xabar (bold, italic va h.k.) */
+function sendHtml(chatId, text, keyboard){ return send(chatId, text, keyboard, { html: true }); }
+
+/* Qidiruv kabi bir necha soniya cho'zilishi mumkin bo'lgan amallarda —
+   alohida "🔍 Qidirilmoqda..." degan xabar yubormasdan, Telegram'ning
+   O'ZINING "yozmoqda..." ko'rsatkichini (chat suhbat tepasida) amal
+   davomida tirik saqlaymiz. Telegram'da bu belgi atigi ~5 soniya turadi,
+   shu sabab uzoqroq amallarda muntazam yangilab turiladi. Xabar bo'lmagani
+   uchun keyin uni o'chirish ham shart emas — ekran toza qoladi. */
+async function withTyping(chatId, fn){
+  await tg('sendChatAction', { chat_id: chatId, action: 'typing' }).catch(() => {});
+  const timer = setInterval(() => {
+    tg('sendChatAction', { chat_id: chatId, action: 'typing' }).catch(() => {});
+  }, 4000);
+  try{
+    return await fn();
+  }finally{
+    clearInterval(timer);
+  }
 }
 function replyKb(rows){ return { keyboard: rows, resize_keyboard: true }; }
 function inlineKb(rows){ return { inline_keyboard: rows }; }
 
 function mainMenuKeyboard(){
   return replyKb([
-    [BTN.CHOOSE, BTN.MYORDERS],
+    [BTN.CHOOSE],
     [BTN.PREMIUM, BTN.SALE],
-    [BTN.STANDARD],
-    [BTN.CONTACT, BTN.CONTRACTS]
+    [BTN.ZAKAZ, BTN.MYORDERS],
+    [BTN.CONTRACTS, BTN.CONTACT],
+    [BTN.INSTALLMENT]
   ]);
 }
+function raqamOpLabel(op){ return `${OPERATOR_EMOJI[op] || '📶'} ${op}`; }
+// Tugma matnidan ("🔵 Uzmobile") qaysi operator bosilganini aniq topish
+// uchun — regex bilan taxmin qilmasdan, aynan shu labellar ro'yxatidan.
+const RAQAM_OP_BY_LABEL = Object.fromEntries(RAQAM_OPERATORS.map(op => [raqamOpLabel(op), op]));
+function raqamOperatorKeyboard(){
+  const rows = [[RAQAM_BARCHASI]];
+  for(let i = 0; i < RAQAM_OPERATORS.length; i += 2){
+    rows.push([raqamOpLabel(RAQAM_OPERATORS[i]), raqamOpLabel(RAQAM_OPERATORS[i+1])]);
+  }
+  rows.push([BTN.BACK]);
+  return replyKb(rows);
+}
+function zakazOperatorKeyboard(){
+  const rows = [];
+  for(let i = 0; i < ZAKAZ_OPERATORS.length; i += 2){
+    rows.push([ZAKAZ_OPERATORS[i], ZAKAZ_OPERATORS[i+1]]);
+  }
+  rows.push([BTN.CANCEL, BTN.STEP_BACK]);
+  return replyKb(rows);
+}
+function confirmKeyboard(){ return replyKb([[BTN.CONFIRM_YES, BTN.CONFIRM_NO]]); }
 function backKeyboard(){ return replyKb([[BTN.BACK]]); }
 function cancelKeyboard(){ return replyKb([[BTN.CANCEL, BTN.STEP_BACK]]); }
 function regionKeyboard(){
@@ -222,11 +281,25 @@ function districtKeyboard(region){
   rows.push([BTN.CANCEL, BTN.STEP_BACK]);
   return replyKb(rows);
 }
+// MUHIM: mijoz iltimosiga ko'ra "kontaktni ulashish" tugmasi ATAYLAB
+// olib tashlangan — mijoz o'z raqamini FAQAT qo'lda yozib yuborishi kerak
+// (bu "o'yin uchun" soxta buyurtma berishning oldini oladi; raqam quyida
+// haqiqiy O'zbekiston operator kodlariga qarshi tekshiriladi).
 function contactKeyboard(){
-  return replyKb([[{ text: BTN.SHARE_CONTACT, request_contact: true }], [BTN.CANCEL, BTN.STEP_BACK]]);
+  return replyKb([[BTN.CANCEL, BTN.STEP_BACK]]);
 }
 
-function formatPrice(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm"; }
+/* VALYUTA — adminkada raqamga "dollar" belgilangan bo'lsa (currency:'USD'),
+   narx so'mda emas, dollarda ko'rsatiladi. Ikkinchi argument raqam obyekti
+   ham, oddiy 'USD' satri ham bo'lishi mumkin; berilmasa — so'm (eski xulq). */
+function isUsd(cur){
+  const c = (cur && typeof cur === 'object') ? cur.currency : cur;
+  return typeof c === 'string' && c.toLowerCase() === 'usd';
+}
+function formatPrice(n, cur){
+  const t = Number(n).toLocaleString('ru-RU').replace(/,/g, ' ');
+  return isUsd(cur) ? (t + ' $') : (t + " so'm");
+}
 /* Mijoz ismiga tasodifan (yoki ataylab) "<", "&" kabi belgilar yozib
    qo'yishi mumkin — bu HTML rejimidagi xabarni butunlay yuborilmay
    qolishiga sabab bo'lishi mumkin edi. Shu sabab ekranga chiqarishdan
@@ -250,8 +323,25 @@ async function getInstallmentRates(){
     return { 6: 0, 12: 0, 24: 0, 36: 0 };
   }
 }
-function displayNumber(numberStr){ return (numberStr || '').replace(/-/g, ' '); }
+/* Manbasidan qat'i nazar (VIP bazamiz turlicha formatda, operatorlardan
+   jonli qidiruv esa hech qanday formatsiz "+998901234567" qaytaradi) —
+   BARCHA raqamlar mijozga bir xil, o'qish oson ko'rinishda: "+998 XX-XXX-XX-XX". */
+function displayNumber(numberStr){
+  const digits = String(numberStr || '').replace(/\D/g, '');
+  const nine = (digits.startsWith('998') ? digits.slice(3) : digits).slice(-9).padStart(9, '0');
+  return `+998 ${nine.slice(0,2)}-${nine.slice(2,5)}-${nine.slice(5,7)}-${nine.slice(7,9)}`;
+}
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
+
+/* "Premium" ko'rinish — oddiy 0-9 o'rniga qalin Unicode raqamlar
+   (Mathematical Sans-Serif Bold). Faqat MIJOZGA CHATDA ko'rsatiladigan
+   matnlarda ishlatiladi (ro'yxat, batafsil, "Buyurtmalarim"). Firestore'ga
+   yoziladigan qiymatlar (orders.number, shartnoma PDF va h.k.) ATAYLAB
+   ODDIY ASCII holida qoldiriladi — chunki PDF shrifti bu maxsus Unicode
+   belgilarni chizolmaydi (shartnoma buzilib qolardi) va boshqa joylarda
+   raqam qidirish/solishtirish ASCII kutadi. */
+const PREMIUM_DIGITS = ['𝟬','𝟭','𝟮','𝟯','𝟰','𝟱','𝟲','𝟳','𝟴','𝟵'];
+function premiumNumber(str){ return String(str || '').replace(/[0-9]/g, d => PREMIUM_DIGITS[d]); }
 /* Natijalarni ro'yxat qilib ko'rsatadi (qidiruv/premium/aksiya uchun umumiy) */
 const LIST_PAGE_SIZE = 10;
 async function showNumberList(chatId, session, items, emptyText, emptyExtraKeyboard, page){
@@ -271,35 +361,78 @@ async function showNumberList(chatId, session, items, emptyText, emptyExtraKeybo
   if(page < 0) page = 0;
   const pageItems = items.slice(page * LIST_PAGE_SIZE, (page + 1) * LIST_PAGE_SIZE);
 
+  // Mijoz iltimosiga ko'ra ro'yxat IKKI USTUNLI panjara (grid) ko'rinishida
+  // chiqadi — bir qatorda IKKITA raqam yonma-yon, faqat raqamning o'zi
+  // (operator doiracha belgisisiz — mijoz buni keraksiz deb topdi, narx
+  // ham ko'rsatilmaydi). To'liq narx/shart/operator ustiga bosilganda
+  // (session.candidates orqali) ochiladi.
+  const btnLabel = item => premiumNumber(displayNumber(item.number));
+
   session.step = 'list_shown';
   session.candidates = {};
-  pageItems.forEach(item => { session.candidates[displayNumber(item.number)] = item.id; });
-  // Sahifalar orasida almashish uchun — to'liq ro'yxatning faqat ID+raqamini
-  // saqlaymiz (batafsil ma'lumot tanlanganda Firestore'dan qayta olinadi).
-  session.listAll = items.map(item => ({ id: item.id, number: item.number }));
+  pageItems.forEach(item => { session.candidates[btnLabel(item)] = item.id; });
+  // Sahifalar orasida almashish uchun — to'liq ro'yxatning faqat ID+raqam+
+  // narx+operatorini saqlaymiz ("Orqaga" bosilganda yoki sahifa
+  // almashtirilganda shu yerdan qayta chizamiz, Firestore'ga qayta
+  // murojaat qilmasdan).
+  session.listAll = items.map(item => ({ id: item.id, number: item.number, operator: item.operator, price: item.price }));
   session.listPage = page;
   session.listEmptyText = emptyText;
   await saveSession(chatId, session);
 
-  const rows = pageItems.map(item => [displayNumber(item.number)]);
+  const rows = [];
+  for(let i = 0; i < pageItems.length; i += 2){
+    const pair = [btnLabel(pageItems[i])];
+    if(pageItems[i+1]) pair.push(btnLabel(pageItems[i+1]));
+    rows.push(pair);
+  }
+  // Mijoz "◀️ Orqaga" (avvalgi sahifa) va "⬅️ Orqaga" (ro'yxatdan butunlay
+  // chiqish) ikkalasi ham "Orqaga" deb chalkashtirilganini aytdi — shu
+  // sabab ro'yxatdan butunlay chiqish tugmasi endi "🔁 Bekor qilish".
   const navRow = [];
   if(page > 0) navRow.push(BTN.PREV_PAGE);
   if(page < totalPages - 1) navRow.push(BTN.NEXT_PAGE);
   if(navRow.length) rows.push(navRow);
-  rows.push([BTN.BACK]);
+  rows.push([BTN.CANCEL]);
 
-  const pageInfo = totalPages > 1 ? ` (${page + 1}/${totalPages}-sahifa)` : '';
-  await send(chatId, `Mos raqamlar topildi${pageInfo}. Batafsil ko'rish uchun birini tanlang 👇`, replyKb(rows));
+  // Topilgan sonini har doim aytib beramiz ("X ta raqam topildi"), yolg'iz
+  // "👇" belgisi (katta emoji bo'lib ko'rinib, noqulay chiqqan edi) olib
+  // tashlandi.
+  let pageInfo = `✨ ${items.length} ta raqam topildi`;
+  if(totalPages > 1) pageInfo += ` (${page + 1}/${totalPages}-sahifa)`;
+  await send(chatId, pageInfo, replyKb(rows));
 }
 
-async function showNumberDetail(chatId, item){
-  const plainNumber = '+' + (item.number || '').replace(/\D/g, '');
-  let text = `<b>${plainNumber}</b>\n\n`;
-  text += `💵 Narxi: <b>${formatPrice(item.price)}</b>\n`;
-  if(item.onSale && item.oldPrice > item.price){
-    text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice)}</s>\n`;
+// "instOnly" — mijoz "💳 Bo'lib to'lashga Raqamlar" bo'limi orqali kirgan
+// bo'lsa true: naqt narx BUTUNLAY ko'rsatilmaydi, faqat "Bo'lib to'lash"
+// tugmasi chiqadi (boshqa hamma joyda — Premium/Aksiya/Raqam tanlash va
+// h.k. — bu ta'sir qilmaydi, ular hardoimgiday ikkala variantni chiqaradi).
+async function showNumberDetail(chatId, item, instOnly){
+  const plainNumber = premiumNumber(displayNumber(item.number));
+  const opEmoji = OPERATOR_EMOJI[item.operator] || '📶';
+  let text = `<b>${plainNumber}</b>\n`;
+  if(item.operator) text += `${opEmoji} ${escapeHtml(item.operator)}\n`;
+
+  const hideCash = !!(instOnly && item.installment);
+  if(!hideCash){
+    text += `\n💵 Narxi: <b>${formatPrice(item.price, item)}</b>\n`;
+    if(item.onSale && item.oldPrice > item.price){
+      text += `<s>⚠️ Eski narxi : ${formatPrice(item.oldPrice, item)}</s>\n`;
+    }
   }
-  if(item.installment){
+  // To'liq ma'lumot — botda har doim ko'rinadi (oylik tarif, muddat,
+  // nomiga chiqish sharti bo'lsa).
+  if(item.monthlyTariff){
+    text += `📶 Oylik tarif: <b>${formatPrice(item.monthlyTariff)}</b>\n`;
+  }
+  if(item.tariffMonths){
+    text += `✅ ${item.tariffMonths} oydan so'ng istalgan tarifga o'tib olishingiz mumkin.\n`;
+  }
+  if(item.ownershipTransfer){
+    text += `📝 Sizning nomingizga rasmiylashtiriladi.\n`;
+  }
+  // Dollarlik raqam — faqat naqt to'lov (bo'lib to'lash hisob-kitobi so'mda)
+  if(item.installment && !isUsd(item)){
     text += `💰 Raqamni 6,12,24,36 oygacha bo'lib to'lash sharti bilan olish mumkin.\n`;
   }
   if(item.reserved){
@@ -308,22 +441,93 @@ async function showNumberDetail(chatId, item){
     text += `✍️ Ushbu raqamga buyurtma berishni istaysizmi?`;
   }
 
+  // "Orqaga" bosilganda ASOSIY MENYUGA emas, aynan shu raqam turgan
+  // RO'YXATGA (bitta qadam orqaga) qaytadi — mijoz raqam tanlashda davom
+  // etaveradi, boshidan boshlashga majbur bo'lmaydi. Shu sabab bu yerda
+  // 'backmenu' emas, alohida 'backtolist' ishlatiladi.
   const buttons = item.reserved
-    ? [[{ text: '⬅️ Orqaga', callback_data: 'backmenu' }]]
-    : item.installment
+    ? [[{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]]
+    : hideCash
       ? [
-          [
-            { text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` },
-            { text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }
-          ],
-          [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
+          [{ text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }],
+          [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
         ]
-      : [
-          [{ text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` }],
-          [{ text: '❌ Bekor qilish', callback_data: 'cancelview' }]
-        ];
+      : item.installment
+        ? [
+            [
+              { text: "💵 Naqt to'lov", callback_data: `buy|${item.id}` },
+              { text: "💳 Bo'lib to'lash", callback_data: `installment|${item.id}` }
+            ],
+            [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
+          ]
+        : [
+            [{ text: "🛒 Buyurtma berish", callback_data: `buy|${item.id}` }],
+            [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
+          ];
   await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
   await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(buttons) });
+}
+
+/* ---------------- "Zakaz qilish" — narx/shartlar kartochkasi ---------------- */
+function zakazMaskedNumber(pattern){ return premiumNumber(`+998 (**)-***-${pattern.slice(0,2)}-${pattern.slice(2)}`); }
+/* Narx+tarifni (aksiya bo'lsa aksiya narxi/tarifi) bitta joydan olib
+   beradi — kartochkada VA "Umumiy summa"da bir xil son ishlatilishi uchun. */
+function zakazEffectivePrice(d){ return (d.onSale && d.salePrice) ? d.salePrice : (d.fullPrice || 0); }
+function zakazEffectiveTariff(d){ return (d.onSale && d.saleMonthlyTariff) ? d.saleMonthlyTariff : (d.monthlyTariff || 0); }
+async function showZakazPriceCard(chatId, session){
+  const d = session.zakazPriceData;
+  const opEmoji = OPERATOR_EMOJI[session.zakazOperator] || '📶';
+  let text = `${opEmoji} <b>${escapeHtml(session.zakazOperator)}</b>\n<b>${zakazMaskedNumber(session.zakazPattern)}</b>\n\n`;
+
+  if(!d){
+    text += "Narx hali belgilanmagan — so'rovingizni qoldiring, operatorimiz tez orada narxini aytadi.\n\n✍️ Zakaz berishni istaysizmi?";
+  }else{
+    const tariff = zakazEffectiveTariff(d);
+    if(d.onSale && d.salePrice){
+      text += `💵 Narxi: <s>${formatPrice(d.fullPrice)}</s>\n`;
+      text += `🔥 Aksiyada: <b>${formatPrice(d.salePrice)}</b>\n`;
+    }else{
+      text += `💵 Narxi: <b>${formatPrice(d.fullPrice)}</b>\n`;
+    }
+    if(tariff) text += `📶 Oylik tarif: <b>${formatPrice(tariff)}</b>\n`;
+    if(d.tariffMonths) text += `✅ ${d.tariffMonths} oydan so'ng istalgan tarifga o'tib olishingiz mumkin\n`;
+    if(d.installmentAvailable){
+      text += `💳 Bo'lib to'lash: <b>${d.installmentMonths} oyga, oyiga ${formatPrice(d.installmentMonthly)}</b>\n`;
+      if(d.downPayment) text += `💰 Bosh to'lov: <b>${formatPrice(d.downPayment)}</b>\n`;
+    }
+    text += d.ownershipTransfer
+      ? `📝 Sizning nomingizga rasmiylashtiriladi\n`
+      : `📝 Rasmiylashtirilmaydi (tayyor faol holatda beriladi)\n`;
+    text += `\n✅ Umumiy summa: <b>${formatPrice(zakazEffectivePrice(d) + tariff)}</b>\n`;
+    text += `\n✍️ Ushbu shartlarda zakaz berishni istaysizmi?`;
+  }
+
+  await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
+  await tg('sendMessage', {
+    chat_id: chatId, text, parse_mode: 'HTML',
+    reply_markup: inlineKb([
+      [{ text: '✅ Tasdiqlash', callback_data: 'zakazconfirm' }, { text: '❌ Bekor qilish', callback_data: 'zakazcancel' }]
+    ])
+  });
+}
+
+/* number_price_categories'dan operator+pattern bo'yicha narx qidiradi va
+   narx kartochkasini ko'rsatadi. "Zakaz qilish"ning oddiy oqimida HAM,
+   "Raqam tanlash"da topilmagan raqamdan bevosita "Zakaz berish" bosilganda
+   HAM ishlatiladi — ikkalasida ham bir xil natija bo'lishi uchun. */
+async function zakazLookupAndShowPrice(chatId, session, operator, pattern){
+  const docId = `${operator}_${pattern}`;
+  let priceData = null;
+  try{
+    const doc = await withRetry(() => db.collection('number_price_categories').doc(docId).get());
+    if(doc.exists) priceData = doc.data();
+  }catch(e){ console.error('Zakaz narx qidirishda xato:', e); }
+  session.zakazOperator = operator;
+  session.zakazPattern = pattern;
+  session.zakazPriceData = priceData;
+  session.step = 'zakaz_confirm_price';
+  await saveSession(chatId, session);
+  await showZakazPriceCard(chatId, session);
 }
 
 /* ---------------- Admin bildirishnomasi (buyurtma tushganda) ---------------- */
@@ -347,6 +551,10 @@ async function notifyAdmin(orderId, payload){
   }
   if(payload.operator){
     text += `\n📶 Operator: ${payload.operator}`;
+  }
+  // Dollarlik raqam — summa adminga aniq ko'rinsin
+  if(isUsd(payload.currency)){
+    text += `\n💲 Summa: ${formatPrice(payload.price || 0, 'USD')}`;
   }
   if(payload.installmentMonths){
     text += `\n💳 To'lov turi: ${payload.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(payload.installmentMonthly)})`;
@@ -383,11 +591,15 @@ function docToItem(doc){
     operator: d.operator || '',
     price: d.price || 0,
     oldPrice: d.oldPrice || 0,
+    currency: d.currency || 'UZS',
     tag: d.tag || 'oddiy',
     installment: !!d.installment,
     featured: !!d.featured,
     onSale: !!d.onSale,
-    reserved: !!d.reserved
+    reserved: !!d.reserved,
+    monthlyTariff: d.monthlyTariff || 0,
+    tariffMonths: d.tariffMonths || 0,
+    ownershipTransfer: !!d.ownershipTransfer
   };
 }
 
@@ -556,7 +768,7 @@ async function aiExecSearch(input){
   if(input.operator) items = items.filter(it => it.operator === input.operator);
   if(input.tag) items = items.filter(it => it.tag === input.tag);
   if(typeof input.maxPrice === 'number') items = items.filter(it => (it.price||0) <= input.maxPrice);
-  items = items.filter(it => !it.reserved);
+  items = items.filter(it => !it.reserved && !it.installment);
 
   const total = items.length;
   const limit = Math.min(input.limit || 5, 10);
@@ -704,6 +916,63 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    // Raqam TAFSILOTI ekranidan "⬅️ Orqaga" — asosiy menyuga emas, aynan
+    // o'sha ro'yxatga (bir qadam orqaga) qaytaramiz, xuddi shu sahifada.
+    if(data === 'backtolist'){
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      if(session.listAll && session.listAll.length){
+        await showNumberList(chatId, session, session.listAll, session.listEmptyText || "Natija topilmadi.", null, session.listPage || 0);
+      }else{
+        session = { step: 'menu' };
+        await saveSession(chatId, session);
+        await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    // "Raqam tanlash"da qidirilgan raqam hech qayerda topilmaganda
+    // ko'rsatiladigan "🛒 XX-XX zakaz berish" tugmasi — mijozni qaytadan
+    // hammasini boshidan yozdirmasdan, to'g'ridan-to'g'ri Zakaz bo'limiga
+    // (operator + pattern bilan) olib o'tadi.
+    if(data.startsWith('zakazfrom|')){
+      const parts = data.split('|');
+      const opRaw = parts[1];
+      const patRaw = parts[2];
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      const operator = (opRaw && ZAKAZ_OPERATORS.includes(opRaw)) ? opRaw : null;
+      if(operator){
+        session = { step: 'menu' };
+        await zakazLookupAndShowPrice(chatId, session, operator, patRaw);
+      }else{
+        session = { step: 'zakaz_awaiting_operator', zakazPendingPattern: patRaw };
+        await saveSession(chatId, session);
+        await sendHtml(chatId, "🛒 <b>Zakaz qilish</b>\n\nAvval kompaniyani tanlang 👇", zakazOperatorKeyboard());
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
+    if(data === 'zakazcancel'){
+      session = { step: 'menu' };
+      await saveSession(chatId, session);
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      await send(chatId, "Zakaz bekor qilindi.", mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(data === 'zakazconfirm'){
+      if(!session.zakazOperator || !session.zakazPattern){
+        await tg('answerCallbackQuery', { callback_query_id: cq.id, text: "Ma'lumot eskirdi, qaytadan urinib ko'ring" });
+        return { statusCode: 200, body: 'ok' };
+      }
+      session = {
+        step: 'awaiting_name', isZakazOrder: true,
+        zakazOperator: session.zakazOperator, zakazPattern: session.zakazPattern, zakazPriceData: session.zakazPriceData
+      };
+      await saveSession(chatId, session);
+      await tg('answerCallbackQuery', { callback_query_id: cq.id });
+      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
     if(data.startsWith('installment|')){
       const numberId = data.split('|')[1];
       const numberDoc = await withRetry(() => db.collection('numbers').doc(numberId).get());
@@ -791,12 +1060,60 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    if(data === 'confirmorder' && session.isZakazOrder){
+      // "Zakaz qilish" — bu VIP katalog buyurtmasi EMAS, alohida
+      // 'custom_orders' kolleksiyasiga yoziladi (admin panelning "Zakaz"
+      // bo'limida ko'rinadi), 'numbers'da hech narsa band qilinmaydi.
+      await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Yuborilmoqda...' });
+      const d = session.zakazPriceData;
+      const manzil = session.draftDistrict
+        ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
+        : (session.draftRegion || '');
+      const time = new Date().toLocaleString('uz-UZ');
+
+      const orderRef = await withRetry(() => db.collection('custom_orders').add({
+        pattern: session.zakazPattern,
+        operator: session.zakazOperator,
+        name: session.draftName || '',
+        region: manzil,
+        phone: session.draftPhone || '',
+        status: 'Yangi',
+        source: 'Telegram bot',
+        customerChatId: String(chatId),
+        fullPrice: d ? (d.fullPrice || 0) : 0,
+        monthlyTariff: d ? (d.monthlyTariff || 0) : 0,
+        onSale: d ? !!d.onSale : false,
+        salePrice: d ? (d.salePrice || 0) : 0,
+        saleMonthlyTariff: d ? (d.saleMonthlyTariff || 0) : 0,
+        installmentAvailable: d ? !!d.installmentAvailable : false,
+        installmentMonths: d ? (d.installmentMonths || 0) : 0,
+        installmentMonthly: d ? (d.installmentMonthly || 0) : 0,
+        downPayment: d ? (d.downPayment || 0) : 0,
+        ownershipTransfer: d ? !!d.ownershipTransfer : false,
+        tariffMonths: d ? (d.tariffMonths || 0) : 0,
+        createdAt: time,
+        createdAtSort: Date.now()
+      }));
+
+      await notifyAdminLead(
+        `🛒 <b>Yangi Zakaz (Telegram bot)</b>\n\n` +
+        `${OPERATOR_EMOJI[session.zakazOperator] || '📶'} ${escapeHtml(session.zakazOperator)} — <b>${zakazMaskedNumber(session.zakazPattern)}</b>\n` +
+        `👤 ${escapeHtml(session.draftName)}\n☎️ ${escapeHtml(session.draftPhone)}\n📍 ${escapeHtml(manzil)}\n` +
+        (d ? `💰 ${formatPrice(d.onSale && d.salePrice ? d.salePrice : d.fullPrice)}` : "💰 Narx kelishiladi")
+      );
+
+      session = { step: 'menu' };
+      await saveSession(chatId, session);
+      await sendHtml(chatId, "✅ <b>So'rovingiz qabul qilindi!</b>", mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+
     if(data === 'confirmorder'){
       await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Yuborilmoqda...' });
       // STANDART TOIFA: 'numbers' hujjati yo'q — hech narsa o'qimaymiz,
       // ma'lumot seansdagi jonli natijadan olinadi.
       const isLive = !!(session.isLiveOrder && session.liveNumber);
-      let numberStr, price, operatorStr;
+      let numberStr, price, operatorStr, orderCurrency = 'UZS';
       if(isLive){
         numberStr = displayNumber(session.liveNumber.number || '');
         price = session.liveNumber.price || 0;
@@ -807,18 +1124,23 @@ exports.handler = async function (event) {
         numberStr = displayNumber(nd.number || '');
         price = nd.price || 0;
         operatorStr = nd.operator || '';
+        orderCurrency = isUsd(nd) ? 'USD' : 'UZS';
       }
       const time = new Date().toLocaleString('uz-UZ');
       const manzil = session.draftDistrict
-        ? `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`
+        ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
         : (session.draftRegion || '');
 
       const orderRef = await withRetry(() => db.collection('orders').add({
         number: numberStr,
         price,
+        currency: orderCurrency,
         name: session.draftName || '',
         region: manzil,
         phone: session.draftPhone || '',
+        // check-my-orders.js shu maydon bo'yicha to'g'ridan-to'g'ri
+        // .where() so'rovi yuboradi (butun kolleksiyani skanerlash o'rniga).
+        phoneNormalized: (session.draftPhone || '').replace(/\D/g, '').slice(-9),
         // Jonli raqamda haqiqiy hujjat yo'q — soxta ID yozmaymiz, null qo'yamiz
         numberId: isLive ? null : (session.numberId || null),
         catalogType: isLive ? 'Standart' : 'VIP',
@@ -843,7 +1165,7 @@ exports.handler = async function (event) {
 
       await notifyAdmin(orderRef.id, {
         number: numberStr, name: session.draftName, phone: session.draftPhone,
-        region: manzil, time,
+        region: manzil, time, price, currency: orderCurrency,
         catalogType: isLive ? 'Standart' : 'VIP',
         operator: operatorStr,
         installmentMonths: session.installmentMonths || null,
@@ -852,7 +1174,7 @@ exports.handler = async function (event) {
 
       session = { step: 'menu' };
       await saveSession(chatId, session);
-      await send(chatId, "✅ Buyurtmangiz qabul qilindi! Tez orada siz bilan bog'lanamiz.", mainMenuKeyboard());
+      await sendHtml(chatId, "✅ <b>Buyurtmangiz qabul qilindi!</b>", mainMenuKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -889,9 +1211,24 @@ exports.handler = async function (event) {
   if(text === '/start'){
     session = { step: 'menu' };
     await saveSession(chatId, session);
-    await send(chatId,
-      "Assalomu alaykum! VIP RAQAMLAR botiga xush kelibsiz 👋\n\nKerakli operatorni tanlang yoki quyidagi bo'limlardan foydalaning:",
+    const from = message.from || {};
+    const firstName = from.first_name ? escapeHtml(from.first_name) : '';
+    // Mijoz iltimosiga ko'ra: /start bosilganda chiqadigan xabar juda uzun
+    // edi (funksiyalar ro'yxati bilan) — endi qisqa, tushunarli va
+    // to'g'ridan-to'g'ri menyuga yo'naltiradigan holga keltirildi.
+    await sendHtml(chatId,
+      `Assalomu alaykum${firstName ? ', ' + firstName : ''}! 👋\n\n` +
+      `<b>VIP RAQAMLAR</b> rasmiy botiga xush kelibsiz.\n\n` +
+      `Chiroyli va vip raqamni tanlash uchun kerakli tugmani tanlang 👇`,
       mainMenuKeyboard());
+    /* Mijoz botga yozgan zahoti Instagram sahifamiz ham ko'rinib
+       tursin — havola bitta joyda (INSTAGRAM_URL) saqlanadi, nik
+       o'zgarsa faqat o'sha qator tahrirlanadi. */
+    await tg('sendMessage', {
+      chat_id: chatId,
+      text: `📸 Yangi raqamlar va aksiyalar Instagram sahifamizda: @${INSTAGRAM_NIK}`,
+      reply_markup: inlineKb([[{ text: '📸 Instagram sahifamiz', url: INSTAGRAM_URL }]])
+    });
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -919,7 +1256,21 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
   if(text === BTN.STEP_BACK){
-    if(session.step === 'awaiting_name'){
+    if(session.step === 'awaiting_digits' && ('raqamOperator' in session)){
+      session = { step: 'raqam_awaiting_operator' };
+      await saveSession(chatId, session);
+      await send(chatId, "Qaysi kompaniyadan qidiraylik? Yoki \"Barchasi\"ni tanlang 👇", raqamOperatorKeyboard());
+    }else if(session.step === 'zakaz_awaiting_digits'){
+      session = { step: 'zakaz_awaiting_operator' };
+      await saveSession(chatId, session);
+      await send(chatId, 'Kompaniyani tanlang:', zakazOperatorKeyboard());
+    }else if(session.step === 'awaiting_name' && session.isZakazOrder){
+      // Zakaz oqimida ism so'ralayotgan bosqichdan orqaga — narx/shartlar
+      // kartochkasiga qaytaramiz.
+      session.step = 'zakaz_confirm_price';
+      await saveSession(chatId, session);
+      await showZakazPriceCard(chatId, session);
+    }else if(session.step === 'awaiting_name'){
       // Ism so'ralayotgan bosqichdan orqaga — o'sha raqamning tafsilotiga qaytaramiz,
       // shunda mijoz "Naqt to'lov" / "Bo'lib to'lash"ni qayta tanlashi mumkin.
       const numberId = session.numberId;
@@ -927,18 +1278,19 @@ exports.handler = async function (event) {
       // seansda saqlangan ma'lumotdan qayta ko'rsatamiz.
       const live = session.isLiveOrder ? session.liveNumber : null;
       const numberDoc = (!live && numberId) ? await withRetry(() => db.collection('numbers').doc(numberId).get()) : null;
+      const wasInstOnly = session.instOnlyMode;
       if(live){
         // Ro'yxat/jonli natijalarni saqlab qolamiz, aks holda mijoz
         // "Naqt to'lov"ni qayta bosa raqam ma'lumoti topilmay qoladi.
-        session = { step: 'list_shown', liveItems: session.liveItems, candidates: session.candidates, listAll: session.listAll, listPage: session.listPage, listEmptyText: session.listEmptyText };
+        session = { step: 'list_shown', liveItems: session.liveItems, candidates: session.candidates, listAll: session.listAll, listPage: session.listPage, listEmptyText: session.listEmptyText, instOnlyMode: wasInstOnly };
       }else{
-        session = { step: 'list_shown' };
+        session = { step: 'list_shown', instOnlyMode: wasInstOnly };
       }
       await saveSession(chatId, session);
       if(live){
-        await showNumberDetail(chatId, liveToItem(live));
+        await showNumberDetail(chatId, liveToItem(live), wasInstOnly);
       }else if(numberDoc && numberDoc.exists){
-        await showNumberDetail(chatId, docToItem(numberDoc));
+        await showNumberDetail(chatId, docToItem(numberDoc), wasInstOnly);
       }else{
         await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
       }
@@ -949,7 +1301,7 @@ exports.handler = async function (event) {
     }else if(session.step === 'awaiting_region'){
       session.step = 'awaiting_phone';
       await saveSession(chatId, session);
-      await send(chatId, "Hozir ishlatib turgan raqamingizni yuboring (yozing yoki kontaktni ulashing):", contactKeyboard());
+      await send(chatId, "Hozir ishlatib turgan raqamingizni kiriting (masalan: 90 123 45 67):", contactKeyboard());
     }else if(session.step === 'awaiting_district'){
       session.step = 'awaiting_region';
       await saveSession(chatId, session);
@@ -966,12 +1318,26 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
 
+  // MUHIM TUZATISH: mijoz oldingi bir oqimda (masalan raqam qidirish,
+  // buyurtma to'ldirish) "chala" holatda qolib ketgan bo'lishi mumkin —
+  // shunday holatda asosiy menyu tugmalaridan birini bossa ham,
+  // pastdagi "session.step === 'menu'" tekshiruvi mos kelmagani uchun
+  // hech narsa qilmay, "Iltimos, menyudagi tugmalardan foydalaning"
+  // degan umumiy javobga tushib qolardi — mijozga "bot ishlamayapti"
+  // taassurotini berardi. Endi ASOSIY MENYU tugmalaridan biri bosilsa,
+  // qaysi bosqichda "qolib ketgan" bo'lishidan qat'i nazar, session
+  // darhol tozalanadi va tugma normal ishlaydi.
+  const MAIN_MENU_TEXTS = [BTN.CHOOSE, BTN.PREMIUM, BTN.SALE, BTN.ZAKAZ, BTN.MYORDERS, BTN.CONTRACTS, BTN.CONTACT, BTN.INSTALLMENT];
+  if(MAIN_MENU_TEXTS.includes(text) && session.step !== 'menu' && session.step){
+    session = { step: 'menu' };
+  }
+
   /* ---- Asosiy menyu tugmalari ---- */
   if(session.step === 'menu' || !session.step){
     if(text === BTN.CHOOSE){
-      session = { step: 'awaiting_digits' };
+      session = { step: 'raqam_awaiting_operator' };
       await saveSession(chatId, session);
-      await send(chatId, 'Raqamning oxirgi 4 ta raqamini kiriting.\nMisol: 0707', backKeyboard());
+      await send(chatId, "Qaysi kompaniyadan qidiraylik? Yoki \"Barchasi\"ni tanlang 👇", raqamOperatorKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -987,28 +1353,52 @@ exports.handler = async function (event) {
     }
 
     if(text === BTN.PREMIUM){
+      session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('featured', '==', true).limit(200).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha VIP raqamlar yo'q.");
+      await showNumberList(chatId, session, snap.docs.map(docToItem).filter(item => !item.installment), "Hozircha VIP raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.SALE){
+      session.instOnlyMode = false;
       const snap = await withRetry(() => db.collection('numbers').where('dailyDeal', '==', true).limit(200).get());
-      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
+      // Saytdagi (index.html/renderDailyDeal) bilan bir xil mantiq: muddati
+      // (dealExpiresAt) o'tib ketgan aksiya raqamlari endi ko'rsatilmaydi.
+      const now = Date.now();
+      const activeDocs = snap.docs.filter(d => {
+        const dd = d.data();
+        return !dd.dealExpiresAt || dd.dealExpiresAt > now;
+      });
+      await showNumberList(chatId, session, activeDocs.map(docToItem).filter(item => !item.installment), "Hozircha bugungi aksiyadagi raqamlar yo'q.");
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(text === BTN.INSTALLMENT){
+      // Bu bo'lim orqali ochilgan har bir raqamda naqt narx ko'rsatilmaydi —
+      // shu sababdan "instOnlyMode" seansda saqlanadi (showNumberDetail
+      // shundan foydalanadi).
+      session.instOnlyMode = true;
+      const snap = await withRetry(() => db.collection('numbers').where('installment', '==', true).limit(200).get());
+      await showNumberList(chatId, session, snap.docs.map(docToItem), "Hozircha bo'lib to'lashga raqamlar yo'q.");
       return { statusCode: 200, body: 'ok' };
     }
     if(text === BTN.CONTACT){
       const contactText =
-`🤖 Botga o'tish 👉 @vipraqambot
+`📞 <b>Biz bilan bog'laning</b>
 
-🚚 📦 O'zbekistonning istalgan hududiga yetkazib berish mavjud
-☎️ Call Markaz: 878880101 | 888620101
+☎️ Call Markaz: <b>87 888 01 01</b> | <b>88 862 01 01</b>
 👨‍💻 Operator: @Vip_raqamlar_admin
-🆔 Telegram kanal : @Vip_raqamlar_uz`;
+🆔 Telegram kanal: @Vip_raqamlar_uz
+📸 Instagram: @${INSTAGRAM_NIK}
+
+🚚 O'zbekistonning istalgan hududiga yetkazib berish mavjud.`;
       await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
       await tg('sendMessage', {
         chat_id: chatId,
         text: contactText,
-        reply_markup: inlineKb([[{ text: "VIP RAQAMLAR RO'YXATI", url: 'https://t.me/vip_raqamlar_uz' }]])
+        parse_mode: 'HTML',
+        reply_markup: inlineKb([
+          [{ text: "📋 VIP RAQAMLAR RO'YXATI", url: 'https://t.me/vip_raqamlar_uz' }],
+          [{ text: '📸 Instagram sahifamiz', url: INSTAGRAM_URL }]
+        ])
       });
       return { statusCode: 200, body: 'ok' };
     }
@@ -1016,13 +1406,19 @@ exports.handler = async function (event) {
       const snap = await withRetry(() => db.collection('orders').where('customerChatId', '==', String(chatId)).limit(20).get());
       const orders = snap.docs.map(d => d.data());
       if(orders.length === 0){
-        await send(chatId, "Sizda hali buyurtmalar yo'q.", mainMenuKeyboard());
+        await sendHtml(chatId, "Sizda hali buyurtmalar yo'q. 🔢 <b>Raqam tanlash</b> bo'limidan boshlang!", mainMenuKeyboard());
       }else{
+        const ORDER_STATUS_ICON = {
+          'Yangi': '🆕', "Bog'lanildi": '📞', 'Yakunlandi': '✅', 'Bekor qilindi': '❌'
+        };
         const list = orders
           .sort((a,b)=> (b.createdAtSort||0) - (a.createdAtSort||0))
-          .map(o => `📱 ${o.number}\n💰 ${formatPrice(o.price)}\n📌 Holati: ${o.status}`)
-          .join('\n\n—\n\n');
-        await send(chatId, `📋 Sizning buyurtmalaringiz:\n\n${list}`, mainMenuKeyboard());
+          .map(o => {
+            const icon = ORDER_STATUS_ICON[o.status] || '📌';
+            return `📱 <b>${escapeHtml(premiumNumber(o.number))}</b>\n💰 ${formatPrice(o.price)}\n${icon} Holati: <b>${escapeHtml(o.status)}</b>`;
+          })
+          .join('\n\n▪️▪️▪️\n\n');
+        await sendHtml(chatId, `📋 <b>Sizning buyurtmalaringiz</b>\n\n${list}`, mainMenuKeyboard());
       }
       return { statusCode: 200, body: 'ok' };
     }
@@ -1032,61 +1428,140 @@ exports.handler = async function (event) {
       await send(chatId, 'Shartnoma raqamini kiriting:', cancelKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
+    if(text === BTN.ZAKAZ){
+      session = { step: 'zakaz_awaiting_operator' };
+      await saveSession(chatId, session);
+      await sendHtml(chatId,
+        "🛒 <b>Zakaz qilish</b>\n\nBizda hozircha mavjud bo'lmagan, lekin sizga yoqqan raqam naqshini buyurtma qilishingiz mumkin.\n\nAvval kompaniyani tanlang 👇",
+        zakazOperatorKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
 
     await handleFreeTextReply(chatId, text, message.from || {}, control);
     return { statusCode: 200, body: 'ok' };
   }
 
-  /* ---- Raqam qidirish: operator tanlangandan keyin raqam kutilmoqda ---- */
+  /* ---- "Raqam tanlash": 1-qadam — kompaniya (yoki "Barchasi") tanlandi ---- */
+  if(session.step === 'raqam_awaiting_operator'){
+    if(text !== RAQAM_BARCHASI && !RAQAM_OP_BY_LABEL[text]){
+      await send(chatId, "Iltimos, ro'yxatdan tanlang.", raqamOperatorKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    const chosenOperator = text === RAQAM_BARCHASI ? null : RAQAM_OP_BY_LABEL[text];
+    session = { step: 'awaiting_digits', raqamOperator: chosenOperator };
+    await saveSession(chatId, session);
+    const prompt = chosenOperator
+      ? `${OPERATOR_EMOJI[chosenOperator] || '📶'} <b>${escapeHtml(chosenOperator)}</b> tanlandi.\n\nXohlagan raqamingizning oxirgi 4 ta raqamini kiriting.\nMisol: 0707`
+      : "Xohlagan raqamingizning oxirgi 4 ta raqamini kiriting.\nMisol: 0707";
+    await sendHtml(chatId, prompt, replyKb([[BTN.STEP_BACK]]));
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* ---- Raqam qidirish: kompaniya tanlangandan keyin raqam kutilmoqda ---- */
   if(session.step === 'awaiting_digits'){
     const digits = text.replace(/\D/g, '');
     if(!digits || digits.length !== 4){
-      await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", backKeyboard());
+      await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", replyKb([[BTN.STEP_BACK]]));
       return { statusCode: 200, body: 'ok' };
     }
 
-    // Qidiruv boshlanganini darhol bildiramiz — mijoz jim kutib qolmasin
-    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-    const searchingMsg = await send(chatId, "🔍 Qidirilmoqda...");
+    const wantOp = session.raqamOperator || null;
+    const dedup = (a, b) => {
+      const seen = new Set();
+      const out = [];
+      [...a, ...b].forEach(item => { if(!seen.has(item.number)){ seen.add(item.number); out.push(item); } });
+      return out;
+    };
 
-    // Avval tezkor (indekslangan) qidiruv — barcha operatorlar orasidan,
-    // yangi qo'shilgan raqamlar uchun
-    let matches = [];
-    try{
-      const snap = await withRetry(() => db.collection('numbers')
-        .where('last4', '==', digits)
-        .limit(50).get());
-      matches = snap.docs.map(docToItem).filter(item => !item.reserved);
-    }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
+    // Qidiruv davomida alohida xabar yubormasdan, tepada Telegram'ning
+    // o'zining "yozmoqda..." ko'rsatkichini tirik saqlaymiz.
+    let dbMatchesAll = [];
+    let liveItems = [];
+    let usedFallback = false;
+    await withTyping(chatId, async () => {
+      // Avval tezkor (indekslangan) qidiruv — barcha operatorlar orasidan,
+      // yangi qo'shilgan raqamlar uchun
+      try{
+        const snap = await withRetry(() => db.collection('numbers')
+          .where('last4', '==', digits)
+          .limit(50).get());
+        dbMatchesAll = snap.docs.map(docToItem).filter(item => !item.reserved && !item.installment);
+      }catch(e){ /* indeks hali tayyor bo'lmasa, pastdagi zaxira qidiruv ishlaydi */ }
 
-    // Agar topilmasa (yoki indeks yo'q bo'lsa) — bazadagi BARCHA raqamlarni
-    // (sahifalab, cheklovsiz, operatordan qat'iy nazar) tekshirib chiqamiz —
-    // bu eski raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
-    if(matches.length === 0){
-      const allDocs = [];
-      let lastDoc = null;
-      while(true){
-        await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-        let q = db.collection('numbers')
-          .orderBy(admin.firestore.FieldPath.documentId())
-          .limit(300);
-        if(lastDoc) q = q.startAfter(lastDoc);
-        const pageSnap = await withRetry(() => q.get());
-        if(pageSnap.empty) break;
-        allDocs.push(...pageSnap.docs);
-        lastDoc = pageSnap.docs[pageSnap.docs.length - 1];
-        if(pageSnap.docs.length < 300) break;
+      // Agar topilmasa (yoki indeks yo'q bo'lsa) — bazadagi BARCHA raqamlarni
+      // (sahifalab, cheklovsiz, operatordan qat'iy nazar) tekshirib chiqamiz —
+      // bu eski raqamlarni ham, bazada qancha bo'lsa ham, albatta topadi.
+      if(dbMatchesAll.length === 0){
+        const allDocs = [];
+        let lastDoc = null;
+        while(true){
+          let q = db.collection('numbers')
+            .orderBy(admin.firestore.FieldPath.documentId())
+            .limit(300);
+          if(lastDoc) q = q.startAfter(lastDoc);
+          const pageSnap = await withRetry(() => q.get());
+          if(pageSnap.empty) break;
+          allDocs.push(...pageSnap.docs);
+          lastDoc = pageSnap.docs[pageSnap.docs.length - 1];
+          if(pageSnap.docs.length < 300) break;
+        }
+        dbMatchesAll = allDocs.map(docToItem)
+          .filter(item => !item.reserved && !item.installment && localDigits(item.number).endsWith(digits));
       }
-      matches = allDocs.map(docToItem)
-        .filter(item => !item.reserved && localDigits(item.number).endsWith(digits));
+
+      // Saytdagi kabi: "Raqam tanlash" endi VIP bazamiz bilan operatorlardan
+      // JONLI (Standart) qidiruvni BITTA umumiy ro'yxatga birlashtirib
+      // ko'rsatadi. Agar mijoz ANIQ bitta kompaniyani tanlagan bo'lsa,
+      // AVVAL faqat o'shandan qidiriladi (searchAll'ga operator filtri
+      // beriladi — tezroq ham). Faqat o'sha kompaniyada hech narsa
+      // topilmasa, boshqa kompaniyalardan ham ko'rsatiladi (pastda).
+      try{
+        const boxes = parseStandardMask(digits);
+        const config = await loadOperatorConfig();
+        const result = await searchAll(boxes, config, { limit: 40, operator: wantOp || undefined });
+        liveItems = (result.items || []).map(liveToItem);
+      }catch(e){ console.error('Jonli qidiruv xatosi (Raqam tanlash):', e); }
+    });
+
+    let dbMatches = wantOp ? dbMatchesAll.filter(item => item.operator === wantOp) : dbMatchesAll;
+    let combined = dedup(liveItems, dbMatches);
+
+    // Tanlangan kompaniyada hech narsa topilmadi — boshqa kompaniyalardan
+    // variantlar ko'rsatamiz (mijoz butunlay bo'sh natija bilan qolmasin).
+    if(wantOp && combined.length === 0){
+      usedFallback = true;
+      await withTyping(chatId, async () => {
+        try{
+          const boxes = parseStandardMask(digits);
+          const config = await loadOperatorConfig();
+          const result = await searchAll(boxes, config, { limit: 40 });
+          liveItems = (result.items || []).map(liveToItem);
+        }catch(e){ console.error('Jonli qidiruv xatosi (zaxira):', e); }
+      });
+      dbMatches = dbMatchesAll;
+      combined = dedup(liveItems, dbMatches);
     }
 
-    if(searchingMsg && searchingMsg.result && searchingMsg.result.message_id){
-      await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
+    // Jonli raqamlarning Firestore'da hujjati yo'q — narx/operatorni
+    // seansda saqlaymiz (Standart qidiruvdagi kabi), keyin buyurtma
+    // shundan yoziladi.
+    session.liveItems = {};
+    liveItems.forEach(it => { session.liveItems[it.id] = { number: it.number, price: it.price, operator: it.operator }; });
+
+    const emptyText = wantOp
+      ? `${wantOp} kompaniyasida ${digits} raqami topilmadi, boshqa kompaniyalarda ham yo'q`
+      : `${digits} raqami sotuvda mavjud emas`;
+    // Raqam topilmasa (yoki tanlangan kompaniyada topilmay, boshqasidan
+    // ko'rsatilsa ham) — mijoz shu aniq raqamni "Zakaz qilish" orqali
+    // buyurtma qilib qo'yishi uchun tugma har doim birga boradi.
+    const zakazBtn = { text: `🛒 ${digits.slice(0,2)}-${digits.slice(2)} zakaz berish`, callback_data: `zakazfrom|${wantOp || ''}|${digits}` };
+    if(usedFallback && combined.length > 0){
+      await tg('sendMessage', {
+        chat_id: chatId, text: `ℹ️ ${wantOp}da topilmadi, boshqa kompaniyalardagi variantlar:`,
+        reply_markup: inlineKb([[zakazBtn]])
+      });
     }
-    await showNumberList(chatId, session, matches,
-      `${digits} raqami sotuvda mavjud emas`,
-      inlineKb([[{ text: '📋 Raqam ro\'yxati', url: 'https://t.me/vip_raqamlar_uz' }]]));
+    await showNumberList(chatId, session, combined, emptyText, inlineKb([[zakazBtn]]));
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -1098,25 +1573,20 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
-    // Operatorlarga ~20 ta so'rov ketadi — bir necha soniya. Mijoz jim
-    // kutib qolmasligi uchun darhol xabar beramiz.
-    await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-    const searchingMsg = await send(chatId, "🔍 Operatorlardan qidirilmoqda...");
-
+    // Operatorlarga ~20 ta so'rov ketadi — bir necha soniya. Alohida xabar
+    // yubormasdan, tepada "yozmoqda..." ko'rsatkichini tirik saqlaymiz.
     let items = [];
     let searchFailed = false;
-    try{
-      const config = await loadOperatorConfig();
-      const result = await searchAll(boxes, config, { limit: 40 });
-      items = (result.items || []).map(liveToItem);
-    }catch(err){
-      console.error('Standart qidiruv xatosi:', err);
-      searchFailed = true;
-    }
-
-    if(searchingMsg && searchingMsg.result && searchingMsg.result.message_id){
-      await tg('deleteMessage', { chat_id: chatId, message_id: searchingMsg.result.message_id }).catch(() => {});
-    }
+    await withTyping(chatId, async () => {
+      try{
+        const config = await loadOperatorConfig();
+        const result = await searchAll(boxes, config, { limit: 40 });
+        items = (result.items || []).map(liveToItem);
+      }catch(err){
+        console.error('Standart qidiruv xatosi:', err);
+        searchFailed = true;
+      }
+    });
 
     if(searchFailed){
       session = { step: 'menu' };
@@ -1136,6 +1606,38 @@ exports.handler = async function (event) {
     return { statusCode: 200, body: 'ok' };
   }
 
+  /* ---- "Zakaz qilish": 1-qadam — kompaniya tanlandi ---- */
+  if(session.step === 'zakaz_awaiting_operator'){
+    if(!ZAKAZ_OPERATORS.includes(text)){
+      await send(chatId, "Iltimos, ro'yxatdan kompaniyani tanlang.", zakazOperatorKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    // "Raqam tanlash"da topilmagan raqamdan "Zakaz berish" bosilgan bo'lsa,
+    // pattern allaqachon ma'lum — endi faqat kompaniya kerak edi, digit
+    // qayta so'ralmaydi.
+    if(session.zakazPendingPattern){
+      const pattern = session.zakazPendingPattern;
+      session = { step: 'menu' };
+      await zakazLookupAndShowPrice(chatId, session, text, pattern);
+      return { statusCode: 200, body: 'ok' };
+    }
+    session = { step: 'zakaz_awaiting_digits', zakazOperator: text };
+    await saveSession(chatId, session);
+    await send(chatId, `${OPERATOR_EMOJI[text] || '📶'} ${text} tanlandi.\n\nXohlagan raqamingizning oxirgi 4 ta raqamini kiriting.\nMisol: 0707`, backKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* ---- "Zakaz qilish": 2-qadam — 4 raqam kiritildi, narx/shartlar ko'rsatiladi ---- */
+  if(session.step === 'zakaz_awaiting_digits'){
+    const digits = text.replace(/\D/g, '');
+    if(digits.length !== 4){
+      await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", backKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    await zakazLookupAndShowPrice(chatId, session, session.zakazOperator, digits);
+    return { statusCode: 200, body: 'ok' };
+  }
+
   /* ---- Ro'yxatdan bittasini tanlash (tugma matni = raqam) ---- */
   if(session.candidates && session.candidates[text]){
     const numberId = session.candidates[text];
@@ -1143,7 +1645,7 @@ exports.handler = async function (event) {
     if(numberId.startsWith('live:')){
       const live = (session.liveItems || {})[numberId];
       if(live){
-        await showNumberDetail(chatId, liveToItem(live));
+        await showNumberDetail(chatId, liveToItem(live), session.instOnlyMode);
       }else{
         await send(chatId, "Ma'lumot eskirdi, iltimos qaytadan qidiring.", mainMenuKeyboard());
       }
@@ -1151,7 +1653,7 @@ exports.handler = async function (event) {
     }
     const numberDoc = await withRetry(() => db.collection('numbers').doc(numberId).get());
     if(numberDoc.exists){
-      await showNumberDetail(chatId, docToItem(numberDoc));
+      await showNumberDetail(chatId, docToItem(numberDoc), session.instOnlyMode);
     }
     return { statusCode: 200, body: 'ok' };
   }
@@ -1221,21 +1723,21 @@ exports.handler = async function (event) {
     }).join('\n');
 
     const summary =
-`📄 Shartnoma: ${contractId}
+`📄 <b>Shartnoma: ${escapeHtml(contractId)}</b>
 
-👤 Mijoz: ${cdata.customerName}
-📱 Raqam: ${cdata.number}
+👤 Mijoz: <b>${escapeHtml(cdata.customerName)}</b>
+📱 Raqam: <b>${escapeHtml(premiumNumber(cdata.number))}</b>
 🗓 Muddat: ${totalMonths} oy
-💰 Oylik to'lov: ${formatPrice(cdata.monthlyPayment)}
-✅ To'landi: ${paidCount} / ${totalMonths} oy
+💰 Oylik to'lov: <b>${formatPrice(cdata.monthlyPayment)}</b>
+✅ To'landi: <b>${paidCount} / ${totalMonths}</b> oy
 
 ${monthsLines}
 
-● ${stLabel}`;
+● <b>${stLabel}</b>`;
 
     await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
     await tg('sendMessage', {
-      chat_id: chatId, text: summary,
+      chat_id: chatId, text: summary, parse_mode: 'HTML',
       reply_markup: inlineKb([[{ text: '📄 Shartnomani yuklab olish', callback_data: `download_contract|${contractId}` }]])
     });
     await send(chatId, 'Asosiy menyu:', mainMenuKeyboard());
@@ -1247,7 +1749,7 @@ ${monthsLines}
     session.draftName = text;
     session.step = 'awaiting_phone';
     await saveSession(chatId, session);
-    await send(chatId, "Hozir ishlatib turgan raqamingizni yuboring (yozing yoki kontaktni ulashing):", contactKeyboard());
+    await send(chatId, "Hozir ishlatib turgan raqamingizni kiriting (masalan: 90 123 45 67):", contactKeyboard());
     return { statusCode: 200, body: 'ok' };
   }
 
@@ -1255,15 +1757,15 @@ ${monthsLines}
   if(session.step === 'awaiting_phone'){
     const phone = message.contact ? message.contact.phone_number : text;
     if(!phone){
-      await send(chatId, "Iltimos, raqamingizni kiriting yoki kontaktni ulashing.", contactKeyboard());
+      await send(chatId, "Iltimos, raqamingizni kiriting.", contactKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
-    const VALID_UZ_CODES = ['20','33','50','70','77','80','87','88','90','91','92','93','94','95','97','98','99'];
+    const VALID_UZ_CODES = ['20','33','50','55','70','77','78','80','87','88','90','91','92','93','94','95','97','98','99'];
     let rawDigits = phone.replace(/\D/g, '');
     if(rawDigits.startsWith('998')) rawDigits = rawDigits.slice(3);
     rawDigits = rawDigits.slice(0, 9);
     if(rawDigits.length < 9 || !VALID_UZ_CODES.includes(rawDigits.slice(0, 2))){
-      await send(chatId, "Bunday raqam mavjud emas. Iltimos, to'g'ri raqam kiriting yoki kontaktni ulashing.", contactKeyboard());
+      await send(chatId, "Bunday raqam mavjud emas. Iltimos, to'g'ri O'zbekiston raqamini kiriting (masalan: 90 123 45 67).", contactKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
     session.draftPhone = phone;
@@ -1298,29 +1800,40 @@ ${monthsLines}
     session.step = 'confirm';
     await saveSession(chatId, session);
 
-    // Jonli (standart) raqamda o'qiydigan hujjat yo'q — seansdagi ma'lumot
+    // Jonli (standart) raqamda o'qiydigan hujjat yo'q — seansdagi ma'lumot.
+    // "Zakaz" buyurtmasida ham 'numbers' hujjati yo'q — narx seansdagi
+    // number_price_categories natijasidan olinadi (topilmagan bo'lishi ham mumkin).
     let numberStr, priceStr;
-    if(session.isLiveOrder && session.liveNumber){
-      numberStr = displayNumber(session.liveNumber.number || '');
+    if(session.isZakazOrder){
+      const d = session.zakazPriceData;
+      numberStr = `${OPERATOR_EMOJI[session.zakazOperator] || '📶'} ${zakazMaskedNumber(session.zakazPattern)}`;
+      priceStr = d ? formatPrice(zakazEffectivePrice(d) + zakazEffectiveTariff(d)) : "Kelishiladi";
+    }else if(session.isLiveOrder && session.liveNumber){
+      numberStr = premiumNumber(displayNumber(session.liveNumber.number || ''));
       priceStr = formatPrice(session.liveNumber.price || 0);
     }else{
       const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
       const nd = numberDoc.exists ? numberDoc.data() : {};
-      numberStr = displayNumber(nd.number || '');
-      priceStr = formatPrice(nd.price || 0);
+      numberStr = premiumNumber(displayNumber(nd.number || ''));
+      priceStr = formatPrice(nd.price || 0, nd);
     }
-    const manzil = `${session.draftDistrict} tumani, ${regionDisplayName(session.draftRegion)}`;
+    const manzil = `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`;
 
+    // Mijoz iltimosiga ko'ra — qisqa, aniq, kam so'zli (uzun matn qator
+    // pastga tushib ketishiga sabab bo'lardi).
     let summary =
-`Barcha ma'lumotlar to'g'ri ekanligini tasdiqlaysizmi?
+`✅ <b>Ma'lumotlaringizni tasdiqlang</b>
 
-FIO: ${escapeHtml(session.draftName)}
-Sevimli raqam: <b>${numberStr}</b>
-Narxi: <b>${priceStr}</b>
-Bog'lanish uchun raqam: ${escapeHtml(session.draftPhone)}
-Manzil: ${escapeHtml(manzil)}`;
+👤 FIO: <b>${escapeHtml(session.draftName)}</b>
+📱 Raqam: <b>${numberStr}</b>
+💰 Narxi: <b>${priceStr}</b>
+☎️ Tel: <b>${escapeHtml(session.draftPhone)}</b>
+📍 <b>${escapeHtml(manzil)}</b>`;
     if(session.installmentMonths){
-      summary += `\nTo'lov turi: ${session.installmentMonths} oyga bo'lib to'lash (oyiga ${formatPrice(session.installmentMonthly)})`;
+      summary += `\n💳 To'lov turi: <b>${session.installmentMonths} oyga bo'lib to'lash</b> (oyiga ${formatPrice(session.installmentMonthly)})`;
+    }
+    if(session.isZakazOrder && session.zakazPriceData && session.zakazPriceData.installmentAvailable){
+      summary += `\n💳 Bo'lib to'lash: <b>${session.zakazPriceData.installmentMonths} oyga, oyiga ${formatPrice(session.zakazPriceData.installmentMonthly)}</b>`;
     }
 
     await tg('sendChatAction', { chat_id: chatId, action: 'typing' });

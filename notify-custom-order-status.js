@@ -1,10 +1,12 @@
 // Admin panelidan "Zakaz" (Raqam buyurtma berish) so'rovi holati
 // o'zgartirilganda, mijozga Telegram orqali avtomatik xabar yuborish uchun.
 //
-// Mijoz bu so'rovni SAYTDAN (Telegram botsiz) yuborgan bo'lishi mumkin —
-// shu sababli avval uning chat ID'sini telefon raqami orqali "orders"
-// kolleksiyasidan (agar u bot orqali biror narsa buyurtma qilgan bo'lsa)
-// topishga harakat qilamiz. Topilmasa, xabar yuborilmaydi (boshqa yo'l yo'q).
+// Endi "Zakaz qilish" Telegram bot orqali ham berilishi mumkin — bunday
+// so'rovlarda mijozning chat ID'si to'g'ridan-to'g'ri "customerChatId"
+// maydonida saqlanadi. Avval shu maydonni tekshiramiz; topilmasa (ya'ni
+// so'rov SAYTDAN, botsiz kelgan bo'lsa), eski usulda telefon raqami orqali
+// "orders" kolleksiyasidan (agar u bot orqali boshqa narsa buyurtma qilgan
+// bo'lsa) qidiramiz. Ikkalasi ham topilmasa, xabar yuborilmaydi.
 //
 // XAVFSIZLIK: faqat tizimga kirgan ADMIN chaqira oladi.
 
@@ -48,18 +50,23 @@ exports.handler = async function (event) {
     if(!doc.exists) return { statusCode: 200, body: JSON.stringify({ ok: false, error: "So'rov topilmadi" }) };
     const data = doc.data();
 
-    const phoneDigits = (data.phone || '').replace(/\D/g, '').slice(-9);
-    if(!phoneDigits){
-      return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true, error: "Telefon raqami yo'q" }) };
-    }
+    let chatId = data.customerChatId ? String(data.customerChatId) : null;
 
-    const ordersSnap = await db.collection('orders').orderBy('createdAtSort', 'desc').limit(500).get();
-    const match = ordersSnap.docs
-      .map(d => d.data())
-      .find(o => o.customerChatId && (o.phone || '').replace(/\D/g, '').slice(-9) === phoneDigits);
+    if(!chatId){
+      const phoneDigits = (data.phone || '').replace(/\D/g, '').slice(-9);
+      if(!phoneDigits){
+        return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true, error: "Telefon raqami yo'q" }) };
+      }
 
-    if(!match){
-      return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true, error: 'Mijozning Telegram ID topilmadi' }) };
+      const ordersSnap = await db.collection('orders').orderBy('createdAtSort', 'desc').limit(500).get();
+      const match = ordersSnap.docs
+        .map(d => d.data())
+        .find(o => o.customerChatId && (o.phone || '').replace(/\D/g, '').slice(-9) === phoneDigits);
+
+      if(!match){
+        return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true, error: 'Mijozning Telegram ID topilmadi' }) };
+      }
+      chatId = match.customerChatId;
     }
 
     const token = process.env.CUSTOMER_BOT_TOKEN;
@@ -69,7 +76,7 @@ exports.handler = async function (event) {
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: match.customerChatId, text })
+      body: JSON.stringify({ chat_id: chatId, text })
     });
 
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };

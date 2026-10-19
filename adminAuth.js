@@ -60,7 +60,14 @@ async function requireAdmin(event, opts) {
     // bilan ishlashda davom etishi mumkin bo'lardi.
     decoded = await admin.auth().verifyIdToken(idToken, true);
   } catch (e) {
-    const err = new Error("Token yaroqsiz, muddati o'tgan yoki hisob to'xtatilgan");
+    // TASHXIS UCHUN: xabar oxiriga HAQIQIY sabab kodi (masalan
+    // "auth/id-token-expired", "app/invalid-credential" va h.k.) qavs
+    // ichida qo'shiladi — aks holda "yaroqsiz" degan bitta umumiy xabar
+    // orqasida chindan ham token eskirgani, admin panelga qaytadan
+    // kirish kerakligi, yoki server konfiguratsiyasida (masalan noto'g'ri
+    // FIREBASE_* muhit o'zgaruvchilari) xato borligini FARQLAB bo'lmaydi.
+    const reason = (e && (e.code || e.message)) || "sabab noma'lum";
+    const err = new Error("Token yaroqsiz, muddati o'tgan yoki hisob to'xtatilgan (" + reason + ")");
     err.statusCode = 401;
     throw err;
   }
