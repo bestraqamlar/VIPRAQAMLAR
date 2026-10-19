@@ -10,8 +10,8 @@
 //
 // Amallar:
 //   list          -> {sellers:[...]}
-//   create        {name, username, password, phone, commissionPct}
-//   update        {id, name, phone, commissionPct, blocked}
+//   create        {name, username, password, phone}
+//   update        {id, name, phone, blocked}
 //   resetPassword {id, password}
 //   remove        {id}          (raqamlari bo'lsa — rad etiladi)
 //   numbers       {id}          -> o'sha sotuvchining raqamlari
@@ -75,7 +75,7 @@ exports.handler = async function (event) {
           planKun: TARIF.qolganKun(x),
           promo: promo ? Number(promo.data().count) || 0 : 0,
           id: d.id, name: x.name || '', username: x.username || '', phone: x.phone || '',
-          commissionPct: Number(x.commissionPct) || 0, blocked: !!x.blocked,
+          blocked: !!x.blocked,
           numbers: cnt ? cnt.data().count : 0,
           unread: Number(x.unreadForAdmin) || 0,
           lastLoginAt: x.lastLoginAt && x.lastLoginAt.toDate ? x.lastLoginAt.toDate().toISOString() : null
@@ -93,11 +93,10 @@ exports.handler = async function (event) {
       if (password.length < 8) return bad("Parol kamida 8 ta belgi bo'lsin");
       const dup = await db.collection('sellers').where('username', '==', username).limit(1).get();
       if (!dup.empty) return bad('Bu login band');
-      const pct = Math.max(0, Math.min(90, Number(body.commissionPct) || 0));
       const ref = await db.collection('sellers').add({
         name, username, phone: clean(body.phone, 30),
         passwordHash: hashPassword(password),
-        commissionPct: pct, blocked: false,
+        blocked: false,
         unreadForAdmin: 0, unreadForSeller: 0,
         createdAt: NOW(), createdAtSort: Date.now()
       });
@@ -109,7 +108,6 @@ exports.handler = async function (event) {
       const patch = { updatedAt: NOW() };
       if (body.name != null) patch.name = clean(body.name, 80);
       if (body.phone != null) patch.phone = clean(body.phone, 30);
-      if (body.commissionPct != null) patch.commissionPct = Math.max(0, Math.min(90, Number(body.commissionPct) || 0));
       if (body.blocked != null) patch.blocked = !!body.blocked;
       await ref.update(patch);
       return ok({});

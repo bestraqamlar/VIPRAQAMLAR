@@ -5,6 +5,7 @@
 
 const admin = require('firebase-admin');
 
+const { jadvalOk } = require('./lib/jadvalQalqon');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -21,7 +22,11 @@ const TOKEN = process.env.PERSONAL_BOT_TOKEN;
 const OWNER_CHAT_ID = process.env.PERSONAL_BOT_CHAT_ID;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
 
   try {

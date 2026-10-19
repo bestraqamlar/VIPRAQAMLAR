@@ -40,6 +40,7 @@ const { getBotControl } = require('./lib/botControl');
 const { checkAndMarkKnown } = require('./lib/knownCustomers');
 const { updateAdminList } = require('./lib/adminList');
 
+const { webhookTekshir } = require('./lib/webhookSirri');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -355,16 +356,16 @@ async function generateReply(userText, senderId, isFirstTime){
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  // XAVFSIZLIK: BUSINESS_BOT_WEBHOOK_SECRET sozlangan bo'lsa, Telegram
-  // setWebhook'da ro'yxatdan o'tgan secret_token bilan tekshiriladi.
-  // HALI SOZLANMAGAN bo'lsa — bot eskicha ishlayveradi. To'liq "qat'iy"
-  // qilish uchun: Netlify'da shu o'zgaruvchini sozlang VA Telegram'ga
-  // setWebhook chaqirganda secret_token sifatida xuddi shu qiymatni
-  // yuboring.
-  const expectedSecret = process.env.BUSINESS_BOT_WEBHOOK_SECRET;
-  if(expectedSecret){
-    const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-    if(gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  /* XAVFSIZLIK (V73): so'rov HAQIQATAN Telegram'dan kelganini
+     tasdiqlaymiz. Maxfiy so'z Netlify muhit o'zgaruvchisida YOKI
+     Firestore'da (admin panel -> Xavfsizlik -> "Botlarni himoyalash")
+     bo'lsa — sarlavhadagi so'z unga mos kelishi SHART. Ikkalasi ham
+     yo'q bo'lsa bot eskicha ishlayveradi (to'xtab qolmasligi uchun),
+     lekin admin panelida "Himoyalanmagan" deb ko'rsatiladi.
+     Qarang: netlify/functions/lib/webhookSirri.js */
+  {
+    const himoya = await webhookTekshir(db, event, 'telegram-business-webhook', 'BUSINESS_BOT_WEBHOOK_SECRET');
+    if(!himoya.ok) return { statusCode: 401, body: 'unauthorized' };
   }
 
   let update;

@@ -32,6 +32,9 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* XAVFSIZLIK (V73): ochiq funksiya — bitta IP uchun soatlik chegara.
+   Qarang: lib/tezlik.js */
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
 const INC = (n) => admin.firestore.FieldValue.increment(n);
 
@@ -51,6 +54,9 @@ const safeKey = (s) => String(s || '').replace(/[^0-9a-zA-Z_-]/g, '').slice(0, 4
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers: CORS, body: '{"ok":false}' };
+  if (!(await tezlikOk(db, event, 'track_rate_limits', 400))) {
+    return { statusCode: 429, headers: CORS, body: '{"ok":false,"error":"limit"}' };
+  }
 
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) { return { statusCode: 400, headers: CORS, body: '{"ok":false}' }; }

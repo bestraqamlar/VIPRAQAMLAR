@@ -11,6 +11,7 @@
 
 const admin = require('firebase-admin');
 
+const { jadvalOk } = require('./lib/jadvalQalqon');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -68,7 +69,11 @@ function buildReminderText(data, daysUntil){
   return `Hurmatli ${name},\n\n${contractId} shartnoma va xarid qilingan ${number} raqami uchun ${situationLine}\n\nMurojaat uchun: ${SUPPORT_PHONE}`;
 }
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   try{
     const snap = await db.collection('credit_contracts').get();
     const now = Date.now();

@@ -35,6 +35,9 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* XAVFSIZLIK (V73): ochiq funksiya — bitta IP uchun soatlik chegara.
+   Qarang: lib/tezlik.js */
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
 
 // Bir qidiruvda ~20 ta tashqi so'rov ketadi. Bir necha mijoz bir vaqtda bir xil
@@ -231,6 +234,9 @@ exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, headers, body: JSON.stringify({ ok: false, error: 'Faqat GET' }) };
+  }
+  if (!(await tezlikOk(db, event, 'live_search_rate_limits', 200))) {
+    return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p so'rov. Birozdan keyin urinib ko'ring." }) };
   }
 
   const params = event.queryStringParameters || {};

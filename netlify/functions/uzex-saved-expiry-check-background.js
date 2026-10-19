@@ -17,6 +17,7 @@
 
 const admin = require('firebase-admin');
 
+const { jadvalOk } = require('./lib/jadvalQalqon');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -64,7 +65,11 @@ async function notifyAdmin(text) {
   if (token && chatId) await sendTelegramMessage(token, chatId, text);
 }
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   try {
     const snap = await db.collection(COLLECTION).get();
     if (snap.empty) return { statusCode: 200, body: 'ok: saqlangan raqam yoq' };

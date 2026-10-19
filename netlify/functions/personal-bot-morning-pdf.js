@@ -4,6 +4,7 @@
 // netlify.toml'da "schedule = 0 0 * * *" (UTC 00:00 = Toshkent 05:00).
 
 const admin = require('firebase-admin');
+const { jadvalOk } = require('./lib/jadvalQalqon');
 const { buildPlansPdfBuffer } = require('./lib/personalBotPdf');
 
 if (!admin.apps.length) {
@@ -30,7 +31,11 @@ async function sendDocument(chatId, buffer, filename, caption) {
   await fetch(`https://api.telegram.org/bot${TOKEN}/sendDocument`, { method: 'POST', body: form });
 }
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
 
   try {

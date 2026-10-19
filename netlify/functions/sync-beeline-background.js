@@ -48,6 +48,7 @@
 // bilan 30 daqiqada bir marta.
 
 const admin = require('firebase-admin');
+const { jadvalOk } = require('./lib/jadvalQalqon');
 const {
   getBeelinePublicSession,
   beelinePublicFetchCategory,
@@ -94,7 +95,11 @@ async function notifyAdmin(text) {
   } catch (e) { /* xabar yubormasa ham, asosiy vazifa bajarilaveradi */ }
 }
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   const startedAt = Date.now();
   try {
     // Narx jadvali (operator narxi -> sotuv narxi). Adminkada sozlanadi.

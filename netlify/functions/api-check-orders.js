@@ -26,11 +26,17 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
 
 function checkApiKey(event) {
   const expected = process.env.MOBILE_API_KEY;
-  if (!expected) return true;
+  /* XAVFSIZLIK (V73): ilgari kalit sozlanmagan bo'lsa funksiya BUTUNLAY
+     ochiq qolardi ("fail-open") — ya'ni mobil API'ning hamma yo'llari
+     (buyurtma/shartnoma qidirish ham) hammaga ochiq edi. Endi aksincha:
+     kalit yo'q bo'lsa — yopiq. Mobil ilovani ishlatish uchun Netlify'da
+     MOBILE_API_KEY o'zgaruvchisini qo'ying (sayt bunga bog'liq emas). */
+  if (!expected) return false;
   const provided = (event.headers && (event.headers['x-api-key'] || event.headers['X-Api-Key'])) || '';
   return provided === expected;
 }
@@ -49,6 +55,9 @@ exports.handler = async function (event) {
   }
   if (!checkApiKey(event)) {
     return { statusCode: 401, headers, body: JSON.stringify({ ok: false, error: 'Noto\'g\'ri yoki yo\'q API kalit (x-api-key)' }) };
+  }
+  if (!(await tezlikOk(db, event, 'order_api_rate_limits', 60))) {
+    return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p so'rov. Birozdan keyin urinib ko'ring." }) };
   }
 
   try {

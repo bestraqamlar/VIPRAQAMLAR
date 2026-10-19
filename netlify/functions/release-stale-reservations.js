@@ -28,6 +28,7 @@
 
 const admin = require('firebase-admin');
 
+const { jadvalOk } = require('./lib/jadvalQalqon');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -53,11 +54,45 @@ async function notifyAdmin(text) {
   } catch (e) { /* xabar yubormasa ham, asosiy vazifa bajarilaveradi */ }
 }
 
-exports.handler = async function () {
+/* ---------- JONLI RAQAM QULFLARI (live_reservations) ----------
+   "Standart" (operatordan jonli qidirilgan) raqamlarda Firestore'da
+   hujjat yo'q, shu sabab ikki mijoz bir vaqtda bitta raqamga buyurtma
+   bermasin deb yengil "qulf" hujjati yoziladi. U ANONIM yoziladi va
+   ilgari HECH QACHON tozalanmasdi — ya'ni kimdir skript bilan minglab
+   raqamga qulf qo'yib, butun Standart katalogga buyurtma berishni to'sib
+   qo'yishi mumkin edi (V76 da yopildi).
+   Endi 2 soatdan eski qulflar o'chiriladi: qulfning maqsadi faqat "bir
+   vaqtda ikki buyurtma"ning oldini olish; undan keyin raqamning holati
+   operatorning o'zidan ko'rinadi. */
+async function jonliQulflarniTozala() {
+  try {
+    const chegara = Date.now() - 2 * 60 * 60 * 1000;
+    const qulflar = await db.collection('live_reservations').limit(2000).get();
+    if (qulflar.empty) return 0;
+    let b = db.batch(), n = 0;
+    qulflar.forEach(d => {
+      const v = d.data() || {};
+      const ms = v.reservedAt && v.reservedAt.toMillis ? v.reservedAt.toMillis() : 0;
+      if (!ms || ms < chegara) { b.delete(d.ref); n++; }
+    });
+    if (n) await b.commit();
+    return n;
+  } catch (e) {
+    console.error('live_reservations tozalashda xato:', e);
+    return 0;
+  }
+}
+
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   try {
     const reservedSnap = await db.collection('numbers').where('reserved', '==', true).get();
     if (reservedSnap.empty) {
-      return { statusCode: 200, body: 'ok: band raqam yoq' };
+      const n = await jonliQulflarniTozala();
+      return { statusCode: 200, body: 'ok: band raqam yoq, ' + n + ' ta eski jonli qulf o\'chirildi' };
     }
 
     const released = [];
@@ -85,7 +120,17 @@ exports.handler = async function () {
     const batch = db.batch();
     let batchCount = 0;
 
+    /* MUHIM (V73): faqat ESKIRGAN "band"lar bo'shatiladi.
+       Ilgari yosh tekshirilmasdi — ya'ni bu funksiya ishga tushganda
+       ADMIN hozirgina qo'lda band qilgan raqam ham (unga hali buyurtma
+       hujjati bog'lanmagani uchun) bo'shab ketishi mumkin edi. Endi
+       kamida 30 daqiqa turgan "band"largina bo'shatiladi. */
+    const ESKIRISH_MS = 30 * 60 * 1000;
+    const endi = Date.now();
     for (const doc of reservedDocs) {
+      const d = doc.data() || {};
+      const vaqt = d.reservedAt && d.reservedAt.toMillis ? d.reservedAt.toMillis() : 0;
+      if (vaqt && (endi - vaqt) < ESKIRISH_MS) continue;    // hali yangi — tegilmaydi
       if (!hasOrderFor.has(doc.id)) {
         batch.update(doc.ref, {
           reserved: false,
@@ -104,7 +149,9 @@ exports.handler = async function () {
       );
     }
 
-    return { statusCode: 200, body: `ok: ${batchCount} ta bo'shatildi, ${reservedDocs.length - batchCount} ta haqiqiy band qoldi` };
+    const qulfOchirildi = await jonliQulflarniTozala();
+
+    return { statusCode: 200, body: `ok: ${batchCount} ta bo'shatildi, ${reservedDocs.length - batchCount} ta haqiqiy band qoldi, ${qulfOchirildi} ta eski jonli qulf o'chirildi` };
   } catch (err) {
     console.error('RELEASE-STALE-RESERVATIONS XATOSI:', err);
     return { statusCode: 500, body: err.message };

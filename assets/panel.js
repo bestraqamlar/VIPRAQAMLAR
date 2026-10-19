@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=68) ham oshiring.
+   havolaning oxiridagi raqamni (?v=75) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -399,7 +399,104 @@ function formatUzNumber(rawDigits){
   if(rawDigits.length > 7) out += '-' + rawDigits.slice(7,9);
   return out;
 }
+
+/* ==================================================================
+   AVTOMATIK TELEFON NIQOBI  (+998 90 123-45-67)
+   ------------------------------------------------------------------
+   Raqam yoziladigan HAR BIR maydonda ishlaydi: raqam qo'shish, kredit
+   shartnomasi, zakaz, sotuvchi telefoni, to'lov, video va h.k.
+   "+998" va chiziqchalarni foydalanuvchi emas, maydon O'ZI qo'yadi.
+
+   NEGA DELEGATSIYA (document ustida bitta tinglovchi): maydonlarning
+   ko'pi keyinroq JS orqali yasaladi yoki modal oynaga ko'chiriladi —
+   har biriga alohida tinglovchi qo'shib yurish kerak emas, bitta
+   joyda turadi va hamma yerda bir xil ishlaydi.
+
+   iPhone QOTMASLIGI uchun uch qoida:
+     1) qiymat faqat haqiqatan o'zgarganda qayta yoziladi —
+        ortiqcha yozish yo'q;
+     2) kursor maydon OXIRIDA bo'lsagina formatlanadi (o'rta joyni
+        tahrirlayotganda tegilmaydi — kursor sakramaydi);
+     3) o'chirish (Backspace) paytida formatlanmaydi — aks holda
+        chiziqcha qaytib kelib, o'chirish "ishlamayotgandek" bo'lardi.
+        Maydondan chiqqanda format baribir qo'yiladi.
+   ================================================================== */
+const TEL_IDLAR = ['newNumber','dayMnNumber','videoNumberInput','crPhone','crNumber',
+  'zkCustWorkingPhone','zkCustOrderedPhone','tlvNumber','pbNumberInput','selPhone','hkInPhone'];
+/* Katta harfga o'tadigan maydonlar: kredit shartnomasidagi mijoz ismi
+   va pasport seriyasi — hujjatlarda har doim KATTA harfda yoziladi. */
+const KATTA_IDLAR = ['crName','crPassport'];
+
+function telMaydonmi(el){
+  if(!el || el.tagName !== 'INPUT') return false;
+  const id = el.id || '';
+  if(/search|qidir/i.test(id)) return false;        // qidiruv maydoniga niqob kerak emas
+  if(el.dataset && el.dataset.tel === '1') return true;
+  return TEL_IDLAR.indexOf(id) !== -1;
+}
+
+function telFormatla(el, ochirish){
+  const raw = extractRawDigits(el.value);
+  const yangi = raw ? formatUzNumber(raw) : '';
+  if(yangi === el.value) return;
+  if(ochirish){
+    /* Backspace: oxirida qolgan bo'shliq/chiziqcha ham o'chadi —
+       o'chirish tabiiy his qilinadi. */
+    const t = el.value.replace(/[\s-]+$/, '');
+    if(t !== el.value){ el.value = t; try{ el.setSelectionRange(t.length, t.length); }catch(e){} }
+    return;
+  }
+  const oxirida = el.selectionStart == null || el.selectionStart >= el.value.length;
+  if(!oxirida) return;                              // kursor o'rtada — tegilmaydi
+  el.value = yangi;
+  try{ el.setSelectionRange(yangi.length, yangi.length); }catch(e){}
+}
+
+document.addEventListener('input', (e)=>{
+  const el = e.target;
+  if(telMaydonmi(el)){
+    if(!el.dataset.telTayyor){
+      el.dataset.telTayyor = '1';
+      el.setAttribute('inputmode', 'tel');
+      if(!el.placeholder || /^\s*$/.test(el.placeholder)) el.placeholder = '+998 90 123-45-67';
+    }
+    telFormatla(el, !!(e.inputType && e.inputType.indexOf('delete') === 0));
+    return;
+  }
+  if(el && el.tagName === 'INPUT' && KATTA_IDLAR.indexOf(el.id) !== -1){
+    /* Uzunlik o'zgarmaydi — kursor joyida qoladi. */
+    const k = el.value.toUpperCase();
+    if(k !== el.value){
+      const a = el.selectionStart, b = el.selectionEnd;
+      el.value = k;
+      try{ el.setSelectionRange(a, b); }catch(e2){}
+    }
+  }
+}, true);
+
+/* Maydondan chiqqanda — to'liq format (o'rtasini tahrirlagan yoki
+   Backspace bosgan holat ham tartibga keladi). */
+document.addEventListener('blur', (e)=>{
+  const el = e.target;
+  if(!telMaydonmi(el)) return;
+  const raw = extractRawDigits(el.value);
+  const yangi = raw ? formatUzNumber(raw) : '';
+  if(yangi !== el.value) el.value = yangi;
+}, true);
+
 const ORDER_STATUSES = ["Yangi","Bog'lanildi","Yakunlandi","Bekor qilindi"];
+
+/* Buyurtmada raqam ko'rinishi. Eski Telegram bot xatosi tufayli bazada
+   raqami BO'SH ("+998 00-000-00-00") buyurtmalar bo'lishi mumkin —
+   ularni "yo'q raqam" deb ochiq yozamiz, aks holda admin bunday
+   buyurtmani haqiqiy raqam deb o'ylardi. (Bot tomoni V72 da tuzatildi:
+   endi raqamsiz buyurtma umuman yozilmaydi.) */
+function buyurtmaRaqami(num){
+  const d = String(num || '').replace(/\D/g, '');
+  const n9 = (d.startsWith('998') ? d.slice(3) : d).slice(-9);
+  if(!n9 || /^0+$/.test(n9) || n9.slice(0, 2) === '00') return '';
+  return String(num);
+}
 
 function operatorOptionsHtml(selected){
   return OPERATORS.map(op => `<option value="${op}" ${op===selected?'selected':''}>${op}</option>`).join('');
@@ -686,9 +783,9 @@ async function loadCustomOrders(){
               ${o.operator ? `<span>Kompaniya</span><span>${escapeHtml(o.operator)}</span>` : ''}
               ${o.fullPrice ? `<span>Narxi</span><span>${formatPrice(o.onSale && o.salePrice ? o.salePrice : o.fullPrice)}${o.onSale && o.salePrice ? ' 🔥 aksiya' : ''}</span>` : ''}
               ${o.monthlyTariff ? `<span>Oylik tarif</span><span>${formatPrice(o.monthlyTariff)}</span>` : ''}
-              ${o.installmentAvailable ? `<span>Bo'lib to'lash</span><span>${o.installmentMonths} oyga, oyiga ${formatPrice(o.installmentMonthly)}${o.downPayment ? ' (bosh to\'lov ' + formatPrice(o.downPayment) + ')' : ''}</span>` : ''}
+              ${o.installmentAvailable ? `<span>Bo'lib to'lash</span><span>${escapeHtml(o.installmentMonths)} oyga, oyiga ${formatPrice(o.installmentMonthly)}${o.downPayment ? ' (bosh to\'lov ' + formatPrice(o.downPayment) + ')' : ''}</span>` : ''}
               ${o.ownershipTransfer !== undefined ? `<span>Nomiga o'tkazish</span><span>${o.ownershipTransfer ? "✅ Mijoz nomiga" : "➖ O'tkazilmaydi"}</span>` : ''}
-              ${o.tariffMonths ? `<span>Tarif muddati</span><span>${o.tariffMonths} oydan keyin almashtirish mumkin</span>` : ''}
+              ${o.tariffMonths ? `<span>Tarif muddati</span><span>${escapeHtml(o.tariffMonths)} oydan keyin almashtirish mumkin</span>` : ''}
               ${o.source ? `<span>Manba</span><span>${escapeHtml(o.source)}</span>` : ''}
             </div>
             <select class="zk-status-select ${badgeClass}" data-id="${o.id}">
@@ -711,16 +808,16 @@ async function loadCustomOrders(){
                 ${['Ucell','Humans','Beeline','Mobiuz','Uzmobile','Perfektum'].map(op => `<option value="${op}" ${o.operator === op ? 'selected' : ''}>${op}</option>`).join('')}
               </select>
               <label>To'liq narxi (so'm)</label>
-              <div class="zk-sum-field"><input type="text" class="zoe-fullprice" value="${o.fullPrice || ''}" inputmode="numeric"><span>so'm</span></div>
+              <div class="zk-sum-field"><input type="text" class="zoe-fullprice" value="${escapeHtml(o.fullPrice || '')}" inputmode="numeric"><span>so'm</span></div>
               <label class="zoe-onsale-label"><input type="checkbox" class="zoe-onsale" ${o.onSale ? 'checked' : ''}> Aksiyada</label>
               <div class="zoe-sale-wrap" style="${o.onSale ? '' : 'display:none;'}">
                 <label>Aksiya narxi (so'm)</label>
-                <div class="zk-sum-field"><input type="text" class="zoe-saleprice" value="${o.salePrice || ''}" inputmode="numeric"><span>so'm</span></div>
+                <div class="zk-sum-field"><input type="text" class="zoe-saleprice" value="${escapeHtml(o.salePrice || '')}" inputmode="numeric"><span>so'm</span></div>
               </div>
               <label>Oylik tarif (so'm) — bo'lmasa bo'sh qoldiring</label>
-              <div class="zk-sum-field"><input type="text" class="zoe-monthly" value="${o.monthlyTariff || ''}" inputmode="numeric"><span>so'm</span></div>
+              <div class="zk-sum-field"><input type="text" class="zoe-monthly" value="${escapeHtml(o.monthlyTariff || '')}" inputmode="numeric"><span>so'm</span></div>
               <label>Tarif muddati (oy) — bo'lmasa bo'sh qoldiring</label>
-              <input type="number" class="zoe-tariffmonths" value="${o.tariffMonths || ''}">
+              <input type="number" class="zoe-tariffmonths" value="${escapeHtml(o.tariffMonths || '')}">
               <div class="zk-order-edit-actions">
                 <button type="button" class="zoe-save-btn" data-id="${o.id}">💾 Saqlash</button>
                 <button type="button" class="zoe-cancel-btn" data-id="${o.id}">Bekor qilish</button>
@@ -1021,7 +1118,7 @@ async function loadJobApplications(){
         <div class="zk-order-card" data-id="${a.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
           <div class="zk-order-summary" data-id="${a.id}">
             <span class="zk-order-summary-name">${escapeHtml(a.fullName || '')}</span>
-            <span class="zk-order-badge ${badgeClass}">${VAC_APP_STATUS_LABELS[status] || status}</span>
+            <span class="zk-order-badge ${badgeClass}">${escapeHtml(VAC_APP_STATUS_LABELS[status] || status)}</span>
             <span class="zk-order-arrow">▾</span>
           </div>
           <div class="zk-order-body">
@@ -1646,6 +1743,112 @@ function vzPlayAlertSound(){
   }catch(e){ /* audio ishlamasa ham, vizual ogohlantirish yetarli */ }
 }
 
+/* ==================================================================
+   BILDIRISHNOMANI SURIB YUBORISH (Telegram / iOS uslubida)
+   ------------------------------------------------------------------
+   Bitta joyda yozilgan, barcha bildirishnomalarga ulanadigan imo-ishora:
+
+     * barmoq (yoki sichqoncha) qaysi tomonga ketsa — kartochka O'SHA
+       tomonga ergashadi: yonga sursa yonga, tepadagi kartochkani
+       yuqoriga sursa yuqoriga (pastdagisini pastga);
+     * yo'nalish birinchi 5 pikselda TANLANADI va shundan keyin
+       o'zgarmaydi — shunda kartochka "qaltiramaydi";
+     * teskari tomonga tortsa "rezina" kabi qarshilik qiladi (0,16);
+     * qo'yib yuborilganda: masofa yetarli bo'lsa YOKI harakat tez
+       bo'lsa (flick) — uchib ketadi; aks holda yumshoq "prujina"
+       bilan joyiga qaytadi va taymer qaytadan ketadi;
+     * surish paytida avtomatik yopilish taymeri TO'XTAYDI.
+
+   Faqat `transform` va `opacity` o'zgaradi — ya'ni ish videokartada
+   bajariladi, eski telefonda ham silliq chiqadi.
+   ================================================================== */
+function surishBogla(el, opt){
+  opt = opt || {};
+  const past = opt.yon === 'past';          /* pastdagi bildirishnoma */
+  let sx = 0, sy = 0, dx = 0, dy = 0, oq = null, bosildi = false;
+  /* Tezlikni OXIRGI harakatlar bo'yicha o'lchaymiz (butun surish
+     bo'yicha emas): shunda "flick" — qisqa, lekin tez silkitish ham
+     bildirishnomani uchirib yuboradi, xuddi telefondagidek. */
+  let oVaqt = 0, oX = 0, oY = 0, vx = 0, vy = 0;
+  const hozir = () => (window.performance && performance.now) ? performance.now() : Date.now();
+  const en = () => Math.max(160, el.getBoundingClientRect().width || 320);
+  /* Ba'zi kartochkalar CSS'da `translateX(-50%)` bilan markazlashgan —
+     surishda u yo'qolmasligi uchun old qo'shimcha sifatida saqlanadi. */
+  const asos = opt.asos || '';
+  const qoy = (x, y, o) => {
+    el.style.transform = asos + 'translate3d(' + x + 'px,' + y + 'px,0)';
+    el.style.opacity = String(o);
+  };
+  const tozala = () => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; };
+
+  el.addEventListener('pointerdown', (e) => {
+    if(e.button) return;
+    bosildi = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; oq = null;
+    oVaqt = hozir(); oX = e.clientX; oY = e.clientY; vx = vy = 0;
+    el.classList.add('surilmoqda');
+    el.style.transition = 'none';
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    if(opt.toxtat) opt.toxtat();
+  });
+
+  el.addEventListener('pointermove', (e) => {
+    if(!bosildi) return;
+    const X = e.clientX - sx, Y = e.clientY - sy;
+    if(!oq){
+      if(Math.abs(X) < 5 && Math.abs(Y) < 5) return;
+      oq = Math.abs(X) > Math.abs(Y) ? 'x' : 'y';
+    }
+    /* Oniy tezlik (px/ms), yengil silliqlash bilan */
+    const t = hozir(), dt = Math.max(8, t - oVaqt);
+    vx = 0.6 * ((e.clientX - oX) / dt) + 0.4 * vx;
+    vy = 0.6 * ((e.clientY - oY) / dt) + 0.4 * vy;
+    oVaqt = t; oX = e.clientX; oY = e.clientY;
+    if(oq === 'x'){ dx = X; dy = 0; }
+    else {
+      dx = 0;
+      const togri = past ? (Y > 0) : (Y < 0);
+      dy = togri ? Y : Y * 0.16;
+    }
+    const tik = past ? Math.max(0, dy) : Math.max(0, -dy);
+    const o = Math.max(0.15, 1 - Math.abs(dx) / (en() * 0.9) - tik / 130);
+    qoy(dx, dy, o);
+  });
+
+  const tugadi = () => {
+    if(!bosildi) return;
+    bosildi = false;
+    el.classList.remove('surilmoqda');
+    /* Barmoq uzilgandan beri ko'p vaqt o'tgan bo'lsa (to'xtab turgan
+       edi) — tezlikni hisobga olmaymiz. */
+    if(hozir() - oVaqt > 120){ vx = 0; vy = 0; }
+    const tik = past ? dy : -dy;
+    const tikTez = past ? vy : -vy;
+    const ketsin = (oq === 'x' && (Math.abs(dx) > en() * 0.28 || (Math.abs(vx) > 0.35 && Math.abs(dx) > 12)))
+                || (oq === 'y' && (tik > 42 || (tikTez > 0.3 && tik > 8)));
+    if(ketsin){
+      const hx = oq === 'x' ? (dx > 0 ? en() + 90 : -(en() + 90)) : 0;
+      const hy = oq === 'x' ? 0 : (past ? 240 : -240);
+      el.style.transition = 'transform .22s cubic-bezier(.3,0,.7,.4), opacity .2s linear';
+      qoy(hx, hy, 0);
+      setTimeout(() => { if(opt.yopish) opt.yopish(true); }, 195);
+      return;
+    }
+    el.style.transition = 'transform .34s cubic-bezier(.2,.9,.28,1.25), opacity .2s ease';
+    qoy(0, 0, 1);
+    setTimeout(tozala, 360);
+    if(opt.davom) opt.davom();
+  };
+  el.addEventListener('pointerup', tugadi);
+  el.addEventListener('pointercancel', tugadi);
+  el.addEventListener('lostpointercapture', tugadi);
+
+  /* Bosish (click) va surishni ajratish uchun */
+  el.surilganmi = () => (Math.abs(dx) > 6 || Math.abs(dy) > 6);
+  /* Sinov uchun: oxirgi surish holati (dasturga ta'sir qilmaydi) */
+  el.surishHolati = () => ({ dx: dx, dy: dy, oq: oq, vx: vx, vy: vy });
+  return el;
+}
+
 function vzToastJoy(){
   let box = document.getElementById('vzToasts');
   if(!box){
@@ -1671,41 +1874,15 @@ function vzToastYop(el, yon){
   }
 }
 
-/* YONGA SURISH — barmoq bilan ham, sichqoncha bilan ham. 70px dan
-   ko'proq surilsa bildirishnoma chiqib ketadi; kamroq bo'lsa joyiga
-   yumshoq qaytadi. */
-function vzSurish(el){
-  let x0 = null, dx = 0, surildi = false;
-  const bosh = (e)=>{
-    if(el.dataset.yopilmoqda) return;
-    x0 = (e.touches ? e.touches[0].clientX : e.clientX);
-    dx = 0; surildi = false;
-    el.style.transition = 'none';
-  };
-  const yur = (e)=>{
-    if(x0 === null) return;
-    dx = (e.touches ? e.touches[0].clientX : e.clientX) - x0;
-    if(Math.abs(dx) > 6) surildi = true;
-    el.style.transform = 'translateX(' + dx + 'px)';
-    el.style.opacity = String(Math.max(.25, 1 - Math.abs(dx) / 320));
-  };
-  const tugat = ()=>{
-    if(x0 === null) return;
-    const d = dx; x0 = null;
-    if(Math.abs(d) > 70){ vzToastYop(el, d > 0 ? 1 : -1); return; }
-    el.style.transition = 'transform .24s cubic-bezier(.2,.9,.3,1), opacity .2s';
-    el.style.transform = 'translateX(0)';
-    el.style.opacity = '1';
-    setTimeout(()=>{ el.dataset.surildi = ''; }, 60);
-    el.dataset.surildi = surildi ? '1' : '';
-  };
-  el.addEventListener('touchstart', bosh, {passive:true});
-  el.addEventListener('touchmove', yur, {passive:true});
-  el.addEventListener('touchend', tugat);
-  el.addEventListener('mousedown', (e)=>{ bosh(e);
-    const m = (ev)=> yur(ev);
-    const u = ()=>{ tugat(); document.removeEventListener('mousemove', m); document.removeEventListener('mouseup', u); };
-    document.addEventListener('mousemove', m); document.addEventListener('mouseup', u);
+/* SURIB YUBORISH — umumiy yordamchi orqali (butun saytda bir xil):
+   yonga sursa yonga, yuqoriga sursa yuqoriga uchib ketadi; yetarli
+   surilmasa yumshoq prujina bilan joyiga qaytadi. */
+function vzSurish(el, vaqtlar){
+  surishBogla(el, {
+    yon: 'tepa',
+    toxtat: ()=>{ if(vaqtlar) clearTimeout(vaqtlar.t); },
+    davom:  ()=>{ if(vaqtlar) vaqtlar.t = setTimeout(()=> vzToastYop(el), 3500); },
+    yopish: ()=>{ if(vaqtlar) clearTimeout(vaqtlar.t); el.remove(); }
   });
 }
 
@@ -1732,16 +1909,18 @@ function vzShowToast(task){
     '</b><span>' + escapeHtml(task.text || '') + ' \u2014 ' + vzFormatCountdown(task.dueAt).text + '</span></div>' +
     '<i class="vz-tut"></i>';
 
+  const vaqtlar = { t: null };
   toast.addEventListener('click', ()=>{
-    if(toast.dataset.surildi) return;          // surilgan bo'lsa — ochilmaydi
+    if(toast.surilganmi && toast.surilganmi()) return;   // surish edi, bosish emas
     const t = document.querySelector('.tab[data-tab="vazifalar"]');
     if(t) t.click();
+    clearTimeout(vaqtlar.t);
     vzToastYop(toast);
   });
-  vzSurish(toast);
+  vzSurish(toast, vaqtlar);
 
   box.appendChild(toast);
-  setTimeout(()=> vzToastYop(toast), 8000);
+  vaqtlar.t = setTimeout(()=> vzToastYop(toast), 8000);
 }
 
 let vzAlertedIds = new Set();
@@ -1959,7 +2138,7 @@ async function loadVazifalarList(){
       const { text: cdText, cls: cdCls } = vzFormatCountdown(t.dueAt);
       const countdownHtml = t.completed
         ? `<span class="vz-countdown">Bajarildi</span>`
-        : `<span class="vz-countdown ${cdCls}" data-due="${t.dueAt}">${cdText}</span>`;
+        : `<span class="vz-countdown ${cdCls}" data-due="${escapeHtml(t.dueAt)}">${cdText}</span>`;
       return `
       <div class="zk-customer-row ${statusClass}" data-id="${t.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
         <div class="zk-customer-summary" data-id="${t.id}">
@@ -2226,14 +2405,71 @@ async function signInWithRetry(email, password, attemptsLeft){
   }
 }
 
+/* ==================================================================
+   KIRISH QULFI — 5 DAQIQADA 3 MARTA URINISH
+   ------------------------------------------------------------------
+   Urinishlar SERVERDA sanaladi (netlify/functions/admin-login-guard.js
+   + lib/kirishQulf.js), ya'ni sahifani yangilash, "Incognito" oynasi
+   yoki brauzer xotirasini tozalash bilan qulfni aylanib o'tib
+   bo'lmaydi. Hisob ham LOGIN, ham IP bo'yicha yuritiladi.
+   3-chi xato parolda hisob 5 daqiqaga qulflanadi va adminning
+   Telegram botiga darhol xabar ketadi.
+   ================================================================== */
+let qulfTimer = null;
+async function qulfSoragich(action, login){
+  try{
+    const r = await fetch('/.netlify/functions/admin-login-guard', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, login: login || '' })
+    });
+    return await r.json();
+  }catch(e){ return { ok: true, qulf: false, qoldiMs: 0, qolganUrinish: 3 }; }
+}
+
+/* Qulf vaqti tugaguncha tugma o'chiq turadi va sanoq ko'rinadi */
+function qulfSanoq(qoldiMs){
+  const btn = document.getElementById('loginBtn');
+  clearInterval(qulfTimer);
+  let qoldi = Math.ceil(Number(qoldiMs) / 1000);
+  const chiz = ()=>{
+    if(qoldi <= 0){
+      clearInterval(qulfTimer);
+      btn.disabled = false;
+      btn.textContent = 'Kirish';
+      loginError.style.display = 'none';
+      return;
+    }
+    const d = Math.floor(qoldi / 60), q = qoldi % 60;
+    loginError.textContent = "Ko'p marta xato kiritildi. Qayta urinish: " +
+      (d ? d + ':' + String(q).padStart(2, '0') : q + ' soniya');
+    loginError.style.display = 'block';
+    btn.disabled = true;
+    btn.textContent = 'Kutilmoqda…';
+    qoldi--;
+  };
+  chiz();
+  qulfTimer = setInterval(chiz, 1000);
+}
+
 async function doLogin(){
   const btn = document.getElementById('loginBtn');
   const authGate = document.getElementById('authGateScreen');
   const btnOrigText = btn.textContent;
+  const loginNomi = (usernameInput.value || '').trim().toLowerCase();
+
   btn.disabled = true;
   btn.textContent = 'Ulanmoqda...';
+
+  /* 1-qadam: qulflangan bo'lsa Firebase'ga UMUMAN murojaat qilinmaydi */
+  const oldin = await qulfSoragich('tekshir', loginNomi);
+  if(oldin && oldin.qulf){
+    qulfSanoq(oldin.qoldiMs);
+    return;
+  }
+
   try{
     await signInWithRetry(loginToEmail(usernameInput.value), passwordInput.value, 2);
+    qulfSoragich('ok', loginNomi);          // hisoblagich tozalanadi
     loginError.style.display = 'none';
     loginScreen.style.display = 'none';
     // XAVFSIZLIK: dashboard HALI ko'rsatilmaydi — avval ruxsatlar
@@ -2272,6 +2508,22 @@ async function doLogin(){
       'auth/network-request-failed': "Tarmoq xatosi — internetga ulanolmadi (avtomatik 2 marta qayta urinildi). Wi-Fi'dan mobil internetga (yoki aksincha) o'tib ko'ring, VPN yoqiq bo'lsa o'chiring, so'ng yana urinib ko'ring",
       'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)'
     };
+    /* Parol/login xatosi bo'lsa — urinish serverda hisoblanadi.
+       Tarmoq xatosi "urinish" emas: internet uzilganda odamni
+       qulflab qo'ymaslik kerak. */
+    const hisoblanadi = err.code !== 'auth/network-request-failed'
+                     && err.code !== 'auth/unauthorized-domain';
+    if(hisoblanadi){
+      const n = await qulfSoragich('xato', loginNomi);
+      if(n && n.qulf){ qulfSanoq(n.qoldiMs); return; }
+      loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri") +
+        (n && n.qolganUrinish != null ? '  \u00B7 qolgan urinish: ' + n.qolganUrinish : '');
+      loginError.style.display = 'block';
+      console.error('Login xatosi:', err.code, err.message);
+      btn.disabled = false;
+      btn.textContent = btnOrigText;
+      return;
+    }
     loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri")
                              + (err.code ? '  [' + err.code + ']' : '');
     loginError.style.display = 'block';
@@ -2676,7 +2928,7 @@ function openGroupOfTab(tab){
       ['paneBazaraqam',    'Baza raqam',     "Barcha manbalardan yig'ilgan xomashyo ro'yxati, operator bo'yicha hisob."],
       ['paneWatch',        'Kuzatuv',        "Mijozlar kutayotgan raqamlar, avtomatik tekshiruv."],
       ['paneUzex',         'UZEX auksion',   "Davlat auksionidagi raqamlarni kuzatish va saqlab qo'yish."],
-      ['paneSellers',      'Sotuvchilar',    "Hamkor sotuvchilar (dilerlar): hisob yaratish, komissiya, raqamlari va yozishma."],
+      ['paneSellers',      'Sotuvchilar',    "Hamkor sotuvchilar (dilerlar): hisob yaratish, tarif, raqamlari va yozishma."],
       ['paneTolov',        "Raqam to'lovi",  "O'zimiz muddatli to'lovga olgan raqamlarning oylik to'lovlari, muddatlari va ogohlantirishlari."],
       ['paneXabarlar',     'Saytga xabar',   "Mijozlarga saytda ko'rinadigan bildirishnoma yuborish: qo'ng'iroqcha va telefon push ko'rinishi."],
       ['paneStats',        'Statistika',     "Qaysi raqamga ko'p qiziqishyapti va mijozlar nimani qidirib topolmayapti."],
@@ -3088,8 +3340,9 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'zakaz'){ loadCustomOrders(); loadPriceCategories(); loadManualCustomersCount(); }
     if(tab.dataset.tab === 'sessions'){ refreshSessions(); }
     if(tab.dataset.tab === 'stats'){ loadStats(); }
-    if(tab.dataset.tab === 'sellers'){ loadSellers(); loadTariffs(); }
+    if(tab.dataset.tab === 'sellers'){ loadSellers(); loadTariffs(); loadHamkorArizalar(); }
     if(tab.dataset.tab === 'xabarlar'){ loadXabarlar(); xbVapidYukla(); }
+    if(tab.dataset.tab === 'settings'){ if(typeof xavfYukla === 'function') xavfYukla(); }
     if(tab.dataset.tab === 'tolov'){ loadTolov(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
@@ -4331,9 +4584,35 @@ async function loadSiteSettingsForm(){
     document.getElementById('installmentRate12').value = (typeof ir[12] === 'number') ? ir[12] : 10;
     document.getElementById('installmentRate24').value = (typeof ir[24] === 'number') ? ir[24] : 20;
     document.getElementById('installmentRate36').value = (typeof ir[36] === 'number') ? ir[36] : 30;
-    window.PAYMENT_CONFIRM_CODE = (typeof s.paymentConfirmCode === 'string') ? s.paymentConfirmCode : '';
-    const pcEl = document.getElementById('paymentConfirmCode');
-    if(pcEl) pcEl.value = window.PAYMENT_CONFIRM_CODE;
+    /* ==================================================================
+       TO'LOVNI TASDIQLASH KODI — ENDI MAXFIY JOYDA (V75)
+       ------------------------------------------------------------------
+       MUAMMO: bu kod `site_settings/general` hujjatida turardi, u esa
+       saytga OCHIQ o'qiladigan hujjat (katalog uslublari, aloqa
+       havolalari va h.k. shu yerda). Ya'ni kodni istalgan odam
+       brauzerdan o'qib olishi mumkin edi — himoya ma'nosini yo'qotadi.
+       ENDI: kod `admin_meta/pay` hujjatida saqlanadi — u Firestore
+       qoidalarida FAQAT adminlar uchun ochiq. Eski joyda qolib ketgan
+       bo'lsa — birinchi ochilishda avtomatik ko'chiriladi va ochiq
+       joydan O'CHIRILADI. */
+    (async ()=>{
+      let kod = '';
+      try{
+        const mx = await db.collection('admin_meta').doc('pay').get();
+        if(mx.exists && typeof (mx.data() || {}).code === 'string') kod = mx.data().code;
+      }catch(e){}
+      if(!kod && typeof s.paymentConfirmCode === 'string' && s.paymentConfirmCode){
+        kod = s.paymentConfirmCode;                       /* ko'chirish */
+        try{
+          await db.collection('admin_meta').doc('pay').set({ code: kod, movedAt: Date.now() }, { merge: true });
+          await db.collection('site_settings').doc('general').set({ paymentConfirmCode: '' }, { merge: true });
+          if(typeof panelToast === 'function') panelToast("To'lov kodi maxfiy joyga ko'chirildi", 'ok');
+        }catch(e){}
+      }
+      window.PAYMENT_CONFIRM_CODE = kod;
+      const pcEl = document.getElementById('paymentConfirmCode');
+      if(pcEl) pcEl.value = kod;
+    })();
   }catch(e){ console.error('Sayt sozlamalarini yuklashda xato:', e); }
 }
 loadSiteSettingsForm();
@@ -4597,7 +4876,10 @@ document.getElementById('savePaymentCodeBtn').addEventListener('click', async ()
   const msg = document.getElementById('paymentCodeMsg');
   try{
     const code = document.getElementById('paymentConfirmCode').value.trim();
-    await db.collection('site_settings').doc('general').set({ paymentConfirmCode: code }, { merge: true });
+    /* Maxfiy joyga (faqat adminlar o'qiy oladigan hujjatga) yoziladi */
+    await db.collection('admin_meta').doc('pay').set({ code, updatedAt: Date.now() }, { merge: true });
+    /* Ochiq hujjatda eski nusxa qolib ketmasin */
+    try{ await db.collection('site_settings').doc('general').set({ paymentConfirmCode: '' }, { merge: true }); }catch(e){}
     window.PAYMENT_CONFIRM_CODE = code;
     msg.textContent = code ? '✓ Kod saqlandi.' : '✓ Kod o\'chirildi — endi so\'ralmaydi.';
     msg.className = 'settings-msg ok';
@@ -4609,8 +4891,8 @@ document.getElementById('savePaymentCodeBtn').addEventListener('click', async ()
 });
 
 /* ================= SOTUVCHILAR (dilerlar) =================
-   Hamkor sotuvchilar o'z raqamlarini saytga qo'yadi, biz komissiya
-   olamiz. Butun mantiq serverda (netlify/functions/admin-sellers.js) —
+   Hamkor sotuvchilar o'z raqamlarini saytga qo'yadi. Komissiya yo'q —
+   daromad tarif obunasidan. Butun mantiq serverda (netlify/functions/admin-sellers.js) —
    bu yerda faqat ko'rinish va so'rovlar.
    Sotuvchi kabineti: /sotuvchi.html */
 async function selCall(action, extra){
@@ -4641,7 +4923,7 @@ async function loadSellers(){
 
     box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr>' +
       '<th>Sotuvchi</th><th>Login</th><th style="text-align:right">Raqamlar</th>' +
-      '<th>Tarif</th><th style="text-align:right">Komissiya</th><th>Holat</th><th></th>' +
+      '<th>Tarif</th><th>Holat</th><th></th>' +
       '</tr></thead><tbody>' +
       j.sellers.map(x =>
         '<tr>' +
@@ -4649,12 +4931,10 @@ async function loadSellers(){
           (x.phone ? '<div class="muted" style="font-size:11.5px">' + escapeHtml(x.phone) + '</div>' : '') + '</td>' +
         '<td><code>' + escapeHtml(x.username) + '</code></td>' +
         '<td style="text-align:right">' + x.numbers +
-          (x.promo ? '<div class="muted" style="font-size:11px">' + x.promo + ' ajratilgan</div>' : '') + '</td>' +
+          (x.promo ? '<div class="muted" style="font-size:11px">' + escapeHtml(x.promo) + ' ajratilgan</div>' : '') + '</td>' +
         '<td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" data-trf="' + escapeHtml(x.id) + '">' +
           (x.plan ? escapeHtml(String(x.plan).toUpperCase()) + (x.planKun != null ? ' \u00B7 ' + x.planKun + ' kun' : '') : 'Tarif yo\u2018q') +
         '</button></td>' +
-        '<td style="text-align:right"><input class="inp" style="width:72px;padding:6px 8px;text-align:right" ' +
-          'type="number" min="0" max="90" value="' + (x.commissionPct||0) + '" data-pct="' + escapeHtml(x.id) + '"> %</td>' +
         '<td><span class="sv-pill ' + (x.blocked ? 'sv-off' : 'sv-on') + '">' + (x.blocked ? 'Bloklangan' : 'Faol') + '</span></td>' +
         '<td style="text-align:right;white-space:nowrap">' +
           '<button class="btn btn-ghost btn-sm" data-chat="' + escapeHtml(x.id) + '" data-who="' + escapeHtml(x.name) + '">Yozishma' +
@@ -4666,12 +4946,6 @@ async function loadSellers(){
         '</td></tr>'
       ).join('') + '</tbody></table></div>';
 
-    /* komissiya foizini joyida o'zgartirish */
-    box.querySelectorAll('[data-pct]').forEach(el => el.addEventListener('change', async ()=>{
-      try{ await selCall('update', { id: el.dataset.pct, commissionPct: Number(el.value) || 0 });
-           el.style.borderColor = 'var(--green)'; setTimeout(()=> el.style.borderColor = '', 900); }
-      catch(e){ alert(e.message); }
-    }));
     box.querySelectorAll('[data-block]').forEach(b => b.onclick = async ()=>{
       try{ await selCall('update', { id: b.dataset.block, blocked: b.dataset.now !== '1' }); loadSellers(); }
       catch(e){ alert(e.message); }
@@ -4725,7 +4999,9 @@ function renderTariffs(){
   const box = document.getElementById('trfBox');
   box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr>' +
     '<th>ID</th><th>Nomi</th><th style="text-align:right">Narx</th>' +
-    '<th style="text-align:right">Kun</th><th style="text-align:right">Raqam</th>' +
+    '<th style="text-align:right">Kun</th>' +
+    '<th style="text-align:right" title="Diler umuman nechta raqam joylay oladi">Raqam limiti</th>' +
+    '<th style="text-align:right" title="Shu raqamlarning nechtasiga toifa qo\u2018yish mumkin">Toifali</th>' +
     '<th>Toifalar</th><th>Mashhur</th><th>Izoh</th><th></th>' +
     '</tr></thead><tbody>' +
     TRF.map((p, i) =>
@@ -4734,6 +5010,7 @@ function renderTariffs(){
       '<td><input class="inp" style="width:96px;padding:6px 8px" value="' + escapeHtml(p.name) + '" data-t="name" data-i="' + i + '"></td>' +
       '<td style="text-align:right"><input class="inp" style="width:104px;padding:6px 8px;text-align:right" type="number" min="0" step="1000" value="' + (Number(p.price)||0) + '" data-t="price" data-i="' + i + '"></td>' +
       '<td style="text-align:right"><input class="inp" style="width:62px;padding:6px 8px;text-align:right" type="number" min="1" max="3650" value="' + (Number(p.days)||30) + '" data-t="days" data-i="' + i + '"></td>' +
+      '<td style="text-align:right"><input class="inp" style="width:72px;padding:6px 8px;text-align:right" type="number" min="0" max="100000" value="' + (Number(p.limit)||0) + '" data-t="limit" data-i="' + i + '"></td>' +
       '<td style="text-align:right"><input class="inp" style="width:62px;padding:6px 8px;text-align:right" type="number" min="0" max="100000" value="' + (Number(p.quota)||0) + '" data-t="quota" data-i="' + i + '"></td>' +
       '<td style="white-space:nowrap">' + TRF_TOIFA.map(t =>
           '<label style="margin-right:8px;font-size:11.5px;white-space:nowrap">' +
@@ -4752,7 +5029,7 @@ function renderTariffs(){
       if(el.checked && j === -1) p.tiers.push(v);
       if(!el.checked && j !== -1) p.tiers.splice(j, 1);
     }else if(k === 'featured'){ p.featured = el.checked; }
-    else if(k === 'price' || k === 'days' || k === 'quota'){ p[k] = Number(el.value) || 0; }
+    else if(k === 'price' || k === 'days' || k === 'quota' || k === 'limit'){ p[k] = Number(el.value) || 0; }
     else { p[k] = el.value; }
   }));
   box.querySelectorAll('[data-trfdel]').forEach(b => b.onclick = ()=>{
@@ -4762,8 +5039,8 @@ function renderTariffs(){
 }
 
 document.getElementById('trfAdd') && document.getElementById('trfAdd').addEventListener('click', ()=>{
-  TRF.push({ id:'tarif' + (TRF.length+1), name:'Yangi tarif', price:0, days:30, quota:10,
-    tiers:['vip'], featured:false, order:TRF.length+1, desc:'' });
+  TRF.push({ id:'tarif' + (TRF.length+1), name:'Yangi tarif', price:0, days:30,
+    limit:100, quota:10, tiers:['vip'], featured:false, order:TRF.length+1, desc:'' });
   renderTariffs();
 });
 
@@ -4822,7 +5099,11 @@ function renderTarifSorov(rows){
 /* Dilerga tarifni QO'LDA yoqish / to'xtatish (to'lov so'rovisiz) */
 async function tarifQolda(sellerId){
   if(!TRF.length){ await loadTariffs(); }
-  const nomlar = TRF.map((p,i) => (i+1) + ') ' + p.name + ' — ' + (Number(p.price)||0).toLocaleString('ru-RU') + " so'm / " + p.days + ' kun').join('\n');
+  const nomlar = TRF.map((p,i) => (i+1) + ') ' + p.name + ' — ' +
+    (Number(p.price)||0).toLocaleString('ru-RU') + " so'm / " + p.days + ' kun · ' +
+    (Number(p.limit)||0) + ' raqam' +
+    (Number(p.quota) ? ' (' + p.quota + ' tasiga toifa)' : '') +
+    (p.featured ? ' + Mashhur' : '')).join('\n');
   const tanlov = prompt('Qaysi tarif yoqilsin?\n\n' + nomlar + '\n\nRaqamini kiriting (yoki 0 — tarifni to‘xtatish):');
   if(tanlov == null) return;
   const n = Number(tanlov);
@@ -4840,6 +5121,128 @@ async function tarifQolda(sellerId){
     loadSellers(); loadTariffs();
   }catch(e){ alert(e.message); }
 }
+
+
+/* ================= HAMKORLIK ARIZALARI =================
+   Saytdagi "Hamkor bo'lish" formasidan kelgan arizalar
+   (`hamkor_arizalari` to'plami). Mijoz saytida tarif va narx
+   ko'rsatilmaydi — odam ariza qoldiradi, shartlarni admin telefon
+   orqali aytadi. Shu sabab bu yerda ikkita asosiy amal bor:
+     * "Hisob yaratish" — pastdagi "Yangi sotuvchi hisobi" formasini
+       arizadagi ism va telefon bilan to'ldiradi (login/parolni
+       admin o'zi o'ylab topadi);
+     * "Yopish" — ariza ko'rib chiqildi deb belgilaydi.
+   ======================================================== */
+const HK_HOLAT = { new:'Yangi', called:"Bog'lanildi", done:'Hisob ochildi', rejected:'Rad etildi' };
+
+async function loadHamkorArizalar(){
+  const box = document.getElementById('hkList');
+  if(!box) return;
+  box.innerHTML = 'Yuklanmoqda...';
+  try{
+    const snap = await db.collection('hamkor_arizalari').limit(300).get();
+    const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+      .sort((a, b) => {
+        const av = (a.status === 'new') ? 1 : 0, bv = (b.status === 'new') ? 1 : 0;
+        if(av !== bv) return bv - av;                       // yangilari birinchi
+        const at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+        const bt = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+        return bt - at;
+      });
+
+    const yangi = rows.filter(r => (r.status || 'new') === 'new').length;
+    const badge = document.getElementById('hkBadge');
+    if(badge){ badge.textContent = yangi; badge.style.display = yangi ? '' : 'none'; }
+
+    if(!rows.length){
+      box.innerHTML = "Hali ariza yo'q. Saytda: Profil → Hamkor bo'lish.";
+      return;
+    }
+
+    /* Telefonda jadval emas — alohida kartochkalar (tartibli, yon surishsiz) */
+    const kartalar = '<div class="hk-cards">' + rows.map(r => {
+      const h = r.status || 'new';
+      const vaqt = r.createdAt && r.createdAt.toMillis
+        ? new Date(r.createdAt.toMillis()).toLocaleString('ru-RU') : '';
+      const tel = String(r.phone || '').replace(/[^+\d]/g, '');
+      return '<div class="hk-card' + (h === 'new' ? ' hk-new' : '') + '">' +
+        '<div class="hk-top"><b class="hk-nom">' + escapeHtml(r.fullName || '') + '</b>' +
+          '<span class="sv-pill ' + (h === 'new' ? 'sv-on' : 'sv-off') + '">' +
+          escapeHtml(HK_HOLAT[h] || h) + '</span></div>' +
+        '<div class="hk-meta">' +
+          '<a href="tel:' + escapeHtml(tel) + '" class="hk-tel">' + escapeHtml(r.phone || '') + '</a>' +
+          (r.region ? '<span>' + escapeHtml(r.region) + '</span>' : '') +
+          (r.numbersCount ? '<span>' + escapeHtml(r.numbersCount) + ' raqam</span>' : '') +
+        '</div>' +
+        (r.note ? '<div class="hk-note">' + escapeHtml(r.note) + '</div>' : '') +
+        (vaqt ? '<div class="hk-vaqt muted">' + escapeHtml(vaqt) + '</div>' : '') +
+        '<div class="hk-act">' +
+          '<button class="btn btn-sm" data-hkmake="' + escapeHtml(r.id) + '">Hisob yaratish</button>' +
+          '<button class="btn btn-ghost btn-sm" data-hkdone="' + escapeHtml(r.id) + '">Yopish</button>' +
+          '<button class="btn btn-dan btn-sm" data-hkdel="' + escapeHtml(r.id) + '">&#10005;</button>' +
+        '</div></div>';
+    }).join('') + '</div>';
+
+    box.innerHTML = kartalar + '<div class="hk-tbl" style="overflow-x:auto"><table><thead><tr>' +
+      '<th>Kim</th><th>Telefon</th><th>Viloyat</th><th>Raqamlari</th>' +
+      '<th>Holat</th><th>Vaqti</th><th></th></tr></thead><tbody>' +
+      rows.map(r => {
+        const h = r.status || 'new';
+        const vaqt = r.createdAt && r.createdAt.toMillis
+          ? new Date(r.createdAt.toMillis()).toLocaleString('ru-RU') : '';
+        return '<tr>' +
+          '<td><b>' + escapeHtml(r.fullName || '') + '</b>' +
+            (r.note ? '<div class="muted" style="font-size:11.5px;max-width:230px;white-space:normal">' +
+              escapeHtml(r.note) + '</div>' : '') + '</td>' +
+          '<td><a href="tel:' + escapeHtml(String(r.phone || '').replace(/[^+\d]/g, '')) + '" ' +
+            'style="color:var(--amber);text-decoration:none;white-space:nowrap">' +
+            escapeHtml(r.phone || '') + '</a></td>' +
+          '<td>' + escapeHtml(r.region || '') + '</td>' +
+          '<td style="white-space:nowrap">' + escapeHtml(r.numbersCount || '') + '</td>' +
+          '<td><span class="sv-pill ' + (h === 'new' ? 'sv-on' : 'sv-off') + '">' +
+            escapeHtml(HK_HOLAT[h] || h) + '</span></td>' +
+          '<td style="white-space:nowrap;font-size:11.5px" class="muted">' + escapeHtml(vaqt) + '</td>' +
+          '<td style="text-align:right;white-space:nowrap">' +
+            '<button class="btn btn-sm" data-hkmake="' + escapeHtml(r.id) + '">Hisob yaratish</button> ' +
+            '<button class="btn btn-ghost btn-sm" data-hkdone="' + escapeHtml(r.id) + '">Yopish</button> ' +
+            '<button class="btn btn-dan btn-sm" data-hkdel="' + escapeHtml(r.id) + '">&#10005;</button>' +
+          '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+
+    /* "Hisob yaratish" — pastdagi formani arizadan to'ldiradi */
+    box.querySelectorAll('[data-hkmake]').forEach(b => b.onclick = async ()=>{
+      const r = rows.find(x => x.id === b.dataset.hkmake); if(!r) return;
+      const nm = document.getElementById('selName'), ph = document.getElementById('selPhone');
+      const us = document.getElementById('selUser');
+      if(nm) nm.value = r.fullName || '';
+      if(ph) ph.value = r.phone || '';
+      /* Logini ismning birinchi so'zidan taklif qilinadi — admin o'zgartira oladi */
+      if(us && !us.value){
+        us.value = String(r.fullName || '').trim().split(/\s+/)[0]
+          .toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+      }
+      try{ await db.collection('hamkor_arizalari').doc(r.id).update({ status: 'done' }); }catch(e){}
+      const pw = document.getElementById('selPass');
+      if(pw) pw.focus();
+      if(nm) nm.scrollIntoView({ behavior:'smooth', block:'center' });
+      if(typeof panelToast === 'function') panelToast('Forma to‘ldirildi — parol o‘ylab, "Hisob yaratish" bosing', 'ok');
+      loadHamkorArizalar();
+    });
+    box.querySelectorAll('[data-hkdone]').forEach(b => b.onclick = async ()=>{
+      try{ await db.collection('hamkor_arizalari').doc(b.dataset.hkdone).update({ status: 'called' }); loadHamkorArizalar(); }
+      catch(e){ alert(e.message); }
+    });
+    box.querySelectorAll('[data-hkdel]').forEach(b => b.onclick = async ()=>{
+      if(!confirm("Ariza o'chirilsinmi?")) return;
+      try{ await db.collection('hamkor_arizalari').doc(b.dataset.hkdel).delete(); loadHamkorArizalar(); }
+      catch(e){ alert(e.message); }
+    });
+  }catch(e){
+    box.innerHTML = 'Xato: ' + escapeHtml(e.message);
+  }
+}
+document.getElementById('hkReload') && document.getElementById('hkReload')
+  .addEventListener('click', loadHamkorArizalar);
 
 async function selOpenChat(id, who){
   SEL_CHAT_ID = id;
@@ -4865,7 +5268,6 @@ document.getElementById('selCreate') && document.getElementById('selCreate').add
     username: document.getElementById('selUser').value.trim().toLowerCase(),
     password: document.getElementById('selPass').value,
     phone: document.getElementById('selPhone').value.trim(),
-    commissionPct: Number(document.getElementById('selPct').value) || 0
   };
   msg.textContent = 'Yaratilmoqda...';
   try{
@@ -4879,7 +5281,7 @@ document.getElementById('selCreate') && document.getElementById('selCreate').add
   }catch(e){ msg.textContent = 'Xato: ' + e.message; }
 });
 
-document.getElementById('selReload') && document.getElementById('selReload').addEventListener('click', ()=>{ loadSellers(); loadTariffs(); });
+document.getElementById('selReload') && document.getElementById('selReload').addEventListener('click', ()=>{ loadSellers(); loadTariffs(); loadHamkorArizalar(); });
 document.getElementById('selChatSend') && document.getElementById('selChatSend').addEventListener('click', async ()=>{
   const inp = document.getElementById('selChatIn');
   const text = inp.value.trim();
@@ -7838,7 +8240,7 @@ function aktFinGroupHtml(item, months){
   return `
     <div class="op-fin-group">
       <div class="op-fin-group-title">${months} oy</div>
-      <label>Bosh to'lov</label><input type="number" class="akt-fin-down" data-months="${months}" value="${item['dealDown' + months] || 0}">
+      <label>Bosh to'lov</label><input type="number" class="akt-fin-down" data-months="${months}" value="${escapeHtml(item['dealDown'+months] || 0)}">
       <label>Oylik to'lov</label><input type="number" class="akt-fin-monthly" data-months="${months}" value="${item['dealMonthly' + months] || 0}">
     </div>`;
 }
@@ -7988,7 +8390,7 @@ function aktCardHtml(item, isExpired){
   let timerHtml;
   if(item.dealExpiresAt && !isExpired){
     const { text, cls } = vzFormatCountdown(item.dealExpiresAt);
-    timerHtml = `<div class="akt-card-timer">⏱ <span class="vz-countdown ${cls}" data-due="${item.dealExpiresAt}">${text}</span></div>`;
+    timerHtml = `<div class="akt-card-timer">⏱ <span class="vz-countdown ${cls}" data-due="${escapeHtml(item.dealExpiresAt)}">${text}</span></div>`;
   }else if(isExpired){
     timerHtml = `<div class="akt-card-timer">⏱ Muddati tugagan</div>`;
   }else{
@@ -8909,7 +9311,9 @@ function renderAdminOrders(orders){
       <div class="an-summary oc-summary-grid" data-id="${o.id}">
         <div class="oc-avatar">${dashInitials(o.name)}</div>
         <div class="oc-main-info">
-          <span class="an-summary-num">${escapeHtml(o.number)}</span>
+          <span class="an-summary-num">${buyurtmaRaqami(o.number)
+            ? escapeHtml(buyurtmaRaqami(o.number))
+            : '<i class="oc-nonum">Raqam ko\'rsatilmagan</i>'}</span>
           <span class="oc-summary-name">${escapeHtml(o.name)}</span>
         </div>
         <span class="oc-pay-chip ${o.paymentType === 'installment' ? 'oc-pay-installment' : 'oc-pay-cash'}">
@@ -9407,12 +9811,29 @@ function panelToast(matn, turi){
   el.className = 'pt ' + t;
   el.innerHTML = '<svg viewBox="0 0 24 24">' + (ICO[t] || ICO.ok) + '</svg><span></span>';
   el.querySelector('span').textContent = matn;
+  /* Bir vaqtda 3 tadan ko'p turmasin */
+  while(wrap.children.length >= 3) wrap.firstElementChild.remove();
   wrap.appendChild(el);
-  setTimeout(() => {
+
+  let timer = setTimeout(yop, 2600);
+  function yop(){
+    clearTimeout(timer);
+    if(!el.isConnected) return;
     el.style.transition = 'opacity .2s ease, transform .2s ease';
     el.style.opacity = '0'; el.style.transform = 'translateY(8px)';
     setTimeout(() => el.remove(), 220);
-  }, 2600);
+  }
+  /* Pastdagi bildirishnoma: pastga yoki yonga surib yuborish mumkin —
+     butun saytda bir xil imo-ishora (surishBogla). */
+  if(typeof surishBogla === 'function'){
+    surishBogla(el, {
+      yon: 'past',
+      toxtat: ()=> clearTimeout(timer),
+      davom:  ()=> { timer = setTimeout(yop, 2000); },
+      yopish: ()=> el.remove()
+    });
+    el.addEventListener('click', ()=>{ if(!el.surilganmi()) yop(); });
+  }
 }
 window.panelToast = panelToast;
 
@@ -9425,9 +9846,23 @@ window.panelToast = panelToast;
    ================================================================== */
 (function bildirishnomalar(){
   /* `let` bilan e'lon qilingan o'zgaruvchilar window obyektiga tushmaydi,
-     shuning uchun ularga shu yerda ko'prik quramiz. */
+     shuning uchun ularga shu yerda ko'prik quramiz.
+     XAVFSIZLIK (V75): ilgari bu ko'prik `eval(nom)` orqali ishlardi.
+     Hozirgi chaqiruvlarda nom qotirib yozilgan bo'lsa ham, panel
+     ichida TIRIK `eval` turishi — xavfsizlik nuqtai nazaridan eng
+     yomon odat (kelajakda biror joyda unga tashqi qiymat tushsa,
+     skript ishga tushib ketadi). Endi aniq ro'yxat ishlatiladi. */
+  const MANBA = {
+    currentOrdersCache:    () => (typeof currentOrdersCache !== 'undefined' ? currentOrdersCache : null),
+    lastSeenOrders:        () => (typeof lastSeenOrders !== 'undefined' ? lastSeenOrders : null),
+    currentCreditContracts:() => (typeof currentCreditContracts !== 'undefined' ? currentCreditContracts : null)
+  };
   const olish = (nom, zaxira) => {
-    try{ return eval(nom); }catch(e){ return zaxira; }
+    try{
+      const f = MANBA[nom];
+      const v = f ? f() : null;
+      return (v === null || v === undefined) ? zaxira : v;
+    }catch(e){ return zaxira; }
   };
 
   const ICO = {
@@ -10336,3 +10771,96 @@ async function tlvOchir(id){
   });
 })();
 
+
+/* ==================================================================
+   XAVFSIZLIK — TELEGRAM BOTLAR HIMOYASI (Sozlamalar bo'limi)
+   ------------------------------------------------------------------
+   Botlarning webhook manzili ochiq. Manzilni bilgan odam unga o'zi
+   yasagan "xabar" yuborib, botni aldashi mumkin edi — masalan
+   bosqichlarni bosib o'tib, bazaga soxta buyurtma yozdirish (ism
+   o'rnida raqam, telefon o'rnida "00 000 00 00").
+
+   Telegram buning uchun tayyor himoya beradi: `setWebhook` chaqirilganda
+   maxfiy so'z (secret_token) beriladi va Telegram har bir so'rovda uni
+   qaytaradi. Shu tugma o'sha himoyani bir bosishda yoqadi.
+   Server: netlify/functions/admin-bot-security.js
+   ================================================================== */
+async function xavfCall(action){
+  const idToken = await firebase.auth().currentUser.getIdToken();
+  const res = await fetch('/.netlify/functions/admin-bot-security', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+    body: JSON.stringify({ action })
+  });
+  const j = await res.json().catch(()=>({}));
+  if(!j.ok) throw new Error(j.error || 'Xatolik');
+  return j;
+}
+
+function xavfChiz(botlar){
+  const box = document.getElementById('xavfList');
+  if(!box) return;
+  if(!botlar || !botlar.length){ box.textContent = "Bot topilmadi."; return; }
+  box.innerHTML = botlar.map(b => {
+    if(!b.token){
+      return '<div class="xavf-row"><span class="sv-pill sv-off">Sozlanmagan</span>' +
+        '<b>' + escapeHtml(b.nom) + '</b><i>Bot tokeni qo‘yilmagan — bu bot ishlatilmayapti</i></div>';
+    }
+    const himoyali = b.bazaSirBor || b.envSirBor;
+    const izoh = himoyali
+      ? 'Faqat Telegram’ning o‘zi yuborgan so‘rovlar qabul qilinadi'
+      : 'Manzilni bilgan odam soxta so‘rov yubora oladi — himoyani yoqing';
+    return '<div class="xavf-row">' +
+      '<span class="sv-pill ' + (himoyali ? 'sv-on' : 'sv-off') + '">' +
+        (himoyali ? 'Himoyalangan' : 'Himoyalanmagan') + '</span>' +
+      '<b>' + escapeHtml(b.nom) + '</b>' +
+      '<i>' + izoh +
+        (b.kutayotgan ? ' · navbatda ' + b.kutayotgan + ' ta xabar' : '') +
+        (b.oxirgiXato ? ' · oxirgi xato: ' + escapeHtml(b.oxirgiXato) : '') +
+      '</i></div>';
+  }).join('');
+}
+
+async function xavfYukla(){
+  const box = document.getElementById('xavfList');
+  if(!box) return;
+  box.textContent = 'Yuklanmoqda...';
+  try{ xavfChiz((await xavfCall('holat')).botlar); }
+  catch(e){ box.textContent = 'Xato: ' + e.message; }
+  /* Kirish urinishlari tarixi — "kimdir parolni tanlab ko'rdimi?" */
+  const ub = document.getElementById('xavfUrinish');
+  if(ub){
+    try{
+      const rows = (await xavfCall('urinishlar')).urinishlar || [];
+      ub.innerHTML = rows.length
+        ? '<div class="xavf-urinish-bosh">Qulflangan kirish urinishlari</div>' +
+          rows.map(r => '<div class="xavf-urinish">' +
+            '<b>' + escapeHtml(r.login || "login ko\u2018rsatilmagan") + '</b>' +
+            '<span>' + escapeHtml(r.ip || '') + '</span>' +
+            '<i>' + new Date(Number(r.at) || 0).toLocaleString('ru-RU') + '</i></div>').join('')
+        : '<div class="muted" style="font-size:12px">Qulflangan kirish urinishlari yo\u2018q \u2014 hammasi tinch.</div>';
+    }catch(e){ ub.innerHTML = ''; }
+  }
+}
+
+document.getElementById('xavfReload') && document.getElementById('xavfReload')
+  .addEventListener('click', xavfYukla);
+
+document.getElementById('xavfYoqBtn') && document.getElementById('xavfYoqBtn')
+  .addEventListener('click', async ()=>{
+    const msg = document.getElementById('xavfMsg');
+    const btn = document.getElementById('xavfYoqBtn');
+    if(!confirm("Botlar himoyasi yoqilsinmi?\n\nTelegram'ga maxfiy so'z bildiriladi. " +
+                "Botlar ishlashdan to'xtamaydi, manzil o'zgarmaydi.")) return;
+    btn.disabled = true; msg.textContent = 'Yoqilmoqda...';
+    try{
+      const j = await xavfCall('yoq');
+      xavfChiz(j.botlar);
+      const yaxshi = (j.natija || []).filter(x => x.ok).length;
+      const yomon = (j.natija || []).filter(x => !x.ok);
+      msg.textContent = yaxshi + ' ta bot himoyalandi' +
+        (yomon.length ? ' · ' + yomon.map(x => x.nom + ': ' + x.sabab).join('; ') : '');
+      if(typeof panelToast === 'function') panelToast('Botlar himoyalandi', 'ok');
+    }catch(e){ msg.textContent = 'Xato: ' + e.message; }
+    finally{ btn.disabled = false; }
+  });

@@ -21,6 +21,9 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* XAVFSIZLIK (V73): ochiq funksiya — bitta IP uchun soatlik chegara.
+   Qarang: lib/tezlik.js */
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
 
 /* XAVFSIZLIK: App Check — MAJBURIY. Faqat haqiqiy saytimiz (App Check
@@ -43,6 +46,9 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
   if(!(await verifyAppCheckSoft(event))){
     return { statusCode: 401, body: JSON.stringify({ ok: false, error: "Ruxsat yo'q" }) };
+  }
+  if (!(await tezlikOk(db, event, 'contract_lookup_rate_limits', 40))) {
+    return { statusCode: 429, body: JSON.stringify({ ok: false, error: "Juda ko'p urinish. Bir soatdan keyin qayta urinib ko'ring." }) };
   }
 
   try{

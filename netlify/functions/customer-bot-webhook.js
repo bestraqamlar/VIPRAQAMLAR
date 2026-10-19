@@ -25,6 +25,7 @@ const { buildContractPdfBuffer } = require('./lib/contractPdf');
 // chaqiramiz (api-live-search.js ham shu funksiyani ishlatadi).
 const { searchAll } = require('./lib/operators');
 
+const { webhookTekshir } = require('./lib/webhookSirri');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -162,16 +163,54 @@ const ZAKAZ_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz', 'Uzmobile', 'Pe
 const RAQAM_BARCHASI = '🌐 Barchasi';
 const RAQAM_OPERATORS = ['Ucell', 'Humans', 'Beeline', 'Mobiuz', 'Uzmobile', 'Perfektum'];
 
+/* ---------------- TEZLIK CHEGARASI (flood himoyasi) ----------------
+   Bitta chat'dan daqiqasiga 25 tadan ko'p xabar kelsa — ortiqchasi
+   e'tiborsiz qoldiriladi. Bu "bot bilan odam gaplashishi" uchun juda
+   katta chegara (odam daqiqasiga 25 marta yozmaydi), lekin avtomatik
+   skript uchun devor: bazaga spam yozib to'ldirib bo'lmaydi.
+   Hisoblagich funksiya XOTIRASIDA turadi — bazaga qo'shimcha o'qish/
+   yozish qilinmaydi (ya'ni tekin). */
+const TEZLIK = new Map();
+const TEZLIK_CHEGARA = 25;
+function tezlikOk(chatId){
+  const kalit = String(chatId);
+  const endi = Date.now();
+  const q = TEZLIK.get(kalit);
+  if(!q || endi - q.at > 60000){ TEZLIK.set(kalit, { at: endi, n: 1 }); return true; }
+  q.n++;
+  if(TEZLIK.size > 5000) TEZLIK.clear();      // xotira cheksiz o'smasin
+  return q.n <= TEZLIK_CHEGARA;
+}
+
 /* ---------------- Seans (Firestore'da, chatId bo'yicha) ---------------- */
+/* "Chala qolgan" bosqichlar: mijoz buyurtmani boshlab, oxiriga
+   yetkazmasdan chatni yopib ketishi mumkin. Shundan keyin u qaytib
+   kelib RAQAM YOZSA, bot uni hali ham "ismingizni kiriting" deb
+   kutayotgan bo'lsa — yozgan raqamini ISM deb qabul qilardi va
+   oxirida bo'm-bo'sh buyurtma ("+998 00-000-00-00", narxi noma'lum)
+   yozilib qolardi. Shuning uchun bu bosqichlar ESKIRADI. */
+const CHALA_BOSQICHLAR = ['awaiting_name','awaiting_phone','awaiting_region','awaiting_district','confirm'];
+const SEANS_MUDDATI = 30 * 60 * 1000;      // 30 daqiqa
+
 async function getSession(chatId){
   const doc = await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).get());
   if(doc.exists && doc.data().data){
-    try{ return JSON.parse(doc.data().data); }catch(e){}
+    try{
+      const s = JSON.parse(doc.data().data);
+      const vaqt = Number(doc.data().stepAt || 0);
+      if(s && CHALA_BOSQICHLAR.indexOf(s.step) !== -1 &&
+         vaqt && (Date.now() - vaqt) > SEANS_MUDDATI){
+        return { step: 'menu' };            // eskirgan — toza boshlanadi
+      }
+      return s;
+    }catch(e){}
   }
   return { step: 'menu' };
 }
 async function saveSession(chatId, session){
-  await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({ data: JSON.stringify(session) }, { merge: true }));
+  await withRetry(() => db.collection('bot_sessions').doc(String(chatId)).set({
+    data: JSON.stringify(session), stepAt: Date.now()
+  }, { merge: true }));
 }
 /* Mijozning Telegram profil ismi va username'ini saqlaydi — admin panelidagi
    "mijozlar ro'yxati"da ko'rsatish uchun. Sessiya bilan bir hujjatda,
@@ -332,6 +371,24 @@ function displayNumber(numberStr){
   return `+998 ${nine.slice(0,2)}-${nine.slice(2,5)}-${nine.slice(5,7)}-${nine.slice(7,9)}`;
 }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
+/* Mijoz tugma bosmasdan to'g'ridan-to'g'ri raqam yozganmi?
+   ("331010111", "0707", "+998 90 123 45 67"). */
+function faqatRaqammi(text){
+  const t = String(text || '').trim();
+  if(!t) return false;
+  if(t.replace(/[\d\s+()\-.]/g, '').length) return false;     // harf bor
+  const d = t.replace(/\D/g, '');
+  return d.length >= 3 && d.length <= 12;
+}
+
+/* Raqam HAQIQIYmi? `displayNumber` bo'sh qiymatdan ham ko'rinish yasaydi
+   ("+998 00-000-00-00"), shu sabab buyurtma yozishdan OLDIN shu yerda
+   tekshiriladi: raqamsiz yoki nol-raqamli buyurtma umuman yozilmaydi. */
+function raqamHaqiqiymi(numberStr){
+  const d = String(numberStr || '').replace(/\D/g, '');
+  const nine = (d.startsWith('998') ? d.slice(3) : d).slice(-9);
+  return nine.length === 9 && !/^0+$/.test(nine) && nine.slice(0, 2) !== '00';
+}
 
 /* "Premium" ko'rinish — oddiy 0-9 o'rniga qalin Unicode raqamlar
    (Mathematical Sans-Serif Bold). Faqat MIJOZGA CHATDA ko'rsatiladigan
@@ -873,18 +930,16 @@ async function handleFreeTextReply(chatId, text, from, control){
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  // XAVFSIZLIK: CUSTOMER_BOT_WEBHOOK_SECRET sozlangan bo'lsa, faqat
-  // Telegram'ning o'zi (setWebhook'da shu maxfiy so'z bilan ro'yxatdan
-  // o'tgan) yubora oladigan so'rovlarni qabul qilamiz — soxta so'rovlar
-  // (masalan, kimdir bu havolani topib, o'zi buyurtma/xabar "yasab"
-  // yuborishga urinishi) rad etiladi. HALI SOZLANMAGAN bo'lsa — bot
-  // eskicha ishlayveradi. To'liq "qat'iy" qilish uchun: Netlify'da shu
-  // o'zgaruvchini sozlang VA Telegram'ga setWebhook chaqirganda
-  // secret_token sifatida xuddi shu qiymatni yuboring.
-  const expectedSecret = process.env.CUSTOMER_BOT_WEBHOOK_SECRET;
-  if(expectedSecret){
-    const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-    if(gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  /* XAVFSIZLIK (V73): so'rov HAQIQATAN Telegram'dan kelganini
+     tasdiqlaymiz. Maxfiy so'z Netlify muhit o'zgaruvchisida YOKI
+     Firestore'da (admin panel -> Xavfsizlik -> "Botlarni himoyalash")
+     bo'lsa — sarlavhadagi so'z unga mos kelishi SHART. Ikkalasi ham
+     yo'q bo'lsa bot eskicha ishlayveradi (to'xtab qolmasligi uchun),
+     lekin admin panelida "Himoyalanmagan" deb ko'rsatiladi.
+     Qarang: netlify/functions/lib/webhookSirri.js */
+  {
+    const himoya = await webhookTekshir(db, event, 'customer-bot-webhook', 'CUSTOMER_BOT_WEBHOOK_SECRET');
+    if(!himoya.ok) return { statusCode: 401, body: 'unauthorized' };
   }
 
   let update;
@@ -969,7 +1024,7 @@ exports.handler = async function (event) {
       };
       await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
-      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+      await send(chatId, "Ismingizni kiriting (masalan: Akmal Rustamov):", cancelKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -1009,7 +1064,7 @@ exports.handler = async function (event) {
       };
       await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
-      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+      await send(chatId, "Ismingizni kiriting (masalan: Akmal Rustamov):", cancelKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -1050,13 +1105,13 @@ exports.handler = async function (event) {
         session = { step: 'awaiting_name', numberId: null, isLiveOrder: true, liveNumber: live, liveItems: session.liveItems, candidates: session.candidates };
         await saveSession(chatId, session);
         await tg('answerCallbackQuery', { callback_query_id: cq.id });
-        await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+        await send(chatId, "Ismingizni kiriting (masalan: Akmal Rustamov):", cancelKeyboard());
         return { statusCode: 200, body: 'ok' };
       }
       session = { step: 'awaiting_name', numberId };
       await saveSession(chatId, session);
       await tg('answerCallbackQuery', { callback_query_id: cq.id });
-      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+      await send(chatId, "Ismingizni kiriting (masalan: Akmal Rustamov):", cancelKeyboard());
       return { statusCode: 200, body: 'ok' };
     }
 
@@ -1070,6 +1125,14 @@ exports.handler = async function (event) {
         ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
         : (session.draftRegion || '');
       const time = new Date().toLocaleString('uz-UZ');
+
+      if(!session.zakazPattern || String(session.zakazPattern).replace(/\D/g,'').length < 2){
+        session = { step: 'menu' };
+        await saveSession(chatId, session);
+        await send(chatId, "So'rovni rasmiylashtira olmadik: raqam namunasi yo'qolgan. " +
+          "Iltimos, \"" + BTN.ZAKAZ + "\" dan qaytadan boshlang.", mainMenuKeyboard());
+        return { statusCode: 200, body: 'ok' };
+      }
 
       const orderRef = await withRetry(() => db.collection('custom_orders').add({
         pattern: session.zakazPattern,
@@ -1126,6 +1189,18 @@ exports.handler = async function (event) {
         operatorStr = nd.operator || '';
         orderCurrency = isUsd(nd) ? 'USD' : 'UZS';
       }
+      /* OXIRGI HIMOYA: raqamsiz buyurtma bazaga yozilmaydi. Ilgari
+         shunday buyurtmalar "+998 00-000-00-00 / narxi noma'lum"
+         ko'rinishida admin panelga tushib, chalkashlik tug'dirardi. */
+      if(!raqamHaqiqiymi(numberStr)){
+        session = { step: 'menu' };
+        await saveSession(chatId, session);
+        await send(chatId,
+          "Buyurtmani rasmiylashtira olmadik: raqam ma'lumoti eskirgan.\n" +
+          "Iltimos, menyudan raqamni qaytadan tanlang.", mainMenuKeyboard());
+        return { statusCode: 200, body: 'ok' };
+      }
+
       const time = new Date().toLocaleString('uz-UZ');
       const manzil = session.draftDistrict
         ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
@@ -1194,6 +1269,7 @@ exports.handler = async function (event) {
   const message = update.message;
   if(!message) return { statusCode: 200, body: 'ok' };
   const chatId = message.chat.id;
+  if(!tezlikOk(chatId)) return { statusCode: 200, body: 'ok' };   // flood — e'tiborsiz
   await saveCustomerProfile(chatId, message.from);
 
   // --- Ovozli/audio xabar: bot o'qimaydi, mijozga javob yozmaydi — faqat
@@ -1297,7 +1373,7 @@ exports.handler = async function (event) {
     }else if(session.step === 'awaiting_phone'){
       session.step = 'awaiting_name';
       await saveSession(chatId, session);
-      await send(chatId, 'Ismingizni kiriting:', cancelKeyboard());
+      await send(chatId, "Ismingizni kiriting (masalan: Akmal Rustamov):", cancelKeyboard());
     }else if(session.step === 'awaiting_region'){
       session.step = 'awaiting_phone';
       await saveSession(chatId, session);
@@ -1327,7 +1403,8 @@ exports.handler = async function (event) {
   // taassurotini berardi. Endi ASOSIY MENYU tugmalaridan biri bosilsa,
   // qaysi bosqichda "qolib ketgan" bo'lishidan qat'i nazar, session
   // darhol tozalanadi va tugma normal ishlaydi.
-  const MAIN_MENU_TEXTS = [BTN.CHOOSE, BTN.PREMIUM, BTN.SALE, BTN.ZAKAZ, BTN.MYORDERS, BTN.CONTRACTS, BTN.CONTACT, BTN.INSTALLMENT];
+  const MAIN_MENU_TEXTS = [BTN.CHOOSE, BTN.PREMIUM, BTN.STANDARD, BTN.SALE, BTN.ZAKAZ,
+                          BTN.MYORDERS, BTN.CONTRACTS, BTN.CONTACT, BTN.INSTALLMENT];
   if(MAIN_MENU_TEXTS.includes(text) && session.step !== 'menu' && session.step){
     session = { step: 'menu' };
   }
@@ -1437,6 +1514,15 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: 'ok' };
     }
 
+    /* MIJOZ TUGMA BOSMASDAN RAQAM YOZSA — darhol qidiramiz.
+       Ilgari bunday xabarga "menyudagi tugmalardan foydalaning" degan
+       javob kelardi va mijoz buni "bot ishlamayapti" deb tushunardi. */
+    if(faqatRaqammi(text)){
+      session = { step: 'awaiting_digits', raqamOperator: null };
+      await saveSession(chatId, session);
+      return await exports.handler(event);
+    }
+
     await handleFreeTextReply(chatId, text, message.from || {}, control);
     return { statusCode: 200, body: 'ok' };
   }
@@ -1459,7 +1545,11 @@ exports.handler = async function (event) {
 
   /* ---- Raqam qidirish: kompaniya tanlangandan keyin raqam kutilmoqda ---- */
   if(session.step === 'awaiting_digits'){
-    const digits = text.replace(/\D/g, '');
+    let digits = text.replace(/\D/g, '');
+    /* Mijoz butun raqamni yozishi ham mumkin ("901234567",
+       "+998 90 123 45 67") — bunda oxirgi 4 tasi bo'yicha qidiramiz,
+       "noto'g'ri kiritdingiz" deb qaytarmaymiz. */
+    if(digits.length > 4) digits = digits.slice(-4);
     if(!digits || digits.length !== 4){
       await send(chatId, "Iltimos, oxirgi 4 ta raqamni kiriting. Misol: 0707", replyKb([[BTN.STEP_BACK]]));
       return { statusCode: 200, body: 'ok' };
@@ -1744,9 +1834,29 @@ ${monthsLines}
     return { statusCode: 200, body: 'ok' };
   }
 
-  /* ---- Buyurtma: ism ---- */
+  /* ---- Buyurtma: ism ----
+     MUHIM: bu yerga mijoz ba'zan RAQAM yozadi (o'zini hali qidiruvda
+     deb o'ylab). Ilgari u raqam "ism" bo'lib yozilardi va natijada
+     admin panelda ism o'rnida "331010111" turgan, raqami esa
+     "+998 00-000-00-00" bo'lgan bo'sh buyurtma paydo bo'lardi.
+     Endi faqat ISMga o'xshash matn qabul qilinadi. */
   if(session.step === 'awaiting_name'){
-    session.draftName = text;
+    const sonlar = (text || '').replace(/\D/g, '');
+    const harflar = (text || '').replace(/[^A-Za-z\u0400-\u04FF\u02BB\u2018\u2019']/g, '');
+    if(sonlar.length >= 4 && harflar.length < 3){
+      await send(chatId,
+        "Bu raqamga o'xshayapti \uD83D\uDE42\n\n" +
+        "Hozir <b>ISMINGIZ</b> kerak (masalan: Akmal Rustamov). " +
+        "Telefon raqamingizni keyingi qadamda so'raymiz.\n\n" +
+        "Agar raqam qidirmoqchi bo'lsangiz \u2014 pastdagi \"" + BTN.CANCEL + "\" tugmasini bosing.",
+        cancelKeyboard(), { html: true });
+      return { statusCode: 200, body: 'ok' };
+    }
+    if(harflar.length < 2){
+      await send(chatId, "Ismingizni to'liqroq yozing (masalan: Akmal Rustamov).", cancelKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    session.draftName = String(text).slice(0, 80);
     session.step = 'awaiting_phone';
     await saveSession(chatId, session);
     await send(chatId, "Hozir ishlatib turgan raqamingizni kiriting (masalan: 90 123 45 67):", contactKeyboard());
@@ -1814,6 +1924,16 @@ ${monthsLines}
     }else{
       const numberDoc = await withRetry(() => db.collection('numbers').doc(session.numberId).get());
       const nd = numberDoc.exists ? numberDoc.data() : {};
+      /* Hujjat topilmasa (raqam sotilgan/o'chirilgan yoki seans eskirgan) —
+         "bo'sh" buyurtma yasamaymiz, mijozni menyuga qaytaramiz. */
+      if(!raqamHaqiqiymi(nd.number)){
+        session = { step: 'menu' };
+        await saveSession(chatId, session);
+        await send(chatId,
+          "Afsus, bu raqam endi mavjud emas (sotilgan yoki olib qo'yilgan).\n" +
+          "Iltimos, menyudan yangi raqam tanlang.", mainMenuKeyboard());
+        return { statusCode: 200, body: 'ok' };
+      }
       numberStr = premiumNumber(displayNumber(nd.number || ''));
       priceStr = formatPrice(nd.price || 0, nd);
     }
@@ -1844,6 +1964,12 @@ ${monthsLines}
       ])
     });
     return { statusCode: 200, body: 'ok' };
+  }
+
+  if(faqatRaqammi(text)){
+    session = { step: 'awaiting_digits', raqamOperator: null };
+    await saveSession(chatId, session);
+    return await exports.handler(event);
   }
 
   await handleFreeTextReply(chatId, text, message.from || {}, control);

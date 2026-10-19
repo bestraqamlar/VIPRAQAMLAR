@@ -3,6 +3,7 @@
 // netlify.toml: schedule = "0 2 1 * *" (UTC 02:00, 1-kun = Toshkent 07:00)
 
 const admin = require('firebase-admin');
+const { jadvalOk } = require('./lib/jadvalQalqon');
 const { buildStatsPdfBuffer } = require('./lib/personalBotPdf');
 
 if (!admin.apps.length) {
@@ -43,7 +44,11 @@ async function computeSummary(startTs, endTs) {
   return { byCategory, totalIncome, totalExpense };
 }
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
   try {
     const now = new Date();

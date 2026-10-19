@@ -18,6 +18,7 @@
 // parallel, bir nechta ishchi bilan) tekshiriladi.
 
 const admin = require('firebase-admin');
+const { jadvalOk } = require('./lib/jadvalQalqon');
 const { searchUzex } = require('./lib/uzexClient');
 
 if (!admin.apps.length) {
@@ -109,7 +110,11 @@ async function finalizeWatch(doc, items) {
 
 let START_TIME = 0;
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+
   START_TIME = Date.now();
   try {
     const snap = await db.collection(COLLECTION).where('active', '==', true).get();
