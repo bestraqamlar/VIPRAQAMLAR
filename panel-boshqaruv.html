@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=68">
-<link rel="preload" as="script" href="assets/panel.js?v=68">
+<link rel="preload" as="style" href="assets/panel.css?v=71">
+<link rel="preload" as="script" href="assets/panel.js?v=71">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=68">
+<link rel="stylesheet" href="assets/panel.css?v=71">
 </head>
 <body>
 
@@ -1458,8 +1458,9 @@
        avtomatik sinxronizatsiya xato bersa (masalan Chatplace API manzili
        hali noto'g'ri bo'lsa), shu yerda "lastError" xabari ko'rinadi. -->
   <!-- ======================= SOTUVCHILAR =======================
-       Hamkor dilerlar o'z raqamlarini saytga qo'yadi, biz komissiya
-       olamiz. Hisobni FAQAT shu yerdan admin yaratadi — o'z-o'zidan
+       Hamkor dilerlar o'z raqamlarini saytga qo'yadi. KOMISSIYA YO'Q —
+       daromad faqat tarif obunasidan (Pro / Max / Ultra).
+       Hisobni FAQAT shu yerdan admin yaratadi — o'z-o'zidan
        ro'yxatdan o'tish yo'q. Sotuvchi kabineti: /sotuvchi.html
        Server tomoni: netlify/functions/admin-sellers.js va seller-api.js -->
   <div class="pane" id="paneSellers">
@@ -1476,7 +1477,6 @@
         <div><label class="lbl">Login</label><input class="inp" id="selUser" placeholder="akmal" autocapitalize="off"></div>
         <div><label class="lbl">Parol (kamida 8 belgi)</label><input class="inp" id="selPass" placeholder="••••••••"></div>
         <div><label class="lbl">Telefon</label><input class="inp" id="selPhone" placeholder="+998 90 123 45 67"></div>
-        <div><label class="lbl">Komissiya %</label><input class="inp" id="selPct" type="number" min="0" max="90" value="10"></div>
       </div>
       <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn" id="selCreate" type="button">Hisob yaratish</button>
@@ -1523,6 +1523,26 @@
         bu ro'yxat o'zi "tasdiqlandi" bo'lib boradi.
       </p>
       <div id="trfSorov" class="muted" style="font-size:13px">Yuklanmoqda...</div>
+    </div>
+
+    <!-- ======== HAMKORLIK ARIZALARI ========
+         Saytdagi "Hamkor bo'lish" formasi orqali kelgan arizalar.
+         Mijoz saytida tarif/narx KO'RSATILMAYDI — odam faqat ariza
+         qoldiradi, shartlarni siz telefon orqali aytasiz. Shu sabab
+         bu ro'yxat sotuvchilar bo'limining ENG TEPASIDA turadi:
+         yangi ariza kelsa darhol ko'rinadi. -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px">
+        <h3 style="margin:0;font-size:14.5px">Hamkorlik arizalari
+          <span class="task-tab-badge" id="hkBadge" style="display:none;">0</span></h3>
+        <button class="btn btn-ghost btn-sm" id="hkReload" type="button">Yangilash</button>
+      </div>
+      <p class="muted" style="margin:0 0 12px;font-size:12px">
+        Saytdagi "Hamkor bo'lish" formasidan kelgan arizalar. Telefon qilib
+        shartlarni aytasiz, rozi bo'lsa — "Hisob yaratish" bosasiz: pastdagi
+        forma arizadagi ism va telefon bilan to'ldiriladi.
+      </p>
+      <div id="hkList" class="muted" style="font-size:13px">Yuklanmoqda...</div>
     </div>
 
     <div class="card">
@@ -2102,6 +2122,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=68"></script>
+<script defer src="assets/panel.js?v=71"></script>
 </body>
 </html>

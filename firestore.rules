@@ -382,6 +382,28 @@ service cloud.firestore {
     // bo'lishi shart (xuddi 'active_sessions.lastSeen' kabi).
     // O'qish/yangilash/o'chirish faqat "Vakansiya" bo'limiga ruxsati bor
     // adminlarga — mijoz o'z arizasini boshqa yo'l bilan ko'ra olmaydi.
+    // "hamkor_arizalari" — raqam sotuvchilar (dilerlar) saytdagi
+    // "Hamkor bo'lish" formasi orqali ANONIM yuboradigan arizalar.
+    // Qoida job_applications bilan bir xil qat'iylikda: faqat shu 8 ta
+    // maydon, holat har doim 'new', rozilik ALBATTA true, createdAt —
+    // server vaqti (soxtalashtirib bo'lmasin). O'qish/o'zgartirish
+    // faqat "Sotuvchilar" bo'limiga ruxsati bor adminga.
+    match /hamkor_arizalari/{doc} {
+      allow create: if request.resource.data.keys().hasOnly(
+            ['fullName', 'phone', 'region', 'numbersCount', 'note', 'consentGiven', 'createdAt', 'status'])
+        && request.resource.data.status == 'new'
+        && request.resource.data.consentGiven == true
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0 && request.resource.data.fullName.size() < 200
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() < 50
+        && request.resource.data.region is string && request.resource.data.region.size() < 100
+        && request.resource.data.numbersCount is string && request.resource.data.numbersCount.size() < 30
+        && request.resource.data.note is string && request.resource.data.note.size() < 1000
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if hasPerm('sellers');
+    }
+
     match /job_applications/{doc} {
       allow create: if request.resource.data.keys().hasOnly(
             ['vacancyId', 'vacancyTitle', 'fullName', 'phone', 'experience', 'consentGiven', 'createdAt', 'status'])

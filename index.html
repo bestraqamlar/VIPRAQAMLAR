@@ -967,13 +967,36 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 .spin{width:20px;height:20px;border-radius:50%;border:2px solid rgba(230,200,119,.3);border-top-color:#E6C877;animation:sp .8s linear infinite;flex:none}
 @keyframes sp{to{transform:rotate(360deg)}}
 
-/* ---------- Toast ---------- */
+/* ---------- Toast (pastdagi bildirishnoma) ----------
+   Katta kompaniyalar ilovasidagi kabi: ixcham kartochka, chap tomonda
+   doira ichida belgi, pastda nozik "tutqich" chizig'i. Pastga yoki
+   yonga surib yuborish mumkin (surishBogla). */
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + 14px);z-index:120;width:100%;max-width:var(--app-w);padding:0 16px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{background:#09182C;color:#fff;border-radius:14px;padding:12px 15px;display:flex;align-items:center;gap:10px;box-shadow:0 14px 34px -14px rgba(0,0,0,.75);animation:tin .42s cubic-bezier(.16,.86,.3,1) both;pointer-events:auto}
-.toast span{flex:1;min-width:0;font-size:12.5px;font-weight:650}
+.toast{
+  position:relative;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 58%),#0A1A2F;
+  color:#fff;border-radius:17px;padding:12px 15px 14px;display:flex;align-items:center;gap:11px;
+  box-shadow:0 18px 40px -18px rgba(2,8,20,.9),inset 0 0 0 1px rgba(124,166,255,.14);
+  animation:tin .42s cubic-bezier(.16,.86,.3,1) both;pointer-events:auto;
+  touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;
+  will-change:transform,opacity;
+}
+.toast > span:not(.toast-ic){flex:1;min-width:0;font-size:12.5px;font-weight:650;line-height:1.45}
+.toast-ic{
+  width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.08);
+}
+.toast-bad .toast-ic{background:rgba(255,138,135,.14)}
+.toast-info .toast-ic{background:rgba(143,180,255,.14)}
+/* Pastdagi "tutqich" — surish mumkinligining belgisi */
+.toast::after{
+  content:'';position:absolute;left:50%;bottom:5px;transform:translateX(-50%);
+  width:34px;height:3px;border-radius:9px;background:rgba(255,255,255,.22);
+}
+.toast.surilmoqda{animation:none;cursor:grabbing}
 .toast.out{animation:tout .25s forwards}
 @keyframes tin{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes tout{to{opacity:0;transform:translateY(10px) scale(.97)}}
+@media (prefers-reduced-motion:reduce){ .toast{animation:none} }
 
 /* ---------- Sheet ---------- */
 .sheet{position:fixed;inset:0;z-index:100;display:none;justify-content:center;align-items:flex-end}
@@ -1354,7 +1377,10 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 @keyframes tgnIn{to{transform:translateY(0);opacity:1}}
 .tgnote.out{animation:tgnOut .26s ease forwards}
 @keyframes tgnOut{to{transform:translateY(-130%);opacity:0}}
-.tgnote.drag{transition:none;animation:none;opacity:1}
+.tgnote.drag,.tgnote.surilmoqda{transition:none;animation:none;opacity:1}
+/* Yuqoriga ham, yonga ham surish uchun brauzer "o'z" harakatini
+   bermasligi kerak — aks holda vertikal surish sahifani aylantirardi. */
+.tgnote{touch-action:none;user-select:none;-webkit-user-select:none}
 
 .tgn-b{flex:1;min-width:0}
 .tgn-t{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink)}
@@ -2043,6 +2069,8 @@ html[data-theme="dark"] ::selection{background:transparent}
 }
 .push.show{display:flex;transform:translateX(-50%) translate3d(0,0,0);opacity:1}
 .push.go{transform:translateX(-50%) translate3d(0,-150%,0);opacity:0}
+.push.surilmoqda{transition:none}
+.push{touch-action:none;user-select:none;-webkit-user-select:none}
 .push-ic{width:34px;height:34px;border-radius:11px;flex:none;overflow:hidden;background:#0B1B33}
 .push-ic img{width:100%;height:100%;object-fit:cover;display:block}
 .push-b{flex:1;min-width:0}
@@ -2380,6 +2408,16 @@ html[data-theme="dark"] ::selection{background:transparent}
         <span class="pi" style="background:var(--gold-tint);color:var(--gold-ink)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg></span>
         <b data-t="Shartnomalarim">Shartnomalarim</b><i data-t="Hujjatlar">Hujjatlar</i>
       </a>
+
+      <!-- HAMKOR BO'LISH — raqam sotuvchilar uchun ariza.
+           MIJOZ SO'ROVI: tarif, narx va boshqa TO'LIQ MA'LUMOT bu
+           yerda KO'RSATILMAYDI. Faqat taklif va ariza formasi;
+           shartlarni admin arizani ko'rib chiqqandan keyin o'zi
+           aytadi. -->
+      <button class="ptile rise" data-sheet="hamkor">
+        <span class="pi" style="background:var(--gold-tint);color:var(--gold-ink)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.8a3.2 3.2 0 0 0-3.2-3.2H6.2A3.2 3.2 0 0 0 3 18.2V20"></path><circle cx="9.5" cy="7.8" r="3.3"></circle><path d="M17 11.5h4M19 9.5v4"></path></svg></span>
+        <b data-t="Hamkor bo'lish">Hamkor bo'lish</b><i data-t="Raqamlaringizni soting">Raqamlaringizni soting</i>
+      </button>
 
       <button class="ptile rise" data-sheet="jobs">
         <span class="pi" style="background:var(--card-2);color:var(--text-2)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="12" rx="2"></rect><path d="M9 7.5V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2"></path></svg></span>
@@ -2947,17 +2985,142 @@ function netBarRender(){
   }else { bar.classList.remove('on'); document.body.classList.remove('netbar-on'); }
 }
 
+/* ==================================================================
+   BILDIRISHNOMANI SURIB YUBORISH (Telegram / iOS uslubida)
+   ------------------------------------------------------------------
+   Bitta joyda yozilgan, barcha bildirishnomalarga ulanadigan imo-ishora:
+
+     * barmoq (yoki sichqoncha) qaysi tomonga ketsa — kartochka O'SHA
+       tomonga ergashadi: yonga sursa yonga, tepadagi kartochkani
+       yuqoriga sursa yuqoriga (pastdagisini pastga);
+     * yo'nalish birinchi 5 pikselda TANLANADI va shundan keyin
+       o'zgarmaydi — shunda kartochka "qaltiramaydi";
+     * teskari tomonga tortsa "rezina" kabi qarshilik qiladi (0,16);
+     * qo'yib yuborilganda: masofa yetarli bo'lsa YOKI harakat tez
+       bo'lsa (flick) — uchib ketadi; aks holda yumshoq "prujina"
+       bilan joyiga qaytadi va taymer qaytadan ketadi;
+     * surish paytida avtomatik yopilish taymeri TO'XTAYDI.
+
+   Faqat `transform` va `opacity` o'zgaradi — ya'ni ish videokartada
+   bajariladi, eski telefonda ham silliq chiqadi.
+   ================================================================== */
+function surishBogla(el, opt){
+  opt = opt || {};
+  const past = opt.yon === 'past';          /* pastdagi bildirishnoma */
+  let sx = 0, sy = 0, dx = 0, dy = 0, oq = null, bosildi = false;
+  /* Tezlikni OXIRGI harakatlar bo'yicha o'lchaymiz (butun surish
+     bo'yicha emas): shunda "flick" — qisqa, lekin tez silkitish ham
+     bildirishnomani uchirib yuboradi, xuddi telefondagidek. */
+  let oVaqt = 0, oX = 0, oY = 0, vx = 0, vy = 0;
+  const hozir = () => (window.performance && performance.now) ? performance.now() : Date.now();
+  const en = () => Math.max(160, el.getBoundingClientRect().width || 320);
+  /* Ba'zi kartochkalar CSS'da `translateX(-50%)` bilan markazlashgan —
+     surishda u yo'qolmasligi uchun old qo'shimcha sifatida saqlanadi. */
+  const asos = opt.asos || '';
+  const qoy = (x, y, o) => {
+    el.style.transform = asos + 'translate3d(' + x + 'px,' + y + 'px,0)';
+    el.style.opacity = String(o);
+  };
+  const tozala = () => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; };
+
+  el.addEventListener('pointerdown', (e) => {
+    if(e.button) return;
+    bosildi = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; oq = null;
+    oVaqt = hozir(); oX = e.clientX; oY = e.clientY; vx = vy = 0;
+    el.classList.add('surilmoqda');
+    el.style.transition = 'none';
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    if(opt.toxtat) opt.toxtat();
+  });
+
+  el.addEventListener('pointermove', (e) => {
+    if(!bosildi) return;
+    const X = e.clientX - sx, Y = e.clientY - sy;
+    if(!oq){
+      if(Math.abs(X) < 5 && Math.abs(Y) < 5) return;
+      oq = Math.abs(X) > Math.abs(Y) ? 'x' : 'y';
+    }
+    /* Oniy tezlik (px/ms), yengil silliqlash bilan */
+    const t = hozir(), dt = Math.max(8, t - oVaqt);
+    vx = 0.6 * ((e.clientX - oX) / dt) + 0.4 * vx;
+    vy = 0.6 * ((e.clientY - oY) / dt) + 0.4 * vy;
+    oVaqt = t; oX = e.clientX; oY = e.clientY;
+    if(oq === 'x'){ dx = X; dy = 0; }
+    else {
+      dx = 0;
+      const togri = past ? (Y > 0) : (Y < 0);
+      dy = togri ? Y : Y * 0.16;
+    }
+    const tik = past ? Math.max(0, dy) : Math.max(0, -dy);
+    const o = Math.max(0.15, 1 - Math.abs(dx) / (en() * 0.9) - tik / 130);
+    qoy(dx, dy, o);
+  });
+
+  const tugadi = () => {
+    if(!bosildi) return;
+    bosildi = false;
+    el.classList.remove('surilmoqda');
+    /* Barmoq uzilgandan beri ko'p vaqt o'tgan bo'lsa (to'xtab turgan
+       edi) — tezlikni hisobga olmaymiz. */
+    if(hozir() - oVaqt > 120){ vx = 0; vy = 0; }
+    const tik = past ? dy : -dy;
+    const tikTez = past ? vy : -vy;
+    const ketsin = (oq === 'x' && (Math.abs(dx) > en() * 0.28 || (Math.abs(vx) > 0.35 && Math.abs(dx) > 12)))
+                || (oq === 'y' && (tik > 42 || (tikTez > 0.3 && tik > 8)));
+    if(ketsin){
+      const hx = oq === 'x' ? (dx > 0 ? en() + 90 : -(en() + 90)) : 0;
+      const hy = oq === 'x' ? 0 : (past ? 240 : -240);
+      el.style.transition = 'transform .22s cubic-bezier(.3,0,.7,.4), opacity .2s linear';
+      qoy(hx, hy, 0);
+      setTimeout(() => { if(opt.yopish) opt.yopish(true); }, 195);
+      return;
+    }
+    el.style.transition = 'transform .34s cubic-bezier(.2,.9,.28,1.25), opacity .2s ease';
+    qoy(0, 0, 1);
+    setTimeout(tozala, 360);
+    if(opt.davom) opt.davom();
+  };
+  el.addEventListener('pointerup', tugadi);
+  el.addEventListener('pointercancel', tugadi);
+  el.addEventListener('lostpointercapture', tugadi);
+
+  /* Bosish (click) va surishni ajratish uchun */
+  el.surilganmi = () => (Math.abs(dx) > 6 || Math.abs(dy) > 6);
+  /* Sinov uchun: oxirgi surish holati (dasturga ta'sir qilmaydi) */
+  el.surishHolati = () => ({ dx: dx, dy: dy, oq: oq, vx: vx, vy: vy });
+  return el;
+}
+
 /* ---------- Toast ---------- */
 const ICO_OK = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#3DD68C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"></path></svg>';
 const ICO_BAD = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#FF8A87" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v6M12 16.5v.5"></path></svg>';
 const ICO_INFO = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#8FB4FF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5.5M12 7.8v.4"></path></svg>';
 function toast(matn, turi){
   const box = $('#toasts'); if(!box) return;
+  /* Bir vaqtda 3 tadan ko'p turmasin — ekran to'lib ketmasin */
+  while(box.children.length >= 3) box.firstElementChild.remove();
   const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = (turi==='bad'?ICO_BAD:turi==='info'?ICO_INFO:ICO_OK) + '<span>' + esc(matn) + '</span>';
+  el.className = 'toast toast-' + (turi || 'ok');
+  el.innerHTML = '<span class="toast-ic">' +
+      (turi === 'bad' ? ICO_BAD : turi === 'info' ? ICO_INFO : ICO_OK) + '</span>' +
+      '<span>' + esc(matn) + '</span>';
   box.appendChild(el);
-  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=> el.remove(), 260); }, 3200);
+
+  let timer = setTimeout(yop, 3200);
+  function yop(){
+    clearTimeout(timer);
+    if(!el.isConnected) return;
+    el.classList.add('out');
+    setTimeout(()=> el.remove(), 260);
+  }
+  /* Pastdagi bildirishnoma: pastga yoki yonga surib yuborish mumkin */
+  surishBogla(el, {
+    yon: 'past',
+    toxtat: ()=> clearTimeout(timer),
+    davom:  ()=> { timer = setTimeout(yop, 2200); },
+    yopish: ()=> el.remove()
+  });
+  el.addEventListener('click', ()=>{ if(!el.surilganmi()) yop(); });
   try{ if(navigator.vibrate) navigator.vibrate(turi==='bad' ? [12,60,12] : 10); }catch(e){}
 }
 
@@ -3038,37 +3201,17 @@ function tgNote(sarlavha, item){
     setTimeout(()=> el.remove(), 280);
   }
 
-  /* --- barmoq bilan surib yuborish (yuqoriga yoki yonga) --- */
-  let sx = 0, sy = 0, dragging = false, mx = 0, my = 0;
-  el.addEventListener('pointerdown', (e)=>{
-    dragging = true; sx = e.clientX; sy = e.clientY; mx = my = 0;
-    clearTimeout(timer);
-    el.classList.add('drag');
-    const p = el.querySelector('.tgn-p'); if(p) p.style.animationPlayState = 'paused';
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+  /* Barmoq bilan surib yuborish: yonga sursa yonga, yuqoriga sursa
+     yuqoriga (umumiy yordamchi — butun saytda bir xil his). */
+  surishBogla(el, {
+    yon: 'tepa',
+    toxtat: ()=>{ clearTimeout(timer); const p = el.querySelector('.tgn-p'); if(p) p.style.animationPlayState = 'paused'; },
+    davom:  ()=>{ timer = setTimeout(close, 2500); const p = el.querySelector('.tgn-p'); if(p) p.style.animationPlayState = ''; },
+    yopish: ()=> el.remove()
   });
-  el.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    mx = e.clientX - sx; my = Math.min(0, e.clientY - sy);
-    el.style.transform = 'translate(' + mx + 'px,' + my + 'px)';
-    el.style.opacity = String(Math.max(0, 1 - (Math.abs(mx) / 220) - (Math.abs(my) / 120)));
-  });
-  const end = ()=>{
-    if(!dragging) return;
-    dragging = false;
-    if(Math.abs(mx) > 70 || my < -36){ el.style.transition = 'transform .2s,opacity .2s';
-      el.style.transform = 'translate(' + (mx > 0 ? 400 : (mx < -20 ? -400 : 0)) + 'px,' + (my < -20 ? -200 : 0) + 'px)';
-      el.style.opacity = '0'; setTimeout(()=> el.remove(), 210); return; }
-    el.style.transition = 'transform .22s cubic-bezier(.2,.9,.3,1.2),opacity .22s';
-    el.style.transform = ''; el.style.opacity = '';
-    setTimeout(()=>{ el.style.transition = ''; }, 240);
-    timer = setTimeout(close, 2500);
-  };
-  el.addEventListener('pointerup', end);
-  el.addEventListener('pointercancel', end);
 
   el.addEventListener('click', (e)=>{
-    if(Math.abs(mx) > 6 || Math.abs(my) > 6) return;      /* surish edi, bosish emas */
+    if(el.surilganmi()) return;                            /* surish edi, bosish emas */
     if(e.target.closest('.tgn-x')){ close(); return; }
     close();
     if(item && item.id) setTimeout(()=> openDetail(item.id), 120);
@@ -5105,9 +5248,24 @@ function bindPhoneMask(){
      `ORD.phoneRaw` esa avvalgiday har harfda yangilanadi (u faqat
      raqamlarni saqlaydi, ko'rinishga ta'sir qilmaydi). */
   inp.setAttribute('inputmode', 'tel');
-  inp.addEventListener('input', ()=>{
+  inp.addEventListener('input', (e)=>{
     ORD.phoneRaw = extractRawDigits(inp.value);
     $('#fPhone').classList.remove('bad');
+    /* "+998" va bo'shliqlarni maydon O'ZI qo'yadi. iPhone qotmasligi
+       uchun: qiymat faqat haqiqatan o'zgarganda, faqat kursor OXIRIDA
+       bo'lganda qayta yoziladi; o'chirishda esa faqat oxirida qolgan
+       ajratgich olinadi (Backspace tabiiy ishlaydi). */
+    const ochirish = !!(e && e.inputType && e.inputType.indexOf('delete') === 0);
+    const y = ORD.phoneRaw ? formatUzNumber(ORD.phoneRaw) : '';
+    if(y === inp.value) return;
+    if(ochirish){
+      const t2 = inp.value.replace(/[\s-]+$/, '');
+      if(t2 !== inp.value){ inp.value = t2; try{ inp.setSelectionRange(t2.length, t2.length); }catch(e2){} }
+      return;
+    }
+    if(inp.selectionStart != null && inp.selectionStart < inp.value.length) return;
+    inp.value = y;
+    try{ inp.setSelectionRange(y.length, y.length); }catch(e2){}
   });
   inp.addEventListener('blur', ()=>{
     const raw = extractRawDigits(inp.value);
@@ -5887,6 +6045,169 @@ async function submitVac(){
     btn.disabled = false; btn.textContent = t('Arizani yuborish');
   }
 }
+
+/* ==================================================================
+   HAMKOR BO'LISH — raqam sotuvchilar uchun ariza
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "diler bo'limini qo'sh, faqat to'liq ma'lumot
+   berilmasin — hamkor bo'lish, ariza berish bo'lsin".
+
+   Shu sabab bu yerda NARX, TARIF, FOIZ va boshqa shartlar
+   KO'RSATILMAYDI. Faqat qisqa taklif va ariza formasi. Shartlarni
+   admin arizani ko'rib chiqqandan keyin, odam bilan gaplashib
+   aytadi — bu ham savdo nuqtai nazaridan to'g'riroq: narx oldindan
+   ko'rinmasa, odam avval bog'lanadi.
+
+   Ariza `hamkor_arizalari` to'plamiga tushadi va admin panelning
+   "Sotuvchilar" bo'limida ko'rinadi. Telegram'ga ham xabar ketadi.
+   ================================================================== */
+function openHamkor(){
+  $('#genTitle').textContent = t('Hamkor bo‘lish');
+  $('#genBody').innerHTML = `
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start">
+      <span style="width:40px;height:40px;border-radius:13px;background:var(--gold-tint);color:var(--gold-ink);display:flex;align-items:center;justify-content:center;flex:none">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.8a3.2 3.2 0 0 0-3.2-3.2H6.2A3.2 3.2 0 0 0 3 18.2V20"></path><circle cx="9.5" cy="7.8" r="3.3"></circle><path d="M17 11.5h4M19 9.5v4"></path></svg></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15.5px;font-weight:800;line-height:1.3">${t('Raqamlaringizni biz orqali soting')}</div>
+        <div style="margin-top:7px;font-size:12.5px;color:var(--text-2);font-weight:600;line-height:1.6">${t('Sizga shaxsiy kabinet ochib beramiz: raqamlaringizni o‘zingiz joylaysiz, narxini o‘zingiz belgilaysiz, buyurtmalar to‘g‘ridan-to‘g‘ri sizga tushadi.')}</div>
+      </div>
+    </div>
+
+    <div class="list" style="margin-top:12px">
+      ${[
+        [t('Shaxsiy kabinet'), t('Raqam joylash, narx o‘zgartirish, statistika')],
+        [t('Buyurtmalar sizga keladi'), t('Mijozning ismi va telefoni bilan')],
+        [t('Nazorat sizda'), t('Qaysi raqamni qachon sotishni o‘zingiz hal qilasiz')]
+      ].map(([a,b]) => `
+      <div class="card" style="display:flex;gap:11px;align-items:flex-start;padding:13px 14px">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--green)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top:2px;flex:none"><path d="M5 13l4.5 4.5L19 8"></path></svg>
+        <div style="min-width:0"><div style="font-size:13.5px;font-weight:700">${a}</div>
+        <div style="margin-top:3px;font-size:12px;color:var(--muted);font-weight:600;line-height:1.5">${b}</div></div>
+      </div>`).join('')}
+    </div>
+
+    <div class="eyebrow" style="margin-top:20px">${t('Ariza qoldiring')}</div>
+    <div style="margin-top:6px;font-size:12px;color:var(--muted);font-weight:600;line-height:1.55">${t('Shartlarni telefon orqali tushuntiramiz.')}</div>
+
+    <div class="fld" style="margin-top:13px" id="hkName"><label for="hkInName">${t('Ism yoki firma nomi')}</label>
+      <div class="inp"><input id="hkInName" type="text" placeholder="ASADBEK RUSTAMOV" data-upper autocapitalize="characters" spellcheck="false"></div></div>
+
+    <div class="fld" style="margin-top:12px" id="hkPhone"><label for="hkInPhone">${t('Telefon raqamingiz')}</label>
+      <div class="inp"><span class="sg" style="font-size:14.5px;font-weight:700;color:var(--text-3)">+998</span><span style="width:1px;height:22px;background:var(--line-2)"></span><input id="hkInPhone" type="tel" inputmode="numeric" placeholder="90 123 45 67"></div></div>
+
+    <div class="fld" style="margin-top:12px" id="hkRegion"><label for="hkInRegion">${t('Viloyat')}</label>
+      <div class="inp"><select id="hkInRegion" style="width:100%;background:transparent;border:none;color:inherit;font-family:inherit;font-size:14.5px;font-weight:600;outline:none">
+        <option value="">${t('Tanlang')}</option>
+        ${["Toshkent shahri","Toshkent viloyati","Andijon","Farg'ona","Namangan","Samarqand","Buxoro","Xorazm","Navoiy","Qashqadaryo","Surxondaryo","Jizzax","Sirdaryo","Qoraqalpog'iston"].map(r=>`<option>${r}</option>`).join('')}
+      </select></div></div>
+
+    <div class="fld" style="margin-top:12px"><label for="hkInCount">${t('Nechta raqamingiz bor')}</label>
+      <div class="inp"><select id="hkInCount" style="width:100%;background:transparent;border:none;color:inherit;font-family:inherit;font-size:14.5px;font-weight:600;outline:none">
+        <option value="1-10">1 – 10</option>
+        <option value="10-50">10 – 50</option>
+        <option value="50-200">50 – 200</option>
+        <option value="200+">200 ${t('dan ko‘p')}</option>
+      </select></div></div>
+
+    <div class="fld" style="margin-top:12px"><label for="hkInNote">${t('Izoh')}</label>
+      <div class="inp" style="align-items:flex-start"><textarea id="hkInNote" rows="3" placeholder="${t('Ixtiyoriy')}"></textarea></div></div>
+
+    <label style="margin-top:14px;display:flex;align-items:flex-start;gap:10px">
+      <input id="hkConsent" type="checkbox" style="width:20px;height:20px;margin-top:1px;accent-color:var(--blue)">
+      <span style="font-size:12px;color:var(--text-2);font-weight:600;line-height:1.5">${t('Shaxsiy ma’lumotlarim hamkorlik bo‘yicha bog‘lanish maqsadida qayta ishlanishiga roziman')}</span>
+    </label>
+
+    <button class="btn" id="hkSubmit" style="margin-top:16px" disabled>${t('Arizani yuborish')}</button>
+    <div style="height:6px"></div>`;
+
+  setTimeout(()=>{
+    const p = $('#hkInPhone');
+    if(p){
+      p.setAttribute('inputmode','tel');
+      p.addEventListener('input', (e)=>{
+        $('#hkPhone').classList.remove('bad');
+        /* Bo'shliqlarni maydon o'zi qo'yadi (+998 chapda turadi).
+           iPhone uchun: kursor oxirida bo'lsa va qiymat haqiqatan
+           o'zgarsa; o'chirishda faqat oxirgi ajratgich olinadi. */
+        const ochirish = !!(e && e.inputType && e.inputType.indexOf('delete') === 0);
+        const y = formatUzNumber(extractRawDigits(p.value));
+        if(y === p.value) return;
+        if(ochirish){
+          const t2 = p.value.replace(/\s+$/, '');
+          if(t2 !== p.value){ p.value = t2; try{ p.setSelectionRange(t2.length, t2.length); }catch(e2){} }
+          return;
+        }
+        if(p.selectionStart != null && p.selectionStart < p.value.length) return;
+        p.value = y;
+        try{ p.setSelectionRange(y.length, y.length); }catch(e2){}
+      });
+      p.addEventListener('blur', ()=>{ p.value = formatUzNumber(extractRawDigits(p.value)); });
+    }
+    const c = $('#hkConsent');
+    if(c) c.addEventListener('change', e => { $('#hkSubmit').disabled = !e.target.checked; });
+    /* Avval kiritgan ismi/telefoni bo'lsa — qayta yozmasin */
+    try{
+      const nm = localStorage.getItem('vip_name') || '';
+      const ph = localStorage.getItem('vip_phone') || '';
+      if(nm && $('#hkInName')) $('#hkInName').value = nm;
+      if(ph && p) p.value = formatUzNumber(ph);
+    }catch(e){}
+  }, 0);
+  openSheet('shGen');
+}
+
+async function submitHamkor(){
+  const name = ($('#hkInName').value || '').trim();
+  const raw  = extractRawDigits($('#hkInPhone').value);
+  const reg  = ($('#hkInRegion').value || '').trim();
+  const cnt  = ($('#hkInCount').value || '').trim();
+  const note = ($('#hkInNote').value || '').trim().slice(0, 900);
+
+  let ok = true;
+  $('#hkName').classList.toggle('bad', name.length < 2);   if(name.length < 2) ok = false;
+  $('#hkPhone').classList.toggle('bad', raw.length !== 9);  if(raw.length !== 9) ok = false;
+  $('#hkRegion').classList.toggle('bad', !reg);             if(!reg) ok = false;
+  if(!ok) return;
+
+  const btn = $('#hkSubmit'); btn.disabled = true; btn.textContent = t('Yuborilmoqda…');
+  try{
+    /* DIQQAT: firestore.rules bu yerda ANIQ shu 8 ta maydonni talab qiladi */
+    await db.collection('hamkor_arizalari').add({
+      fullName: name,
+      phone: '+998 ' + formatUzNumber(raw),
+      region: reg,
+      numbersCount: cnt,
+      note: note,
+      consentGiven: true,
+      status: 'new',
+      createdAt: FV.serverTimestamp()
+    });
+    try{
+      const text = '\u{1F91D} Yangi hamkorlik arizasi\n\n\u{1F464} ' + name +
+        '\n☎️ +998 ' + formatUzNumber(raw) +
+        '\n\u{1F4CD} ' + reg + '\n\u{1F522} Raqamlari: ' + cnt +
+        (note ? '\n\u{1F4DD} ' + note : '') +
+        '\n\u{1F550} ' + new Date().toLocaleString('uz-UZ');
+      fetch(FN + 'telegram-notify', { method:'POST',
+        headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+        body: JSON.stringify({ text }) }).catch(()=>{});
+    }catch(e){}
+    try{ localStorage.setItem('vip_name', name); localStorage.setItem('vip_phone', raw); }catch(e){}
+
+    $('#genBody').innerHTML = `<div style="text-align:center;padding:26px 0">
+      <span style="width:80px;height:80px;border-radius:50%;background:var(--green-tint);display:inline-flex;align-items:center;justify-content:center">
+        <span style="width:56px;height:56px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" width="29" height="29" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4.5 4.5L19 8"></path></svg></span></span>
+      <h3 style="margin-top:16px;font-size:19px">${t('Arizangiz yuborildi')}</h3>
+      <p style="margin:9px auto 0;font-size:13px;color:var(--muted);font-weight:600;line-height:1.6;max-width:290px">${t('Tez orada siz bilan bog‘lanamiz va shartlarni tushuntiramiz.')}</p>
+      <button class="btn" data-close style="margin-top:20px">${t('Yopish')}</button></div>`;
+    toast(LANG === 'ru' ? 'Заявка отправлена' : 'Ariza yuborildi');
+  }catch(err){
+    toast(xatoMatni(err), 'bad');
+    btn.disabled = false; btn.textContent = t('Arizani yuborish');
+  }
+}
+
 /* ==================================================================
    BO'LIB TO'LASHGA RAQAMLAR (bosh sahifadagi premium kartochka ->)
    ------------------------------------------------------------------
@@ -6148,14 +6469,27 @@ function msgPushniKorsat(){
   clearTimeout(pushTimer);
   pushTimer = setTimeout(pushniYop, 7000);
 
-  box.onclick = ()=>{ pushniYop(); setTimeout(openXabarlar, 180); };
-  /* yuqoriga surib yuborib tashlash */
-  let y0 = null;
-  box.onpointerdown = (e)=>{ y0 = e.clientY; };
-  box.onpointerup = (e)=>{
-    if(y0 !== null && e.clientY - y0 < -26){ box.onclick = null; pushniYop(); }
-    y0 = null;
-  };
+  box.onclick = ()=>{ if(box.surilganmi && box.surilganmi()) return; pushniYop(); setTimeout(openXabarlar, 180); };
+
+  /* Surib yuborish — saytdagi boshqa bildirishnomalar bilan BIR XIL:
+     yonga sursa yonga, yuqoriga sursa yuqoriga uchib ketadi. */
+  if(!box.__surish){
+    box.__surish = 1;
+    surishBogla(box, {
+      yon: 'tepa',
+      asos: 'translateX(-50%) ',
+      toxtat: ()=> clearTimeout(pushTimer),
+      davom:  ()=> { clearTimeout(pushTimer); pushTimer = setTimeout(pushniYop, 4000); },
+      yopish: ()=>{
+        /* Qo'lda uchirilganda `transform` biz qo'ygan holatda qoladi —
+           shu sabab avval tozalab, keyin yashiramiz. */
+        clearTimeout(pushTimer);
+        box.classList.remove('show');
+        box.style.transition = ''; box.style.transform = ''; box.style.opacity = '';
+        box.style.display = 'none';
+      }
+    });
+  }
 }
 function pushniYop(){
   const box = document.getElementById('pushBox'); if(!box) return;
@@ -6657,12 +6991,14 @@ document.addEventListener('click', (e)=>{
     if(k === 'faq') openFaq();
     else if(k === 'about') openAbout();
     else if(k === 'jobs') openJobs();
+    else if(k === 'hamkor') openHamkor();
     else if(k === 'custom'){ closeSheet('shGen'); setTimeout(openCustom, 160); }
     return;
   }
   const vac = e.target.closest('[data-vac]');
   if(vac){ openVacForm(vac.dataset.vac); return; }
   if(e.target.closest('#vfSubmit')){ submitVac(); return; }
+  if(e.target.closest('#hkSubmit')){ submitHamkor(); return; }
 
   const acc = e.target.closest('[data-acc] .q');
   if(acc){
