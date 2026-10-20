@@ -20,6 +20,10 @@ function timeoutSignal(ms) {
   return AbortSignal.timeout(ms || DEFAULT_TIMEOUT);
 }
 
+function sleepMs(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Raqamning oxirgi 7 xonasi — saytdagi katakchalar bilan solishtirish uchun.
 // "998947483773" -> "7483773"
 function localDigits(msisdn) {
@@ -165,6 +169,21 @@ async function beelineLogin(username, password) {
   if (!res.ok) {
     let detail = text.slice(0, 200);
     try { detail = JSON.parse(text).detail || detail; } catch (_) {}
+    /* MUHIM (V81). 5xx = Beeline'ning DILERLIK (RMS) serveri o'zi
+       ishlamayapti — bizning login/parolimizda muammo yo'q. Avval
+       shunchaki "Beeline login (500)" deb yozardik va admin "sayt
+       buzilgan" deb o'ylardi. Haqiqat: sayt raqamlarni OCHIQ API'dan
+       (nomer.beeline.uz) oladi, unga login/parol KERAK EMAS. */
+    if (res.status >= 500) {
+      throw new Error('Beeline dilerlik (RMS) serveri javob bermadi — HTTP '
+        + res.status + '. Bu Beeline tomonidagi xato, login/parolda emas. '
+        + "Sayt uchun bu SHART EMAS: raqamlar ochiq API orqali olinadi."
+        + (detail ? ' (' + detail + ')' : ''));
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('Beeline: login yoki parol to\'g\'ri kelmadi ('
+        + res.status + ')' + (detail ? ' — ' + detail : ''));
+    }
     throw new Error('Beeline login (' + res.status + '): ' + detail);
   }
   const data = JSON.parse(text);
@@ -327,6 +346,21 @@ const BEELINE_PUBLIC_BASE = 'https://nomer.beeline.uz/msapi/web/rms/v2';
 // sinxronizatsiyasi va kesh bo'sh qolgan holat uchun.
 const BEELINE_PUBLIC_TIMEOUT = 12000;
 
+// 5xx (server xatosi) uchun QAYTA URINISH jadvali.
+//
+// NEGA. Beeline ochiq API'si band bo'lganda "JWT token invalid" deb
+// HTTP 500 qaytaradi — bu O'TKINCHI xato, bir-ikki soniyadan keyin
+// aynan shu so'rov muvaffaqiyatli o'tadi. Avval faqat BIR marta qayta
+// urinilardi va ikkinchisi ham 500 bo'lsa, admin ekranida quruq
+// "HTTP 500" chiqardi.
+//
+// MUHIM: 5xx da sessiya TOZALANMAYDI. Avval tozalanardi — natijada fon
+// sinxronizatsiyasida (300 so'rov) Beeline bir necha daqiqa band bo'lsa,
+// har bir xato yangi sessiya so'rovini qo'zg'atib, "sessiya bo'roni"
+// yuzaga kelardi (Beeline bizni yana ko'proq cheklaydi). Sessiya faqat
+// 400/401/403 da yangilanadi — aynan o'sha holatda u eskirgan bo'ladi.
+const BEELINE_5XX_KUTISH_MS = [400, 1200, 2500];
+
 // Ochiq API'dagi kategoriyalar. "price" — Beeline'ning O'Z narxi (operator
 // narxi); sotuv narxi admin paneldagi jadval orqali hisoblanadi (toSalePrice).
 // Bu ro'yxat categories endpointidan olingan javobning aynan o'zi.
@@ -422,11 +456,13 @@ function beelinePublicMask(boxes) {
 // Xatolar bilan ishlash: 400/401/403 -> sessiya eskirgan bo'lishi mumkin,
 // yangilab AYNAN shu so'rovni bir marta qayta yuboramiz. 5xx -> Beeline
 // tomonidagi vaqtinchalik xato (parallel so'rovlarda "JWT token invalid"
-// ko'rinishida kuzatilgan), bu ham bir marta qayta uriniladi.
+// ko'rinishida kuzatilgan): sessiyaga TEGMASDAN, kutib, 3 martagacha
+// qayta uriniladi (qarang: BEELINE_5XX_KUTISH_MS).
 //
 // Bu funksiya sync-beeline-background.js dan ham chaqiriladi (fon sinxronizatsiyasi),
 // shuning uchun searchBeelinePublic ichida emas, alohida turadi.
-async function beelinePublicFetchCategory(opts, retried) {
+async function beelinePublicFetchCategory(opts, urinishRaqami) {
+  const urinish = Number(urinishRaqami) || 0;   // 0 = birinchi urinish
   const sid = opts.sid;
   const url = BEELINE_PUBLIC_BASE + '/phone-numbers/search'
     + '?categoryId=' + opts.categoryId
@@ -440,20 +476,42 @@ async function beelinePublicFetchCategory(opts, retried) {
   });
 
   if (!res.ok) {
-    const retryable = (res.status === 400 || res.status === 401
-      || res.status === 403 || res.status >= 500);
-    if (retryable && !retried) {
-      beelinePublicSession = null;                   // sessiyani yangilaymiz
+    /* 1) 400/401/403 -> sessiya eskirgan bo'lishi mumkin: BIR marta
+          yangi sessiya bilan qayta yuboramiz. */
+    if ((res.status === 400 || res.status === 401 || res.status === 403) && urinish === 0) {
+      beelinePublicSession = null;
       const fresh = await getBeelinePublicSession();
       return beelinePublicFetchCategory(
-        Object.assign({}, opts, { sid: fresh.sid }), true
+        Object.assign({}, opts, { sid: fresh.sid }), 1
       );
     }
+
+    /* 2) 5xx -> Beeline tomonidagi O'TKINCHI xato. Sessiyaga tegmasdan,
+          kutib, aynan shu so'rovni qayta yuboramiz (3 martagacha).
+          Tasodifiy qo'shimcha ("jitter") — bir vaqtda ketgan so'rovlar
+          qaytganda ham bir vaqtda urinmasin. */
+    if (res.status >= 500 && urinish < BEELINE_5XX_KUTISH_MS.length) {
+      await sleepMs(BEELINE_5XX_KUTISH_MS[urinish] + Math.floor(Math.random() * 250));
+      return beelinePublicFetchCategory(opts, urinish + 1);
+    }
+
     if (res.status === 429) {
       throw new Error('Beeline: so\'rovlar chegarasi (429) — biroz kuting');
     }
+
     let detail = '';
     try { detail = (await res.text()).slice(0, 150); } catch (_) {}
+
+    /* 3) Hali ham 5xx -> bu BIZNING xatomiz emas. Admin tushunadigan
+          tilda yozamiz (quruq "HTTP 500" emas). */
+    if (res.status >= 500) {
+      throw new Error('Beeline serveri javob bermadi (HTTP ' + res.status + ') — '
+        + 'operator tomonidagi vaqtinchalik xato, '
+        + (BEELINE_5XX_KUTISH_MS.length + 1) + " marta urinib ko'rildi. "
+        + "Saytda saqlangan oxirgi ro'yxat ko'rsatilmoqda."
+        + (detail ? ' (' + detail + ')' : ''));
+    }
+
     throw new Error('Beeline kategoriya ' + opts.categoryId + ': HTTP ' + res.status
       + (detail ? ' — ' + detail : ''));
   }
@@ -925,8 +983,47 @@ function randomUuid() {
   return require('crypto').randomUUID();
 }
 
+// BEELINE UCHUN ASOSIY YO'L — OCHIQ API (login/parol KERAK EMAS).
+//
+// MUAMMO (V81 da aniqlandi). Pastdagi jadvalda `Beeline: searchBeeline`
+// turardi — ya'ni DILERLIK (RMS) API'si, u login/parol talab qiladi.
+// Saytdagi qidiruv (api-live-search) buni o'z adapteri bilan almashtirib
+// ochiq API'ga o'tgan edi, LEKIN boshqa chaqiruvchilar almashtirmaydi:
+//   • customer-bot-webhook.js   — Telegram botdagi raqam qidirish
+//   • number-watch-check-background.js — "raqam kuzatish" xabarnomalari
+// Natijada botda va kuzatishda Beeline HAR DOIM xato qaytarardi:
+// login/parol bo'lmasa — "login/parol kiritilmagan", bo'lsa ham
+// RMS serveri 500 bersa — "HTTP 500". Saytda esa hammasi ishlayverardi,
+// shu sabab muammoni topish qiyin bo'lgan.
+//
+// YECHIM. Hamma uchun BITTA, to'g'ri yo'l: avval ochiq API (kalitsiz).
+// Dilerlik login/paroli KIRITILGAN bo'lsa — u faqat ZAXIRA sifatida,
+// ochiq API ishlamaganda ishlatiladi (RMS'da Platinum kabi qimmat
+// toifalar ham bor, shu sabab butunlay olib tashlamaymiz).
+async function searchBeelineAuto(boxes, cfg, limit) {
+  const kalitBor = !!((cfg && (cfg.username || '').trim()) && (cfg && cfg.password));
+
+  try {
+    const out = await searchBeelinePublic(boxes, cfg, limit);
+    /* Natija bor — tamom. Natija yo'q, lekin xato ham yo'q (shunchaki
+       bo'sh mask) — dilerlikni bezovta qilmaymiz. */
+    if (out.items.length || !out.errors.length || !kalitBor) return out;
+  } catch (err) {
+    if (!kalitBor) throw err;
+  }
+
+  /* Zaxira: dilerlik (RMS). U ham ishlamasa — ochiq API'ning xatosi
+     bilan birga, lekin BO'SH ro'yxat bilan qaytamiz: yuqoridagi qatlam
+     (api-live-search / bot) saqlangan keshni ko'rsataveradi. */
+  try {
+    return await searchBeeline(boxes, cfg, limit);
+  } catch (err2) {
+    return { items: [], errors: [labelError('Beeline', err2)] };
+  }
+}
+
 const ADAPTERS = {
-  Beeline: searchBeeline,
+  Beeline: searchBeelineAuto,
   Ucell: searchUcell,
   Humans: searchHumans,
   Mobiuz: searchMobiuz,
@@ -1022,6 +1119,36 @@ async function searchAll(boxes, config, options) {
 // Faqat login tekshiruvi — qidiruv qilmaydi. Adminkadagi "Tekshirish"
 // tugmasi shuni chaqiradi: keng mask bilan qidiruv Beeline tomonda juda
 // sekin ketib timeout beradi, login esa yarim soniyada javob qaytaradi.
+// OCHIQ API'NI TEKSHIRISH — adminkadagi tugma aynan SAYT ishlatadigan
+// yo'lni sinaydi (sessiya + bitta haqiqiy qidiruv). Avval faqat dilerlik
+// login/paroli sinalardi — u ishlamaganda admin "Beeline buzilgan" deb
+// o'ylardi, holbuki sayt ochiq API orqali bemalol ishlayotgan edi.
+async function testBeelinePublic() {
+  try {
+    const session = await getBeelinePublicSession();
+    const cats = (session.categories && session.categories.length)
+      ? session.categories : BEELINE_PUBLIC_CATEGORIES;
+    /* Eng TEZ toifa (Oddiy, ~0.3 s) bilan sinaymiz — tugma uzoq kutmasin. */
+    const cat = cats.find(c => Number(c.id) === 393) || cats[0];
+    const items = await beelinePublicFetchCategory({
+      sid: session.sid,
+      categoryId: cat.id,
+      categoryName: cat.name,
+      categoryPrice: cat.operatorPrice,
+      mask: '9989********',          // 12 belgi: "998" + 9 xona
+      timeout: 9000
+    });
+    return {
+      ok: true,
+      toifalar: cats.length,
+      toifaNomlari: cats.map(c => c.name).filter(Boolean).slice(0, 6),
+      topildi: items.length
+    };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
 async function testBeelineLogin(username, password) {
   if (!username || !password) return { ok: false, error: 'Login yoki parol bo\'sh' };
   try {
@@ -1036,7 +1163,9 @@ async function testBeelineLogin(username, password) {
 module.exports = {
   searchAll,
   searchBeeline,
+  searchBeelineAuto,
   testBeelineLogin,
+  testBeelinePublic,
   DEFAULT_ENABLED,
   localDigits,
   matchesBoxes,

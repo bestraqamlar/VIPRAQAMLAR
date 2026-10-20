@@ -19,6 +19,7 @@ const admin = require('firebase-admin');
 const {
   searchAll,
   testBeelineLogin,
+  testBeelinePublic,
   searchBeelinePublic,
   matchesBoxes,
   BEELINE_PUBLIC_RARE_IDS
@@ -255,8 +256,27 @@ exports.handler = async function (event) {
       return { statusCode: err.statusCode || 401, headers, body: JSON.stringify({ ok: false, error: err.message }) };
     }
     const cfg = (await loadConfig(true)).Beeline || {};
-    const out = await testBeelineLogin((cfg.username || '').trim(), cfg.password || '');
-    return { statusCode: 200, headers, body: JSON.stringify(out) };
+    const user = (cfg.username || '').trim();
+
+    /* V81: avval SAYT ishlatadigan yo'lni (ochiq API, kalitsiz) sinaymiz.
+       Dilerlik login/paroli esa faqat KIRITILGAN bo'lsa sinaladi — u
+       ixtiyoriy zaxira. Shunday qilib admin "nimasi ishlayapti, nimasi
+       yo'q"ni ajrata oladi. */
+    const ochiq = await testBeelinePublic();
+    const diler = user
+      ? await testBeelineLogin(user, cfg.password || '')
+      : { bosh: true };
+
+    return {
+      statusCode: 200, headers,
+      body: JSON.stringify({
+        /* Umumiy "ok" — ochiq API bo'yicha: sayt shunga tayanadi. */
+        ok: ochiq.ok,
+        ochiq,
+        diler,
+        error: ochiq.ok ? '' : ochiq.error
+      })
+    };
   }
 
   const boxes = parseMask(params.mask);

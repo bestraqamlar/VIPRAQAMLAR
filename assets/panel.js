@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=78) ham oshiring.
+   havolaning oxiridagi raqamni (?v=81) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -3296,7 +3296,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', tolov:'Tolov', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', tolov:'Tolov', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings', stories:'Stories' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -3324,7 +3324,17 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     openGroupOfTab(tab);
-    document.getElementById('pane' + TAB_PANE_MAP[tab.dataset.tab]).classList.add('active');
+    /* TUZATISH (V80): ilgari bu yerda xaritada bo'lmagan bo'lim uchun
+       `getElementById('paneundefined')` → null qaytib, xato tashlanardi.
+       Natijada bo'lim OCHILMAY, ekran butunlay OQ qolardi (aynan
+       "Stories" bilan shunday bo'ldi: xaritaga qo'shilmagan edi).
+       Endi: nom xaritada bo'lmasa — bo'lim kalitidan o'zi tuziladi, va
+       baribir topilmasa, qolgan kod to'xtab qolmaydi. */
+    const paneNomi = TAB_PANE_MAP[tab.dataset.tab]
+      || (tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1));
+    const paneEl = document.getElementById('pane' + paneNomi);
+    if(paneEl) paneEl.classList.add('active');
+    else console.error("Bo'lim topilmadi: pane" + paneNomi + " (data-tab=" + tab.dataset.tab + ")");
 
     if(tab.dataset.tab === 'management'){ loadAdminsList(); }
     if(tab.dataset.tab === 'orders'){
@@ -7301,13 +7311,40 @@ document.getElementById('opBeelineTest').addEventListener('click', async ()=>{
       headers: { 'Authorization': 'Bearer ' + idToken }
     });
     const data = await res.json();
-    if(data.ok){
-      out.style.color = 'var(--green)';
-      out.textContent = '✓ Login ishladi — token olindi (' + data.token + ')';
+
+    /* V81: tugma endi IKKI yo'lni alohida ko'rsatadi.
+       1) OCHIQ API — saytdagi qidiruv AYNAN shundan ishlaydi, login/parol
+          kerak emas. Mijoz uchun muhimi SHU.
+       2) DILERLIK (RMS) — ixtiyoriy zaxira. Uning 500 xatosi saytni
+          buzmaydi; avval faqat shu sinalardi va admin "Beeline buzildi"
+          degan xulosaga kelardi. */
+    const satrlar = [];
+    const o = data.ochiq || {};
+    if(o.ok){
+      satrlar.push('<div style="color:var(--green);">✓ <b>Ochiq API (asosiy)</b> ishlayapti — '
+        + (o.toifalar || 0) + ' toifa'
+        + (o.toifaNomlari && o.toifaNomlari.length ? ' (' + o.toifaNomlari.map(escapeHtml).join(', ') + ')' : '')
+        + ', sinov qidiruvida ' + (o.topildi || 0) + ' ta raqam topildi.</div>');
     }else{
-      out.style.color = 'var(--red)';
-      out.textContent = '✗ ' + (data.error || 'Noma\'lum xato');
+      satrlar.push('<div style="color:var(--red);">✗ <b>Ochiq API (asosiy)</b>: '
+        + escapeHtml(o.error || data.error || 'noma\'lum xato') + '</div>');
     }
+
+    const d = data.diler || {};
+    if(d.bosh){
+      satrlar.push('<div style="color:var(--muted);">• Dilerlik (RMS) login/paroli kiritilmagan — '
+        + 'bu <b>shart emas</b>, sayt ochiq API orqali ishlaydi.</div>');
+    }else if(d.ok){
+      satrlar.push('<div style="color:var(--green);">✓ Dilerlik (RMS) login ham ishladi ('
+        + escapeHtml(d.token || '') + ')</div>');
+    }else{
+      satrlar.push('<div style="color:var(--muted);">• Dilerlik (RMS) ishlamadi: '
+        + escapeHtml(d.error || '') + '<br>Bu <b>zaxira</b> yo\'l — '
+        + 'ochiq API ishlayotgan bo\'lsa, saytga ta\'siri yo\'q.</div>');
+    }
+
+    out.style.color = '';
+    out.innerHTML = satrlar.join('');
   }catch(err){
     out.style.color = 'var(--red)';
     out.textContent = '✗ ' + err.message;
@@ -8926,6 +8963,13 @@ document.getElementById('addNumberBtn').addEventListener('click', async ()=>{
       monthly12: Number(document.getElementById('newM12').value) || 0,
       monthly24: Number(document.getElementById('newM24').value) || 0,
       ownershipTransfer: false,
+      /* MUHIM (V79): bu uchta maydon ALBATTA yozilishi kerak.
+         `reserved` yo'q bo'lsa — mijoz bu raqamga buyurtma bera
+         OLMAYDI (Firestore qoidasi band qilishni rad etadi va mijozga
+         "internetni tekshiring" degan xato chiqadi). */
+      reserved: false,
+      hidden: false,
+      sold: false,
       recommended: document.getElementById('newRecommended').checked,
       tag: document.getElementById('newTag').value,
       last1: rawDigits.slice(-1), last2: rawDigits.slice(-2), last3: rawDigits.slice(-3), last4: rawDigits.slice(-4),
@@ -9112,6 +9156,12 @@ async function saveBulkRows(){
              so'mda yuritiladi (bitta raqam qo'shishdagi qoida bilan bir xil). */
           installment: false,
           tag: row.tag,
+          /* V79: band/yashirin/sotilgan belgilaringiz ALBATTA yoziladi —
+             aks holda mijoz bu raqamga buyurtma bera olmaydi (yuqoridagi
+             izohga qarang). */
+          reserved: false,
+          hidden: false,
+          sold: false,
           last1: row.raw.slice(-1), last2: row.raw.slice(-2), last3: row.raw.slice(-3), last4: row.raw.slice(-4),
           addedAt: Date.now(),
           randomKey: Math.random()

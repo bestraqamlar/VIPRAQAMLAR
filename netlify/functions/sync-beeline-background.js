@@ -78,6 +78,16 @@ const MAX_STORED_ITEMS = 8000;
 // lekin production'da operator tomoni band bo'lishi mumkin.
 const REQUEST_PAUSE_MS = 50;
 
+// "AVTOMAT O'CHIRGICH" (circuit breaker).
+//
+// NEGA. Bu funksiya 300 ta so'rov yuboradi. Agar Beeline tomoni butunlay
+// ishlamayotgan bo'lsa (HTTP 500 — kuzatilgan holat), hammasi xato bilan
+// tugaydi: funksiya Netlify vaqt chegarasiga uriladi, Beeline esa bizni
+// "hujum" deb hisoblab yana ko'proq cheklaydi. Shu sabab: boshidan
+// KETMA-KET shuncha xato bo'lsa — to'xtaymiz va keyingi jadval
+// chaqiruvini kutamiz (eski kesh joyida qolaveradi).
+const KETMA_KET_XATO_CHEGARASI = 12;
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -132,9 +142,18 @@ exports.handler = async function (event) {
     const byNumber = new Map();
     const errors = [];
     let requests = 0;
+    let ketmaKetXato = 0;
+    let uzildi = false;
 
     for (const cat of categories) {
+      if (uzildi) break;
       for (const pref of prefixes) {
+        if (ketmaKetXato >= KETMA_KET_XATO_CHEGARASI) {
+          uzildi = true;
+          console.error('sync-beeline: ketma-ket ' + ketmaKetXato
+            + " xato — to'xtatildi (Beeline tomonida muammo)");
+          break;
+        }
         const mask = '9989' + pref + '******';
         requests++;
         try {
@@ -156,8 +175,10 @@ exports.handler = async function (event) {
               });
             }
           });
+          ketmaKetXato = 0;
         } catch (err) {
           errors.push(cat.name + ' ' + pref + ': ' + err.message);
+          ketmaKetXato++;
         }
         if (REQUEST_PAUSE_MS) await sleep(REQUEST_PAUSE_MS);
       }
@@ -206,6 +227,8 @@ exports.handler = async function (event) {
       // qaysi toifani keshdan, qaysinisini jonli olishni hal qiladi.
       cachedCategoryIds: categories.map(c => c.id),
       requests,
+      /* Admin ko'rishi uchun: sinxronizatsiya yarmida to'xtadimi */
+      uzildi,
       errors: [...new Set(errors)].slice(0, 5)
     });
 
