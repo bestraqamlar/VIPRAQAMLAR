@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=85) ham oshiring.
+   havolaning oxiridagi raqamni (?v=93) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -3296,7 +3296,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', tolov:'Tolov', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings', stories:'Stories' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', tolov:'Tolov', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings', stories:'Stories', kanalpost:'Kanalpost' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -10916,6 +10916,101 @@ document.getElementById('xavfYoqBtn') && document.getElementById('xavfYoqBtn')
     }catch(e){ msg.textContent = 'Xato: ' + e.message; }
     finally{ btn.disabled = false; }
   });
+
+/* ==================================================================
+   TELEGRAM KANALI UCHUN TAYYOR POST RASMI
+   ------------------------------------------------------------------
+   Admin raqamni (va xohlasa narx, toifa, oylik to'lov, qo'shimcha
+   yozuvni) kiritadi — server saytning o'z uslubidagi 1080x1350 PNG
+   rasm chizib beradi. Admin uni yuklab oladi va kanalga tashlaydi.
+
+   NEGA SERVERDA CHIZILADI (brauzerda emas). Rasmni brauzerda
+   `canvas` bilan chizsak, shrift yuklanmagan paytda boshqa shriftga
+   tushib qolardi va post "arzon" ko'rinardi. Server esa shriftni
+   o'zi bilan olib yuradi (netlify/functions/lib/ogShrift.js) — rasm
+   har doim AYNAN bir xil chiqadi. Qolaversa, saytdagi ulashish
+   kartochkasi (og-raqam) ham xuddi shu shrift va logotipni
+   ishlatadi, ya'ni kanaldagi post va saytdagi kartochka bir uslubda.
+
+   XAVFSIZLIK: funksiya faqat haqiqiy admin uchun ochiq (Authorization
+   sarlavhasi bilan) — aks holda har kim bizning uslubimizdagi rasm
+   yasab, sayt nomidan tarqatishi mumkin bo'lardi.
+   ================================================================== */
+let KP_PNG = null;        // oxirgi chizilgan rasm (yuklab olish uchun)
+
+function kpXabar(matn, yomon){
+  const el = document.getElementById('kpMsg');
+  if(!el) return;
+  el.textContent = matn || '';
+  el.style.color = yomon ? 'var(--red)' : '';
+}
+
+async function kpChiz(){
+  const btn = document.getElementById('kpChizBtn');
+  const raqam = (document.getElementById('kpRaqam').value || '').trim();
+  if(!raqam.replace(/\D/g, '')){ kpXabar('Avval raqamni yozing.', true); return; }
+
+  btn.disabled = true;
+  kpXabar('Rasm chizilmoqda...');
+  try{
+    const idToken = await firebase.auth().currentUser.getIdToken();
+    const res = await fetch('/.netlify/functions/admin-post-rasm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify({
+        raqam,
+        toifa: (document.getElementById('kpToifa').value || '').trim(),
+        fon: document.getElementById('kpFon').value || 'kok',
+        narx: Number(document.getElementById('kpNarx').value) || 0,
+        eskiNarx: Number(document.getElementById('kpEski').value) || 0,
+        oylik: Number(document.getElementById('kpOylik').value) || 0,
+        oylar: Number(document.getElementById('kpOylar').value) || 24,
+        valyuta: document.getElementById('kpValyuta').value || "so'm",
+        telefon: (document.getElementById('kpTelefon').value || '').trim()
+      })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Rasm chizilmadi');
+    KP_PNG = data.png;
+    document.getElementById('kpRasm').src = data.png;
+    document.getElementById('kpOldin').style.display = '';
+    document.getElementById('kpYuklaBtn').style.display = '';
+    kpXabar('✓ Tayyor. Pastda ko‘rib turibsiz — yuklab oling yoki skrinshot qiling.');
+    vibrate(60);
+    try{ document.getElementById('kpOldin').scrollIntoView({ block:'start', behavior:'smooth' }); }catch(e){}
+  }catch(e){
+    kpXabar('Xato: ' + e.message, true);
+  }finally{ btn.disabled = false; }
+}
+
+function kpYukla(){
+  if(!KP_PNG) return;
+  const raqam = (document.getElementById('kpRaqam').value || 'raqam').replace(/\D/g, '').slice(-9);
+  const a = document.createElement('a');
+  a.href = KP_PNG;
+  a.download = 'vipraqamlar-' + (raqam || 'post') + '.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function kpTozala(){
+  ['kpRaqam','kpToifa','kpNarx','kpEski','kpOylik','kpTelefon']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  const oy = document.getElementById('kpOylar'); if(oy) oy.value = '24';
+  /* Fon rangi TOZALANMAYDI — admin odatda bitta rangda ishlaydi */
+  KP_PNG = null;
+  const old = document.getElementById('kpOldin'); if(old) old.style.display = 'none';
+  const yk = document.getElementById('kpYuklaBtn'); if(yk) yk.style.display = 'none';
+  kpXabar('');
+}
+
+document.getElementById('kpChizBtn') && document.getElementById('kpChizBtn').addEventListener('click', kpChiz);
+document.getElementById('kpYuklaBtn') && document.getElementById('kpYuklaBtn').addEventListener('click', kpYukla);
+document.getElementById('kpTozaBtn') && document.getElementById('kpTozaBtn').addEventListener('click', kpTozala);
+/* Enter bosilganda ham chizsin */
+document.getElementById('kpRaqam') && document.getElementById('kpRaqam')
+  .addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); kpChiz(); } });
 
 /* ==================================================================
    STORIES — bosh sahifadagi lenta (admin tomoni)
