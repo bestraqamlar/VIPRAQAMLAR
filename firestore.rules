@@ -580,18 +580,87 @@ service cloud.firestore {
        tomonidan. Shu sabab "ko'rishlar sonini shishirish"dan boshqa
        hech narsa qilib bo'lmaydi (u ham +1 qadam bilan, bitta
        so'rovda bitta). */
+    // ----------------------------------------------------------------
+    // STORIES — bosh sahifadagi lenta.
+    //
+    // O'QISH: hamma uchun ochiq (lenta mijozga ko'rinadi).
+    //
+    // YOZISH: FAQAT admin. V83 da BRAUZER uchun yozish BUTUNLAY
+    // yopildi. Ilgari anonim mijoz `views` ni +1, `likes` ni ±1 qila
+    // olardi. Qoida bir qadamga ruxsat berardi, lekin so'rov SONINI
+    // cheklamasdi — skript bilan o'sha +1 ni minglab marta yuborib
+    // hisobni shishirib yuborish mumkin edi va admin paneldagi son
+    // YOLG'ON bo'lib qolardi. Endi hisoblagichlar faqat server
+    // funksiyasi orqali o'tadi (netlify/functions/api-story-stat.js):
+    // u IP bo'yicha cheklaydi, bitta ko'rishni 6 soatda bir marta
+    // sanaydi va Admin SDK bilan yozadi (qoidalardan o'tmaydi).
+    // Natija: admin paneldagi "nechta ko'rilgan" — HAQIQIY son.
+    //
+    // Admin yozuvi ham tekshiriladi: nomi qisqa va xavfsiz, havola
+    // faqat https:// yoki saytning o'z bo'limi (#/...), rasmlar faqat
+    // Firebase Storage'dan, boshlang'ich yurakchalar soni (likesBaza)
+    // 0..5000 oralig'ida. Ya'ni admin hisobi o'g'irlanib ketsa ham
+    // lentaga `javascript:` havola yoki tashqi skript joylab bo'lmaydi.
+    // ----------------------------------------------------------------
+    function storyHavolaOk(d){
+      return !d.keys().hasAny(['havola'])
+        || d.havola == ''
+        || (d.havola is string && d.havola.size() <= 300
+            && (d.havola.matches('^https://[^\\s"\'<>]+$')
+                || d.havola.matches('^#/[A-Za-z0-9/-]*$')));
+    }
+    function storyRasmOk(d, kalit){
+      return !d.keys().hasAny([kalit])
+        || (d[kalit] is string && d[kalit].size() <= 700
+            && d[kalit].matches('^https://(firebasestorage\\.googleapis\\.com|storage\\.googleapis\\.com)/.*'));
+    }
+    /* Son kalit MA'LUM oraliqda bo'lsin (yo'q bo'lsa ham mayli) */
+    function sonOrasida(d, kalit, past, yuqori){
+      return !d.keys().hasAny([kalit])
+        || (d[kalit] is number && d[kalit] >= past && d[kalit] <= yuqori);
+    }
+    /* Story nomi. `qisqaMatnOk` APOSTROFNI taqiqlaydi (texnik maydonlar
+       uchun to'g'ri), lekin bu yerda nom ODAM o'qiydigan so'z — o'zbekcha
+       nomlarda apostrof tabiiy ("Yo'nalish", "O'zbek"). Brauzer sinovida
+       aniqlandi: eski shart bilan admin bunday nomni SAQLAY OLMASDI.
+       Shu sabab apostrofga ruxsat, HTML belgilariga esa yo'q (ekranga
+       chiqarishda yana escapeHtml ishlaydi — ikki qatlam). */
+    function storyNomOk(d){
+      return !d.keys().hasAny(['nom'])
+        || (d.nom is string && d.nom.size() <= 24
+            && !d.nom.matches('.*[<>"`\\\\].*'));
+    }
+    function storyOk(d){
+      return storyNomOk(d)
+        && storyHavolaOk(d)
+        && storyRasmOk(d, 'doira')
+        && storyRasmOk(d, 'rasm')
+        && sonOrasida(d, 'views', 0, 100000000)
+        && sonOrasida(d, 'likes', 0, 100000000)
+        && sonOrasida(d, 'likesBaza', 0, 5000)
+        && sonOrasida(d, 'tartib', 0, 10000)
+        && mantiqOk(d, 'faol');
+    }
+    function storyAdmin(){
+      return hasPerm('stories') || hasPerm('videos') || hasPerm('settings');
+    }
+
     match /stories/{doc} {
       allow read: if true;
-      allow create, delete: if hasPerm('stories') || hasPerm('videos') || hasPerm('settings');
-      allow update: if hasPerm('stories') || hasPerm('videos') || hasPerm('settings')
-        || isValidLikeToggle(resource, request.resource.data)
-        || (changedOnly(['views'])
-            && request.resource.data.views is number
-            && (
-              (!(resource.data.views is number) && request.resource.data.views == 1)
-              || (resource.data.views is number
-                  && request.resource.data.views == resource.data.views + 1)
-            ));
+      allow create: if storyAdmin() && storyOk(request.resource.data);
+      allow update: if storyAdmin() && storyOk(request.resource.data);
+      allow delete: if storyAdmin();
+    }
+
+    /* Ko'rish/yurakcha izlari — faqat server funksiyasi uchun
+       (Admin SDK qoidalardan o'tmaydi). Brauzer uchun BUTUNLAY yopiq:
+       aks holda kimdir o'z izini o'chirib, ko'rishni qayta-qayta
+       sanattirishi mumkin edi. */
+    match /story_iz/{doc} {
+      allow read, write: if false;
+    }
+    match /story_stat_rate_limits/{doc} {
+      allow read, write: if false;
     }
 
     match /video_testimonials/{doc} {

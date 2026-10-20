@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=81">
-<link rel="preload" as="script" href="assets/panel.js?v=81">
+<link rel="preload" as="style" href="assets/panel.css?v=83">
+<link rel="preload" as="script" href="assets/panel.js?v=83">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=81">
+<link rel="stylesheet" href="assets/panel.css?v=83">
 </head>
 <body>
 
@@ -832,17 +832,26 @@
        Baza: Firestore `stories`, rasm: Storage `stories/...` -->
   <div class="pane" id="paneStories">
     <div class="ai-hint">
-      ⭕ Bosh sahifaning eng tepasidagi dumaloq lenta. Rasmni yuklaysiz — u
-      <b>o'zi doira ichiga</b> qirqiladi. Mijoz bossa, Instagram'dagi kabi
-      to'liq ekranda ochiladi: ko'rishlar soni va yurakchalar shu yerda
-      ko'rinib turadi.
+      ▣ Bosh sahifaning eng tepasidagi lenta. Rasmni yuklaysiz — u <b>o'zi
+      to'rtburchak ramka ichiga</b> qirqiladi, ramka esa jonli aylanib turadi.
+      Mijoz bossa — to'liq ekranda ochiladi.
+      <br><br>
+      <b>👁 ko'rildi</b> — haqiqiy son: bitta odam 6 soatda bir marta sanaladi,
+      shu sabab bu raqamga ishonish mumkin.
+      <b>❤️ haqiqiy</b> — mijozlar rostdan bosgan yurakchalar.
+      <b>saytda</b> — mijozga ko'rinadigan umumiy son (har bir story
+      qo'shilganda 1000–3000 oralig'ida boshlang'ich son beriladi, mijozlar
+      bosgani shunga qo'shilib boradi).
+      <br><br>
+      Har bir story'ni keyin ham <b>✏️ Tahrirlash</b> bilan o'zgartirasiz:
+      nomi, havolasi va rasmi.
     </div>
 
     <div class="video-upload-box">
       <label for="stNom">Nomi <span class="ig-field-hint">(doira ostida ko'rinadi, 16 belgigacha)</span></label>
       <input type="text" id="stNom" placeholder="Masalan: VIP" maxlength="16">
 
-      <label for="stFayl">Rasm <span class="ig-field-hint">(9 MB gacha — kvadrat rasm eng chiroyli chiqadi)</span></label>
+      <label for="stFayl">Rasm <span class="ig-field-hint">(9 MB gacha — kvadrat rasm eng chiroyli chiqadi; tahrirlashda tanlamasangiz hozirgisi qoladi)</span></label>
       <input type="file" id="stFayl" accept="image/*">
       <div id="stOldin" class="st-oldin" style="display:none"><span class="st-doira"><img id="stOldinImg" alt=""></span><i id="stOldinMatn"></i></div>
 
@@ -852,7 +861,11 @@
       <div class="video-progress-wrap" id="stProgressWrap" style="display:none;">
         <div class="video-progress-bar" id="stProgressBar"></div>
       </div>
-      <button id="stYuklaBtn" class="ig-save-btn" type="button">⬆️ Qo'shish</button>
+      <div class="st-form-act">
+        <button id="stYuklaBtn" class="ig-save-btn" type="button">⬆️ Qo'shish</button>
+        <button id="stBekorBtn" class="btn btn-ghost" type="button" style="display:none">Bekor qilish</button>
+      </div>
+      <div class="st-rejim" id="stRejim"></div>
       <div class="ig-save-msg" id="stMsg"></div>
     </div>
 
@@ -1664,11 +1677,11 @@
         <label class="op-toggle"><input type="checkbox" id="opBeelineEnabled"> yoqilgan</label>
       </div>
       <p class="op-note">
-        <b>Login/parol SHART EMAS.</b> Beeline raqamlari ochiq API orqali olinadi
-        (nomer.beeline.uz — Beeline o'z saytida ishlatadigan yo'l), unga kalit kerak emas.
-        Pastdagi login/parol — faqat <b>ixtiyoriy zaxira</b> (dilerlik/RMS kabineti): ochiq API
-        ishlamay qolgan paytda ishlatiladi. Agar "Dilerlik (RMS)" tekshiruvi
-        <b>HTTP 500</b> bersa — bu Beeline tomonidagi xato va <b>saytga ta'sir qilmaydi</b>.
+        <b>Login/parol SHART EMAS.</b> Beeline raqamlari kalitsiz olinadi — hech narsa
+        kiritmasangiz ham ishlaydi. Pastdagi login/parol — faqat <b>ixtiyoriy zaxira</b>:
+        asosiy ulanish ishlamay qolgan paytda ishlatiladi. Agar tekshiruvda
+        "zaxira ulanish ishlamayapti" deb chiqsa — bu Beeline tomonidagi xato va
+        <b>saytga ta'sir qilmaydi</b>.
         Beeline javobida narx YO'Q: narx pastdagi ombor (warehouse) jadvalidan olinadi. Sotuv
         narxi yonidagi <b>▾</b> tugmasi — shu qator uchun "Bo'lib to'lash" (bosh to'lov, oylik
         to'lovlar) sozlamasini ochadi/yopadi.
@@ -2188,6 +2201,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=81"></script>
+<script defer src="assets/panel.js?v=83"></script>
 </body>
 </html>

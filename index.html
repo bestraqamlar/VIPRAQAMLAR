@@ -993,55 +993,100 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 /* ==================================================================
    TOIFALAR LENTASI ("stories") — bosh sahifa tepasida
    ------------------------------------------------------------------
-   Dumaloq tugmalar: tashqi halqa gradient (toifa rangi), ichida qisqa
-   yozuv, ostida nom va soni. Yonga suriladi, "snap" bilan to'xtaydi,
-   bosilganda mayin kichrayadi. Faqat `transform`/`opacity` o'zgaradi —
-   eski telefonda ham silliq.
+   V83 (mijoz so'rovi): saytdagi hamma narsa TO'RTBURCHAK bo'lgani
+   uchun story ramkasi ham to'rtburchak (yumshoq burchakli kvadrat) —
+   doira emas. Halqa esa Instagram'dagi kabi JONLI: gradient aylanib
+   turadi.
+
+   TEZLIK (eng muhim qism). Halqani "aylantirish"ning ikki yo'li bor:
+     1) conic-gradient burchagini animatsiya qilish — har kadrda
+        qaytadan BO'YALADI (paint). 8-10 ta story bo'lsa eski telefon
+        sekinlashadi.
+     2) gradientni ALOHIDA qatlamga qo'yib, uni `transform:rotate` bilan
+        aylantirish — bu faqat KOMPOZITORDA bajariladi, protsessor
+        deyarli ishlamaydi.
+   Biz 2-yo'lni tanladik: `::before` ichidagi gradient aylanadi, ramka
+   esa `overflow:hidden` + yumshoq burchak bilan uni qirqib turadi.
+   Shu sabab lenta 60 fps bo'lib qolaveradi.
+
+   Instagram mantig'i: faqat HALI KO'RILMAGAN story halqasi aylanadi.
+   Ko'rilgani — tinch, kulrang. Shunday qilib bir vaqtda aylanayotgan
+   qatlam soni oz bo'ladi (yana tezlik).
    ================================================================== */
 .stories{
-  display:none;gap:14px;overflow-x:auto;overflow-y:hidden;
-  margin:0 0 14px;padding:2px 2px 6px;
+  display:none;gap:13px;overflow-x:auto;overflow-y:hidden;
+  margin:0 0 15px;padding:3px 2px 7px;
   scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  /* Lentani ekrandan chiqib ketgan qismi hisoblanmasin — tezlik */
+  content-visibility:auto;contain-intrinsic-size:auto 96px;
 }
 .stories.on{display:flex}
 .stories::-webkit-scrollbar{display:none}
 .story{
-  flex:none;width:68px;background:none;border:none;padding:0;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
+  flex:none;width:72px;background:none;border:none;padding:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
   scroll-snap-align:start;color:inherit;font-family:inherit;
   -webkit-tap-highlight-color:transparent;
 }
+/* ----- TO'RTBURCHAK RAMKA (doira emas) -----
+   MUHIM: `--st-1`/`--st-2` ning STANDART qiymati shu yerda beriladi.
+   Ilgari ular faqat `.story-vip` kabi toifa klasslarida bor edi, lekin
+   lenta admin rasmlaridan qurilgani uchun u klasslar qo'yilmasdi —
+   natijada `conic-gradient(var(--st-1)...)` NOTO'G'RI qiymat bo'lib,
+   halqa butunlay rangsiz chiqardi (brauzer sinovida aniqlandi).
+   Endi standart rang bor, har bir story esa `st-c1..st-c6` orqali
+   o'z rangini oladi — lenta jonli va rang-barang ko'rinadi. */
 .story-ring{
-  width:62px;height:62px;border-radius:50%;padding:2.5px;
+  --st-1:#E6C877;--st-2:#B8832A;
+  position:relative;isolation:isolate;overflow:hidden;
+  width:66px;height:66px;border-radius:21px;padding:2.5px;
   display:flex;align-items:center;justify-content:center;
-  background:conic-gradient(from 210deg, var(--st-1), var(--st-2), var(--st-1));
-  transition:transform .18s cubic-bezier(.2,.9,.3,1.2);
-  box-shadow:0 6px 16px -10px var(--st-2);
+  background:var(--st-2);               /* animatsiya ishlamasa — zaxira rang */
+  transition:transform .2s cubic-bezier(.2,.9,.3,1.25);
+  box-shadow:0 8px 18px -12px var(--st-2);
 }
+/* Aylanadigan gradient qatlam. `inset:-40%` — kvadrat aylanganda
+   burchaklar bo'sh qolmasligi uchun (diagonal kattaroq). */
+.story-ring::before{
+  content:'';position:absolute;inset:-40%;z-index:-1;
+  background:conic-gradient(from 0deg,
+    var(--st-1), var(--st-2), var(--st-1) 55%, var(--st-2) 78%, var(--st-1));
+  animation:stHalqa 3.4s linear infinite;
+}
+/* Ko'rilgan story — halqa tinchlanadi (Instagram'dagi kabi) */
+.story.korilgan .story-ring{background:var(--line-2);box-shadow:none}
+.story.korilgan .story-ring::before{animation:none;background:var(--line-2)}
+@keyframes stHalqa{to{transform:rotate(360deg)}}
+
 .story-in{
-  width:100%;height:100%;border-radius:50%;
+  position:relative;z-index:1;
+  width:100%;height:100%;border-radius:18.5px;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
   background:var(--ground);color:var(--ink);
   font-family:'Space Grotesk',system-ui,sans-serif;
   font-size:14.5px;font-weight:800;letter-spacing:.02em;
 }
-.story-in img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
-/* Ko'rib bo'lingan story — halqa kulrang (Instagram'dagi kabi) */
-.story.korilgan .story-ring{background:var(--line-2);box-shadow:none}
-.story.yoqdi b::after{content:' \2764';color:var(--red);font-size:9px}
+.story-in img{width:100%;height:100%;object-fit:cover;display:block}
 .story-in.ik svg{width:26px;height:26px;fill:var(--st-2);stroke:none}
 :root[data-theme="dark"] .story-in.ik svg{fill:var(--st-1)}
 .story b{
-  display:block;max-width:68px;font-size:10.5px;font-weight:700;color:var(--text-3);
+  display:block;max-width:72px;font-size:10.5px;font-weight:700;color:var(--text-3);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.2;
 }
 .story i{
   font-style:normal;font-size:9.5px;font-weight:700;color:var(--faint);
   margin-top:-3px;letter-spacing:.02em;
 }
-.story:active .story-ring{transform:scale(.92)}
-@media (hover:hover){ .story:hover .story-ring{transform:scale(1.05)} }
-/* Toifa ranglari */
+.story:active .story-ring{transform:scale(.93)}
+@media (hover:hover){ .story:hover .story-ring{transform:scale(1.045)} }
+/* Lentadagi ranglar — tartib bo'yicha aylanib beriladi (st-c1..st-c6) */
+.story.st-c1 .story-ring{--st-1:#E6C877;--st-2:#B8832A}
+.story.st-c2 .story-ring{--st-1:#FFD88A;--st-2:#C9881B}
+.story.st-c3 .story-ring{--st-1:#8FB4FF;--st-2:#2050DD}
+.story.st-c4 .story-ring{--st-1:#7CE0C0;--st-2:#0F7A52}
+.story.st-c5 .story-ring{--st-1:#B79CFF;--st-2:#6D3BEF}
+.story.st-c6 .story-ring{--st-1:#FFA9A4;--st-2:#D9453B}
+/* Toifa ranglari (eski nomlar — boshqa joyda ishlatilsa buzilmasin) */
 .story-vip  {--st-1:#E6C877;--st-2:#B8832A}
 .story-gold {--st-1:#FFD88A;--st-2:#C9881B}
 .story-prem {--st-1:#8FB4FF;--st-2:#2050DD}
@@ -1061,10 +1106,20 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 @media (prefers-reduced-motion:reduce){
   .stories.on .story{animation:none}
   .story-ring{transition:none}
+  .story-ring::before{animation:none}
 }
 
 /* ==================================================================
-   STORY KO'RISH OYNASI (to'liq ekran, Instagram uslubida)
+   STORY KO'RISH OYNASI (to'liq ekran)
+   ------------------------------------------------------------------
+   V83: avatar va rasm ramkasi ham TO'RTBURCHAK (saytning uslubi),
+   tepadagi vaqt chiziqlari nozikroq, pastda yurakcha + "Ko'rish".
+   Ikki marta bossa — ekran o'rtasida katta yurakcha uchib chiqadi
+   (haqiqiy ilovalardagi kabi).
+
+   Hamma animatsiya faqat `transform`/`opacity` — eski telefonda ham
+   silliq. Rasm kelmaguncha o'rnida mayin "shimmer" turadi, ya'ni
+   mijoz qora ekranga qarab turmaydi.
    ================================================================== */
 .stv{
   position:fixed;inset:0;z-index:4000;display:none;
@@ -1073,57 +1128,123 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 }
 .stv.on{display:block;animation:stvIn .26s cubic-bezier(.2,.85,.3,1) both}
 @keyframes stvIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+/* Rasm maydoni — yumshoq burchakli to'rtburchak */
+.stv-sahna{
+  position:absolute;left:0;right:0;top:0;bottom:0;
+  display:flex;align-items:center;justify-content:center;
+  /* Tepadagi sarlavha (avatar + nom) 76 px joy egallaydi — ramka uning
+     ostidan boshlanadi. Avval 54 px edi va avatar ramka ustiga chiqib
+     turardi (ekran suratida ko'rindi). */
+  padding:calc(var(--top) + 76px) 10px 96px;
+}
+.stv-ramka{
+  position:relative;width:100%;height:100%;border-radius:22px;overflow:hidden;
+  background:#0A1220;box-shadow:0 30px 70px -30px rgba(0,0,0,.9);
+}
+/* ORQA FON — o'sha rasmning xiralashtirilgan nusxasi.
+   NEGA: admin yuklagan rasm har xil o'lchamda bo'ladi. `cover` qilsak
+   rasmning bir qismi QIRQILADI (adminning yozuvi kesilib ketishi
+   mumkin), `contain` qilsak yon tomonlarda qora bo'sh joy qoladi.
+   Katta ilovalar shu sabab uchinchi yo'lni tanlaydi: rasm to'liq
+   ko'rinadi (contain), bo'sh joyni esa o'sha rasmning xira, kattaroq
+   nusxasi to'ldiradi. Chiroyli ham, hech narsa kesilmaydi ham. */
+.stv-fon{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transform:scale(1.25);filter:blur(26px) saturate(1.2);
+  opacity:0;transition:opacity .28s ease;
+}
+.stv-fon.keldi{opacity:.55}
 .stv-img{
   position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
-  background:#05070C;
+  opacity:0;transition:opacity .22s ease;
 }
+.stv-img.keldi{opacity:1}
+/* Rasm yuklanmaguncha — mayin yorug'lik yuguradi.
+   MUHIM (tezlik): yorug'lik `background-position` bilan emas,
+   `transform:translateX` bilan yuradi. Birinchisi har kadrda butun
+   ekranni QAYTA BO'YAYDI (paint), ikkinchisi faqat kompozitorda
+   bajariladi — eski telefonda sezilarli farq. */
+.stv-ramka::after{
+  content:'';position:absolute;top:0;bottom:0;left:-45%;width:45%;
+  pointer-events:none;
+  background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.09),rgba(255,255,255,0));
+  animation:stvShim 1.15s linear infinite;
+}
+.stv-ramka.keldi::after{display:none}
+@keyframes stvShim{to{transform:translateX(320%)}}
+
 .stv-bars{
-  position:absolute;left:0;right:0;top:calc(var(--top) + 8px);z-index:3;
-  display:flex;gap:4px;padding:0 10px;
+  position:absolute;left:0;right:0;top:calc(var(--top) + 8px);z-index:5;
+  display:flex;gap:4px;padding:0 14px;
 }
-.stv-bars i{flex:1;height:2.5px;border-radius:9px;background:rgba(255,255,255,.3);overflow:hidden}
-.stv-bars i span{display:block;height:100%;width:0;background:#fff;border-radius:9px}
-.stv-bars i.tugadi span{width:100%}
+.stv-bars i{flex:1;height:3px;border-radius:9px;background:rgba(255,255,255,.26);overflow:hidden}
+.stv-bars i span{
+  display:block;height:100%;width:100%;border-radius:9px;background:#fff;
+  transform:scaleX(0);transform-origin:left center;
+}
+.stv-bars i.tugadi span{transform:scaleX(1)}
 .stv-bars i.hozir span{animation:stvBar linear forwards}
-@keyframes stvBar{from{width:0}to{width:100%}}
+@keyframes stvBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .stv-head{
-  position:absolute;left:0;right:0;top:calc(var(--top) + 20px);z-index:4;
+  position:absolute;left:0;right:0;top:calc(var(--top) + 20px);z-index:6;
   display:flex;align-items:center;gap:10px;padding:8px 14px;color:#fff;
 }
-.stv-ava{width:34px;height:34px;border-radius:50%;overflow:hidden;flex:none;background:rgba(255,255,255,.15)}
+/* Avatar — to'rtburchak (lentadagi ramka bilan bir uslub) */
+.stv-ava{width:36px;height:36px;border-radius:12px;overflow:hidden;flex:none;
+  background:rgba(255,255,255,.14);box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
 .stv-ava img{width:100%;height:100%;object-fit:cover;display:block}
-.stv-head b{flex:1;min-width:0;font-size:14px;font-weight:800;text-shadow:0 1px 10px rgba(0,0,0,.7);
+.stv-head b{flex:1;min-width:0;font-size:14.5px;font-weight:800;text-shadow:0 1px 10px rgba(0,0,0,.7);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stv-x{
-  width:36px;height:36px;border-radius:50%;flex:none;border:none;cursor:pointer;
-  background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:13px;flex:none;border:none;cursor:pointer;
+  background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;
+  transition:transform .16s ease,background .16s ease;
 }
+.stv-x:active{transform:scale(.9);background:rgba(255,255,255,.26)}
 .stv-x svg{width:17px;height:17px}
-.stv-zone{position:absolute;top:0;bottom:84px;width:34%;border:none;background:none;z-index:2;cursor:pointer}
+.stv-zone{position:absolute;top:0;bottom:92px;width:34%;border:none;background:none;z-index:3;cursor:pointer}
 .stv-prev{left:0}
 .stv-next{right:0;width:66%}
 .stv-foot{
-  position:absolute;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));z-index:4;
+  position:absolute;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;
   display:flex;align-items:center;gap:12px;padding:0 16px;
 }
 .stv-like{
   display:flex;align-items:center;gap:7px;border:none;cursor:pointer;
-  background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:10px 16px;
+  background:rgba(255,255,255,.15);color:#fff;border-radius:16px;padding:11px 16px;
   font-family:inherit;font-size:13px;font-weight:800;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   transition:transform .18s cubic-bezier(.2,.9,.3,1.3),background .18s ease;
 }
-.stv-like svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9}
-.stv-like.on{background:rgba(226,69,59,.92)}
-.stv-like.on svg{fill:#fff;stroke:#fff}
-.stv-like:active{transform:scale(.92)}
-.stv-like i{font-style:normal}
+.stv-like svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
+.stv-like.on{background:rgba(226,69,59,.95)}
+.stv-like.on svg{fill:#fff;stroke:#fff;transform:scale(1.12)}
+.stv-like:active{transform:scale(.93)}
+.stv-like i{font-style:normal;font-variant-numeric:tabular-nums}
 .stv-go{
-  margin-left:auto;background:#fff;color:#0B1B33;border-radius:999px;
-  padding:11px 20px;font-size:13.5px;font-weight:800;text-decoration:none;
+  margin-left:auto;background:#fff;color:#0B1B33;border-radius:16px;
+  padding:12px 20px;font-size:13.5px;font-weight:800;text-decoration:none;
+  transition:transform .16s ease;
+}
+.stv-go:active{transform:scale(.95)}
+/* Ikki marta bosilganda uchib chiqadigan yurakcha */
+.stv-puf{
+  position:absolute;left:50%;top:50%;z-index:7;pointer-events:none;
+  width:96px;height:96px;margin:-48px 0 0 -48px;
+  animation:stvPuf .78s cubic-bezier(.2,.85,.3,1) forwards;
+}
+.stv-puf svg{width:100%;height:100%;fill:#fff;filter:drop-shadow(0 8px 24px rgba(0,0,0,.5))}
+@keyframes stvPuf{
+  0%{opacity:0;transform:scale(.4)}
+  28%{opacity:1;transform:scale(1.12)}
+  55%{transform:scale(.98)}
+  100%{opacity:0;transform:scale(1.25) translateY(-28px)}
 }
 @media (prefers-reduced-motion:reduce){
   .stv.on{animation:none}
-  .stv-bars i.hozir span{animation:none;width:100%}
+  .stv-bars i.hozir span{animation:none;transform:scaleX(1)}
+  .stv-ramka::after{animation:none;display:none}
+  .stv-puf{animation:none;display:none}
 }
 
 /* ---------- Toast (pastdagi bildirishnoma) ----------
@@ -2671,7 +2792,12 @@ html[data-theme="dark"] ::selection{background:transparent}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
     </button>
   </div>
-  <img class="stv-img" id="stvImg" alt="">
+  <div class="stv-sahna">
+    <div class="stv-ramka" id="stvRamka">
+      <img class="stv-fon" id="stvFon" alt="" aria-hidden="true">
+      <img class="stv-img" id="stvImg" alt="">
+    </div>
+  </div>
   <button class="stv-zone stv-prev" id="stvPrev" type="button" aria-label="Oldingi"></button>
   <button class="stv-zone stv-next" id="stvNext" type="button" aria-label="Keyingi"></button>
   <div class="stv-foot">
@@ -4215,26 +4341,35 @@ function pickHome(){
 }
 
 /* ==================================================================
-   STORIES — bosh sahifadagi dumaloq lenta (mijoz tomoni)
+   STORIES — bosh sahifadagi lenta (mijoz tomoni)
    ------------------------------------------------------------------
-   Ilgari bu lenta toifalardan (VIP, 7777...) AVTOMATIK qurilardi.
-   Endi — admin o'zi qo'yadi: nomi, rasmi va (xohlasa) havolasi.
-   Rasm doira ichiga o'zi qirqiladi (CSS: object-fit:cover).
+   Admin o'zi qo'yadi: nomi, rasmi va (xohlasa) havolasi. Ramka
+   TO'RTBURCHAK (saytning uslubi), halqa esa jonli aylanib turadi.
 
-   Bosilganda Instagram'dagi kabi TO'LIQ EKRAN ochiladi:
+   Bosilganda to'liq ekran ochiladi:
      • tepada vaqt chizig'i (5 soniya), keyingisiga o'zi o'tadi;
      • o'ng/chap tomonni bossa — keyingi/oldingi;
      • pastga sursa yoki ✕ bossa — yopiladi;
-     • yurakcha — "yoqdi" (bosilgani telefonda eslab qolinadi);
-     • ko'rilgani bir marta hisoblanadi (bitta seansda bir marta).
+     • yurakcha yoki IKKI MARTA bosish — "yoqdi";
+     • ko'rilgani bir marta hisoblanadi.
 
-   Hisoblagichlar Firestore'da: `views` va `likes`. Qoidalar faqat
-   +1 / −1 qadamga ruxsat beradi (firestore.rules'dagi izohga qarang).
+   TEZLIK. Lenta qayta kirganda DARHOL chiqadi: ro'yxat telefonning
+   o'zida (localStorage) saqlanadi va avval o'shandan chiziladi, keyin
+   bazadan yangilanadi ("stale-while-revalidate"). Ya'ni mijoz
+   "yuklanmoqda" holatini ko'rmaydi.
+
+   HISOBLAGICHLAR. Ko'rishlar va yurakchalar endi bazaga TO'G'RIDAN
+   yozilmaydi — server funksiyasi orqali o'tadi (api-story-stat).
+   Sabab: brauzerdan yozilganda bir odam skript bilan hisobni
+   cheksiz shishirib yuborishi mumkin edi, admin esa yolg'on raqamni
+   ko'rardi. Server IP bo'yicha cheklaydi va bitta ko'rishni bir
+   necha soatda bir marta sanaydi — admin paneldagi son HAQIQIY.
    ================================================================== */
 let STORIES = [];
 let ST_IDX = 0, ST_TIMER = null, ST_BOSH = 0;
 const ST_KOR_KEY = 'vip_st_kor';      // shu seansda ko'rilganlari
 const ST_LIKE_KEY = 'vip_st_like';    // yoqtirganlari (uzoq muddatli)
+const ST_KESH_KEY = 'vip_st_kesh';    // lenta darhol chiqishi uchun
 
 function stSet(key){
   try{ return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }catch(e){ return new Set(); }
@@ -4246,29 +4381,82 @@ function stKorilgan(){
   try{ return new Set(JSON.parse(sessionStorage.getItem(ST_KOR_KEY) || '[]')); }catch(e){ return new Set(); }
 }
 
-/* Firestore'dan stories ro'yxati (bir marta, ochilishda) */
+/* Mijozga KO'RINADIGAN yurakchalar soni.
+   `likesBaza` — admin story qo'shganda bir marta beriladigan boshlang'ich
+   son (1000-3000). `likes` — haqiqiy mijozlar bosgani. Mijoz ikkisining
+   yig'indisini ko'radi; admin panelda esa haqiqiysi alohida ko'rinadi. */
+function stLikeSoni(s){
+  return (Number(s && s.likesBaza) || 0) + (Number(s && s.likes) || 0);
+}
+function stSonQisqa(n){
+  n = Number(n) || 0;
+  if(n >= 1000000) return (n/1000000).toFixed(n % 1000000 >= 100000 ? 1 : 0).replace('.0','') + 'M';
+  if(n >= 1000) return (n/1000).toFixed(n % 1000 >= 100 ? 1 : 0).replace('.0','') + 'K';
+  return String(n);
+}
+
+/* Faqat kerakli maydonlarni saqlaymiz — kesh kichik bo'lsin */
+function stKeshYoz(){
+  try{
+    localStorage.setItem(ST_KESH_KEY, JSON.stringify({
+      t: Date.now(),
+      r: STORIES.slice(0, 20).map(s => ({
+        id:s.id, nom:s.nom, doira:s.doira, rasm:s.rasm, havola:s.havola,
+        tartib:s.tartib, likes:s.likes, likesBaza:s.likesBaza
+      }))
+    }));
+  }catch(e){}
+}
+function stKeshdanOch(){
+  try{
+    const k = JSON.parse(localStorage.getItem(ST_KESH_KEY) || 'null');
+    if(!k || !Array.isArray(k.r) || !k.r.length) return false;
+    /* 7 kundan eski keshni ishlatmaymiz */
+    if(Date.now() - (Number(k.t) || 0) > 7 * 864e5) return false;
+    STORIES = k.r;
+    renderStories();
+    return true;
+  }catch(e){ return false; }
+}
+
+/* Firestore'dan stories ro'yxati. Avval kesh, keyin yangisi. */
 async function storiesYukla(){
+  stKeshdanOch();
   try{
     const snap = await db.collection('stories').limit(50).get();
     STORIES = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
       .filter(x => x.faol !== false && (x.doira || x.rasm))
       .sort((a, b) => (Number(a.tartib) || 0) - (Number(b.tartib) || 0));
-  }catch(e){ STORIES = []; }
+    stKeshYoz();
+  }catch(e){ /* bazaga ulanmasa — keshdagi lenta turaveradi */ }
   renderStories();
+  stOldinYukla();
+}
+
+/* Birinchi 3 ta to'liq rasmni oldindan yuklaymiz — mijoz bosganda
+   oyna DARHOL rasm bilan ochiladi (kutish yo'q). */
+function stOldinYukla(){
+  STORIES.slice(0, 3).forEach(s => {
+    const u = s.rasm || s.doira; if(!u) return;
+    const im = new Image(); im.decoding = 'async'; im.src = u;
+  });
 }
 
 function renderStories(){
   const box = $('#homeStories');
   if(!box) return;
   if(!STORIES.length){ box.innerHTML = ''; box.classList.remove('on'); return; }
-  const likes = stSet(ST_LIKE_KEY);
   const kor = stKorilgan();
   box.classList.add('on');
+  /* MUHIM (mijoz so'rovi): nom oldida/ketida YURAKCHA yo'q —
+     faqat nomning o'zi turadi. */
   box.innerHTML = STORIES.map((s, i) => `
-    <button class="story${kor.has(s.id) ? ' korilgan' : ''}${likes.has(s.id) ? ' yoqdi' : ''}"
+    <button class="story st-c${(i % 6) + 1}${kor.has(s.id) ? ' korilgan' : ''}"
             data-story="${esc(s.id)}" data-sti="${i}" type="button" aria-label="${esc(s.nom || '')}">
       <span class="story-ring"><span class="story-in">
-        <img src="${esc(s.doira || s.rasm)}" alt="" loading="lazy" decoding="async">
+        <img src="${esc(s.doira || s.rasm)}" alt="" width="66" height="66"
+             loading="${i < 5 ? 'eager' : 'lazy'}" decoding="async"
+             ${i < 3 ? 'fetchpriority="high"' : ''}>
       </span></span>
       <b>${esc(s.nom || '')}</b>
     </button>`).join('');
@@ -5849,25 +6037,32 @@ async function submitOrder(smsVerified){
       if(!it.live){ const n = NUMBERS.find(x => x.id === it.id); if(n){ n.reserved = true; renderAll(); } }
       closeSheet('shOrder');
     }else{
-      /* ANIQ XABAR (V79). Ilgari har qanday xatoda "internetni
-         tekshiring" deyilardi — internet joyida bo'lsa ham. Endi
-         haqiqiy sabab aytiladi: bu adminga muammoni darhol ko'rsatadi
-         va mijozga ham nima bo'layotgani tushunarli bo'ladi. */
+      /* XABAR MATNI (V79 -> V81).
+         V79'da haqiqiy sabab mijozga ham ko'rsatilardi
+         ("permission-denied", "App Check" kabi). Mijoz so'roviga ko'ra
+         bunday TEXNIK so'zlar endi mijozga UMUMAN ko'rsatilmaydi —
+         ekranda oddiy, tushunarli gap turadi.
+         Texnik sabab yo'qolib ketmaydi: brauzer konsoliga yoziladi va
+         `window.__SONGGI_XATO` da saqlanadi (admin/dasturchi ko'rishi
+         uchun), ya'ni muammoni aniqlash imkoni saqlanib qoladi. */
       const kod = String((xatoObj && xatoObj.code) || '');
       const matn = String((xatoObj && xatoObj.message) || '');
+      try{
+        window.__SONGGI_XATO = kod + ' | ' + matn;
+        console.error('Buyurtma yuborilmadi (texnik sabab):', kod, matn);
+      }catch(e){}
+
       let xabar;
-      if(kod === 'permission-denied' || /permission|PERMISSION_DENIED/i.test(matn)){
-        xabar = LANG==='ru'
-          ? 'Заказ отклонён базой (permission-denied). Сообщите администратору.'
-          : "Buyurtmani baza qabul qilmadi (permission-denied). Administratorga xabar bering.";
-      }else if(/app.?check/i.test(matn)){
-        xabar = LANG==='ru' ? 'Проверка приложения (App Check) заблокировала запрос.'
-                            : "So'rovni App Check bloklab qo'ydi. Administratorga xabar bering.";
-      }else if(kod === 'unavailable' || kod === 'deadline-exceeded' || /network|offline|Failed to fetch/i.test(matn)){
+      if(kod === 'unavailable' || kod === 'deadline-exceeded'
+         || /network|offline|Failed to fetch/i.test(matn)){
         xabar = LANG==='ru' ? 'Заказ не отправлен. Проверьте интернет.'
                             : 'Buyurtma yuborilmadi. Internetni tekshirib, qayta urining.';
       }else{
-        xabar = (LANG==='ru' ? 'Заказ не отправлен: ' : 'Buyurtma yuborilmadi: ') + (kod || matn.slice(0, 60));
+        /* Qolgan HAMMA holat (ruxsat, tekshiruv, kutilmagan xato) uchun
+           bitta xotirjam xabar — mijozga kod/sabab ko'rsatilmaydi. */
+        xabar = LANG==='ru'
+          ? 'Заказ пока не удалось оформить. Попробуйте ещё раз немного позже или свяжитесь с нами.'
+          : "Buyurtmani hozir qabul qilib bo'lmadi. Birozdan keyin qayta urinib ko'ring yoki biz bilan bog'laning.";
       }
       toast(xabar, 'bad');
     }
@@ -6874,17 +7069,38 @@ function pushniYop(){
 }
 
 /* ==================================================================
-   STORY KO'RISH OYNASI (Instagram uslubida)
+   STORY KO'RISH OYNASI
    ------------------------------------------------------------------
-   Bosh sahifadagi dumaloq lentadan ochiladi. Boshqaruv:
+   Boshqaruv:
      • o'ng tomonni bossa — keyingisi, chap tomonni — oldingisi;
      • 5 soniyada o'zi keyingisiga o'tadi (tepadagi chiziq bilan);
+     • bosib turganda TO'XTAYDI, qo'yib yuborganda QOLGAN vaqtdan
+       davom etadi (ilgari har doim 1.8 s qo'yilardi — noto'g'ri edi);
      • pastga sursa yoki ✕ — yopiladi;
-     • yurakcha — "yoqdi" (telefonda eslab qolinadi, qayta bossa olinadi);
-     • ko'rilgani BIR MARTA hisoblanadi (shu seansda), ya'ni bitta
-       odam qayta-qayta ochib, hisobni shishirib yubormaydi.
+     • yurakcha yoki IKKI MARTA bosish — "yoqdi" (telefonda eslanadi);
+     • keyingi rasm oldindan yuklanadi — o'tish paytida kutish yo'q.
+
+   HISOBLAGICHLAR server funksiyasi orqali (api-story-stat): brauzer
+   bazaga to'g'ridan yozmaydi, shu sabab hisobni soxtalashtirib
+   bo'lmaydi. Server javobida yangi sonlar qaytadi.
    ================================================================== */
 const ST_DAVOM = 5000;        // bitta story necha millisekund turadi
+let ST_QOLDI = ST_DAVOM;      // to'xtatilganda qolgan vaqt
+let ST_YURDI = 0;             // hozirgi story qachon boshlangan
+
+/* Server funksiyasiga so'rov. Javob kelmasa — jim o'tib ketamiz
+   (hisoblagich sayt ishlashiga ta'sir qilmaydi). */
+async function stStat(amal, id){
+  try{
+    const r = await fetch(FN + 'api-story-stat', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ amal, id })
+    });
+    if(!r.ok) return null;
+    const j = await r.json();
+    return (j && j.ok) ? j : null;
+  }catch(e){ return null; }
+}
 
 function stvYop(){
   clearTimeout(ST_TIMER);
@@ -6895,18 +7111,25 @@ function stvYop(){
 }
 
 function stvKorildi(s){
-  /* Ko'rishlar: shu seansda bir marta (sessionStorage) */
+  /* Ko'rishlar: shu seansda bir marta. Server ham IP bo'yicha
+     takrorini sanamaydi — ya'ni ikki qatlam himoya. */
   let kor;
   try{ kor = new Set(JSON.parse(sessionStorage.getItem(ST_KOR_KEY) || '[]')); }
   catch(e){ kor = new Set(); }
   if(kor.has(s.id)) return;
   kor.add(s.id);
   try{ sessionStorage.setItem(ST_KOR_KEY, JSON.stringify(Array.from(kor).slice(-200))); }catch(e){}
-  const yangi = (Number(s.views) || 0) + 1;
-  s.views = yangi;
-  /* Qoidalar faqat +1 qadamga ruxsat beradi — xatoga e'tibor bermaymiz
-     (ko'rishlar soni sayt ishlashiga ta'sir qilmaydi). */
-  db.collection('stories').doc(s.id).update({ views: yangi }).catch(()=>{});
+  stStat('kor', s.id);
+  renderStories();        /* halqa "ko'rilgan" holatiga o'tadi */
+}
+
+/* Keyingi/oldingi rasmni oldindan yuklash */
+function stvOldin(i){
+  [i + 1, i - 1].forEach(j => {
+    const s = STORIES[j]; if(!s) return;
+    const u = s.rasm || s.doira; if(!u) return;
+    const im = new Image(); im.decoding = 'async'; im.src = u;
+  });
 }
 
 function stvChiz(){
@@ -6914,20 +7137,28 @@ function stvChiz(){
   if(!s){ stvYop(); return; }
   const likes = stSet(ST_LIKE_KEY);
 
-  $('#stvImg').src = s.rasm || s.doira;
+  /* Rasm: kelmaguncha "shimmer" turadi, kelgach mayin paydo bo'ladi */
+  const ram = $('#stvRamka'), im = $('#stvImg'), fon = $('#stvFon');
+  ram.classList.remove('keldi'); im.classList.remove('keldi'); fon.classList.remove('keldi');
+  const manba = s.rasm || s.doira;
+  im.onload = ()=>{
+    ram.classList.add('keldi'); im.classList.add('keldi'); fon.classList.add('keldi');
+  };
+  im.src = manba;
+  fon.src = manba;          /* xira orqa fon — o'sha rasmning nusxasi */
+  if(im.complete && im.naturalWidth) im.onload();
+
   $('#stvAva').src = s.doira || s.rasm;
   $('#stvNom').textContent = s.nom || '';
 
   const lk = $('#stvLike');
   lk.classList.toggle('on', likes.has(s.id));
-  $('#stvLikeN').textContent = Number(s.likes) || 0;
+  $('#stvLikeN').textContent = stSonQisqa(stLikeSoni(s));
 
   const go = $('#stvGo');
   /* XAVFSIZLIK: havola FAQAT https:// yoki saytning o'z bo'limi (#/...)
-     bo'lsa ko'rsatiladi. Ilgari noto'g'ri havola "#" bilan yopishtirib
-     qo'yilardi (masalan "#javascript:alert(1)") — u ishlamasa ham,
-     mijozga ishlamaydigan tugma ko'rinardi. Endi bunday havola butunlay
-     e'tiborsiz qoldiriladi. */
+     bo'lsa ko'rsatiladi. Boshqa har qanday havola (javascript:, data:,
+     http:) butunlay e'tiborsiz qoldiriladi. */
   const hav = String(s.havola || '').trim();
   const havOk = /^https:\/\/[^\s"'<>]+$/i.test(hav) || /^#\/[A-Za-z0-9\-\/]*$/.test(hav);
   if(havOk){
@@ -6948,6 +7179,8 @@ function stvChiz(){
   if(hozir) hozir.style.animationDuration = ST_DAVOM + 'ms';
 
   stvKorildi(s);
+  stvOldin(ST_IDX);
+  ST_QOLDI = ST_DAVOM; ST_YURDI = Date.now();
   clearTimeout(ST_TIMER);
   ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_DAVOM);
 }
@@ -6970,38 +7203,79 @@ function stvOch(i){
   try{ haptic('ok'); }catch(e){}
 }
 
-function stvLike(){
+/* Ekran o'rtasida uchib chiqadigan katta yurakcha */
+function stvPuf(){
+  const v = $('#stView'); if(!v) return;
+  const d = document.createElement('div');
+  d.className = 'stv-puf';
+  d.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4S3.6 15 3.6 9.4A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.4 2.4c0 5.6-8.4 11-8.4 11z"/></svg>';
+  v.appendChild(d);
+  setTimeout(()=>{ try{ d.remove(); }catch(e){} }, 820);
+}
+
+/* yoqdi/olib tashlash. `puf` — o'rtada yurakcha ko'rsatilsinmi. */
+function stvLike(puf){
   const s = STORIES[ST_IDX];
   if(!s) return;
   const likes = stSet(ST_LIKE_KEY);
   const bor = likes.has(s.id);
-  const yangi = Math.max(0, (Number(s.likes) || 0) + (bor ? -1 : 1));
   if(bor) likes.delete(s.id); else likes.add(s.id);
   stSaqla(ST_LIKE_KEY, likes);
-  s.likes = yangi;
+
+  /* Ekranda DARHOL o'zgaradi (serverni kutmaymiz) */
+  s.likes = Math.max(0, (Number(s.likes) || 0) + (bor ? -1 : 1));
   $('#stvLike').classList.toggle('on', !bor);
-  $('#stvLikeN').textContent = yangi;
+  $('#stvLikeN').textContent = stSonQisqa(stLikeSoni(s));
+  if(!bor && puf !== false) stvPuf();
   try{ haptic(bor ? 'light' : 'ok'); }catch(e){}
-  db.collection('stories').doc(s.id).update({ likes: yangi }).catch(()=>{});
-  renderStories();
+
+  /* Server haqiqiy sonni qaytarsa — moslashtiramiz */
+  stStat(bor ? 'like-ol' : 'like', s.id).then(j => {
+    if(!j) return;
+    if(typeof j.likes === 'number') s.likes = j.likes;
+    if(typeof j.likesBaza === 'number') s.likesBaza = j.likesBaza;
+    if(STORIES[ST_IDX] === s) $('#stvLikeN').textContent = stSonQisqa(stLikeSoni(s));
+    try{ stKeshYoz(); }catch(e){}
+  });
 }
 
 (function stvBogla(){
   const v = document.getElementById('stView');
   if(!v) return;
   document.getElementById('stvClose').addEventListener('click', stvYop);
-  document.getElementById('stvNext').addEventListener('click', ()=> stvKeyingi(1));
-  document.getElementById('stvPrev').addEventListener('click', ()=> stvKeyingi(-1));
-  document.getElementById('stvLike').addEventListener('click', stvLike);
+  document.getElementById('stvLike').addEventListener('click', ()=> stvLike(true));
   document.getElementById('stvGo').addEventListener('click', ()=> setTimeout(stvYop, 60));
 
-  /* Pastga surib yopish + bosib turganda to'xtatish */
-  let y0 = null, toxtadi = false;
-  v.addEventListener('pointerdown', (e)=>{
-    y0 = e.clientY; toxtadi = true;
+  /* ----- Chap/o'ng zona: BIR marta bosish — o'tish,
+           IKKI marta bosish — "yoqdi" (haqiqiy ilovalardagi kabi).
+           Shu sabab bitta bosishni 240 ms kutib turamiz. ----- */
+  let ikki = null;
+  function zona(yon){
+    return ()=>{
+      if(ikki){ clearTimeout(ikki); ikki = null; stvLike(true); return; }
+      ikki = setTimeout(()=>{ ikki = null; stvKeyingi(yon); }, 240);
+    };
+  }
+  document.getElementById('stvNext').addEventListener('click', zona(1));
+  document.getElementById('stvPrev').addEventListener('click', zona(-1));
+
+  /* ----- Pastga surib yopish + bosib turganda to'xtatish ----- */
+  let y0 = null, x0 = null, toxtadi = false;
+  function toxtat(){
     clearTimeout(ST_TIMER);
+    ST_QOLDI = Math.max(300, ST_DAVOM - (Date.now() - ST_YURDI));
     const b = v.querySelector('.stv-bars .hozir span');
     if(b) b.style.animationPlayState = 'paused';
+  }
+  function davom(){
+    const b = v.querySelector('.stv-bars .hozir span');
+    if(b) b.style.animationPlayState = '';
+    ST_YURDI = Date.now() - (ST_DAVOM - ST_QOLDI);
+    clearTimeout(ST_TIMER);
+    ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_QOLDI);
+  }
+  v.addEventListener('pointerdown', (e)=>{
+    y0 = e.clientY; x0 = e.clientX; toxtadi = true; toxtat();
   });
   v.addEventListener('pointermove', (e)=>{
     if(y0 === null) return;
@@ -7011,20 +7285,19 @@ function stvLike(){
   const tugat = (e)=>{
     if(y0 === null) return;
     const dy = (e && e.clientY != null) ? e.clientY - y0 : 0;
-    y0 = null;
+    y0 = null; x0 = null;
     v.style.transform = '';
     if(dy > 90){ stvYop(); return; }
-    if(toxtadi){
-      toxtadi = false;
-      const b = v.querySelector('.stv-bars .hozir span');
-      if(b) b.style.animationPlayState = '';
-      /* Qolgan vaqtni taxminan davom ettiramiz */
-      clearTimeout(ST_TIMER);
-      ST_TIMER = setTimeout(()=> stvKeyingi(1), 1800);
-    }
+    if(toxtadi){ toxtadi = false; davom(); }
   };
   v.addEventListener('pointerup', tugat);
   v.addEventListener('pointercancel', tugat);
+
+  /* Sayt orqa fonga o'tsa — vaqt bekorga yurmasin */
+  document.addEventListener('visibilitychange', ()=>{
+    if(!v.classList.contains('on')) return;
+    if(document.hidden) toxtat(); else davom();
+  });
 
   document.addEventListener('keydown', (e)=>{
     if(!v.classList.contains('on')) return;
