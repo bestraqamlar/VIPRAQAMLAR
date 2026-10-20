@@ -564,6 +564,29 @@ service cloud.firestore {
       allow read, update, delete: if hasPerm('vakansiya');
     }
 
+    /* ---------------- STORIES (bosh sahifadagi dumaloq lenta) ----------------
+       Admin rasm yuklaydi va nom beradi; mijoz saytida Instagram'dagi
+       kabi ochiladi. Mijoz brauzeri FAQAT ikki narsani qila oladi:
+         * `views` ni bittaga oshirish (ko'rishlar),
+         * `likes` ni bittaga oshirish yoki kamaytirish (yurakcha).
+       Boshqa hech narsa — nom, rasm, havola, tartib — faqat admin
+       tomonidan. Shu sabab "ko'rishlar sonini shishirish"dan boshqa
+       hech narsa qilib bo'lmaydi (u ham +1 qadam bilan, bitta
+       so'rovda bitta). */
+    match /stories/{doc} {
+      allow read: if true;
+      allow create, delete: if hasPerm('stories') || hasPerm('videos') || hasPerm('settings');
+      allow update: if hasPerm('stories') || hasPerm('videos') || hasPerm('settings')
+        || isValidLikeToggle(resource, request.resource.data)
+        || (changedOnly(['views'])
+            && request.resource.data.views is number
+            && (
+              (!(resource.data.views is number) && request.resource.data.views == 1)
+              || (resource.data.views is number
+                  && request.resource.data.views == resource.data.views + 1)
+            ));
+    }
+
     match /video_testimonials/{doc} {
       allow read: if true;
       allow create, delete: if hasPerm('videos');

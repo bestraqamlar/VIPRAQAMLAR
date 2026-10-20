@@ -951,6 +951,23 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 /* ---------- Bo'sh / xato ---------- */
 .empty{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:34px 22px;text-align:center;box-shadow:var(--sh-1);position:relative}
 .empty .ic{width:60px;height:60px;border-radius:20px;background:var(--card-2);color:var(--muted);display:flex;align-items:center;justify-content:center;margin:0 auto}
+/* ---- Bo'sh holat illustratsiyasi (SVG, ikkala mavzuda ham to'g'ri) ---- */
+.empty .ill{display:block;width:170px;max-width:72%;margin:0 auto 2px}
+.empty .ill svg{width:100%;height:auto;display:block;animation:illSuz 5.5s ease-in-out infinite}
+.empty .ill .i-card{fill:var(--card-2);stroke:var(--line);stroke-width:1.6}
+.empty .ill .i-dim{fill:none;stroke:var(--line-2);stroke-width:2.4}
+.empty .ill .i-ring{fill:none;stroke:var(--text-3);stroke-width:2.6;opacity:.75}
+.empty .ill .i-acc{fill:none;stroke:var(--gold-ink);stroke-width:2.6}
+.empty .ill .i-acc-f{fill:var(--gold-tint);stroke:var(--gold-ink);stroke-width:1.6}
+.empty .ill .i-on-acc{fill:none;stroke:var(--gold-ink);stroke-width:2.2;opacity:.8}
+.empty .ill .i-heart{fill:var(--gold-bright);opacity:.9}
+.empty .ill .i-warn{fill:var(--red-tint);stroke:var(--red);stroke-width:2.4;stroke-linejoin:round}
+.empty .ill .i-on-warn{fill:none;stroke:var(--red);stroke-width:2.6}
+@keyframes illSuz{
+  0%,100%{transform:translate3d(0,0,0)}
+  50%    {transform:translate3d(0,-6px,0)}
+}
+@media (prefers-reduced-motion:reduce){ .empty .ill svg{animation:none} }
 .empty h3{margin-top:14px;font-size:16px}
 .empty p{margin:7px auto 0;font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.55;max-width:300px}
 .empty .btn{margin-top:16px;width:auto;display:inline-flex;padding:0 22px;height:44px;font-size:14px}
@@ -972,6 +989,142 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 #netbar .s{font-size:11px;color:#9FB2CC;font-weight:600;margin-top:1px}
 .spin{width:20px;height:20px;border-radius:50%;border:2px solid rgba(230,200,119,.3);border-top-color:#E6C877;animation:sp .8s linear infinite;flex:none}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ==================================================================
+   TOIFALAR LENTASI ("stories") — bosh sahifa tepasida
+   ------------------------------------------------------------------
+   Dumaloq tugmalar: tashqi halqa gradient (toifa rangi), ichida qisqa
+   yozuv, ostida nom va soni. Yonga suriladi, "snap" bilan to'xtaydi,
+   bosilganda mayin kichrayadi. Faqat `transform`/`opacity` o'zgaradi —
+   eski telefonda ham silliq.
+   ================================================================== */
+.stories{
+  display:none;gap:14px;overflow-x:auto;overflow-y:hidden;
+  margin:0 0 14px;padding:2px 2px 6px;
+  scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.stories.on{display:flex}
+.stories::-webkit-scrollbar{display:none}
+.story{
+  flex:none;width:68px;background:none;border:none;padding:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  scroll-snap-align:start;color:inherit;font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.story-ring{
+  width:62px;height:62px;border-radius:50%;padding:2.5px;
+  display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(from 210deg, var(--st-1), var(--st-2), var(--st-1));
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.2);
+  box-shadow:0 6px 16px -10px var(--st-2);
+}
+.story-in{
+  width:100%;height:100%;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--ground);color:var(--ink);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:14.5px;font-weight:800;letter-spacing:.02em;
+}
+.story-in img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+/* Ko'rib bo'lingan story — halqa kulrang (Instagram'dagi kabi) */
+.story.korilgan .story-ring{background:var(--line-2);box-shadow:none}
+.story.yoqdi b::after{content:' \2764';color:var(--red);font-size:9px}
+.story-in.ik svg{width:26px;height:26px;fill:var(--st-2);stroke:none}
+:root[data-theme="dark"] .story-in.ik svg{fill:var(--st-1)}
+.story b{
+  display:block;max-width:68px;font-size:10.5px;font-weight:700;color:var(--text-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.2;
+}
+.story i{
+  font-style:normal;font-size:9.5px;font-weight:700;color:var(--faint);
+  margin-top:-3px;letter-spacing:.02em;
+}
+.story:active .story-ring{transform:scale(.92)}
+@media (hover:hover){ .story:hover .story-ring{transform:scale(1.05)} }
+/* Toifa ranglari */
+.story-vip  {--st-1:#E6C877;--st-2:#B8832A}
+.story-gold {--st-1:#FFD88A;--st-2:#C9881B}
+.story-prem {--st-1:#8FB4FF;--st-2:#2050DD}
+.story-naq  {--st-1:#7CE0C0;--st-2:#0F7A52}
+.story-ins  {--st-1:#B79CFF;--st-2:#6D3BEF}
+.story-yangi{--st-1:#FFA9A4;--st-2:#D9453B}
+/* Lenta chiqishi — kartochkalar birin-ketin paydo bo'ladi */
+.stories.on .story{animation:stIn .42s cubic-bezier(.2,.85,.3,1) both}
+.stories.on .story:nth-child(1){animation-delay:.02s}
+.stories.on .story:nth-child(2){animation-delay:.06s}
+.stories.on .story:nth-child(3){animation-delay:.1s}
+.stories.on .story:nth-child(4){animation-delay:.14s}
+.stories.on .story:nth-child(5){animation-delay:.18s}
+.stories.on .story:nth-child(6){animation-delay:.22s}
+.stories.on .story:nth-child(n+7){animation-delay:.26s}
+@keyframes stIn{from{opacity:0;transform:translate3d(0,10px,0) scale(.9)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .stories.on .story{animation:none}
+  .story-ring{transition:none}
+}
+
+/* ==================================================================
+   STORY KO'RISH OYNASI (to'liq ekran, Instagram uslubida)
+   ================================================================== */
+.stv{
+  position:fixed;inset:0;z-index:4000;display:none;
+  background:#05070C;touch-action:none;user-select:none;-webkit-user-select:none;
+  will-change:transform,opacity;
+}
+.stv.on{display:block;animation:stvIn .26s cubic-bezier(.2,.85,.3,1) both}
+@keyframes stvIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+.stv-img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  background:#05070C;
+}
+.stv-bars{
+  position:absolute;left:0;right:0;top:calc(var(--top) + 8px);z-index:3;
+  display:flex;gap:4px;padding:0 10px;
+}
+.stv-bars i{flex:1;height:2.5px;border-radius:9px;background:rgba(255,255,255,.3);overflow:hidden}
+.stv-bars i span{display:block;height:100%;width:0;background:#fff;border-radius:9px}
+.stv-bars i.tugadi span{width:100%}
+.stv-bars i.hozir span{animation:stvBar linear forwards}
+@keyframes stvBar{from{width:0}to{width:100%}}
+.stv-head{
+  position:absolute;left:0;right:0;top:calc(var(--top) + 20px);z-index:4;
+  display:flex;align-items:center;gap:10px;padding:8px 14px;color:#fff;
+}
+.stv-ava{width:34px;height:34px;border-radius:50%;overflow:hidden;flex:none;background:rgba(255,255,255,.15)}
+.stv-ava img{width:100%;height:100%;object-fit:cover;display:block}
+.stv-head b{flex:1;min-width:0;font-size:14px;font-weight:800;text-shadow:0 1px 10px rgba(0,0,0,.7);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stv-x{
+  width:36px;height:36px;border-radius:50%;flex:none;border:none;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;
+}
+.stv-x svg{width:17px;height:17px}
+.stv-zone{position:absolute;top:0;bottom:84px;width:34%;border:none;background:none;z-index:2;cursor:pointer}
+.stv-prev{left:0}
+.stv-next{right:0;width:66%}
+.stv-foot{
+  position:absolute;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));z-index:4;
+  display:flex;align-items:center;gap:12px;padding:0 16px;
+}
+.stv-like{
+  display:flex;align-items:center;gap:7px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:10px 16px;
+  font-family:inherit;font-size:13px;font-weight:800;
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.3),background .18s ease;
+}
+.stv-like svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9}
+.stv-like.on{background:rgba(226,69,59,.92)}
+.stv-like.on svg{fill:#fff;stroke:#fff}
+.stv-like:active{transform:scale(.92)}
+.stv-like i{font-style:normal}
+.stv-go{
+  margin-left:auto;background:#fff;color:#0B1B33;border-radius:999px;
+  padding:11px 20px;font-size:13.5px;font-weight:800;text-decoration:none;
+}
+@media (prefers-reduced-motion:reduce){
+  .stv.on{animation:none}
+  .stv-bars i.hozir span{animation:none;width:100%}
+}
 
 /* ---------- Toast (pastdagi bildirishnoma) ----------
    Katta kompaniyalar ilovasidagi kabi: ixcham kartochka, chap tomonda
@@ -2205,6 +2358,14 @@ html[data-theme="dark"] ::selection{background:transparent}
   </header>
 
   <div class="pad wrap" style="padding-top:14px">
+
+    <!-- ===== TOIFALAR LENTASI ("stories") =====
+         Instagram'dagi kabi dumaloq toifalar: VIP, Gold, 7777, 0707,
+         Bo'lib to'lash, Yangi. Bosilsa katalog o'sha filtr bilan
+         ochiladi. Ro'yxat MA'LUMOTDAN quriladi — bo'sh toifa
+         ko'rsatilmaydi (qarang: renderStories()). -->
+    <div class="stories" id="homeStories" aria-label="Toifalar"></div>
+
     <div class="heroscroll" id="homeHero"></div>
     <div class="herodots" id="heroDots"></div>
 
@@ -2497,6 +2658,31 @@ html[data-theme="dark"] ::selection{background:transparent}
     <svg class="ic-o" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.4"></circle><path d="M5 20c0-3.7 3.1-6.2 7-6.2s7 2.5 7 6.2"></path></svg><svg class="ic-f" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="8.3" r="3.8"></circle><path d="M4.8 20.4c0-3.9 3.3-6.6 7.2-6.6s7.2 2.7 7.2 6.6a1 1 0 0 1-1 1H5.8a1 1 0 0 1-1-1z"></path></svg><span class="lbl" data-t="Profil">Profil</span></a>
 </nav>
 
+<!-- ===== STORY KO'RISH OYNASI (Instagram uslubida) =====
+     Tepada vaqt chiziqlari, o'rtada rasm, pastda yurakcha va
+     (bo'lsa) havola tugmasi. Yonlarni bossa keyingi/oldingi,
+     pastga sursa yopiladi. -->
+<div class="stv" id="stView" role="dialog" aria-modal="true" aria-label="Story">
+  <div class="stv-bars" id="stvBars"></div>
+  <div class="stv-head">
+    <span class="stv-ava"><img id="stvAva" alt=""></span>
+    <b id="stvNom"></b>
+    <button class="stv-x" id="stvClose" type="button" aria-label="Yopish">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+  <img class="stv-img" id="stvImg" alt="">
+  <button class="stv-zone stv-prev" id="stvPrev" type="button" aria-label="Oldingi"></button>
+  <button class="stv-zone stv-next" id="stvNext" type="button" aria-label="Keyingi"></button>
+  <div class="stv-foot">
+    <button class="stv-like" id="stvLike" type="button" aria-label="Yoqdi">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4S3.6 15 3.6 9.4A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.4 2.4c0 5.6-8.4 11-8.4 11z"/></svg>
+      <i id="stvLikeN"></i>
+    </button>
+    <a class="stv-go" id="stvGo" style="display:none"></a>
+  </div>
+</div>
+
 <div id="toasts" aria-live="polite"></div>
 
 <!-- Tepadan tushadigan bildirishnoma (Telegramdagi kabi) -->
@@ -2644,7 +2830,7 @@ const RU = {
   "Chiroyli raqamlar":"Красивые номера","Bosh sahifa":"Главная","Katalog":"Каталог","Sevimlilar":"Избранное",
   "Sevimli":"Избранное","Buyurtmalarim":"Мои заказы","Buyurtma":"Заказ","Ma'lumot":"Информация","Yana":"Ещё",
   "Bog'lanish":"Связаться","Xush kelibsiz":"Добро пожаловать","Operatorlar":"Операторы","Hammasi":"Все",
-  "Tavsiya etiladi":"Рекомендуем","Kun tavsiyasi":"Выбор дня","KUN TAVSIYASI":"ВЫБОР ДНЯ","Sizga tavsiya qilamiz":"Рекомендуем вам","Mijozlar fikri":"Отзывы клиентов",
+  "Tavsiya etiladi":"Рекомендуем","Bir xil":"Одинаковые","Juft":"Парные","Ikki juft":"Две пары","Ketma-ket":"По порядку","Yumaloq":"Круглые","Yangi":"Новые","Kun tavsiyasi":"Выбор дня","KUN TAVSIYASI":"ВЫБОР ДНЯ","Sizga tavsiya qilamiz":"Рекомендуем вам","Mijozlar fikri":"Отзывы клиентов",
   "Kerakli raqamingiz yo'qmi?":"Не нашли нужный номер?","Oxirgi 4 ta raqamni ayting — biz topamiz":"Назовите последние 4 цифры — мы найдём",
   "Barcha huquqlar himoyalangan.":"Все права защищены.","Raqam bo'yicha qidirish":"Поиск по номеру",
   "keyingi 7 ta raqam":"следующие 7 цифр","Bo'sh katakcha — istalgan raqam":"Пустая ячейка — любая цифра",
@@ -3912,9 +4098,59 @@ function numCard(item){
   </article>`;
 }
 function skeletons(n){ let h=''; for(let i=0;i<n;i++) h += '<div class="sk shim"><b></b><i></i><div class="rw"><u></u><s></s></div></div>'; return h; }
+/* ==================================================================
+   BO'SH HOLATLAR UCHUN ILLUSTRATSIYALAR
+   ------------------------------------------------------------------
+   Ilgari bo'sh holatda kichkina kulrang ikonka turardi ("quti", "lupa")
+   — ekran quruq va "buzilgandek" ko'rinardi. Endi har bir holat uchun
+   o'z rasmi bor: brend ranglarida, ikkala mavzuda ham to'g'ri
+   ko'rinadi va mayin "suzadi" (faqat transform — telefonni band
+   qilmaydi). Rasm SVG — hech qanday fayl yuklanmaydi, ya'ni sayt
+   tezligiga ta'sir qilmaydi.
+   ================================================================== */
+const ILL = {
+  /* Lupa + raqam kartochkalari — "topilmadi" */
+  qidiruv: `<svg viewBox="0 0 160 120" aria-hidden="true">
+    <rect class="i-card" x="16" y="30" width="78" height="22" rx="7"/>
+    <rect class="i-card" x="16" y="60" width="62" height="22" rx="7"/>
+    <rect class="i-card i-dim" x="16" y="90" width="44" height="18" rx="6"/>
+    <circle class="i-ring" cx="112" cy="54" r="27"/>
+    <path class="i-ring" d="M132 74l16 16" stroke-linecap="round"/>
+    <path class="i-acc" d="M103 54h18" stroke-linecap="round"/>
+  </svg>`,
+  /* Yurakcha + kartochka — "sevimlilar bo'sh" */
+  sevimli: `<svg viewBox="0 0 160 120" aria-hidden="true">
+    <rect class="i-card" x="26" y="34" width="108" height="56" rx="14"/>
+    <path class="i-dim" d="M42 56h44M42 70h28" stroke-linecap="round"/>
+    <path class="i-heart" d="M112 46c-6-6-16-2-16 7 0 11 16 21 16 21s16-10 16-21c0-9-10-13-16-7z"/>
+  </svg>`,
+  /* Quti + chek — "buyurtma yo'q" */
+  quti: `<svg viewBox="0 0 160 120" aria-hidden="true">
+    <path class="i-ring" d="M44 44l36-14 36 14v38l-36 14-36-14z"/>
+    <path class="i-dim" d="M44 44l36 14 36-14M80 58v38" stroke-linecap="round"/>
+    <rect class="i-acc-f" x="92" y="64" width="34" height="42" rx="6"/>
+    <path class="i-on-acc" d="M100 76h18M100 86h12" stroke-linecap="round"/>
+  </svg>`,
+  /* Ogohlantirish — "xatolik" */
+  xato: `<svg viewBox="0 0 160 120" aria-hidden="true">
+    <path class="i-warn" d="M80 28l34 62H46z"/>
+    <path class="i-on-warn" d="M80 52v18M80 78v2" stroke-linecap="round"/>
+    <circle class="i-dim" cx="40" cy="38" r="5"/>
+    <circle class="i-dim" cx="124" cy="46" r="4"/>
+  </svg>`
+};
+
 function emptyBox(icon, title, body, btnText, btnAttr, isErr){
+  /* Eski chaqiruvlar kichik ikonka yuborishi mumkin — ularni mos
+     illustratsiyaga almashtiramiz (kod bir joyda o'zgaradi). */
+  const rasm = (typeof icon === 'string' && icon.indexOf('viewBox="0 0 160 120"') !== -1)
+    ? icon
+    : (isErr ? ILL.xato
+      : icon === IC_SEARCH ? ILL.qidiruv
+      : icon === IC_HEART_B ? ILL.sevimli
+      : ILL.quti);
   return `<div class="empty${isErr?' err':''}" style="grid-column:1/-1">
-    <span class="ic">${icon}</span><h3>${esc(title)}</h3><p>${esc(body)}</p>
+    <span class="ill">${rasm}</span><h3>${esc(title)}</h3><p>${esc(body)}</p>
     ${btnText ? `<button class="btn" ${btnAttr||''}>${esc(btnText)}</button>` : ''}</div>`;
 }
 const IC_SEARCH = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>';
@@ -3978,7 +4214,68 @@ function pickHome(){
   renderHome();
 }
 
+/* ==================================================================
+   STORIES — bosh sahifadagi dumaloq lenta (mijoz tomoni)
+   ------------------------------------------------------------------
+   Ilgari bu lenta toifalardan (VIP, 7777...) AVTOMATIK qurilardi.
+   Endi — admin o'zi qo'yadi: nomi, rasmi va (xohlasa) havolasi.
+   Rasm doira ichiga o'zi qirqiladi (CSS: object-fit:cover).
+
+   Bosilganda Instagram'dagi kabi TO'LIQ EKRAN ochiladi:
+     • tepada vaqt chizig'i (5 soniya), keyingisiga o'zi o'tadi;
+     • o'ng/chap tomonni bossa — keyingi/oldingi;
+     • pastga sursa yoki ✕ bossa — yopiladi;
+     • yurakcha — "yoqdi" (bosilgani telefonda eslab qolinadi);
+     • ko'rilgani bir marta hisoblanadi (bitta seansda bir marta).
+
+   Hisoblagichlar Firestore'da: `views` va `likes`. Qoidalar faqat
+   +1 / −1 qadamga ruxsat beradi (firestore.rules'dagi izohga qarang).
+   ================================================================== */
+let STORIES = [];
+let ST_IDX = 0, ST_TIMER = null, ST_BOSH = 0;
+const ST_KOR_KEY = 'vip_st_kor';      // shu seansda ko'rilganlari
+const ST_LIKE_KEY = 'vip_st_like';    // yoqtirganlari (uzoq muddatli)
+
+function stSet(key){
+  try{ return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }catch(e){ return new Set(); }
+}
+function stSaqla(key, set){
+  try{ localStorage.setItem(key, JSON.stringify(Array.from(set).slice(-300))); }catch(e){}
+}
+function stKorilgan(){
+  try{ return new Set(JSON.parse(sessionStorage.getItem(ST_KOR_KEY) || '[]')); }catch(e){ return new Set(); }
+}
+
+/* Firestore'dan stories ro'yxati (bir marta, ochilishda) */
+async function storiesYukla(){
+  try{
+    const snap = await db.collection('stories').limit(50).get();
+    STORIES = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+      .filter(x => x.faol !== false && (x.doira || x.rasm))
+      .sort((a, b) => (Number(a.tartib) || 0) - (Number(b.tartib) || 0));
+  }catch(e){ STORIES = []; }
+  renderStories();
+}
+
+function renderStories(){
+  const box = $('#homeStories');
+  if(!box) return;
+  if(!STORIES.length){ box.innerHTML = ''; box.classList.remove('on'); return; }
+  const likes = stSet(ST_LIKE_KEY);
+  const kor = stKorilgan();
+  box.classList.add('on');
+  box.innerHTML = STORIES.map((s, i) => `
+    <button class="story${kor.has(s.id) ? ' korilgan' : ''}${likes.has(s.id) ? ' yoqdi' : ''}"
+            data-story="${esc(s.id)}" data-sti="${i}" type="button" aria-label="${esc(s.nom || '')}">
+      <span class="story-ring"><span class="story-in">
+        <img src="${esc(s.doira || s.rasm)}" alt="" loading="lazy" decoding="async">
+      </span></span>
+      <b>${esc(s.nom || '')}</b>
+    </button>`).join('');
+}
+
 function renderHome(){
+  renderStories();
   const avail = NUMBERS.filter(n => !n.reserved);
   if(!HOME_PICKS.length && avail.length){
     HOME_PICKS = shuffled(avail).slice(0,15).map(n => n.id);
@@ -4530,6 +4827,8 @@ function videoPreload(){
    KATALOG (qidiruv + ro'yxat bitta bo'limda)
    ================================================================== */
 let catOp = '', catSort = 'default', catShown = PAGE_SIZE, catOnlyInstallment = false, catNaqsh = '';
+/* Bosh sahifadagi toifalar lentasidan ("stories") keladigan filtrlar */
+let catToifa = '', catYangi = false;
 
 /* ==================================================================
    NAQSH BO'YICHA QIDIRUV
@@ -4614,6 +4913,12 @@ function catalogItems(){
   if(catOp) list = list.filter(n => n.operator === catOp);
   if(catOnlyInstallment || catSort === 'installment') list = list.filter(n => installmentAllowed(n));
   if(catNaqsh) list = list.filter(n => naqshMos(n, catNaqsh));
+  if(catToifa) list = list.filter(n => tierOf(n) === catToifa);
+  if(catYangi){
+    /* "Yangi" — oxirgi 14 kun ichida qo'shilganlar (qadoqda `addedAt`) */
+    const chek = Date.now() - 14 * 86400000;
+    list = list.filter(n => Number(n.addedAt || 0) > chek);
+  }
   list.sort((a,b)=>{
     if(!!a.reserved !== !!b.reserved) return a.reserved ? 1 : -1;
     if(catSort === 'cheap') return (a.price||0)-(b.price||0);
@@ -4713,7 +5018,7 @@ function renderCatalog(){
      esa birin-ketin yumshoq chiqadi. */
   const lst = $('#catList');
   const kesim = list.slice(0, catShown);
-  const imzo = [catOp, catSort, catNaqsh, catOnlyInstallment ? 1 : 0,
+  const imzo = [catOp, catSort, catNaqsh, catToifa, catYangi ? 1 : 0, catOnlyInstallment ? 1 : 0,
                 (COMMITTED || []).join(''), list.length, LIVE_RESULTS.length].join('|');
 
   if(lst.dataset.sig === imzo && lst.children.length && kesim.length > lst.children.length){
@@ -4742,6 +5047,19 @@ function renderCatalog(){
   }else{
     lst.dataset.sig = imzo;
     lst.innerHTML = kesim.map(n => numCard(n)).join('');
+    /* BIRINCHI CHIZISHDA HAM kartochkalar birin-ketin chiqadi (ilgari
+       bu faqat "Yana ko'rsatish"da bor edi — natijada filtr
+       almashganda ro'yxat "birdan tarsillab" paydo bo'lardi).
+       Faqat ko'rinadigan dastlabki 8 tasi animatsiyalanadi: pastdagilar
+       baribir ekrandan tashqarida, ularga vaqt sarflash shart emas. */
+    const birinchi = Array.prototype.slice.call(lst.children, 0, 8);
+    birinchi.forEach((el, i) => {
+      el.classList.add('yangi');
+      el.style.animationDelay = (i * 38) + 'ms';
+    });
+    setTimeout(()=>{
+      birinchi.forEach(el => { el.classList.remove('yangi'); el.style.animationDelay = ''; });
+    }, 700 + birinchi.length * 38);
   }
 
   const more = list.length > catShown;
@@ -6509,6 +6827,167 @@ function pushniYop(){
 }
 
 /* ==================================================================
+   STORY KO'RISH OYNASI (Instagram uslubida)
+   ------------------------------------------------------------------
+   Bosh sahifadagi dumaloq lentadan ochiladi. Boshqaruv:
+     • o'ng tomonni bossa — keyingisi, chap tomonni — oldingisi;
+     • 5 soniyada o'zi keyingisiga o'tadi (tepadagi chiziq bilan);
+     • pastga sursa yoki ✕ — yopiladi;
+     • yurakcha — "yoqdi" (telefonda eslab qolinadi, qayta bossa olinadi);
+     • ko'rilgani BIR MARTA hisoblanadi (shu seansda), ya'ni bitta
+       odam qayta-qayta ochib, hisobni shishirib yubormaydi.
+   ================================================================== */
+const ST_DAVOM = 5000;        // bitta story necha millisekund turadi
+
+function stvYop(){
+  clearTimeout(ST_TIMER);
+  const v = $('#stView');
+  if(v) v.classList.remove('on');
+  document.body.style.overflow = '';
+  ST_IDX = -1;
+}
+
+function stvKorildi(s){
+  /* Ko'rishlar: shu seansda bir marta (sessionStorage) */
+  let kor;
+  try{ kor = new Set(JSON.parse(sessionStorage.getItem(ST_KOR_KEY) || '[]')); }
+  catch(e){ kor = new Set(); }
+  if(kor.has(s.id)) return;
+  kor.add(s.id);
+  try{ sessionStorage.setItem(ST_KOR_KEY, JSON.stringify(Array.from(kor).slice(-200))); }catch(e){}
+  const yangi = (Number(s.views) || 0) + 1;
+  s.views = yangi;
+  /* Qoidalar faqat +1 qadamga ruxsat beradi — xatoga e'tibor bermaymiz
+     (ko'rishlar soni sayt ishlashiga ta'sir qilmaydi). */
+  db.collection('stories').doc(s.id).update({ views: yangi }).catch(()=>{});
+}
+
+function stvChiz(){
+  const s = STORIES[ST_IDX];
+  if(!s){ stvYop(); return; }
+  const likes = stSet(ST_LIKE_KEY);
+
+  $('#stvImg').src = s.rasm || s.doira;
+  $('#stvAva').src = s.doira || s.rasm;
+  $('#stvNom').textContent = s.nom || '';
+
+  const lk = $('#stvLike');
+  lk.classList.toggle('on', likes.has(s.id));
+  $('#stvLikeN').textContent = Number(s.likes) || 0;
+
+  const go = $('#stvGo');
+  /* XAVFSIZLIK: havola FAQAT https:// yoki saytning o'z bo'limi (#/...)
+     bo'lsa ko'rsatiladi. Ilgari noto'g'ri havola "#" bilan yopishtirib
+     qo'yilardi (masalan "#javascript:alert(1)") — u ishlamasa ham,
+     mijozga ishlamaydigan tugma ko'rinardi. Endi bunday havola butunlay
+     e'tiborsiz qoldiriladi. */
+  const hav = String(s.havola || '').trim();
+  const havOk = /^https:\/\/[^\s"'<>]+$/i.test(hav) || /^#\/[A-Za-z0-9\-\/]*$/.test(hav);
+  if(havOk){
+    go.style.display = '';
+    go.textContent = t("Ko'rish");
+    go.href = hav;
+    go.rel = 'noopener noreferrer';
+    if(/^https:/i.test(hav)) go.target = '_blank'; else go.removeAttribute('target');
+  }else{
+    go.style.display = 'none';
+    go.removeAttribute('href');
+  }
+
+  /* Tepadagi vaqt chiziqlari */
+  $('#stvBars').innerHTML = STORIES.map((_, i) =>
+    `<i class="${i < ST_IDX ? 'tugadi' : (i === ST_IDX ? 'hozir' : '')}"><span></span></i>`).join('');
+  const hozir = $('#stvBars .hozir span');
+  if(hozir) hozir.style.animationDuration = ST_DAVOM + 'ms';
+
+  stvKorildi(s);
+  clearTimeout(ST_TIMER);
+  ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_DAVOM);
+}
+
+function stvKeyingi(yon){
+  const yangi = ST_IDX + yon;
+  if(yangi < 0){ ST_IDX = 0; stvChiz(); return; }
+  if(yangi >= STORIES.length){ stvYop(); return; }
+  ST_IDX = yangi;
+  stvChiz();
+}
+
+function stvOch(i){
+  if(!STORIES.length) return;
+  ST_IDX = Math.max(0, Math.min(STORIES.length - 1, Number(i) || 0));
+  const v = $('#stView');
+  v.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  stvChiz();
+  try{ haptic('ok'); }catch(e){}
+}
+
+function stvLike(){
+  const s = STORIES[ST_IDX];
+  if(!s) return;
+  const likes = stSet(ST_LIKE_KEY);
+  const bor = likes.has(s.id);
+  const yangi = Math.max(0, (Number(s.likes) || 0) + (bor ? -1 : 1));
+  if(bor) likes.delete(s.id); else likes.add(s.id);
+  stSaqla(ST_LIKE_KEY, likes);
+  s.likes = yangi;
+  $('#stvLike').classList.toggle('on', !bor);
+  $('#stvLikeN').textContent = yangi;
+  try{ haptic(bor ? 'light' : 'ok'); }catch(e){}
+  db.collection('stories').doc(s.id).update({ likes: yangi }).catch(()=>{});
+  renderStories();
+}
+
+(function stvBogla(){
+  const v = document.getElementById('stView');
+  if(!v) return;
+  document.getElementById('stvClose').addEventListener('click', stvYop);
+  document.getElementById('stvNext').addEventListener('click', ()=> stvKeyingi(1));
+  document.getElementById('stvPrev').addEventListener('click', ()=> stvKeyingi(-1));
+  document.getElementById('stvLike').addEventListener('click', stvLike);
+  document.getElementById('stvGo').addEventListener('click', ()=> setTimeout(stvYop, 60));
+
+  /* Pastga surib yopish + bosib turganda to'xtatish */
+  let y0 = null, toxtadi = false;
+  v.addEventListener('pointerdown', (e)=>{
+    y0 = e.clientY; toxtadi = true;
+    clearTimeout(ST_TIMER);
+    const b = v.querySelector('.stv-bars .hozir span');
+    if(b) b.style.animationPlayState = 'paused';
+  });
+  v.addEventListener('pointermove', (e)=>{
+    if(y0 === null) return;
+    const dy = e.clientY - y0;
+    if(dy > 0) v.style.transform = 'translate3d(0,' + dy + 'px,0)';
+  });
+  const tugat = (e)=>{
+    if(y0 === null) return;
+    const dy = (e && e.clientY != null) ? e.clientY - y0 : 0;
+    y0 = null;
+    v.style.transform = '';
+    if(dy > 90){ stvYop(); return; }
+    if(toxtadi){
+      toxtadi = false;
+      const b = v.querySelector('.stv-bars .hozir span');
+      if(b) b.style.animationPlayState = '';
+      /* Qolgan vaqtni taxminan davom ettiramiz */
+      clearTimeout(ST_TIMER);
+      ST_TIMER = setTimeout(()=> stvKeyingi(1), 1800);
+    }
+  };
+  v.addEventListener('pointerup', tugat);
+  v.addEventListener('pointercancel', tugat);
+
+  document.addEventListener('keydown', (e)=>{
+    if(!v.classList.contains('on')) return;
+    if(e.key === 'Escape') stvYop();
+    if(e.key === 'ArrowRight') stvKeyingi(1);
+    if(e.key === 'ArrowLeft') stvKeyingi(-1);
+  });
+})();
+
+/* ==================================================================
    BRAUZER BILDIRISHNOMASI
    ------------------------------------------------------------------
    Maqsad: admin xabar yuborganda, mijoz SAYTDAN CHIQIB KETGAN
@@ -6937,6 +7416,10 @@ document.addEventListener('click', (e)=>{
     else { try{ navigator.clipboard.writeText(havola); toast(LANG==='ru'?'Ссылка скопирована':'Havola nusxalandi'); }catch(err){} }
     return;
   }
+
+  /* Bosh sahifadagi stories lentasi — to'liq ekranda ochiladi */
+  const sty = e.target.closest('[data-story]');
+  if(sty){ stvOch(sty.dataset.sti); return; }
 
   const og = e.target.closest('[data-opgo]');
   if(og){ catOp = og.dataset.opgo; catShown = PAGE_SIZE; go('catalog'); return; }
@@ -7386,6 +7869,9 @@ function seoToifaniOch(){
   /* Xabarlar — bitta hujjat o'qiladi, shu sabab juda arzon. Sayt
      ochilishini sekinlatmasligi uchun 1,5 soniyadan keyin. */
   setTimeout(()=> avtoQayta('xabarlar', xabarlarniYukla), 1500);
+  /* Stories (bosh sahifadagi dumaloq lenta) — katalogdan keyin,
+     sayt ochilishini sekinlashtirmasligi uchun kechikib yuklanadi. */
+  setTimeout(()=> avtoQayta('stories', storiesYukla), 900);
   setTimeout(()=>{ tashrifHisobi(); yangiRaqamKuzatuvi(); }, 1800);
 })();
 

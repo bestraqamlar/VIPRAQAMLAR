@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=75">
-<link rel="preload" as="script" href="assets/panel.js?v=75">
+<link rel="preload" as="style" href="assets/panel.css?v=78">
+<link rel="preload" as="script" href="assets/panel.js?v=78">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=75">
+<link rel="stylesheet" href="assets/panel.css?v=78">
 </head>
 <body>
 
@@ -105,6 +105,7 @@
             <span class="tgh-badge" hidden>0</span>
           </div>
           <div class="tab-group-body">
+          <button class="tab" data-tab="stories"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.2"/></svg></span><span class="tab-label">Stories</span></button>
           <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
           <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
           <button class="tab" data-tab="xabarlar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"/><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"/></svg></span><span class="tab-label">Saytga xabar</span></button>
@@ -821,6 +822,41 @@
 
     <button id="tgSaveBtn" class="ig-save-btn">💾 Saqlash</button>
     <div class="ig-save-msg" id="tgSaveMsg"></div>
+  </div>
+
+  <!-- ======================= STORIES =======================
+       Bosh sahifaning tepasidagi dumaloq "stories" lentasi. Rasm
+       Firebase Storage'ga yuklanadi (9 MB gacha), nomi va havolasi
+       shu yerda yoziladi. Ko'rishlar va "yoqtirish" soni Instagram
+       kabi har bir storyda alohida hisoblanadi.
+       Baza: Firestore `stories`, rasm: Storage `stories/...` -->
+  <div class="pane" id="paneStories">
+    <div class="ai-hint">
+      ⭕ Bosh sahifaning eng tepasidagi dumaloq lenta. Rasmni yuklaysiz — u
+      <b>o'zi doira ichiga</b> qirqiladi. Mijoz bossa, Instagram'dagi kabi
+      to'liq ekranda ochiladi: ko'rishlar soni va yurakchalar shu yerda
+      ko'rinib turadi.
+    </div>
+
+    <div class="video-upload-box">
+      <label for="stNom">Nomi <span class="ig-field-hint">(doira ostida ko'rinadi, 16 belgigacha)</span></label>
+      <input type="text" id="stNom" placeholder="Masalan: VIP" maxlength="16">
+
+      <label for="stFayl">Rasm <span class="ig-field-hint">(9 MB gacha — kvadrat rasm eng chiroyli chiqadi)</span></label>
+      <input type="file" id="stFayl" accept="image/*">
+      <div id="stOldin" class="st-oldin" style="display:none"><span class="st-doira"><img id="stOldinImg" alt=""></span><i id="stOldinMatn"></i></div>
+
+      <label for="stHavola">Havola <span class="ig-field-hint">(ixtiyoriy — bosilganda ochiladigan joy, masalan #/katalog)</span></label>
+      <input type="text" id="stHavola" placeholder="#/katalog">
+
+      <div class="video-progress-wrap" id="stProgressWrap" style="display:none;">
+        <div class="video-progress-bar" id="stProgressBar"></div>
+      </div>
+      <button id="stYuklaBtn" class="ig-save-btn" type="button">⬆️ Qo'shish</button>
+      <div class="ig-save-msg" id="stMsg"></div>
+    </div>
+
+    <div class="st-list" id="stList"></div>
   </div>
 
   <div class="pane" id="paneVideos">
@@ -2148,6 +2184,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=75"></script>
+<script defer src="assets/panel.js?v=78"></script>
 </body>
 </html>
