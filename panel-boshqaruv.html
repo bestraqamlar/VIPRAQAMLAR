@@ -11,11 +11,32 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=95">
-<link rel="preload" as="script" href="assets/panel.js?v=95">
+<link rel="preload" as="style" href="assets/panel.css?v=97">
+<link rel="preload" as="script" href="assets/panel.js?v=97">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=95">
+<link rel="stylesheet" href="assets/panel.css?v=97">
+<!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
+     Nega kerak: `panel.css` biror sababga ko'ra yuklanmasa (kengaytma
+     yoki antivirus to'sdi, fayl to'liq yuklanmadi) kirish ekrani
+     "yalang'och" HTML bo'lib qolardi — admin saytni buzilgan deb
+     o'ylardi. Endi asosiy uslub kelmasa ham ekran chiroyli ko'rinadi.
+     `panel.css` kelgan bo'lsa — o'sha ustun turadi (pastda ulanadi). -->
+<style id="loginZaxira">
+  html,body{margin:0;background:#07152B;color:#E3EBF8;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #loginBg{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  #loginScreen{max-width:340px;width:100%;text-align:center;background:rgba(18,27,46,.9);
+    border:1px solid #1B3358;border-radius:20px;padding:34px 24px 28px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  #loginScreen h1{font-family:ui-monospace,monospace;color:#E6C877;font-size:18px;margin:0 0 18px;letter-spacing:.04em}
+  #loginScreen input{width:100%;background:#0C1E3A;border:1px solid #1B3358;border-radius:10px;
+    padding:13px 14px;color:#E3EBF8;font-size:16px;font-family:inherit;margin-bottom:11px}
+  #loginScreen button{width:100%;padding:13px;border:none;border-radius:11px;background:#E6C877;
+    color:#09182C;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer}
+  #loginScreen button:disabled{opacity:.5}
+  #loginError{display:none;margin-top:14px;color:#FF8E84;font-size:13px;line-height:1.5;text-align:left}
+</style>
 </head>
 <body>
 
@@ -156,7 +177,7 @@
         <!-- Panel versiyasi: yangi fayllar saytga yetib kelganini DARHOL
              bilish uchun. Yangilagandan keyin shu raqam o'zgarmasa —
              demak eski nusxa ochilyapti (keshni tozalang). -->
-        <span class="panel-ver" id="panelVer" title="Panel versiyasi">v95</span>
+        <span class="panel-ver" id="panelVer" title="Panel versiyasi">v97</span>
         <button id="logoutBtn" title="Chiqish">Chiqish</button>
       </div>
     </div>
@@ -2286,6 +2307,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=95"></script>
+<script defer src="assets/panel.js?v=97"></script>
 </body>
 </html>

@@ -3456,13 +3456,51 @@ function xatoMatni(err){
 
 const TASKS = {};
 function avtoQayta(nom, ishla){ TASKS[nom] = { ishla, n:0, timer:null, ok:false }; bajar(nom); }
+/* Xato ALOQAGA bog'liqmi yoki yo'q?
+   MUHIM (V98). Ilgari HAR QANDAY xato "aloqa sekin" deb hisoblanardi.
+   Natijada aloqaga umuman aloqasi bo'lmagan xato ham (masalan bazada
+   bo'lim yo'q yoki qoidalar ruxsat bermadi) tepada "Aloqa sekin —
+   avtomatik qayta urinilmoqda" degan tasmani MANGU yoqib qo'yardi:
+   internet zo'r bo'lsa ham. Mijoz esa saytni sekin deb o'ylardi.
+   Endi faqat HAQIQIY aloqa xatosi shu tasmani yoqadi. */
+function aloqaXatosimi(err){
+  const kod = String((err && err.code) || '');
+  const matn = String((err && err.message) || err || '');
+  if(/unavailable|deadline-exceeded|internal|aborted/i.test(kod)) return true;
+  if(/network|Failed to fetch|NetworkError|timeout|Vaqt tugadi|offline/i.test(matn)) return true;
+  /* permission-denied, not-found, invalid-argument, unauthenticated va
+     boshqalar — aloqa emas, sozlama/qoida muammosi */
+  return false;
+}
+
+/* Xato ANIQ aloqaga bog'liq emasligi MA'LUMMI (taxmin emas)?
+   Noma'lum xatoni "aloqa emas" deb hisoblash xavfli: lenta o'rni
+   yo'qolib qolishi mumkin. Shu sabab faqat SANAB O'TILGAN kodlar
+   "aniq aloqa emas" deb qabul qilinadi. */
+function aniqAloqaEmas(err){
+  const kod = String((err && err.code) || '');
+  return /permission-denied|unauthenticated|not-found|invalid-argument|failed-precondition|already-exists|resource-exhausted/i.test(kod)
+      || /Missing or insufficient permissions/i.test(String((err && err.message) || ''));
+}
+
 async function bajar(nom){
   const task = TASKS[nom]; if(!task) return;
   if(!navigator.onLine) return;
   try{ await task.ishla(); task.n = 0; task.ok = true; netMarkOk(); }
   catch(err){
     task.ok = false; task.n++;
-    if(task.n >= 2) netMarkFail();
+    const aloqa = aloqaXatosimi(err);
+
+    if(!aloqa){
+      /* Aloqa emas: tasmani YOQMAYMIZ va cheksiz urinmaymiz. Uch marta
+         urinib ko'rib, keyin to'xtaymiz — sabab o'zidan ketmaydi.
+         Konsolga esa aniq yozamiz, muammo ko'rinmay qolmasin. */
+      try{ console.error('"' + nom + "\" yuklanmadi (aloqa emas):", (err && err.code) || '', (err && err.message) || err); }catch(e){}
+      if(task.n >= 3){ clearTimeout(task.timer); return; }
+    }else if(task.n >= 2){
+      netMarkFail();
+    }
+
     clearTimeout(task.timer);
     task.timer = setTimeout(()=> bajar(nom), Math.min(3000*Math.pow(1.5, task.n-1), 45000) + Math.random()*800);
   }
@@ -4671,8 +4709,25 @@ async function storiesYukla(){
     renderStories();
     stOldinYukla();
   }catch(e){
-    /* Bazaga ulanmadi: keshdagi lenta (yoki skelet) TURAVERADI va
-       xatoni yuqoriga uzatamiz — `avtoQayta` qayta urinib ko'radi. */
+    /* Bazaga ulanmadi: keshdagi lenta (yoki skelet) TURAVERADI.
+       MUHIM (V98): xato ALOQAGA bog'liq bo'lsagina yuqoriga uzatamiz —
+       shunda `avtoQayta` qayta urinadi. Agar sabab boshqa bo'lsa
+       (masalan Firestore qoidalari `stories` ga ruxsat bermayapti yoki
+       bo'lim hali yaratilmagan), qayta urinishning foydasi yo'q va
+       eng yomoni — tepada "Aloqa sekin" tasmasi mangu yonib turardi,
+       internet zo'r bo'lsa ham. Bunday holatda lenta shunchaki
+       ko'rsatilmaydi, sayt esa bemalol ishlayveradi. */
+    /* SABAB ANIQ aloqaga bog'liq emasmi (masalan qoidalar ruxsat
+       bermadi)? Unda qayta urinishdan foyda yo'q: lenta yashiriladi,
+       sayt bemalol ishlayveradi. Noma'lum xatoda esa skelet O'Z JOYIDA
+       QOLADI (mijoz so'rovi: "lenta yo'qolib qolmasin") va xato
+       yuqoriga uzatiladi — `avtoQayta` qayta urinib ko'radi. */
+    if(typeof aniqAloqaEmas === 'function' && aniqAloqaEmas(e)){
+      try{ console.error('Stories yuklanmadi (aloqa emas):', (e && e.code) || '', (e && e.message) || e); }catch(x){}
+      ST_YUKLANDI = true;      /* skelet mangu aylanib turmasin */
+      renderStories();
+      return;
+    }
     renderStories();
     throw e;
   }

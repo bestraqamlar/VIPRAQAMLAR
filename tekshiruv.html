@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Tekshiruv — VIP RAQAMLAR</title>
+<!--
+  TEKSHIRUV SAHIFASI
+  ==================
+  Nima uchun kerak: "panelga kirmayapti" muammosining sababi brauzerda
+  ko'rinmaydi — fayl yuklanmadimi, Google xizmati to'silganmi, sahifa
+  fayldan ochilganmi, soat noto'g'rimi... Har birini alohida aytib
+  beradigan BITTA sahifa.
+
+  MUHIM: bu sahifa HECH NARSAGA bog'liq emas — na panel.css, na panel.js,
+  na Firebase. Hamma uslub va kod shu faylning ichida. Shu sabab boshqa
+  hamma narsa ishlamay qolsa ham, BU sahifa ochiladi.
+
+  Maxfiy ma'lumot ko'rsatmaydi: parol ham, token ham, mijoz ma'lumoti
+  ham yo'q — faqat "falon fayl yuklandi / falon manzilga yetib bo'ldi".
+-->
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;padding:18px;background:#07152B;color:#E3EBF8;
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:19px;margin:0 0 4px;color:#F0D898;letter-spacing:.04em}
+  .sub{color:#9FB4D4;font-size:13px;margin:0 0 18px}
+  .q{background:#0C1E3A;border-radius:14px;padding:14px 15px;margin-bottom:10px}
+  .q{border:1px solid #1B3358}
+  .q b{display:block;font-size:14px;margin-bottom:4px}
+  .q span{display:block;font-size:13px;color:#9FB4D4;word-break:break-word}
+  .ok{border-color:#1F7A4D}.ok b{color:#54D39A}
+  .bad{border-color:#8A2B22}.bad b{color:#FF8E84}
+  .kut b{color:#9FB4D4}
+  .xulosa{margin:18px 0 12px;padding:16px;border-radius:16px;background:#102948;border:1px solid #2A4A7A;white-space:pre-line}
+  .xulosa.bad{background:#2A1413;border-color:#8A2B22}
+  .xulosa.ok{background:#0E2A1E;border-color:#1F7A4D}
+  button{width:100%;padding:13px;border:none;border-radius:12px;background:#E6C877;color:#09182C;
+         font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:6px}
+  button.ikki{background:#1B3358;color:#E3EBF8;margin-top:8px}
+  pre{background:#060F1F;border:1px solid #1B3358;border-radius:12px;padding:12px;
+      font-size:12px;overflow:auto;white-space:pre-wrap;word-break:break-all;max-height:260px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>VIP RAQAMLAR — tekshiruv</h1>
+  <p class="sub">Panel ochilmasa shu sahifani oching. Hech narsaga bog'liq emas — har doim ishlaydi.</p>
+
+  <div id="royxat"></div>
+  <div class="xulosa" id="xulosa">Tekshirilmoqda…</div>
+
+  <button id="nusxa" type="button">📋 Natijani nusxalash</button>
+  <button class="ikki" id="qayta" type="button">↻ Qayta tekshirish</button>
+  <pre id="matn" style="display:none"></pre>
+</div>
+
+<script>
+'use strict';
+var royxat = document.getElementById('royxat');
+var xulosaEl = document.getElementById('xulosa');
+var matnEl = document.getElementById('matn');
+var NATIJA = [];
+
+function qator(nom, holat, izoh){
+  NATIJA.push(nom + ': ' + holat + (izoh ? ' — ' + izoh : ''));
+  var d = document.createElement('div');
+  d.className = 'q ' + (holat === 'OK' ? 'ok' : holat === '—' ? 'kut' : 'bad');
+  d.innerHTML = '<b>' + (holat === 'OK' ? '✓ ' : holat === '—' ? '• ' : '✕ ') + nom + '</b>'
+              + '<span>' + (izoh || '') + '</span>';
+  royxat.appendChild(d);
+}
+
+/* Bitta manzilga yetib bo'ladimi. `nocors` — javobni o'qiy olmaymiz,
+   lekin so'rov KETDIMI, shuni bilamiz (to'siq bo'lsa xato bo'ladi). */
+function tekshir(url, nocors){
+  var ctrl = new AbortController();
+  var t = setTimeout(function(){ ctrl.abort(); }, 7000);
+  var opt = { signal: ctrl.signal, cache: 'no-store' };
+  if(nocors) opt.mode = 'no-cors';
+  return fetch(url, opt).then(function(r){
+    clearTimeout(t);
+    return { ok: true, status: r.status, turi: r.type };
+  }).catch(function(e){
+    clearTimeout(t);
+    return { ok: false, xato: String(e && e.name === 'AbortError' ? 'vaqt tugadi' : (e && e.message) || e) };
+  });
+}
+
+function olchamMatn(n){
+  if(!n && n !== 0) return '';
+  return n > 1024 ? (n/1024).toFixed(0) + ' KB' : n + ' bayt';
+}
+
+async function ishga(){
+  royxat.innerHTML = ''; NATIJA = [];
+  xulosaEl.className = 'xulosa'; xulosaEl.textContent = 'Tekshirilmoqda…';
+  var muammo = [];
+
+  /* 1. Sahifa qayerdan ochilgan */
+  var fayldan = location.protocol === 'file:';
+  qator('Sahifa manzili', fayldan ? 'XATO' : 'OK',
+        location.protocol + '//' + (location.host || '(manzil yo‘q)') + location.pathname);
+  if(fayldan) muammo.push('fayl');
+
+  /* 2. Brauzer */
+  qator('Brauzer', '—', navigator.userAgent.slice(0, 120));
+
+  /* 3. Panel uslublari */
+  var css = await tekshir('assets/panel.css?tek=' + Date.now());
+  var cssOlcham = 0;
+  if(css.ok && css.status === 200){
+    try{
+      var r1 = await fetch('assets/panel.css?tek2=' + Date.now(), { cache:'no-store' });
+      cssOlcham = (await r1.text()).length;
+    }catch(e){}
+  }
+  var cssOk = css.ok && css.status === 200 && cssOlcham > 10000;
+  qator('Panel uslublari (panel.css)', cssOk ? 'OK' : 'XATO',
+        css.ok ? ('HTTP ' + css.status + (cssOlcham ? ', ' + olchamMatn(cssOlcham) : '')) : css.xato);
+  if(!cssOk) muammo.push('css');
+
+  /* 4. Panel kodi + versiyasi */
+  var jsOlcham = 0, jsVer = '';
+  try{
+    var r2 = await fetch('assets/panel.js?tek=' + Date.now(), { cache:'no-store' });
+    var t2 = await r2.text();
+    jsOlcham = t2.length;
+    var m = t2.match(/\?v=(\d+)\)/);
+    if(m) jsVer = 'v' + m[1];
+    if(t2.indexOf('kanalpost') !== -1) jsVer += ' (Kanal posti bor)';
+    else jsVer += ' (Kanal posti YO‘Q — eski nusxa)';
+  }catch(e){ jsVer = 'yuklanmadi: ' + e.message; }
+  var jsOk = jsOlcham > 100000;
+  qator('Panel kodi (panel.js)', jsOk ? 'OK' : 'XATO',
+        (jsOlcham ? olchamMatn(jsOlcham) + ' · ' : '') + jsVer);
+  if(!jsOk) muammo.push('js');
+
+  /* 5. Sayt serveri (Netlify funksiyasi) */
+  var fn = await tekshir('/.netlify/functions/api-index?tek=' + Date.now());
+  qator('Sayt serveri', fn.ok ? 'OK' : 'XATO', fn.ok ? ('HTTP ' + fn.status) : fn.xato);
+  if(!fn.ok) muammo.push('server');
+
+  /* 6-8. Google xizmatlari — panel shularsiz ishlay olmaydi */
+  var gstatic = await tekshir('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js', true);
+  qator('Google: firebase kutubxonasi (gstatic.com)', gstatic.ok ? 'OK' : 'XATO', gstatic.ok ? 'yetib bo‘ldi' : gstatic.xato);
+  if(!gstatic.ok) muammo.push('gstatic');
+
+  var auth = await tekshir('https://identitytoolkit.googleapis.com/v1/projects?key=tek', true);
+  qator('Google: kirish xizmati (identitytoolkit)', auth.ok ? 'OK' : 'XATO', auth.ok ? 'yetib bo‘ldi' : auth.xato);
+  if(!auth.ok) muammo.push('auth');
+
+  var fs = await tekshir('https://firestore.googleapis.com/v1/projects/vip-raqamlar/databases', true);
+  qator('Google: ma’lumotlar bazasi (firestore)', fs.ok ? 'OK' : 'XATO', fs.ok ? 'yetib bo‘ldi' : fs.xato);
+  if(!fs.ok) muammo.push('firestore');
+
+  /* 9. Kompyuter soati (HTTPS buzilishining tez-tez uchraydigan sababi) */
+  var farq = null;
+  try{
+    var r3 = await fetch('/?soat=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+    var sarlavha = r3.headers.get('date');
+    if(sarlavha) farq = Math.round((Date.now() - new Date(sarlavha).getTime()) / 1000);
+  }catch(e){}
+  if(farq === null){
+    qator('Kompyuter soati', '—', 'tekshirib bo‘lmadi');
+  }else{
+    var soatOk = Math.abs(farq) <= 120;
+    qator('Kompyuter soati', soatOk ? 'OK' : 'XATO',
+          soatOk ? 'to‘g‘ri (farq ' + farq + ' soniya)'
+                 : 'server bilan farqi ' + farq + ' soniya — HTTPS shu sababli uzilishi mumkin');
+    if(!soatOk) muammo.push('soat');
+  }
+
+  /* ---------- XULOSA ---------- */
+  var x = '', sinf = 'xulosa ok';
+  if(muammo.indexOf('fail') !== -1){ /* ehtiyot */ }
+  if(muammo.indexOf('fayl') !== -1){
+    sinf = 'xulosa bad';
+    x = 'SABAB: panel kompyuterdagi FAYLDAN ochilgan.\n\n'
+      + 'Panelni saytdan oching:\nhttps://vipraqamlar.uz/panel-boshqaruv.html';
+  }else if(muammo.indexOf('gstatic') !== -1 || muammo.indexOf('auth') !== -1 || muammo.indexOf('firestore') !== -1){
+    sinf = 'xulosa bad';
+    x = 'SABAB: bu kompyuterda GOOGLE xizmatlari to‘silgan.\n'
+      + 'Panel ularsiz ishlay olmaydi (kirish ham, baza ham o‘sha yerda).\n\n'
+      + 'Nima qilish kerak:\n'
+      + '1. Yashirin oynada oching (Ctrl+Shift+N) — kengaytmalar o‘chadi;\n'
+      + '2. antivirusning “veb/HTTPS qalqoni”ni vaqtincha o‘chiring;\n'
+      + '3. VPN yoki proksi yoqiq bo‘lsa o‘chiring;\n'
+      + '4. reklama bloklagichda googleapis.com va gstatic.com ga ruxsat bering;\n'
+      + '5. boshqa brauzerda sinab ko‘ring.';
+  }else if(muammo.indexOf('css') !== -1 || muammo.indexOf('js') !== -1){
+    sinf = 'xulosa bad';
+    x = 'SABAB: panel fayllari to‘liq yuklanmayapti.\n\n'
+      + (muammo.indexOf('css') !== -1 ? '• panel.css yuklanmadi — shu sababli sahifa bezaksiz ko‘rinadi\n' : '')
+      + (muammo.indexOf('js') !== -1 ? '• panel.js yuklanmadi\n' : '')
+      + '\nIkki ehtimol: fayl saytga to‘liq yuklanmagan, yoki brauzer '
+      + 'kengaytmasi/antivirus to‘sayapti. Avval yashirin oynada sinab ko‘ring.';
+  }else if(muammo.indexOf('server') !== -1){
+    sinf = 'xulosa bad';
+    x = 'SABAB: saytning server funksiyalari javob bermayapti.\n'
+      + 'Netlify tomonida muammo bo‘lishi mumkin.';
+  }else if(muammo.indexOf('soat') !== -1){
+    sinf = 'xulosa bad';
+    x = 'SABAB: kompyuter soati noto‘g‘ri.\n'
+      + 'Soat va sanani to‘g‘rilang (avtomatik qilib qo‘ying), so‘ng qayta urining.';
+  }else{
+    x = 'Hammasi joyida ko‘rinadi — panel ishlashi kerak.\n'
+      + 'Agar baribir kirmasa: parolni tekshiring yoki 5 daqiqa kutib qayta urining '
+      + '(3 marta xato parolda hisob 5 daqiqaga qulflanadi).';
+  }
+  xulosaEl.className = sinf;
+  xulosaEl.textContent = x;
+  NATIJA.push('XULOSA: ' + x.replace(/\n/g, ' '));
+  matnEl.textContent = NATIJA.join('\n');
+}
+
+document.getElementById('qayta').addEventListener('click', ishga);
+document.getElementById('nusxa').addEventListener('click', function(){
+  var t = NATIJA.join('\n');
+  matnEl.style.display = 'block';
+  matnEl.textContent = t;
+  try{
+    navigator.clipboard.writeText(t).then(function(){
+      document.getElementById('nusxa').textContent = '✓ Nusxalandi';
+      setTimeout(function(){ document.getElementById('nusxa').textContent = '📋 Natijani nusxalash'; }, 1800);
+    });
+  }catch(e){}
+});
+ishga();
+</script>
+</body>
+</html>
