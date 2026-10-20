@@ -5782,13 +5782,30 @@ async function submitOrder(smsVerified){
   const writeOrder = async ()=>{
     if(!it.live && it.id){
       const numberRef = db.collection('numbers').doc(it.id), newRef = db.collection('orders').doc();
-      await db.runTransaction(async (tx)=>{
-        const snap = await tx.get(numberRef);
-        if(snap.exists && snap.data().reserved === true) throw new Error('ALREADY_RESERVED');
-        tx.set(newRef, { ...payload, numberId: it.id, status:'Yangi', createdAt: orderTime, createdAtSort: Date.now() });
-        tx.update(numberRef, { reserved:true, reservedAt: FV.serverTimestamp() });
-      });
-      return newRef.id;
+      try{
+        await db.runTransaction(async (tx)=>{
+          const snap = await tx.get(numberRef);
+          if(snap.exists && snap.data().reserved === true) throw new Error('ALREADY_RESERVED');
+          tx.set(newRef, { ...payload, numberId: it.id, status:'Yangi', createdAt: orderTime, createdAtSort: Date.now() });
+          tx.update(numberRef, { reserved:true, reservedAt: FV.serverTimestamp() });
+        });
+        return newRef.id;
+      }catch(err){
+        if(err && err.message === 'ALREADY_RESERVED') throw err;
+        /* ZAXIRA YO'L (V79). Tranzaksiya ikki ish qiladi: buyurtmani
+           yozadi VA raqamni "band" qiladi. Agar aynan BAND QILISH qadami
+           rad etilsa (masalan raqamda `reserved` maydoni umuman yo'q
+           bo'lsa — eski raqamlarda shunday edi), ilgari BUTUN buyurtma
+           yo'qolardi va mijoz "internetni tekshiring" degan xato ko'rardi.
+           Endi bunday holatda buyurtmaning O'ZI baribir yoziladi — savdo
+           yo'qolmaydi, admin raqamni panelda o'zi band qiladi. */
+        const r = await db.collection('orders').add({
+          ...payload, numberId: it.id, status:'Yangi',
+          createdAt: orderTime, createdAtSort: Date.now()
+        });
+        try{ window.__BAND_XATO = String((err && (err.code || err.message)) || err); }catch(e){}
+        return r.id;
+      }
     }
     const liveKey = (payload.number||'').replace(/\D/g,''), newRef = db.collection('orders').doc();
     if(liveKey){
@@ -5814,8 +5831,16 @@ async function submitOrder(smsVerified){
   const btn = $('#ordSubmit') || $('#smsVerify');
   if(btn){ btn.disabled = true; btn.textContent = t('Yuborilmoqda…'); }
 
+  let xatoObj = null;
   try{ orderId = await withRetryClient(writeOrder, 2, 900); }
-  catch(err){ blocked = (err && err.message === 'ALREADY_RESERVED') ? 'ALREADY_RESERVED' : 'ERROR'; }
+  catch(err){
+    xatoObj = err;
+    blocked = (err && err.message === 'ALREADY_RESERVED') ? 'ALREADY_RESERVED' : 'ERROR';
+    /* Sababini yashirmaymiz: konsolda ham, o'zgaruvchida ham qoladi —
+       shunda muammoni aniqlash uchun taxmin qilish shart emas. */
+    try{ console.error('Buyurtma yozilmadi:', err && err.code, err && err.message, err); }catch(e){}
+    try{ window.__SONGGI_XATO = { kod: (err && err.code) || '', matn: (err && err.message) || String(err), vaqt: new Date().toISOString() }; }catch(e){}
+  }
 
   if(blocked){
     if(btn){ btn.disabled=false; btn.textContent = ORD.step===4 ? t('Tasdiqlash') : t('Buyurtmani yuborish'); }
@@ -5823,7 +5848,29 @@ async function submitOrder(smsVerified){
       toast(xatoMatni(new Error('ALREADY_RESERVED')), 'bad');
       if(!it.live){ const n = NUMBERS.find(x => x.id === it.id); if(n){ n.reserved = true; renderAll(); } }
       closeSheet('shOrder');
-    }else toast(LANG==='ru'?'Заказ не отправлен. Проверьте интернет.':'Buyurtma yuborilmadi. Internetni tekshirib, qayta urining.','bad');
+    }else{
+      /* ANIQ XABAR (V79). Ilgari har qanday xatoda "internetni
+         tekshiring" deyilardi — internet joyida bo'lsa ham. Endi
+         haqiqiy sabab aytiladi: bu adminga muammoni darhol ko'rsatadi
+         va mijozga ham nima bo'layotgani tushunarli bo'ladi. */
+      const kod = String((xatoObj && xatoObj.code) || '');
+      const matn = String((xatoObj && xatoObj.message) || '');
+      let xabar;
+      if(kod === 'permission-denied' || /permission|PERMISSION_DENIED/i.test(matn)){
+        xabar = LANG==='ru'
+          ? 'Заказ отклонён базой (permission-denied). Сообщите администратору.'
+          : "Buyurtmani baza qabul qilmadi (permission-denied). Administratorga xabar bering.";
+      }else if(/app.?check/i.test(matn)){
+        xabar = LANG==='ru' ? 'Проверка приложения (App Check) заблокировала запрос.'
+                            : "So'rovni App Check bloklab qo'ydi. Administratorga xabar bering.";
+      }else if(kod === 'unavailable' || kod === 'deadline-exceeded' || /network|offline|Failed to fetch/i.test(matn)){
+        xabar = LANG==='ru' ? 'Заказ не отправлен. Проверьте интернет.'
+                            : 'Buyurtma yuborilmadi. Internetni tekshirib, qayta urining.';
+      }else{
+        xabar = (LANG==='ru' ? 'Заказ не отправлен: ' : 'Buyurtma yuborilmadi: ') + (kod || matn.slice(0, 60));
+      }
+      toast(xabar, 'bad');
+    }
     return;
   }
 

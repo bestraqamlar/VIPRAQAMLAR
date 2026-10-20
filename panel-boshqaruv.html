@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=78">
-<link rel="preload" as="script" href="assets/panel.js?v=78">
+<link rel="preload" as="style" href="assets/panel.css?v=81">
+<link rel="preload" as="script" href="assets/panel.js?v=81">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=78">
+<link rel="stylesheet" href="assets/panel.css?v=81">
 </head>
 <body>
 
@@ -1664,7 +1664,11 @@
         <label class="op-toggle"><input type="checkbox" id="opBeelineEnabled"> yoqilgan</label>
       </div>
       <p class="op-note">
-        Beeline yagona operator — u login/parol talab qiladi. Boshqalari kalitsiz ishlaydi.
+        <b>Login/parol SHART EMAS.</b> Beeline raqamlari ochiq API orqali olinadi
+        (nomer.beeline.uz — Beeline o'z saytida ishlatadigan yo'l), unga kalit kerak emas.
+        Pastdagi login/parol — faqat <b>ixtiyoriy zaxira</b> (dilerlik/RMS kabineti): ochiq API
+        ishlamay qolgan paytda ishlatiladi. Agar "Dilerlik (RMS)" tekshiruvi
+        <b>HTTP 500</b> bersa — bu Beeline tomonidagi xato va <b>saytga ta'sir qilmaydi</b>.
         Beeline javobida narx YO'Q: narx pastdagi ombor (warehouse) jadvalidan olinadi. Sotuv
         narxi yonidagi <b>▾</b> tugmasi — shu qator uchun "Bo'lib to'lash" (bosh to'lov, oylik
         to'lovlar) sozlamasini ochadi/yopadi.
@@ -1685,7 +1689,7 @@
       </table>
       <button type="button" class="op-add" data-add="Beeline">+ Qator</button>
       <div style="margin-top:12px;">
-        <button type="button" class="op-test" id="opBeelineTest">🔑 Login/parolni tekshirish</button>
+        <button type="button" class="op-test" id="opBeelineTest">🔎 Beeline ulanishini tekshirish</button>
         <div class="op-test-out" id="opBeelineTestOut"></div>
       </div>
     </div>
@@ -2184,6 +2188,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=78"></script>
+<script defer src="assets/panel.js?v=81"></script>
 </body>
 </html>

@@ -79,8 +79,15 @@ service cloud.firestore {
         // ishlab, orqasida haqiqiy buyurtma bo'lmagan "band"larni avtomatik
         // bo'shatadi — shu bilan anonim spam orqali butun katalogni
         // "band qilib qo'yish" hujumi zararsizlantiriladi.
+        /* TUZATISH (V79): ilgari bu yerda `resource.data.reserved == false`
+           SHART edi. Admin panelidan qo'shilgan raqamlarda esa bu maydon
+           UMUMAN yo'q edi — Firestore'da "yo'q maydon" `false` ga TENG
+           EMAS, shu sabab mijozning band qilish yozuvi RAD etilardi va
+           butun buyurtma tranzaksiyasi buzilardi. Mijoz buni "internetni
+           tekshiring" degan xato sifatida ko'rardi. Endi maydon yo'q
+           bo'lsa ham (ya'ni raqam band emas) buyurtma o'tadi. */
         || (changedOnly(['reserved', 'reservedAt'])
-            && resource.data.reserved == false
+            && (!('reserved' in resource.data) || resource.data.reserved == false)
             && request.resource.data.reserved == true
             && request.resource.data.reservedAt == request.time)
         || (changedOnly(['views'])
