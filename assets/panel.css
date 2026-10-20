@@ -5004,6 +5004,12 @@ body{
 /* Ramka — saytdagi kabi to'rtburchak (doira emas) */
 .st-doira{border-radius:16px !important}
 .st-doira img{border-radius:inherit}
+/* Panel versiyasi — tepada, "Chiqish" yonida */
+.panel-ver{
+  font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);
+  background:var(--tint);border-radius:999px;padding:4px 9px;white-space:nowrap;
+}
+
 /* ---------- V87: KANAL POSTI ---------- */
 .kp-qator{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
 .kp-qator label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:var(--text-2)}

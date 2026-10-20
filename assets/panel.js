@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=93) ham oshiring.
+   havolaning oxiridagi raqamni (?v=95) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -2393,6 +2393,79 @@ function loginToEmail(raw){
 // urinamiz — parol/login xato bo'lsa qayta urinishning foydasi yo'q,
 // darhol to'g'ri xabar ko'rsatiladi.
 function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+/* ==================================================================
+   TARMOQ TASHXISI — "auth/network-request-failed" bo'lganda
+   ------------------------------------------------------------------
+   MUAMMO. Bu xato bitta narsani anglatadi: brauzer Google'ning kirish
+   xizmatiga (identitytoolkit.googleapis.com) UMUMAN ulana olmadi.
+   Sabablari esa butunlay boshqa-boshqa:
+     • internet yo'q;
+     • brauzer kengaytmasi (reklama bloklagich, maxfiylik qalqoni)
+       googleapis.com ni to'sib qo'ygan;
+     • antivirusning "veb qalqoni" HTTPS'ni ochib-yopib tekshiryapti va
+       so'rovni uzib qo'yyapti;
+     • korporativ/uy routeri yoki DNS googleapis.com ni bloklagan.
+   Ekranda esa bitta umumiy xabar chiqardi va admin nima qilishini
+   bilmasdi ("telefonda ishlaydi, kompyuterda yo'q" holati aynan shu).
+
+   YECHIM. Xato chiqqanda uchta qisqa tekshiruv qilamiz va AYNAN
+   qaysi joyda uzilganini aytamiz:
+     1. saytning o'zi ochilyaptimi (o'z faylimizni so'raymiz);
+     2. saytning server funksiyasi javob beryaptimi;
+     3. Google kirish xizmatiga yetib borish mumkinmi.
+   Uchinchisi `mode:'no-cors'` bilan so'raladi: javobni O'QIY olmaymiz,
+   lekin so'rov umuman KETDIMI — shuni bilamiz. Kengaytma yoki antivirus
+   to'sgan bo'lsa, so'rov xatolik bilan tugaydi; o'tgan bo'lsa — "opaque"
+   javob qaytadi. Aynan shu farq bizga kerak.
+   ================================================================== */
+async function tekshirManba(url, opt){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=> ctrl.abort(), 6000);
+  try{
+    await fetch(url, Object.assign({ signal: ctrl.signal, cache: 'no-store' }, opt || {}));
+    return true;
+  }catch(e){ return false; }
+  finally{ clearTimeout(t); }
+}
+
+async function tarmoqTashxis(){
+  const b = Date.now();
+  const [sayt, funksiya, google] = await Promise.all([
+    tekshirManba('assets/panel.css?tashxis=' + b),
+    tekshirManba('/.netlify/functions/api-index?tashxis=' + b),
+    tekshirManba('https://identitytoolkit.googleapis.com/v1/projects?key=tashxis', { mode: 'no-cors' })
+  ]);
+  /* Uslublar fayli umuman biriktirilganmi (to'silgan bo'lsa — yo'q) */
+  let uslub = false;
+  try{
+    uslub = Array.prototype.some.call(document.styleSheets,
+      sh => String(sh.href || '').indexOf('panel.css') !== -1);
+  }catch(e){ uslub = true; }
+
+  if(!navigator.onLine){
+    return "Internet umuman yo'q ko'rinadi — ulanishni tekshiring.";
+  }
+  if(!sayt && !funksiya){
+    return "Sayt serveriga ham ulanib bo'lmadi — internet yoki DNS muammosi. "
+      + "Boshqa tarmoqqa (mobil internet) o'tib ko'ring.";
+  }
+  if(!google){
+    return "Sayt ochilyapti, lekin GOOGLE kirish xizmatiga ulanib bo'lmadi. "
+      + "Odatda buni brauzer kengaytmasi (reklama bloklagich, maxfiylik qalqoni) "
+      + "yoki antivirusning veb qalqoni to'sadi."
+      + (uslub ? '' : ' Sahifa uslublari ham yuklanmagan — demak fayllar to‘sib qo‘yilgan.')
+      + "\n• Yashirin oynada (Ctrl+Shift+N) oching — kengaytmalar o‘chadi;"
+      + "\n• yoki boshqa brauzerda sinab ko‘ring;"
+      + "\n• yoki antivirusning “veb/HTTPS qalqoni”ni vaqtincha o‘chiring;"
+      + "\n• kengaytmalarda googleapis.com ga ruxsat bering.";
+  }
+  if(!uslub){
+    return "Sahifa uslublari yuklanmagan — fayllar to‘sib qo‘yilgan bo‘lishi mumkin. "
+      + "Yashirin oynada yoki boshqa brauzerda sinab ko‘ring.";
+  }
+  return "Ulanish tiklandi ko‘rinadi — yana bir marta “Kirish”ni bosing.";
+}
 async function signInWithRetry(email, password, attemptsLeft){
   try{
     return await firebase.auth().signInWithEmailAndPassword(email, password);
@@ -2505,7 +2578,7 @@ async function doLogin(){
       'auth/invalid-login-credentials': "Login yoki parol noto'g'ri",
       'auth/user-disabled':        "Bu admin hisobi to'xtatilgan — bosh admin bilan bog'laning",
       'auth/too-many-requests':    'Juda ko\'p urinish — biroz kuting',
-      'auth/network-request-failed': "Tarmoq xatosi — internetga ulanolmadi (avtomatik 2 marta qayta urinildi). Wi-Fi'dan mobil internetga (yoki aksincha) o'tib ko'ring, VPN yoqiq bo'lsa o'chiring, so'ng yana urinib ko'ring",
+      'auth/network-request-failed': "Tarmoq xatosi — kirish xizmatiga ulanolmadi (avtomatik 2 marta qayta urinildi). Tekshirilmoqda...",
       'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)'
     };
     /* Parol/login xatosi bo'lsa — urinish serverda hisoblanadi.
@@ -2527,7 +2600,18 @@ async function doLogin(){
     loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri")
                              + (err.code ? '  [' + err.code + ']' : '');
     loginError.style.display = 'block';
+    loginError.style.whiteSpace = 'pre-line';     /* tashxis qatorma-qator */
     console.error('Login xatosi:', err.code, err.message);
+
+    /* TARMOQ xatosida — aniq sababni topib, ekranga yozamiz.
+       (Qarang: tarmoqTashxis — saytning o'zi, server funksiyasi va
+       Google kirish xizmati alohida-alohida tekshiriladi.) */
+    if(err.code === 'auth/network-request-failed'){
+      try{
+        const sabab = await tarmoqTashxis();
+        loginError.textContent = "Kirish xizmatiga ulanib bo'lmadi.\n\n" + sabab;
+      }catch(e){ /* tashxis ham ishlamasa — eski xabar qolaveradi */ }
+    }
   }
   btn.disabled = false;
   btn.textContent = btnOrigText;
@@ -2550,6 +2634,27 @@ window.CURRENT_ADMIN_NAME = '';
    funksiyalarida (requireAdmin feature tekshiruvi) bo'ladi, bu yerda esa
    ruxsati yo'q admin uchun tugmalarni umuman ko'rsatmay, chalkashlikni
    oldini olamiz. */
+/* BO'LIM -> RUXSAT KALITI xaritasi.
+   Ba'zi bo'limlar alohida ruxsat sifatida yaratilmagan — ular o'ziga eng
+   yaqin bo'limning kalitiga bog'lanadi. Bu yerdagi kalit SERVER
+   tekshiradigan kalit bilan BIR XIL bo'lishi shart, aks holda menyuda
+   ko'rinib, serverda rad etiladigan bo'lim paydo bo'ladi:
+     uzex         -> admin-uzex-search.js  requireAdmin({feature:'watch'})
+     bazaraqam    -> raqamlar bilan bir xil
+     kuntavsiyasi -> aksiya bilan bir xil turdagi kontent
+     kanalpost    -> admin-post-rasm.js    requireAdmin({feature:'numbers'})
+   `stories` esa o'z ruxsatiga ega (MGMT_FEATURE_LABELS ichida). */
+const TAB_PERM_MAP = {
+  uzex: 'watch',
+  bazaraqam: 'numbers',
+  kuntavsiyasi: 'aksiya',
+  kanalpost: 'numbers',
+  /* "Sotuvchilar" — server admin-sellers.js da 'numbers' tekshiradi */
+  sellers: 'numbers',
+  /* "Statistika" — Seanslar bilan bir xil turdagi hisobot bo'limi */
+  stats: 'sessions'
+};
+
 // Joriy adminning ruxsatlari — boshqa joylarda (masalan login paytida
 // qaysi bo'limlarni yuklashni hal qilishda) qayta ishlatish uchun saqlanadi.
 window.CURRENT_ADMIN_UID = '';
@@ -2579,6 +2684,17 @@ function applyAccessControl(whoami){
   const migrateCard = document.getElementById('migrateContractsBtn') ? document.getElementById('migrateContractsBtn').closest('.settings-form') : null;
   if(migrateCard) migrateCard.style.display = isSuper ? '' : 'none';
 
+  /* Bosh admin yoki cheklovsiz admin — avval yashirilgan bo'lsa ham
+     hammasini QAYTA ochamiz. (Funksiya odatda sahifada bir marta
+     ishlaydi, lekin ikki marta chaqirilsa eski `display:none` qolib
+     ketardi — sinovda aniqlandi.) */
+  if(isSuper || !perms){
+    document.querySelectorAll('.tab[data-tab]').forEach(tab => {
+      if(tab.dataset.tab !== 'management') tab.style.display = '';
+    });
+    document.querySelectorAll('.tab-group').forEach(g => { g.style.display = ''; });
+  }
+
   if(!isSuper && perms){
     document.querySelectorAll('.tab[data-tab]').forEach(tab => {
       const key = tab.dataset.tab;
@@ -2590,10 +2706,18 @@ function applyAccessControl(whoami){
       // (admin-uzex-search.js -> requireAdmin(..., {feature:'watch'})).
       // Ikkalasi bir xil kalitga bog'langani muhim: aks holda menyuda
       // ko'rinib, serverda rad etiladigan bo'lim paydo bo'lardi.
-      const permKey = (key === 'uzex') ? 'watch' : (key === 'bazaraqam') ? 'numbers'
-        // "Kun tavsiyasi" — Aksiya bilan bir xil turdagi kontent bo'limi,
-        // shu sabab alohida ruxsat yaratmasdan aynan 'aksiya' kalitiga bog'landi.
-        : (key === 'kuntavsiyasi') ? 'aksiya' : key;
+      /* Bo'lim <-> ruxsat xaritasi. MUHIM: xaritada YO'Q bo'lim cheklangan
+         admin uchun JIM YO'QOLADI — aynan shu "Kanal posti" bilan bo'ldi
+         (yangi bo'lim qo'shildi, ruxsat kaliti esa yo'q edi). Endi xarita
+         aniq yozilgan va noma'lum kalit konsolga xabar beradi. */
+      const permKey = TAB_PERM_MAP[key] || key;
+      /* Kalit umuman MAVJUD ruxsatlar ro'yxatida bormi (MGMT_FEATURE_LABELS
+         — bosh admin ruxsat beradigan ro'yxat). Yo'q bo'lsa, bu bo'lim
+         HECH QANDAY adminga ko'rinmaydi — shuni konsolga aytamiz. */
+      if(typeof MGMT_FEATURE_LABELS === 'object' && !(permKey in MGMT_FEATURE_LABELS)){
+        console.warn("Bo'lim uchun ruxsat kaliti topilmadi: " + key + ' -> ' + permKey
+          + " - cheklangan adminlarda yashirin qoladi (TAB_PERM_MAP ga qo'shing)");
+      }
       const allowed = perms[permKey] === 1 || perms[permKey] === true;
       tab.style.display = allowed ? '' : 'none';
     });
@@ -6966,6 +7090,7 @@ const MGMT_FEATURE_LABELS = {
   vazifalar:'⏰ Vazifalar', bazaraqam:'🗄️ Baza raqam',
   watch:'🎯 Kuzatuv', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
+  stories:'▣ Stories',
   premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
   finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya', xabarlar:'🔔 Saytga xabar', tolov:'📲 Raqam to\'lovi'
 };
