@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=75) ham oshiring.
+   havolaning oxiridagi raqamni (?v=78) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -2921,6 +2921,7 @@ function openGroupOfTab(tab){
       ['paneAi',           'AI yordamchi',   "Panel bilan oddiy tilda gaplashing: narxni o'zgartirish, hisobot olish, raqam qidirish."],
       ['paneInstagram',    'Instagram AI',   "Instagram'ga yozgan odamlarga avtomatik javob beradi. Bilim bazasini shu yerdan to'ldirasiz."],
       ['paneTelegramai',   'Telegram AI',    "Telegram botdagi savollarga avtomatik javob."],
+      ['paneStories',      'Stories',        'Bosh sahifadagi dumaloq lenta: rasm, nomi, ko\'rishlar va yurakchalar.'],
       ['paneVideos',       'Video sharhlar', "Mijozlarning video fikrlari. Saytda \"Mijozlarimiz fikri\" bo'limida chiqadi."],
       ['panePremiumvideo', 'Premium video',  "Alohida raqamlar uchun video. Saytda premium RELS bo'lib ko'rinadi."],
       ['paneStyles',       'Uslublar',       "Sayt ranglari, shriftlari va umumiy ko'rinishi."],
@@ -3343,6 +3344,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'sellers'){ loadSellers(); loadTariffs(); loadHamkorArizalar(); }
     if(tab.dataset.tab === 'xabarlar'){ loadXabarlar(); xbVapidYukla(); }
     if(tab.dataset.tab === 'settings'){ if(typeof xavfYukla === 'function') xavfYukla(); }
+    if(tab.dataset.tab === 'stories'){ if(typeof loadStories === 'function') loadStories(); }
     if(tab.dataset.tab === 'tolov'){ loadTolov(); }
     if(tab.dataset.tab === 'instagram'){ loadInstagramSettings(); }
     if(tab.dataset.tab === 'operators'){ loadOperatorSettings(); }
@@ -9461,7 +9463,7 @@ function renderAdminOrders(orders){
     { id:'stat',     nom:'Statistika',  yorliq:'Hisobot',  izoh:'Hisobotlar, vazifalar va AI',
       tabs:['stats','sessions','vazifalar','ai','telegramai','instagram'] },
     { id:'profil',   nom:'Profil',      yorliq:'Profil',   izoh:'Sozlamalar, kontent va boshqaruv',
-      tabs:['settings','management','operators','styles','xabarlar','videos','premiumvideo'] }
+      tabs:['settings','management','operators','styles','xabarlar','stories','videos','premiumvideo'] }
   ];
 
   /* Har bir bo'lim nima uchun kerakligi — kartochkada bitta qatorda
@@ -10864,3 +10866,223 @@ document.getElementById('xavfYoqBtn') && document.getElementById('xavfYoqBtn')
     }catch(e){ msg.textContent = 'Xato: ' + e.message; }
     finally{ btn.disabled = false; }
   });
+
+/* ==================================================================
+   STORIES — bosh sahifadagi dumaloq lenta (admin tomoni)
+   ------------------------------------------------------------------
+   Nima qiladi: nom + rasm + (ixtiyoriy) havola. Rasm Firebase
+   Storage'ga yuklanadi, Firestore'dagi `stories` hujjatida esa nomi,
+   tartibi, holati va HISOBLAGICHLAR (ko'rishlar, yurakchalar) turadi.
+
+   RASM: admin 9 MB gacha fayl tanlashi mumkin, lekin saytga O'SHA
+   KATTALIKDA yuborilmaydi — brauzerning o'zida ikkita o'lchamga
+   siqiladi:
+     * doira uchun 256x256 (kvadrat qirqim) — lenta tez chiqsin;
+     * to'liq ekran uchun eng katta tomoni 1280 px.
+   Shunda mijozning interneti tejaladi (9 MB rasm o'rniga ~150 KB),
+   lekin admin uchun hech qanday cheklov sezilmaydi.
+
+   XAVFSIZLIK: yuklash FAQAT admin uchun (Storage qoidalarida
+   `request.auth != null` + 9 MB + faqat `image/*`), Firestore'da esa
+   yozish `hasPerm('stories')` bilan. Mijoz brauzeri faqat `views` ni
+   +1 va `likes` ni ±1 qila oladi — boshqa hech narsani.
+   ================================================================== */
+let ST_ROYXAT = [];
+let ST_FAYL = null;            // tanlangan rasm (siqilgandan keyin)
+
+/* Rasmni kvadrat qirqib, kerakli o'lchamga siqadi (brauzerning o'zida) */
+function stRasmSiq(file, olcham, kvadrat){
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onerror = ()=> reject(new Error("Rasmni o'qib bo'lmadi"));
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=> reject(new Error("Rasm formati tushunarsiz"));
+      img.onload = ()=>{
+        let w = img.width, h = img.height, sx = 0, sy = 0, sw = w, sh = h;
+        if(kvadrat){
+          const t = Math.min(w, h);
+          sx = Math.round((w - t) / 2); sy = Math.round((h - t) / 2);
+          sw = sh = t; w = h = olcham;
+        }else{
+          const k = Math.min(1, olcham / Math.max(w, h));
+          w = Math.round(w * k); h = Math.round(h * k);
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+        c.toBlob(b => b ? resolve(b) : reject(new Error('Siqib bo‘lmadi')), 'image/jpeg', 0.86);
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+(function stFaylTanlash(){
+  const inp = document.getElementById('stFayl');
+  if(!inp) return;
+  inp.addEventListener('change', async ()=>{
+    const f = inp.files && inp.files[0];
+    const box = document.getElementById('stOldin');
+    const msg = document.getElementById('stMsg');
+    ST_FAYL = null;
+    if(!f){ if(box) box.style.display = 'none'; return; }
+    msg.textContent = '';
+    /* 9 MB — mijoz so'ragan chegara */
+    if(f.size > 9 * 1024 * 1024){
+      msg.textContent = "Rasm 9 MB dan katta (" + (f.size/1048576).toFixed(1) + " MB). Kichikrog‘ini tanlang.";
+      msg.style.color = 'var(--red)';
+      inp.value = ''; if(box) box.style.display = 'none';
+      return;
+    }
+    if(!/^image\//.test(f.type)){
+      msg.textContent = 'Faqat rasm fayli (JPG, PNG, WEBP) qabul qilinadi.';
+      msg.style.color = 'var(--red)';
+      inp.value = ''; return;
+    }
+    try{
+      msg.style.color = ''; msg.textContent = 'Rasm tayyorlanmoqda...';
+      const doira = await stRasmSiq(f, 256, true);
+      const toliq = await stRasmSiq(f, 1280, false);
+      ST_FAYL = { doira, toliq, nom: f.name };
+      if(box){
+        box.style.display = 'flex';
+        document.getElementById('stOldinImg').src = URL.createObjectURL(doira);
+        document.getElementById('stOldinMatn').textContent =
+          (f.size/1048576).toFixed(1) + ' MB → ' +
+          ((doira.size + toliq.size)/1024).toFixed(0) + ' KB (siqildi)';
+      }
+      msg.textContent = '';
+    }catch(e){
+      msg.textContent = 'Xato: ' + e.message; msg.style.color = 'var(--red)';
+    }
+  });
+})();
+
+async function stYukla(){
+  const btn = document.getElementById('stYuklaBtn');
+  const msg = document.getElementById('stMsg');
+  const nom = (document.getElementById('stNom').value || '').trim();
+  const havola = (document.getElementById('stHavola').value || '').trim();
+  const wrap = document.getElementById('stProgressWrap');
+  const bar = document.getElementById('stProgressBar');
+  msg.style.color = '';
+  if(!nom){ msg.textContent = 'Nomini yozing.'; msg.style.color = 'var(--red)'; return; }
+  if(!ST_FAYL){ msg.textContent = 'Rasm tanlang.'; msg.style.color = 'var(--red)'; return; }
+  if(!storage){ msg.textContent = "Firebase Storage sozlanmagan (Firebase Console → Storage → Get started)."; msg.style.color = 'var(--red)'; return; }
+
+  btn.disabled = true; wrap.style.display = 'block'; bar.style.width = '5%';
+  try{
+    const asos = 'stories/' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    const r1 = storage.ref().child(asos + '_d.jpg');
+    const r2 = storage.ref().child(asos + '_t.jpg');
+    await r1.put(ST_FAYL.doira, { contentType:'image/jpeg', cacheControl:'public,max-age=31536000' });
+    bar.style.width = '55%';
+    await r2.put(ST_FAYL.toliq, { contentType:'image/jpeg', cacheControl:'public,max-age=31536000' });
+    bar.style.width = '85%';
+    const doiraUrl = await r1.getDownloadURL();
+    const toliqUrl = await r2.getDownloadURL();
+
+    const tartib = ST_ROYXAT.length ? Math.max.apply(null, ST_ROYXAT.map(x => Number(x.tartib) || 0)) + 1 : 1;
+    await db.collection('stories').add({
+      nom: nom.slice(0, 16),
+      doira: doiraUrl, rasm: toliqUrl,
+      yol: asos,
+      havola: havola.slice(0, 300),
+      tartib, faol: true, views: 0, likes: 0,
+      createdAt: Date.now()
+    });
+    bar.style.width = '100%';
+    msg.textContent = '✓ Qo‘shildi — saytda darhol ko‘rinadi.';
+    document.getElementById('stNom').value = '';
+    document.getElementById('stHavola').value = '';
+    document.getElementById('stFayl').value = '';
+    document.getElementById('stOldin').style.display = 'none';
+    ST_FAYL = null;
+    vibrate(80);
+    loadStories();
+  }catch(e){
+    msg.textContent = 'Xato: ' + e.message; msg.style.color = 'var(--red)';
+  }finally{
+    btn.disabled = false;
+    setTimeout(()=>{ wrap.style.display = 'none'; bar.style.width = '0%'; }, 900);
+  }
+}
+document.getElementById('stYuklaBtn') && document.getElementById('stYuklaBtn')
+  .addEventListener('click', stYukla);
+
+async function loadStories(){
+  const box = document.getElementById('stList');
+  if(!box) return;
+  box.innerHTML = '<div class="wt-empty">Yuklanmoqda...</div>';
+  try{
+    const snap = await db.collection('stories').limit(100).get();
+    ST_ROYXAT = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
+      .sort((a, b) => (Number(a.tartib) || 0) - (Number(b.tartib) || 0));
+    stChiz();
+  }catch(e){
+    box.innerHTML = '<div class="wt-empty">Xato: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+function stChiz(){
+  const box = document.getElementById('stList');
+  if(!box) return;
+  if(!ST_ROYXAT.length){
+    box.innerHTML = '<div class="wt-empty">Hali story qo‘shilmagan. Yuqoridan rasm yuklang.</div>';
+    return;
+  }
+  box.innerHTML = ST_ROYXAT.map((s, i) => `
+    <div class="st-row${s.faol === false ? ' st-off' : ''}">
+      <span class="st-doira"><img src="${escapeHtml(s.doira || s.rasm || '')}" alt="" loading="lazy"></span>
+      <div class="st-info">
+        <b>${escapeHtml(s.nom || '')}</b>
+        <div class="st-stat">
+          <span title="Ko'rishlar">👁 ${Number(s.views) || 0}</span>
+          <span title="Yoqtirishlar">❤️ ${Number(s.likes) || 0}</span>
+          ${s.havola ? '<span title="Havola">🔗 ' + escapeHtml(s.havola) + '</span>' : ''}
+        </div>
+      </div>
+      <div class="st-act">
+        <button class="btn btn-ghost btn-sm" data-stup="${i}" ${i === 0 ? 'disabled' : ''} title="Yuqoriga">▲</button>
+        <button class="btn btn-ghost btn-sm" data-stdown="${i}" ${i === ST_ROYXAT.length - 1 ? 'disabled' : ''} title="Pastga">▼</button>
+        <button class="btn btn-ghost btn-sm" data-stfaol="${escapeHtml(s.id)}" data-now="${s.faol === false ? '0' : '1'}">
+          ${s.faol === false ? 'Yoqish' : 'Yashirish'}</button>
+        <button class="btn btn-dan btn-sm" data-stdel="${escapeHtml(s.id)}">&#10005;</button>
+      </div>
+    </div>`).join('');
+
+  box.querySelectorAll('[data-stfaol]').forEach(b => b.onclick = async ()=>{
+    try{
+      await db.collection('stories').doc(b.dataset.stfaol).update({ faol: b.dataset.now !== '1' });
+      loadStories();
+    }catch(e){ alert(e.message); }
+  });
+  box.querySelectorAll('[data-stdel]').forEach(b => b.onclick = async ()=>{
+    if(!confirm("Story o'chirilsinmi?")) return;
+    const s = ST_ROYXAT.find(x => x.id === b.dataset.stdel);
+    try{
+      await db.collection('stories').doc(b.dataset.stdel).delete();
+      /* Rasmlar ham o'chadi — Storage'da keraksiz fayl qolmasin */
+      if(s && s.yol && storage){
+        try{ await storage.ref().child(s.yol + '_d.jpg').delete(); }catch(e){}
+        try{ await storage.ref().child(s.yol + '_t.jpg').delete(); }catch(e){}
+      }
+      loadStories();
+    }catch(e){ alert(e.message); }
+  });
+  const kochir = async (i, j)=>{
+    const a = ST_ROYXAT[i], b2 = ST_ROYXAT[j];
+    if(!a || !b2) return;
+    try{
+      await db.collection('stories').doc(a.id).update({ tartib: Number(b2.tartib) || (j + 1) });
+      await db.collection('stories').doc(b2.id).update({ tartib: Number(a.tartib) || (i + 1) });
+      loadStories();
+    }catch(e){ alert(e.message); }
+  };
+  box.querySelectorAll('[data-stup]').forEach(b => b.onclick = ()=> kochir(Number(b.dataset.stup), Number(b.dataset.stup) - 1));
+  box.querySelectorAll('[data-stdown]').forEach(b => b.onclick = ()=> kochir(Number(b.dataset.stdown), Number(b.dataset.stdown) + 1));
+}

@@ -44,6 +44,7 @@ const INTERNAL_EMAIL_DOMAIN = '@ichki.vipraqamlar-admin.uz';
 const FEATURE_KEYS = [
   'numbers', 'ai', 'instagram', 'telegramai', 'videos', 'premiumvideo',
   'orders', 'zakaz', 'credit', 'personalbase', 'vazifalar', 'sessions', 'styles', 'operators', 'watch', 'settings', 'finance',
+  'stories',
   'xabarlar', 'tolov'
 ];
 
