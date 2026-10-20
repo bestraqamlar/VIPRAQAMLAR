@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=85">
-<link rel="preload" as="script" href="assets/panel.js?v=85">
+<link rel="preload" as="style" href="assets/panel.css?v=93">
+<link rel="preload" as="script" href="assets/panel.js?v=93">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=85">
+<link rel="stylesheet" href="assets/panel.css?v=93">
 </head>
 <body>
 
@@ -106,6 +106,7 @@
           </div>
           <div class="tab-group-body">
           <button class="tab" data-tab="stories"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.2"/></svg></span><span class="tab-label">Stories</span></button>
+          <button class="tab" data-tab="kanalpost"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-7-7 18-2.5-7.5z"/></svg></span><span class="tab-label">Kanal posti</span></button>
           <button class="tab" data-tab="videos"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg></span><span class="tab-label">Video sharhlar</span></button>
           <button class="tab" data-tab="aksiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0 1 6 14.5C6 9 12 7 12 2z"/></svg></span><span class="tab-label">Aksiya</span></button>
           <button class="tab" data-tab="xabarlar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"/><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"/></svg></span><span class="tab-label">Saytga xabar</span></button>
@@ -881,6 +882,75 @@
     </div>
 
     <div class="st-list" id="stList"></div>
+  </div>
+
+  <div class="pane" id="paneKanalpost">
+    <div class="ai-hint">
+      ✈️ <b>Telegram kanali uchun tayyor post.</b> Raqamni yozasiz — pastda
+      saytning o'z uslubidagi chiroyli rasm chiqadi. Raqam doim <b>markazda va
+      eng katta</b>. Narx, toifa yoki oylik to'lov qo'shsangiz ular pastda
+      chiqadi; bo'sh qoldirsangiz tashlab ketiladi.
+      <br><br>
+      <b>Fon rangi</b> — uchta tanlov: to'q ko'k, to'q yashil va to'q kulrang.
+      Oltin raqam uchalasida ham to'g'ri ko'rinadi.
+      <br><br>
+      Rasm <b>plastik karta o'lchamida</b> — 1620 &times; 1021 px, bank kartasining
+      xalqaro standarti bilan bir xil nisbat (85.6 &times; 54 mm). Raqam oltin folga
+      rangida, ostida to'q soya bilan — haqiqiy premium kartadek.
+      Tayyor PNG: skrinshot qilish shart emas, <b>"Rasmni yuklab olish"</b>
+      tugmasini bosasiz.
+      <br><br>
+      Shrift va dizayn serverda chiziladi, ya'ni qaysi telefondan ochsangiz ham
+      rasm <b>aynan bir xil</b> chiqadi.
+    </div>
+
+    <div class="video-upload-box">
+      <label for="kpRaqam">Raqam <span class="ig-field-hint">(majburiy &mdash; faqat shuni yozsangiz ham bo'ladi)</span></label>
+      <input type="text" id="kpRaqam" placeholder="+998 90 123 45 67" inputmode="tel">
+
+      <div class="kp-qator">
+        <label>Toifa yorlig'i <span class="ig-field-hint">(ixtiyoriy)</span>
+          <input type="text" id="kpToifa" placeholder="PREMIUM" maxlength="18"></label>
+        <label>Fon rangi
+          <select id="kpFon">
+            <option value="kok">To'q ko'k (hozirgi)</option>
+            <option value="yashil">To'q yashil</option>
+            <option value="kulrang">To'q kulrang</option>
+          </select></label>
+      </div>
+
+      <div class="kp-qator">
+        <label>Narxi <span class="ig-field-hint">(ixtiyoriy)</span>
+          <input type="number" id="kpNarx" placeholder="25000000"></label>
+        <label>Eski narx <span class="ig-field-hint">(chizib ko'rsatiladi)</span>
+          <input type="number" id="kpEski" placeholder="32000000"></label>
+      </div>
+
+      <div class="kp-qator">
+        <label>Oylik to'lov <span class="ig-field-hint">(bo'lib to'lash)</span>
+          <input type="number" id="kpOylik" placeholder="1250000"></label>
+        <label>Necha oy
+          <input type="number" id="kpOylar" placeholder="24" value="24"></label>
+      </div>
+
+      <div class="kp-qator">
+        <label>Valyuta
+          <select id="kpValyuta"><option value="so'm">so'm</option><option value="$">$</option></select></label>
+        <label>Aloqa raqami <span class="ig-field-hint">(pastda chiqadi)</span>
+          <input type="text" id="kpTelefon" placeholder="+998 87 888 01 01"></label>
+      </div>
+
+      <div class="st-form-act">
+        <button id="kpChizBtn" class="ig-save-btn" type="button">🎨 Rasmni tayyorlash</button>
+        <button id="kpYuklaBtn" class="btn btn-ghost" type="button" style="display:none">⬇️ Rasmni yuklab olish</button>
+        <button id="kpTozaBtn" class="btn btn-ghost" type="button">Tozalash</button>
+      </div>
+      <div class="ig-save-msg" id="kpMsg"></div>
+    </div>
+
+    <div class="kp-oldin" id="kpOldin" style="display:none">
+      <img id="kpRasm" alt="Kanal posti">
+    </div>
   </div>
 
   <div class="pane" id="paneVideos">
@@ -2212,6 +2282,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=85"></script>
+<script defer src="assets/panel.js?v=93"></script>
 </body>
 </html>

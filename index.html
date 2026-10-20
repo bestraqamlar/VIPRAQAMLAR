@@ -1111,22 +1111,43 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 }
 
 /* ---------- SKELET (internet yo'q yoki hali yuklanmagan) ----------
-   V85 (mijoz so'rovi): lenta HECH QACHON yo'qolib qolmasin. Internet
-   bo'lmasa ham o'sha joyda oqargan kartochkalar turadi va ustidan
-   mayin yorug'lik yuguradi — xuddi raqam kartochkalaridagi kabi
-   (`.sk.shim`). Mijoz "bu yerda nimadir bor edi" deb o'ylab qolmaydi,
-   sahifa ham sakrab ketmaydi.
+   Lenta HECH QACHON yo'qolib qolmasin: internet bo'lmasa ham o'sha
+   joyda oqargan kartochkalar turadi va ustidan mayin yorug'lik
+   yuguradi — xuddi raqam kartochkalaridagi kabi.
 
-   Lenta FAQAT bitta holatda yashiriladi: baza javob berdi va admin
-   hamma story'ni yashirib qo'ygan. */
+   V86 TUZATISH (ekran surati bilan aniqlandi). Avval umumiy `.shim`
+   klassi BUTUN tugmaga qo'yilgandi. Ikki muammo chiqdi:
+     1) yorug'lik bandi tugmaning TO'RTBURCHAK maydonini bo'ylab
+        yugurardi, ya'ni yumaloq burchakli ramkadan TASHQARIGA chiqib
+        ketardi (surat: ramka yonida oq to'rtburchak);
+     2) `.shim` ning tungi varianti `html[data-theme="dark"]` selektori
+        bilan beriladi, bu atribut esa JavaScript ishga tushgandan
+        KEYIN qo'yiladi — demak sahifa ochilgan birinchi lahzada band
+        YORUG' (oq) bo'lib ko'rinardi.
+   Endi yorug'lik har bir bo'lakning O'Z ichida yuguradi (ramka va nom
+   chizig'i alohida, ikkalasi ham `overflow:hidden`), rangi esa mavzuga
+   bog'liq emas — sayt doim tungi. */
 .story.st-sk{pointer-events:none}
 .story.st-sk .story-ring{
   background:var(--line-2);box-shadow:none;
 }
 .story.st-sk .story-ring::before{animation:none;background:var(--line-2)}
-.story.st-sk .story-in{background:var(--card-2)}
+.story.st-sk .story-in{position:relative;overflow:hidden;background:var(--card-2)}
 .story.st-sk b{
+  position:relative;overflow:hidden;
   height:9px;width:76%;margin:0 auto;border-radius:6px;background:var(--card-3);
+}
+/* Yorug'lik bandi — FAQAT shu ikki bo'lak ichida */
+.story.st-sk .story-in::after,
+.story.st-sk b::after{
+  content:'';position:absolute;top:0;bottom:0;left:-55%;width:55%;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.10),rgba(255,255,255,0));
+  animation:stSkel 1.45s linear infinite;
+}
+.story.st-sk b::after{animation-delay:.12s}
+@keyframes stSkel{to{transform:translateX(290%)}}
+@media (prefers-reduced-motion:reduce){
+  .story.st-sk .story-in::after,.story.st-sk b::after{animation:none;display:none}
 }
 
 /* ==================================================================
@@ -1149,7 +1170,18 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 .stv.on{display:block;animation:stvIn .26s cubic-bezier(.2,.85,.3,1) both}
 @keyframes stvIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 /* Rasm maydoni — yumshoq burchakli to'rtburchak */
+/* ---------- KADRDAN KADRGA O'TISH (Instagram uslubi) ----------
+   V87 (mijoz so'rovi): ilgari yangi kadr shunchaki PAYDO bo'lardi.
+   Endi u yon tomondan, yengil 3D burilish bilan kirib keladi — xuddi
+   haqiqiy ilovadagi kabi. Barmoq bilan yonga surganda esa kadr
+   barmoq ortidan boradi va qo'yib yuborilganda o'tadi yoki orqaga
+   qaytadi.
+
+   TEZLIK: faqat `transform` va `opacity` o'zgaradi, ya'ni hammasi
+   kompozitorda bajariladi — eski telefonda ham silliq. `perspective`
+   sahnada turadi, shu sabab har kadrda qayta hisoblanmaydi. */
 .stv-sahna{
+  perspective:1400px;perspective-origin:50% 50%;
   position:absolute;left:0;right:0;top:0;bottom:0;
   display:flex;align-items:center;justify-content:center;
   /* Tepadagi sarlavha (avatar + nom) 76 px joy egallaydi — ramka uning
@@ -1179,6 +1211,22 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   opacity:0;transition:opacity .22s ease;
 }
 .stv-img.keldi{opacity:1}
+/* Yangi kadr kirib kelishi — yo'nalishiga qarab ikki xil */
+.stv-ramka{transform-origin:center center;backface-visibility:hidden}
+.stv-ramka.kir-ong{animation:stvKirOng .34s cubic-bezier(.22,.78,.3,1) both}
+.stv-ramka.kir-chap{animation:stvKirChap .34s cubic-bezier(.22,.78,.3,1) both}
+@keyframes stvKirOng{
+  from{opacity:.25;transform:translate3d(22%,0,0) rotateY(-13deg) scale(.94)}
+  to{opacity:1;transform:none}
+}
+@keyframes stvKirChap{
+  from{opacity:.25;transform:translate3d(-22%,0,0) rotateY(13deg) scale(.94)}
+  to{opacity:1;transform:none}
+}
+/* Barmoq bilan surilayotgan payt — animatsiyasiz, to'g'ridan-to'g'ri */
+.stv-ramka.suriladi{animation:none;transition:none}
+/* Qo'yib yuborilgandagi qaytish */
+.stv-ramka.qaytadi{transition:transform .26s cubic-bezier(.2,.85,.3,1)}
 /* Rasm yuklanmaguncha — mayin yorug'lik yuguradi.
    MUHIM (tezlik): yorug'lik `background-position` bilan emas,
    `transform:translateX` bilan yuradi. Birinchisi har kadrda butun
@@ -1246,6 +1294,23 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   transition:transform .16s ease;
 }
 .stv-go:active{transform:scale(.95)}
+/* ---------- YUKLANMOQDA belgisi ----------
+   V88: kadr almashganda ESKI rasm ekranda turaveradi, ustida esa shu
+   kichik aylana aylanadi. Ilgari yangi kadr "oq" (bo'sh) holatda
+   ochilib, keyin rasm kelardi — mijoz so'ragan noqulaylik aynan shu
+   edi. Endi bo'sh ekran UMUMAN ko'rinmaydi.
+   Belgi 180 ms dan keyin paydo bo'ladi: rasm keshda bo'lsa (ko'p
+   hollarda shunday) u umuman ko'rinmaydi — "lip etib" o'tmaydi. */
+.stv-yuk{
+  position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;
+  z-index:8;border-radius:50%;pointer-events:none;
+  border:2.5px solid rgba(255,255,255,.22);border-top-color:#fff;
+  opacity:0;animation:stvAyl .75s linear infinite, stvYukKir .2s ease .18s forwards;
+}
+@keyframes stvAyl{to{transform:rotate(360deg)}}
+@keyframes stvYukKir{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){ .stv-yuk{animation:stvYukKir .2s ease .18s forwards} }
+
 /* Ikki marta bosilganda uchib chiqadigan yurakcha */
 .stv-puf{
   position:absolute;left:50%;top:50%;z-index:7;pointer-events:none;
@@ -1322,6 +1387,7 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 }
 
 @media (prefers-reduced-motion:reduce){
+  .stv-ramka.kir-ong,.stv-ramka.kir-chap{animation:none}
   .stv.on{animation:none}
   .stv-bars i.hozir span{animation:none;transform:scaleX(1)}
   .stv-ramka::after{animation:none;display:none}
@@ -1509,7 +1575,18 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
   overflow:hidden;
   padding:2px 18px 6px;margin:0 -18px;
   touch-action:pan-y;cursor:grab;
+  /* V86: KARUSEL JOYI OLDINDAN BAND QILINADI.
+     Muammo: raqamlar bazadan kelgunicha karusel BO'SH (balandligi 0)
+     bo'lardi — shu sabab Stories lentasi bir lahza ENG TEPADA
+     ko'rinib, keyin raqamlar kelganda pastga sakrab tushardi.
+     Mijoz aynan shuni aytdi: "birinchi tepada, keyin pastga tushib
+     qolyabdi". Endi karusel o'z balandligini darhol egallaydi
+     (o'lchangan: kartochka 209 px + 8 px kenglik), lenta esa birinchi
+     lahzadanoq O'Z JOYIDA — pastda turadi. Sahifa umuman sakramaydi. */
+  min-height:217px;
 }
+/* Nuqtalar qatori ham joyini oldindan egallaydi */
+.herodots{min-height:6px}
 .heroscroll.drag{cursor:grabbing}
 .hero-track{
   display:flex;gap:14px;
@@ -2198,6 +2275,7 @@ html[data-theme="dark"] ::selection{background:transparent}
   .dayrow-sect .dayrow-in{padding:4px 2px 10px;gap:18px}
   .dayrow-sect .daycard{width:300px;padding:18px 19px 17px;border-radius:24px}
   .herocard{width:420px;padding:28px;border-radius:26px}
+  .heroscroll{min-height:241px}
   .herocard .num{font-size:38px}
   .ptiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
   .ptile{padding:22px;border-radius:22px}
@@ -2581,7 +2659,7 @@ html[data-theme="dark"] ::selection{background:transparent}
          turadi. Internet bo'lmasa ham shu holatda qolaveradi; baza
          javob bergach, haqiqiy story'lar bilan almashtiriladi
          (qarang: renderStories()). -->
-    <div class="stories on" id="homeStories" aria-label="Toifalar"><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span></div>
+    <div class="stories on" id="homeStories" aria-label="Toifalar"><span class="story st-sk" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span></div>
 
     <div class="sect">
       <div class="sect-h"><h2 data-t="Tavsiya etiladi">Tavsiya etiladi</h2></div>
@@ -2890,6 +2968,7 @@ html[data-theme="dark"] ::selection{background:transparent}
       <img class="stv-fon" id="stvFon" alt="" aria-hidden="true">
       <img class="stv-img" id="stvImg" alt="">
       <video class="stv-vid" id="stvVid" playsinline webkit-playsinline preload="auto"></video>
+      <span class="stv-yuk" id="stvYuk" style="display:none" aria-hidden="true"></span>
     </div>
   </div>
   <button class="stv-zone stv-prev" id="stvPrev" type="button" aria-label="Oldingi"></button>
@@ -4624,7 +4703,7 @@ function stOldinYukla(){
 function stSkelet(n){
   let h = '';
   for(let i = 0; i < n; i++){
-    h += '<span class="story st-sk shim" aria-hidden="true">'
+    h += '<span class="story st-sk" aria-hidden="true">'
        + '<span class="story-ring"><span class="story-in"></span></span><b></b></span>';
   }
   return h;
@@ -7291,6 +7370,7 @@ let ST_QOLDI = ST_DAVOM;      // to'xtatilganda qolgan vaqt
 let ST_YURDI = 0;             // hozirgi kadr qachon boshlangan
 let ST_KADR = 0;              // hozirgi story ichidagi kadr raqami
 let ST_OVOZ = false;          // video ovozi yoqilganmi (mijoz tanlaydi)
+let ST_NAVBAT = 0;            // yuklash navbati (eskisi bekor qilinadi)
 const STORY_OBJS = {};        // savdo raqamlari — buyurtma oynasi uchun
 
 /* Server funksiyasiga so'rov. Javob kelmasa — jim o'tib ketamiz
@@ -7321,6 +7401,8 @@ function stvVideoni(toxtat){
 
 function stvYop(){
   clearTimeout(ST_TIMER);
+  ST_NAVBAT++;                /* kutayotgan yuklash bekor bo'lsin */
+  const yk = $('#stvYuk'); if(yk) yk.style.display = 'none';
   const vd = $('#stvVid');
   if(vd){ try{ vd.pause(); vd.removeAttribute('src'); vd.load(); }catch(e){} }
   const v = $('#stView');
@@ -7342,18 +7424,43 @@ function stvKorildi(s){
   renderStories();        /* halqa "ko'rilgan" holatiga o'tadi */
 }
 
-/* Keyingi KADR rasmini oldindan yuklash (video emas — internet tejaladi) */
-function stvOldin(){
-  const k = stvKadrlar();
-  const keyingi = k[ST_KADR + 1];
-  if(keyingi && keyingi.tur === 'rasm'){
-    const im = new Image(); im.decoding = 'async'; im.src = keyingi.url;
+/* ---------- RASM KESHI ----------
+   V88 (mijoz so'rovi: "oq bo'lib turib keyin ochilyabdi").
+   Ilgari faqat KEYINGI bitta rasm oldindan yuklanardi — mijoz tez
+   bossa, rasm hali kelmagan bo'lardi va kadr BO'SH ochilardi.
+   Endi: story ochilishi bilan uning HAMMA rasmlari (10 tagacha,
+   har biri ~200 KB) va keyingi story'ning birinchi rasmi oldindan
+   yuklanadi. Rasm obyektlari shu keshda saqlanadi — demak kadr
+   almashganda brauzer uni qaytadan so'ramaydi, DARHOL chizadi. */
+const ST_RASM_KESH = new Map();
+
+function stvRasmOl(url){
+  let im = ST_RASM_KESH.get(url);
+  if(!im){
+    im = new Image();
+    im.decoding = 'async';
+    im.src = url;
+    ST_RASM_KESH.set(url, im);
+    /* Kesh cheksiz o'smasin */
+    if(ST_RASM_KESH.size > 40){
+      const birinchi = ST_RASM_KESH.keys().next().value;
+      ST_RASM_KESH.delete(birinchi);
+    }
   }
-  /* Keyingi story'ning birinchi kadri ham */
+  return im;
+}
+function stvRasmTayyor(url){
+  const im = ST_RASM_KESH.get(url);
+  return !!(im && im.complete && im.naturalWidth);
+}
+
+/* Hozirgi story'ning hamma rasmlari + keyingisining birinchisi */
+function stvOldin(){
+  stvKadrlar().forEach(k => { if(k.tur === 'rasm') stvRasmOl(k.url); });
   const s2 = STORIES[ST_IDX + 1];
   if(s2){
-    const k2 = stKadrlar(s2)[0];
-    if(k2 && k2.tur === 'rasm'){ const im = new Image(); im.decoding = 'async'; im.src = k2.url; }
+    const k2 = stKadrlar(s2).find(k => k.tur === 'rasm');
+    if(k2) stvRasmOl(k2.url);
   }
 }
 
@@ -7417,6 +7524,19 @@ function stvChiziqlar(jami, davom){
   if(hozir) hozir.style.animationDuration = Math.max(600, davom) + 'ms';
 }
 
+/* Yangi kadr qaysi tomondan kirib kelsin: +1 o'ngdan, -1 chapdan,
+   0 — animatsiyasiz (oyna endi ochilganda). */
+let ST_YON = 0;
+
+function stvOtish(ram){
+  ram.classList.remove('kir-ong', 'kir-chap', 'suriladi', 'qaytadi');
+  ram.style.transform = '';
+  if(!ST_YON) return;
+  /* Animatsiyani qayta ishga tushirish uchun brauzerni "uyg'otamiz" */
+  void ram.offsetWidth;
+  ram.classList.add(ST_YON > 0 ? 'kir-ong' : 'kir-chap');
+}
+
 function stvChiz(){
   const s = STORIES[ST_IDX];
   if(!s){ stvYop(); return; }
@@ -7428,61 +7548,102 @@ function stvChiz(){
   const likes = stSet(ST_LIKE_KEY);
 
   const ram = $('#stvRamka'), im = $('#stvImg'), fon = $('#stvFon'), vd = $('#stvVid'), ov = $('#stvOvoz');
-  ram.classList.remove('keldi'); im.classList.remove('keldi');
-  fon.classList.remove('keldi'); vd.classList.remove('keldi');
   clearTimeout(ST_TIMER);
 
+  /* ---------- TAYYOR BO'LMAGUNCHA ESKI KADR TURADI ----------
+     Mijoz so'rovi: "yonni bossa rasm oq bo'lib turib keyin ochilyabdi".
+     Sabab — kadr darhol almashtirilardi, rasm esa keyin kelardi.
+     Endi tartib boshqacha: avval media TAYYORLANADI, faqat shundan
+     keyin ekran almashadi. Kutilayotgan paytda eski kadr ko'rinib
+     turadi va ustida kichik aylana aylanadi (180 ms dan keyin — ya'ni
+     keshdagi rasmda u umuman ko'rinmaydi).
+     `navbat` — mijoz kutmasdan yana bossa, eski yuklash BEKOR bo'ladi
+     va ekranda faqat oxirgi tanlangan kadr chiziladi. */
+  const navbat = ++ST_NAVBAT;
+  const yuk = $('#stvYuk');
+  const yukKorsat = (b)=>{ if(yuk) yuk.style.display = b ? '' : 'none'; };
+
+  function chizib(davom){
+    if(navbat !== ST_NAVBAT) return;        /* mijoz boshqa kadrga o'tdi */
+    yukKorsat(false);
+    ram.classList.remove('keldi'); im.classList.remove('keldi');
+    fon.classList.remove('keldi'); vd.classList.remove('keldi');
+    stvOtish(ram);
+
+    if(kadr.tur === 'video'){
+      im.removeAttribute('src'); im.style.display = 'none';
+      fon.removeAttribute('src');
+      vd.style.display = '';
+      ov.classList.add('bor');
+      vd.muted = !ST_OVOZ;
+      stvOvozIc();
+      ram.classList.add('keldi'); vd.classList.add('keldi');
+      try{ vd.currentTime = 0; vd.play().catch(()=>{}); }catch(e){}
+    }else{
+      try{ vd.pause(); vd.removeAttribute('src'); }catch(e){}
+      vd.style.display = 'none';
+      ov.classList.remove('bor');
+      im.style.display = '';
+      im.src = kadr.url;
+      fon.src = kadr.url;        /* xira orqa fon — o'sha rasmning nusxasi */
+      ram.classList.add('keldi'); im.classList.add('keldi'); fon.classList.add('keldi');
+    }
+
+    $('#stvAva').src = stRasmOk(s.doira) ? s.doira : (kadr.tur === 'rasm' ? kadr.url : '');
+    $('#stvNom').textContent = s.nom || '';
+    const lk = $('#stvLike');
+    lk.classList.toggle('on', likes.has(s.id));
+    $('#stvLikeN').textContent = stSonAniq(stLikeSoni(s));
+    stvSavdoChiz(kadr);
+    stvHavola(s, kadr);
+
+    stvChiziqlar(kadrlar.length, davom);
+    ST_QOLDI = davom; ST_YURDI = Date.now();
+    clearTimeout(ST_TIMER);
+    ST_TIMER = setTimeout(()=> stvKeyingi(1), davom);
+
+    stvKorildi(s);
+    stvOldin();
+  }
+
   if(kadr.tur === 'video'){
-    /* ---- VIDEO KADR ---- */
-    im.removeAttribute('src'); im.style.display = 'none';
-    vd.style.display = '';
-    ov.classList.add('bor');
-    vd.muted = !ST_OVOZ;
+    /* ---- VIDEO: birinchi kadri kelguncha kutamiz ---- */
     vd.src = kadr.url;
-    fon.removeAttribute('src');
-    stvOvozIc();
-    /* Chiziq uzunligi videoning O'Z davomiyligidan olinadi */
     const boshla = ()=>{
       const d = Math.min(30000, Math.max(1500,
         (isFinite(vd.duration) && vd.duration > 0) ? vd.duration * 1000 : (kadr.davomMs || 8000)));
-      ram.classList.add('keldi'); vd.classList.add('keldi');
-      stvChiziqlar(kadrlar.length, d);
-      ST_QOLDI = d; ST_YURDI = Date.now();
-      clearTimeout(ST_TIMER);
-      ST_TIMER = setTimeout(()=> stvKeyingi(1), d);
-      try{ vd.currentTime = 0; vd.play().catch(()=>{}); }catch(e){}
+      chizib(d);
     };
-    vd.onloadedmetadata = boshla;
-    vd.onerror = ()=> stvKeyingi(1);
-    if(vd.readyState >= 1) boshla();
-    else stvChiziqlar(kadrlar.length, kadr.davomMs || 8000);
+    if(vd.readyState >= 2) boshla();
+    else{
+      yukKorsat(true);
+      vd.onloadeddata = boshla;
+      vd.onerror = ()=>{ if(navbat === ST_NAVBAT){ yukKorsat(false); stvKeyingi(1); } };
+      /* Juda sekin internet — 6 soniyadan keyin baribir ko'rsatamiz */
+      setTimeout(()=>{ if(navbat === ST_NAVBAT && vd.readyState < 2) boshla(); }, 6000);
+    }
   }else{
-    /* ---- RASM KADR ---- */
-    try{ vd.pause(); vd.removeAttribute('src'); }catch(e){}
-    vd.style.display = 'none';
-    ov.classList.remove('bor');
-    im.style.display = '';
-    im.onload = ()=>{
-      ram.classList.add('keldi'); im.classList.add('keldi'); fon.classList.add('keldi');
-    };
-    im.src = kadr.url;
-    fon.src = kadr.url;          /* xira orqa fon — o'sha rasmning nusxasi */
-    if(im.complete && im.naturalWidth) im.onload();
-    stvChiziqlar(kadrlar.length, ST_DAVOM);
-    ST_QOLDI = ST_DAVOM; ST_YURDI = Date.now();
-    ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_DAVOM);
+    /* ---- RASM: keshda bo'lsa DARHOL, bo'lmasa kelguncha kutamiz ---- */
+    if(stvRasmTayyor(kadr.url)){
+      chizib(ST_DAVOM);
+    }else{
+      yukKorsat(true);
+      const rasm = stvRasmOl(kadr.url);
+      const tayyor = ()=>{ chizib(ST_DAVOM); };
+      rasm.addEventListener('load', tayyor, { once: true });
+      rasm.addEventListener('error', ()=>{
+        if(navbat === ST_NAVBAT){ yukKorsat(false); stvKeyingi(1); }
+      }, { once: true });
+      /* Zaxira: 4 soniyada kelmasa ham ekranni band qilib turmaymiz */
+      setTimeout(()=>{ if(navbat === ST_NAVBAT && yuk && yuk.style.display !== 'none') chizib(ST_DAVOM); }, 4000);
+    }
   }
+}
 
-  $('#stvAva').src = stRasmOk(s.doira) ? s.doira : (kadr.tur === 'rasm' ? kadr.url : '');
-  $('#stvNom').textContent = s.nom || '';
-
-  const lk = $('#stvLike');
-  lk.classList.toggle('on', likes.has(s.id));
-  $('#stvLikeN').textContent = stSonAniq(stLikeSoni(s));
-
-  stvSavdoChiz(kadr);
-
+/* Havola tugmasi (savdo bloki bo'lmagan kadrlarda) */
+function stvHavola(s, kadr){
   const go = $('#stvGo');
+
   /* XAVFSIZLIK: havola FAQAT https:// yoki saytning o'z bo'limi (#/...)
      bo'lsa ko'rsatiladi. Boshqa har qanday havola (javascript:, data:,
      http:) butunlay e'tiborsiz qoldiriladi. */
@@ -7498,9 +7659,6 @@ function stvChiz(){
     go.style.display = 'none';
     go.removeAttribute('href');
   }
-
-  stvKorildi(s);
-  stvOldin();
 }
 
 function stvOvozIc(){
@@ -7512,6 +7670,7 @@ function stvOvozIc(){
 
 /* Keyingi/oldingi: avval KADRLAR ichida yuradi, tugasa — keyingi story */
 function stvKeyingi(yon){
+  ST_YON = yon > 0 ? 1 : -1;
   const kadrlar = stvKadrlar();
   const yangiKadr = ST_KADR + yon;
   if(yangiKadr >= 0 && yangiKadr < kadrlar.length){
@@ -7532,6 +7691,7 @@ function stvOch(i){
   if(!STORIES.length) return;
   ST_IDX = Math.max(0, Math.min(STORIES.length - 1, Number(i) || 0));
   ST_KADR = 0;
+  ST_YON = 0;                 /* oyna ochilganda yon animatsiya kerak emas */
   const v = $('#stView');
   v.classList.add('on');
   document.body.style.overflow = 'hidden';
@@ -7593,8 +7753,15 @@ function stvLike(puf){
            IKKI marta bosish — "yoqdi" (haqiqiy ilovalardagi kabi).
            Shu sabab bitta bosishni 240 ms kutib turamiz. ----- */
   let ikki = null;
+  /* SURILDIMI. Brauzer qisqa surishdan keyin ham `click` yuboradi —
+     natijada barmoq bilan ozgina surib qo'yib yuborilsa, kadr
+     surishdan ham, "bosish" dan ham o'tib ketardi (sinovda aniqlandi:
+     25 px surishdan keyin kadr almashib qolardi). Shu sabab surish
+     bo'lgan bo'lsa, undan keyingi bitta `click` e'tiborsiz qoldiriladi. */
+  let surildi = false;
   function zona(yon){
     return ()=>{
+      if(surildi){ surildi = false; return; }
       if(ikki){ clearTimeout(ikki); ikki = null; stvLike(true); return; }
       ikki = setTimeout(()=>{ ikki = null; stvKeyingi(yon); }, 240);
     };
@@ -7602,8 +7769,13 @@ function stvLike(puf){
   document.getElementById('stvNext').addEventListener('click', zona(1));
   document.getElementById('stvPrev').addEventListener('click', zona(-1));
 
-  /* ----- Pastga surib yopish + bosib turganda to'xtatish ----- */
-  let y0 = null, toxtadi = false;
+  /* ----- Surish: PASTGA — yopish, YONGA — kadr almashtirish -----
+     O'Q QULFI: barmoq qaysi tomonga ko'proq surilgan bo'lsa, shu
+     yo'nalish tanlanadi va gesture oxirigacha o'zgarmaydi. Aks holda
+     biroz qiyshiq surilganda oyna ham yopilib, kadr ham almashardi. */
+  let y0 = null, x0 = null, oq = null, dx = 0, toxtadi = false;
+  const RAM = ()=> v.querySelector('.stv-ramka');
+  const YON_CHEK = 64;          /* shuncha pikseldan keyin kadr almashadi */
   function toxtat(){
     clearTimeout(ST_TIMER);
     ST_QOLDI = Math.max(300, ST_QOLDI - (Date.now() - ST_YURDI));
@@ -7620,18 +7792,61 @@ function stvLike(puf){
     stvVideoni(false);
   }
   v.addEventListener('pointerdown', (e)=>{
-    y0 = e.clientY; toxtadi = true; toxtat();
+    y0 = e.clientY; x0 = e.clientX; oq = null; dx = 0;
+    surildi = false;
+    toxtadi = true; toxtat();
   });
   v.addEventListener('pointermove', (e)=>{
     if(y0 === null) return;
     const dy = e.clientY - y0;
-    if(dy > 0) v.style.transform = 'translate3d(0,' + dy + 'px,0)';
+    dx = e.clientX - x0;
+    /* O'q hali tanlanmagan bo'lsa — qaysi tomon kuchliroq */
+    if(!oq && (Math.abs(dx) > 10 || Math.abs(dy) > 10)){
+      oq = Math.abs(dx) > Math.abs(dy) ? 'yon' : 'tik';
+      surildi = true;                 /* keyingi `click` o'tkazib yuboriladi */
+      if(oq === 'yon'){ const r = RAM(); if(r) r.classList.add('suriladi'); }
+    }
+    if(oq === 'tik'){
+      if(dy > 0) v.style.transform = 'translate3d(0,' + dy + 'px,0)';
+    }else if(oq === 'yon'){
+      const r = RAM(); if(!r) return;
+      /* Chekkadan tashqarida qarshilik (rubber-band) */
+      const k = Math.abs(dx) > 150 ? 0.42 : 1;
+      const surish = dx * k;
+      const burchak = Math.max(-16, Math.min(16, -surish / 11));
+      r.style.transform = 'translate3d(' + surish + 'px,0,0) rotateY('
+        + burchak + 'deg) scale(' + (1 - Math.min(0.07, Math.abs(surish) / 2600)) + ')';
+    }
   });
   const tugat = (e)=>{
     if(y0 === null) return;
     const dy = (e && e.clientY != null) ? e.clientY - y0 : 0;
-    y0 = null;
+    const sonDx = dx;
+    const oqEdi = oq;
+    y0 = null; x0 = null; oq = null; dx = 0;
     v.style.transform = '';
+
+    if(oqEdi === 'yon'){
+      const r = RAM();
+      if(Math.abs(sonDx) > YON_CHEK){
+        /* Chapga surish = KEYINGI (barmoq yo'nalishiga teskari — xuddi
+           haqiqiy ilovadagi kabi: sahifani chapga itarasiz, keyingisi
+           keladi) */
+        if(r) r.classList.remove('suriladi');
+        stvKeyingi(sonDx < 0 ? 1 : -1);
+        return;
+      }
+      /* Yetarli surilmadi — joyiga qaytadi */
+      if(r){
+        r.classList.remove('suriladi');
+        r.classList.add('qaytadi');
+        r.style.transform = '';
+        setTimeout(()=>{ try{ r.classList.remove('qaytadi'); }catch(e){} }, 280);
+      }
+      if(toxtadi){ toxtadi = false; davom(); }
+      return;
+    }
+
     if(dy > 90){ stvYop(); return; }
     if(toxtadi){ toxtadi = false; davom(); }
   };
