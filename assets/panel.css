@@ -5004,6 +5004,45 @@ body{
 /* Ramka — saytdagi kabi to'rtburchak (doira emas) */
 .st-doira{border-radius:16px !important}
 .st-doira img{border-radius:inherit}
+/* ---------- V85: KADRLAR (10 tagacha rasm/video) ---------- */
+.st-kadr-bosh{display:flex;align-items:center;gap:10px;margin:14px 0 8px}
+.st-kadr-bosh b{font-size:13.5px}
+.st-kadr-soni{font-size:12px;font-weight:700;color:var(--muted);
+  background:var(--tint);border-radius:999px;padding:3px 10px}
+.st-kadr-list{display:grid;gap:9px}
+.st-kadr{
+  display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;
+  padding:10px 11px;border:1px solid var(--line);border-radius:14px;background:var(--panel-2);
+}
+.st-kadr.ochiq{border-color:var(--amber);box-shadow:0 0 0 2px rgba(251,191,36,.16)}
+.st-kadr-ras{position:relative;width:48px;height:48px;border-radius:13px;overflow:hidden;
+  flex:none;background:var(--tint);display:flex;align-items:center;justify-content:center}
+.st-kadr-ras img{width:100%;height:100%;object-fit:cover;display:block}
+.st-kadr-vid{font-size:22px}
+.st-kadr-tur{
+  position:absolute;left:0;right:0;bottom:0;font-style:normal;text-align:center;
+  font-size:8px;font-weight:800;letter-spacing:.06em;color:#fff;background:rgba(0,0,0,.55);
+}
+.st-kadr-mat{min-width:0}
+.st-kadr-mat b{display:block;font-size:13px}
+.st-kadr-mat span{display:block;font-size:11.5px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-kadr-sv{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--amber);margin-top:2px}
+.st-kadr-act{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.st-kadr-forma{grid-column:1/-1;border-top:1px solid var(--line);padding-top:11px;margin-top:3px}
+.st-kadr-qator{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:9px}
+.st-kadr-qator label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:var(--text-2)}
+.st-kadr-qator input,.st-kadr-qator select{
+  font-family:inherit;font-size:13px;padding:9px 10px;border-radius:10px;
+  border:1px solid var(--line);background:var(--panel);color:var(--text);
+}
+.st-stat .st-kad b,.st-stat .st-sv b{color:var(--text)}
+.st-stat .st-sv{color:var(--amber)}
+@media (max-width:560px){
+  .st-kadr{grid-template-columns:auto 1fr}
+  .st-kadr-act{grid-column:1/-1;justify-content:flex-start}
+  .st-kadr-qator{grid-template-columns:1fr}
+}
 @media (max-width:700px){
   .st-row{flex-wrap:wrap}
   .st-act{width:100%;justify-content:flex-start}

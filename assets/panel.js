@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=83) ham oshiring.
+   havolaning oxiridagi raqamni (?v=85) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -10920,45 +10920,43 @@ document.getElementById('xavfYoqBtn') && document.getElementById('xavfYoqBtn')
 /* ==================================================================
    STORIES — bosh sahifadagi lenta (admin tomoni)
    ------------------------------------------------------------------
-   Nima qiladi: nom + rasm + (ixtiyoriy) havola. Rasm Firebase
-   Storage'ga yuklanadi, Firestore'dagi `stories` hujjatida esa nomi,
-   tartibi, holati va HISOBLAGICHLAR turadi.
+   V85 — bitta toifada 10 TAGACHA kadr (rasm yoki video), har biriga
+   alohida "savdo bloki" (raqam + narx) qo'yish mumkin.
 
-   V83 — nima yangi:
-     • TAHRIRLASH: har bir story'ning nomi, havolasi va rasmini
-       keyin ham o'zgartirish mumkin (ilgari faqat o'chirib, qaytadan
-       qo'shish kerak edi);
-     • YURAKCHALAR: story qo'shilganda unga boshlang'ich son beriladi
-       — 1000 dan 3000 gacha TASODIFIY (`likesBaza`). Mijoz shu songa
-       qo'shilib boradigan sonni ko'radi. Admin panelda esa ikkisi
-       AJRATIB ko'rsatiladi: haqiqiy mijozlar bosgani va saytda
-       ko'rinadigan umumiy son;
-     • KO'RISHLAR har doim HAQIQIY (mijoz so'rovi). Hisoblagich endi
-       brauzerdan emas, server funksiyasidan (api-story-stat) o'tadi:
-       u IP bo'yicha cheklaydi va bitta ko'rishni 6 soatda bir marta
-       sanaydi. Shu sabab bu yerdagi son ishonchli.
+   TUZILISHI (Firestore `stories` hujjati):
+     nom, doira (lentadagi qoplama), tartib, faol, havola,
+     views, likes, likesBaza,
+     kadrlar: [
+       { tur:'rasm'|'video', url, yol, davomMs,
+         savdo:{ raqam, narx, oyiga, eskiNarx, operator } }   // ixtiyoriy
+     ]
+   Eski story'larda `kadrlar` yo'q — ular bitta rasmli story sifatida
+   o'qiladi, ya'ni hech narsa buzilmaydi.
 
-   RASM: admin 9 MB gacha fayl tanlashi mumkin, lekin saytga O'SHA
-   KATTALIKDA yuborilmaydi — brauzerning o'zida ikkita o'lchamga
-   siqiladi:
-     * lenta ramkasi uchun 256x256 (kvadrat qirqim);
-     * to'liq ekran uchun eng katta tomoni 1280 px.
+   RASM: admin 9 MB gacha tanlaydi, lekin saytga o'sha kattalikda
+   yuborilmaydi — brauzerning o'zida 1280 px ga siqiladi (qoplama esa
+   256x256 kvadrat). VIDEO: 50 MB gacha, o'zgartirilmasdan yuklanadi
+   (brauzerda videoni siqib bo'lmaydi).
 
-   XAVFSIZLIK: yuklash FAQAT admin uchun (Storage qoidalarida
-   `request.auth != null` + 9 MB + faqat `image/*`), Firestore'da esa
-   yozish `hasPerm('stories')` bilan. Qoidalar bundan tashqari nom
-   uzunligini, havola turini (faqat https:// yoki #/...) va rasm
-   manzilini (faqat Firebase Storage) ham tekshiradi — ya'ni admin
-   hisobi o'g'irlansa ham lentaga begona skript joylab bo'lmaydi.
+   XAVFSIZLIK: yuklash faqat admin uchun (Storage qoidalari), Firestore
+   qoidalari esa nom uzunligini, havola turini (faqat https:// yoki
+   #/...), rasm manzilini (faqat Firebase Storage) va kadrlar sonini
+   (10 tadan oshmasin) tekshiradi. Sayt tomoni ham har bir kadr
+   manzilini qaytadan tekshiradi — ikki qatlam.
    ================================================================== */
 let ST_ROYXAT = [];
-let ST_FAYL = null;            // tanlangan rasm (siqilgandan keyin)
 let ST_TAHRIR = null;          // tahrirlanayotgan story id (yo'q bo'lsa — yangi)
+let ST_KADRLAR = [];           // formadagi kadrlar ro'yxati
+let ST_QOPLAMA = null;         // alohida tanlangan qoplama (ixtiyoriy)
+let ST_OCHIR = [];             // tahrirda olib tashlangan eski fayl yo'llari
+
+const ST_KADR_MAX = 10;
+const ST_RASM_MAX = 9 * 1024 * 1024;     // 9 MB
+const ST_VIDEO_MAX = 50 * 1024 * 1024;   // 50 MB
 
 /* Boshlang'ich yurakchalar soni: 1000..3000 (mijoz so'rovi) */
 const ST_LIKE_PAST = 1000, ST_LIKE_YUQORI = 3000;
 function stLikeBaza(){
-  /* Taxmin qilib bo'lmaydigan tasodif — brauzerning o'z generatori */
   try{
     const a = new Uint32Array(1);
     crypto.getRandomValues(a);
@@ -10967,11 +10965,10 @@ function stLikeBaza(){
     return ST_LIKE_PAST + Math.floor(Math.random() * (ST_LIKE_YUQORI - ST_LIKE_PAST + 1));
   }
 }
-function stSonQisqa(n){
-  n = Number(n) || 0;
-  if(n >= 1000000) return (n/1000000).toFixed(n % 1000000 >= 100000 ? 1 : 0).replace('.0','') + 'M';
-  if(n >= 1000) return (n/1000).toFixed(n % 1000 >= 100 ? 1 : 0).replace('.0','') + 'K';
-  return String(n);
+/* Mijoz ekranidagi kabi — ANIQ son, minglar ajratilgan */
+function stSonAniq(n){
+  n = Math.max(0, Math.round(Number(n) || 0));
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
 /* Rasmni kvadrat qirqib, kerakli o'lchamga siqadi (brauzerning o'zida) */
@@ -11005,167 +11002,343 @@ function stRasmSiq(file, olcham, kvadrat){
   });
 }
 
+function stXabar(matn, yomon){
+  const msg = document.getElementById('stMsg');
+  if(!msg) return;
+  msg.textContent = matn || '';
+  msg.style.color = yomon ? 'var(--red)' : '';
+}
+
+/* ---------- KADR TANLASH (bir nechta fayl birdan) ---------- */
 (function stFaylTanlash(){
   const inp = document.getElementById('stFayl');
   if(!inp) return;
   inp.addEventListener('change', async ()=>{
-    const f = inp.files && inp.files[0];
-    const box = document.getElementById('stOldin');
-    const msg = document.getElementById('stMsg');
-    ST_FAYL = null;
-    if(!f){ if(box) box.style.display = 'none'; return; }
-    msg.textContent = '';
-    /* 9 MB — mijoz so'ragan chegara */
-    if(f.size > 9 * 1024 * 1024){
-      msg.textContent = "Rasm 9 MB dan katta (" + (f.size/1048576).toFixed(1) + " MB). Kichikrog‘ini tanlang.";
-      msg.style.color = 'var(--red)';
-      inp.value = ''; if(box) box.style.display = 'none';
+    const fayllar = Array.from(inp.files || []);
+    inp.value = '';
+    if(!fayllar.length) return;
+    if(ST_KADRLAR.length + fayllar.length > ST_KADR_MAX){
+      stXabar('Bitta toifaga eng ko‘pi bilan ' + ST_KADR_MAX + ' ta kadr qo‘yiladi. '
+        + 'Hozir ' + ST_KADRLAR.length + ' ta bor.', true);
       return;
     }
-    if(!/^image\//.test(f.type)){
-      msg.textContent = 'Faqat rasm fayli (JPG, PNG, WEBP) qabul qilinadi.';
-      msg.style.color = 'var(--red)';
-      inp.value = ''; return;
+    stXabar('Fayllar tayyorlanmoqda...');
+    for(const f of fayllar){
+      try{
+        if(/^video\//.test(f.type)){
+          if(f.size > ST_VIDEO_MAX){
+            stXabar('"' + f.name + '" — video 50 MB dan katta ('
+              + (f.size/1048576).toFixed(1) + ' MB). Qisqarog‘ini tanlang.', true);
+            continue;
+          }
+          ST_KADRLAR.push({ tur:'video', yangi:true, fayl:f, nom:f.name,
+            oldin:URL.createObjectURL(f), olcham:f.size, savdo:null });
+        }else if(/^image\//.test(f.type)){
+          if(f.size > ST_RASM_MAX){
+            stXabar('"' + f.name + '" — rasm 9 MB dan katta ('
+              + (f.size/1048576).toFixed(1) + ' MB). Kichikrog‘ini tanlang.', true);
+            continue;
+          }
+          const toliq = await stRasmSiq(f, 1280, false);
+          const doira = await stRasmSiq(f, 256, true);
+          ST_KADRLAR.push({ tur:'rasm', yangi:true, blob:toliq, qoplama:doira, nom:f.name,
+            oldin:URL.createObjectURL(doira), olcham:toliq.size, savdo:null });
+        }else{
+          stXabar('"' + f.name + '" — faqat rasm yoki video qabul qilinadi.', true);
+        }
+      }catch(e){ stXabar('"' + f.name + '": ' + e.message, true); }
     }
-    try{
-      msg.style.color = ''; msg.textContent = 'Rasm tayyorlanmoqda...';
-      const doira = await stRasmSiq(f, 256, true);
-      const toliq = await stRasmSiq(f, 1280, false);
-      ST_FAYL = { doira, toliq, nom: f.name };
-      if(box){
-        box.style.display = 'flex';
-        document.getElementById('stOldinImg').src = URL.createObjectURL(doira);
-        document.getElementById('stOldinMatn').textContent =
-          (f.size/1048576).toFixed(1) + ' MB → ' +
-          ((doira.size + toliq.size)/1024).toFixed(0) + ' KB (siqildi)';
-      }
-      msg.textContent = '';
-    }catch(e){
-      msg.textContent = 'Xato: ' + e.message; msg.style.color = 'var(--red)';
-    }
+    stKadrChiz();
+    if(!document.getElementById('stMsg').style.color) stXabar('');
   });
 })();
 
-/* Havolani tekshirish — Firestore qoidalari bilan AYNAN bir xil shart.
-   Shunday qilib admin "nega saqlanmadi" deb o'ylab qolmaydi: sabab
-   darhol ekranda yoziladi. */
+/* Alohida qoplama rasmi (ixtiyoriy) */
+(function stQoplamaTanlash(){
+  const inp = document.getElementById('stQoplama');
+  if(!inp) return;
+  inp.addEventListener('change', async ()=>{
+    const f = inp.files && inp.files[0];
+    if(!f) return;
+    if(!/^image\//.test(f.type)){ stXabar('Qoplama faqat rasm bo‘ladi.', true); inp.value=''; return; }
+    if(f.size > ST_RASM_MAX){ stXabar('Qoplama 9 MB dan katta.', true); inp.value=''; return; }
+    try{
+      ST_QOPLAMA = await stRasmSiq(f, 256, true);
+      const im = document.getElementById('stQopImg');
+      if(im){ im.src = URL.createObjectURL(ST_QOPLAMA); im.parentElement.style.display=''; }
+      stXabar('');
+    }catch(e){ stXabar(e.message, true); }
+  });
+})();
+
+/* ---------- KADRLAR RO'YXATI (formada) ---------- */
+function stKadrChiz(){
+  const box = document.getElementById('stKadrlar');
+  const soni = document.getElementById('stKadrSoni');
+  if(!box) return;
+  if(soni) soni.textContent = ST_KADRLAR.length + ' / ' + ST_KADR_MAX;
+  if(!ST_KADRLAR.length){
+    box.innerHTML = '<div class="wt-empty" style="padding:14px">Hali kadr qo‘shilmagan. '
+      + 'Yuqoridan rasm yoki video tanlang (birdan bir nechtasini ham bo‘ladi).</div>';
+    return;
+  }
+  box.innerHTML = ST_KADRLAR.map((k, i) => {
+    const sv = k.savdo || {};
+    const ochiq = !!k.savdoOchiq;
+    const oldin = k.oldin || k.qoplamaUrl || (k.tur === 'rasm' ? k.url : '');
+    return `
+    <div class="st-kadr${ochiq ? ' ochiq' : ''}">
+      <span class="st-kadr-ras">
+        ${oldin ? `<img src="${escapeHtml(oldin)}" alt="">` : '<span class="st-kadr-vid">🎬</span>'}
+        <i class="st-kadr-tur">${k.tur === 'video' ? 'VIDEO' : 'RASM'}</i>
+      </span>
+      <div class="st-kadr-mat">
+        <b>${i + 1}-kadr</b>
+        <span>${escapeHtml(k.nom || '')}${k.olcham ? ' · ' + (k.olcham/1024).toFixed(0) + ' KB' : ''}</span>
+        ${k.savdo ? `<em class="st-kadr-sv">🛒 ${escapeHtml(k.savdo.raqam || '')} — ${stSonAniq(k.savdo.narx)} so'm</em>` : ''}
+      </div>
+      <div class="st-kadr-act">
+        <button class="btn btn-ghost btn-sm" data-kup="${i}" ${i===0?'disabled':''} title="Yuqoriga">▲</button>
+        <button class="btn btn-ghost btn-sm" data-kdown="${i}" ${i===ST_KADRLAR.length-1?'disabled':''} title="Pastga">▼</button>
+        <button class="btn btn-ghost btn-sm" data-ksv="${i}">${k.savdo ? '🛒 Savdo bor' : '🛒 Savdo'}</button>
+        <button class="btn btn-dan btn-sm" data-kdel="${i}">&#10005;</button>
+      </div>
+      <div class="st-kadr-forma" ${ochiq ? '' : 'style="display:none"'}>
+        <p class="op-note" style="margin:0 0 8px">
+          Shu kadr ochilganda pastda <b>buyurtma kartochkasi</b> chiqadi: raqam, narxi va
+          "Buyurtma" tugmasi. Tugma bosilsa — saytning o'z buyurtma oynasi ochiladi.
+          Bo'sh qoldirsangiz, kartochka ko'rsatilmaydi.
+        </p>
+        <div class="st-kadr-qator">
+          <label>Raqam<input type="text" data-kf="raqam" data-ki="${i}" placeholder="+998 90 123 45 67" value="${escapeHtml(sv.raqam || '')}"></label>
+          <label>Narxi (so'm)<input type="number" data-kf="narx" data-ki="${i}" placeholder="25000000" value="${sv.narx || ''}"></label>
+        </div>
+        <div class="st-kadr-qator">
+          <label>Oyiga (24 oy, ixtiyoriy)<input type="number" data-kf="oyiga" data-ki="${i}" placeholder="1250000" value="${sv.oyiga || ''}"></label>
+          <label>Eski narx (ixtiyoriy)<input type="number" data-kf="eskiNarx" data-ki="${i}" placeholder="30000000" value="${sv.eskiNarx || ''}"></label>
+        </div>
+        <div class="st-kadr-qator">
+          <label>Operator (ixtiyoriy)
+            <select data-kf="operator" data-ki="${i}">
+              <option value="">—</option>
+              ${['Beeline','Ucell','Humans','Mobiuz','Uzmobile','Perfektum'].map(o =>
+                `<option value="${o}" ${sv.operator === o ? 'selected' : ''}>${o}</option>`).join('')}
+            </select></label>
+          <label style="align-self:end">
+            <button class="btn btn-ghost btn-sm" data-ksvoch="${i}" type="button">Savdoni olib tashlash</button>
+          </label>
+        </div>
+      </div>
+    </div>`; }).join('');
+
+  const kochir = (i, j)=>{
+    if(j < 0 || j >= ST_KADRLAR.length) return;
+    const t = ST_KADRLAR[i]; ST_KADRLAR[i] = ST_KADRLAR[j]; ST_KADRLAR[j] = t;
+    stKadrChiz();
+  };
+  box.querySelectorAll('[data-kup]').forEach(b => b.onclick = ()=> kochir(+b.dataset.kup, +b.dataset.kup - 1));
+  box.querySelectorAll('[data-kdown]').forEach(b => b.onclick = ()=> kochir(+b.dataset.kdown, +b.dataset.kdown + 1));
+  box.querySelectorAll('[data-kdel]').forEach(b => b.onclick = ()=>{
+    const i = +b.dataset.kdel;
+    const k = ST_KADRLAR[i];
+    if(k && !k.yangi && k.yol) ST_OCHIR.push(k.yol);   /* saqlashda Storage'dan o'chadi */
+    ST_KADRLAR.splice(i, 1);
+    stKadrChiz();
+  });
+  box.querySelectorAll('[data-ksv]').forEach(b => b.onclick = ()=>{
+    const i = +b.dataset.ksv;
+    ST_KADRLAR[i].savdoOchiq = !ST_KADRLAR[i].savdoOchiq;
+    if(ST_KADRLAR[i].savdoOchiq && !ST_KADRLAR[i].savdo) ST_KADRLAR[i].savdo = { raqam:'', narx:0 };
+    stKadrChiz();
+  });
+  box.querySelectorAll('[data-ksvoch]').forEach(b => b.onclick = ()=>{
+    const i = +b.dataset.ksvoch;
+    ST_KADRLAR[i].savdo = null; ST_KADRLAR[i].savdoOchiq = false;
+    stKadrChiz();
+  });
+  box.querySelectorAll('[data-kf]').forEach(el => {
+    el.oninput = el.onchange = ()=>{
+      const i = +el.dataset.ki, f = el.dataset.kf;
+      ST_KADRLAR[i].savdo = ST_KADRLAR[i].savdo || { raqam:'', narx:0 };
+      ST_KADRLAR[i].savdo[f] = (f === 'raqam' || f === 'operator') ? el.value : (Number(el.value) || 0);
+    };
+  });
+}
+
+/* Havolani tekshirish — Firestore qoidalari bilan AYNAN bir xil shart. */
 function stHavolaOk(h){
   if(!h) return true;
   return /^https:\/\/[^\s"'<>]+$/.test(h) || /^#\/[A-Za-z0-9\/-]*$/.test(h);
 }
+/* Savdo bloki to'liq to'ldirilganmi */
+function stSavdoToliq(sv){
+  if(!sv) return null;
+  const raqam = String(sv.raqam || '').replace(/\D/g, '');
+  if(raqam.length < 9 || !(Number(sv.narx) > 0)) return null;
+  return {
+    raqam: '+998 ' + raqam.slice(-9).replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4'),
+    narx: Number(sv.narx) || 0,
+    oyiga: Number(sv.oyiga) || 0,
+    eskiNarx: Number(sv.eskiNarx) || 0,
+    operator: String(sv.operator || '').slice(0, 20)
+  };
+}
 
 /* Formani bo'shatish / tahrir rejimidan chiqish */
 function stFormaTozala(){
-  ST_TAHRIR = null; ST_FAYL = null;
+  ST_TAHRIR = null; ST_KADRLAR = []; ST_QOPLAMA = null; ST_OCHIR = [];
   const q = (id)=> document.getElementById(id);
   if(q('stNom')) q('stNom').value = '';
   if(q('stHavola')) q('stHavola').value = '';
   if(q('stFayl')) q('stFayl').value = '';
-  if(q('stOldin')) q('stOldin').style.display = 'none';
+  if(q('stQoplama')) q('stQoplama').value = '';
+  if(q('stQop')) q('stQop').style.display = 'none';
   if(q('stYuklaBtn')) q('stYuklaBtn').textContent = '⬆️ Qo‘shish';
   if(q('stBekorBtn')) q('stBekorBtn').style.display = 'none';
   if(q('stRejim')) q('stRejim').textContent = '';
+  stXabar('');
+  stKadrChiz();
 }
 
-/* Tahrirlashni boshlash: mavjud story ma'lumotini formaga qo'yamiz */
+/* Tahrirlashni boshlash */
 function stTahrirBoshla(id){
   const s = ST_ROYXAT.find(x => x.id === id);
   if(!s) return;
-  ST_TAHRIR = id; ST_FAYL = null;
+  ST_TAHRIR = id; ST_QOPLAMA = null; ST_OCHIR = [];
   document.getElementById('stNom').value = s.nom || '';
   document.getElementById('stHavola').value = s.havola || '';
   document.getElementById('stFayl').value = '';
-  const old = document.getElementById('stOldin');
-  if(old){
-    old.style.display = 'flex';
-    document.getElementById('stOldinImg').src = s.doira || s.rasm || '';
-    document.getElementById('stOldinMatn').textContent = 'Hozirgi rasm — o‘zgartirmasangiz shu qoladi';
+  document.getElementById('stQoplama').value = '';
+
+  /* Mavjud kadrlarni formaga olamiz (eski ko'rinish — bitta rasm) */
+  const bor = Array.isArray(s.kadrlar) && s.kadrlar.length
+    ? s.kadrlar
+    : (s.rasm ? [{ tur:'rasm', url:s.rasm, yol:s.yol }] : []);
+  ST_KADRLAR = bor.slice(0, ST_KADR_MAX).map((k, i) => ({
+    tur: k.tur === 'video' ? 'video' : 'rasm',
+    url: k.url, yol: k.yol, yangi: false,
+    nom: (k.tur === 'video' ? 'video' : 'rasm') + ' ' + (i + 1),
+    oldin: k.tur === 'video' ? (s.doira || '') : k.url,
+    savdo: k.savdo || null, savdoOchiq: false
+  }));
+
+  const qop = document.getElementById('stQop');
+  if(qop && (s.doira || s.rasm)){
+    qop.style.display = '';
+    document.getElementById('stQopImg').src = s.doira || s.rasm;
   }
   document.getElementById('stYuklaBtn').textContent = '💾 Saqlash';
   const bek = document.getElementById('stBekorBtn');
   if(bek) bek.style.display = '';
   const rej = document.getElementById('stRejim');
   if(rej) rej.textContent = 'Tahrirlanmoqda: ' + (s.nom || '');
-  const msg = document.getElementById('stMsg');
-  if(msg){ msg.style.color = ''; msg.textContent = ''; }
-  /* Forma ekranda ko'rinsin */
+  stXabar('');
+  stKadrChiz();
   try{ document.getElementById('stNom').scrollIntoView({ block:'center', behavior:'smooth' }); }catch(e){}
   document.getElementById('stNom').focus();
+}
+
+/* Bitta blobni Storage'ga yuklab, manzilini qaytaradi */
+async function stFaylYukla(yol, blob, tur){
+  const r = storage.ref().child(yol);
+  await r.put(blob, { contentType: tur, cacheControl: 'public,max-age=31536000' });
+  return await r.getDownloadURL();
 }
 
 /* Qo'shish VA tahrirlash — bitta funksiya */
 async function stYukla(){
   const btn = document.getElementById('stYuklaBtn');
-  const msg = document.getElementById('stMsg');
   const nom = (document.getElementById('stNom').value || '').trim();
   const havola = (document.getElementById('stHavola').value || '').trim();
   const wrap = document.getElementById('stProgressWrap');
   const bar = document.getElementById('stProgressBar');
-  msg.style.color = '';
-  if(!nom){ msg.textContent = 'Nomini yozing.'; msg.style.color = 'var(--red)'; return; }
+  stXabar('');
+  if(!nom){ stXabar('Nomini yozing.', true); return; }
   if(!stHavolaOk(havola)){
-    msg.textContent = "Havola noto'g'ri. Faqat https:// bilan boshlanadigan to'liq manzil "
-      + "yoki saytning o'z bo'limi (masalan #/katalog) yoziladi.";
-    msg.style.color = 'var(--red)'; return;
+    stXabar("Havola noto'g'ri. Faqat https:// bilan boshlanadigan to'liq manzil "
+      + "yoki saytning o'z bo'limi (masalan #/katalog) yoziladi.", true);
+    return;
   }
-  const tahrir = ST_TAHRIR;
-  if(!tahrir && !ST_FAYL){ msg.textContent = 'Rasm tanlang.'; msg.style.color = 'var(--red)'; return; }
-  if(ST_FAYL && !storage){
-    msg.textContent = "Firebase Storage sozlanmagan (Firebase Console → Storage → Get started).";
-    msg.style.color = 'var(--red)'; return;
+  if(!ST_KADRLAR.length){ stXabar('Kamida bitta rasm yoki video qo‘shing.', true); return; }
+  /* Savdo bloki boshlangan, lekin to'ldirilmagan bo'lsa — ogohlantiramiz */
+  const chala = ST_KADRLAR.findIndex(k => k.savdo && !stSavdoToliq(k.savdo));
+  if(chala >= 0){
+    stXabar((chala + 1) + '-kadrdagi savdo bloki to‘liq emas: raqam (9 xona) va narxini yozing, '
+      + 'yoki "Savdoni olib tashlash" tugmasini bosing.', true);
+    return;
+  }
+  const yuklash = ST_KADRLAR.some(k => k.yangi) || ST_QOPLAMA;
+  if(yuklash && !storage){
+    stXabar("Firebase Storage sozlanmagan (Firebase Console → Storage → Get started).", true);
+    return;
   }
 
-  btn.disabled = true; wrap.style.display = 'block'; bar.style.width = '5%';
+  btn.disabled = true; wrap.style.display = 'block'; bar.style.width = '4%';
   try{
-    let doiraUrl = null, toliqUrl = null, asos = null;
-    if(ST_FAYL){
-      asos = 'stories/' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-      const r1 = storage.ref().child(asos + '_d.jpg');
-      const r2 = storage.ref().child(asos + '_t.jpg');
-      await r1.put(ST_FAYL.doira, { contentType:'image/jpeg', cacheControl:'public,max-age=31536000' });
-      bar.style.width = '50%';
-      await r2.put(ST_FAYL.toliq, { contentType:'image/jpeg', cacheControl:'public,max-age=31536000' });
-      bar.style.width = '80%';
-      doiraUrl = await r1.getDownloadURL();
-      toliqUrl = await r2.getDownloadURL();
+    const asos = 'stories/' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    const jami = ST_KADRLAR.filter(k => k.yangi).length + (ST_QOPLAMA ? 1 : 0) || 1;
+    let bajarildi = 0;
+    const qadam = ()=>{ bajarildi++; bar.style.width = Math.min(92, 4 + (bajarildi/jami)*86) + '%'; };
+
+    /* 1) Yangi kadrlarni yuklaymiz */
+    const kadrlar = [];
+    let birinchiQoplama = null;
+    for(let i = 0; i < ST_KADRLAR.length; i++){
+      const k = ST_KADRLAR[i];
+      if(k.yangi){
+        const yol = asos + '_' + i + (k.tur === 'video' ? '.mp4' : '.jpg');
+        const url = await stFaylYukla(yol, k.tur === 'video' ? k.fayl : k.blob,
+          k.tur === 'video' ? (k.fayl.type || 'video/mp4') : 'image/jpeg');
+        kadrlar.push({ tur:k.tur, url, yol, davomMs:0, savdo: stSavdoToliq(k.savdo) });
+        if(k.tur === 'rasm' && !birinchiQoplama) birinchiQoplama = k.qoplama;
+        qadam();
+      }else{
+        kadrlar.push({ tur:k.tur, url:k.url, yol:k.yol || '', davomMs:0, savdo: stSavdoToliq(k.savdo) });
+      }
     }
 
-    if(tahrir){
-      /* ---- TAHRIRLASH ---- */
-      const eski = ST_ROYXAT.find(x => x.id === tahrir) || {};
-      const yangi = { nom: nom.slice(0, 16), havola: havola.slice(0, 300) };
-      if(doiraUrl){ yangi.doira = doiraUrl; yangi.rasm = toliqUrl; yangi.yol = asos; }
-      await db.collection('stories').doc(tahrir).update(yangi);
-      /* Rasm almashtirilgan bo'lsa — eskisini Storage'dan o'chiramiz
-         (keraksiz fayl to'planib qolmasin) */
-      if(doiraUrl && eski.yol && storage){
-        try{ await storage.ref().child(eski.yol + '_d.jpg').delete(); }catch(e){}
-        try{ await storage.ref().child(eski.yol + '_t.jpg').delete(); }catch(e){}
-      }
-      bar.style.width = '100%';
-      msg.textContent = '✓ Saqlandi — saytda darhol ko‘rinadi.';
-    }else{
-      /* ---- YANGI ---- */
-      const tartib = ST_ROYXAT.length ? Math.max.apply(null, ST_ROYXAT.map(x => Number(x.tartib) || 0)) + 1 : 1;
-      await db.collection('stories').add({
-        nom: nom.slice(0, 16),
-        doira: doiraUrl, rasm: toliqUrl,
-        yol: asos,
-        havola: havola.slice(0, 300),
-        tartib, faol: true,
-        views: 0, likes: 0,
-        /* Boshlang'ich yurakchalar — bir marta, keyin o'zgarmaydi */
-        likesBaza: stLikeBaza(),
-        createdAt: Date.now()
-      });
-      bar.style.width = '100%';
-      msg.textContent = '✓ Qo‘shildi — saytda darhol ko‘rinadi.';
+    /* 2) Qoplama: alohida tanlangan bo'lsa o'sha, bo'lmasa birinchi rasm */
+    let doiraUrl = null;
+    if(ST_QOPLAMA){
+      doiraUrl = await stFaylYukla(asos + '_q.jpg', ST_QOPLAMA, 'image/jpeg'); qadam();
+    }else if(birinchiQoplama){
+      doiraUrl = await stFaylYukla(asos + '_q.jpg', birinchiQoplama, 'image/jpeg'); qadam();
     }
+
+    /* 3) Firestore */
+    const yangi = {
+      nom: nom.slice(0, 16),
+      havola: havola.slice(0, 300),
+      kadrlar
+    };
+    if(doiraUrl) yangi.doira = doiraUrl;
+    /* Eski maydon — eski versiyadagi sayt ham ishlayversin */
+    const birRasm = kadrlar.find(k => k.tur === 'rasm');
+    if(birRasm) yangi.rasm = birRasm.url;
+
+    if(ST_TAHRIR){
+      await db.collection('stories').doc(ST_TAHRIR).update(yangi);
+      stXabar('✓ Saqlandi — saytda darhol ko‘rinadi.');
+    }else{
+      const tartib = ST_ROYXAT.length ? Math.max.apply(null, ST_ROYXAT.map(x => Number(x.tartib) || 0)) + 1 : 1;
+      await db.collection('stories').add(Object.assign(yangi, {
+        tartib, faol: true, views: 0, likes: 0,
+        likesBaza: stLikeBaza(), createdAt: Date.now()
+      }));
+      stXabar('✓ Qo‘shildi — saytda darhol ko‘rinadi.');
+    }
+
+    /* 4) Olib tashlangan eski fayllarni Storage'dan o'chiramiz */
+    if(storage) for(const yol of ST_OCHIR){
+      try{ await storage.ref().child(yol).delete(); }catch(e){}
+    }
+
+    bar.style.width = '100%';
     stFormaTozala();
     vibrate(80);
     loadStories();
   }catch(e){
-    msg.textContent = 'Xato: ' + e.message; msg.style.color = 'var(--red)';
+    stXabar('Xato: ' + e.message, true);
   }finally{
     btn.disabled = false;
     setTimeout(()=>{ wrap.style.display = 'none'; bar.style.width = '0%'; }, 900);
@@ -11185,9 +11358,6 @@ async function loadStories(){
     ST_ROYXAT = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
       .sort((a, b) => (Number(a.tartib) || 0) - (Number(b.tartib) || 0));
     stChiz();
-    /* Eski story'larda `likesBaza` bo'lmasligi mumkin (V83 dan oldin
-       qo'shilganlar) — bir marta tasodifiy son beriladi, keyin
-       o'zgarmaydi. Shu sabab lentadagi sonlar bir xil ko'rinadi. */
     stBazaniToldir();
   }catch(e){
     box.innerHTML = '<div class="wt-empty">Xato: ' + escapeHtml(e.message) + '</div>';
@@ -11211,25 +11381,32 @@ function stChiz(){
   const box = document.getElementById('stList');
   if(!box) return;
   if(!ST_ROYXAT.length){
-    box.innerHTML = '<div class="wt-empty">Hali story qo‘shilmagan. Yuqoridan rasm yuklang.</div>';
+    box.innerHTML = '<div class="wt-empty">Hali story qo‘shilmagan. Yuqoridan rasm yoki video yuklang.</div>';
     return;
   }
   box.innerHTML = ST_ROYXAT.map((s, i) => {
     const kor = Number(s.views) || 0;
     const haqiqiy = Number(s.likes) || 0;
     const baza = Number(s.likesBaza) || 0;
+    const kadrlar = Array.isArray(s.kadrlar) && s.kadrlar.length
+      ? s.kadrlar : (s.rasm ? [{ tur:'rasm' }] : []);
+    const video = kadrlar.filter(k => k && k.tur === 'video').length;
+    const savdo = kadrlar.filter(k => k && k.savdo).length;
     return `
     <div class="st-row${s.faol === false ? ' st-off' : ''}${ST_TAHRIR === s.id ? ' st-edit' : ''}">
       <span class="st-doira"><img src="${escapeHtml(s.doira || s.rasm || '')}" alt="" loading="lazy"></span>
       <div class="st-info">
         <b>${escapeHtml(s.nom || '')}</b>
         <div class="st-stat">
+          <span class="st-kad" title="Ichidagi rasm/video soni">
+            ▣ <b>${kadrlar.length}</b> kadr${video ? ' (' + video + ' video)' : ''}</span>
+          ${savdo ? `<span class="st-sv" title="Buyurtma kartochkasi qo'yilgan kadrlar">🛒 <b>${savdo}</b> savdo</span>` : ''}
           <span class="st-kor" title="Haqiqiy ko'rishlar soni (bitta odam 6 soatda bir marta sanaladi)">
-            👁 <b>${kor}</b> ko'rildi</span>
+            👁 <b>${stSonAniq(kor)}</b> ko'rildi</span>
           <span class="st-lik" title="Mijozlar haqiqatan bosgan yurakchalar">
-            ❤️ <b>${haqiqiy}</b> haqiqiy</span>
-          <span class="st-say" title="Saytda ko'rinadigan umumiy son (boshlang'ich ${baza} + haqiqiy ${haqiqiy})">
-            saytda: <b>${stSonQisqa(baza + haqiqiy)}</b></span>
+            ❤️ <b>${stSonAniq(haqiqiy)}</b> haqiqiy</span>
+          <span class="st-say" title="Saytda ko'rinadigan umumiy son (boshlang'ich ${stSonAniq(baza)} + haqiqiy ${stSonAniq(haqiqiy)})">
+            saytda: <b>${stSonAniq(baza + haqiqiy)}</b></span>
           ${s.havola ? '<span title="Havola">🔗 ' + escapeHtml(s.havola) + '</span>' : ''}
         </div>
       </div>
@@ -11251,14 +11428,16 @@ function stChiz(){
     }catch(e){ alert(e.message); }
   });
   box.querySelectorAll('[data-stdel]').forEach(b => b.onclick = async ()=>{
-    if(!confirm("Story o'chirilsinmi?")) return;
+    if(!confirm("Story o'chirilsinmi? Ichidagi hamma rasm/video ham o'chadi.")) return;
     const s = ST_ROYXAT.find(x => x.id === b.dataset.stdel);
     try{
       await db.collection('stories').doc(b.dataset.stdel).delete();
-      /* Rasmlar ham o'chadi — Storage'da keraksiz fayl qolmasin */
-      if(s && s.yol && storage){
-        try{ await storage.ref().child(s.yol + '_d.jpg').delete(); }catch(e){}
-        try{ await storage.ref().child(s.yol + '_t.jpg').delete(); }catch(e){}
+      /* Fayllar ham o'chadi — Storage'da keraksiz fayl qolmasin */
+      if(s && storage){
+        const yollar = [];
+        (Array.isArray(s.kadrlar) ? s.kadrlar : []).forEach(k => { if(k && k.yol) yollar.push(k.yol); });
+        if(s.yol){ yollar.push(s.yol + '_d.jpg'); yollar.push(s.yol + '_t.jpg'); }
+        for(const y of yollar){ try{ await storage.ref().child(y).delete(); }catch(e){} }
       }
       if(ST_TAHRIR === b.dataset.stdel) stFormaTozala();
       loadStories();
