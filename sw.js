@@ -2,7 +2,7 @@
    Maqsad: internet umuman yo'q bo'lsa ham sayt ochilsin va keshdagi
    katalog ko'rinsin. Dinamik ma'lumot (Firestore, funksiyalar) HECH
    QACHON keshlanmaydi — ular doim jonli olinadi. */
-const CACHE = 'vipraqamlar-v9';
+const CACHE = 'vipraqamlar-v10';
 /* Shriftlar ham keshga olinadi — internet uzilganda ham sayt
    o'z ko'rinishida ochiladi. */
 const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png',
@@ -59,16 +59,27 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  /* HTML — avval tarmoq, ishlamasa keshdan (sayt baribir ochiladi) */
+  /* HTML — avval tarmoq, ishlamasa keshdan (sayt baribir ochiladi).
+     TUZATISH: ilgari HAR QANDAY sahifa javobi `/index.html` nomi bilan
+     keshlanardi. Ya'ni admin paneli yoki sotuvchi kabineti ochilsa,
+     mijoz sayti o'rniga O'SHA sahifa keshga tushib qolardi va internet
+     yo'q paytda mijozga admin panelining HTML'i ochilardi. Endi faqat
+     mijoz saytining O'ZI (bosh sahifa) keshlanadi. */
   if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
+    const bosh = url.origin === location.origin
+      && (url.pathname === '/' || url.pathname === '/index.html');
     e.respondWith(
       fetch(req)
         .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE).then(c => c.put('/index.html', copy)).catch(()=>{});
+          if (bosh && res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE).then(c => c.put('/index.html', copy)).catch(()=>{});
+          }
           return res;
         })
-        .catch(() => caches.match('/index.html').then(r => r || caches.match('/')))
+        .catch(() => bosh
+          ? caches.match('/index.html').then(r => r || caches.match('/'))
+          : Response.error())
     );
     return;
   }

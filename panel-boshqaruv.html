@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=93">
-<link rel="preload" as="script" href="assets/panel.js?v=93">
+<link rel="preload" as="style" href="assets/panel.css?v=95">
+<link rel="preload" as="script" href="assets/panel.js?v=95">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=93">
+<link rel="stylesheet" href="assets/panel.css?v=95">
 </head>
 <body>
 
@@ -153,6 +153,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
           <span class="bell-badge" id="taskBellBadge">0</span>
         </button>
+        <!-- Panel versiyasi: yangi fayllar saytga yetib kelganini DARHOL
+             bilish uchun. Yangilagandan keyin shu raqam o'zgarmasa —
+             demak eski nusxa ochilyapti (keshni tozalang). -->
+        <span class="panel-ver" id="panelVer" title="Panel versiyasi">v95</span>
         <button id="logoutBtn" title="Chiqish">Chiqish</button>
       </div>
     </div>
@@ -2282,6 +2286,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=93"></script>
+<script defer src="assets/panel.js?v=95"></script>
 </body>
 </html>
