@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=95) ham oshiring.
+   havolaning oxiridagi raqamni (?v=97) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -2419,6 +2419,47 @@ function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
    to'sgan bo'lsa, so'rov xatolik bilan tugaydi; o'tgan bo'lsa — "opaque"
    javob qaytadi. Aynan shu farq bizga kerak.
    ================================================================== */
+/* ==================================================================
+   OCHILISH TEKSHIRUVI — sahifa to'g'ri joydan ochilganmi
+   ------------------------------------------------------------------
+   Ikkita eng ko'p uchraydigan chalkashlikni sahifa ochilishidayoq
+   aytib qo'yamiz, ya'ni admin parolni behuda terib o'tirmasin:
+     1) panel kompyuterdagi FAYLDAN ochilgan (file:///...) — Google
+        kirish xizmati bunday sahifani rad etadi;
+     2) uslublar fayli (panel.css) yuklanmagan — demak kengaytma yoki
+        antivirus fayllarni to'sayapti (sahifa "yalang'och" ko'rinadi).
+   ================================================================== */
+(function ochilishTekshiruvi(){
+  function xabar(matn){
+    const el = document.getElementById('loginError');
+    if(!el) return;
+    el.style.whiteSpace = 'pre-line';
+    el.textContent = matn;
+    el.style.display = 'block';
+  }
+  if(location.protocol === 'file:'){
+    xabar("Bu sahifa kompyuterdagi FAYLDAN ochilgan \u2014 shu sababli kirish ishlamaydi.\n\n"
+      + "Panelni saytdan oching:\n\u2022 https://vipraqamlar.uz/panel-boshqaruv.html");
+    const btn = document.getElementById('loginBtn');
+    if(btn){ btn.disabled = true; btn.style.opacity = '.5'; }
+    return;
+  }
+  /* Uslublar yuklanganini sahifa to'liq ochilgach tekshiramiz */
+  window.addEventListener('load', function(){
+    let bor = false;
+    try{
+      bor = Array.prototype.some.call(document.styleSheets,
+        sh => String(sh.href || '').indexOf('panel.css') !== -1);
+    }catch(e){ bor = true; }
+    if(!bor){
+      xabar("Sahifa uslublari yuklanmadi (panel.css) \u2014 odatda buni brauzer "
+        + "kengaytmasi yoki antivirusning veb qalqoni to'sadi.\n"
+        + "\u2022 Yashirin oynada oching (Ctrl+Shift+N)\n"
+        + "\u2022 yoki boshqa brauzerda sinab ko'ring.");
+    }
+  });
+})();
+
 async function tekshirManba(url, opt){
   const ctrl = new AbortController();
   const t = setTimeout(()=> ctrl.abort(), 6000);
@@ -2443,6 +2484,17 @@ async function tarmoqTashxis(){
       sh => String(sh.href || '').indexOf('panel.css') !== -1);
   }catch(e){ uslub = true; }
 
+  /* ENG AVVAL: sahifa SAYTDAN ochilganmi yoki kompyuterdagi FAYLDAN?
+     Zip'ni ochib, panel-boshqaruv.html ni ikki marta bosish — eng ko'p
+     uchraydigan chalkashlik. Bunda manzil `file:///C:/...` bo'ladi va
+     Google kirish xizmati bunday sahifani RAD ETADI (sahifaning
+     manzili yo'q — "origin: null"). Natija aynan shu xato. */
+  if(location.protocol === 'file:'){
+    return "Bu sahifa kompyuterdagi FAYLDAN ochilgan (manzil qatorida "
+      + "\"file:///...\" turibdi). Google kirish xizmati bunday sahifaga "
+      + "ruxsat bermaydi.\n\nPanelni SAYTDAN oching:\n"
+      + "\u2022 https://vipraqamlar.uz/panel-boshqaruv.html";
+  }
   if(!navigator.onLine){
     return "Internet umuman yo'q ko'rinadi — ulanishni tekshiring.";
   }
