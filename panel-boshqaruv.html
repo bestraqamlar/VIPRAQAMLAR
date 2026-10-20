@@ -11,11 +11,11 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=83">
-<link rel="preload" as="script" href="assets/panel.js?v=83">
+<link rel="preload" as="style" href="assets/panel.css?v=85">
+<link rel="preload" as="script" href="assets/panel.js?v=85">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="stylesheet" href="assets/panel.css?v=83">
+<link rel="stylesheet" href="assets/panel.css?v=85">
 </head>
 <body>
 
@@ -832,30 +832,41 @@
        Baza: Firestore `stories`, rasm: Storage `stories/...` -->
   <div class="pane" id="paneStories">
     <div class="ai-hint">
-      ▣ Bosh sahifaning eng tepasidagi lenta. Rasmni yuklaysiz — u <b>o'zi
-      to'rtburchak ramka ichiga</b> qirqiladi, ramka esa jonli aylanib turadi.
-      Mijoz bossa — to'liq ekranda ochiladi.
+      ▣ Bosh sahifadagi lenta (Premium karusel ostida). Har bir toifa ichiga
+      <b>10 tagacha rasm yoki video</b> qo'yasiz — mijoz bosganda ular birin-ketin
+      ko'rsatiladi, xuddi Instagram'dagi kabi.
       <br><br>
-      <b>👁 ko'rildi</b> — haqiqiy son: bitta odam 6 soatda bir marta sanaladi,
-      shu sabab bu raqamga ishonish mumkin.
-      <b>❤️ haqiqiy</b> — mijozlar rostdan bosgan yurakchalar.
-      <b>saytda</b> — mijozga ko'rinadigan umumiy son (har bir story
-      qo'shilganda 1000–3000 oralig'ida boshlang'ich son beriladi, mijozlar
-      bosgani shunga qo'shilib boradi).
+      <b>🛒 Savdo</b> — istalgan kadrga raqam va narx biriktirasiz. O'sha kadr
+      ochilganda pastda chiroyli buyurtma kartochkasi chiqadi; mijoz bossa —
+      saytning o'z buyurtma oynasi ochiladi. Bo'sh qoldirsangiz, kartochka
+      ko'rsatilmaydi.
       <br><br>
-      Har bir story'ni keyin ham <b>✏️ Tahrirlash</b> bilan o'zgartirasiz:
-      nomi, havolasi va rasmi.
+      <b>👁 ko'rildi</b> — haqiqiy son (bitta odam 6 soatda bir marta sanaladi).
+      <b>❤️ haqiqiy</b> — mijozlar rostdan bosgani.
+      <b>saytda</b> — mijozga ko'rinadigan umumiy son (story qo'shilganda
+      1000–3000 oralig'ida boshlang'ich son beriladi).
+      <br><br>
+      Lenta kerak bo'lmasa — hammasini <b>Yashirish</b> qiling, saytdan butunlay
+      yo'qoladi (bo'sh joy ham qolmaydi).
     </div>
 
     <div class="video-upload-box">
-      <label for="stNom">Nomi <span class="ig-field-hint">(doira ostida ko'rinadi, 16 belgigacha)</span></label>
+      <label for="stNom">Nomi <span class="ig-field-hint">(lenta ostida ko'rinadi, 16 belgigacha)</span></label>
       <input type="text" id="stNom" placeholder="Masalan: VIP" maxlength="16">
 
-      <label for="stFayl">Rasm <span class="ig-field-hint">(9 MB gacha — kvadrat rasm eng chiroyli chiqadi; tahrirlashda tanlamasangiz hozirgisi qoladi)</span></label>
-      <input type="file" id="stFayl" accept="image/*">
-      <div id="stOldin" class="st-oldin" style="display:none"><span class="st-doira"><img id="stOldinImg" alt=""></span><i id="stOldinMatn"></i></div>
+      <label for="stFayl">Rasm / video <span class="ig-field-hint">(birdan bir nechtasini tanlash mumkin — rasm 9 MB, video 50 MB gacha)</span></label>
+      <input type="file" id="stFayl" accept="image/*,video/*" multiple>
 
-      <label for="stHavola">Havola <span class="ig-field-hint">(ixtiyoriy — bosilganda ochiladigan joy, masalan #/katalog)</span></label>
+      <div class="st-kadr-bosh">
+        <b>Kadrlar</b> <span class="st-kadr-soni" id="stKadrSoni">0 / 10</span>
+      </div>
+      <div class="st-kadr-list" id="stKadrlar"></div>
+
+      <label for="stQoplama">Qoplama rasmi <span class="ig-field-hint">(ixtiyoriy — lentadagi kichik ramka uchun. Tanlamasangiz birinchi rasm olinadi)</span></label>
+      <input type="file" id="stQoplama" accept="image/*">
+      <div id="stQop" class="st-oldin" style="display:none"><span class="st-doira"><img id="stQopImg" alt=""></span><i>Lentadagi ramka shunday ko'rinadi</i></div>
+
+      <label for="stHavola">Havola <span class="ig-field-hint">(ixtiyoriy — savdo bloki yo'q kadrlarda "Ko'rish" tugmasi, masalan #/katalog)</span></label>
       <input type="text" id="stHavola" placeholder="#/katalog">
 
       <div class="video-progress-wrap" id="stProgressWrap" style="display:none;">
@@ -2201,6 +2212,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=83"></script>
+<script defer src="assets/panel.js?v=85"></script>
 </body>
 </html>

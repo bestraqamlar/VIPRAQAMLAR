@@ -1015,7 +1015,8 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
    ================================================================== */
 .stories{
   display:none;gap:13px;overflow-x:auto;overflow-y:hidden;
-  margin:0 0 15px;padding:3px 2px 7px;
+  /* V84: lenta endi karusel OSTIDA — tepadan ham joy kerak */
+  margin:6px 0 16px;padding:3px 2px 7px;
   scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;
   /* Lentani ekrandan chiqib ketgan qismi hisoblanmasin — tezlik */
   content-visibility:auto;contain-intrinsic-size:auto 96px;
@@ -1107,6 +1108,25 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   .stories.on .story{animation:none}
   .story-ring{transition:none}
   .story-ring::before{animation:none}
+}
+
+/* ---------- SKELET (internet yo'q yoki hali yuklanmagan) ----------
+   V85 (mijoz so'rovi): lenta HECH QACHON yo'qolib qolmasin. Internet
+   bo'lmasa ham o'sha joyda oqargan kartochkalar turadi va ustidan
+   mayin yorug'lik yuguradi — xuddi raqam kartochkalaridagi kabi
+   (`.sk.shim`). Mijoz "bu yerda nimadir bor edi" deb o'ylab qolmaydi,
+   sahifa ham sakrab ketmaydi.
+
+   Lenta FAQAT bitta holatda yashiriladi: baza javob berdi va admin
+   hamma story'ni yashirib qo'ygan. */
+.story.st-sk{pointer-events:none}
+.story.st-sk .story-ring{
+  background:var(--line-2);box-shadow:none;
+}
+.story.st-sk .story-ring::before{animation:none;background:var(--line-2)}
+.story.st-sk .story-in{background:var(--card-2)}
+.story.st-sk b{
+  height:9px;width:76%;margin:0 auto;border-radius:6px;background:var(--card-3);
 }
 
 /* ==================================================================
@@ -1220,7 +1240,6 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
 .stv-like.on{background:rgba(226,69,59,.95)}
 .stv-like.on svg{fill:#fff;stroke:#fff;transform:scale(1.12)}
 .stv-like:active{transform:scale(.93)}
-.stv-like i{font-style:normal;font-variant-numeric:tabular-nums}
 .stv-go{
   margin-left:auto;background:#fff;color:#0B1B33;border-radius:16px;
   padding:12px 20px;font-size:13.5px;font-weight:800;text-decoration:none;
@@ -1240,11 +1259,74 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   55%{transform:scale(.98)}
   100%{opacity:0;transform:scale(1.25) translateY(-28px)}
 }
+/* Video kadr — rasm bilan bir xil joyda turadi */
+.stv-vid{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  opacity:0;transition:opacity .22s ease;background:transparent;
+}
+.stv-vid.keldi{opacity:1}
+/* Ovoz tugmasi (video bo'lganda chiqadi) */
+.stv-ovoz{
+  position:absolute;right:14px;top:calc(var(--top) + 66px);z-index:6;
+  width:34px;height:34px;border-radius:12px;border:none;cursor:pointer;
+  background:rgba(0,0,0,.45);color:#fff;display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.stv-ovoz.bor{display:flex}
+.stv-ovoz svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- SAVDO BLOKI (admin raqamni sotuvga qo'ysa) ----------
+   Katta kompaniyalar uslubi: pastda shisha effektli kartochka —
+   chapda raqam va narx, o'ngda yorqin tugma. Bosilganda saytning
+   O'Z buyurtma oynasi ochiladi (yangi oyna emas). */
+.stv-savdo{
+  position:absolute;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));
+  z-index:6;display:none;align-items:center;gap:12px;
+  padding:12px 13px;border-radius:18px;
+  background:rgba(12,22,40,.62);
+  box-shadow:0 18px 44px -20px rgba(0,0,0,.95),inset 0 0 0 1px rgba(255,255,255,.14);
+  backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);
+  animation:stvSavdo .38s cubic-bezier(.2,.85,.3,1) both;
+}
+.stv-savdo.bor{display:flex}
+@keyframes stvSavdo{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
+.stv-sv-ic{
+  width:40px;height:40px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,#E6C877,#B8832A);color:#0B1B33;
+}
+.stv-sv-ic svg{width:21px;height:21px;fill:currentColor}
+.stv-sv-mat{flex:1;min-width:0;color:#fff}
+.stv-sv-raqam{
+  display:block;font-family:'Space Mono',ui-monospace,monospace;
+  font-size:16.5px;font-weight:700;letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.stv-sv-narx{display:block;font-size:12.5px;font-weight:700;color:#E6C877;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stv-sv-narx s{color:rgba(255,255,255,.45);margin-left:7px;font-size:11.5px}
+.stv-sv-btn{
+  flex:none;border:none;cursor:pointer;font-family:inherit;
+  background:linear-gradient(140deg,#F2D98C,#D8A93F);color:#0B1B33;
+  border-radius:14px;padding:12px 16px;font-size:13px;font-weight:800;
+  box-shadow:0 10px 22px -12px rgba(230,200,119,.9);
+  transition:transform .16s cubic-bezier(.2,.9,.3,1.3);
+}
+.stv-sv-btn:active{transform:scale(.94)}
+/* Savdo bloki chiqqanda pastdagi qator biroz pastroqda qolsin */
+.stv.savdo-bor .stv-zone{bottom:150px}
+
+/* Yurakcha soni — ANIQ son (1 840), "K" emas; kichikroq va nozik */
+.stv-like i{
+  font-style:normal;font-variant-numeric:tabular-nums;
+  font-size:12px;font-weight:700;letter-spacing:.02em;opacity:.95;
+}
+
 @media (prefers-reduced-motion:reduce){
   .stv.on{animation:none}
   .stv-bars i.hozir span{animation:none;transform:scaleX(1)}
   .stv-ramka::after{animation:none;display:none}
   .stv-puf{animation:none;display:none}
+  .stv-savdo{animation:none}
 }
 
 /* ---------- Toast (pastdagi bildirishnoma) ----------
@@ -2480,15 +2562,26 @@ html[data-theme="dark"] ::selection{background:transparent}
 
   <div class="pad wrap" style="padding-top:14px">
 
-    <!-- ===== TOIFALAR LENTASI ("stories") =====
-         Instagram'dagi kabi dumaloq toifalar: VIP, Gold, 7777, 0707,
-         Bo'lib to'lash, Yangi. Bosilsa katalog o'sha filtr bilan
-         ochiladi. Ro'yxat MA'LUMOTDAN quriladi — bo'sh toifa
-         ko'rsatilmaydi (qarang: renderStories()). -->
-    <div class="stories" id="homeStories" aria-label="Toifalar"></div>
-
     <div class="heroscroll" id="homeHero"></div>
     <div class="herodots" id="heroDots"></div>
+
+    <!-- ===== STORIES LENTASI =====
+         V84 (mijoz so'rovi): lenta ENG TEPADAN olinib, Premium karusel
+         OSTIGA tushirildi. Sabab: bosh sahifaning eng tepasi saytning
+         eng qimmat joyi — mijoz u yerda RAQAM ko'rishi kerak. Lenta
+         tepada turganda ko'z avval unga tushib, e'tibor bo'linardi.
+         Endi mijoz avval premium raqamlarni ko'radi, lenta esa
+         qiziqqanlar uchun ostida turadi.
+
+         Ro'yxatni admin to'ldiradi (Adminka -> Stories). Bitta ham
+         faol story bo'lmasa — lenta UMUMAN chizilmaydi (qarang:
+         renderStories()), ya'ni bo'sh joy ham qolmaydi. -->
+    <!-- Skelet kartochkalar BEVOSITA HTML'da: sahifa ochilishi bilan,
+         JavaScript hali ishga tushmasdan oldin ham lenta o'z joyida
+         turadi. Internet bo'lmasa ham shu holatda qolaveradi; baza
+         javob bergach, haqiqiy story'lar bilan almashtiriladi
+         (qarang: renderStories()). -->
+    <div class="stories on" id="homeStories" aria-label="Toifalar"><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span><span class="story st-sk shim" aria-hidden="true"><span class="story-ring"><span class="story-in"></span></span><b></b></span></div>
 
     <div class="sect">
       <div class="sect-h"><h2 data-t="Tavsiya etiladi">Tavsiya etiladi</h2></div>
@@ -2796,10 +2889,25 @@ html[data-theme="dark"] ::selection{background:transparent}
     <div class="stv-ramka" id="stvRamka">
       <img class="stv-fon" id="stvFon" alt="" aria-hidden="true">
       <img class="stv-img" id="stvImg" alt="">
+      <video class="stv-vid" id="stvVid" playsinline webkit-playsinline preload="auto"></video>
     </div>
   </div>
   <button class="stv-zone stv-prev" id="stvPrev" type="button" aria-label="Oldingi"></button>
   <button class="stv-zone stv-next" id="stvNext" type="button" aria-label="Keyingi"></button>
+  <button class="stv-ovoz" id="stvOvoz" type="button" aria-label="Ovoz">
+    <svg viewBox="0 0 24 24" aria-hidden="true" id="stvOvozIc"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7"></path></svg>
+  </button>
+
+  <!-- SAVDO BLOKI — admin raqamni sotuvga qo'ysa chiqadi -->
+  <div class="stv-savdo" id="stvSavdo">
+    <span class="stv-sv-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 2v1h6V6H9zm3 11.6a1.1 1.1 0 1 0 0-2.2 1.1 1.1 0 0 0 0 2.2z"/></svg></span>
+    <span class="stv-sv-mat">
+      <b class="stv-sv-raqam" id="stvSvRaqam"></b>
+      <span class="stv-sv-narx" id="stvSvNarx"></span>
+    </span>
+    <button class="stv-sv-btn" id="stvSvBtn" type="button"></button>
+  </div>
+
   <div class="stv-foot">
     <button class="stv-like" id="stvLike" type="button" aria-label="Yoqdi">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.4S3.6 15 3.6 9.4A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.4 2.4c0 5.6-8.4 11-8.4 11z"/></svg>
@@ -4388,11 +4496,52 @@ function stKorilgan(){
 function stLikeSoni(s){
   return (Number(s && s.likesBaza) || 0) + (Number(s && s.likes) || 0);
 }
-function stSonQisqa(n){
-  n = Number(n) || 0;
-  if(n >= 1000000) return (n/1000000).toFixed(n % 1000000 >= 100000 ? 1 : 0).replace('.0','') + 'M';
-  if(n >= 1000) return (n/1000).toFixed(n % 1000 >= 100 ? 1 : 0).replace('.0','') + 'K';
-  return String(n);
+/* Yurakchalar soni ANIQ ko'rsatiladi (mijoz so'rovi: "K" emas).
+   Minglar nozik bo'shliq bilan ajratiladi: 1 840, 12 507. */
+function stSonAniq(n){
+  n = Math.max(0, Math.round(Number(n) || 0));
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009');
+}
+
+/* ---------- KADRLAR (bitta toifada 10 tagacha rasm/video) ----------
+   Admin bitta story ichiga 10 tagacha rasm yoki video qo'ya oladi.
+   Eski story'larda `kadrlar` yo'q — ular bitta rasmli story sifatida
+   o'qiladi (shu sabab eskisi ham ishlayveradi).
+
+   XAVFSIZLIK: kadr manzili FAQAT Firebase Storage'dan bo'lishi
+   mumkin. Admin hisobi o'g'irlansa ham lentaga begona manba
+   (`javascript:`, boshqa sayt, kuzatuvchi piksel) joylab bo'lmaydi.
+   Bu tekshiruv Firestore qoidalaridan MUSTAQIL ishlaydi — ikki qatlam. */
+function stManbaOk(u){
+  return typeof u === 'string'
+    && /^https:\/\/(firebasestorage\.googleapis\.com|storage\.googleapis\.com)\//.test(u);
+}
+/* Sinov va mahalliy ishlatish uchun `data:`/`blob:` rasmga ham ruxsat
+   (ular tashqariga so'rov yubormaydi, ya'ni xavfsiz). */
+function stRasmOk(u){
+  return stManbaOk(u) || (typeof u === 'string' && /^(data:image\/|blob:)/.test(u));
+}
+
+function stKadrlar(s){
+  const r = (s && Array.isArray(s.kadrlar)) ? s.kadrlar : null;
+  if(r && r.length){
+    return r.filter(k => k && stRasmOk(k.url)).slice(0, 10).map(k => ({
+      tur: k.tur === 'video' ? 'video' : 'rasm',
+      url: k.url,
+      davomMs: Math.min(30000, Math.max(1500, Number(k.davomMs) || 0)) || 0,
+      savdo: stSavdoOk(k.savdo) ? k.savdo : null
+    }));
+  }
+  /* Eski ko'rinish — bitta rasm */
+  const u = (s && (s.rasm || s.doira)) || '';
+  return stRasmOk(u) ? [{ tur:'rasm', url:u, davomMs:0, savdo: stSavdoOk(s && s.savdo) ? s.savdo : null }] : [];
+}
+
+/* Savdo bloki — admin kiritgan raqam va narx */
+function stSavdoOk(v){
+  if(!v || typeof v !== 'object') return false;
+  const raqam = String(v.raqam || '').replace(/\D/g, '');
+  return raqam.length >= 9 && Number(v.narx) > 0;
 }
 
 /* Faqat kerakli maydonlarni saqlaymiz — kesh kichik bo'lsin */
@@ -4402,7 +4551,10 @@ function stKeshYoz(){
       t: Date.now(),
       r: STORIES.slice(0, 20).map(s => ({
         id:s.id, nom:s.nom, doira:s.doira, rasm:s.rasm, havola:s.havola,
-        tartib:s.tartib, likes:s.likes, likesBaza:s.likesBaza
+        tartib:s.tartib, likes:s.likes, likesBaza:s.likesBaza,
+        /* Kadrlar ham keshda — internet yo'q paytda story OCHILAVERADI
+           (rasmlar brauzer keshidan keladi) */
+        kadrlar: Array.isArray(s.kadrlar) ? s.kadrlar.slice(0, 10) : undefined
       }))
     }));
   }catch(e){}
@@ -4419,47 +4571,95 @@ function stKeshdanOch(){
   }catch(e){ return false; }
 }
 
-/* Firestore'dan stories ro'yxati. Avval kesh, keyin yangisi. */
+/* Baza javob berdimi. FAQAT shu `true` bo'lganda lenta yashirilishi
+   mumkin (admin hammasini yashirgan bo'lsa). Internet yo'q bo'lsa
+   `false` qolaveradi — demak skelet kartochkalar turaveradi. */
+let ST_YUKLANDI = false;
+
+/* Firestore'dan stories ro'yxati. Avval kesh, keyin yangisi.
+   Internet bo'lmasa — qayta-qayta uriniladi (avtoQayta), ya'ni aloqa
+   tiklanishi bilan lenta o'zi to'ladi. */
 async function storiesYukla(){
-  stKeshdanOch();
+  if(stKeshdanOch()) ST_YUKLANDI = true;
+  else renderStories();                 /* skelet darhol ko'rinsin */
   try{
     const snap = await db.collection('stories').limit(50).get();
     STORIES = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}))
-      .filter(x => x.faol !== false && (x.doira || x.rasm))
+      .filter(x => x.faol !== false && stKadrlar(x).length)
       .sort((a, b) => (Number(a.tartib) || 0) - (Number(b.tartib) || 0));
+    ST_YUKLANDI = true;
     stKeshYoz();
-  }catch(e){ /* bazaga ulanmasa — keshdagi lenta turaveradi */ }
-  renderStories();
-  stOldinYukla();
+    renderStories();
+    stOldinYukla();
+  }catch(e){
+    /* Bazaga ulanmadi: keshdagi lenta (yoki skelet) TURAVERADI va
+       xatoni yuqoriga uzatamiz — `avtoQayta` qayta urinib ko'radi. */
+    renderStories();
+    throw e;
+  }
 }
 
-/* Birinchi 3 ta to'liq rasmni oldindan yuklaymiz — mijoz bosganda
-   oyna DARHOL rasm bilan ochiladi (kutish yo'q). */
+/* Birinchi 2 ta to'liq rasmni oldindan yuklaymiz — mijoz bosganda
+   oyna DARHOL rasm bilan ochiladi (kutish yo'q).
+   MUHIM (V84): lenta endi karusel ostida, ya'ni ASOSIY narsa —
+   premium raqamlar. Shu sabab oldindan yuklash sahifa bo'shashganda
+   boshlanadi (`requestIdleCallback`), raqamlar rasmlari bilan
+   internet uchun TALASHMAYDI. */
 function stOldinYukla(){
-  STORIES.slice(0, 3).forEach(s => {
-    const u = s.rasm || s.doira; if(!u) return;
-    const im = new Image(); im.decoding = 'async'; im.src = u;
-  });
+  const ish = ()=>{
+    STORIES.slice(0, 2).forEach(s => {
+      /* Faqat RASM oldindan yuklanadi — videoni oldindan yuklash
+         mijozning internetini behuda yeydi. */
+      const k = stKadrlar(s)[0];
+      if(!k || k.tur !== 'rasm') return;
+      const im = new Image(); im.decoding = 'async'; im.src = k.url;
+    });
+  };
+  if(typeof requestIdleCallback === 'function') requestIdleCallback(ish, { timeout: 2500 });
+  else setTimeout(ish, 1500);
+}
+
+/* Skelet kartochkalar — internet yo'q yoki hali yuklanmagan payt.
+   Mijoz so'rovi: lenta SHU JOYDA doim tursin, yo'qolib qolmasin. */
+function stSkelet(n){
+  let h = '';
+  for(let i = 0; i < n; i++){
+    h += '<span class="story st-sk shim" aria-hidden="true">'
+       + '<span class="story-ring"><span class="story-in"></span></span><b></b></span>';
+  }
+  return h;
 }
 
 function renderStories(){
   const box = $('#homeStories');
   if(!box) return;
-  if(!STORIES.length){ box.innerHTML = ''; box.classList.remove('on'); return; }
+
+  /* 1) Ro'yxat bo'sh. Ikki XIL holat:
+        • baza hali javob bermagan (internet yo'q) -> SKELET turadi;
+        • baza javob berdi, lekin faol story yo'q -> lenta yashiriladi
+          (admin ataylab hammasini yashirgan). */
+  if(!STORIES.length){
+    if(ST_YUKLANDI){ box.innerHTML = ''; box.classList.remove('on'); }
+    else{ box.innerHTML = stSkelet(5); box.classList.add('on'); }
+    return;
+  }
+
   const kor = stKorilgan();
   box.classList.add('on');
   /* MUHIM (mijoz so'rovi): nom oldida/ketida YURAKCHA yo'q —
      faqat nomning o'zi turadi. */
-  box.innerHTML = STORIES.map((s, i) => `
+  box.innerHTML = STORIES.map((s, i) => {
+    const qop = stRasmOk(s.doira) ? s.doira : (stRasmOk(s.rasm) ? s.rasm : '');
+    const kn = stKadrlar(s).length;
+    return `
     <button class="story st-c${(i % 6) + 1}${kor.has(s.id) ? ' korilgan' : ''}"
-            data-story="${esc(s.id)}" data-sti="${i}" type="button" aria-label="${esc(s.nom || '')}">
+            data-story="${esc(s.id)}" data-sti="${i}" type="button"
+            aria-label="${esc(s.nom || '')}${kn > 1 ? ', ' + kn + ' ta' : ''}">
       <span class="story-ring"><span class="story-in">
-        <img src="${esc(s.doira || s.rasm)}" alt="" width="66" height="66"
-             loading="${i < 5 ? 'eager' : 'lazy'}" decoding="async"
-             ${i < 3 ? 'fetchpriority="high"' : ''}>
+        ${qop ? `<img src="${esc(qop)}" alt="" width="66" height="66" loading="lazy" decoding="async">` : ''}
       </span></span>
       <b>${esc(s.nom || '')}</b>
-    </button>`).join('');
+    </button>`; }).join('');
 }
 
 function renderHome(){
@@ -5395,6 +5595,8 @@ const findItem = (id) =>
   LIVE_RESULTS.find(n => n.id === id) ||
   /* Kun tavsiyasidagi jonli raqam — faqat shu ro'yxatda bo'ladi */
   (typeof DAY_OBJS !== 'undefined' ? DAY_OBJS[id] : null) ||
+  /* Story ichidagi savdo bloki raqami (admin kiritgan) */
+  (typeof STORY_OBJS !== 'undefined' ? STORY_OBJS[id] : null) ||
   FAV_ITEMS[id] || null;
 
 function openDetail(id){
@@ -7084,9 +7286,12 @@ function pushniYop(){
    bazaga to'g'ridan yozmaydi, shu sabab hisobni soxtalashtirib
    bo'lmaydi. Server javobida yangi sonlar qaytadi.
    ================================================================== */
-const ST_DAVOM = 5000;        // bitta story necha millisekund turadi
+const ST_DAVOM = 5000;        // bitta RASM kadri necha millisekund turadi
 let ST_QOLDI = ST_DAVOM;      // to'xtatilganda qolgan vaqt
-let ST_YURDI = 0;             // hozirgi story qachon boshlangan
+let ST_YURDI = 0;             // hozirgi kadr qachon boshlangan
+let ST_KADR = 0;              // hozirgi story ichidagi kadr raqami
+let ST_OVOZ = false;          // video ovozi yoqilganmi (mijoz tanlaydi)
+const STORY_OBJS = {};        // savdo raqamlari — buyurtma oynasi uchun
 
 /* Server funksiyasiga so'rov. Javob kelmasa — jim o'tib ketamiz
    (hisoblagich sayt ishlashiga ta'sir qilmaydi). */
@@ -7102,10 +7307,24 @@ async function stStat(amal, id){
   }catch(e){ return null; }
 }
 
+/* Hozirgi story'ning kadrlari */
+function stvKadrlar(){
+  const s = STORIES[ST_IDX];
+  return s ? stKadrlar(s) : [];
+}
+
+function stvVideoni(toxtat){
+  const vd = $('#stvVid');
+  if(!vd) return;
+  try{ if(toxtat) vd.pause(); else if(vd.src) vd.play().catch(()=>{}); }catch(e){}
+}
+
 function stvYop(){
   clearTimeout(ST_TIMER);
+  const vd = $('#stvVid');
+  if(vd){ try{ vd.pause(); vd.removeAttribute('src'); vd.load(); }catch(e){} }
   const v = $('#stView');
-  if(v) v.classList.remove('on');
+  if(v){ v.classList.remove('on'); v.classList.remove('savdo-bor'); }
   document.body.style.overflow = '';
   ST_IDX = -1;
 }
@@ -7123,37 +7342,145 @@ function stvKorildi(s){
   renderStories();        /* halqa "ko'rilgan" holatiga o'tadi */
 }
 
-/* Keyingi/oldingi rasmni oldindan yuklash */
-function stvOldin(i){
-  [i + 1, i - 1].forEach(j => {
-    const s = STORIES[j]; if(!s) return;
-    const u = s.rasm || s.doira; if(!u) return;
-    const im = new Image(); im.decoding = 'async'; im.src = u;
-  });
+/* Keyingi KADR rasmini oldindan yuklash (video emas — internet tejaladi) */
+function stvOldin(){
+  const k = stvKadrlar();
+  const keyingi = k[ST_KADR + 1];
+  if(keyingi && keyingi.tur === 'rasm'){
+    const im = new Image(); im.decoding = 'async'; im.src = keyingi.url;
+  }
+  /* Keyingi story'ning birinchi kadri ham */
+  const s2 = STORIES[ST_IDX + 1];
+  if(s2){
+    const k2 = stKadrlar(s2)[0];
+    if(k2 && k2.tur === 'rasm'){ const im = new Image(); im.decoding = 'async'; im.src = k2.url; }
+  }
+}
+
+/* ---------- SAVDO BLOKI ----------
+   Admin kadrga raqam va narx qo'ygan bo'lsa, pastda kartochka chiqadi.
+   Bosilganda saytning O'Z buyurtma oynasi ochiladi: raqam katalogda
+   bo'lsa o'sha hujjat, bo'lmasa "jonli" raqam sifatida (xuddi kun
+   tavsiyasidagi kabi) — shu sabab buyurtma bazaga to'g'ri yoziladi. */
+function stvSavdoChiz(kadr){
+  const box = $('#stvSavdo'), v = $('#stView');
+  const sv = kadr && kadr.savdo;
+  if(!sv){ box.classList.remove('bor'); v.classList.remove('savdo-bor'); return; }
+
+  const raqamlar = String(sv.raqam || '').replace(/\D/g, '').slice(-9);
+  const bor = NUMBERS.find(n => String(n.number || '').replace(/\D/g, '').slice(-9) === raqamlar);
+  const narx = Number(sv.narx) || 0;
+  const oyiga = Number(sv.oyiga) || 0;
+  const eski = Number(sv.eskiNarx) || 0;
+
+  $('#stvSvRaqam').textContent = bor ? shortNumber(bor.number) : stvRaqamChiroy(raqamlar);
+  /* Narx BIR QATORDA sig'ishi kerak (ekran surati bilan tekshirildi:
+     uzun matn ikki qatorga tushib, kartochka siqilib qolardi).
+     Bo'lib to'lash bo'lsa — oylik summa, aks holda to'liq narx;
+     eski narx esa faqat bo'lib to'lash YO'Q paytda chizib ko'rsatiladi. */
+  $('#stvSvNarx').innerHTML = oyiga
+    ? esc(formatPrice(oyiga)) + ' ' + esc(t("so'm")) + '/' + esc(t('oy'))
+    : esc(formatPrice(narx)) + ' ' + esc(t("so'm"))
+      + (eski > narx ? '<s>' + esc(formatPrice(eski)) + '</s>' : '');
+  $('#stvSvBtn').textContent = t('Buyurtma');
+
+  /* Katalogda bo'lmasa — "jonli" raqam yasaymiz */
+  const id = bor ? bor.id : ('story:' + raqamlar);
+  if(!bor){
+    STORY_OBJS[id] = {
+      id, number: '+998 ' + stvRaqamChiroy(raqamlar), operator: sv.operator || '',
+      price: narx, oldPrice: eski, installment: oyiga > 0, monthly24: oyiga,
+      currency: 'UZS', live: true, reserved: false, tier: sv.tier || ''
+    };
+  }
+  $('#stvSvBtn').onclick = (e)=>{
+    e.stopPropagation();
+    stvYop();
+    setTimeout(()=>{ try{ openOrder(id); }catch(err){} }, 120);
+  };
+  box.classList.add('bor');
+  v.classList.add('savdo-bor');
+}
+/* "901234567" -> "90 123 45 67" */
+function stvRaqamChiroy(d){
+  d = String(d || '').replace(/\D/g, '');
+  if(d.length !== 9) return d;
+  return d.slice(0,2) + ' ' + d.slice(2,5) + ' ' + d.slice(5,7) + ' ' + d.slice(7);
+}
+
+/* Tepadagi vaqt chiziqlari — HOZIRGI story'ning KADRLARI bo'yicha
+   (Instagram'dagi kabi: har bir rasm/video uchun alohida chiziq). */
+function stvChiziqlar(jami, davom){
+  $('#stvBars').innerHTML = Array.from({ length: jami }, (_, i) =>
+    `<i class="${i < ST_KADR ? 'tugadi' : (i === ST_KADR ? 'hozir' : '')}"><span></span></i>`).join('');
+  const hozir = $('#stvBars .hozir span');
+  if(hozir) hozir.style.animationDuration = Math.max(600, davom) + 'ms';
 }
 
 function stvChiz(){
   const s = STORIES[ST_IDX];
   if(!s){ stvYop(); return; }
+  const kadrlar = stvKadrlar();
+  if(!kadrlar.length){ stvKeyingi(1); return; }
+  if(ST_KADR >= kadrlar.length) ST_KADR = kadrlar.length - 1;
+  if(ST_KADR < 0) ST_KADR = 0;
+  const kadr = kadrlar[ST_KADR];
   const likes = stSet(ST_LIKE_KEY);
 
-  /* Rasm: kelmaguncha "shimmer" turadi, kelgach mayin paydo bo'ladi */
-  const ram = $('#stvRamka'), im = $('#stvImg'), fon = $('#stvFon');
-  ram.classList.remove('keldi'); im.classList.remove('keldi'); fon.classList.remove('keldi');
-  const manba = s.rasm || s.doira;
-  im.onload = ()=>{
-    ram.classList.add('keldi'); im.classList.add('keldi'); fon.classList.add('keldi');
-  };
-  im.src = manba;
-  fon.src = manba;          /* xira orqa fon — o'sha rasmning nusxasi */
-  if(im.complete && im.naturalWidth) im.onload();
+  const ram = $('#stvRamka'), im = $('#stvImg'), fon = $('#stvFon'), vd = $('#stvVid'), ov = $('#stvOvoz');
+  ram.classList.remove('keldi'); im.classList.remove('keldi');
+  fon.classList.remove('keldi'); vd.classList.remove('keldi');
+  clearTimeout(ST_TIMER);
 
-  $('#stvAva').src = s.doira || s.rasm;
+  if(kadr.tur === 'video'){
+    /* ---- VIDEO KADR ---- */
+    im.removeAttribute('src'); im.style.display = 'none';
+    vd.style.display = '';
+    ov.classList.add('bor');
+    vd.muted = !ST_OVOZ;
+    vd.src = kadr.url;
+    fon.removeAttribute('src');
+    stvOvozIc();
+    /* Chiziq uzunligi videoning O'Z davomiyligidan olinadi */
+    const boshla = ()=>{
+      const d = Math.min(30000, Math.max(1500,
+        (isFinite(vd.duration) && vd.duration > 0) ? vd.duration * 1000 : (kadr.davomMs || 8000)));
+      ram.classList.add('keldi'); vd.classList.add('keldi');
+      stvChiziqlar(kadrlar.length, d);
+      ST_QOLDI = d; ST_YURDI = Date.now();
+      clearTimeout(ST_TIMER);
+      ST_TIMER = setTimeout(()=> stvKeyingi(1), d);
+      try{ vd.currentTime = 0; vd.play().catch(()=>{}); }catch(e){}
+    };
+    vd.onloadedmetadata = boshla;
+    vd.onerror = ()=> stvKeyingi(1);
+    if(vd.readyState >= 1) boshla();
+    else stvChiziqlar(kadrlar.length, kadr.davomMs || 8000);
+  }else{
+    /* ---- RASM KADR ---- */
+    try{ vd.pause(); vd.removeAttribute('src'); }catch(e){}
+    vd.style.display = 'none';
+    ov.classList.remove('bor');
+    im.style.display = '';
+    im.onload = ()=>{
+      ram.classList.add('keldi'); im.classList.add('keldi'); fon.classList.add('keldi');
+    };
+    im.src = kadr.url;
+    fon.src = kadr.url;          /* xira orqa fon — o'sha rasmning nusxasi */
+    if(im.complete && im.naturalWidth) im.onload();
+    stvChiziqlar(kadrlar.length, ST_DAVOM);
+    ST_QOLDI = ST_DAVOM; ST_YURDI = Date.now();
+    ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_DAVOM);
+  }
+
+  $('#stvAva').src = stRasmOk(s.doira) ? s.doira : (kadr.tur === 'rasm' ? kadr.url : '');
   $('#stvNom').textContent = s.nom || '';
 
   const lk = $('#stvLike');
   lk.classList.toggle('on', likes.has(s.id));
-  $('#stvLikeN').textContent = stSonQisqa(stLikeSoni(s));
+  $('#stvLikeN').textContent = stSonAniq(stLikeSoni(s));
+
+  stvSavdoChiz(kadr);
 
   const go = $('#stvGo');
   /* XAVFSIZLIK: havola FAQAT https:// yoki saytning o'z bo'limi (#/...)
@@ -7161,7 +7488,7 @@ function stvChiz(){
      http:) butunlay e'tiborsiz qoldiriladi. */
   const hav = String(s.havola || '').trim();
   const havOk = /^https:\/\/[^\s"'<>]+$/i.test(hav) || /^#\/[A-Za-z0-9\-\/]*$/.test(hav);
-  if(havOk){
+  if(havOk && !(kadr && kadr.savdo)){
     go.style.display = '';
     go.textContent = t("Ko'rish");
     go.href = hav;
@@ -7172,30 +7499,39 @@ function stvChiz(){
     go.removeAttribute('href');
   }
 
-  /* Tepadagi vaqt chiziqlari */
-  $('#stvBars').innerHTML = STORIES.map((_, i) =>
-    `<i class="${i < ST_IDX ? 'tugadi' : (i === ST_IDX ? 'hozir' : '')}"><span></span></i>`).join('');
-  const hozir = $('#stvBars .hozir span');
-  if(hozir) hozir.style.animationDuration = ST_DAVOM + 'ms';
-
   stvKorildi(s);
-  stvOldin(ST_IDX);
-  ST_QOLDI = ST_DAVOM; ST_YURDI = Date.now();
-  clearTimeout(ST_TIMER);
-  ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_DAVOM);
+  stvOldin();
 }
 
+function stvOvozIc(){
+  const on = ST_OVOZ;
+  $('#stvOvozIc').innerHTML = on
+    ? '<path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7"></path>'
+    : '<path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M17 10l4 4M21 10l-4 4"></path>';
+}
+
+/* Keyingi/oldingi: avval KADRLAR ichida yuradi, tugasa — keyingi story */
 function stvKeyingi(yon){
+  const kadrlar = stvKadrlar();
+  const yangiKadr = ST_KADR + yon;
+  if(yangiKadr >= 0 && yangiKadr < kadrlar.length){
+    ST_KADR = yangiKadr;
+    stvChiz();
+    return;
+  }
   const yangi = ST_IDX + yon;
-  if(yangi < 0){ ST_IDX = 0; stvChiz(); return; }
+  if(yangi < 0){ ST_KADR = 0; stvChiz(); return; }
   if(yangi >= STORIES.length){ stvYop(); return; }
   ST_IDX = yangi;
+  /* Orqaga qaytganda oldingi story'ning OXIRGI kadridan boshlanadi */
+  ST_KADR = (yon < 0) ? Math.max(0, stKadrlar(STORIES[yangi]).length - 1) : 0;
   stvChiz();
 }
 
 function stvOch(i){
   if(!STORIES.length) return;
   ST_IDX = Math.max(0, Math.min(STORIES.length - 1, Number(i) || 0));
+  ST_KADR = 0;
   const v = $('#stView');
   v.classList.add('on');
   document.body.style.overflow = 'hidden';
@@ -7225,7 +7561,7 @@ function stvLike(puf){
   /* Ekranda DARHOL o'zgaradi (serverni kutmaymiz) */
   s.likes = Math.max(0, (Number(s.likes) || 0) + (bor ? -1 : 1));
   $('#stvLike').classList.toggle('on', !bor);
-  $('#stvLikeN').textContent = stSonQisqa(stLikeSoni(s));
+  $('#stvLikeN').textContent = stSonAniq(stLikeSoni(s));
   if(!bor && puf !== false) stvPuf();
   try{ haptic(bor ? 'light' : 'ok'); }catch(e){}
 
@@ -7234,7 +7570,7 @@ function stvLike(puf){
     if(!j) return;
     if(typeof j.likes === 'number') s.likes = j.likes;
     if(typeof j.likesBaza === 'number') s.likesBaza = j.likesBaza;
-    if(STORIES[ST_IDX] === s) $('#stvLikeN').textContent = stSonQisqa(stLikeSoni(s));
+    if(STORIES[ST_IDX] === s) $('#stvLikeN').textContent = stSonAniq(stLikeSoni(s));
     try{ stKeshYoz(); }catch(e){}
   });
 }
@@ -7245,6 +7581,13 @@ function stvLike(puf){
   document.getElementById('stvClose').addEventListener('click', stvYop);
   document.getElementById('stvLike').addEventListener('click', ()=> stvLike(true));
   document.getElementById('stvGo').addEventListener('click', ()=> setTimeout(stvYop, 60));
+  document.getElementById('stvOvoz').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    ST_OVOZ = !ST_OVOZ;
+    const vd = document.getElementById('stvVid');
+    if(vd) vd.muted = !ST_OVOZ;
+    stvOvozIc();
+  });
 
   /* ----- Chap/o'ng zona: BIR marta bosish — o'tish,
            IKKI marta bosish — "yoqdi" (haqiqiy ilovalardagi kabi).
@@ -7260,22 +7603,24 @@ function stvLike(puf){
   document.getElementById('stvPrev').addEventListener('click', zona(-1));
 
   /* ----- Pastga surib yopish + bosib turganda to'xtatish ----- */
-  let y0 = null, x0 = null, toxtadi = false;
+  let y0 = null, toxtadi = false;
   function toxtat(){
     clearTimeout(ST_TIMER);
-    ST_QOLDI = Math.max(300, ST_DAVOM - (Date.now() - ST_YURDI));
+    ST_QOLDI = Math.max(300, ST_QOLDI - (Date.now() - ST_YURDI));
     const b = v.querySelector('.stv-bars .hozir span');
     if(b) b.style.animationPlayState = 'paused';
+    stvVideoni(true);
   }
   function davom(){
     const b = v.querySelector('.stv-bars .hozir span');
     if(b) b.style.animationPlayState = '';
-    ST_YURDI = Date.now() - (ST_DAVOM - ST_QOLDI);
+    ST_YURDI = Date.now();
     clearTimeout(ST_TIMER);
     ST_TIMER = setTimeout(()=> stvKeyingi(1), ST_QOLDI);
+    stvVideoni(false);
   }
   v.addEventListener('pointerdown', (e)=>{
-    y0 = e.clientY; x0 = e.clientX; toxtadi = true; toxtat();
+    y0 = e.clientY; toxtadi = true; toxtat();
   });
   v.addEventListener('pointermove', (e)=>{
     if(y0 === null) return;
@@ -7285,7 +7630,7 @@ function stvLike(puf){
   const tugat = (e)=>{
     if(y0 === null) return;
     const dy = (e && e.clientY != null) ? e.clientY - y0 : 0;
-    y0 = null; x0 = null;
+    y0 = null;
     v.style.transform = '';
     if(dy > 90){ stvYop(); return; }
     if(toxtadi){ toxtadi = false; davom(); }

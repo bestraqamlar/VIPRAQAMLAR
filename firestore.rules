@@ -630,8 +630,20 @@ service cloud.firestore {
         || (d.nom is string && d.nom.size() <= 24
             && !d.nom.matches('.*[<>"`\\\\].*'));
     }
+    /* KADRLAR — bitta story ichidagi rasm/videolar ro'yxati.
+       Qoidalarda ro'yxat ICHIDAGI har bir elementni tekshirib bo'lmaydi
+       (tsikl yo'q), shu sabab bu yerda TURI va SONI tekshiriladi:
+       ro'yxat bo'lsin va 10 tadan oshmasin. Har bir kadr manzilini
+       (faqat Firebase Storage) saytning O'ZI qaytadan tekshiradi —
+       qarang: stManbaOk() / stKadrlar() index.html ichida. Ya'ni
+       himoya ikki joyda: bu yerda ham, mijoz brauzerida ham. */
+    function storyKadrOk(d){
+      return !d.keys().hasAny(['kadrlar'])
+        || (d.kadrlar is list && d.kadrlar.size() <= 10);
+    }
     function storyOk(d){
-      return storyNomOk(d)
+      return storyKadrOk(d)
+        && storyNomOk(d)
         && storyHavolaOk(d)
         && storyRasmOk(d, 'doira')
         && storyRasmOk(d, 'rasm')
