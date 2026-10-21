@@ -290,12 +290,26 @@
 
   /* ---------------- Maydonlar (suzuvchi yorliq) ---------------- */
   .login-field{position:relative;margin-bottom:11px;text-align:left;}
+  /* MATN KO'RINISHI (V109).
+     ------------------------------------------------------------------
+     Muammo: ba'zi holatda yozilgan matn "oq ustiga oq" bo'lib umuman
+     ko'rinmasdi — panelning mavzu (theme) qoidalari yoki brauzerning
+     avtomatik to'ldirishi maydon fonini oqartirib yuborganda shunday
+     bo'lardi. Shu sabab bu yerda rang ATAYLAB `!important` bilan
+     qotirilgan: maydon HAR DOIM to'q, matn HAR DOIM oq. Endi kirish
+     oynasi qaysi mavzuda ochilsa ham yozuv to'liq o'qiladi. */
   .login-screen input{
-    width:100%;background:#121216;border:1px solid rgba(255,255,255,.11);border-radius:13px;
+    width:100%;
+    background:#0E0E12 !important;
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
+    caret-color:#E6C877;
+    font-weight:600;
+    border:1px solid rgba(255,255,255,.14);border-radius:13px;
     /* IPHONE: font-size 16px'dan kichik bo'lsa iOS Safari fokusda
        sahifani avtomatik kattalashtiradi. 16px va undan katta bo'lsa
        bu zoom umuman bo'lmaydi. */
-    padding:20px 14px 8px;color:#E8EAEE;font-size:16px;outline:none;
+    padding:20px 14px 8px;font-size:16px;outline:none;
     transition:border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
   }
   /* Brauzerning o'z ko'k fokus halqasi kerak emas — bizniki bor */
@@ -324,10 +338,18 @@
     border-color:rgba(230,200,119,.6);
     box-shadow:0 0 0 4px rgba(230,200,119,.08);
   }
-  .login-screen input:-webkit-autofill{
-    -webkit-text-fill-color:#E8EAEE;
-    -webkit-box-shadow:0 0 0 60px #121216 inset;
+  /* Brauzerning avtomatik to'ldirishi (autofill) maydonni oqartirib
+     yuboradi — ichki soya bilan uni to'q holida ushlab turamiz. */
+  .login-screen input:-webkit-autofill,
+  .login-screen input:-webkit-autofill:hover,
+  .login-screen input:-webkit-autofill:focus{
+    -webkit-text-fill-color:#FFFFFF !important;
+    -webkit-box-shadow:0 0 0 60px #0E0E12 inset !important;
+    transition:background-color 9999s ease-out 0s;
   }
+  .login-screen input::placeholder{color:#7B818C;opacity:1;}
+  /* Yorliq ham aniq ko'rinsin */
+  .login-field label{color:#A6ACB6;}
   /* Parolni ko'rsatish tugmasi */
   .login-eye{
     position:absolute;right:6px;top:50%;transform:translateY(-50%);
@@ -5218,7 +5240,8 @@ body{
 }
 .kp-oldin{margin-top:18px;display:flex;justify-content:center}
 /* Karta YOTIQ (landscape) — oldin tik rasm uchun 420px edi */
-.kp-oldin img{
+.kp-oldin img,
+.kp-oldin canvas{
   width:100%;max-width:720px;height:auto;display:block;border-radius:18px;
   box-shadow:0 24px 60px -24px rgba(16,24,40,.45);border:1px solid var(--line);
 }

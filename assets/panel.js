@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=106) ham oshiring.
+   havolaning oxiridagi raqamni (?v=109) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -11405,7 +11405,80 @@ document.getElementById('xavfYoqBtn') && document.getElementById('xavfYoqBtn')
    sarlavhasi bilan) — aks holda har kim bizning uslubimizdagi rasm
    yasab, sayt nomidan tarqatishi mumkin bo'lardi.
    ================================================================== */
-let KP_PNG = null;        // oxirgi chizilgan rasm (yuklab olish uchun)
+/* ==================================================================
+   KANAL POSTI — JONLI SHABLON (V107)
+   ------------------------------------------------------------------
+   NEGA QAYTA YOZILDI. Ilgari rasm SERVERDA chizilardi (Netlify
+   funksiyasi + resvg). U yerda shriftlar alohida fayl ichida base64
+   ko'rinishida turardi va o'sha fayl to'liq yetib bormasa, rasmda
+   BITTA HAM YOZUV chiqmasdi — "bo'sh kartochka". Sababini topish
+   qiyin, har bosganda server chaqiriladi, kutish bor.
+
+   ENDI rasm BRAUZERDA, <canvas> da chiziladi:
+     * shriftlar panelning o'zidan olinadi (allaqachon yuklangan) —
+       serverdagi shrift muammosi umuman yo'q;
+     * matn yoki rang o'zgarsa SHU ZAHOTI qayta chiziladi — "jonli
+       shablon", tugma bosish shart emas;
+     * server umuman chaqirilmaydi: tez, bepul, xatoga joy yo'q;
+     * yuklab olish ham shu canvas'dan (toBlob) — sifat bir xil,
+       1620 x 1021 px, plastik karta nisbati.
+   ================================================================== */
+const KP_EN = 1620, KP_BO = 1021;      // ISO ID-1 nisbati (1 : 1.586)
+
+const KP_FONLAR = {
+  kok:     { a:'#0A1B33', b:'#102948', c:'#03070E', nur:'#3A6FDD', nurOp:0.15, markaz:'#6E9BF0' },
+  yashil:  { a:'#07231C', b:'#0C3A2B', c:'#020C09', nur:'#1F8A62', nurOp:0.16, markaz:'#44C79A' },
+  kulrang: { a:'#141720', b:'#1E222C', c:'#06080C', nur:'#6A7384', nurOp:0.14, markaz:'#9AA6BA' }
+};
+
+/* ---------------- SHRIFTLAR (20 xil) ----------------
+   Saytning o'z ikki shrifti darhol ishlaydi (fayl panel bilan birga
+   keladi). Qolganlari Google Fonts'dan FAQAT TANLANGANDA yuklanadi —
+   hammasini oldindan yuklash panelni sekinlashtirardi.
+
+   CSP (netlify.toml) buni ataylab ruxsat etadi:
+     style-src ... https://fonts.googleapis.com
+     font-src  ... https://fonts.gstatic.com
+   Boshqa manba qo'shib bo'lmaydi, ya'ni bu teshik ochmaydi.
+
+   Shrift yuklanmasa (internet sekin, Google to'silgan) — canvas
+   avtomatik saytning o'z shriftiga qaytadi, rasm baribir chiqadi. */
+const KP_MAHALLIY = ['Space Mono', 'Inter'];
+const KP_YUKLANGAN = {};
+
+function kpShriftYukla(oila, vazn){
+  if(KP_MAHALLIY.indexOf(oila) !== -1) return Promise.resolve(true);
+  if(KP_YUKLANGAN[oila]) return KP_YUKLANGAN[oila];
+  KP_YUKLANGAN[oila] = new Promise((bajar)=>{
+    try{
+      const nom = oila.replace(/ /g, '+');
+      const l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=' + nom + ':wght@' + vazn + '&display=swap';
+      l.onerror = ()=> bajar(false);
+      document.head.appendChild(l);
+      /* Stylesheet kelgandan keyin shriftning O'ZI ham yuklanishi kerak */
+      const kut = ()=> document.fonts.load(vazn + ' 184px "' + oila + '"')
+        .then(list => bajar(list && list.length > 0))
+        .catch(()=> bajar(false));
+      l.onload = kut;
+      setTimeout(kut, 1200);              // onload kelmasa ham urinamiz
+      setTimeout(()=> bajar(false), 6000); // umuman kelmasa — zaxiraga
+    }catch(e){ bajar(false); }
+  });
+  return KP_YUKLANGAN[oila];
+}
+
+function kpTanlanganShrift(){
+  const el = document.getElementById('kpShrift');
+  const q = (el && el.value) || 'Space Mono|700';
+  const [oila, vazn] = q.split('|');
+  return { oila: oila, vazn: vazn || '700' };
+}
+
+let KP_LOGO = null;          // <img> — bir marta yuklanadi
+let KP_SHRIFT_TAYYOR = false;
+let KP_NAVBAT = false;       // kadrga bir marta chizish uchun
 
 function kpXabar(matn, yomon){
   const el = document.getElementById('kpMsg');
@@ -11414,55 +11487,319 @@ function kpXabar(matn, yomon){
   el.style.color = yomon ? 'var(--red)' : '';
 }
 
-async function kpChiz(){
-  const btn = document.getElementById('kpChizBtn');
-  const raqam = (document.getElementById('kpRaqam').value || '').trim();
-  if(!raqam.replace(/\D/g, '')){ kpXabar('Avval raqamni yozing.', true); return; }
+/* --- kichik yordamchilar (serverdagilar bilan bir xil mantiq) --- */
+function kpChiroyliRaqam(v){
+  const d = String(v || '').replace(/\D/g, '').replace(/^998/, '');
+  if(d.length !== 9) return String(v || '').trim();
+  return d.slice(0,2) + ' ' + d.slice(2,5) + ' ' + d.slice(5,7) + ' ' + d.slice(7,9);
+}
+function kpPul(n){
+  const x = Number(n) || 0;
+  if(!x) return '';
+  return x.toLocaleString('ru-RU').replace(/ /g, ' ');
+}
+function kpYumaloq(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function kpRgba(hex, op){
+  const h = hex.replace('#','');
+  const n = parseInt(h.length === 3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + op + ')';
+}
 
-  btn.disabled = true;
-  kpXabar('Rasm chizilmoqda...');
-  try{
-    const idToken = await firebase.auth().currentUser.getIdToken();
-    const res = await fetch('/.netlify/functions/admin-post-rasm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-      body: JSON.stringify({
-        raqam,
-        toifa: (document.getElementById('kpToifa').value || '').trim(),
-        fon: document.getElementById('kpFon').value || 'kok',
-        narx: Number(document.getElementById('kpNarx').value) || 0,
-        eskiNarx: Number(document.getElementById('kpEski').value) || 0,
-        oylik: Number(document.getElementById('kpOylik').value) || 0,
-        oylar: Number(document.getElementById('kpOylar').value) || 24,
-        valyuta: document.getElementById('kpValyuta').value || "so'm",
-        telefon: (document.getElementById('kpTelefon').value || '').trim()
-      })
-    });
-    const data = await res.json();
-    if(!data.ok) throw new Error(data.error || 'Rasm chizilmadi');
-    KP_PNG = data.png;
-    document.getElementById('kpRasm').src = data.png;
-    document.getElementById('kpOldin').style.display = '';
-    document.getElementById('kpYuklaBtn').style.display = '';
-    kpXabar(data.ogoh
-      ? '⚠ ' + data.ogoh
-      : '✓ Tayyor. Pastda ko‘rib turibsiz — yuklab oling yoki skrinshot qiling.', !!data.ogoh);
-    vibrate(60);
-    try{ document.getElementById('kpOldin').scrollIntoView({ block:'start', behavior:'smooth' }); }catch(e){}
-  }catch(e){
-    kpXabar('Xato: ' + e.message, true);
-  }finally{ btn.disabled = false; }
+/* Guilloche — bank kartalaridagi nozik to'lqinli naqsh.
+   Kichik offscreen canvas'da bir marta chiziladi, keyin naqsh (pattern)
+   sifatida takrorlanadi — har kadrda qayta chizilmaydi. */
+let KP_NAQSH = null;
+function kpNaqsh(ctx){
+  if(KP_NAQSH) return KP_NAQSH;
+  const c = document.createElement('canvas');
+  c.width = 46; c.height = 46;
+  const g = c.getContext('2d');
+  const tolqin = (y, rang, qalin)=>{
+    g.beginPath();
+    g.moveTo(0, y);
+    g.quadraticCurveTo(11.5, y - 16, 23, y);
+    g.quadraticCurveTo(34.5, y + 16, 46, y);
+    g.strokeStyle = rang; g.lineWidth = qalin; g.stroke();
+  };
+  tolqin(23, 'rgba(240,216,152,0.045)', 1.1);
+  tolqin(11.5, 'rgba(255,255,255,0.035)', 1);
+  tolqin(34.5, 'rgba(255,255,255,0.03)', 1);
+  KP_NAQSH = ctx.createPattern(c, 'repeat');
+  return KP_NAQSH;
+}
+
+function kpQiymatlar(){
+  const ol = (id)=> (document.getElementById(id) || {}).value || '';
+  return {
+    raqam: String(ol('kpRaqam')).trim(),
+    toifa: String(ol('kpToifa')).trim().slice(0,18).toUpperCase(),
+    fon: ol('kpFon') || 'kok',
+    narx: Number(ol('kpNarx')) || 0,
+    eskiNarx: Number(ol('kpEski')) || 0,
+    oylik: Number(ol('kpOylik')) || 0,
+    oylar: Number(ol('kpOylar')) || 24,
+    valyuta: ol('kpValyuta') || "so'm",
+    telefon: String(ol('kpTelefon')).trim().slice(0,24)
+  };
+}
+
+/* ---------------- ASOSIY CHIZUVCHI ---------------- */
+function kpChizKanvas(){
+  const cv = document.getElementById('kpKanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const o = kpQiymatlar();
+  const F = KP_FONLAR[o.fon] || KP_FONLAR.kok;
+
+  const W = KP_EN, H = KP_BO;
+  const M = 44, KW = W - M*2, KH = H - M*2, R = 72;
+  const P = M + 76, ICH = KW - 152;
+
+  ctx.clearRect(0, 0, W, H);
+
+  /* --- tashqi fon --- */
+  let g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#050B16'); g.addColorStop(1, '#020611');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  /* --- karta soyasi --- */
+  ctx.save();
+  ctx.shadowColor = 'rgba(1,6,15,0.55)'; ctx.shadowBlur = 52; ctx.shadowOffsetY = 18;
+  kpYumaloq(ctx, M, M, KW, KH, R);
+  ctx.fillStyle = '#01060F'; ctx.fill();
+  ctx.restore();
+
+  /* --- karta asosi (hamma qatlam shu shakl ichida) --- */
+  ctx.save();
+  kpYumaloq(ctx, M, M, KW, KH, R);
+  ctx.clip();
+
+  g = ctx.createLinearGradient(M, M, M + KW*0.62, M + KH);
+  g.addColorStop(0, F.a); g.addColorStop(0.42, F.b); g.addColorStop(1, F.c);
+  ctx.fillStyle = g; ctx.fillRect(M, M, KW, KH);
+
+  /* guilloche naqshi */
+  ctx.save();
+  ctx.translate(M, M); ctx.rotate(24 * Math.PI / 180);
+  ctx.fillStyle = kpNaqsh(ctx);
+  ctx.fillRect(-KH, -KW, KW + KH*2, KH + KW*2);
+  ctx.restore();
+
+  /* o'ng-tepadagi oltin nur */
+  g = ctx.createRadialGradient(M + KW*1.02, M - KH*0.12, 0, M + KW*1.02, M - KH*0.12, KW*0.9);
+  g.addColorStop(0, 'rgba(246,223,164,0.26)');
+  g.addColorStop(0.44, 'rgba(246,223,164,0.07)');
+  g.addColorStop(0.68, 'rgba(246,223,164,0)');
+  ctx.fillStyle = g; ctx.fillRect(M, M, KW, KH);
+
+  /* chap-pastdagi rangli nur */
+  g = ctx.createRadialGradient(M - KW*0.08, M + KH*1.1, 0, M - KW*0.08, M + KH*1.1, KW*0.9);
+  g.addColorStop(0, kpRgba(F.nur, F.nurOp));
+  g.addColorStop(0.68, kpRgba(F.nur, 0));
+  ctx.fillStyle = g; ctx.fillRect(M, M, KW, KH);
+
+  /* diagonal shisha yaltirashi */
+  g = ctx.createLinearGradient(M, M, M + KW*0.6, M + KH);
+  g.addColorStop(0, 'rgba(255,255,255,0.055)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(M + KW*0.46, M);
+  ctx.lineTo(M + KW*0.74, M);
+  ctx.lineTo(M + KW*0.30, M + KH);
+  ctx.lineTo(M + KW*0.04, M + KH);
+  ctx.closePath(); ctx.fill();
+
+  /* chetlardagi qorayish (vinyet) */
+  g = ctx.createRadialGradient(M + KW*0.5, M + KH*0.1, 0, M + KW*0.5, M + KH*0.1, KW*0.95);
+  g.addColorStop(0.36, 'rgba(1,5,13,0)');
+  g.addColorStop(1, 'rgba(1,5,13,0.66)');
+  ctx.fillStyle = g; ctx.fillRect(M, M, KW, KH);
+  ctx.restore();
+
+  /* --- oltin ramka va ichki nozik chiziq --- */
+  g = ctx.createLinearGradient(M, M, M + KW*0.7, M + KH);
+  g.addColorStop(0, 'rgba(240,216,152,0.8)');
+  g.addColorStop(0.34, 'rgba(240,216,152,0.2)');
+  g.addColorStop(0.62, 'rgba(255,255,255,0.07)');
+  g.addColorStop(1, 'rgba(240,216,152,0.3)');
+  kpYumaloq(ctx, M+2, M+2, KW-4, KH-4, R-2);
+  ctx.strokeStyle = g; ctx.lineWidth = 4; ctx.stroke();
+  kpYumaloq(ctx, M+16, M+16, KW-32, KH-32, R-14);
+  ctx.strokeStyle = 'rgba(240,216,152,0.14)'; ctx.lineWidth = 1.6; ctx.stroke();
+
+  /* --- tepa chap: logotip --- */
+  if(KP_LOGO && KP_LOGO.complete && KP_LOGO.naturalWidth){
+    const lb = 74, le = Math.round(lb * KP_LOGO.naturalWidth / KP_LOGO.naturalHeight);
+    ctx.globalAlpha = 0.96;
+    ctx.drawImage(KP_LOGO, P, M + 58, le, lb);
+    ctx.globalAlpha = 1;
+    ctx.font = '600 15px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#6F82A0'; ctx.textAlign = 'left';
+    ctx.fillText('Chiroyli va VIP telefon raqamlar', P + 2, M + 156);
+  }
+
+  /* --- tepa o'ng: toifa yorlig'i --- */
+  if(o.toifa){
+    ctx.font = '800 20px Inter, system-ui, sans-serif';
+    const en = Math.round(ctx.measureText(o.toifa).width + o.toifa.length * 2.8) + 54;
+    const x = W - P - en, y = M + 72;
+    g = ctx.createLinearGradient(x, y, x + en, y + 52);
+    g.addColorStop(0, '#FBF0CF'); g.addColorStop(0.4, '#EDD79A');
+    g.addColorStop(0.72, '#D5B059'); g.addColorStop(1, '#B8902F');
+    kpYumaloq(ctx, x, y, en, 52, 15);
+    ctx.globalAlpha = 0.92; ctx.fillStyle = g; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#201702'; ctx.textAlign = 'center';
+    kpHarfOraliq(ctx, o.toifa, x + en/2, y + 34, 2.8, 'center');
+  }
+
+  /* --- RAQAM: kartaning markazi --- */
+  const raqam = kpChiroyliRaqam(o.raqam) || '—';
+  const rSh = raqam.length > 15 ? 124 : (raqam.length > 13 ? 150 : (raqam.length > 11 ? 164 : 184));
+  const OX = W / 2;
+  /* vertikal markaz: sarlavha ostidan pastki chiziqqacha */
+  const bosh = M + 186, oxir = H - M - 172 - 52;
+  const CY = Math.round(bosh + (oxir - bosh) / 2 + rSh * 0.30);
+
+  /* raqam ortidagi yumshoq nur */
+  g = ctx.createRadialGradient(OX, CY - rSh*0.28, 0, OX, CY - rSh*0.28, Math.round(W*0.38));
+  g.addColorStop(0, kpRgba(F.markaz, 0.10));
+  g.addColorStop(0.45, kpRgba(F.markaz, 0.035));
+  g.addColorStop(1, kpRgba(F.markaz, 0));
+  ctx.save();
+  kpYumaloq(ctx, M, M, KW, KH, R); ctx.clip();
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(OX, CY - rSh*0.28, Math.round(W*0.38), Math.round(rSh*0.95), 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  const SH = kpTanlanganShrift();
+  ctx.font = SH.vazn + ' ' + rSh + 'px "' + SH.oila + '", "Space Mono", ui-monospace, monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  /* 1) to'q soya */
+  ctx.save();
+  ctx.shadowColor = 'rgba(1,5,14,0.62)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 7;
+  ctx.fillStyle = 'rgba(1,5,14,0.62)';
+  ctx.fillText(raqam, OX + 5, CY + 7);
+  ctx.restore();
+  /* 2) oltin folga + konturi */
+  const yuq = CY - rSh*0.74, past = CY + rSh*0.12;
+  g = ctx.createLinearGradient(OX, yuq, OX + rSh*0.12, past);
+  g.addColorStop(0, '#FFF8E2'); g.addColorStop(0.22, '#F7E3AE');
+  g.addColorStop(0.52, '#E7C473'); g.addColorStop(0.78, '#D2A747');
+  g.addColorStop(1, '#B98A2B');
+  const gq = ctx.createLinearGradient(OX, yuq, OX + rSh*0.12, past);
+  gq.addColorStop(0, '#F3E0AC'); gq.addColorStop(0.5, '#D9AE4C'); gq.addColorStop(1, '#A97C22');
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(3, Math.round(rSh/38));
+  ctx.strokeStyle = gq; ctx.strokeText(raqam, OX, CY);
+  ctx.fillStyle = g;  ctx.fillText(raqam, OX, CY);
+
+  /* --- pastki qator --- */
+  const PY = H - M - 172;
+  g = ctx.createLinearGradient(P, 0, P + ICH, 0);
+  g.addColorStop(0, 'rgba(240,216,152,0.55)');
+  g.addColorStop(0.58, 'rgba(255,255,255,0.16)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(P, PY - 30, ICH, 2);
+
+  const narx = kpPul(o.narx);
+  ctx.textAlign = 'left';
+  if(narx){
+    ctx.fillStyle = '#6F82A0';
+    ctx.font = '700 15px Inter, system-ui, sans-serif';
+    kpHarfOraliq(ctx, 'NARXI', P, PY + 14, 2.4, 'left');
+    ctx.font = SH.vazn + ' 48px "' + SH.oila + '", "Space Mono", monospace';
+    ctx.fillStyle = '#DDE7F5';
+    ctx.fillText(narx, P, PY + 72);
+    const en = ctx.measureText(narx).width;
+    ctx.font = '600 22px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#6F82A0';
+    ctx.fillText(o.valyuta, P + en + 13, PY + 72);
+    if(o.eskiNarx && o.eskiNarx > o.narx){
+      const e = kpPul(o.eskiNarx);
+      ctx.font = SH.vazn + ' 27px "' + SH.oila + '", "Space Mono", monospace';
+      ctx.fillStyle = '#7C8FB0';
+      ctx.fillText(e, P, PY + 108);
+      const ew = ctx.measureText(e).width;
+      ctx.fillRect(P, PY + 99, ew, 2);          // chizib ko'rsatish
+    }
+  }
+
+  const oylikMatn = o.oylik ? (kpPul(o.oylik) + " so'mdan / " + o.oylar + ' oy') : '';
+  if(oylikMatn){
+    ctx.font = '700 20px Inter, system-ui, sans-serif';
+    const en = Math.round(ctx.measureText(oylikMatn).width) + 48;
+    const x = narx ? (P + 420) : P;
+    kpYumaloq(ctx, x, PY + 26, en, 58, 17);
+    ctx.fillStyle = 'rgba(230,200,119,0.14)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(230,200,119,0.3)'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = '#C9A85E';
+    ctx.fillText(oylikMatn, x + 24, PY + 64);
+  }
+
+  ctx.textAlign = 'right';
+  ctx.font = SH.vazn + ' 30px "' + SH.oila + '", "Space Mono", monospace';
+  ctx.fillStyle = '#C9A85E';
+  ctx.fillText('vipraqamlar.uz', W - P, PY + 36);
+  if(o.telefon){
+    ctx.font = SH.vazn + ' 27px "' + SH.oila + '", "Space Mono", monospace';
+    ctx.fillStyle = '#C6D4E8';
+    ctx.fillText(o.telefon, W - P, PY + 80);
+    ctx.font = '600 16px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#6F82A0';
+    ctx.fillText('Buyurtma uchun', W - P, PY + 110);
+  }else{
+    ctx.font = '600 17px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#6F82A0';
+    ctx.fillText('Rasmiy shartnoma · Bepul yetkazib berish', W - P, PY + 76);
+  }
+  ctx.textAlign = 'left';
+}
+
+/* Canvas'da harflar orasini ochish (CSS'dagi letter-spacing yo'q) */
+function kpHarfOraliq(ctx, matn, x, y, oraliq, joylash){
+  const harflar = String(matn).split('');
+  let en = 0;
+  harflar.forEach(h => { en += ctx.measureText(h).width + oraliq; });
+  en -= oraliq;
+  let qalam = joylash === 'center' ? x - en/2 : x;
+  const eski = ctx.textAlign;
+  ctx.textAlign = 'left';
+  harflar.forEach(h => { ctx.fillText(h, qalam, y); qalam += ctx.measureText(h).width + oraliq; });
+  ctx.textAlign = eski;
+}
+
+/* Kadrga bir marta chizish — har bir harf uchun emas */
+function kpJonli(){
+  if(KP_NAVBAT) return;
+  KP_NAVBAT = true;
+  requestAnimationFrame(()=>{ KP_NAVBAT = false; kpChizKanvas(); });
 }
 
 function kpYukla(){
-  if(!KP_PNG) return;
-  const raqam = (document.getElementById('kpRaqam').value || 'raqam').replace(/\D/g, '').slice(-9);
-  const a = document.createElement('a');
-  a.href = KP_PNG;
-  a.download = 'vipraqamlar-' + (raqam || 'post') + '.png';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  const cv = document.getElementById('kpKanvas');
+  if(!cv) return;
+  const raqam = (document.getElementById('kpRaqam').value || '').replace(/\D/g, '').slice(-9);
+  cv.toBlob((blob)=>{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vipraqamlar-' + (raqam || 'post') + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+    kpXabar('✓ Yuklab olindi.');
+    vibrate(60);
+  }, 'image/png');
 }
 
 function kpTozala(){
@@ -11470,18 +11807,61 @@ function kpTozala(){
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   const oy = document.getElementById('kpOylar'); if(oy) oy.value = '24';
   /* Fon rangi TOZALANMAYDI — admin odatda bitta rangda ishlaydi */
-  KP_PNG = null;
-  const old = document.getElementById('kpOldin'); if(old) old.style.display = 'none';
-  const yk = document.getElementById('kpYuklaBtn'); if(yk) yk.style.display = 'none';
   kpXabar('');
+  kpJonli();
 }
 
-document.getElementById('kpChizBtn') && document.getElementById('kpChizBtn').addEventListener('click', kpChiz);
-document.getElementById('kpYuklaBtn') && document.getElementById('kpYuklaBtn').addEventListener('click', kpYukla);
-document.getElementById('kpTozaBtn') && document.getElementById('kpTozaBtn').addEventListener('click', kpTozala);
-/* Enter bosilganda ham chizsin */
-document.getElementById('kpRaqam') && document.getElementById('kpRaqam')
-  .addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); kpChiz(); } });
+/* --- ishga tushirish --- */
+(function kpBoshlash(){
+  const cv = document.getElementById('kpKanvas');
+  if(!cv) return;
+
+  /* Logotip bir marta yuklanadi */
+  KP_LOGO = new Image();
+  KP_LOGO.onload = kpJonli;
+  KP_LOGO.onerror = ()=> kpXabar('Logotip yuklanmadi (assets/logo-vip.png) — qolgani ishlayveradi.', true);
+  KP_LOGO.src = 'assets/logo-vip.png?v=1';
+
+  /* Shriftlar yuklangach qayta chizamiz — aks holda birinchi chizishda
+     brauzer zaxira shriftni ishlatib qo'yishi mumkin. */
+  if(document.fonts && document.fonts.load){
+    Promise.all([
+      document.fonts.load('700 184px "Space Mono"'),
+      document.fonts.load('800 20px Inter'),
+      document.fonts.load('600 15px Inter')
+    ]).then(()=>{ KP_SHRIFT_TAYYOR = true; kpJonli(); }).catch(()=>{});
+  }
+
+  /* Har bir maydon o'zgarganda JONLI qayta chiziladi */
+  const sh = document.getElementById('kpShrift');
+  if(sh){
+    sh.addEventListener('change', ()=>{
+      const t = kpTanlanganShrift();
+      if(KP_MAHALLIY.indexOf(t.oila) !== -1){ kpJonli(); return; }
+      kpXabar('Shrift yuklanmoqda\u2026');
+      kpShriftYukla(t.oila, t.vazn).then(ok=>{
+        kpXabar(ok ? '' : "\u26a0 \u201c" + t.oila + "\u201d yuklanmadi \u2014 saytning o'z shrifti ishlatildi.", !ok);
+        kpJonli();
+      });
+    });
+  }
+
+  ['kpRaqam','kpToifa','kpFon','kpNarx','kpEski','kpOylik','kpOylar','kpValyuta','kpTelefon']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.addEventListener('input', kpJonli);
+      el.addEventListener('change', kpJonli);
+    });
+
+  const yk = document.getElementById('kpYuklaBtn');
+  if(yk){ yk.style.display = ''; yk.addEventListener('click', kpYukla); }
+  const tz = document.getElementById('kpTozaBtn');
+  if(tz) tz.addEventListener('click', kpTozala);
+
+  kpJonli();
+})();
+
 
 /* ==================================================================
    STORIES — bosh sahifadagi lenta (admin tomoni)
