@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=106">
-<link rel="preload" as="script" href="assets/panel.js?v=106">
+<link rel="preload" as="style" href="assets/panel.css?v=109">
+<link rel="preload" as="script" href="assets/panel.js?v=109">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -35,9 +35,10 @@
   .login-screen h1{font-family:ui-monospace,monospace;color:#E6C877;font-size:17px;margin:0 0 5px;letter-spacing:.05em}
   .login-sub{color:#8A8F99;font-size:12.5px;margin:0 0 22px}
   .login-field{position:relative;margin-bottom:11px;text-align:left}
-  .login-screen input{width:100%;background:#121216;border:1px solid rgba(255,255,255,.12);border-radius:12px;
-    padding:20px 14px 8px;color:#E8EAEE;font-size:16px;font-family:inherit;box-sizing:border-box}
-  .login-field label{position:absolute;left:15px;top:6px;color:#8A8F99;font-size:11px;pointer-events:none}
+  .login-screen input{width:100%;background:#0E0E12;border:1px solid rgba(255,255,255,.14);border-radius:12px;
+    padding:20px 14px 8px;color:#fff;-webkit-text-fill-color:#fff;font-size:16px;font-weight:600;
+    font-family:inherit;box-sizing:border-box;caret-color:#E6C877}
+  .login-field label{position:absolute;left:15px;top:6px;color:#A6ACB6;font-size:11px;pointer-events:none}
   .login-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;
     border:none;background:transparent;color:#8A8F99;cursor:pointer}
   .login-eye svg{width:19px;height:19px}
@@ -51,7 +52,7 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=106">
+<link rel="stylesheet" href="assets/panel.css?v=109">
 
 </head>
 <body>
@@ -959,8 +960,9 @@
       Tayyor PNG: skrinshot qilish shart emas, <b>"Rasmni yuklab olish"</b>
       tugmasini bosasiz.
       <br><br>
-      Shrift va dizayn serverda chiziladi, ya'ni qaysi telefondan ochsangiz ham
-      rasm <b>aynan bir xil</b> chiqadi.
+      Rasm <b>jonli</b> chiziladi: matn yoki rangni o'zgartirsangiz pastdagi
+      namuna <b>shu zahoti</b> yangilanadi — hech narsa bosish shart emas.
+      Tayyor bo'lgach “Rasmni yuklab olish” tugmasini bosasiz.
     </div>
 
     <div class="video-upload-box">
@@ -993,22 +995,60 @@
       </div>
 
       <div class="kp-qator">
+        <label>Raqam shrifti <span class="ig-field-hint">(tanlasangiz darhol ko'rinadi)</span>
+          <select id="kpShrift">
+            <optgroup label="Saytning o'z shriftlari (tezkor)">
+              <option value="Space Mono|700" selected>Space Grotesk &mdash; hozirgi</option>
+              <option value="Inter|800">Plus Jakarta Sans</option>
+            </optgroup>
+            <optgroup label="Zamonaviy &mdash; geometrik">
+              <option value="Outfit|700">Outfit</option>
+              <option value="Poppins|700">Poppins</option>
+              <option value="Montserrat|800">Montserrat</option>
+              <option value="Manrope|800">Manrope</option>
+              <option value="Lexend|700">Lexend</option>
+              <option value="Sora|700">Sora</option>
+              <option value="Syne|800">Syne</option>
+              <option value="Unbounded|700">Unbounded</option>
+            </optgroup>
+            <optgroup label="Qalin &mdash; e'lon uslubi">
+              <option value="Archivo Black|400">Archivo Black</option>
+              <option value="Anton|400">Anton</option>
+              <option value="Bebas Neue|400">Bebas Neue</option>
+              <option value="Russo One|400">Russo One</option>
+              <option value="Big Shoulders Display|800">Big Shoulders</option>
+            </optgroup>
+            <optgroup label="Tor &mdash; uzun raqamlar uchun">
+              <option value="Oswald|600">Oswald</option>
+              <option value="Teko|600">Teko</option>
+              <option value="Barlow Condensed|700">Barlow Condensed</option>
+              <option value="Saira Condensed|700">Saira Condensed</option>
+            </optgroup>
+            <optgroup label="Texnologik">
+              <option value="Orbitron|800">Orbitron</option>
+              <option value="Chakra Petch|700">Chakra Petch</option>
+              <option value="Michroma|400">Michroma</option>
+              <option value="JetBrains Mono|700">JetBrains Mono</option>
+            </optgroup>
+          </select></label>
         <label>Valyuta
           <select id="kpValyuta"><option value="so'm">so'm</option><option value="$">$</option></select></label>
+      </div>
+
+      <div class="kp-qator">
         <label>Aloqa raqami <span class="ig-field-hint">(pastda chiqadi)</span>
           <input type="text" id="kpTelefon" placeholder="+998 87 888 01 01"></label>
       </div>
 
       <div class="st-form-act">
-        <button id="kpChizBtn" class="ig-save-btn" type="button">🎨 Rasmni tayyorlash</button>
-        <button id="kpYuklaBtn" class="btn btn-ghost" type="button" style="display:none">⬇️ Rasmni yuklab olish</button>
+        <button id="kpYuklaBtn" class="ig-save-btn" type="button">⬇️ Rasmni yuklab olish</button>
         <button id="kpTozaBtn" class="btn btn-ghost" type="button">Tozalash</button>
       </div>
       <div class="ig-save-msg" id="kpMsg"></div>
     </div>
 
-    <div class="kp-oldin" id="kpOldin" style="display:none">
-      <img id="kpRasm" alt="Kanal posti">
+    <div class="kp-oldin" id="kpOldin">
+      <canvas id="kpKanvas" width="1620" height="1021" aria-label="Kanal posti namunasi"></canvas>
     </div>
   </div>
 
@@ -2341,6 +2381,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=106"></script>
+<script defer src="assets/panel.js?v=109"></script>
 </body>
 </html>
