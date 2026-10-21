@@ -55,6 +55,16 @@
 # Ularning kabinetida qisqa manzilni ko'rsatish qulayroq.
 /tarif-tolov    /.netlify/functions/tarif-callback   200
 
+# KIRISH XIZMATI — ZAXIRA YO'L (V99).
+# Ba'zi kompyuterlarda antivirus yoki brauzer kengaytmasi Google'ning
+# kirish xizmatini (identitytoolkit.googleapis.com) to'sib qo'yadi: sayt
+# ochiladi, lekin panelga kirib bo'lmaydi ("auth/network-request-failed").
+# Shunda panel Firebase SDK'ni SAYTNING O'ZIGA yo'naltiradi va so'rov shu
+# qoida orqali funksiyaga tushadi, funksiya esa uni Google'ga uzatadi.
+# Batafsil: netlify/functions/auth-proxy.js
+/identitytoolkit.googleapis.com/*   /.netlify/functions/auth-proxy   200
+/securetoken.googleapis.com/*       /.netlify/functions/auth-proxy   200
+
 # BOSHQA BARCHA manzillar (mavjud bo'lmagan/tasodifiy sahifalar, masalan
 # /qandaydir-notogri-havola.html) — bosh sahifaga (index.html) yo'naltiriladi.
 # DIQQAT: bu qoida faqat "fayl topilmagan" holatlarda ishlaydi — mavjud
