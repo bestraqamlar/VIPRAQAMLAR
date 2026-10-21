@@ -32,6 +32,41 @@
 
 const admin = require('firebase-admin');
 
+/* TUZATISH (V105): Admin SDK SHU YERDA ishga tushiriladi.
+   ------------------------------------------------------------------
+   Ilgari har bir funksiya `admin.initializeApp(...)` ni O'ZI chaqirardi.
+   Yangi funksiya yozilganda buni unutish juda oson — natijada
+   `admin.auth()` "app/no-app" xatosini tashlardi va foydalanuvchi
+   "Token yaroqsiz, muddati o'tgan yoki hisob to'xtatilgan (app/no-app)"
+   degan CHALG'ITUVCHI xabarni ko'rardi (aslida token mutlaqo soz edi —
+   server ulanmagan edi). Aynan shu "Kanal posti" bo'limida yuz berdi:
+   admin-post-rasm.js `requireAdmin` ni chaqirardi, lekin SDK ishga
+   tushirilmagan edi.
+
+   Endi tekshiruvning O'ZI ulanishni ta'minlaydi, ya'ni `requireAdmin`
+   ni chaqirgan har qanday funksiya avtomatik to'g'ri ishlaydi.
+   `admin.apps.length` qalqoni bor — allaqachon ishga tushirilgan
+   bo'lsa, ikkinchi marta ishga tushirilmaydi. */
+let ULANISH_XATOSI = null;
+if (!admin.apps.length) {
+  /* try/catch: muhit o'zgaruvchilari yo'q yoki noto'g'ri bo'lsa
+     `initializeApp` SHU YERDA, fayl yuklanayotganda xato tashlaydi va
+     butun funksiya 500 bilan qulardi (foydalanuvchi "Server xatosi"dan
+     boshqa hech narsa ko'rmasdi). Endi xato eslab qolinadi va
+     `requireAdmin` uni TUSHUNARLI xabar bilan qaytaradi. */
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+      })
+    });
+  } catch (e) {
+    ULANISH_XATOSI = (e && e.message) || 'sabab noma\'lum';
+  }
+}
+
 /**
  * event ichidan Firebase ID tokenni oladi, tekshiradi va uning
  * `admin: true` maxsus huquqiga (custom claim) ega ekanini tasdiqlaydi.
@@ -42,6 +77,17 @@ const admin = require('firebase-admin');
  * Aks holda xato tashlaydi (chaqiruvchi buni ushlab, 401/403 qaytarishi kerak).
  */
 async function requireAdmin(event, opts) {
+  if (ULANISH_XATOSI || !admin.apps.length) {
+    /* Bu TOKEN muammosi EMAS — serverning Firebase'ga ulanishi sozlanmagan
+       (FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY).
+       Xabar aniq bo'lsin, aks holda admin bekorga parolini almashtiradi. */
+    const err = new Error('Server Firebase\'ga ulanmagan \u2014 FIREBASE_* muhit '
+      + 'o\'zgaruvchilarini tekshiring (Netlify \u2192 Site configuration \u2192 '
+      + 'Environment variables)' + (ULANISH_XATOSI ? ': ' + ULANISH_XATOSI : ''));
+    err.statusCode = 500;
+    throw err;
+  }
+
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
   const idToken = authHeader.replace(/^Bearer\s+/i, '');
   if (!idToken) {
