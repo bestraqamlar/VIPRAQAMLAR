@@ -82,6 +82,44 @@ function tezlikOk(ip) {
   return true;
 }
 
+/* Brauzerdan kelgan MUHIM sarlavhalarni Google'ga o'zgarishsiz uzatamiz.
+   ------------------------------------------------------------------
+   TUZATISH (V102): ilgari bu yerda faqat Content-Type va Referer
+   uzatilardi. Natijada `X-Firebase-AppCheck` — bot himoyasi tokeni —
+   YO'QOLARDI. Firebase konsolida App Check "Enforced" bo'lgani uchun
+   tokensiz so'rov RAD etiladi va kirish
+   "auth/firebase-app-check-token-is-invalid" bilan to'xtardi. Ya'ni
+   zaxira yo'l muammoni hal qilish o'rniga, o'zi muammo bo'lib qolgan
+   edi — telefonda ham kirib bo'lmay qolgani shundan.
+   Faqat ro'yxatdagi sarlavhalar uzatiladi (cookie, authorization va
+   boshqalar ATAYLAB uzatilmaydi). */
+const UZATILADI = [
+  'x-firebase-appcheck',
+  'x-firebase-gmpid',
+  'x-firebase-client',
+  'x-firebase-locale',
+  'x-client-version'
+];
+
+function sarlavhalar(event) {
+  const kirim = (event && event.headers) || {};
+  const chiqim = {
+    'Content-Type': 'application/json',
+    /* API kalitiga "faqat shu saytdan" cheklovi qo'yilgan bo'lsa,
+       Google aynan shu sarlavhaga qaraydi. Brauzer so'rovida u
+       avtomatik qo'yilardi, server so'rovida — qo'lda. */
+    'Referer': 'https://vipraqamlar.uz/'
+  };
+  UZATILADI.forEach((nom) => {
+    const q = kirim[nom] || kirim[nom.toUpperCase()];
+    if (q) chiqim[nom] = String(q).slice(0, 3000);
+  });
+  if (!chiqim['x-client-version']) {
+    chiqim['x-client-version'] = 'Web/JsCore/10.13.2/FirebaseCore-web';
+  }
+  return chiqim;
+}
+
 const JAVOB_SARLAVHA = {
   'Content-Type': 'application/json; charset=UTF-8',
   'Cache-Control': 'no-store'
@@ -133,14 +171,7 @@ exports.handler = async (event) => {
   try {
     const javob = await fetch(manzil, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        /* API kalitiga "faqat shu saytdan" cheklovi qo'yilgan bo'lsa,
-           Google aynan shu sarlavhaga qaraydi. Brauzer so'rovida u
-           avtomatik qo'yilardi, server so'rovida — qo'lda. */
-        'Referer': 'https://vipraqamlar.uz/',
-        'X-Client-Version': String((event.headers || {})['x-client-version'] || 'Web/JsCore/10.13.2/FirebaseCore-web').slice(0, 120)
-      },
+      headers: sarlavhalar(event),
       body: tana
     });
     const matn = await javob.text();
