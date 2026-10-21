@@ -157,6 +157,21 @@ async function ishga(){
   qator('Google: ma’lumotlar bazasi (firestore)', fs.ok ? 'OK' : 'XATO', fs.ok ? 'yetib bo‘ldi' : fs.xato);
   if(!fs.ok) muammo.push('firestore');
 
+  /* Bot himoyasi (App Check) — reCAPTCHA skripti va App Check manzili.
+     Firebase konsolida App Check "Enforced" holatida bu ikkisi
+     to'silgan bo'lsa, panelga KIRIB BO'LMAYDI
+     ("auth/firebase-app-check-token-is-invalid"). */
+  var cap = await tekshir('https://www.google.com/recaptcha/api.js', true);
+  qator('Bot himoyasi: reCAPTCHA skripti', cap.ok ? 'OK' : 'XATO',
+        cap.ok ? 'yetib bo\u2018ldi'
+               : 'to\u2018silgan \u2014 kengaytma yoki antivirus. Panelga kirib bo\u2018lmaydi');
+  if(!cap.ok) muammo.push('appcheck');
+
+  var ac = await tekshir('https://firebaseappcheck.googleapis.com/v1/jwks', true);
+  qator('Bot himoyasi: App Check xizmati', ac.ok ? 'OK' : 'XATO',
+        ac.ok ? 'yetib bo\u2018ldi' : 'to\u2018silgan \u2014 panelga kirib bo\u2018lmaydi');
+  if(!ac.ok) muammo.push('appcheck');
+
   /* 9. Kompyuter soati (HTTPS buzilishining tez-tez uchraydigan sababi) */
   var farq = null;
   try{
@@ -202,6 +217,17 @@ async function ishga(){
     sinf = 'xulosa bad';
     x = 'SABAB: saytning server funksiyalari javob bermayapti.\n'
       + 'Netlify tomonida muammo bo‘lishi mumkin.';
+  }else if(muammo.indexOf('appcheck') !== -1){
+    sinf = 'xulosa bad';
+    x = 'SABAB: bot himoyasi (App Check) uchun kerakli manzil to\u2018silgan.\n'
+      + 'Firebase\u2019da bu himoya MAJBURIY qilib qo\u2018yilgan, shuning uchun token\n'
+      + 'olinmasa panelga umuman kirib bo\u2018lmaydi (parol to\u2018g\u2018ri bo\u2018lsa ham).\n\n'
+      + 'Nima qilish kerak:\n'
+      + '1. Yashirin oynada oching (Ctrl+Shift+N) \u2014 kengaytmalar o\u2018chadi;\n'
+      + '2. reklama bloklagich/maxfiylik kengaytmasida google.com va\n'
+      + '   googleapis.com ga ruxsat bering;\n'
+      + '3. antivirusning \u201cveb/HTTPS qalqoni\u201dni vaqtincha o\u2018chiring;\n'
+      + '4. boshqa brauzerda sinab ko\u2018ring.';
   }else if(muammo.indexOf('soat') !== -1){
     sinf = 'xulosa bad';
     x = 'SABAB: kompyuter soati noto‘g‘ri.\n'
