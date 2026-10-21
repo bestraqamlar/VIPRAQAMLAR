@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=101">
-<link rel="preload" as="script" href="assets/panel.js?v=101">
+<link rel="preload" as="style" href="assets/panel.css?v=104">
+<link rel="preload" as="script" href="assets/panel.js?v=104">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -23,38 +23,35 @@
      Shu uslub panel.css'dan OLDIN turadi va sinf selektorlaridan
      foydalanadi — shuning uchun panel.css kelsa, o'sha ustun turadi. -->
 <style id="loginZaxira">
-  html,body{margin:0;background:#07152B;color:#E3EBF8;
+  html,body{margin:0;background:#000;color:#E8EAEE;
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   .login-bg{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .login-aurora,.login-grid{display:none}
-  .login-screen{max-width:372px;width:100%;text-align:center;background:rgba(18,27,46,.92);
-    border:1px solid #1B3358;border-radius:22px;padding:30px 26px 22px;
+  .login-screen{max-width:372px;width:100%;text-align:center;background:#0A0A0C;
+    border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:30px 26px 22px;
     box-shadow:0 24px 64px rgba(0,0,0,.45)}
-  .login-mark{width:62px;height:62px;margin:0 auto 16px;display:grid;place-items:center}
-  .login-mark b{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;
-    background:#111E36;border:1px solid rgba(230,200,119,.25);color:#E6C877;
-    font-family:ui-monospace,monospace;font-size:17px;font-weight:700}
+  .login-mark{margin:0 auto 18px;max-width:208px}
+  .login-mark img{width:100%;height:auto;display:block}
   .login-screen h1{font-family:ui-monospace,monospace;color:#E6C877;font-size:17px;margin:0 0 5px;letter-spacing:.05em}
-  .login-sub{color:#8EA2C4;font-size:12.5px;margin:0 0 22px}
+  .login-sub{color:#8A8F99;font-size:12.5px;margin:0 0 22px}
   .login-field{position:relative;margin-bottom:11px;text-align:left}
-  .login-screen input{width:100%;background:#0C1E3A;border:1px solid #1B3358;border-radius:12px;
-    padding:20px 14px 8px;color:#E3EBF8;font-size:16px;font-family:inherit;box-sizing:border-box}
-  .login-field label{position:absolute;left:15px;top:6px;color:#8EA2C4;font-size:11px;pointer-events:none}
+  .login-screen input{width:100%;background:#121216;border:1px solid rgba(255,255,255,.12);border-radius:12px;
+    padding:20px 14px 8px;color:#E8EAEE;font-size:16px;font-family:inherit;box-sizing:border-box}
+  .login-field label{position:absolute;left:15px;top:6px;color:#8A8F99;font-size:11px;pointer-events:none}
   .login-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;
-    border:none;background:transparent;color:#8EA2C4;cursor:pointer}
+    border:none;background:transparent;color:#8A8F99;cursor:pointer}
   .login-eye svg{width:19px;height:19px}
   .login-eye .koz-yopiq{display:none}
-  .login-caps{display:none}
   .login-screen > button{width:100%;padding:14px;border:none;border-radius:12px;background:#E6C877;
     color:#09182C;font-size:14.5px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:8px}
   .login-screen > button:disabled{opacity:.6}
   .lb-yuk{display:none}
   .login-error{display:none;margin-top:14px;color:#FF8E84;font-size:12.5px;line-height:1.55;
     text-align:left;white-space:pre-line}
-  .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid #1B3358;color:#8EA2C4;font-size:11px}
+  .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=101">
+<link rel="stylesheet" href="assets/panel.css?v=104">
 
 </head>
 <body>
@@ -63,9 +60,15 @@
   <div class="login-aurora" aria-hidden="true"><span class="la-1"></span><span class="la-2"></span><span class="la-3"></span></div>
   <div class="login-grid" aria-hidden="true"></div>
   <div class="login-screen" id="loginScreen">
-    <div class="login-mark" aria-hidden="true"><b><span>VR</span></b></div>
-    <h1>VIP RAQAMLAR</h1>
-    <p class="login-sub">Boshqaruv paneli</p>
+    <div class="login-nur" aria-hidden="true"></div>
+    <div class="login-mark">
+      <img src="assets/logo-vip.png?v=1" alt="VIP RAQAMLAR" width="520" height="263" decoding="async">
+      <span class="lm-b lm-b1" aria-hidden="true"></span><span class="lm-b lm-b2" aria-hidden="true"></span>
+      <span class="lm-b lm-b3" aria-hidden="true"></span><span class="lm-b lm-b4" aria-hidden="true"></span>
+    </div>
+    <div class="login-bosh">
+      <p class="login-sub">Boshqaruv paneli</p>
+    </div>
     <div class="login-field">
       <input type="text" id="usernameInput" placeholder=" "
              autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -78,10 +81,6 @@
         <svg class="koz-ochiq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
         <svg class="koz-yopiq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.2A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 4.2M6.3 6.5A18 18 0 0 0 2 12s3.5 7 10 7a10.6 10.6 0 0 0 4.3-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
       </button>
-    </div>
-    <div class="login-caps" id="loginCaps">
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l7 7h-4v5H9v-5H5l7-7z"/><rect x="9" y="18" width="6" height="2" rx="1"/></svg>
-      Caps Lock yoqilgan
     </div>
     <button id="loginBtn"><span class="lb-matn">Kirish</span><span class="lb-yuk" aria-hidden="true"></span></button>
     <div class="login-error" id="loginError">Email yoki parol noto'g'ri</div>
@@ -2342,6 +2341,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=101"></script>
+<script defer src="assets/panel.js?v=104"></script>
 </body>
 </html>

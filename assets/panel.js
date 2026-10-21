@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=101) ham oshiring.
+   havolaning oxiridagi raqamni (?v=104) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -175,23 +175,28 @@ function authZaxiraYoq(){
 
 window.AUTH_TAYYOR = (async function authYolTanla(){
   if(location.protocol === 'file:') return;          // baribir ishlamaydi
-  let belgi = false;
-  try{ belgi = localStorage.getItem(AUTH_ZAXIRA_KALIT) === '1'; }catch(e){}
-  if(belgi){ authZaxiraYoq(); return; }
-  /* Google kirish xizmati ochiladimi? `no-cors` so'rov javobni
-     o'qimaydi, lekin TO'SILGAN bo'lsa xato beradi — shuning o'zi kifoya.
-     App Check tomoni bu yerda TEKSHIRILMAYDI: u majburiy (Enforced)
-     bo'lgani uchun uni chetlab o'tish mumkin emas — xato chiqsa,
-     `appCheckTashxis()` aniq sababini aytadi. */
-  const ctrl = new AbortController();
-  const t = setTimeout(()=> ctrl.abort(), 4500);
+  /* TUZATISH (V102): ilgari bu yerda Google manzili "ochiqmi" deb
+     TEKSHIRILARDI va tekshiruv muvaffaqiyatsiz bo'lsa zaxira yo'l
+     DARHOL yoqilardi. Bu xato yondashuv edi:
+       * `no-cors` tekshiruv sog'lom qurilmada ham rad etilishi mumkin
+         (CSP, kesh, sekin tarmoq) — ya'ni YOLG'ON signal beradi;
+       * belgi localStorage'da QOLIB ketardi, ya'ni bitta yolg'on
+         signal o'sha qurilmada kirishni butunlay zaxira yo'lga
+         o'tkazib qo'yardi.
+     Endi zaxira yo'l FAQAT haqiqiy tarmoq xatosidan keyin yoqiladi
+     (qarang: doLogin ichidagi 'auth/network-request-failed'). */
   try{
-    await fetch('https://identitytoolkit.googleapis.com/v1/projects?key=tekshiruv', {
-      mode: 'no-cors', cache: 'no-store', signal: ctrl.signal
-    });
-  }catch(e){
-    authZaxiraYoq();                      // kirish xizmati to'silgan -> sayt orqali
-  }finally{ clearTimeout(t); }
+    /* Qo'lda o'chirish: panelni `?zaxira=0` bilan ochish zaxira yo'l
+       belgisini tozalaydi. Qurilma biror sababga ko'ra zaxira yo'lda
+       "qotib" qolsa, konsolga kirmasdan tiklash uchun. */
+    if(new URLSearchParams(location.search).get('zaxira') === '0'){
+      localStorage.removeItem(AUTH_ZAXIRA_KALIT);
+      sessionStorage.removeItem('vr_auth_zaxira_qayta');
+      console.info("Zaxira yo'l belgisi o'chirildi.");
+      return;
+    }
+    if(localStorage.getItem(AUTH_ZAXIRA_KALIT) === '1') authZaxiraYoq();
+  }catch(e){}
 })();
 
 const db = firebase.firestore();
@@ -2485,8 +2490,8 @@ function loginTugmaMatnOl(){
 (function kirishOynasi(){
   const parol = document.getElementById('passwordInput');
   const koz   = document.getElementById('loginEye');
-  const caps  = document.getElementById('loginCaps');
   const login = document.getElementById('usernameInput');
+  const karta = document.getElementById('loginScreen');
 
   /* Parolni ko'rsatish/yashirish. Katta xizmatlarning hammasida bor:
      telefon klaviaturasida parolni xato terish juda oson. */
@@ -2500,21 +2505,22 @@ function loginTugmaMatnOl(){
     });
   }
 
-  /* Caps Lock ogohlantirishi — "parol noto'g'ri" ning eng ko'p
-     uchraydigan, lekin eng ko'rinmas sababi. */
-  if(caps){
-    const tekshir = (e)=>{
-      let yoqiq = false;
-      try{ yoqiq = e.getModifierState && e.getModifierState('CapsLock'); }catch(err){}
-      caps.classList.toggle('bor', !!yoqiq);
-    };
-    ['keydown','keyup'].forEach(t=>{
-      document.addEventListener(t, (e)=>{
-        const f = document.activeElement;
-        if(f === parol || f === login) tekshir(e);
+  /* Kursor ortidan yuradigan yorug'lik. Qiymat requestAnimationFrame
+     bilan, kadrga BIR MARTA yangilanadi — sichqoncha sekundiga yuzlab
+     hodisa yuborsa ham brauzer ortiqcha ish qilmaydi. */
+  if(karta && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    let x = 0, y = 0, navbatda = false;
+    karta.addEventListener('pointermove', (e)=>{
+      const q = karta.getBoundingClientRect();
+      x = e.clientX - q.left; y = e.clientY - q.top;
+      if(navbatda) return;
+      navbatda = true;
+      requestAnimationFrame(()=>{
+        navbatda = false;
+        karta.style.setProperty('--nx', x + 'px');
+        karta.style.setProperty('--ny', y + 'px');
       });
-    });
-    if(parol) parol.addEventListener('blur', ()=> caps.classList.remove('bor'));
+    }, { passive: true });
   }
 
   /* Enter bilan kirish: loginda bosilsa parolga o'tadi, parolda bosilsa
@@ -2805,7 +2811,7 @@ function qulfSanoq(qoldiMs){
       return;
     }
     const d = Math.floor(qoldi / 60), q = qoldi % 60;
-    loginError.textContent = "Ko'p marta xato kiritildi. Qayta urinish: " +
+    loginError.textContent = 'Qayta urinish: ' +
       (d ? d + ':' + String(q).padStart(2, '0') : q + ' soniya');
     loginError.style.display = 'block';
     btn.disabled = true;
@@ -2867,21 +2873,17 @@ async function doLogin(){
     // Firebase'ning haqiqiy sababini ko'rsatamiz — "noto'g'ri" degan umumiy
     // matn bilan nima bo'lganini aniqlab bo'lmas edi (parolmi, emailmi,
     // tarmoqmi, App Check bloklaganmi).
-    const CODES = {
-      'auth/invalid-email':        "Email formati noto'g'ri — masalan: admin@070.uz",
-      'auth/user-not-found':       "Bunday login bilan admin topilmadi — ismni to'g'ri yozganingizni tekshiring",
-      'auth/wrong-password':       "Parol noto'g'ri",
-      'auth/invalid-credential':   "Login yoki parol noto'g'ri",
-      'auth/invalid-login-credentials': "Login yoki parol noto'g'ri",
-      'auth/user-disabled':        "Bu admin hisobi to'xtatilgan — bosh admin bilan bog'laning",
-      'auth/too-many-requests':    'Juda ko\'p urinish — biroz kuting',
-      'auth/network-request-failed': "Tarmoq xatosi — kirish xizmatiga ulanolmadi (avtomatik 2 marta qayta urinildi). Tekshirilmoqda...",
-      'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)',
-      /* App Check majburiy (Enforced) bo'lgani uchun token bo'lmasa
-         kirish RAD etiladi. Aniq sababni appCheckTashxis() qo'shadi. */
-      'auth/firebase-app-check-token-is-invalid': 'Bot himoyasi tekshiruvidan o\'tilmadi. Tekshirilmoqda...',
-      'auth/firebase-app-check-token-is-expired': 'Bot himoyasi tekshiruvidan o\'tilmadi. Tekshirilmoqda...'
-    };
+    /* XAVFSIZLIK VA SODDALIK (V103): ekranda SABAB ko'rsatilmaydi.
+       ------------------------------------------------------------
+       1) Xavfsizlik: "bunday login yo'q" va "parol noto'g'ri" ni
+          ajratib ko'rsatish hujumchiga qaysi loginlar MAVJUDLIGINI
+          aytib beradi (user enumeration). Katta xizmatlar shu sabab
+          doim bitta umumiy matn ko'rsatadi.
+       2) Soddalik: mijozga "auth/firebase-app-check-token-is-invalid"
+          kabi texnik matnning keragi yo'q.
+       Aniq sabab YO'QOLMAYDI — u brauzer konsoliga yoziladi va
+       tekshiruv sahifasi (/tekshiruv.html) uni batafsil ko'rsatadi. */
+    const UMUMIY = "Kirib bo'lmadi. Login va parolni tekshirib, qayta urining.";
     /* Parol/login xatosi bo'lsa — urinish serverda hisoblanadi.
        Tarmoq xatosi "urinish" emas: internet uzilganda odamni
        qulflab qo'ymaslik kerak. */
@@ -2895,7 +2897,7 @@ async function doLogin(){
     if(hisoblanadi){
       const n = await qulfSoragich('xato', loginNomi);
       if(n && n.qulf){ qulfSanoq(n.qoldiMs); return; }
-      loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri") +
+      loginError.textContent = UMUMIY +
         (n && n.qolganUrinish != null ? '  \u00B7 qolgan urinish: ' + n.qolganUrinish : '');
       loginError.style.display = 'block';
       console.error('Login xatosi:', err.code, err.message);
@@ -2903,8 +2905,7 @@ async function doLogin(){
       loginTugmaMatn(btnOrigText, false);
       return;
     }
-    loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri")
-                             + (err.code ? '  [' + err.code + ']' : '');
+    loginError.textContent = UMUMIY;
     loginError.style.display = 'block';
     loginError.style.whiteSpace = 'pre-line';     /* tashxis qatorma-qator */
     console.error('Login xatosi:', err.code, err.message);
@@ -2912,15 +2913,14 @@ async function doLogin(){
     /* TARMOQ xatosida — aniq sababni topib, ekranga yozamiz.
        (Qarang: tarmoqTashxis — saytning o'zi, server funksiyasi va
        Google kirish xizmati alohida-alohida tekshiriladi.) */
-    /* BOT HIMOYASI (App Check) xatosi — aniq sababini topib yozamiz */
+    /* BOT HIMOYASI (App Check) xatosi — sabab faqat KONSOLGA yoziladi,
+       ekranda esa umumiy matn turadi (yuqoridagi izohga qarang). */
     if(APPCHECK_XATO){
-      try{
-        const sabab = await appCheckTashxis();
-        loginError.textContent = "Bot himoyasi tekshiruvidan o'tilmadi.\n\n" + sabab;
-      }catch(e){
-        loginError.textContent = "Bot himoyasi tekshiruvidan o'tilmadi. Sahifani "
-          + "yangilab (Ctrl+F5) qayta urinib ko'ring.";
-      }
+      appCheckTashxis().then(sabab=>{
+        console.warn('Kirish to\'xtadi — bot himoyasi (App Check).\n' + sabab
+          + '\nBatafsil tekshiruv: /tekshiruv.html');
+      }).catch(()=>{});
+      loginError.textContent = UMUMIY;
       loginError.style.display = 'block';
       btn.disabled = false;
       loginTugmaMatn(btnOrigText, false);
@@ -2952,8 +2952,9 @@ async function doLogin(){
       }
       try{
         const sabab = await tarmoqTashxis();
-        loginError.textContent = "Kirish xizmatiga ulanib bo'lmadi.\n\n" + sabab;
-      }catch(e){ /* tashxis ham ishlamasa — eski xabar qolaveradi */ }
+        console.warn("Kirish to'xtadi — tarmoq.\n" + sabab
+          + "\nBatafsil tekshiruv: /tekshiruv.html");
+      }catch(e){ /* tashxis ham ishlamasa — mayli */ }
     }
   }
   btn.disabled = false;

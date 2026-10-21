@@ -291,7 +291,14 @@
     # o'z serveridagi skriptni ulay olmaydi va o'g'irlagan ma'lumotini
     # o'z serveriga YUBORA OLMAYDI (connect-src).
     #
+    # TUZATISH (V102): `script-src`/`frame-src`/`connect-src` ro'yxatida
+    # www.google.com YO'Q edi. App Check (bot himoyasi) esa reCAPTCHA
+    # skriptini AYNAN shu manzildan yuklaydi va <iframe> ochadi. Ya'ni
+    # CSP uni har qanday qurilmada to'sib turardi — Firebase'da App Check
+    # "Enforced" qilingach, bu kirishni butunlay yopdi (telefonda ham).
+    # Endi reCAPTCHA manzillari ochiq, qolgan hamma narsa oldingidek yopiq.
+    #
     # frame-ancestors: Telegram Mini App sifatida ochilishi uchun
     # web.telegram.org ga ruxsat (admin panel va sotuvchi kabineti esa
     # yuqorida X-Frame-Options: DENY bilan butunlay yopilgan).
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://api-maps.yandex.ru https://mc.yandex.ru https://yastatic.net https://telegram.org https://*.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseinstallations.googleapis.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseappcheck.googleapis.com https://api-maps.yandex.ru https://*.maps.yandex.net https://mc.yandex.ru https://yandex.uz; frame-src 'self' https://*.yandex.ru https://*.yandex.uz; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://api-maps.yandex.ru https://mc.yandex.ru https://yastatic.net https://telegram.org https://*.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://*.googleapis.com https://*.firebaseio.com https://*.firebaseinstallations.googleapis.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseappcheck.googleapis.com https://api-maps.yandex.ru https://*.maps.yandex.net https://mc.yandex.ru https://yandex.uz; frame-src 'self' https://www.google.com https://www.recaptcha.net https://*.yandex.ru https://*.yandex.uz; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org; upgrade-insecure-requests"
