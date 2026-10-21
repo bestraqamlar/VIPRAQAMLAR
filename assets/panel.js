@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=99) ham oshiring.
+   havolaning oxiridagi raqamni (?v=101) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -35,25 +35,94 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 /* ---------- APP CHECK (bot himoyasi) ----------
-   DIQQAT (V99): App Check reCAPTCHA skriptini www.google.com dan
-   yuklaydi. Agar u TO'SILGAN bo'lsa (maxfiylik kengaytmasi, reklama
-   bloklagich, antivirusning veb qalqoni), Firebase kirish so'rovini
-   UMUMAN YUBORMAYDI va "auth/network-request-failed" qaytaradi —
-   ya'ni parol to'g'ri bo'lsa ham panelga kirib bo'lmaydi. Aynan shu
-   holat bitta kompyuterda yuz berdi (telefonda ishlayverardi).
-   Shu sabab: reCAPTCHA to'silgani aniqlansa, bu brauzerda App Check
-   YOQILMAYDI (belgi saqlanadi). Panel baribir himoyasiz qolmaydi —
-   oldida Netlify "ikkinchi eshigi", 5 daqiqada 3 urinish qulfi va
-   Firestore qoidalaridagi admin huquqi tekshiruvi turadi. */
-const APPCHECK_KALIT = 'vr_appcheck_tosiq';
-let appCheckTosiq = false;
-try{ appCheckTosiq = localStorage.getItem(APPCHECK_KALIT) === '1'; }catch(e){}
-if(appCheckTosiq){
-  console.warn("App Check bu brauzerda yoqilmadi — reCAPTCHA to'silgan ko'rinadi.");
-}else{
-  try{ firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true); }
-  catch(e){ console.warn('App Check yoqilmadi:', e && e.message); }
+   Firebase konsolida App Check "Enforced" (majburiy) holatida:
+   Authentication, Firestore va Storage HAR BIR so'rovda haqiqiy
+   App Check tokenini talab qiladi. Token bo'lmasa — kirish ham,
+   ma'lumot o'qish ham RAD etiladi ("auth/firebase-app-check-token-
+   is-invalid"). Ya'ni App Check'ni O'CHIRIB QO'YISH yordam bermaydi,
+   aksincha panelni butunlay yopib qo'yadi — shuning uchun u HAR DOIM
+   yoqiladi.
+
+   Token olinmasligining amaliy sabablari (hammasi brauzer tomonida):
+     * reCAPTCHA skripti (www.google.com) to'silgan — kengaytma,
+       reklama bloklagich yoki antivirusning veb qalqoni;
+     * kompyuter soati noto'g'ri — token "muddati o'tgan" hisoblanadi;
+     * sayt reCAPTCHA kalitida ro'yxatdan o'tmagan domendan ochilgan
+       (masalan `www.` bilan yoki Netlify'ning vaqtinchalik manzilidan).
+   Quyidagi `appCheckTashxis()` aynan shu uchtasini ajratib aytadi.
+
+   TUZATISH UCHUN TOKEN (debug token). Bitta kompyuterni tezda
+   ochish kerak bo'lsa: panelni `?appcheck-debug=1` bilan oching,
+   brauzer konsolida chiqqan tokenni Firebase konsolidagi
+   App Check -> Apps -> (web ilova) -> Manage debug tokens ga
+   qo'shing. Token RO'YXATGA QO'SHILMAGUNCHA hech narsa ochilmaydi,
+   shuning uchun bu himoyani zaiflashtirmaydi. Ish tugagach tokenni
+   konsoldan o'chiring. */
+const APPCHECK_DEBUG_KALIT = 'vr_appcheck_debug';
+try{
+  if(new URLSearchParams(location.search).get('appcheck-debug') === '1'){
+    localStorage.setItem(APPCHECK_DEBUG_KALIT, '1');
+  }
+  if(localStorage.getItem(APPCHECK_DEBUG_KALIT) === '1'){
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    console.warn('App Check DEBUG rejimi yoqilgan. Pastda chiqqan tokenni '
+      + 'Firebase konsolida "Manage debug tokens" ga qo\'shing. '
+      + 'Ish tugagach: localStorage.removeItem("' + APPCHECK_DEBUG_KALIT + '")');
+  }
+}catch(e){}
+try{ firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true); }
+catch(e){ console.warn('App Check yoqilmadi:', e && e.message); }
+
+/* App Check tokeni nega olinmayotganini aniqlaydi. Uchta sababni
+   alohida tekshiradi va mijozga TUSHUNARLI matn qaytaradi. */
+async function appCheckTashxis(){
+  async function ochiqmi(url, opt){
+    const ctrl = new AbortController();
+    const t = setTimeout(()=> ctrl.abort(), 5000);
+    try{ await fetch(url, Object.assign({ cache:'no-store', signal: ctrl.signal }, opt||{})); return true; }
+    catch(e){ return false; }
+    finally{ clearTimeout(t); }
+  }
+  const [cap, ac] = await Promise.all([
+    ochiqmi('https://www.google.com/recaptcha/api.js', { mode:'no-cors' }),
+    ochiqmi('https://firebaseappcheck.googleapis.com/v1/jwks', { mode:'no-cors' })
+  ]);
+  /* Kompyuter soati — server vaqtiga solishtiramiz */
+  let farq = null;
+  try{
+    const r = await fetch('/?soat=' + Date.now(), { method:'HEAD', cache:'no-store' });
+    const sarlavha = r.headers.get('date');
+    if(sarlavha) farq = Math.round((Date.now() - new Date(sarlavha).getTime()) / 1000);
+  }catch(e){}
+
+  if(!cap || !ac){
+    return "Sabab: bot himoyasi (App Check) uchun kerakli manzil to'silgan"
+      + (!cap ? " — www.google.com/recaptcha" : " — firebaseappcheck.googleapis.com") + ".\n"
+      + "Odatda buni brauzer kengaytmasi (reklama bloklagich, maxfiylik qalqoni) "
+      + "yoki antivirusning veb qalqoni to'sadi.\n"
+      + "• Yashirin oynada oching (Ctrl+Shift+N) — kengaytmalar o'chadi;\n"
+      + "• yoki kengaytmalarda google.com va googleapis.com ga ruxsat bering;\n"
+      + "• yoki antivirusning “veb/HTTPS qalqoni”ni vaqtincha o'chiring.";
+  }
+  if(farq !== null && Math.abs(farq) > 120){
+    return "Sabab: KOMPYUTER SOATI noto'g'ri — haqiqiy vaqtdan "
+      + Math.abs(farq) + " soniya " + (farq > 0 ? "oldinda" : "orqada") + ".\n"
+      + "Bot himoyasi tokeni shu sabab “muddati o'tgan” hisoblanadi.\n"
+      + "• Windows: Sana va vaqt → “Vaqtni avtomatik o'rnatish” yoqing, "
+      + "so'ng “Hozir sinxronlash” tugmasini bosing;\n"
+      + "• keyin sahifani yangilang.";
+  }
+  if(location.hostname !== 'vipraqamlar.uz'){
+    return "Sabab: sahifa “" + location.hostname + "” manzilidan ochilgan. "
+      + "Bot himoyasi kaliti faqat vipraqamlar.uz uchun ro'yxatdan o'tgan.\n"
+      + "• Panelni https://vipraqamlar.uz/panel-boshqaruv.html manzilidan oching.";
+  }
+  return "Bot himoyasi (App Check) tokenini olib bo'lmadi, lekin aniq sabab "
+    + "topilmadi.\n• Sahifani yangilang (Ctrl+F5) va yana urinib ko'ring;\n"
+    + "• yordam bermasa, panelni ?appcheck-debug=1 bilan oching va "
+    + "konsoldagi tokenni Firebase → App Check → Manage debug tokens ga qo'shing.";
 }
+
 /* ================= KIRISH XIZMATI: ZAXIRA YO'L (V99) =================
    MUAMMO. Ba'zi KOMPYUTERLARDA panelga kirib bo'lmasdi: sayt ochiladi,
    parol to'g'ri, lekin Firebase "auth/network-request-failed" beradi.
@@ -109,44 +178,20 @@ window.AUTH_TAYYOR = (async function authYolTanla(){
   let belgi = false;
   try{ belgi = localStorage.getItem(AUTH_ZAXIRA_KALIT) === '1'; }catch(e){}
   if(belgi){ authZaxiraYoq(); return; }
-  /* Uchta manzil ochiladimi? `no-cors` so'rov javobni o'qimaydi,
-     lekin TO'SILGAN bo'lsa xato beradi — bizga shuning o'zi kifoya. */
-  async function ochiqmi(url){
-    const ctrl = new AbortController();
-    const t = setTimeout(()=> ctrl.abort(), 4500);
-    try{ await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal }); return true; }
-    catch(e){ return false; }
-    finally{ clearTimeout(t); }
-  }
-  const [kirishOk, appCheckOk, capOk] = await Promise.all([
-    ochiqmi('https://identitytoolkit.googleapis.com/v1/projects?key=tekshiruv'),
-    ochiqmi('https://firebaseappcheck.googleapis.com/v1/jwks'),
-    ochiqmi('https://www.google.com/recaptcha/api.js')
-  ]);
-
-  if(!kirishOk) authZaxiraYoq();          // kirish xizmati to'silgan -> sayt orqali
-
-  /* reCAPTCHA yoki App Check manzili to'silgan bo'lsa — App Check bu
-     brauzerda ishlamaydi va KIRISHNI BUTUNLAY TO'XTATIB QO'YADI.
-     Belgini saqlab, sahifani BIR MARTA yangilaymiz (App Check allaqachon
-     yoqib bo'lingan, uni ortga qaytarib bo'lmaydi — shu sabab yangilash
-     kerak). Mijoz buni sezmaydi: bu login oynasi ochilgandan bir soniya
-     keyin, parol kiritilgunga qadar bo'ladi. */
-  if(!capOk || !appCheckOk){
-    if(!appCheckTosiq){
-      let birMarta = false;
-      try{
-        birMarta = sessionStorage.getItem('vr_appcheck_qayta') !== '1';
-        localStorage.setItem(APPCHECK_KALIT, '1');
-        sessionStorage.setItem('vr_appcheck_qayta', '1');
-      }catch(e){}
-      if(birMarta){ location.reload(); return; }
-    }
-  }else if(appCheckTosiq){
-    /* To'siq olib tashlangan (masalan kengaytma o'chirilgan) — keyingi
-       ochilishda App Check yana yoqiladi. */
-    try{ localStorage.removeItem(APPCHECK_KALIT); }catch(e){}
-  }
+  /* Google kirish xizmati ochiladimi? `no-cors` so'rov javobni
+     o'qimaydi, lekin TO'SILGAN bo'lsa xato beradi — shuning o'zi kifoya.
+     App Check tomoni bu yerda TEKSHIRILMAYDI: u majburiy (Enforced)
+     bo'lgani uchun uni chetlab o'tish mumkin emas — xato chiqsa,
+     `appCheckTashxis()` aniq sababini aytadi. */
+  const ctrl = new AbortController();
+  const t = setTimeout(()=> ctrl.abort(), 4500);
+  try{
+    await fetch('https://identitytoolkit.googleapis.com/v1/projects?key=tekshiruv', {
+      mode: 'no-cors', cache: 'no-store', signal: ctrl.signal
+    });
+  }catch(e){
+    authZaxiraYoq();                      // kirish xizmati to'silgan -> sayt orqali
+  }finally{ clearTimeout(t); }
 })();
 
 const db = firebase.firestore();
@@ -2418,6 +2463,80 @@ const usernameInput= document.getElementById('usernameInput');
 const passwordInput= document.getElementById('passwordInput');
 const loginError   = document.getElementById('loginError');
 
+/* ---------- KIRISH EKRANI: tugma holati, ko'z, Caps Lock (V100) ----------
+   Tugma ichida endi ikkita element bor: matn (.lb-matn) va yuklanish
+   halqasi (.lb-yuk). Shu sabab `btn.textContent = '...'` ishlatib
+   bo'lmaydi — u ikkalasini ham o'chirib yuborardi. Quyidagi yordamchi
+   faqat MATNNI almashtiradi va halqani yoqadi/o'chiradi. */
+function loginTugmaMatn(matn, yuklanmoqda){
+  const btn = document.getElementById('loginBtn');
+  if(!btn) return;
+  const el = btn.querySelector('.lb-matn');
+  if(el) el.textContent = matn; else btn.textContent = matn;
+  btn.classList.toggle('yuklanmoqda', !!yuklanmoqda);
+}
+function loginTugmaMatnOl(){
+  const btn = document.getElementById('loginBtn');
+  if(!btn) return 'Kirish';
+  const el = btn.querySelector('.lb-matn');
+  return (el ? el.textContent : btn.textContent) || 'Kirish';
+}
+
+(function kirishOynasi(){
+  const parol = document.getElementById('passwordInput');
+  const koz   = document.getElementById('loginEye');
+  const caps  = document.getElementById('loginCaps');
+  const login = document.getElementById('usernameInput');
+
+  /* Parolni ko'rsatish/yashirish. Katta xizmatlarning hammasida bor:
+     telefon klaviaturasida parolni xato terish juda oson. */
+  if(koz && parol){
+    koz.addEventListener('click', ()=>{
+      const ochiq = koz.getAttribute('data-ochiq') === '1';
+      parol.type = ochiq ? 'password' : 'text';
+      koz.setAttribute('data-ochiq', ochiq ? '0' : '1');
+      koz.setAttribute('aria-label', ochiq ? "Parolni ko'rsatish" : 'Parolni yashirish');
+      parol.focus();
+    });
+  }
+
+  /* Caps Lock ogohlantirishi — "parol noto'g'ri" ning eng ko'p
+     uchraydigan, lekin eng ko'rinmas sababi. */
+  if(caps){
+    const tekshir = (e)=>{
+      let yoqiq = false;
+      try{ yoqiq = e.getModifierState && e.getModifierState('CapsLock'); }catch(err){}
+      caps.classList.toggle('bor', !!yoqiq);
+    };
+    ['keydown','keyup'].forEach(t=>{
+      document.addEventListener(t, (e)=>{
+        const f = document.activeElement;
+        if(f === parol || f === login) tekshir(e);
+      });
+    });
+    if(parol) parol.addEventListener('blur', ()=> caps.classList.remove('bor'));
+  }
+
+  /* Enter bilan kirish: loginda bosilsa parolga o'tadi, parolda bosilsa
+     kiradi — sichqonchaga tegmasdan ishlash. */
+  if(login) login.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); if(parol) parol.focus(); } });
+  if(parol) parol.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); doLogin(); } });
+
+  /* Yozishni boshlasa — eski xato xabari ketadi. Qulf sanog'i esa
+     qolaveradi (u vaqt hisoblab turadi, uni o'chirish chalg'itardi). */
+  [login, parol].forEach(el=>{
+    if(!el) return;
+    el.addEventListener('input', ()=>{
+      const x = document.getElementById('loginError');
+      if(x && x.style.display !== 'none' && !/Qayta urinish/.test(x.textContent)){
+        x.style.display = 'none';
+      }
+    });
+  });
+
+  if(login) setTimeout(()=>{ try{ login.focus({ preventScroll: true }); }catch(e){} }, 650);
+})();
+
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 usernameInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') passwordInput.focus(); });
 passwordInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doLogin(); });
@@ -2681,7 +2800,7 @@ function qulfSanoq(qoldiMs){
     if(qoldi <= 0){
       clearInterval(qulfTimer);
       btn.disabled = false;
-      btn.textContent = 'Kirish';
+      loginTugmaMatn('Kirish', false);
       loginError.style.display = 'none';
       return;
     }
@@ -2690,7 +2809,7 @@ function qulfSanoq(qoldiMs){
       (d ? d + ':' + String(q).padStart(2, '0') : q + ' soniya');
     loginError.style.display = 'block';
     btn.disabled = true;
-    btn.textContent = 'Kutilmoqda…';
+    loginTugmaMatn('Kutilmoqda…', false);
     qoldi--;
   };
   chiz();
@@ -2700,11 +2819,11 @@ function qulfSanoq(qoldiMs){
 async function doLogin(){
   const btn = document.getElementById('loginBtn');
   const authGate = document.getElementById('authGateScreen');
-  const btnOrigText = btn.textContent;
+  const btnOrigText = loginTugmaMatnOl();
   const loginNomi = (usernameInput.value || '').trim().toLowerCase();
 
   btn.disabled = true;
-  btn.textContent = 'Ulanmoqda...';
+  loginTugmaMatn('Ulanmoqda…', true);
 
   /* 0-qadam: kirish yo'li tanlanganini kutamiz (V99 — qarang:
      AUTH_TAYYOR). Google manzili to'silgan kompyuterlarda bu yerda
@@ -2757,13 +2876,22 @@ async function doLogin(){
       'auth/user-disabled':        "Bu admin hisobi to'xtatilgan — bosh admin bilan bog'laning",
       'auth/too-many-requests':    'Juda ko\'p urinish — biroz kuting',
       'auth/network-request-failed': "Tarmoq xatosi — kirish xizmatiga ulanolmadi (avtomatik 2 marta qayta urinildi). Tekshirilmoqda...",
-      'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)'
+      'auth/unauthorized-domain':  'Bu domen Firebase\'da ruxsat etilmagan (Authentication → Settings → Authorized domains)',
+      /* App Check majburiy (Enforced) bo'lgani uchun token bo'lmasa
+         kirish RAD etiladi. Aniq sababni appCheckTashxis() qo'shadi. */
+      'auth/firebase-app-check-token-is-invalid': 'Bot himoyasi tekshiruvidan o\'tilmadi. Tekshirilmoqda...',
+      'auth/firebase-app-check-token-is-expired': 'Bot himoyasi tekshiruvidan o\'tilmadi. Tekshirilmoqda...'
     };
     /* Parol/login xatosi bo'lsa — urinish serverda hisoblanadi.
        Tarmoq xatosi "urinish" emas: internet uzilganda odamni
        qulflab qo'ymaslik kerak. */
+    const APPCHECK_XATO = err.code === 'auth/firebase-app-check-token-is-invalid'
+                       || err.code === 'auth/firebase-app-check-token-is-expired';
+    /* Parol xatosi EMAS bo'lgan holatlar urinish sifatida hisoblanmaydi —
+       aks holda odam tarmoq/himoya muammosi sabab qulflanib qolardi. */
     const hisoblanadi = err.code !== 'auth/network-request-failed'
-                     && err.code !== 'auth/unauthorized-domain';
+                     && err.code !== 'auth/unauthorized-domain'
+                     && !APPCHECK_XATO;
     if(hisoblanadi){
       const n = await qulfSoragich('xato', loginNomi);
       if(n && n.qulf){ qulfSanoq(n.qoldiMs); return; }
@@ -2772,7 +2900,7 @@ async function doLogin(){
       loginError.style.display = 'block';
       console.error('Login xatosi:', err.code, err.message);
       btn.disabled = false;
-      btn.textContent = btnOrigText;
+      loginTugmaMatn(btnOrigText, false);
       return;
     }
     loginError.textContent = (CODES[err.code] || err.message || "Email yoki parol noto'g'ri")
@@ -2784,6 +2912,21 @@ async function doLogin(){
     /* TARMOQ xatosida — aniq sababni topib, ekranga yozamiz.
        (Qarang: tarmoqTashxis — saytning o'zi, server funksiyasi va
        Google kirish xizmati alohida-alohida tekshiriladi.) */
+    /* BOT HIMOYASI (App Check) xatosi — aniq sababini topib yozamiz */
+    if(APPCHECK_XATO){
+      try{
+        const sabab = await appCheckTashxis();
+        loginError.textContent = "Bot himoyasi tekshiruvidan o'tilmadi.\n\n" + sabab;
+      }catch(e){
+        loginError.textContent = "Bot himoyasi tekshiruvidan o'tilmadi. Sahifani "
+          + "yangilab (Ctrl+F5) qayta urinib ko'ring.";
+      }
+      loginError.style.display = 'block';
+      btn.disabled = false;
+      loginTugmaMatn(btnOrigText, false);
+      return;
+    }
+
     if(err.code === 'auth/network-request-failed'){
       /* V99: avval ZAXIRA YO'Lni sinab ko'ramiz. Tekshiruv "Google
          ochiq" degan bo'lsa-yu, kirish baribir tarmoq xatosi bersa —
@@ -2814,7 +2957,7 @@ async function doLogin(){
     }
   }
   btn.disabled = false;
-  btn.textContent = btnOrigText;
+  loginTugmaMatn(btnOrigText, false);
 }
 
 /* XAVFSIZLIK TEKSHIRUVI: tizimga kirgan hisobda HAQIQIY admin huquqi

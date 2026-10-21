@@ -142,86 +142,289 @@
     border:2px solid var(--bg);
   }
 
-  /* ---- Login ekrani ---- */
+  /* ================= KIRISH EKRANI (V100) =================
+     Maqsad: katta kompaniyalarning kirish sahifalari darajasidagi
+     ko'rinish — tinch, qimmat, "tirik". Qoidalar:
+       * animatsiya FAQAT transform/opacity orqali (brauzer uni
+         videokartada chizadi, protsessorni band qilmaydi) — shu sabab
+         zaif kompyuterda ham silliq ishlaydi;
+       * `filter:blur()` ishlatilmaydi — u har kadrda qayta hisoblanadi
+         va eski noutbuklarda kirish ekranini "qotiradi";
+       * `prefers-reduced-motion` yoqilgan bo'lsa harakat butunlay
+         o'chadi (talab: qulaylik standarti).
+     ------------------------------------------------------------- */
   .login-bg{
     /* MUHIM: avval "position:fixed;inset:0" edi — mobil brauzerlarda
-       klaviatura ochilib-yopilganda yoki manzil satri (address bar)
-       kichrayib-kattalashganda, "fixed" elementlar balandligi qayta
-       hisoblanib, karta "yuqoriga sakrab" ketishi mumkin edi. Endi oddiy
-       (statik oqim) blok, min-height orqali butun ekranni egallaydi —
-       shu bilan karta doim vertikal MARKAZDA turadi.
-    */
+       klaviatura ochilib-yopilganda yoki manzil satri kichrayganda
+       "fixed" elementlar balandligi qayta hisoblanib, karta "yuqoriga
+       sakrab" ketardi. Endi oddiy blok, min-height bilan. */
     min-height:100vh;min-height:100dvh;overflow:hidden;position:relative;
-    background:radial-gradient(ellipse at top, var(--panel), var(--bg) 65%);
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(230,200,119,.10), transparent 60%),
+      radial-gradient(ellipse at top, var(--panel), var(--bg) 62%);
     display:flex;align-items:center;justify-content:center;padding:20px;
+    isolation:isolate;
   }
-  .login-orb{
-    position:absolute;border-radius:50%;filter:blur(60px);opacity:0.35;
-    animation:orbFloat 14s ease-in-out infinite;
+  /* --- Aurora: ikkita katta rangli dog', sekin suzadi.
+         Blur o'rniga radial-gradient'ning o'zi yumshoq chekka beradi. --- */
+  .login-aurora{position:absolute;inset:-20%;z-index:-2;pointer-events:none;}
+  .login-aurora span{
+    position:absolute;display:block;border-radius:50%;
+    will-change:transform;
+    animation:lgSuz 22s ease-in-out infinite;
   }
-  .login-orb-1{width:280px;height:280px;background:var(--amber);top:-60px;left:-60px;animation-duration:16s;}
-  .login-orb-2{width:220px;height:220px;background:#5C8DF6;bottom:-40px;right:-40px;animation-duration:19s;animation-delay:-4s;}
-  .login-orb-3{width:180px;height:180px;background:var(--green);bottom:20%;left:8%;animation-duration:13s;animation-delay:-8s;opacity:0.22;}
-  @keyframes orbFloat{
-    0%,100%{transform:translate(0,0) scale(1);}
-    33%{transform:translate(24px,-18px) scale(1.08);}
-    66%{transform:translate(-16px,14px) scale(0.95);}
+  .login-aurora .la-1{
+    width:58vmax;height:58vmax;top:-18vmax;left:-14vmax;
+    background:radial-gradient(circle at 50% 50%, rgba(230,200,119,.30), rgba(230,200,119,0) 68%);
   }
+  .login-aurora .la-2{
+    width:50vmax;height:50vmax;bottom:-16vmax;right:-12vmax;
+    background:radial-gradient(circle at 50% 50%, rgba(92,141,246,.26), rgba(92,141,246,0) 68%);
+    animation-duration:28s;animation-delay:-7s;
+  }
+  .login-aurora .la-3{
+    width:34vmax;height:34vmax;bottom:12%;left:6%;
+    background:radial-gradient(circle at 50% 50%, rgba(51,226,140,.16), rgba(51,226,140,0) 70%);
+    animation-duration:19s;animation-delay:-12s;
+  }
+  @keyframes lgSuz{
+    0%,100%{transform:translate3d(0,0,0) scale(1);}
+    33%{transform:translate3d(3.5vmax,-2.5vmax,0) scale(1.10);}
+    66%{transform:translate3d(-2.5vmax,2vmax,0) scale(.94);}
+  }
+  /* --- Juda xira to'r: "muhandislik" tuyg'usi beradi, ko'zga urilmaydi --- */
+  .login-grid{
+    position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size:46px 46px;
+    -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%, #000 20%, transparent 78%);
+            mask-image:radial-gradient(ellipse 70% 60% at 50% 45%, #000 20%, transparent 78%);
+  }
+
+  /* ---------------- Karta ---------------- */
   .login-screen{
     position:relative;z-index:1;
-    max-width:340px;width:100%;text-align:center;
-    background:rgba(18,27,46,0.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    border:1px solid var(--line);border-radius:20px;padding:36px 26px 30px;
-    box-shadow:0 20px 60px rgba(0,0,0,0.35);
-    animation:loginCardIn .55s cubic-bezier(.22,1,.36,1) both;
+    max-width:372px;width:100%;text-align:center;
+    background:rgba(18,27,46,0.68);
+    backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
+    border:1px solid var(--line);border-radius:22px;padding:30px 26px 22px;
+    box-shadow:0 28px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,.06);
+    animation:loginCardIn .6s cubic-bezier(.22,1,.36,1) both;
+  }
+  /* Chekkadagi oltin yorug'lik — 1px ramka gradient bilan */
+  .login-screen::before{
+    content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;
+    background:linear-gradient(140deg, rgba(230,200,119,.55), rgba(230,200,119,0) 38%, rgba(230,200,119,0) 62%, rgba(230,200,119,.28));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
   }
   @keyframes loginCardIn{
-    from{opacity:0;transform:translateY(24px) scale(0.96);}
-    to{opacity:1;transform:translateY(0) scale(1);}
+    from{opacity:0;transform:translate3d(0,26px,0) scale(0.965);}
+    to{opacity:1;transform:translate3d(0,0,0) scale(1);}
   }
-  .login-screen h1{font-family:'Space Mono',monospace;color:var(--amber);font-size:18px;margin:0 0 6px;}
-  .login-screen p{color:var(--muted);font-size:13px;margin:0 0 22px;}
-  .login-field{position:relative;margin-bottom:12px;}
+  /* Ichkaridagi elementlar birin-ketin chiqadi (stagger) */
+  .login-screen > *{animation:lgIchkari .5s cubic-bezier(.22,1,.36,1) both;}
+  .login-screen > *:nth-child(1){animation-delay:.08s;}
+  .login-screen > *:nth-child(2){animation-delay:.14s;}
+  .login-screen > *:nth-child(3){animation-delay:.19s;}
+  .login-screen > *:nth-child(4){animation-delay:.24s;}
+  .login-screen > *:nth-child(5){animation-delay:.29s;}
+  .login-screen > *:nth-child(6){animation-delay:.33s;}
+  .login-screen > *:nth-child(7){animation-delay:.37s;}
+  .login-screen > *:nth-child(8){animation-delay:.41s;}
+  @keyframes lgIchkari{
+    from{opacity:0;transform:translate3d(0,10px,0);}
+    to{opacity:1;transform:translate3d(0,0,0);}
+  }
+
+  /* ---------------- Nishon (monogramma) ---------------- */
+  .login-mark{
+    position:relative;width:62px;height:62px;margin:2px auto 16px;
+    display:grid;place-items:center;
+  }
+  /* Aylanuvchi oltin halqa.
+     DIQQAT: elementning O'ZINI aylantirib bo'lmaydi — u to'rtburchak
+     (yumaloq burchakli), aylantirsak RAMKA SHAKLI ham aylanib, qiyshiq
+     ko'rinardi. Shu sabab elementning o'zi qimirlamaydi, faqat conic
+     gradientning BOSHLANISH BURCHAGI aylanadi (@property orqali).
+     Eski brauzerlarda @property yo'q — halqa shunchaki qimirlamaydi,
+     ko'rinishi esa buzilmaydi. */
+  .login-mark::before{
+    content:'';position:absolute;inset:0;border-radius:19px;padding:1.5px;
+    background:conic-gradient(from var(--lg-burchak,0deg),
+      rgba(230,200,119,0) 0deg, rgba(230,200,119,.95) 90deg,
+      rgba(230,200,119,0) 185deg, rgba(230,200,119,.55) 290deg,
+      rgba(230,200,119,0) 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    animation:lgHalqa 4s linear infinite;
+  }
+  @property --lg-burchak{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
+  @keyframes lgHalqa{ to{ --lg-burchak:360deg; } }
+  .login-mark b{
+    position:relative;width:54px;height:54px;border-radius:16px;
+    display:grid;place-items:center;
+    background:linear-gradient(160deg, #19243C, #0D1730);
+    border:1px solid rgba(230,200,119,.22);
+    font-family:'Space Mono',ui-monospace,monospace;font-size:17px;font-weight:700;
+    letter-spacing:.02em;
+    color:transparent;background-clip:padding-box;
+  }
+  .login-mark b span{
+    background:linear-gradient(180deg,#F6E3A8,#D8B45F 60%,#B8923F);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+
+  .login-screen h1{
+    font-family:'Space Mono',ui-monospace,monospace;color:#E6C877;
+    font-size:17px;margin:0 0 5px;letter-spacing:.05em;
+  }
+  .login-sub{color:var(--muted);font-size:12.5px;margin:0 0 22px;letter-spacing:.2px;}
+
+  /* ---------------- Maydonlar (suzuvchi yorliq) ---------------- */
+  .login-field{position:relative;margin-bottom:11px;text-align:left;}
   .login-screen input{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
-    /* IPHONE TEZLIK TUZATISHI: font-size 16px'dan kichik bo'lsa, iOS
-       Safari maydon fokus olganda SAHIFANI AVTOMATIK KATTALASHTIRADI
-       (zoom animatsiyasi) — aynan shu holat "harflar keyin ko'rinadi,
-       qotib ishlaydi" tuyg'usini beradi (klaviatura bosilgan-bosilmagan,
-       lekin ekran hali zoom animatsiyasi bilan band). 16px va undan
-       katta bo'lsa, iOS bu zoom'ni umuman qilmaydi. */
-    padding:13px 14px;color:var(--text);font-size:16px;outline:none;text-align:center;
-    transition:border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    /* IPHONE: font-size 16px'dan kichik bo'lsa iOS Safari fokusda
+       sahifani avtomatik kattalashtiradi (zoom animatsiyasi) — aynan shu
+       "qotib ishlaydi" tuyg'usini berardi. 16px va undan katta bo'lsa
+       iOS bu zoomni umuman qilmaydi. */
+    padding:20px 14px 8px;color:var(--text);font-size:16px;outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
   }
-  .login-screen input:focus{border-color:var(--amber);box-shadow:0 0 0 4px rgba(21,70,214,0.12);transform:translateY(-1px);}
-  .login-screen button{
+  /* Brauzerning o'z ko'k fokus halqasi kerak emas — bizning oltin
+     halqamiz uning o'rnini bosadi (va u ko'rinishni buzardi). */
+  .login-screen input:focus-visible{outline:none;}
+  .login-field.bor-koz input{padding-right:46px;}
+  .login-field label{
+    position:absolute;left:15px;top:50%;margin-top:-9px;
+    color:var(--muted);font-size:14px;pointer-events:none;
+    transform-origin:left top;
+    transition:transform .18s cubic-bezier(.22,1,.36,1), color .18s ease;
+  }
+  .login-screen input:focus + label,
+  .login-screen input:not(:placeholder-shown) + label{
+    transform:translateY(-11px) scale(.75);
+    color:#E6C877;
+  }
+  .login-screen input:focus{
+    border-color:rgba(230,200,119,.65);
+    box-shadow:0 0 0 4px rgba(230,200,119,.10);
+  }
+  .login-screen input:-webkit-autofill{
+    -webkit-text-fill-color:var(--text);
+    -webkit-box-shadow:0 0 0 60px var(--panel-2) inset;
+  }
+  /* Parolni ko'rsatish tugmasi */
+  .login-eye{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:36px;height:36px;border:none;background:transparent;color:var(--muted);
+    display:grid;place-items:center;cursor:pointer;border-radius:10px;
+    transition:color .15s ease, background-color .15s ease;
+  }
+  .login-eye:hover{color:#E6C877;background:rgba(230,200,119,.08);}
+  .login-eye svg{width:19px;height:19px;}
+  .login-eye .koz-yopiq{display:none;}
+  .login-eye[data-ochiq="1"] .koz-ochiq{display:none;}
+  .login-eye[data-ochiq="1"] .koz-yopiq{display:block;}
+
+  /* Caps Lock ogohlantirishi — parol xato kiritilishining eng ko'p
+     uchraydigan sababi; katta xizmatlar hammasi shuni ko'rsatadi. */
+  .login-caps{
+    display:none;align-items:center;gap:6px;justify-content:center;
+    margin:2px 0 8px;font-size:11.5px;color:#E6C877;
+    animation:lgIchkari .25s ease both;
+  }
+  .login-caps.bor{display:flex;}
+
+  /* ---------------- Tugma ---------------- */
+  .login-screen button#loginBtn{
     position:relative;overflow:hidden;
-    width:100%;background:var(--amber);color:var(--bg);border:none;border-radius:10px;
-    padding:13px;font-weight:800;font-size:14.5px;cursor:pointer;margin-top:6px;
-    transition:transform .15s cubic-bezier(.34,1.56,.64,1), filter .15s ease;
+    width:100%;border:none;border-radius:12px;
+    background:linear-gradient(135deg,#F3DCA0 0%,#E6C877 48%,#C9A24F 100%);
+    color:#0A1527;
+    padding:14px;font-weight:800;font-size:14.5px;cursor:pointer;margin-top:8px;
+    box-shadow:0 8px 22px rgba(230,200,119,.18);
+    transition:transform .15s cubic-bezier(.34,1.56,.64,1), filter .15s ease, box-shadow .2s ease;
   }
-  .login-screen button span{position:relative;z-index:1;}
-  .login-screen button::before{
-    content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;
-    background:linear-gradient(115deg, transparent, rgba(255,255,255,0.45), transparent);
-    transform:skewX(-20deg);animation:btnShine 2.8s ease-in-out infinite;
+  .login-screen button#loginBtn span{position:relative;z-index:1;}
+  .login-screen button#loginBtn::before{
+    content:'';position:absolute;top:0;left:0;width:60%;height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,0.5), transparent);
+    transform:translate3d(-200%,0,0) skewX(-20deg);
+    animation:btnShine 3.2s ease-in-out infinite;
+    will-change:transform;
   }
   @keyframes btnShine{
-    0%{left:-120%;}
-    45%{left:130%;}
-    100%{left:130%;}
+    0%{transform:translate3d(-200%,0,0) skewX(-20deg);}
+    45%{transform:translate3d(260%,0,0) skewX(-20deg);}
+    100%{transform:translate3d(260%,0,0) skewX(-20deg);}
   }
-  .login-screen button:hover{filter:brightness(1.08);transform:translateY(-1px);}
-  .login-screen button:active{transform:scale(0.97);}
-  .login-screen button:disabled{opacity:0.7;cursor:not-allowed;}
-  .login-screen button:disabled::before{animation-play-state:paused;}
-  .login-error{color:var(--red);font-size:12px;margin-top:12px;display:none;animation:loginShake .4s ease;}
+  .login-screen button#loginBtn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 12px 26px rgba(230,200,119,.26);}
+  .login-screen button#loginBtn:active{transform:scale(0.975);}
+  .login-screen button#loginBtn:disabled{opacity:0.75;cursor:not-allowed;transform:none;}
+  .login-screen button#loginBtn:disabled::before{animation-play-state:paused;}
+  /* Yuklanish holati: matn o'rnida aylanuvchi halqa */
+  .lb-yuk{
+    display:none;width:17px;height:17px;border-radius:50%;
+    border:2px solid rgba(10,21,39,.3);border-top-color:#0A1527;
+    animation:lgSpin .7s linear infinite;
+  }
+  @keyframes lgSpin{ to{ transform:rotate(360deg); } }
+  #loginBtn.yuklanmoqda .lb-matn{opacity:.55;}
+  #loginBtn.yuklanmoqda .lb-yuk{display:inline-block;vertical-align:-3px;margin-left:8px;}
+
+  /* ---------------- Xato ---------------- */
+  .login-error{
+    display:none;margin-top:14px;padding:11px 12px;text-align:left;
+    background:rgba(255,92,80,.08);border:1px solid rgba(255,92,80,.22);
+    border-left:3px solid var(--red);border-radius:10px;
+    color:#FFB3AC;font-size:12.5px;line-height:1.55;white-space:pre-line;
+    animation:loginShake .42s cubic-bezier(.36,.07,.19,.97);
+  }
   @keyframes loginShake{
-    0%,100%{transform:translateX(0);}
-    20%{transform:translateX(-6px);}
-    40%{transform:translateX(6px);}
-    60%{transform:translateX(-4px);}
-    80%{transform:translateX(4px);}
+    0%,100%{transform:translate3d(0,0,0);}
+    20%{transform:translate3d(-6px,0,0);}
+    40%{transform:translate3d(6px,0,0);}
+    60%{transform:translate3d(-4px,0,0);}
+    80%{transform:translate3d(4px,0,0);}
+  }
+
+  /* ---------------- Pastki qator ---------------- */
+  .login-pastki{
+    margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    color:var(--muted);font-size:11px;letter-spacing:.2px;
+  }
+  .login-pastki svg{width:12px;height:12px;opacity:.75;}
+  .login-pastki i{
+    display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);
+    animation:lgNafas 2.4s ease-in-out infinite;
+  }
+  @keyframes lgNafas{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.72);}}
+
+  /* ---------------- Harakatni kamaytirish ---------------- */
+  @media (prefers-reduced-motion: reduce){
+    .login-aurora span,
+    .login-mark::before,
+    .login-screen button#loginBtn::before,
+    .login-pastki i,
+    .lb-yuk{animation:none !important;}
+    .login-screen,
+    .login-screen > *,
+    .login-error{animation-duration:.01ms !important;}
+  }
+
+  /* ---------------- Kichik ekran ---------------- */
+  @media (max-width:380px){
+    .login-screen{padding:26px 20px 18px;border-radius:18px;}
+    .login-mark{width:56px;height:56px;}
+    .login-mark b{width:48px;height:48px;border-radius:14px;font-size:15px;}
   }
 
   /* ---- Dashboard shell: chap tomonda sidebar, yuqorida topbar ---- */
@@ -3602,8 +3805,30 @@ body{
 :root[data-theme="light"] .vm-back{background:rgba(16,24,40,.35);}
 :root[data-theme="light"] .pt{background:#FFFFFF;box-shadow:0 18px 40px -12px rgba(16,24,40,.25);}
 :root[data-theme="light"] .net-bar{background:#FDF4E3;color:#7A5410;}
-:root[data-theme="light"] .login-screen{background:rgba(255,255,255,.86);box-shadow:0 20px 60px rgba(13,27,61,0.12), 0 1px 2px rgba(13,27,61,.06);}
-:root[data-theme="light"] .login-bg{background:radial-gradient(ellipse at top, #FFFFFF, var(--bg) 65%);}
+:root[data-theme="light"] .login-screen{background:rgba(255,255,255,.80);box-shadow:0 28px 70px rgba(13,27,61,0.14), inset 0 1px 0 rgba(255,255,255,.9);}
+:root[data-theme="light"] .login-bg{background:
+    radial-gradient(120% 90% at 50% -10%, rgba(201,162,79,.14), transparent 60%),
+    radial-gradient(ellipse at top, #FFFFFF, var(--bg) 62%);}
+/* Yorug' mavzuda aurora kuchsizroq va to'r qoraroq bo'lishi kerak —
+   aks holda oq fonda dog'lar "iflos" ko'rinadi. */
+:root[data-theme="light"] .login-aurora .la-1{background:radial-gradient(circle at 50% 50%, rgba(201,162,79,.26), rgba(201,162,79,0) 68%);}
+:root[data-theme="light"] .login-aurora .la-2{background:radial-gradient(circle at 50% 50%, rgba(21,70,214,.14), rgba(21,70,214,0) 68%);}
+:root[data-theme="light"] .login-aurora .la-3{background:radial-gradient(circle at 50% 50%, rgba(51,226,140,.12), rgba(51,226,140,0) 70%);}
+:root[data-theme="light"] .login-grid{background-image:
+    linear-gradient(rgba(13,27,61,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13,27,61,.045) 1px, transparent 1px);}
+:root[data-theme="light"] .login-screen::before{background:linear-gradient(140deg, rgba(201,162,79,.55), rgba(201,162,79,0) 38%, rgba(201,162,79,0) 62%, rgba(201,162,79,.3));}
+:root[data-theme="light"] .login-mark b{background:linear-gradient(160deg,#FFFFFF,#F4F6FB);border-color:rgba(201,162,79,.3);}
+:root[data-theme="light"] .login-mark b span{background:linear-gradient(180deg,#C9A24F,#8F6E29);-webkit-background-clip:text;background-clip:text;}
+:root[data-theme="light"] .login-mark::before{background:conic-gradient(from var(--lg-burchak,0deg), rgba(201,162,79,0) 0deg, rgba(201,162,79,.95) 90deg, rgba(201,162,79,0) 185deg, rgba(201,162,79,.55) 290deg, rgba(201,162,79,0) 360deg);}
+:root[data-theme="light"] .login-error{background:rgba(214,45,32,.06);border-color:rgba(214,45,32,.2);color:#9E2B20;}
+:root[data-theme="light"] .login-caps{color:#8F6E29;}
+:root[data-theme="light"] .login-screen h1{color:#8F6E29;}
+:root[data-theme="light"] .login-screen button#loginBtn{background:linear-gradient(135deg,#EBD398 0%,#D4AF5F 48%,#B08C3C 100%);color:#1A1203;box-shadow:0 8px 22px rgba(176,140,60,.22);}
+:root[data-theme="light"] .login-screen input:focus + label,
+:root[data-theme="light"] .login-screen input:not(:placeholder-shown) + label{color:#8F6E29;}
+:root[data-theme="light"] .login-eye:hover{color:#8F6E29;background:rgba(201,162,79,.1);}
+:root[data-theme="light"] .login-screen input:focus{border-color:rgba(201,162,79,.75);box-shadow:0 0 0 4px rgba(201,162,79,.14);}
 
 /* To'q fonda oq matn ko'zda tutilgan tugmalar oq mavzuda ham o'qilsin */
 :root[data-theme="light"] .qz-pay-cta{background:var(--amber);color:#FFFFFF;}
@@ -3637,7 +3862,7 @@ body{
 
 /* Avtomatik yaratilgan moslashtirishlar: tungi mavzudagi oq pardalar
    oq mavzuda kulrang pardaga almashadi (aks holda ko'rinmay qoladi). */
-:root[data-theme="light"] .login-screen button::before{background:var(--tint);}
+
 :root[data-theme="light"] .tab:hover{background:var(--tint);}
 :root[data-theme="light"] .tab-group-head:hover{background:var(--tint);}
 :root[data-theme="light"] .tab-divider::before, .tab-divider::after{background:var(--tint);}
