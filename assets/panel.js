@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=104) ham oshiring.
+   havolaning oxiridagi raqamni (?v=106) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -11444,7 +11444,9 @@ async function kpChiz(){
     document.getElementById('kpRasm').src = data.png;
     document.getElementById('kpOldin').style.display = '';
     document.getElementById('kpYuklaBtn').style.display = '';
-    kpXabar('✓ Tayyor. Pastda ko‘rib turibsiz — yuklab oling yoki skrinshot qiling.');
+    kpXabar(data.ogoh
+      ? '⚠ ' + data.ogoh
+      : '✓ Tayyor. Pastda ko‘rib turibsiz — yuklab oling yoki skrinshot qiling.', !!data.ogoh);
     vibrate(60);
     try{ document.getElementById('kpOldin').scrollIntoView({ block:'start', behavior:'smooth' }); }catch(e){}
   }catch(e){
