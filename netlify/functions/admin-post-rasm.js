@@ -29,7 +29,7 @@
 //  • Rasm bazaga TEGMAYDI: faqat kelgan matndan chiziladi.
 
 const { Resvg } = require('@resvg/resvg-js');
-const { FONT_BUFS, LOGO_URI } = require('./lib/ogShrift');
+const { LOGO_URI, SHRIFT_SOZ, SHRIFT_TASHXIS, shriftSozlama } = require('./lib/ogShrift');
 const { requireAdmin } = require('./lib/adminAuth');
 
 /* ---------- Yordamchilar ---------- */
@@ -277,7 +277,7 @@ function svgPost(o) {
 function chiz(svg) {
   const r = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1620 },
-    font: { fontBuffers: FONT_BUFS, loadSystemFonts: false, defaultFontFamily: 'Plus Jakarta Sans' }
+    font: shriftSozlama()      // qarang: lib/ogShrift.js (shrift tekshiruvi + zaxira)
   });
   return r.render().asPng();
 }
@@ -325,10 +325,18 @@ exports.handler = async function (event) {
     return {
       statusCode: 200,
       headers: Object.assign({ 'Content-Type': 'application/json; charset=utf-8' }, bosh),
-      body: JSON.stringify({ ok: true, png: 'data:image/png;base64,' + png.toString('base64') })
+      /* `ogoh` — shriftlar bilan muammo bo'lsa, panel buni ekranda
+         aytadi. Aks holda admin "bo'sh kartochka" ning sababini
+         umuman bila olmasdi. */
+      body: JSON.stringify(Object.assign(
+        { ok: true, png: 'data:image/png;base64,' + png.toString('base64') },
+        SHRIFT_SOZ ? {} : { ogoh: "Shriftlar yaroqsiz (" + SHRIFT_TASHXIS + ") \u2014 "
+          + "netlify/functions/lib/ogShrift.js faylini qayta yuklang." }
+      ))
     };
   } catch (err) {
     console.error('admin-post-rasm xato:', err);
-    return { statusCode: 500, headers: bosh, body: JSON.stringify({ ok: false, error: 'Rasm chizilmadi' }) };
+    return { statusCode: 500, headers: bosh, body: JSON.stringify({ ok: false,
+      error: 'Rasm chizilmadi' + (SHRIFT_SOZ ? '' : ' (shrift muammosi: ' + SHRIFT_TASHXIS + ')') }) };
   }
 };

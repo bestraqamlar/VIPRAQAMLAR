@@ -39,7 +39,7 @@ const db = admin.firestore();
 db.settings({ preferRest: true });
 
 /* ---------- Shriftlar va logotip (base64) ---------- */
-const { FONT_BUFS, LOGO_URI } = require('./lib/ogShrift');
+const { LOGO_URI, shriftSozlama } = require('./lib/ogShrift');
 
 /* ---------- Yordamchilar ---------- */
 const esc = (s) => String(s == null ? '' : s)
@@ -180,7 +180,7 @@ function svgKarta(o) {
 function chiz(svg) {
   const r = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1200 },
-    font: { fontBuffers: FONT_BUFS, loadSystemFonts: false, defaultFontFamily: 'Plus Jakarta Sans' }
+    font: shriftSozlama()      // qarang: lib/ogShrift.js (shrift tekshiruvi + zaxira)
   });
   return r.render().asPng();
 }
