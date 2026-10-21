@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=97) ham oshiring.
+   havolaning oxiridagi raqamni (?v=99) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -34,7 +34,121 @@ const firebaseConfig = {
   measurementId: "G-SB37FEXJ0F"
 };
 firebase.initializeApp(firebaseConfig);
-firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true);
+/* ---------- APP CHECK (bot himoyasi) ----------
+   DIQQAT (V99): App Check reCAPTCHA skriptini www.google.com dan
+   yuklaydi. Agar u TO'SILGAN bo'lsa (maxfiylik kengaytmasi, reklama
+   bloklagich, antivirusning veb qalqoni), Firebase kirish so'rovini
+   UMUMAN YUBORMAYDI va "auth/network-request-failed" qaytaradi —
+   ya'ni parol to'g'ri bo'lsa ham panelga kirib bo'lmaydi. Aynan shu
+   holat bitta kompyuterda yuz berdi (telefonda ishlayverardi).
+   Shu sabab: reCAPTCHA to'silgani aniqlansa, bu brauzerda App Check
+   YOQILMAYDI (belgi saqlanadi). Panel baribir himoyasiz qolmaydi —
+   oldida Netlify "ikkinchi eshigi", 5 daqiqada 3 urinish qulfi va
+   Firestore qoidalaridagi admin huquqi tekshiruvi turadi. */
+const APPCHECK_KALIT = 'vr_appcheck_tosiq';
+let appCheckTosiq = false;
+try{ appCheckTosiq = localStorage.getItem(APPCHECK_KALIT) === '1'; }catch(e){}
+if(appCheckTosiq){
+  console.warn("App Check bu brauzerda yoqilmadi — reCAPTCHA to'silgan ko'rinadi.");
+}else{
+  try{ firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true); }
+  catch(e){ console.warn('App Check yoqilmadi:', e && e.message); }
+}
+/* ================= KIRISH XIZMATI: ZAXIRA YO'L (V99) =================
+   MUAMMO. Ba'zi KOMPYUTERLARDA panelga kirib bo'lmasdi: sayt ochiladi,
+   parol to'g'ri, lekin Firebase "auth/network-request-failed" beradi.
+   Xuddi shu tarmoqda TELEFONDAN esa kiraverardi. Sabab: kirish
+   so'rovi saytga EMAS, Google'ning alohida manziliga ketadi —
+   identitytoolkit.googleapis.com. Kompyuterdagi antivirusning "veb
+   qalqoni", reklama bloklagich/maxfiylik kengaytmasi yoki routerdagi
+   DNS filtri aynan shu manzilni to'sadi. Telefonda bunday to'siq yo'q.
+
+   YECHIM. Firebase SDK'da "boshqa manzilga yuborish" imkoni bor
+   (useEmulator). Biz undan shu maqsadda foydalanamiz: so'rov
+   SAYTNING O'ZIGA ketadi, sayt esa uni Google'ga uzatadi
+   (netlify/functions/auth-proxy.js). Sayt manzili to'silmagan —
+   demak kirish ishlaydi.
+
+   QACHON YOQILADI:
+     1. Sahifa ochilganda Google manzili TEKSHIRILADI. Ochilmasa —
+        zaxira yo'l DARHOL yoqiladi, mijoz hech narsa sezmaydi.
+     2. Tekshiruv "ochiq" desa-yu, kirish baribir tarmoq xatosi bersa —
+        belgi saqlanadi va sahifa bir marta yangilanadi, keyin zaxira
+        yo'ldan kiriladi.
+     3. Belgi saqlangan bo'lsa — keyingi safar tekshiruvsiz, to'g'ridan
+        zaxira yo'l (tez ochiladi).
+
+   MUHIM: `useEmulator` Firebase'ning BIRINCHI kirish so'rovidan OLDIN
+   chaqirilishi shart, shuning uchun u aynan shu yerda — fayl boshida.
+   `doLogin` esa quyida `await AUTH_TAYYOR` bilan tekshiruvni kutadi. */
+const AUTH_ZAXIRA_KALIT = 'vr_auth_zaxira';
+window.AUTH_ZAXIRA = false;
+
+function authZaxiraYoq(){
+  if(window.AUTH_ZAXIRA) return true;
+  try{
+    /* Manzil sifatida saytning O'ZI beriladi. Firebase SDK undan faqat
+       domen va portni oladi va so'rovni
+         https://vipraqamlar.uz/identitytoolkit.googleapis.com/v1/...
+       ko'rinishida yuboradi — _redirects uni auth-proxy funksiyasiga
+       yo'naltiradi. `disableWarnings` — ekranda sariq ogohlantirish
+       chizig'i chiqmasligi uchun (u mijozga keraksiz). */
+    firebase.auth().useEmulator(location.origin, { disableWarnings: true });
+    window.AUTH_ZAXIRA = true;
+    try{ localStorage.setItem(AUTH_ZAXIRA_KALIT, '1'); }catch(e){}
+    console.info('Kirish: zaxira yo\'l yoqildi (sayt orqali).');
+    return true;
+  }catch(e){
+    console.warn('Zaxira yo\'lni yoqib bo\'lmadi:', e && e.message);
+    return false;
+  }
+}
+
+window.AUTH_TAYYOR = (async function authYolTanla(){
+  if(location.protocol === 'file:') return;          // baribir ishlamaydi
+  let belgi = false;
+  try{ belgi = localStorage.getItem(AUTH_ZAXIRA_KALIT) === '1'; }catch(e){}
+  if(belgi){ authZaxiraYoq(); return; }
+  /* Uchta manzil ochiladimi? `no-cors` so'rov javobni o'qimaydi,
+     lekin TO'SILGAN bo'lsa xato beradi — bizga shuning o'zi kifoya. */
+  async function ochiqmi(url){
+    const ctrl = new AbortController();
+    const t = setTimeout(()=> ctrl.abort(), 4500);
+    try{ await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal }); return true; }
+    catch(e){ return false; }
+    finally{ clearTimeout(t); }
+  }
+  const [kirishOk, appCheckOk, capOk] = await Promise.all([
+    ochiqmi('https://identitytoolkit.googleapis.com/v1/projects?key=tekshiruv'),
+    ochiqmi('https://firebaseappcheck.googleapis.com/v1/jwks'),
+    ochiqmi('https://www.google.com/recaptcha/api.js')
+  ]);
+
+  if(!kirishOk) authZaxiraYoq();          // kirish xizmati to'silgan -> sayt orqali
+
+  /* reCAPTCHA yoki App Check manzili to'silgan bo'lsa — App Check bu
+     brauzerda ishlamaydi va KIRISHNI BUTUNLAY TO'XTATIB QO'YADI.
+     Belgini saqlab, sahifani BIR MARTA yangilaymiz (App Check allaqachon
+     yoqib bo'lingan, uni ortga qaytarib bo'lmaydi — shu sabab yangilash
+     kerak). Mijoz buni sezmaydi: bu login oynasi ochilgandan bir soniya
+     keyin, parol kiritilgunga qadar bo'ladi. */
+  if(!capOk || !appCheckOk){
+    if(!appCheckTosiq){
+      let birMarta = false;
+      try{
+        birMarta = sessionStorage.getItem('vr_appcheck_qayta') !== '1';
+        localStorage.setItem(APPCHECK_KALIT, '1');
+        sessionStorage.setItem('vr_appcheck_qayta', '1');
+      }catch(e){}
+      if(birMarta){ location.reload(); return; }
+    }
+  }else if(appCheckTosiq){
+    /* To'siq olib tashlangan (masalan kengaytma o'chirilgan) — keyingi
+       ochilishda App Check yana yoqiladi. */
+    try{ localStorage.removeItem(APPCHECK_KALIT); }catch(e){}
+  }
+})();
+
 const db = firebase.firestore();
 
 /* ================= KATALOG INDEKSINI "ESKIRGAN" DEB BELGILASH =================
@@ -2502,6 +2616,13 @@ async function tarmoqTashxis(){
     return "Sayt serveriga ham ulanib bo'lmadi — internet yoki DNS muammosi. "
       + "Boshqa tarmoqqa (mobil internet) o'tib ko'ring.";
   }
+  if(!google && window.AUTH_ZAXIRA){
+    return "Google kirish xizmati to'silgan, shu sabab sayt orqali ZAXIRA YO'L "
+      + "yoqilgan \u2014 lekin u ham javob bermadi.\n"
+      + "\u2022 Sahifani yangilab (Ctrl+F5), yana bir marta urinib ko'ring;\n"
+      + "\u2022 yoki yashirin oynada oching (Ctrl+Shift+N);\n"
+      + "\u2022 yoki antivirusning \u201cveb/HTTPS qalqoni\u201dni vaqtincha o'chiring.";
+  }
   if(!google){
     return "Sayt ochilyapti, lekin GOOGLE kirish xizmatiga ulanib bo'lmadi. "
       + "Odatda buni brauzer kengaytmasi (reklama bloklagich, maxfiylik qalqoni) "
@@ -2585,6 +2706,11 @@ async function doLogin(){
   btn.disabled = true;
   btn.textContent = 'Ulanmoqda...';
 
+  /* 0-qadam: kirish yo'li tanlanganini kutamiz (V99 — qarang:
+     AUTH_TAYYOR). Google manzili to'silgan kompyuterlarda bu yerda
+     zaxira yo'l allaqachon yoqilgan bo'ladi. */
+  try{ await window.AUTH_TAYYOR; }catch(e){}
+
   /* 1-qadam: qulflangan bo'lsa Firebase'ga UMUMAN murojaat qilinmaydi */
   const oldin = await qulfSoragich('tekshir', loginNomi);
   if(oldin && oldin.qulf){
@@ -2659,6 +2785,28 @@ async function doLogin(){
        (Qarang: tarmoqTashxis — saytning o'zi, server funksiyasi va
        Google kirish xizmati alohida-alohida tekshiriladi.) */
     if(err.code === 'auth/network-request-failed'){
+      /* V99: avval ZAXIRA YO'Lni sinab ko'ramiz. Tekshiruv "Google
+         ochiq" degan bo'lsa-yu, kirish baribir tarmoq xatosi bersa —
+         demak to'siq boshqacha ishlayapti. Belgini saqlab, sahifani
+         bir marta yangilaymiz: keyingi ochilishda so'rov saytning
+         o'zi orqali ketadi va kirish ishlaydi.
+         (Yangilash shart, chunki Firebase yo'lni faqat birinchi
+         so'rovdan OLDIN o'zgartirishga ruxsat beradi.) */
+      if(!window.AUTH_ZAXIRA && location.protocol !== 'file:'){
+        let qayta = false;
+        try{ qayta = sessionStorage.getItem('vr_auth_zaxira_qayta') !== '1'; }catch(e){ qayta = false; }
+        if(qayta){
+          try{
+            localStorage.setItem(AUTH_ZAXIRA_KALIT, '1');
+            sessionStorage.setItem('vr_auth_zaxira_qayta', '1');   // faqat bir marta
+          }catch(e){}
+          loginError.textContent = "Ulanish yo'li almashtirilmoqda \u2014 sahifa yangilanadi.\n"
+            + "Keyin parolni yana bir marta kiriting.";
+          loginError.style.display = 'block';
+          setTimeout(()=> location.reload(), 1200);
+          return;
+        }
+      }
       try{
         const sabab = await tarmoqTashxis();
         loginError.textContent = "Kirish xizmatiga ulanib bo'lmadi.\n\n" + sabab;
