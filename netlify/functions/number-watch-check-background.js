@@ -64,12 +64,39 @@ const COLLECTION = 'number_watches';
 // Qidiruv esa bu vaqt ichida ham to'xtamasdan, belgilangan intervalda davom etadi.
 const NOTIFY_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 const FINALIZE_CONCURRENCY = 6;    // Firestore yozish/Telegram xabar bosqichi uchun
-const UCELL_CONCURRENCY = 4;       // Ucell uchun (eski, har-kuzatuv-alohida yo'l)
-const MAX_RUN_MS = 12 * 60 * 1000; // bitta yurish shu vaqtdan oshsa, qolganini keyingi yurishga qoldiradi
+const UCELL_CONCURRENCY = 4;       // Ucell va Beeline uchun (har-kuzatuv-alohida yo'l)
+/* TUZATISH (V110): ilgari bu 12 DAQIQA edi, cron esa HAR DAQIQA ishga
+   tushadi. Ya'ni bitta yurish tugamasdan ikkinchisi, uchinchisi...
+   boshlanardi — operator API'siga bir vaqtda o'nlab bir xil so'rov
+   ketib, navbat to'planardi va natijada tekshiruv "qotib qolgandek"
+   sekinlashardi. Endi har bir yurish keyingi cron chaqiruvidan OLDIN
+   tugaydi.
+
+   Nega aynan 25 soniya: Netlify hujjatlarida JADVALLI funksiya uchun
+   ijro chegarasi 30 soniya deb ko'rsatilgan ("background" qo'shimchasi
+   bilan birga ishlatilganda qanday hisoblanishi hujjatlarda aniq
+   yozilmagan). Shu sabab eng xavfsiz qiymat olindi: 25 soniya — ikkala
+   holatda ham yurish o'z vaqtida tugaydi. Bizning ish hajmimiz baribir
+   kichik: operator soniga teng (4 tagacha) so'rov. */
+const MAX_RUN_MS = 25 * 1000;
 
 // "Hammasini ber" so'rovini qo'llab-quvvatlamaydigan operatorlar — bular
 // uchun har bir kuzatuv o'z naqshi bilan alohida so'raladi.
-const NO_WILDCARD_OPERATORS = new Set(['Ucell']);
+/* TUZATISH (V111) — BEELINE SHU RO'YXATGA QO'SHILDI.
+   ------------------------------------------------------------------
+   TOPILGAN TESHIK. Beeline'ning qidiruv API'si bir so'rovda ENG KO'PI
+   100 ta natija qaytaradi (`?limit=100` — undan oshsa 400 xato).
+   "Hammasini ber" (bo'sh naqsh) so'rovida esa u omborda mavjud
+   bo'lgan MINGLAB raqamdan FAQAT BIRINCHI 100 tasini qaytaradi.
+   Ya'ni kuzatilayotgan raqam ro'yxatning 101-o'rnidan keyin bo'lsa,
+   u HECH QACHON ko'rinmasdi — kuzatuv shunchaki "ishlayotgandek"
+   tuyulardi, lekin amalda topa olmasdi.
+
+   Naqsh bilan (masalan 90-777-**-**) so'ralganda esa natija allaqachon
+   tor bo'ladi va 100 chegarasi muammo tug'dirmaydi. Shu sabab Beeline
+   endi Ucell kabi — HAR BIR KUZATUV O'Z NAQSHI bilan so'raladi.
+   Bu operatorga ko'proq so'rov degani, lekin TO'G'RI natija degani. */
+const NO_WILDCARD_OPERATORS = new Set(['Ucell', 'Beeline']);
 
 // Operatorning o'zidan BIR SO'ROVDA so'ralishi mumkin bo'lgan eng ko'p
 // natija soni. Beeline'ning o'ziga xos, qattiq 100 chegarasi bor (undan
@@ -86,8 +113,14 @@ const NO_WILDCARD_OPERATORS = new Set(['Ucell']);
 // (amalda "kesilmasin" degani) qiymat qo'yiladi — mijoz "200 va undan
 // ko'p birdaniga chiqsin" desa, operator o'zi qancha bersa, o'shanchasi
 // TO'LIQ saqlanadi, sun'iy ravishda 200'da kesilib qolmaydi.
-const BULK_LIMIT_DEFAULT = 2000;
-const BULK_LIMIT_BY_OPERATOR = { Beeline: 100 };
+/* TUZATISH (V111): ilgari 2000 edi. Humans/Mobiuz/Perfektum API'si
+   bizning limit'imizni QABUL QILMAYDI — ular o'zlari qancha bersa,
+   shuncha keladi; bizdagi "limit" esa olingan natijadan qanchasini
+   SAQLAB QOLISHNI belgilaydi. Operatorda 2000 tadan ko'p raqam bo'lsa,
+   2001-o'rindagi kuzatilayotgan raqam shunchaki tashlab ketilardi.
+   Endi amalda "kesilmasin" degan qiymat. */
+const BULK_LIMIT_DEFAULT = 50000;
+const BULK_LIMIT_BY_OPERATOR = {};
 const PER_WATCH_LIMIT = 300; // Ucell yo'li uchun (avval 20 edi) — bu ham faqat bizning saqlash chegaramiz
 
 // Katakchalarning barchasi bo'sh — "operatorda hozir mavjud bo'lgan
@@ -106,14 +139,36 @@ function formatNumber(raw) {
 // admin/bot qo'shilsa, hammasi bir vaqtda xabardor bo'ladi.
 const NOTIFY_COLLECTION = 'watch_notify_recipients';
 
-async function sendTelegramMessage(token, chatId, text) {
+/* TUZATISH (V111): ilgari yuborish natijasi UMUMAN tekshirilmasdi
+   (`catch` bo'sh edi). Telegram javob bermagan bir lahzada xabar
+   yo'qolardi, raqam esa "xabar qilingan" deb belgilanib, 12 soat
+   davomida qayta yuborilmasdi — ya'ni raqam butunlay o'tkazib
+   yuborilardi. Endi: bir marta qayta urinadi va MUVAFFAQIYATNI
+   qaytaradi; raqam faqat haqiqatan yuborilgandan keyin "xabar
+   qilingan" deb belgilanadi. */
+async function sendTelegramMessage(token, chatId, text, qayta) {
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, text })
     });
-  } catch (e) { /* xabar yubormasa ham, tekshiruv davom etadi */ }
+    if (res.ok) return true;
+    /* 429 (juda ko'p so'rov) va 5xx — vaqtinchalik, qayta urinamiz */
+    if (!qayta && (res.status === 429 || res.status >= 500)) {
+      await new Promise(r => setTimeout(r, 1200));
+      return sendTelegramMessage(token, chatId, text, true);
+    }
+    console.error('Telegram xabar yuborilmadi: HTTP ' + res.status);
+    return false;
+  } catch (e) {
+    if (!qayta) {
+      await new Promise(r => setTimeout(r, 1200));
+      return sendTelegramMessage(token, chatId, text, true);
+    }
+    console.error('Telegram xabar yuborilmadi:', e && e.message);
+    return false;
+  }
 }
 
 async function notifyAdmin(text) {
@@ -124,11 +179,12 @@ async function notifyAdmin(text) {
   // sozlash tugallanmagan bo'lsa ham xabar butunlay yo'qolib ketmaydi.
   const token = process.env.WATCH_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.WATCH_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-  if (token && chatId) await sendTelegramMessage(token, chatId, text);
+  let yetdi = false;
+  if (token && chatId) yetdi = await sendTelegramMessage(token, chatId, text);
 
   // Qo'shimcha, Sozlamalardan qo'shilgan ID'lar — xuddi shu bot tokeni
   // bilan, lekin HAR BIR ID'ga alohida xabar sifatida.
-  if (!token) return;
+  if (!token) return yetdi;
   try {
     const snap = await db.collection(NOTIFY_COLLECTION).get();
     await Promise.all(snap.docs.map(d => {
@@ -137,6 +193,7 @@ async function notifyAdmin(text) {
       return sendTelegramMessage(token, extraChatId, text);
     }));
   } catch (e) { /* qo'shimcha ro'yxat o'qilmasa ham, asosiy xabar allaqachon ketgan */ }
+  return yetdi;
 }
 
 async function loadOperatorConfig() {
@@ -152,14 +209,72 @@ async function loadOperatorConfig() {
 // operatordagi kuzatuvlar shu safar "natija yo'q" deb hisoblanadi,
 // lekin navbatdagi tekshiruvlari (nextCheckAt, pastda) baribir oldinga
 // suriladi, ya'ni "abadiy qotib qolish" yo'q.
+/* TUZATISH (V111): ilgari operator xatosi YUTILARDI — funksiya bo'sh
+   ro'yxat qaytarardi va kuzatuv "tekshirildi, hech narsa topilmadi"
+   deb belgilanardi. Ya'ni Humans bir hafta javob bermasa ham, panelda
+   "so'nggi tekshiruv: hozir" deb turaverardi va hech kim buzilganini
+   bilmasdi. Endi xato ALOHIDA qaytariladi va yuqorida hisobga olinadi. */
 async function fetchOperatorPool(operatorName, config) {
   const limit = BULK_LIMIT_BY_OPERATOR[operatorName] || BULK_LIMIT_DEFAULT;
   try {
     const out = await searchAll(WILDCARD_BOXES, config, { operator: operatorName, limit, deadline: 10000 });
-    return out.items || [];
+    const items = out.items || [];
+    /* searchAll operator xatosini `errors` ichida ham qaytarishi mumkin */
+    const xato = (out.errors && out.errors.length) ? String(out.errors[0].message || out.errors[0]) : '';
+    if (!items.length && xato) return { items: [], xato };
+    return { items, xato: '' };
   } catch (e) {
-    return [];
+    return { items: [], xato: (e && e.message) || 'nomalum xato' };
   }
+}
+
+/* Kuzatuv tekshirilmay qolganda (operator javob bermadi) — hujjatga
+   FAQAT xato yoziladi. `lastCheckedAt` ATAYLAB tegilmaydi: aks holda
+   panel "tekshirildi" deb yolg'on ko'rsatardi. */
+async function nishonlaXato(doc, xato) {
+  try {
+    await doc.ref.update({
+      lastErrorAt: admin.firestore.Timestamp.now(),
+      lastError: String(xato).slice(0, 300),
+      errorStreak: (doc.data().errorStreak || 0) + 1
+    });
+  } catch (e) { /* yozilmasa ham tekshiruv davom etadi */ }
+}
+
+/* OPERATOR SOG'LIG'I — ketma-ket xatolar sanaladi va 3 martadan keyin
+   adminga BIR MARTA (30 daqiqada) ogohlantirish yuboriladi. Shu bilan
+   "kuzatuv jim qolib ketdi" holati sezdirmay o'tmaydi. */
+const SOGLIQ_COLLECTION = 'watch_health';
+const OGOH_SOVISH_MS = 30 * 60 * 1000;
+const OGOH_CHEGARA = 3;
+
+async function sogliqYangila(operatorName, xato) {
+  const ref = db.collection(SOGLIQ_COLLECTION).doc(operatorName);
+  try {
+    const snap = await ref.get();
+    const d = snap.exists ? (snap.data() || {}) : {};
+    const now = Date.now();
+    if (!xato) {
+      /* Tiklandi — oldin ogohlantirilgan bo'lsa, "tuzaldi" deb aytamiz */
+      if ((d.streak || 0) >= OGOH_CHEGARA && d.alertedAt) {
+        await notifyAdmin('✅ Kuzatuv tiklandi\n\n📶 ' + operatorName + ' yana javob beryapti.');
+      }
+      if (d.streak || d.alertedAt) await ref.set({ streak: 0, alertedAt: null, lastOkAt: now }, { merge: true });
+      return;
+    }
+    const streak = (d.streak || 0) + 1;
+    const yoz = { streak, lastError: String(xato).slice(0, 300), lastErrorAt: now };
+    if (streak >= OGOH_CHEGARA && (!d.alertedAt || now - d.alertedAt > OGOH_SOVISH_MS)) {
+      const yetdi = await notifyAdmin(
+        '⚠️ Kuzatuv ishlamayapti\n\n' +
+        '📶 ' + operatorName + '\n' +
+        '🔁 ketma-ket ' + streak + ' marta xato\n' +
+        '❗ ' + String(xato).slice(0, 180)
+      );
+      if (yetdi) yoz.alertedAt = now;
+    }
+    await ref.set(yoz, { merge: true });
+  } catch (e) { /* sog'liq yozuvi ishlamasa ham, asosiy ish davom etadi */ }
 }
 
 // Kuzatuv hujjatini (topilgan raqamlar ro'yxati asosida) yakunlaydi:
@@ -170,6 +285,9 @@ async function finalizeWatch(doc, items) {
   const now = Date.now();
 
   const update = {
+    lastError: null,
+    lastErrorAt: null,
+    errorStreak: 0,
     lastCheckedAt: admin.firestore.Timestamp.now(),
     nextCheckAt: admin.firestore.Timestamp.fromMillis(now + watch.intervalMinutes * 60000),
     checkCount: (watch.checkCount || 0) + 1
@@ -195,12 +313,14 @@ async function finalizeWatch(doc, items) {
     const freshItems = items.filter(it => !keptNotified[it.number]);
     for (const item of freshItems) {
       const priceText = item.price ? `${Number(item.price).toLocaleString('ru-RU')} so'm` : "narxi ko'rsatilmagan";
-      await notifyAdmin(
+      const yetdi = await notifyAdmin(
         `🟢 Sotuvga qo'yildi\n\n` +
         `📱 ${formatNumber(item.number)} - ${priceText}\n` +
         `📶 ${watch.operator}`
       );
-      keptNotified[item.number] = now;
+      /* Faqat HAQIQATAN yuborilgan bo'lsa "xabar qilingan" deb
+         belgilaymiz — aks holda keyingi yurishda qayta uriniladi. */
+      if (yetdi) keptNotified[item.number] = now;
     }
   }
 
@@ -229,16 +349,43 @@ async function finalizePooled(docsWithPool) {
 //     (operator API'si "hammasini ber"ni qo'llamaydi). ---
 async function finalizePerWatch(docs, config) {
   let idx = 0;
+  /* BITTA YURISH ICHIDAGI TAKRORNI OLDINI OLISH (V111).
+     Bir nechta kuzatuv bir xil naqsh + bir xil operatorga tegishli
+     bo'lishi mumkin (masalan admin bitta naqshni ikki marta qo'shgan).
+     Ilgari har biri uchun ALOHIDA so'rov ketardi — operatorda bu
+     keraksiz yuk va 429 ("so'rovlar chegarasi") xavfi. Endi so'rov
+     bir marta yuboriladi, natija esa baham ko'riladi. */
+  const kesh = new Map();
+  async function qidir(operator, boxes) {
+    const kalit = operator + '|' + boxes.join(',');
+    if (kesh.has(kalit)) return kesh.get(kalit);
+    const vada = searchAll(boxes, config, { operator, limit: PER_WATCH_LIMIT, deadline: 8000 });
+    kesh.set(kalit, vada);
+    return vada;
+  }
   async function worker() {
     while (idx < docs.length) {
       const doc = docs[idx++];
       const watch = doc.data();
-      let items = [];
+      let items = null;
+      let xato = '';
       try {
-        const out = await searchAll(watch.boxes, config, { operator: watch.operator, limit: PER_WATCH_LIMIT, deadline: 8000 });
+        const out = await qidir(watch.operator, watch.boxes);
         items = out.items || [];
-      } catch (e) { /* bitta kuzatuv ishlamasa ham, qolganlari davom etadi */ }
-      await finalizeWatch(doc, items);
+        if (!items.length && out.errors && out.errors.length) {
+          xato = String(out.errors[0].message || out.errors[0]);
+          items = null;
+        }
+      } catch (e) { xato = (e && e.message) || 'nomalum xato'; }
+
+      if (items === null) {
+        /* Tekshirib bo'lmadi — "tekshirildi" deb belgilamaymiz */
+        await nishonlaXato(doc, xato);
+        await sogliqYangila(watch.operator, xato);
+      } else {
+        await sogliqYangila(watch.operator, '');
+        await finalizeWatch(doc, items);
+      }
       if (Date.now() - START_TIME > MAX_RUN_MS) return;
     }
   }
@@ -259,16 +406,38 @@ exports.handler = async function (event) {
     if (snap.empty) return { statusCode: 200, body: 'ok: kuzatuv yoq' };
 
     const now = admin.firestore.Timestamp.now();
-    const due = snap.docs.filter(d => {
+
+    /* ============ V110: INTERVAL ENDI POOL YO'LIGA TA'SIR QILMAYDI ============
+       MUAMMO. Admin kuzatuvni yaratganda interval tanlardi (standart —
+       5 daqiqa) va tekshiruv AYNAN o'sha intervalda bo'lardi. Ya'ni
+       raqam sotuvga chiqqanidan keyin xabar 5 daqiqagacha kechikardi
+       ("raqam ochilgan bo'lsa ham, keyin qidirib tashlab beryabdi").
+
+       Nega endi kerak emas. Beeline/Humans/Mobiuz/Perfektum uchun
+       operatorga HAR BIR KUZATUV uchun emas, HAR BIR OPERATOR uchun
+       BITTA keng so'rov yuboriladi (qarang: fetchOperatorPool). Ya'ni
+       10 ta kuzatuvni tekshirish ham, 1 tasini tekshirish ham operator
+       uchun BIR XIL — bitta so'rov. Demak kutib turishning ma'nosi yo'q.
+
+       Endi: bu operatorlardagi kuzatuvlar HAR DAQIQA (cron oralig'i)
+       tekshiriladi. Interval faqat UCELL uchun kuch saqlaydi — u yerda
+       har bir kuzatuv o'z so'rovini talab qiladi, shu sabab ularni
+       cheklab turish hamon to'g'ri.
+
+       `nextCheckAt` baribir yozib boriladi — admin panelda "keyingi
+       tekshiruv" ko'rsatkichi o'sha maydondan o'qiydi. */
+    const pooledAll = snap.docs.filter(d => !NO_WILDCARD_OPERATORS.has(d.data().operator));
+    const perWatchAll = snap.docs.filter(d => NO_WILDCARD_OPERATORS.has(d.data().operator));
+
+    const pooledDue = pooledAll;                       // har doim — har daqiqada
+    const perWatchDue = perWatchAll.filter(d => {      // Ucell — intervalga qarab
       const nc = d.data().nextCheckAt;
       return !nc || nc.toMillis() <= now.toMillis();
     });
+    const due = pooledDue.concat(perWatchDue);
     if (due.length === 0) return { statusCode: 200, body: 'ok: hozircha muddati kelgani yoq' };
 
     const config = await loadOperatorConfig();
-
-    const pooledDue = due.filter(d => !NO_WILDCARD_OPERATORS.has(d.data().operator));
-    const perWatchDue = due.filter(d => NO_WILDCARD_OPERATORS.has(d.data().operator));
 
     // "Hammasini ber"ga mos operatorlarni guruhlab, har biridan BITTA
     // keng so'rov — PARALLEL.
@@ -280,12 +449,26 @@ exports.handler = async function (event) {
     }
     const operatorNames = Object.keys(byOperator);
     const pools = await Promise.all(
-      operatorNames.map(async (op) => ({ op, items: await fetchOperatorPool(op, config) }))
+      operatorNames.map(async (op) => {
+        const r = await fetchOperatorPool(op, config);
+        return { op, items: r.items, xato: r.xato };
+      })
     );
     const poolByOperator = {};
-    pools.forEach(p => { poolByOperator[p.op] = p.items; });
+    const xatoByOperator = {};
+    pools.forEach(p => { poolByOperator[p.op] = p.items; xatoByOperator[p.op] = p.xato; });
 
-    const docsWithPool = pooledDue.map(doc => ({ doc, poolItems: poolByOperator[doc.data().operator] || [] }));
+    /* Operator sog'ligini yangilaymiz (xato bo'lsa — ogohlantirish) */
+    await Promise.all(operatorNames.map(op => sogliqYangila(op, xatoByOperator[op])));
+
+    /* Operator javob bermagan bo'lsa, uning kuzatuvlari "tekshirildi"
+       deb BELGILANMAYDI — faqat xato yoziladi. */
+    const docsWithPool = [];
+    for (const doc of pooledDue) {
+      const op = doc.data().operator;
+      if (xatoByOperator[op]) { await nishonlaXato(doc, xatoByOperator[op]); continue; }
+      docsWithPool.push({ doc, poolItems: poolByOperator[op] || [] });
+    }
 
     await Promise.all([
       finalizePooled(docsWithPool),

@@ -737,7 +737,25 @@ const HUMANS_JOIN_QUERY =
   + ' joinAnonymous(input: { app: $app, deviceInfo: $deviceInfo, avatar: $avatar })'
   + ' { __typename ... on JoinAnonymousResult { userID } } }';
 
-async function humansSession() {
+/* HUMANS SESSIYASI — QISQA MUDDATLI KESH (V110).
+   ------------------------------------------------------------------
+   Ilgari HAR BIR qidiruvdan oldin yangi anonim sessiya ochilardi: bu
+   qo'shimcha bitta tarmoq so'rovi (va Humans serveridagi kutish)
+   degani. Kuzatuv har daqiqada ishlaganda bu sezilarli sekinlik
+   beradi va keraksiz yuk tug'diradi.
+
+   Endi sessiya 4 daqiqa saqlanadi. Agar saqlangan sessiya bilan
+   qidiruv ishlamay qolsa (muddati o'tgan bo'lsa), kesh tozalanib,
+   BIR MARTA qaytadan urinib ko'riladi — qarang: searchHumans. */
+let humansSessiyaKesh = null;
+const HUMANS_SESSIYA_TTL = 4 * 60 * 1000;
+
+function humansKeshTozala() { humansSessiyaKesh = null; }
+
+async function humansSession(majburiy) {
+  if (!majburiy && humansSessiyaKesh && humansSessiyaKesh.expiresAt > Date.now()) {
+    return humansSessiyaKesh;
+  }
   const deviceID = randomUuid();
   const res = await fetch(HUMANS_API + '/graphql', {
     method: 'POST',
@@ -761,11 +779,23 @@ async function humansSession() {
     const msg = (data && data.errors && data.errors[0] && data.errors[0].message) || ('HTTP ' + res.status);
     throw new Error('Humans sessiya olinmadi: ' + msg);
   }
-  return { token, userID };
+  humansSessiyaKesh = { token, userID, expiresAt: Date.now() + HUMANS_SESSIYA_TTL };
+  return humansSessiyaKesh;
 }
 
 async function searchHumans(boxes, cfg, limit) {
-  const { token, userID } = await humansSession();
+  try {
+    return await humansQidir(boxes, cfg, limit, false);
+  } catch (e) {
+    /* Saqlangan sessiya eskirgan bo'lishi mumkin — tozalab, bir marta
+       qaytadan (yangi sessiya bilan) urinamiz. */
+    humansKeshTozala();
+    return await humansQidir(boxes, cfg, limit, true);
+  }
+}
+
+async function humansQidir(boxes, cfg, limit, majburiy) {
+  const { token, userID } = await humansSession(majburiy);
   const table = (cfg.prices && cfg.prices.length) ? cfg.prices : DEFAULT_PRICES.Humans;
 
   const res = await fetch(HUMANS_API + '/ftuz/api/v1/msisdns/retail/available', {

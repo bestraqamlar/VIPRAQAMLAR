@@ -103,7 +103,12 @@ async function listWatches() {
       // Hozircha "sovish" (12 soat) muddati tugamagan, ya'ni yaqinda xabar
       // qilingan va shu sabab hozircha qayta yuborilmaydigan raqamlar soni.
       notifiedCount: Object.keys(data.notifiedNumbers || {}).length,
-      checkCount: data.checkCount || 0
+      checkCount: data.checkCount || 0,
+      /* V111: operator javob bermagan bo'lsa — panelda ko'rsatiladi.
+         Ilgari bunday holat umuman bilinmasdi. */
+      lastError: data.lastError || null,
+      lastErrorAt: data.lastErrorAt ? data.lastErrorAt.toMillis() : null,
+      errorStreak: data.errorStreak || 0
     };
   });
 }
@@ -151,6 +156,46 @@ function isValidTelegramId(id) {
   // Telegram foydalanuvchi/kanal ID'lari — musbat yoki manfiy (guruh/kanal
   // uchun manfiy) butun son bo'ladi.
   return /^-?\d{5,15}$/.test(String(id || '').trim());
+}
+
+/* "HOZIR TEKSHIR" (V110).
+   ------------------------------------------------------------------
+   Kuzatuv odatda har daqiqada o'zi ishlaydi. Lekin ba'zan admin
+   kutib o'tirmasdan SHU ZAHOTI tekshirtirmoqchi bo'ladi (masalan
+   operator bazasi endigina yangilangan bo'lsa, yoki tekshiruv
+   to'xtab qolganga o'xshasa). Bu amal:
+     1. barcha faol kuzatuvlarning navbatini "hoziroq" qilib qo'yadi;
+     2. fon funksiyasini (number-watch-check-background) darhol ishga
+        tushiradi — keyingi daqiqani kutmaydi.
+   Natija: tugma bosilgandan bir necha soniya ichida tekshiruv o'tadi. */
+async function runNow() {
+  const snap = await db.collection(COLLECTION).where('active', '==', true).get();
+  const hozir = admin.firestore.Timestamp.now();
+  let n = 0;
+  /* Firestore bitta partiyada 500 tagacha yozuvni qabul qiladi */
+  const bolaklar = [];
+  for (let i = 0; i < snap.docs.length; i += 450) bolaklar.push(snap.docs.slice(i, i + 450));
+  for (const bolak of bolaklar) {
+    const batch = db.batch();
+    bolak.forEach(d => { batch.update(d.ref, { nextCheckAt: hozir }); n++; });
+    await batch.commit();
+  }
+
+  /* Fon funksiyasini darhol chaqiramiz. Javobini KUTMAYMIZ — u
+     "background" funksiya, uzoq ishlashi mumkin; bizga uni ishga
+     tushirganimiz kifoya. */
+  let ishga = false;
+  try {
+    const asos = process.env.URL || process.env.DEPLOY_PRIME_URL || 'https://vipraqamlar.uz';
+    const sarlavha = { 'Content-Type': 'application/json' };
+    if (process.env.CRON_SECRET) sarlavha['x-cron-secret'] = process.env.CRON_SECRET;
+    await fetch(asos + '/.netlify/functions/number-watch-check-background', {
+      method: 'POST', headers: sarlavha, body: JSON.stringify({ qoldan: true })
+    });
+    ishga = true;
+  } catch (e) { /* chaqirilmasa ham, keyingi daqiqada o'zi ishlaydi */ }
+
+  return { ok: true, yangilandi: n, ishga };
 }
 
 async function listNotifyIds() {
@@ -202,6 +247,7 @@ exports.handler = async function (event) {
       case 'toggle': result = await toggleWatch(body); break;
       case 'delete': result = await deleteWatch(body); break;
       case 'deleteMany': result = await deleteManyWatches(body); break;
+      case 'runNow': result = await runNow(); break;
       case 'listNotifyIds':  result = { recipients: await listNotifyIds() }; break;
       case 'addNotifyId':    result = await addNotifyId(body); break;
       case 'deleteNotifyId': result = await deleteNotifyId(body); break;
