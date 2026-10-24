@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=114">
-<link rel="preload" as="script" href="assets/panel.js?v=114">
+<link rel="preload" as="style" href="assets/panel.css?v=120">
+<link rel="preload" as="script" href="assets/panel.js?v=120">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,7 +52,7 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=114">
+<link rel="stylesheet" href="assets/panel.css?v=120">
 
 </head>
 <body>
@@ -111,7 +111,7 @@
              SOTUV (Boshqaruv paneli yangi bosh sahifa bo'lib qo'shildi),
              MOLIYA, TASHKILOT, AI VA ALOQA, KONTENT. Maketda yo'q, lekin
              tizimda real ishlaydigan bo'limlar (Shaxsiy baza, Operatorlar,
-             Premium video, Uslublar) o'chirilmadi — mos guruhga qo'shib
+             Uslublar) o'chirilmadi — mos guruhga qo'shib
              qo'yildi, shunda hech qanday amaliy funksiya yo'qolmaydi. -->
         <div class="tab-group" data-group="sotuv">
           <div class="tab-group-head" data-group="sotuv">
@@ -168,7 +168,6 @@
           <button class="tab" data-tab="xabarlar"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.6 18h14.8z"/><path d="M9.6 21a2.6 2.6 0 0 0 4.8 0"/></svg></span><span class="tab-label">Saytga xabar</span></button>
           <button class="tab" data-tab="kuntavsiyasi"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Kun tavsiyasi</span></button>
           <button class="tab" data-tab="vakansiya"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M3 12.5c2.6 1.4 5.7 2.1 9 2.1s6.4-.7 9-2.1"/></svg></span><span class="tab-label">Vakansiya</span><span class="task-tab-badge" id="vacTabBadge" style="display:none;">0</span></button>
-          <button class="tab" data-tab="premiumvideo"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.6 6.1.5-4.6 4.1 1.4 6-5.4-3.3-5.4 3.3 1.4-6-4.6-4.1 6.1-.5L12 3z"/></svg></span><span class="tab-label">Premium video</span></button>
           <button class="tab" data-tab="styles"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.9 0-.5-.2-1-.5-1.4-.3-.4-.5-.9-.5-1.4 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4c0-5-3.6-7.5-8-7.5z"/><circle cx="8" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10.5" r="1"/><circle cx="9" cy="14.5" r="1"/></svg></span><span class="tab-label">Uslublar</span></button>
           </div>
         </div>
@@ -1081,31 +1080,10 @@
     <div class="video-list" id="videoList"></div>
   </div>
 
-  <div class="pane" id="panePremiumvideo">
-    <div class="ai-hint">
-      🎬 Bu yerda saytning yuqorisidagi "Premium raqamlar" bannerini bosganda ochiladigan, sotuvdagi
-      raqamlarni reklama qiluvchi videolarni boshqarasiz. Har bir video ma'lum bir raqamga bog'lanadi —
-      mijoz video ostidagi "Buyurtma berish" tugmasini bossa, o'sha raqam uchun buyurtma oynasi ochiladi.
-      Videolar mijozga har safar TASODIFIY tartibda ko'rsatiladi.
-    </div>
-
-    <div class="video-upload-box">
-      <label for="pvNumberSearch">Qaysi raqam uchun? <span class="ig-field-hint">(raqamning bir qismini yozing, ro'yxatdan tanlang)</span></label>
-      <input type="text" id="pvNumberSearch" placeholder="Masalan: 90 123 45 67 yoki qismini yozing">
-      <div class="pv-number-results" id="pvNumberResults"></div>
-      <div class="pv-selected-number" id="pvSelectedNumber" style="display:none;"></div>
-
-      <label for="pvVideoFileInput">Video fayl <span class="ig-field-hint">(vertikal video eng yaxshi ko'rinadi)</span></label>
-      <input type="file" id="pvVideoFileInput" accept="video/*">
-      <div class="video-progress-wrap" id="pvVideoProgressWrap" style="display:none;">
-        <div class="video-progress-bar" id="pvVideoProgressBar"></div>
-      </div>
-      <button id="pvVideoUploadBtn" class="ig-save-btn" onclick="if(window.handlePremiumVideoUpload){window.handlePremiumVideoUpload();}else{alert('Sahifa to\'liq yuklanmagan. Iltimos, sahifani yangilang va qayta urinib ko\'ring.');}">⬆️ Yuklash</button>
-      <div class="ig-save-msg" id="pvVideoUploadMsg"></div>
-    </div>
-
-    <div class="video-list" id="pvVideoList"></div>
-  </div>
+  <!-- "Premium video" bo'limi V118 da butunlay olib tashlandi
+       (mijoz so'rovi). Saytda u hech qayerda ko'rsatilmasdi.
+       Pastdagi "sotilgan raqamlar videosi" boshqa bo'lim
+       ("Video sharhlar") va u o'z joyida qoldi. -->
 
   <div class="pane" id="paneOrders">
     <div class="order-filter-tabs" id="orderFilterTabs">
@@ -1825,6 +1803,11 @@
         <span class="muted" style="font-size:12px" id="stReindexMsg">Sayt raqamlarni tayyor indeksdan o'qiydi — shuning uchun bir zumda ochiladi. Indeks o'zgarishlardan keyin bir daqiqa ichida o'zi yangilanadi.</span>
       </div>
       <div class="st-kpis" id="stKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px"></div>
+
+      <!-- BUYURTMA YO'LI (V119): mijoz qaysi qadamda to'xtab qolgani.
+           Ma'lumot: netlify/functions/api-track.js -> stats_daily -->
+      <div class="st-blok-nom">Buyurtma yo'li</div>
+      <div class="st-yol" id="stYol"></div>
     </div>
 
     <div class="card" style="margin-bottom:16px">
@@ -2398,6 +2381,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=114"></script>
+<script defer src="assets/panel.js?v=120"></script>
 </body>
 </html>

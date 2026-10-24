@@ -148,7 +148,7 @@ window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
   /* --- Yorug' mavzu --- */
   /* Orqa fon kartochkadan sezilarli to'qroq — oldin ikkalasi deyarli
      bir xil oqish edi va kartochka "yo'qolib" ketardi. */
-  --ground:#D9E1EF;      --ground-2:#CFD9EA;
+  --ground:#CBD6E9;      --ground-2:#BFCCE3;
   --card:#FFFFFF;        --card-2:#F3F6FB;      --card-3:#E8EDF5;
   --glass:rgba(255,255,255,.72);
   --edge:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,0));
@@ -170,7 +170,7 @@ window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
   --nc-bg:linear-gradient(160deg,rgba(255,255,255,.99),rgba(255,255,255,.93));
   --nc-hov:rgba(36,87,230,.5);
   --nc-edge:rgba(255,255,255,.9);
-  --nc-line:rgba(16,32,60,.11);
+  --nc-line:rgba(16,32,60,.14);
   --glow-a:rgba(36,87,230,.17); --glow-b:rgba(124,58,237,.13);
   --tg-glow:rgba(45,160,220,.16); --tg-line:rgba(45,160,220,.26); --tg-line-2:rgba(45,160,220,.5);
   --day-bg:linear-gradient(160deg,rgba(255,255,255,.86),rgba(240,252,249,.72));
@@ -197,7 +197,7 @@ window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
   --app-w:480px;
 }
 html[data-theme="dark"]{
-  --ground:#07152B;      --ground-2:#050F20;
+  --ground:#061020;      --ground-2:#040A17;
   --glass:rgba(18,41,76,.72);
   --edge:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0));
   --card:#12294C;        --card-2:#1A3763;      --card-3:#20406F;
@@ -246,7 +246,19 @@ html,body{margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
   font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
-  background:var(--ground); color:var(--ink);
+  /* FON NAQSHI (V115). Ilgari fon tekis rang edi va oq kartochkalar
+     unga singib ketardi ("kartochka bilan bir xil bo'lib yotibdi").
+     Endi ustida juda xira "yulduzcha" naqsh bor — u yuzaga mato
+     tuyg'usini beradi, lekin e'tiborni tortmaydi.
+     TEZLIK: bu kichik (128px) takrorlanuvchi plitka — brauzer uni bir
+     marta chizib keyin shunchaki takrorlaydi. Hech qanday animatsiya,
+     `mask` yoki `background-attachment:fixed` yo'q (admin panelida
+     o'lchab ko'rilgan: aynan o'sha uchtasi aylantirishni sekinlashtiradi). */
+  background-color:var(--ground);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='168' viewBox='0 0 168 168'%3E%3Cg fill='none' stroke='%230B2448' stroke-width='1.05' stroke-linecap='round'%3E%3Cpath d='M42 16c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.032'/%3E%3Cpath d='M126 100c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.02'/%3E%3Cpath d='M110 32l8 8M118 32l-8 8' stroke-opacity='0.026'/%3E%3Cpath d='M25 126l8 8M33 126l-8 8' stroke-opacity='0.022'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat;
+  background-size:168px 168px;
+  color:var(--ink);
   font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
   overscroll-behavior-y:none; position:relative; min-height:100dvh;
   touch-action:manipulation; -webkit-tap-highlight-color:transparent;
@@ -254,18 +266,43 @@ body{
 /* Yumshoq nurli fon — statik, hech narsani sekinlashtirmaydi */
 body::before{
   content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
+  /* "JONLI" FON (V116).
+     Rangli yorug'lik juda sekin suzadi — bilinar-bilinmas, lekin yuza
+     "tirik" tuyiladi.
+     TEZLIK QOIDASI: faqat `transform` o'zgaradi. Brauzer bunday
+     animatsiyani videokartada bajaradi — sahifa QAYTA CHIZILMAYDI,
+     ya'ni aylantirish tezligiga ta'sir qilmaydi. `opacity`, `filter`,
+     rang yoki o'lcham ATAYLAB o'zgartirilmaydi.
+     Harakat 1.5% dan oshmaydi va bir aylanish 48 soniya davom etadi —
+     ko'z uni harakat sifatida ilg'amaydi, faqat "jonli" tuyg'u qoladi. */
+  transform:translate3d(0,0,0);
+  will-change:transform;
+  animation:fonSuz 48s ease-in-out infinite;
   background:
     radial-gradient(760px 460px at 10% -6%, var(--blob-1), transparent 60%),
     radial-gradient(620px 420px at 94% 10%, var(--blob-2), transparent 58%),
     radial-gradient(700px 520px at 52% 46%, var(--blob-3), transparent 60%),
     radial-gradient(900px 700px at 50% 108%, var(--blob-4), transparent 62%);
 }
+html[data-theme="dark"] body{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='168' viewBox='0 0 168 168'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1.05' stroke-linecap='round'%3E%3Cpath d='M42 16c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.05'/%3E%3Cpath d='M126 100c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.031'/%3E%3Cpath d='M110 32l8 8M118 32l-8 8' stroke-opacity='0.04'/%3E%3Cpath d='M25 126l8 8M33 126l-8 8' stroke-opacity='0.035'/%3E%3C/g%3E%3C/svg%3E"); }
 html[data-theme="dark"] body::before{
   background:
     radial-gradient(900px 540px at 12% -8%, rgba(58,110,255,.20), transparent 62%),
     radial-gradient(760px 480px at 92% 4%, rgba(230,200,119,.12), transparent 60%),
     radial-gradient(900px 700px at 50% 108%, rgba(46,95,224,.14), transparent 62%);
 }
+@keyframes fonSuz{
+  0%,100%{ transform:translate3d(0,0,0) scale(1); }
+  33%    { transform:translate3d(1.2%,-1%,0) scale(1.035); }
+  66%    { transform:translate3d(-1%,0.8%,0) scale(1.015); }
+}
+/* Zaif qurilmada va "harakatni kamaytirish" yoqilganda — butunlay jim.
+   `low` sinfi <head> da qo'yiladi (qarang: 01-head.html). */
+html.low body::before{ animation:none; will-change:auto; }
+@media (prefers-reduced-motion:reduce){
+  body::before{ animation:none; will-change:auto; }
+}
+
 body.noscroll{overflow:hidden}
 body.netbar-on #app{padding-top:58px}
 body.netbar-on #deskhead{top:58px}
@@ -1055,6 +1092,11 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   animation:stHalqa 3.4s linear infinite;
 }
 /* Ko'rilgan story — halqa tinchlanadi (Instagram'dagi kabi) */
+/* Ko'rilmagan halqa atrofida juda yumshoq yorug'lik — qaysi stories
+   hali ko'rilmagani bir qarashda bilinadi (katta ilovalardagi kabi). */
+.story:not(.korilgan):not(.st-sk) .story-ring{
+  box-shadow:0 0 0 1px rgba(255,255,255,.06), 0 6px 18px -8px color-mix(in srgb, var(--st-1) 70%, transparent);
+}
 .story.korilgan .story-ring{background:var(--line-2);box-shadow:none}
 .story.korilgan .story-ring::before{animation:none;background:var(--line-2)}
 @keyframes stHalqa{to{transform:rotate(360deg)}}
@@ -1167,8 +1209,29 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   background:#05070C;touch-action:none;user-select:none;-webkit-user-select:none;
   will-change:transform,opacity;
 }
-.stv.on{display:block;animation:stvIn .26s cubic-bezier(.2,.85,.3,1) both}
-@keyframes stvIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+.stv.on{display:block;animation:stvIn .34s cubic-bezier(.2,.9,.26,1) both}
+/* OCHILISH — bosilgan kartochkaning AYNAN O'SHA joyidan (V117).
+   `--stv-x/--stv-y/--stv-s` ni JS o'lchab beradi (qarang: stvManbaOlchov).
+   Katta ilovalardagi "kartochkadan ochilgan oyna" tuyg'usi shu.
+   Faqat transform/opacity — videokartada bajariladi. */
+@keyframes stvIn{
+  from{ opacity:0; transform:translate3d(var(--stv-x,0),var(--stv-y,0),0) scale(var(--stv-s,.94)); }
+  to  { opacity:1; transform:translate3d(0,0,0) scale(1); }
+}
+.stv.ketmoqda{ animation:stvKet .24s cubic-bezier(.4,0,1,1) both; }
+@keyframes stvKet{
+  from{ opacity:1; transform:translate3d(0,0,0) scale(1); }
+  to  { opacity:0; transform:translate3d(var(--stv-x,0),var(--stv-y,0),0) scale(var(--stv-s,.94)); }
+}
+/* Yuqori va pastki yumshoq qorong'ilik — oq yozuv HAR QANDAY rasm
+   ustida o'qiladi. Statik gradient, hech narsa hisoblanmaydi. */
+.stv::before, .stv::after{
+  content:'';position:absolute;left:0;right:0;pointer-events:none;z-index:4;
+}
+.stv::before{ top:0;height:190px;
+  background:linear-gradient(180deg, rgba(0,0,0,.72), rgba(0,0,0,.30) 46%, transparent); }
+.stv::after{ bottom:0;height:210px;
+  background:linear-gradient(0deg, rgba(0,0,0,.76), rgba(0,0,0,.32) 48%, transparent); }
 /* Rasm maydoni — yumshoq burchakli to'rtburchak */
 /* ---------- KADRDAN KADRGA O'TISH (Instagram uslubi) ----------
    V87 (mijoz so'rovi): ilgari yangi kadr shunchaki PAYDO bo'lardi.
@@ -1211,6 +1274,18 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   opacity:0;transition:opacity .22s ease;
 }
 .stv-img.keldi{opacity:1}
+/* "Tirik kadr" (V117) — rasm juda sekin kattalashadi (Ken Burns).
+   Harakat 4% dan oshmaydi, 9 soniyada bajariladi — ko'z uni harakat
+   deb emas, "kadr tirik" deb qabul qiladi.
+   TEZLIK: faqat `transform`, ya'ni videokartada. Rasm qayta
+   chizilmaydi. Zaif qurilmada va "harakatni kamaytirish"da — o'chiq. */
+.stv-img.keldi{ animation:stvJonli 9s ease-out both; }
+@keyframes stvJonli{
+  from{ transform:scale(1); }
+  to  { transform:scale(1.04); }
+}
+html.low .stv-img.keldi{ animation:none; }
+@media (prefers-reduced-motion:reduce){ .stv-img.keldi{ animation:none; } }
 /* Yangi kadr kirib kelishi — yo'nalishiga qarab ikki xil */
 .stv-ramka{transform-origin:center center;backface-visibility:hidden}
 .stv-ramka.kir-ong{animation:stvKirOng .34s cubic-bezier(.22,.78,.3,1) both}
@@ -1245,11 +1320,19 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   position:absolute;left:0;right:0;top:calc(var(--top) + 8px);z-index:5;
   display:flex;gap:4px;padding:0 14px;
 }
-.stv-bars i{flex:1;height:3px;border-radius:9px;background:rgba(255,255,255,.26);overflow:hidden}
+.stv-bars i{
+  flex:1;height:3.5px;border-radius:9px;overflow:hidden;
+  background:rgba(255,255,255,.22);
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12);
+}
 .stv-bars i span{
-  display:block;height:100%;width:100%;border-radius:9px;background:#fff;
+  display:block;height:100%;width:100%;border-radius:9px;
+  background:linear-gradient(90deg,#fff,rgba(255,255,255,.88));
   transform:scaleX(0);transform-origin:left center;
 }
+/* Faol chiziq ustida nozik yorug'lik — qaysi kadrda turganimiz
+   bir qarashda ko'rinadi. */
+.stv-bars i.hozir{box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2), 0 0 10px -2px rgba(255,255,255,.5)}
 .stv-bars i.tugadi span{transform:scaleX(1)}
 .stv-bars i.hozir span{animation:stvBar linear forwards}
 @keyframes stvBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -1258,8 +1341,11 @@ html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparen
   display:flex;align-items:center;gap:10px;padding:8px 14px;color:#fff;
 }
 /* Avatar — to'rtburchak (lentadagi ramka bilan bir uslub) */
-.stv-ava{width:36px;height:36px;border-radius:12px;overflow:hidden;flex:none;
-  background:rgba(255,255,255,.14);box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
+.stv-ava{
+  width:38px;height:38px;border-radius:13px;overflow:hidden;flex:none;position:relative;
+  background:rgba(255,255,255,.14);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.4), 0 4px 14px -6px rgba(0,0,0,.8);
+}
 .stv-ava img{width:100%;height:100%;object-fit:cover;display:block}
 .stv-head b{flex:1;min-width:0;font-size:14.5px;font-weight:800;text-shadow:0 1px 10px rgba(0,0,0,.7);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -4141,6 +4227,25 @@ function trackNumOrder(item){
   track('buyurtma_berildi');
   trackFlush(false);
 }
+/* BUYURTMA YO'LI (V119) — mijoz qayerda to'xtab qolganini bilish uchun.
+   Ilgari faqat uchta nuqta sanalardi: raqam ochildi -> batafsil bosildi
+   -> buyurtma berildi. Oradagi ikki qadam ko'rinmasdi, ya'ni "formani
+   ochdi-yu, yubormadi" bilan "formani umuman ochmadi" farqlanmasdi —
+   dizayn haqidagi har qanday qaror taxminga asoslanardi.
+   Endi besh qadam: ochildi -> batafsil -> FORMA -> URINISH -> buyurtma,
+   ustiga XATO (yuborish ishlamagani) ham alohida sanaladi. */
+function trackQadam(qadam, item){
+  const e = { t: qadam };
+  if(item && item.id){ e.id = item.id; if(item.number) e.n = item.number; }
+  trackPush(e);
+}
+/* Buyurtma formasi ochildi */
+function trackFormaOchildi(item){ trackQadam('forma', item); }
+/* "Yuborish" bosildi (natija hali noma'lum) */
+function trackYuborishUrinishi(item){ trackQadam('urinish', item); }
+/* Yuborish muvaffaqiyatsiz tugadi — bu RAQAM YO'QOTILISHI degani */
+function trackYuborishXatosi(item){ trackQadam('xato', item); trackFlush(false); }
+
 /* Qidiruv natija bermadi — ENG QIMMATLI ma'lumot: mijoz nimani
    qidiryapti-yu, bizda yo'q */
 function trackMiss(q){
@@ -5859,9 +5964,15 @@ const STEP_TITLES = ['Buyurtma xulosasi',"Ma'lumotlaringiz",'Tasdiqlash','SMS ta
 
 function openOrder(id){
   const item = findItem(id); if(!item || item.reserved) return;
-  try{ trackNumOrder(item); }catch(e){}
+  /* TUZATISH (V119): bu yerda ilgari `trackNumOrder` turardi — ya'ni
+     mijoz formani shunchaki OCHSA ham "buyurtma berildi" deb
+     sanalardi. Natijada buyurtma soni haqiqatdan katta chiqardi va
+     "formani ochdi-yu yubormadi" degan holat umuman ko'rinmasdi.
+     Endi bu yerda FORMA OCHILDI qadami sanaladi; haqiqiy buyurtma esa
+     faqat yozuv muvaffaqiyatli bo'lgandan keyin (pastda). */
+  try{ trackFormaOchildi(item); }catch(e){}
   Object.assign(ORD, { item, step:1, paymentType: (item.installment && installmentAllowed(item)) ? 'installment' : 'cash',
-    months:6, monthly:0, down:0, location:null, orderId:null });
+    months:6, monthly:0, down:0, location:null, orderId:null, sorovId:null });
   try{
     ORD.name = localStorage.getItem('vip_name') || '';
     ORD.phoneRaw = localStorage.getItem('vip_phone') || '';
@@ -6261,6 +6372,93 @@ async function verifySms(){
   finally{ const b = $('#smsVerify'); if(b){ b.disabled=false; b.textContent = t('Tasdiqlash'); } }
 }
 
+
+/* ================= BUYURTMA NAVBATI (V120) =================
+   OXIRGI HIMOYA. Yuqoridagi ikki yo'l (server va to'g'ridan-to'g'ri
+   Firestore) ham ishlamasa — ilgari buyurtma shu yerda BUTUNLAY
+   yo'qolardi: mijoz xato ko'rib chiqib ketardi, bizda esa uning
+   nomi ham, telefoni ham qolmasdi.
+   Endi bunday buyurtma brauzer xotirasiga (localStorage) yoziladi va
+   o'zi qayta yuborilib turadi: aloqa tiklanganda, sahifa qayta
+   ochilganda va har 30 sekundda. `sorovId` borligi uchun ikkinchi
+   nusxa YARATILMAYDI — server takrorni o'zi tanib oladi.
+   Ya'ni: mijoz "Yuborish"ni bosgan bo'lsa, buyurtma YO'QOLMAYDI. */
+const NAVBAT_KALIT = 'vip_buyurtma_navbat';
+function navbatOqi(){ try{ return JSON.parse(localStorage.getItem(NAVBAT_KALIT) || '[]') || []; }catch(e){ return []; } }
+function navbatYoz(a){ try{ localStorage.setItem(NAVBAT_KALIT, JSON.stringify(a.slice(-20))); }catch(e){} }
+function navbatQosh(rec){
+  const a = navbatOqi();
+  if(a.some(x => x && x.sorovId === rec.sorovId)) return;
+  rec.qoshildi = Date.now(); a.push(rec); navbatYoz(a);
+}
+let NAVBAT_ISHLAYDI = false, NAVBAT_TAYMER = null;
+async function navbatYubor(){
+  if(NAVBAT_ISHLAYDI) return;
+  let a = navbatOqi();
+  if(!a.length){ if(NAVBAT_TAYMER){ clearInterval(NAVBAT_TAYMER); NAVBAT_TAYMER = null; } return; }
+  if(!navigator.onLine) return;
+  NAVBAT_ISHLAYDI = true;
+  try{
+    for(const rec of a.slice()){
+      /* 3 kundan oshgan yozuv — tashlab yuboriladi (abadiy qolmasin) */
+      if(rec && rec.qoshildi && Date.now() - rec.qoshildi > 3*24*3600*1000){
+        a = a.filter(x => x !== rec); navbatYoz(a); continue;
+      }
+      let tugadi = false, ok = false;
+      try{
+        const res = await fetch(FN + 'api-buyurtma', {
+          method:'POST', headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ payload: rec.payload, numberId: rec.numberId || '', live: !!rec.live, sorovId: rec.sorovId })
+        });
+        let data = null; try{ data = await res.json(); }catch(e){}
+        if(res.ok && data && data.ok){ tugadi = true; ok = true; rec.orderId = data.orderId; }
+        /* 400 (ma'lumot noto'g'ri) va 409 (raqam band) — qayta yuborishdan
+           foyda yo'q, navbatdan olib tashlanadi. */
+        else if(res.status === 400 || res.status === 409) tugadi = true;
+      }catch(e){}
+      if(tugadi){
+        a = a.filter(x => x !== rec); navbatYoz(a);
+        if(ok){
+          if(rec.xabar){
+            try{
+              fetch(FN + 'telegram-notify', {
+                method:'POST', headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+                body: JSON.stringify({ text: rec.xabar, orderId: rec.orderId, mapUrl: rec.xaritaUrl })
+              }).catch(()=>{});
+            }catch(e){}
+          }
+          try{ toast(LANG==='ru' ? 'Ваш заказ отправлен \u2713' : "Buyurtmangiz yuborildi \u2713", 'good'); }catch(e){}
+        }
+      }
+    }
+  } finally { NAVBAT_ISHLAYDI = false; }
+  if(navbatOqi().length && !NAVBAT_TAYMER){
+    NAVBAT_TAYMER = setInterval(()=>{ navbatYubor(); }, 30000);
+  }
+}
+function navbatIshgaTushir(){
+  try{
+    window.addEventListener('online', ()=> navbatYubor());
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) navbatYubor(); });
+  }catch(e){}
+  setTimeout(()=> navbatYubor(), 2500);
+}
+
+/* Telegram xabari matni — bir joyda (navbat ham shu matndan foydalanadi) */
+function buyurtmaXabari(payload, orderTime){
+  let paymentLine;
+  if(payload.paymentType === 'installment'){
+    paymentLine = `\u{1F4B3} To'lov turi: Bo'lib to'lash \u2014 ${payload.installmentMonths} oyga, oyiga ${formatPriceUzs(payload.monthlyPayment)}dan`;
+    if(payload.installmentDownPayment !== undefined) paymentLine += "\n\u{1F4B0} Bosh to'lov: " + formatPriceUzs(payload.installmentDownPayment);
+  }else{
+    paymentLine = "\u{1F4B5} To'lov turi: Naqt to'lov";
+    if(payload.currency === 'USD') paymentLine += "\n\u{1F4B2} Summa: " + formatPrice(payload.price) + " $";
+  }
+  const text = `\u{1F514} Yangi buyurtma\n\n\u{1F4F1} Buyurtma raqami: ${payload.number}\n\u{1F464} Mijoz ismi: ${payload.name}\n\u260E\uFE0F Ishlab turgan raqami: ${payload.phone}\n\u{1F4CD} Manzil: ${payload.region}\n${paymentLine}\n\u{1F550} Vaqti: ${orderTime}\n\u{1F310} Qayerdan: ${payload.source}`;
+  const mapUrl = payload.location ? `https://yandex.uz/maps/?pt=${payload.location.lng},${payload.location.lat}&z=17&l=map` : undefined;
+  return { text, mapUrl };
+}
+
 /* ---------- Buyurtmani yozish ---------- */
 function buildPayload(){
   const it = ORD.item;
@@ -6303,7 +6501,50 @@ async function submitOrder(smsVerified){
   const orderTime = new Date().toLocaleString('uz-UZ');
   let orderId = null, blocked = null;
 
-  const writeOrder = async ()=>{
+  /* SO'ROV BELGISI (V120). Bitta buyurtma urinishi uchun BITTA belgi.
+     Javob yo'lda yo'qolsa va qayta yuborilsa, server shu belgi bo'yicha
+     eski buyurtmani topadi va IKKINCHISINI YARATMAYDI. */
+  if(!ORD.sorovId){
+    try{
+      ORD.sorovId = (crypto && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g,'').slice(0,32)
+                                                  : (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
+    }catch(e){ ORD.sorovId = Date.now().toString(36) + Math.random().toString(36).slice(2,10); }
+  }
+
+  /* ASOSIY YO'L (V120) — BUYURTMA SERVER ORQALI YOZILADI.
+     ------------------------------------------------------------------
+     Ilgari brauzer o'zi Firestore'ga yozardi va bu uchta narsaga bir
+     vaqtda bog'liq edi: qoidalar joylangani, App Check tokeni olingani,
+     firestore.googleapis.com mijoz tarmog'idan ochilgani. Bittasi
+     ishlamasa — buyurtma YO'QOLARDI (adminda "N ta mijoz yubormoqchi
+     bo'ldi, uddalay olmadi" degan ogohlantirish aynan shundan edi).
+     Endi so'rov saytning O'Z manziliga ketadi, server esa Admin SDK
+     bilan yozadi — qoidalar ham, App Check ham yo'lni to'smaydi.
+     Server javob bermasa — pastdagi ESKI yo'l zaxira sifatida qoladi,
+     ya'ni ikkita mustaqil yo'ldan biri ishlasa buyurtma o'tadi. */
+  payload.sorovId = ORD.sorovId;
+
+  const serverYoz = async ()=>{
+    const res = await withClientTimeout(fetch(FN + 'api-buyurtma', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        payload, numberId: (!it.live && it.id) ? it.id : '',
+        live: !!it.live, sorovId: ORD.sorovId
+      })
+    }), kutishVaqti(12000));
+    let data = null;
+    try{ data = await res.json(); }catch(e){}
+    if(res.status === 409 || (data && data.band)) throw new Error('ALREADY_RESERVED');
+    if(res.ok && data && data.ok && data.orderId){
+      if(data.bandQilinmadi){ try{ window.__BAND_XATO = 'server: band qilinmadi'; }catch(e){} }
+      return data.orderId;
+    }
+    const e = new Error('SERVER_YOZMADI: ' + res.status + ' ' + ((data && data.error) || ''));
+    e.serverdan = true;
+    throw e;
+  };
+
+  const zaxiraYoz = async ()=>{
     if(!it.live && it.id){
       const numberRef = db.collection('numbers').doc(it.id), newRef = db.collection('orders').doc();
       try{
@@ -6352,10 +6593,35 @@ async function submitOrder(smsVerified){
     return ref.id;
   };
 
+  const writeOrder = async ()=>{
+    try{
+      try{
+        return await serverYoz();
+      }catch(e1){
+        if(e1 && e1.message === 'ALREADY_RESERVED') throw e1;
+        /* Server yo'li `sorovId` sababli TAKRORLANMAYDI — shuning uchun
+           bir marta qayta urinish mutlaqo xavfsiz. Aynan shu "javob
+           yo'lda yo'qoldi" holatini hal qiladi: agar birinchi so'rov
+           allaqachon yozilgan bo'lsa, server o'sha buyurtmaning ID'sini
+           qaytaradi, ikkinchisini YARATMAYDI. */
+        await new Promise(r => setTimeout(r, 700));
+        return await serverYoz();
+      }
+    }catch(err){
+      if(err && err.message === 'ALREADY_RESERVED') throw err;
+      /* Server yo'li ishlamadi — sababni yo'qotmaymiz, lekin mijozga
+         ko'rsatmaymiz. Darhol zaxira yo'lga o'tamiz. */
+      try{ console.warn('Server yo\'li ishlamadi, zaxira yo\'lga o\'tildi:', err && err.message); }catch(e){}
+      try{ window.__SERVER_YOL_XATO = String((err && err.message) || err); }catch(e){}
+      return await zaxiraYoz();
+    }
+  };
+
   const btn = $('#ordSubmit') || $('#smsVerify');
   if(btn){ btn.disabled = true; btn.textContent = t('Yuborilmoqda…'); }
 
   let xatoObj = null;
+  try{ trackYuborishUrinishi(it); }catch(e){}
   try{ orderId = await withRetryClient(writeOrder, 2, 900); }
   catch(err){
     xatoObj = err;
@@ -6367,6 +6633,10 @@ async function submitOrder(smsVerified){
   }
 
   if(blocked){
+    /* Yuborish ishlamadi — bu RAQAM YO'QOTILISHI. Alohida sanaladi,
+       shunda admin "necha mijoz yubormoqchi bo'lib, uddalay olmadi"
+       degan raqamni ko'radi (ilgari bu umuman bilinmasdi). */
+    try{ trackYuborishXatosi(it); }catch(e){}
     if(btn){ btn.disabled=false; btn.textContent = ORD.step===4 ? t('Tasdiqlash') : t('Buyurtmani yuborish'); }
     if(blocked === 'ALREADY_RESERVED'){
       toast(xatoMatni(new Error('ALREADY_RESERVED')), 'bad');
@@ -6388,7 +6658,30 @@ async function submitOrder(smsVerified){
         console.error('Buyurtma yuborilmadi (texnik sabab):', kod, matn);
       }catch(e){}
 
+      /* ENG MUHIMI (V120): BUYURTMANI YO'QOTMAYMIZ.
+         Ikki yo'l ham ishlamadi — demak buyurtma navbatga yoziladi va
+         o'zi qayta yuborilib turadi (aloqa tiklanganda, sahifa qayta
+         ochilganda, har 30 sekundda). Mijoz hech narsa qilishi shart
+         emas. `sorovId` sababli ikkinchi nusxa yaratilmaydi. */
+      let navbatga = false;
+      try{
+        const xb = buyurtmaXabari(payload, orderTime);
+        navbatQosh({
+          payload, numberId: (!it.live && it.id) ? it.id : '', live: !!it.live,
+          sorovId: ORD.sorovId, xabar: xb.text, xaritaUrl: xb.mapUrl
+        });
+        navbatga = true;
+        navbatYubor();
+      }catch(e){}
+
       let xabar;
+      if(navbatga){
+        xabar = LANG==='ru'
+          ? 'Заказ сохранён и будет отправлен автоматически, как только появится связь.'
+          : "Buyurtmangiz saqlandi \u2014 aloqa tiklanishi bilan o'zi yuboriladi.";
+        toast(xabar, 'good');
+        return;
+      }
       if(kod === 'unavailable' || kod === 'deadline-exceeded'
          || /network|offline|Failed to fetch/i.test(matn)){
         xabar = LANG==='ru' ? 'Заказ не отправлен. Проверьте интернет.'
@@ -6406,23 +6699,15 @@ async function submitOrder(smsVerified){
   }
 
   ORD.orderId = orderId;
+  /* HAQIQIY buyurtma — faqat yozuv muvaffaqiyatli bo'lgandan keyin */
+  try{ trackNumOrder(it); }catch(e){}
   if(!it.live){ const n = NUMBERS.find(x => x.id === it.id); if(n) n.reserved = true; }
   try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){}
   renderAll();
 
   /* Telegram — matn formati AYNAN eski kabi */
   try{
-    let paymentLine;
-    if(payload.paymentType === 'installment'){
-      paymentLine = `💳 To'lov turi: Bo'lib to'lash — ${payload.installmentMonths} oyga, oyiga ${formatPriceUzs(payload.monthlyPayment)}dan`;
-      if(payload.installmentDownPayment !== undefined) paymentLine += "\n💰 Bosh to'lov: " + formatPriceUzs(payload.installmentDownPayment);
-    }else{
-      paymentLine = "💵 To'lov turi: Naqt to'lov";
-      /* Dollarlik raqam — admin summani $ da ko'rishi shart */
-      if(payload.currency === 'USD') paymentLine += "\n💲 Summa: " + formatPrice(payload.price) + " $";
-    }
-    const text = `🔔 Yangi buyurtma\n\n📱 Buyurtma raqami: ${payload.number}\n👤 Mijoz ismi: ${payload.name}\n☎️ Ishlab turgan raqami: ${payload.phone}\n📍 Manzil: ${payload.region}\n${paymentLine}\n🕐 Vaqti: ${orderTime}\n🌐 Qayerdan: ${payload.source}`;
-    const mapUrl = payload.location ? `https://yandex.uz/maps/?pt=${payload.location.lng},${payload.location.lat}&z=17&l=map` : undefined;
+    const { text, mapUrl } = buyurtmaXabari(payload, orderTime);
     fetch(FN + 'telegram-notify', {
       method:'POST', headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
       body: JSON.stringify({ text, orderId, mapUrl })
@@ -7461,9 +7746,21 @@ function stvYop(){
   const vd = $('#stvVid');
   if(vd){ try{ vd.pause(); vd.removeAttribute('src'); vd.load(); }catch(e){} }
   const v = $('#stView');
-  if(v){ v.classList.remove('on'); v.classList.remove('savdo-bor'); }
+  if(v){
+    /* Qaytishda ham o'sha kartochkaga "yig'iladi". Agar lenta
+       aylantirilgan bo'lsa, joyi qaytadan o'lchanadi. */
+    stvManbaOlchov(ST_MANBA);
+    v.classList.add('ketmoqda');
+    v.classList.remove('savdo-bor');
+    const vt = v;
+    setTimeout(()=>{
+      vt.classList.remove('on');
+      vt.classList.remove('ketmoqda');
+    }, 240);
+  }
   document.body.style.overflow = '';
   ST_IDX = -1;
+  ST_MANBA = null;
 }
 
 function stvKorildi(s){
@@ -7742,12 +8039,44 @@ function stvKeyingi(yon){
   stvChiz();
 }
 
-function stvOch(i){
+/* Oyna QAYSI kartochkadan ochilganini eslab qolamiz — yopilganda
+   aynan o'sha joyga qaytadi (Instagram/TikTok'dagi kabi). */
+let ST_MANBA = null;
+
+/* Oynani bosilgan kartochkaning JOYIDAN ochish.
+   Qanday ishlaydi: kartochkaning ekrandagi o'rni o'lchanadi va oynaga
+   CSS o'zgaruvchilari sifatida beriladi; CSS esa oynani o'sha nuqtadan
+   kattalashtirib chiqaradi. Faqat `transform` va `opacity` o'zgaradi —
+   ya'ni animatsiya videokartada bajariladi, sahifa qayta chizilmaydi. */
+function stvManbaOlchov(el){
+  const v = $('#stView');
+  if(!v) return;
+  if(!el || !el.getBoundingClientRect){
+    v.style.removeProperty('--stv-x');
+    v.style.removeProperty('--stv-y');
+    v.style.removeProperty('--stv-s');
+    return;
+  }
+  const q = el.getBoundingClientRect();
+  const ekW = window.innerWidth, ekH = window.innerHeight;
+  /* Kartochka markazidan ekran markazigacha bo'lgan siljish */
+  const dx = (q.left + q.width / 2) - ekW / 2;
+  const dy = (q.top + q.height / 2) - ekH / 2;
+  const s = Math.max(0.12, Math.min(0.6, q.width / ekW));
+  v.style.setProperty('--stv-x', dx.toFixed(1) + 'px');
+  v.style.setProperty('--stv-y', dy.toFixed(1) + 'px');
+  v.style.setProperty('--stv-s', s.toFixed(3));
+}
+
+function stvOch(i, manba){
   if(!STORIES.length) return;
   ST_IDX = Math.max(0, Math.min(STORIES.length - 1, Number(i) || 0));
   ST_KADR = 0;
   ST_YON = 0;                 /* oyna ochilganda yon animatsiya kerak emas */
+  ST_MANBA = manba || null;
   const v = $('#stView');
+  stvManbaOlchov(ST_MANBA);
+  v.classList.remove('ketmoqda');
   v.classList.add('on');
   document.body.style.overflow = 'hidden';
   stvChiz();
@@ -8354,7 +8683,12 @@ document.addEventListener('click', (e)=>{
 
   /* Bosh sahifadagi stories lentasi — to'liq ekranda ochiladi */
   const sty = e.target.closest('[data-story]');
-  if(sty){ stvOch(sty.dataset.sti); return; }
+  if(sty){
+    /* Bosilgan kartochkaning JOYINI ham beramiz — oyna aynan o'sha
+       joydan ochiladi (qarang: stvOch). */
+    stvOch(sty.dataset.sti, sty.querySelector('.story-ring') || sty);
+    return;
+  }
 
   const og = e.target.closest('[data-opgo]');
   if(og){ catOp = og.dataset.opgo; catShown = PAGE_SIZE; go('catalog'); return; }
@@ -8808,6 +9142,9 @@ function seoToifaniOch(){
      sayt ochilishini sekinlashtirmasligi uchun kechikib yuklanadi. */
   setTimeout(()=> avtoQayta('stories', storiesYukla), 900);
   setTimeout(()=>{ tashrifHisobi(); yangiRaqamKuzatuvi(); }, 1800);
+  /* V120: yuborilmay qolgan buyurtmalar navbati — sahifa ochilishi
+     bilan o'zi qayta yuboriladi (buyurtma yo'qolmaydi). */
+  try{ navbatIshgaTushir(); }catch(e){}
 })();
 
 /* ---------- Sevimlilar: kartani chapga surib o'chirish ---------- */

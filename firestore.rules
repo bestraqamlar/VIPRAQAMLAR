@@ -233,7 +233,7 @@ service cloud.firestore {
           'numberId', 'status', 'createdAt', 'createdAtSort',
           'installmentMonths', 'monthlyPayment', 'installmentDownPayment',
           'installmentTariff', 'cashTariffName', 'cashTariffPrice',
-          'location', 'sellerId', 'promoCode', 'discount'
+          'location', 'sellerId', 'promoCode', 'discount', 'sorovId'
         ])
         && request.resource.data.status == 'Yangi'
         /* Har bir SON maydon — haqiqatan son (matn/HTML yozib bo'lmaydi) */
@@ -251,6 +251,12 @@ service cloud.firestore {
         && qisqaMatnOk(request.resource.data, 'cashTariffName', 60)
         && qisqaMatnOk(request.resource.data, 'promoCode', 40)
         && qisqaMatnOk(request.resource.data, 'createdAt', 40)
+        /* V120: `sorovId` — bitta buyurtma urinishining belgisi. Server
+           yo'li (api-buyurtma.js) shu belgi bo'yicha TAKRORNI topadi.
+           Zaxira yo'l (brauzer o'zi yozishi) ham shu belgini yozadi,
+           shunda adminda ikki yo'l bir buyurtmani yozib qo'yganini
+           darhol ko'rish mumkin. */
+        && qisqaMatnOk(request.resource.data, 'sorovId', 40)
         /* --- V73: SHAKL TEKSHIRUVI (yuqoridagi izohga qarang) --- */
         && ismOk(request.resource.data.name)
         && uzTelOk(request.resource.data.phone)
@@ -682,12 +688,13 @@ service cloud.firestore {
         || isValidLikeToggle(resource, request.resource.data);
     }
 
-    match /premium_number_videos/{doc} {
-      allow read: if true;
-      allow create, delete: if hasPerm('premiumvideo');
-      allow update: if hasPerm('premiumvideo')
-        || isValidLikeToggle(resource, request.resource.data);
-    }
+    /* "premium_number_videos" — bo'lim V118 da butunlay olib tashlandi
+       (mijoz so'rovi). Bloki ham o'chirildi: Firestore ro'yxatga
+       olinmagan yo'lni standart bo'yicha TO'LIQ YOPADI, ya'ni endi bu
+       to'plamga brauzerdan na o'qib, na yozib bo'ladi. Eski hujjatlar
+       bazada qolsa ham, ularga kirish yo'q.
+       Saytdagi pastki "sotilgan raqamlar videosi" boshqa to'plam
+       (video_testimonials, yuqorida) va u o'z joyida qoldi. */
 
     // PUSH BILDIRISHNOMA TOKENLARI (Android/iOS ilovasi uchun).
     //
