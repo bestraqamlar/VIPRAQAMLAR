@@ -18,7 +18,7 @@
    fayllari esa undan OLDIN, o'z tartibida yuklanadi.
 
    O'ZGARTIRISH KIRITSANGIZ: endi mantiq SHU faylda. HTML'dagi
-   havolaning oxiridagi raqamni (?v=109) ham oshiring.
+   havolaning oxiridagi raqamni (?v=114) ham oshiring.
    ================================================================== */
 /* =========================================================
    FIREBASE SOZLAMALARI
@@ -2276,6 +2276,60 @@ document.getElementById('vzAddTaskBtn').addEventListener('click', async ()=>{
   }
 });
 
+/* ---------- VAZIFA FILTRI VA TOPLAM AMALLAR (V113) ---------- */
+let VZ_FILTR = 'hammasi';
+
+function vzChiplarniChiz(hisob){
+  const el = document.getElementById('vzFiltrlar');
+  if(!el) return;
+  const chips = [
+    ['hammasi', 'Hammasi', hisob.hammasi],
+    ['faol', 'Faol', hisob.faol],
+    ['otgan', "Muddati o'tgan", hisob.otgan],
+    ['bajarilgan', 'Bajarilgan', hisob.bajarilgan]
+  ];
+  el.innerHTML = chips.map(([k, nom, n]) =>
+    '<button type="button" class="vz-filtr-chip' + (VZ_FILTR === k ? ' active' : '')
+    + (k === 'otgan' && n > 0 ? ' ogoh' : '') + '" data-f="' + k + '">'
+    + nom + '<b>' + n + '</b></button>'
+  ).join('')
+  /* Muddati o'tganlarni BIR YO'LA tozalash — ular ko'payib ketganda
+     bittalab o'chirish juda zerikarli. */
+  + (hisob.otgan > 0
+      ? '<button type="button" class="vz-tozala-btn" id="vzOtganTozala">\uD83D\uDDD1 Muddati o\'tganlarni tozalash (' + hisob.otgan + ')</button>'
+      : '');
+
+  el.querySelectorAll('.vz-filtr-chip').forEach(b => b.addEventListener('click', ()=>{
+    VZ_FILTR = b.dataset.f;
+    loadVazifalarList();
+  }));
+  const toz = document.getElementById('vzOtganTozala');
+  if(toz) toz.addEventListener('click', vzOtganlarniTozala);
+}
+
+async function vzOtganlarniTozala(){
+  const btn = document.getElementById('vzOtganTozala');
+  if(!confirm("Muddati o'tgan BARCHA vazifalar butunlay o'chiriladi. Davom etasizmi?")) return;
+  if(btn){ btn.disabled = true; btn.textContent = "O'chirilmoqda\u2026"; }
+  try{
+    const snap = await db.collection('admin_tasks').where('completed', '==', false).get();
+    const now = Date.now();
+    const otganlar = snap.docs.filter(d => (d.data().dueAt || 0) <= now);
+    /* Firestore partiyasi bir yo'la 500 tagacha yozuvni qabul qiladi */
+    for(let i = 0; i < otganlar.length; i += 450){
+      const batch = db.batch();
+      otganlar.slice(i, i + 450).forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    panelToast(otganlar.length + " ta vazifa o'chirildi", 'ok', { sarlavha: 'Tozalandi' });
+    vibrate(60);
+    loadVazifalarList(); loadVazifalarCount(); loadVazifalarStats(); vzGlobalCheck();
+  }catch(err){
+    panelToast('Xato: ' + err.message, 'err');
+    if(btn){ btn.disabled = false; btn.textContent = "\uD83D\uDDD1 Muddati o'tganlarni tozalash"; }
+  }
+}
+
 async function loadVazifalarList(){
   const listEl = document.getElementById('vzTasksList');
   listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Yuklanmoqda...</div>';
@@ -2294,11 +2348,37 @@ async function loadVazifalarList(){
       return;
     }
     const now = Date.now();
+
+    /* FILTR (V113). Muddati o'tib ketgan vazifalar ro'yxatda qolaveradi —
+       ularni ham tahrirlash va o'chirish kerak. Lekin ular ko'payib
+       ketganda faol vazifalarni ko'rishga xalal beradi, shu sabab
+       yuqoridagi chiplar bilan ajratib ko'rish mumkin. */
+    const filtr = VZ_FILTR;
+    const otgan = (t)=> !t.completed && t.dueAt <= now;
+    const hisob = {
+      hammasi: tasks.length,
+      faol: tasks.filter(t => !t.completed && !otgan(t)).length,
+      otgan: tasks.filter(otgan).length,
+      bajarilgan: tasks.filter(t => t.completed).length
+    };
+    vzChiplarniChiz(hisob);
+    if(filtr === 'faol') tasks = tasks.filter(t => !t.completed && !otgan(t));
+    else if(filtr === 'otgan') tasks = tasks.filter(otgan);
+    else if(filtr === 'bajarilgan') tasks = tasks.filter(t => t.completed);
+
+    if(tasks.length === 0){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Bu toifada vazifa yo\'q.</div>';
+      return;
+    }
+
     listEl.innerHTML = tasks.map((t, i)=>{
-      const isUrgent = !t.completed && (t.dueAt - now) <= VZ_URGENT_MS;
-      const statusClass = t.completed ? 'status-taskdone' : (isUrgent ? 'status-urgent' : (t.important ? 'status-important' : ''));
+      const kechikdi = otgan(t);
+      const isUrgent = !t.completed && !kechikdi && (t.dueAt - now) <= VZ_URGENT_MS;
+      const statusClass = t.completed ? 'status-taskdone'
+        : (kechikdi ? 'status-otgan' : (isUrgent ? 'status-urgent' : (t.important ? 'status-important' : '')));
       const ico = t.important ? ICONS.star : ICONS.clock;
       const importantBadge = (t.important && !t.completed) ? `<span class="vz-important-badge">${ICONS.star} Muhim</span>` : '';
+      const otganBadge = kechikdi ? `<span class="vz-otgan-badge">Muddati o'tgan</span>` : '';
       const { text: cdText, cls: cdCls } = vzFormatCountdown(t.dueAt);
       const countdownHtml = t.completed
         ? `<span class="vz-countdown">Bajarildi</span>`
@@ -2309,6 +2389,7 @@ async function loadVazifalarList(){
           <span class="zk-customer-summary-ico">${ico}</span>
           <span class="zk-customer-ordered-phone">${escapeHtml(t.text || '')}</span>
           ${importantBadge}
+          ${otganBadge}
           ${countdownHtml}
           <span class="zk-customer-arrow">▾</span>
         </div>
@@ -2316,7 +2397,7 @@ async function loadVazifalarList(){
           <div class="zk-customer-info">
             <span>Vazifa</span><span>${escapeHtml(t.text || '')}</span>
             <span>Muddati</span><span>${vzFormatDue(t.dueAt)}</span>
-            <span>Holati</span><span>${t.completed ? 'Bajarildi' : (isUrgent ? 'Muddati yaqinlashdi' : 'Jarayonda')}</span>
+            <span>Holati</span><span>${t.completed ? 'Bajarildi' : (kechikdi ? "Muddati o'tgan" : (isUrgent ? 'Muddati yaqinlashdi' : 'Jarayonda'))}</span>
             <span>Qo'shilgan sana</span><span>${escapeHtml(t.createdAt || '')}</span>
           </div>
           <!-- TAHRIRLASH: matn va muddat. Muddati o'tib ketgan va
@@ -2411,11 +2492,21 @@ async function loadVazifalarList(){
     listEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Xato: ' + err.message + '</div>';
   }
 }
-document.getElementById('vzViewTasksCard').addEventListener('click', ()=>{
-  document.getElementById('vzCustCardsRow').style.display = 'none';
-  document.getElementById('vzAddTaskPanel').classList.remove('open');
-  document.getElementById('vzViewTasksPanel').classList.add('open');
+/* Ro'yxatni ochish — bo'lim ochilganda ham, kartochka bosilganda ham
+   shu funksiya ishlatiladi. Tezkor amallar kartochkalari YASHIRILMAYDI:
+   admin bir vaqtning o'zida ham vazifa qo'sha oladi, ham ro'yxatni
+   ko'rib turadi. */
+function vzRoyxatniOch(){
+  const panel = document.getElementById('vzViewTasksPanel');
+  if(!panel) return;
+  panel.classList.add('open');
+  panel.classList.add('vz-doim');          // "orqaga" tugmasi kerak emas
   loadVazifalarList();
+}
+document.getElementById('vzViewTasksCard').addEventListener('click', ()=>{
+  document.getElementById('vzAddTaskPanel').classList.remove('open');
+  vzRoyxatniOch();
+  try{ document.getElementById('vzViewTasksPanel').scrollIntoView({ block:'start', behavior:'smooth' }); }catch(e){}
 });
 document.getElementById('vzViewTasksBack').addEventListener('click', ()=>{
   document.getElementById('vzViewTasksPanel').classList.remove('open');
@@ -3838,7 +3929,16 @@ document.querySelectorAll('.tab').forEach(tab=>{
     }
     if(tab.dataset.tab === 'finance'){ loadFinanceSummary(); }
     if(tab.dataset.tab === 'personalbase'){ loadPersonalBaseStats(); loadPersonalNumbersCount(); }
-    if(tab.dataset.tab === 'vazifalar'){ loadVazifalarStats(); loadVazifalarCount(); }
+    if(tab.dataset.tab === 'vazifalar'){
+      loadVazifalarStats();
+      loadVazifalarCount();
+      /* TUZATISH (V112): ilgari bo'lim ochilganda faqat raqamli kartalar
+         chiqardi, VAZIFALAR RO'YXATI esa "Vazifalarni ko'rish"
+         kartochkasi bosilmaguncha yashirin turardi. Natijada bo'limning
+         yarmi bo'm-bo'sh oq maydon bo'lib ko'rinardi va admin umuman
+         vazifa yo'qdek his qilardi. Endi ro'yxat DARHOL ochiladi. */
+      vzRoyxatniOch();
+    }
     if(tab.dataset.tab === 'vakansiya'){ loadVacancyAdminList(); loadJobApplications(); }
     if(tab.dataset.tab === 'aksiya'){ renderAksiyaTab(); }
     if(tab.dataset.tab === 'kuntavsiyasi'){ dayLoad(); }
@@ -6973,6 +7073,7 @@ function wtRenderGroups(watches){
                     ${w.lastFoundAt ? " · oxirgi topilgan: " + wtFormatTime(w.lastFoundAt) : ''}
                     ${!w.active ? " · <b style=\"color:#e74c3c;\">to'xtatilgan</b>" : ''}
                   </div>
+                  ${w.lastError ? `<div class="wt-item-xato">\u26A0 Operator javob bermadi${w.errorStreak > 1 ? ' (' + w.errorStreak + ' marta ketma-ket)' : ''}: ${escapeHtml(String(w.lastError).slice(0,140))}</div>` : ''}
                 </div>
                 <div class="wt-item-actions">
                   <button type="button" class="wt-toggle" data-id="${escapeHtml(w.id)}" data-active="${w.active ? '0' : '1'}" title="${w.active ? "To'xtatish" : 'Davom ettirish'}">${w.active ? '⏸' : '▶'}</button>
@@ -7035,6 +7136,29 @@ document.getElementById('wtSelectAll').addEventListener('change', (e)=>{
   wtRenderGroups(wtWatchesCache);
   wtUpdateBulkBar();
 });
+
+/* "HOZIR TEKSHIR" (V110) — keyingi daqiqani kutmasdan, shu zahoti
+   tekshirtiradi. Server tomoni: admin-number-watch.js -> runNow(). */
+const wtNowBtn = document.getElementById('wtNowBtn');
+if(wtNowBtn){
+  wtNowBtn.addEventListener('click', async ()=>{
+    const asl = wtNowBtn.textContent;
+    wtNowBtn.disabled = true;
+    wtNowBtn.textContent = '\u23F3 Tekshirilmoqda\u2026';
+    try{
+      const j = await wtCall('runNow');
+      wtNowBtn.textContent = '\u2713 ' + (j.yangilandi || 0) + ' ta kuzatuv tekshirilmoqda';
+      vibrate(60);
+      /* Fon funksiyasi natijani yozgach ro'yxat yangilansin */
+      setTimeout(loadWatchList, 6000);
+      setTimeout(loadWatchList, 15000);
+    }catch(e){
+      wtNowBtn.textContent = '\u26A0 ' + e.message;
+    }finally{
+      setTimeout(()=>{ wtNowBtn.disabled = false; wtNowBtn.textContent = asl; }, 8000);
+    }
+  });
+}
 
 document.getElementById('wtBulkDelBtn').addEventListener('click', async ()=>{
   const ids = Array.from(wtSelected);
@@ -10315,48 +10439,198 @@ document.addEventListener('contextmenu', (e) => e.preventDefault());
    kerak edi. Endi qisqa tasdiq chiqadi — bosdim-u, bo'ldimi degan
    noaniqlik qolmaydi.
    ================================================================== */
-function panelToast(matn, turi){
+/* ==================================================================
+   BILDIRISHNOMA (TOAST) — V112
+   ------------------------------------------------------------------
+   Ilgari: pastda, kulrang to'rtburchak, bitta qator matn, 2.6 soniya.
+   Hech qanday sarlavha, amal tugmasi, ovoz yoki vaqt ko'rsatkichi yo'q
+   edi — ya'ni muhim xabar (yangi buyurtma) bilan oddiy "saqlandi"
+   xabari bir xil ko'rinardi.
+
+   Endi:
+     * yuqori o'ng burchakdan chiqadi (mobil ekranda — yuqoridan);
+     * turiga qarab rang va belgi: muvaffaqiyat / xato / ogohlantirish /
+       ma'lumot; muhim xabar uchun alohida "oltin" turi;
+     * sarlavha + matn, amal tugmasi ("Ko'rish" kabi);
+     * pastida vaqt chizig'i — qachon o'chishi ko'rinib turadi;
+     * ustiga sichqoncha kelsa — hisob TO'XTAYDI (o'qib ulgurasiz);
+     * OVOZ: har bir tur uchun qisqa, yoqimli signal. Hech qanday audio
+       fayl yuklanmaydi — ovoz brauzerning o'zida (WebAudio) hosil
+       qilinadi, ya'ni internet ham, qo'shimcha fayl ham kerak emas.
+       Yuqoridagi karnay tugmasi bilan o'chiriladi (tanlov eslanadi).
+     * `prefers-reduced-motion` yoqilgan bo'lsa animatsiya o'chadi.
+   ================================================================== */
+const PT_OVOZ_KALIT = 'vr_toast_ovoz';
+let PT_OVOZ_YOQ = false;
+try{ PT_OVOZ_YOQ = localStorage.getItem(PT_OVOZ_KALIT) === '0'; }catch(e){}
+
+let PT_AUDIO = null;
+function ptAudio(){
+  if(PT_AUDIO) return PT_AUDIO;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    PT_AUDIO = new AC();
+  }catch(e){ return null; }
+  return PT_AUDIO;
+}
+/* Brauzerlar ovozni FOYDALANUVCHI biror narsa bosmaguncha ishlatishga
+   ruxsat bermaydi. Shu sabab birinchi bosishda kontekstni "uyg'otamiz". */
+['pointerdown','keydown'].forEach(t => document.addEventListener(t, function uygot(){
+  const a = ptAudio();
+  if(a && a.state === 'suspended') a.resume().catch(()=>{});
+  document.removeEventListener(t, uygot);
+}, { once: true }));
+
+/* Har bir tur uchun ikki notali qisqa signal (ohang). Bu — "katta
+   xizmatlar"dagi bildirishnoma ovozining soddalashtirilgan ko'rinishi:
+   past nota, so'ng baland nota, yumshoq so'nish bilan. */
+const PT_OHANG = {
+  ok:    [[660, 0], [990, 0.09]],
+  info:  [[520, 0], [780, 0.09]],
+  warn:  [[500, 0], [500, 0.13]],
+  err:   [[400, 0], [300, 0.11]],
+  muhim: [[784, 0], [1047, 0.08], [1319, 0.17]]
+};
+function ptOvoz(turi){
+  if(PT_OVOZ_YOQ) return;
+  const a = ptAudio();
+  if(!a || a.state !== 'running') return;
+  const ohang = PT_OHANG[turi] || PT_OHANG.ok;
+  const t0 = a.currentTime;
+  ohang.forEach(([chastota, kechikish])=>{
+    const osc = a.createOscillator();
+    const gain = a.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = chastota;
+    /* Yumshoq kirish va so'nish — "chirt" etgan ovoz bo'lmasin */
+    gain.gain.setValueAtTime(0.0001, t0 + kechikish);
+    gain.gain.exponentialRampToValueAtTime(0.085, t0 + kechikish + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + kechikish + 0.26);
+    osc.connect(gain); gain.connect(a.destination);
+    osc.start(t0 + kechikish);
+    osc.stop(t0 + kechikish + 0.28);
+  });
+}
+
+const PT_ICO = {
+  ok:    '<path d="M20 6L9 17l-5-5"/>',
+  err:   '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+  info:  '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  warn:  '<path d="M12 4l9 16H3l9-16z"/><path d="M12 10v4M12 17h.01"/>',
+  muhim: '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8L12 3z"/>'
+};
+const PT_SARLAVHA = {
+  ok: 'Bajarildi', err: 'Xato', info: "Ma'lumot", warn: 'Diqqat', muhim: 'Muhim'
+};
+
+/**
+ * @param {string} matn
+ * @param {string} [turi]  ok | err | info | warn | muhim
+ * @param {object} [opt]   { sarlavha, davomiylik, amal:{matn, ish} }
+ */
+function panelToast(matn, turi, opt){
+  const t = PT_ICO[turi] ? turi : 'ok';
+  const o = opt || {};
+  const davomiylik = Math.max(1500, Number(o.davomiylik) || (t === 'err' || t === 'muhim' ? 6000 : 3600));
+
   let wrap = document.querySelector('.pt-wrap');
   if(!wrap){
     wrap = document.createElement('div');
     wrap.className = 'pt-wrap';
     document.body.appendChild(wrap);
   }
-  const ICO = {
-    ok:  '<path d="M20 6L9 17l-5-5"/>',
-    err: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
-    info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
-  };
-  const t = turi || 'ok';
+
   const el = document.createElement('div');
-  el.className = 'pt ' + t;
-  el.innerHTML = '<svg viewBox="0 0 24 24">' + (ICO[t] || ICO.ok) + '</svg><span></span>';
-  el.querySelector('span').textContent = matn;
-  /* Bir vaqtda 3 tadan ko'p turmasin */
-  while(wrap.children.length >= 3) wrap.firstElementChild.remove();
+  el.className = 'pt pt-' + t;
+  el.setAttribute('role', t === 'err' ? 'alert' : 'status');
+  el.innerHTML =
+      '<span class="pt-ico"><svg viewBox="0 0 24 24">' + PT_ICO[t] + '</svg></span>'
+    + '<span class="pt-body"><b class="pt-sarlavha"></b><span class="pt-matn"></span></span>'
+    + (o.amal && o.amal.matn ? '<button type="button" class="pt-amal"></button>' : '')
+    + '<button type="button" class="pt-yop" aria-label="Yopish">'
+    + '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+    + '<span class="pt-vaqt"><i></i></span>';
+  el.querySelector('.pt-sarlavha').textContent = o.sarlavha || PT_SARLAVHA[t];
+  el.querySelector('.pt-matn').textContent = matn;
+  if(o.amal && o.amal.matn){
+    const ab = el.querySelector('.pt-amal');
+    ab.textContent = o.amal.matn;
+    ab.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      try{ o.amal.ish && o.amal.ish(); }catch(err){}
+      yop();
+    });
+  }
+
+  /* Bir vaqtda 4 tadan ko'p turmasin — eng eskisi ketadi */
+  while(wrap.children.length >= 4) wrap.firstElementChild.remove();
   wrap.appendChild(el);
 
-  let timer = setTimeout(yop, 2600);
+  /* Vaqt chizig'i: animatsiya orqali (protsessor band bo'lmaydi) */
+  const chiziq = el.querySelector('.pt-vaqt i');
+  chiziq.style.animationDuration = davomiylik + 'ms';
+
+  let timer = setTimeout(yop, davomiylik);
+  let yopilmoqda = false;
   function yop(){
+    if(yopilmoqda) return;
+    yopilmoqda = true;
     clearTimeout(timer);
     if(!el.isConnected) return;
-    el.style.transition = 'opacity .2s ease, transform .2s ease';
-    el.style.opacity = '0'; el.style.transform = 'translateY(8px)';
-    setTimeout(() => el.remove(), 220);
+    el.classList.add('pt-ketmoqda');
+    setTimeout(()=> el.remove(), 260);
   }
-  /* Pastdagi bildirishnoma: pastga yoki yonga surib yuborish mumkin —
-     butun saytda bir xil imo-ishora (surishBogla). */
+  el.querySelector('.pt-yop').addEventListener('click', (e)=>{ e.stopPropagation(); yop(); });
+
+  /* Ustiga kelganda hisob to'xtaydi — uzun matnni o'qib ulgurish uchun */
+  el.addEventListener('pointerenter', ()=>{
+    clearTimeout(timer);
+    chiziq.style.animationPlayState = 'paused';
+  });
+  el.addEventListener('pointerleave', ()=>{
+    if(yopilmoqda) return;
+    chiziq.style.animationPlayState = 'running';
+    timer = setTimeout(yop, 1800);
+  });
+
+  /* Surib yuborish — butun saytdagi bir xil imo-ishora */
   if(typeof surishBogla === 'function'){
     surishBogla(el, {
-      yon: 'past',
-      toxtat: ()=> clearTimeout(timer),
-      davom:  ()=> { timer = setTimeout(yop, 2000); },
+      yon: 'ong',
+      toxtat: ()=> { clearTimeout(timer); chiziq.style.animationPlayState = 'paused'; },
+      davom:  ()=> { chiziq.style.animationPlayState = 'running'; timer = setTimeout(yop, 1800); },
       yopish: ()=> el.remove()
     });
-    el.addEventListener('click', ()=>{ if(!el.surilganmi()) yop(); });
   }
+
+  ptOvoz(t);
+  return { yop };
 }
 window.panelToast = panelToast;
+
+/* Karnay tugmasi — ovozni yoqish/o'chirish */
+(function ptOvozTugma(){
+  const btn = document.getElementById('ptOvozBtn');
+  if(!btn) return;
+  const chiz = ()=>{
+    btn.querySelector('.pt-ovoz-on').style.display  = PT_OVOZ_YOQ ? 'none' : '';
+    btn.querySelector('.pt-ovoz-off').style.display = PT_OVOZ_YOQ ? '' : 'none';
+    btn.classList.toggle('ochiq', !PT_OVOZ_YOQ);
+    btn.title = PT_OVOZ_YOQ ? "Bildirishnoma ovozi: o'chiq" : 'Bildirishnoma ovozi: yoniq';
+  };
+  chiz();
+  btn.addEventListener('click', ()=>{
+    PT_OVOZ_YOQ = !PT_OVOZ_YOQ;
+    try{ localStorage.setItem(PT_OVOZ_KALIT, PT_OVOZ_YOQ ? '0' : '1'); }catch(e){}
+    chiz();
+    if(!PT_OVOZ_YOQ){
+      const a = ptAudio();
+      if(a && a.state === 'suspended') a.resume().catch(()=>{});
+      panelToast('Bildirishnoma ovozi yoqildi', 'ok');
+    }
+  });
+})();
 
 /* ==================================================================
    BILDIRISHNOMALAR MARKAZI
