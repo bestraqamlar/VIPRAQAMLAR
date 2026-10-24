@@ -1890,6 +1890,22 @@
         <b>▾</b> tugmasi — shu narx qatori uchun "Bo'lib to'lash" (bosh to'lov, oylik to'lovlar)
         sozlamasini ochadi/yopadi.</p>
       <p class="op-warn" id="opUcellWarn"></p>
+      <!-- V120: Ucell dilerlik API manzili. 2026-oktabrda operator manzilni
+           o'zgartirdi va qidiruv HTTP 404 bera boshladi. Manzil kodda qotib
+           turmasin deb shu yerga chiqarildi: Ucell yangi manzil bersa, uni
+           shu yerga kiritib saqlasa bo'ladi — saytni qayta joylash kerak emas.
+           Bo'sh qoldirilsa standart manzil ishlatiladi. Faqat https va faqat
+           ucell.uz domeni qabul qilinadi. -->
+      <div class="op-cred">
+        <div>
+          <label for="opUcellLoginUrl">Token (login) manzili</label>
+          <input type="text" id="opUcellLoginUrl" placeholder="https://...ucell.uz/.../auth/login" autocomplete="off" spellcheck="false">
+        </div>
+        <div>
+          <label for="opUcellSearchUrl">Qidiruv manzili</label>
+          <input type="text" id="opUcellSearchUrl" placeholder="https://...ucell.uz/.../search-mask" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
       <table class="op-table">
         <thead><tr><th>Operator narxi</th><th>Sotuv narxi</th><th style="width:36px;"></th><th style="width:32px;"></th></tr></thead>
         <tbody id="opUcellRows"></tbody>
@@ -2097,6 +2113,9 @@
     </div>
 
     <div class="wt-stats" id="wtStats"></div>
+    <!-- V120: operator tezligi. "Humans tez ishlayaptimi?" degan savolga
+         taxmin bilan emas, o'lchangan son bilan javob beradi. -->
+    <div class="wt-soglik" id="wtSoglik"></div>
 
     <div class="wt-toolbar">
       <button type="button" class="wt-now" id="wtNowBtn">⚡ Hozir tekshir</button>

@@ -168,6 +168,11 @@ window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
   --sh-blue:0 12px 26px -14px rgba(36,87,230,.85);
   --r-s:11px; --r-m:14px; --r-l:18px; --r-xl:24px;
   --nc-bg:linear-gradient(160deg,rgba(255,255,255,.99),rgba(255,255,255,.93));
+  /* V120: kartochka ostidagi QATTIQ (shaffof bo'lmagan) asos. Yuqoridagi
+     `--nc-bg` yarim shaffof — asossiz holda fon naqshi kartochka ichidan
+     ko'rinib turardi. Asos aynan fon rangiga teng, shuning uchun
+     kartochkaning KO'RINISHI o'zgarmaydi, faqat naqsh o'tmaydi. */
+  --nc-base:#CBD6E9;
   --nc-hov:rgba(36,87,230,.5);
   --nc-edge:rgba(255,255,255,.9);
   --nc-line:rgba(16,32,60,.14);
@@ -212,6 +217,7 @@ html[data-theme="dark"]{
   --red:#FF8A87;         --red-tint:rgba(194,48,46,.22); --red-line:rgba(255,138,135,.32);
   --navy-grad:linear-gradient(150deg,#12294C 0%,#1E457E 100%);
   --nc-bg:linear-gradient(160deg,rgba(132,170,230,.14),rgba(90,125,190,.07));
+  --nc-base:#061020;
   --nc-hov:rgba(143,180,255,.45);
   --nc-edge:rgba(255,255,255,.14);
   --nc-line:rgba(255,255,255,.1);
@@ -246,18 +252,19 @@ html,body{margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
   font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
-  /* FON NAQSHI (V115). Ilgari fon tekis rang edi va oq kartochkalar
-     unga singib ketardi ("kartochka bilan bir xil bo'lib yotibdi").
-     Endi ustida juda xira "yulduzcha" naqsh bor — u yuzaga mato
-     tuyg'usini beradi, lekin e'tiborni tortmaydi.
-     TEZLIK: bu kichik (128px) takrorlanuvchi plitka — brauzer uni bir
-     marta chizib keyin shunchaki takrorlaydi. Hech qanday animatsiya,
-     `mask` yoki `background-attachment:fixed` yo'q (admin panelida
-     o'lchab ko'rilgan: aynan o'sha uchtasi aylantirishni sekinlashtiradi). */
+  /* FON NAQSHI (V120 — YANGILANDI).
+     Ilgari bu yerda takrorlanuvchi "yulduzcha" plitka turardi. Ikki
+     muammosi bor edi:
+       1) plitka `body` fonida bo'lgani uchun YARIM SHAFFOF kartochkalar
+          ostidan ko'rinib, raqam kartochkalari USTIDA ham turardi;
+       2) "yulduzcha" naqshi juda ko'p saytda uchraydi — o'ziga xoslik
+          bermasdi.
+     O'rniga — `body::after` dagi "signal to'lqinlari": ekran
+     burchagidan tarqaladigan 1 pikselli halqalar. Ular TAKRORLANMAYDI
+     (plitka chokkasi yo'q), mavzusi ishimizga mos (aloqa, signal) va
+     `position:fixed` qatlamda — ya'ni faqat ekran o'lchamida, bir
+     marta chiziladi. */
   background-color:var(--ground);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='168' viewBox='0 0 168 168'%3E%3Cg fill='none' stroke='%230B2448' stroke-width='1.05' stroke-linecap='round'%3E%3Cpath d='M42 16c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.032'/%3E%3Cpath d='M126 100c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.02'/%3E%3Cpath d='M110 32l8 8M118 32l-8 8' stroke-opacity='0.026'/%3E%3Cpath d='M25 126l8 8M33 126l-8 8' stroke-opacity='0.022'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat:repeat;
-  background-size:168px 168px;
   color:var(--ink);
   font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
   overscroll-behavior-y:none; position:relative; min-height:100dvh;
@@ -284,13 +291,35 @@ body::before{
     radial-gradient(700px 520px at 52% 46%, var(--blob-3), transparent 60%),
     radial-gradient(900px 700px at 50% 108%, var(--blob-4), transparent 62%);
 }
-html[data-theme="dark"] body{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='168' viewBox='0 0 168 168'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1.05' stroke-linecap='round'%3E%3Cpath d='M42 16c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.05'/%3E%3Cpath d='M126 100c0 14-12 26-26 26 14 0 26 12 26 26 0-14 12-26 26-26-14 0-26-12-26-26z' stroke-opacity='0.031'/%3E%3Cpath d='M110 32l8 8M118 32l-8 8' stroke-opacity='0.04'/%3E%3Cpath d='M25 126l8 8M33 126l-8 8' stroke-opacity='0.035'/%3E%3C/g%3E%3C/svg%3E"); }
 html[data-theme="dark"] body::before{
   background:
     radial-gradient(900px 540px at 12% -8%, rgba(58,110,255,.20), transparent 62%),
     radial-gradient(760px 480px at 92% 4%, rgba(230,200,119,.12), transparent 60%),
     radial-gradient(900px 700px at 50% 108%, rgba(46,95,224,.14), transparent 62%);
 }
+/* ---- V120: "SIGNAL TO'LQINLARI" ----
+   Juda ingichka (1 px) halqalar o'ng yuqori burchakdan tarqaladi,
+   ikkinchi, siyrakroq to'plam esa pastki chapdan. TAKRORLANMAYDI,
+   ya'ni plitka chokkasi ham, "tayyor shablon" tuyg'usi ham yo'q.
+   Animatsiyasi yo'q — bir marta chiziladi, aylantirishga ta'siri yo'q.
+   z-index:-1 — ya'ni yorug'lik qatlamidan (z-index:-2) yuqorida,
+   lekin sahifa mazmunidan PASTDA: kartochka ustiga chiqmaydi. */
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    repeating-radial-gradient(circle at 112% -12%,
+      rgba(11,36,72,.045) 0 1px, transparent 1px 58px),
+    repeating-radial-gradient(circle at -12% 108%,
+      rgba(11,36,72,.028) 0 1px, transparent 1px 88px);
+}
+html[data-theme="dark"] body::after{
+  background:
+    repeating-radial-gradient(circle at 112% -12%,
+      rgba(255,255,255,.052) 0 1px, transparent 1px 58px),
+    repeating-radial-gradient(circle at -12% 108%,
+      rgba(255,255,255,.030) 0 1px, transparent 1px 88px);
+}
+
 @keyframes fonSuz{
   0%,100%{ transform:translate3d(0,0,0) scale(1); }
   33%    { transform:translate3d(1.2%,-1%,0) scale(1.035); }
@@ -506,6 +535,10 @@ html.scrolling .topbar, html.scrolling #deskhead{ background:rgba(8,20,40,.95) }
   background:
     radial-gradient(150px 120px at 100% 0%, var(--glow-b), transparent 72%),
     var(--nc-bg);
+  /* `background` qisqartmasi rangni tozalab yuboradi, shu sabab asos
+     SHUNDAN KEYIN qo'yiladi — aks holda kartochka shaffof qoladi va
+     fon naqshi ichidan ko'rinadi (V120 da aynan shu tuzatildi). */
+  background-color:var(--nc-base);
   border:1px solid var(--nc-line);border-radius:var(--r-xl);
   padding:18px;position:relative;
   /* backdrop-filter ATAYLAB QO'YILMAGAN: bu element ro'yxatda o'nlab
@@ -984,6 +1017,50 @@ html[data-theme="dark"] .t-gold{
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:shim 1.5s infinite}
 html[data-theme="dark"] .shim::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
 @keyframes shim{100%{transform:translateX(100%)}}
+
+/* ==================================================================
+   SKELET TO'PLAMI (V120)
+   ------------------------------------------------------------------
+   NEGA. Ilgari faqat raqam kartochkalari va stories lentasi uchun
+   skelet bor edi. Qolgan joylar — bosh sahifadagi karusel, sarlavha
+   ostidagi yozuvlar, "Mijozlar fikri", katalogdagi "N ta raqam",
+   sevimlilar — yuklanmaguncha BO'SH turardi. Internet sekin yoki
+   umuman yo'q bo'lsa, sahifa "buzilgandek" ko'rinardi.
+   Endi har bir joy o'z shaklidagi skelet bilan to'ladi: yozuvlar
+   ham, kartochkalar ham, tepa ham, past ham.
+   TEZLIK: yaltirash FAQAT `transform` bilan qilinadi (shim) — sahifa
+   qayta chizilmaydi. Zaif qurilmada va "harakatni kamaytirish"
+   yoqilganda yaltirash butunlay o'chadi (pastda).
+   ================================================================== */
+.sk-l{display:block;height:12px;border-radius:7px;background:var(--card-3);}
+.sk-l + .sk-l{margin-top:7px}
+.sk-l.w30{width:30%} .sk-l.w40{width:40%} .sk-l.w55{width:55%}
+.sk-l.w70{width:70%} .sk-l.w85{width:85%} .sk-l.w100{width:100%}
+.sk-l.big{height:19px;border-radius:9px}
+.sk-l.sm{height:9px;border-radius:5px;background:var(--card-2)}
+/* Sarlavha ostidagi kichik yozuv o'rnidagi skelet — matn balandligini
+   saqlaydi, ya'ni yuklangach sahifa "sakramaydi". */
+.sk-sub{display:inline-block;vertical-align:middle;height:11px;width:120px;
+  border-radius:6px;background:var(--card-3);}
+/* Bosh sahifadagi karusel kartochkasi */
+.sk-hero{flex:none;width:min(84vw,360px);height:180px;border-radius:22px;
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
+  padding:18px;display:flex;flex-direction:column;justify-content:space-between;}
+/* "Mijozlar fikri" video kartochkasi */
+.sk-v{flex:none;width:188px;height:300px;border-radius:var(--r-l);
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
+  padding:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;}
+.sk-vrow{display:flex;gap:12px;overflow:hidden;padding:2px}
+/* Pastki bo'limdagi plitka (havolalar) */
+.sk-tile{height:74px;border-radius:var(--r-l);background:var(--card);
+  border:1px solid var(--line);box-shadow:var(--sh-1);padding:14px;
+  display:flex;flex-direction:column;justify-content:center;gap:8px;}
+
+html.low .shim::after,
+html.low .sk-l, html.low .sk-sub{animation:none!important}
+@media (prefers-reduced-motion:reduce){
+  .shim::after{animation:none!important}
+}
 
 /* ---------- Bo'sh / xato ---------- */
 .empty{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:34px 22px;text-align:center;box-shadow:var(--sh-1);position:relative}
@@ -2971,9 +3048,9 @@ html[data-theme="dark"] ::selection{background:transparent}
 
 
 
-      <a class="ptile rise" id="moreInsta" href="https://instagram.com/vipnumbers_uz" target="_blank" rel="noopener">
+      <a class="ptile rise" id="moreInsta" href="https://instagram.com/vip.raqam.uz" target="_blank" rel="noopener">
         <span class="pi" style="background:var(--gold-tint);color:var(--gold-ink)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"></rect><circle cx="12" cy="12" r="3.6"></circle><circle cx="17" cy="7" r="1.1" fill="currentColor"></circle></svg></span>
-        <b data-t="Instagram kanal">Instagram kanal</b><i>@vipnumbers_uz</i>
+        <b data-t="Instagram kanal">Instagram kanal</b><i>@vip.raqam.uz</i>
       </a>
 
       <button class="ptile rise" data-sheet="faq">
@@ -3186,6 +3263,9 @@ let NUMBERS = [], numbersLoaded = false, SETTINGS = {}, FAVORITES = [];
 let installmentRates = { 6:5, 12:10, 24:20, 36:30 };
 let OPERATOR_FINANCING = { byOperator:{ Humans:{}, Ucell:{}, Beeline:{} }, tariffsByOperator:{ Humans:[], Ucell:[], Beeline:[] } };
 let TESTIMONIALS = [];
+/* V120: "Mijozlar fikri" bo'limi yuklandimi. Yuklanmaguncha bo'lim
+   O'RNIDA skelet turadi (bo'sh joy ham, sakrash ham bo'lmasin). */
+let TEST_YUKLANDI = false;
 const FN = '/.netlify/functions/';
 
 const OPERATOR_META = {
@@ -4414,9 +4494,9 @@ async function sozlamalarniYukla(){
      bo'lishidan qat'i nazar, boshqa sahifaga olib ketmaydi. */
   const ig = $('#moreInsta');
   if(ig){
-    ig.href = 'https://instagram.com/vipnumbers_uz';
+    ig.href = 'https://instagram.com/vip.raqam.uz';
     const sub = ig.querySelector('i');
-    if(sub) sub.textContent = '@vipnumbers_uz';
+    if(sub) sub.textContent = '@vip.raqam.uz';
   }
   if(s.deliveryText){ const d=$('#moreDelivery'); d.textContent = s.deliveryText; d.removeAttribute('data-t'); }
   /* Bildirishnoma kaliti shu hujjatda keladi — qator endi ko'rinishi
@@ -4464,6 +4544,7 @@ async function fikrlarniYukla(){
   const snap = await withClientTimeout(db.collection('video_testimonials').limit(3000).get(), kutishVaqti(12000));
   TESTIMONIALS = snap.docs.map(d => ({ id:d.id, ...d.data() }))
     .sort((a,b)=> (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
+  TEST_YUKLANDI = true;
   renderTestimonials();
 }
 function tashrifHisobi(){
@@ -4554,6 +4635,49 @@ function numCard(item){
   </article>`;
 }
 function skeletons(n){ let h=''; for(let i=0;i<n;i++) h += '<div class="sk shim"><b></b><i></i><div class="rw"><u></u><s></s></div></div>'; return h; }
+
+/* ---------- SKELET YORDAMCHILARI (V120) ----------
+   Har bir bo'lim o'z shaklidagi skelet bilan to'ladi. Maqsad: internet
+   sekin yoki umuman yo'q bo'lsa ham sahifa "buzilgandek" emas,
+   "yuklanayotgandek" ko'rinsin — va yuklangach joylashuv SAKRAMASIN
+   (skelet o'lchamlari haqiqiy elementnikiga teng). */
+function skHero(n){
+  let h = '';
+  for(let i=0;i<(n||2);i++){
+    h += '<div class="sk-hero shim" aria-hidden="true">'
+       +   '<div><span class="sk-l sm w30"></span><span class="sk-l big w70"></span></div>'
+       +   '<div><span class="sk-l w40"></span></div>'
+       + '</div>';
+  }
+  /* Haqiqiy karusel kabi YONMA-YON (`hero-track` — flex qator), aks
+     holda skelet kartochkalari ustma-ust tushib, sahifa cho'zilib
+     ketardi va yuklangach joylashuv sakrardi. */
+  return '<div class="hero-track" aria-hidden="true">' + h + '</div>';
+}
+function skVideos(n){
+  let h = '';
+  for(let i=0;i<(n||4);i++){
+    h += '<div class="sk-v shim" aria-hidden="true">'
+       +   '<span class="sk-l w55"></span><span class="sk-l sm w85"></span>'
+       + '</div>';
+  }
+  return '<div class="sk-vrow">' + h + '</div>';
+}
+function skTiles(n){
+  let h = '';
+  for(let i=0;i<(n||3);i++){
+    h += '<div class="sk-tile shim" aria-hidden="true">'
+       +   '<span class="sk-l w55"></span><span class="sk-l sm w30"></span>'
+       + '</div>';
+  }
+  return h;
+}
+/* Sarlavha ostidagi YOZUV o'rniga — "Yuklanmoqda…" so'zi emas, skelet
+   chizig'i (mijoz so'rovi: "hattoki yozuvlarigacha"). */
+function skSub(el){
+  if(!el) return;
+  el.innerHTML = '<span class="sk-sub shim" aria-hidden="true"></span>';
+}
 /* ==================================================================
    BO'SH HOLATLAR UCHUN ILLUSTRATSIYALAR
    ------------------------------------------------------------------
@@ -4965,7 +5089,9 @@ function renderHome(){
       startHeroLoop();
     }
   }else{
-    hb.innerHTML = numbersLoaded ? '' : '<div class="sk shim" style="height:180px;width:min(84vw,360px);flex:none"></div>';
+    /* V120: karusel skeleti endi haqiqiy kartochkaga o'xshaydi —
+       ichida sarlavha va narx o'rinlari ham bor. */
+    hb.innerHTML = numbersLoaded ? '' : skHero(2);
     $('#heroDots').innerHTML = '';
   }
 
@@ -5431,6 +5557,11 @@ function syncDots(){
 function renderTestimonials(){
   const wrap = $('#homeTestWrap'), box = $('#homeTest');
   if(!wrap || !box) return;
+  /* V120: hali yuklanmagan bo'lsa — bo'limni YASHIRMAYMIZ, skelet
+     ko'rsatamiz. Ilgari internet sekin bo'lsa bu joy umuman yo'q edi
+     va sahifa "kalta" ko'rinardi; yuklangach esa to'satdan paydo
+     bo'lib, sahifa sakrardi. */
+  if(!TEST_YUKLANDI){ wrap.style.display = ''; box.innerHTML = skVideos(4); return; }
   if(!TESTIMONIALS.length){ wrap.style.display = 'none'; return; }
   wrap.style.display = '';
   box.innerHTML = TESTIMONIALS.slice(0, 10).map(v => `
@@ -5620,7 +5751,10 @@ function renderCatalog(){
   if(ds) ds.innerHTML = SORTS.map(s => `<button class="chip${catSort===s[0]?' on':''}" data-sort="${s[0]}" style="justify-content:center">${t(s[1])}</button>`).join('');
 
   const list = catalogItems();
-  $('#catCount').textContent = numbersLoaded ? `${formatPrice(list.length)} ${t('ta raqam')}` : t('Yuklanmoqda…');
+  /* V120: yuklanmagan bo'lsa "Yuklanmoqda…" SO'ZI emas, skelet
+     chizig'i turadi — mijoz so'rovi: "hattoki yozuvlarigacha". */
+  if(numbersLoaded) $('#catCount').textContent = `${formatPrice(list.length)} ${t('ta raqam')}`;
+  else skSub($('#catCount'));
   $('#filterDot').style.display = (catOp || catSort!=='default') ? '' : 'none';
 
   $('#searchInfo').innerHTML = (patternActive() && !liveBusy)
@@ -5695,6 +5829,16 @@ function renderCatalog(){
 }
 
 function renderFavorites(){
+  /* V120: katalog hali yuklanmagan bo'lsa, saqlangan ID'lar bo'yicha
+     raqamni TOPIB bo'lmaydi — ilgari bunday paytda "Sevimlilar bo'sh"
+     deb ko'rsatilardi, ya'ni mijoz saqlagan raqamlari YO'QOLGAN deb
+     o'ylardi. Endi skelet turadi. */
+  if(!numbersLoaded && FAVORITES.length){
+    skSub($('#favCount'));
+    const eb0 = $('#favEdit'); if(eb0) eb0.style.display = 'none';
+    $('#favList').innerHTML = skeletons(Math.min(FAVORITES.length, 4));
+    return;
+  }
   const items = FAVORITES.map(id => favItem(id)).filter(Boolean);
   $('#favCount').textContent = items.length ? `${items.length} ${t('ta saqlangan raqam')}` : t('Hali hech narsa saqlanmagan');
   const eb = $('#favEdit'); if(eb) eb.style.display = items.length ? 'flex' : 'none';
@@ -9122,8 +9266,16 @@ function seoToifaniOch(){
   seoRaqamniOch();
 
   if(!keshdanOqi()){
+    /* V120: sahifa ochilishi bilanoq HAR BIR bo'lim o'z skeletini
+       ko'rsatadi — tepadagi karusel, raqam kartochkalari, "Mijozlar
+       fikri" va sarlavha ostidagi yozuvlar. Internet bo'lmasa shu
+       holat QOLAVERADI (xato ekrani chiqmaydi), tepada esa "Internet
+       yo'q" tasmasi turadi. Baza javob bergach skelet haqiqiy
+       mazmun bilan almashadi. */
     $('#homeFeatured').innerHTML = skeletons(3);
-    $('#homeHero').innerHTML = '<div class="sk shim" style="height:78px;border-radius:22px"></div>';
+    $('#homeHero').innerHTML = skHero(2);
+    try{ renderTestimonials(); }catch(e){}
+    try{ skSub($('#catCount')); }catch(e){}
   }
   xabarlarKeshdan();
   syncDigits();
