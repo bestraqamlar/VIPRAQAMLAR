@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=109">
-<link rel="preload" as="script" href="assets/panel.js?v=109">
+<link rel="preload" as="style" href="assets/panel.css?v=114">
+<link rel="preload" as="script" href="assets/panel.js?v=114">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,7 +52,7 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=109">
+<link rel="stylesheet" href="assets/panel.css?v=114">
 
 </head>
 <body>
@@ -208,6 +208,12 @@
         <button class="bell-btn task-bell-btn" id="taskBellBtn" aria-label="Vazifa muddati" title="Vazifa muddati yaqinlashmoqda" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
           <span class="bell-badge" id="taskBellBadge">0</span>
+        </button>
+        <!-- Bildirishnoma OVOZI yoqilgan/o'chirilgani. Tanlov brauzerda
+             saqlanadi (localStorage), ya'ni keyingi kirishda ham eslanadi. -->
+        <button class="bell-btn pt-ovoz-btn" id="ptOvozBtn" aria-label="Bildirishnoma ovozi" title="Bildirishnoma ovozi">
+          <svg class="pt-ovoz-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a9 9 0 0 1 0 12"/></svg>
+          <svg class="pt-ovoz-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;display:none;"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>
         </button>
         <!-- Panel versiyasi: yangi fayllar saytga yetib kelganini DARHOL
              bilish uchun. Yangilagandan keyin shu raqam o'zgarmasa —
@@ -1601,6 +1607,10 @@
         <h3>Vazifalar (<span id="vzViewTaskCount">0</span>)</h3>
       </div>
       <div class="zk-inline-body">
+        <!-- Filtr chiplari: muddati o'tgan vazifalar ham ro'yxatda
+             qolaveradi (ularni ham tahrirlash/o'chirish mumkin), lekin
+             shu yerdan ajratib ko'rish va bir yo'la tozalash mumkin. -->
+        <div class="vz-filtrlar" id="vzFiltrlar"></div>
         <div id="vzTasksList" class="zk-customers-list"></div>
       </div>
     </div>
@@ -2092,6 +2102,12 @@
           <button type="button" class="wt-interval-btn" data-min="60">1 soat</button>
           <button type="button" class="wt-interval-btn" data-min="120">2 soat</button>
         </div>
+        <div class="wt-interval-note">
+          Beeline, Humans, Mobiuz va Perfektum <b>har daqiqada</b> tekshiriladi —
+          bu operatorlarda interval ta'sir qilmaydi (operatorga har bir kuzatuv
+          uchun emas, bitta umumiy so'rov ketadi, shuning uchun kutishning hojati yo'q).
+          Interval faqat <b>Ucell</b> uchun ishlaydi.
+        </div>
       </div>
       <button type="button" class="wt-confirm" id="wtConfirmBtn">✅ Tasdiqlash va kuzatishni boshlash</button>
       <div class="ig-save-msg" id="wtSaveMsg"></div>
@@ -2100,6 +2116,7 @@
     <div class="wt-stats" id="wtStats"></div>
 
     <div class="wt-toolbar">
+      <button type="button" class="wt-now" id="wtNowBtn">⚡ Hozir tekshir</button>
       <label><input type="checkbox" id="wtSelectAll"> Hammasini belgilash</label>
       <button type="button" class="wt-bulk-del" id="wtBulkDelBtn">🗑 Belgilanganlarni o'chirish (<span id="wtBulkCount">0</span>)</button>
     </div>
@@ -2381,6 +2398,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=109"></script>
+<script defer src="assets/panel.js?v=114"></script>
 </body>
 </html>
