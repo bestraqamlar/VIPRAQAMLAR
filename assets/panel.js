@@ -3482,7 +3482,6 @@ function openGroupOfTab(tab){
       ['paneTelegramai',   'Telegram AI',    "Telegram botdagi savollarga avtomatik javob."],
       ['paneStories',      'Stories',        'Bosh sahifadagi dumaloq lenta: rasm, nomi, ko\'rishlar va yurakchalar.'],
       ['paneVideos',       'Video sharhlar', "Mijozlarning video fikrlari. Saytda \"Mijozlarimiz fikri\" bo'limida chiqadi."],
-      ['panePremiumvideo', 'Premium video',  "Alohida raqamlar uchun video. Saytda premium RELS bo'lib ko'rinadi."],
       ['paneStyles',       'Uslublar',       "Sayt ranglari, shriftlari va umumiy ko'rinishi."],
       ['paneDashboard',    'Boshqaruv paneli', "Umumiy ko'rsatkichlar va so'nggi faoliyat bir joyda."],
       ['paneBazaraqam',    'Baza raqam',     "Barcha manbalardan yig'ilgan xomashyo ro'yxati, operator bo'yicha hisob."],
@@ -3855,7 +3854,7 @@ setTimeout(()=>{
   groups.forEach(group => setTabGroupOpen(group, true, false));
 })();
 
-const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', tolov:'Tolov', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', premiumvideo:'Premiumvideo', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings', stories:'Stories', kanalpost:'Kanalpost' };
+const TAB_PANE_MAP = { dashboard:'Dashboard', bazaraqam:'Bazaraqam', management:'Management', numbers:'Numbers', aksiya:'Aksiya', kuntavsiyasi:'Kuntavsiyasi', xabarlar:'Xabarlar', tolov:'Tolov', ai:'Ai', instagram:'Instagram', telegramai:'Telegramai', videos:'Videos', orders:'Orders', zakaz:'Zakaz', credit:'Credit', personalbase:'Personalbase', vazifalar:'Vazifalar', finance:'Finance', sessions:'Sessions', stats:'Stats', sellers:'Sellers', styles:'Styles', operators:'Operators', watch:'Watch', uzex:'Uzex', vakansiya:'Vakansiya', settings:'Settings', stories:'Stories', kanalpost:'Kanalpost' };
 /* ==================================================================
    YUQORIDAGI YO'L KO'RSATKICHI
    Avval tepada doim "Boshqaruv paneli" deb turardi — ya'ni qayerda
@@ -3921,7 +3920,6 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(tab.dataset.tab === 'uzex'){ uzxLoadSaved(); }
     if(tab.dataset.tab === 'telegramai'){ loadTelegramAiSettings(); }
     if(tab.dataset.tab === 'videos'){ loadVideoTestimonials(); }
-    if(tab.dataset.tab === 'premiumvideo'){ loadPremiumVideoList(); }
     if(tab.dataset.tab === 'credit'){
       loadCreditContracts();
       const dateEl = document.getElementById('crStartDate');
@@ -5922,11 +5920,13 @@ async function loadStats(){
     const daily = await db.collection('stats_daily')
       .where(firebase.firestore.FieldPath.documentId(), '>=', from)
       .get();
-    let V=0, C=0, O=0, M=0, kun=0;
+    let V=0, C=0, O=0, M=0, kun=0, F=0, U=0, X=0;
     daily.forEach(d => {
       const x = d.data() || {};
       V += Number(x.views)||0; C += Number(x.clicks)||0;
       O += Number(x.orders)||0; M += Number(x.misses)||0; kun++;
+      /* V119 — buyurtma yo'lining oradagi qadamlari */
+      F += Number(x.forma)||0; U += Number(x.urinish)||0; X += Number(x.xato)||0;
     });
     const konv = V ? Math.round(O / V * 1000) / 10 : 0;
     if(kpis) kpis.innerHTML =
@@ -5934,6 +5934,42 @@ async function loadStats(){
       stKpi('Buyurtma', stNum(O), 'shu davrda') +
       stKpi('Konversiya', konv + '%', 'ochilgandan buyurtmagacha') +
       stKpi('Natijasiz qidiruv', stNum(M), 'yetishmayotgan raqamlar');
+
+    /* ---- BUYURTMA YO'LI (V119) ----
+       Mijoz qayerda to'xtab qolgani. Ilgari faqat "ochildi" va
+       "buyurtma" bor edi — oradagi ikki qadam ko'rinmasdi, ya'ni
+       "formani ochdi-yu yubormadi" degan holat umuman bilinmasdi. */
+    const yol = document.getElementById('stYol');
+    if(yol){
+      const qadamlar = [
+        ['Raqam ochildi',    V, ''],
+        ['Batafsil bosildi', C, V],
+        ['Forma ochildi',    F, C || V],
+        ['Yuborish bosildi', U, F || C || V],
+        ['Buyurtma bo\'ldi', O, U || F || C || V]
+      ];
+      if(!V && !F && !U && !O){
+        yol.innerHTML = '<div style="color:var(--muted);font-size:12.5px">'
+          + 'Hali ma\'lumot yig\'ilmagan. Yangi o\'lchov bugundan boshlab '
+          + 'yig\'iladi — bir-ikki kundan keyin shu yerda to\'liq yo\'l ko\'rinadi.</div>';
+      }else{
+        yol.innerHTML = qadamlar.map(([nom, son, asos])=>{
+          const foiz = asos ? Math.round(son / asos * 1000) / 10 : null;
+          const en = V ? Math.max(2, Math.round(son / V * 100)) : 2;
+          const yomon = foiz !== null && foiz < 25;
+          return '<div class="yol-qator">'
+            + '<div class="yol-nom">' + nom + '</div>'
+            + '<div class="yol-chiziq"><i style="width:' + en + '%"></i></div>'
+            + '<div class="yol-son">' + stNum(son)
+            + (foiz !== null ? ' <b class="' + (yomon ? 'yomon' : '') + '">' + foiz + '%</b>' : '')
+            + '</div></div>';
+        }).join('')
+        + (X ? '<div class="yol-xato">\u26A0 ' + stNum(X) + ' ta urinishda birinchi yo\'l ishlamadi. '
+               + 'Bunday buyurtma endi YO\'QOLMAYDI: server yo\'li, keyin zaxira yo\'l, '
+               + 'oxirida esa navbat (aloqa tiklanishi bilan o\'zi yuboriladi) bor. '
+               + 'Bu son uzoq vaqt katta bo\'lsa \u2014 sabab bor, tekshirish kerak.</div>' : '');
+      }
+    }
   }catch(e){
     xatolar.push('ko\'rsatkichlar');
     if(kpis) kpis.innerHTML = '<div style="color:var(--muted);font-size:12.5px">Ko\'rsatkichlarni o\'qib bo\'lmadi: ' + escapeHtml(e.message || '') + '</div>';
@@ -7559,7 +7595,7 @@ const MGMT_FEATURE_LABELS = {
   watch:'🎯 Kuzatuv', operators:'🔌 Operatorlar', ai:'🤖 AI Yordamchi',
   instagram:'📸 Instagram AI', telegramai:'💬 Telegram AI', videos:'🎥 Video sharhlar',
   stories:'▣ Stories',
-  premiumvideo:'🎬 Premium video', styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
+  styles:'🎨 Uslublar', sessions:'📊 Seanslar', settings:'⚙️ Sozlamalar',
   finance:'💰 Kirim-Chiqim', vakansiya:'💼 Vakansiya', xabarlar:'🔔 Saytga xabar', tolov:'📲 Raqam to\'lovi'
 };
 const MGMT_FEATURE_ORDER = Object.keys(MGMT_FEATURE_LABELS);
@@ -8197,167 +8233,11 @@ async function loadVideoTestimonials(){
   }
 }
 
-/* ---- Premium raqamlar video-rels (admin boshqaruvi) ---- */
-let pvSelectedNumberData = null; // { id, number, price }
-
-const pvNumberSearch = document.getElementById('pvNumberSearch');
-const pvNumberResults = document.getElementById('pvNumberResults');
-const pvSelectedNumberEl = document.getElementById('pvSelectedNumber');
-
-pvNumberSearch.addEventListener('input', debounce(()=>{
-  const q = pvNumberSearch.value.replace(/\D/g, '');
-  if(!q){ pvNumberResults.classList.remove('show'); pvNumberResults.innerHTML = ''; return; }
-  const matches = currentNumbersCache.filter(n => (n.number || '').replace(/\D/g,'').includes(q)).slice(0, 15);
-  if(matches.length === 0){
-    pvNumberResults.innerHTML = `<div class="pv-number-row" style="cursor:default;color:var(--muted);">Topilmadi</div>`;
-  }else{
-    pvNumberResults.innerHTML = matches.map(n => `
-      <div class="pv-number-row" data-id="${n.id}" data-number="${escapeHtml(n.number)}" data-price="${n.price||0}">
-        <span>${escapeHtml(n.number)}</span>
-        <span class="pvn-price">${formatPrice(n.price||0)}</span>
-      </div>
-    `).join('');
-    pvNumberResults.querySelectorAll('.pv-number-row').forEach(row=>{
-      row.addEventListener('click', ()=>{
-        pvSelectedNumberData = { id: row.dataset.id, number: row.dataset.number, price: Number(row.dataset.price) };
-        pvSelectedNumberEl.style.display = 'flex';
-        pvSelectedNumberEl.innerHTML = `<span>✓ Tanlandi: <b>${escapeHtml(row.dataset.number)}</b> — ${formatPrice(Number(row.dataset.price))}</span><button class="pvsel-clear" id="pvSelClear">✕</button>`;
-        document.getElementById('pvSelClear').addEventListener('click', ()=>{
-          pvSelectedNumberData = null;
-          pvSelectedNumberEl.style.display = 'none';
-        });
-        pvNumberResults.classList.remove('show');
-        pvNumberSearch.value = '';
-      });
-    });
-  }
-  pvNumberResults.classList.add('show');
-}, 200));
-
-window.handlePremiumVideoUpload = async function(){
-  const fileInput = document.getElementById('pvVideoFileInput');
-  const msg = document.getElementById('pvVideoUploadMsg');
-  const progressWrap = document.getElementById('pvVideoProgressWrap');
-  const progressBar = document.getElementById('pvVideoProgressBar');
-  const btn = document.getElementById('pvVideoUploadBtn');
-
-  function showError(text){
-    msg.textContent = '❌ ' + text;
-    msg.style.cssText = 'color:#fff;background:var(--red);padding:10px 12px;border-radius:8px;font-weight:700;font-size:13px;text-align:center;';
-    progressWrap.style.display = 'none';
-    btn.disabled = false;
-  }
-
-  try{
-    if(!pvSelectedNumberData){ showError('Avval qaysi raqam uchun ekanini tanlang.'); return; }
-    const file = fileInput.files[0];
-    if(!file){ showError('Iltimos, video fayl tanlang.'); return; }
-    const looksLikeVideo = file.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|webm|3gp|mkv)$/i.test(file.name || '');
-    if(!looksLikeVideo){ showError("Bu video fayl emas. Fayl turi: " + (file.type || "noma'lum")); return; }
-    if(!warnIfRiskyVideoFormat(file)){ return; }
-    if(!storage){ showError("Video xizmati (Firebase Storage) sozlanmagan."); return; }
-
-    btn.disabled = true;
-    msg.textContent = '';
-    msg.style.cssText = '';
-    progressWrap.style.display = 'block';
-    progressBar.style.width = '0%';
-
-    const path = `premium_number_videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-    const ref = storage.ref().child(path);
-    const uploadTask = ref.put(file);
-
-    await new Promise((resolve, reject)=>{
-      uploadTask.on('state_changed',
-        (snap)=>{ progressBar.style.width = Math.round((snap.bytesTransferred / snap.totalBytes) * 100) + '%'; },
-        (err)=> reject(err),
-        ()=> resolve()
-      );
-    });
-
-    const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
-
-    await db.collection('premium_number_videos').add({
-      videoUrl,
-      numberId: pvSelectedNumberData.id,
-      number: pvSelectedNumberData.number,
-      likes: 500 + Math.floor(Math.random() * 500),
-      createdAt: Date.now()
-    });
-
-    msg.textContent = '✓ Video yuklandi va saytga qo\'shildi';
-    msg.style.cssText = 'color:var(--green);text-align:center;font-weight:700;';
-    vibrate(80);
-    fileInput.value = '';
-    pvSelectedNumberData = null;
-    pvSelectedNumberEl.style.display = 'none';
-    progressWrap.style.display = 'none';
-    loadPremiumVideoList();
-  }catch(err){
-    showError(err && err.message ? err.message : "Noma'lum xato yuz berdi");
-    return;
-  }
-  btn.disabled = false;
-};
-
-async function loadPremiumVideoList(){
-  const list = document.getElementById('pvVideoList');
-  list.innerHTML = 'Yuklanmoqda...';
-  try{
-    const snap = await db.collection('premium_number_videos').orderBy('createdAt', 'desc').get();
-    const videos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if(videos.length === 0){ list.innerHTML = `<div class="empty-admin">Hali video qo'shilmagan.</div>`; return; }
-
-    list.innerHTML = videos.map(v => `
-      <div class="video-item" data-id="${v.id}">
-        <button class="vi-delete" data-id="${v.id}">✕</button>
-        <video src="${escapeHtml(v.videoUrl)}" muted preload="metadata"></video>
-        <div class="vi-caption">${escapeHtml(v.number || '')}</div>
-        <div class="vi-likes-row">
-          <span class="vi-likes-icon">❤️</span>
-          <input type="number" class="vi-likes-input" data-id="${v.id}" value="${v.likes || 0}" min="0">
-          <button class="vi-likes-save" data-id="${v.id}">💾</button>
-          <button class="vi-likes-rand" data-id="${v.id}" title="Tasodifiy 500-999">🎲</button>
-        </div>
-      </div>
-    `).join('');
-
-    list.querySelectorAll('.vi-delete').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        if(!confirm("Bu videoni o'chirishni tasdiqlaysizmi?")) return;
-        try{
-          await db.collection('premium_number_videos').doc(btn.dataset.id).delete();
-          loadPremiumVideoList();
-        }catch(err){ alert('Xato: ' + err.message); }
-      });
-    });
-
-    list.querySelectorAll('.vi-likes-save').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const input = list.querySelector(`.vi-likes-input[data-id="${btn.dataset.id}"]`);
-        const val = Math.max(0, parseInt(input.value, 10) || 0);
-        try{
-          await db.collection('premium_number_videos').doc(btn.dataset.id).update({ likes: val });
-          vibrate(60);
-        }catch(err){ alert('Xato: ' + err.message); }
-      });
-    });
-
-    list.querySelectorAll('.vi-likes-rand').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const val = 500 + Math.floor(Math.random() * 500);
-        const input = list.querySelector(`.vi-likes-input[data-id="${btn.dataset.id}"]`);
-        input.value = val;
-        try{
-          await db.collection('premium_number_videos').doc(btn.dataset.id).update({ likes: val });
-          vibrate(60);
-        }catch(err){ alert('Xato: ' + err.message); }
-      });
-    });
-  }catch(err){
-    list.innerHTML = 'Xato: ' + err.message;
-  }
-}
+/* "Premium video" bo'limi V118 da BUTUNLAY olib tashlandi (mijoz
+   so'rovi). U saytda hech qayerda ko'rsatilmasdi — faqat admin
+   panelida joy egallab turardi. Saytdagi pastki "sotilgan raqamlar
+   videosi" boshqa bo'lim (video_testimonials, "Video sharhlar") va
+   u O'Z JOYIDA qoldi. */
 
 /* ---- Tashrif buyuruvchilar kuzatuvi (real vaqtda) ---- */
 let visitorTrackingTimer = null;
@@ -8744,8 +8624,7 @@ function nbTahrirBogla(body){
    "Aksiya" — o'zining alohida bo'limi (mijoz iltimosiga ko'ra
    "Raqamlar" tabidan chiqarilib, to'liq tsikl — ko'rish, qo'shish,
    tahrirlash, muddat/arxiv — shu yerga jamlandi). Raqam tanlash
-   "Premium video" bo'limidagi qidiruv-tanlash uslubidan (pvNumberSearch)
-   foydalanadi: mavjud raqamni qidirib tanlasa — o'sha raqam aksiyaga
+   o'z qidiruv-tanlash uslubiga ega: mavjud raqamni qidirib tanlasa — o'sha raqam aksiyaga
    qo'yiladi (yangilanadi), hech narsa tanlamay yangi raqam yozsa — avvalgi
    xulq-atvor saqlanib, YANGI raqam yozuvi yaratiladi. ================== */
 let aktEditingId = null;               // tahrirlanayotgan aksiya ID (null = yangi qo'shish)
@@ -10106,7 +9985,7 @@ function renderAdminOrders(orders){
     { id:'stat',     nom:'Statistika',  yorliq:'Hisobot',  izoh:'Hisobotlar, vazifalar va AI',
       tabs:['stats','sessions','vazifalar','ai','telegramai','instagram'] },
     { id:'profil',   nom:'Profil',      yorliq:'Profil',   izoh:'Sozlamalar, kontent va boshqaruv',
-      tabs:['settings','management','operators','styles','xabarlar','stories','videos','premiumvideo'] }
+      tabs:['settings','management','operators','styles','xabarlar','stories','videos'] }
   ];
 
   /* Har bir bo'lim nima uchun kerakligi — kartochkada bitta qatorda
@@ -10127,7 +10006,7 @@ function renderAdminOrders(orders){
     settings:'Sayt sozlamalari', management:'Adminlar va ruxsatlar',
     operators:'Operator narx jadvali', styles:'Sayt ko\u2018rinishi',
     xabarlar:'Mijozlarga bildirishnoma', videos:'Mijoz sharhlari',
-    premiumvideo:'Bosh sahifadagi video'
+    videos:'Sotilgan raqamlar videosi'
   };
 
   let JORIY = 'asosiy';
