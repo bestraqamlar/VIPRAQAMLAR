@@ -71,7 +71,7 @@ async function eskilarniTozala() {
 }
 
 exports.handler = async function (event) {
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'zaxira-background', 60000))) return { statusCode: 403, body: 'forbidden' };
 
   const sana = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
   const manzil = 'gs://' + BUCKET + '/zaxira/' + sana;

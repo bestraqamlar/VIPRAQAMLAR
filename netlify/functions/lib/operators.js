@@ -634,8 +634,26 @@ async function searchBeelinePublic(boxes, cfg, limit, options) {
 // msisdn_type MAJBURIY va har kategoriya alohida so'rov talab qiladi
 // (msisdn_type=0 faqat "Simple" ni qaytaradi — tekshirilgan).
 
+/* MANZILLAR ENDI SOZLANADIGAN (V120).
+   ------------------------------------------------------------------
+   SABAB: 2026-oktabrda Ucell dilerlik API manzili O'ZGARDI va login
+   so'rovi HTTP 404 qaytara boshladi. Manzil kod ichida qotib turgani
+   uchun kuzatuv 12 000 martadan ko'p ketma-ket xato berdi va tuzatish
+   uchun har safar saytni qayta joylash kerak bo'lardi.
+   Endi manzilni adminkadan (Operatorlar → Ucell) kiritish mumkin:
+   `operator_config/main` dagi Ucell.loginUrl / Ucell.searchUrl.
+   Bo'sh bo'lsa — pastdagi standart manzil ishlatiladi. */
 const UCELL_LOGIN = 'https://cw-corn00.ucell.uz/ru/api/v1/services/dealer/auth/login';
 const UCELL_SEARCH = 'https://cw-corn00.ucell.uz/api/v1/phone_number/search-mask';
+
+/* Faqat https va faqat ucell.uz domeni — adminkaga noto'g'ri yoki
+   xavfli manzil kiritilsa, so'rov begona serverga ketmasligi uchun. */
+function ucellManzil(qiymat, standart) {
+  const v = String(qiymat || '').trim();
+  if (!v) return standart;
+  if (!/^https:\/\/[A-Za-z0-9.-]+\.ucell\.uz\//.test(v)) return standart;
+  return v.slice(0, 300);
+}
 const UCELL_TYPES = [1, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 111];
 
 // Ucell serveri BEQAROR: bir xil so'rovga ba'zan natija qaytaradi, ba'zan
@@ -645,9 +663,20 @@ const UCELL_TYPES = [1, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 111];
 // vaqt deyarli o'zgarmaydi, lekin raqamni "yo'qotish" ehtimoli keskin tushadi.
 const UCELL_ATTEMPTS = 3;
 
-async function ucellToken() {
-  const res = await fetch(UCELL_LOGIN, { signal: timeoutSignal() });
-  if (!res.ok) throw new Error('Ucell login: HTTP ' + res.status);
+async function ucellToken(loginUrl) {
+  const manzil = loginUrl || UCELL_LOGIN;
+  const res = await fetch(manzil, { signal: timeoutSignal() });
+  if (!res.ok) {
+    /* 404/410 — manzil endi mavjud emas. Bu login/parol muammosi EMAS,
+       shu sabab xabar aniq bo'lishi kerak: aks holda admin bekorga
+       login-parolni almashtiradi. */
+    if (res.status === 404 || res.status === 410 || res.status === 301 || res.status === 308) {
+      throw new Error('Ucell dilerlik API manzili ishlamayapti (HTTP ' + res.status + '): '
+        + manzil + ' — manzil o\'zgargan ko\'rinadi. Adminka → Operatorlar → Ucell '
+        + 'bo\'limiga yangi manzilni kiriting (login/parolda muammo yo\'q).');
+    }
+    throw new Error('Ucell login: HTTP ' + res.status);
+  }
   const data = await res.json();
   if (!data.token) throw new Error('Ucell: javobda token yo\'q');
   return data.token;
@@ -659,7 +688,9 @@ async function searchUcell(boxes, cfg, limit) {
   // ma'nosi yo'q — u butun bazani qaytaradi.
   if (!query) return { items: [], errors: [] };
 
-  const token = await ucellToken();
+  const loginUrl = ucellManzil(cfg.loginUrl, UCELL_LOGIN);
+  const searchUrl = ucellManzil(cfg.searchUrl, UCELL_SEARCH);
+  const token = await ucellToken(loginUrl);
   const table = (cfg.prices && cfg.prices.length) ? cfg.prices : DEFAULT_PRICES.Ucell;
 
   const jobs = [];
@@ -668,7 +699,7 @@ async function searchUcell(boxes, cfg, limit) {
   }
 
   const perType = await Promise.allSettled(jobs.map(async type => {
-    const res = await fetch(UCELL_SEARCH, {
+    const res = await fetch(searchUrl, {
       method: 'POST',
       headers: { Token: token, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -788,7 +819,14 @@ async function searchHumans(boxes, cfg, limit) {
     return await humansQidir(boxes, cfg, limit, false);
   } catch (e) {
     /* Saqlangan sessiya eskirgan bo'lishi mumkin — tozalab, bir marta
-       qaytadan (yangi sessiya bilan) urinamiz. */
+       qaytadan (yangi sessiya bilan) urinamiz.
+       TUZATISH (V120): MUDDAT TUGASHIDA (timeout) qayta urinmaymiz.
+       Ilgari urinardi — natijada bitta sekin javob 6,5 s + sessiya +
+       yana 6,5 s ga cho'zilib, kuzatuvga berilgan 10 sekundni OSHIB
+       ketardi va ishlaydigan operator ham "javob bermadi" deb
+       belgilanardi. Mobiuz'da aynan shu xato bor edi. */
+    const m = String((e && e.message) || e);
+    if (/timeout|aborted/i.test(m)) throw e;
     humansKeshTozala();
     return await humansQidir(boxes, cfg, limit, true);
   }
@@ -848,7 +886,27 @@ async function humansQidir(boxes, cfg, limit, majburiy) {
 const MOBIUZ_BASE = 'https://booking.mobi.uz';
 const MOBIUZ_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
 
-async function mobiuzSession() {
+/* SESSIYA KESHI (V120).
+   ------------------------------------------------------------------
+   MUAMMO: har bir qidiruv uchun IKKI so'rov ketardi — avval butun
+   `/uz/app` HTML sahifasi (cookie va CSRF token uchun), keyin
+   qidiruvning o'zi. Kuzatuv har daqiqada ishlaydi, demak har daqiqada
+   ikki so'rov. Ikkisining yig'indisi kuzatuvga berilgan muddatdan
+   oshib ketganda butun so'rov uzilardi va "The operation was aborted
+   due to timeout" degan xato yozilardi (Mobiuz'da ketma-ket 124 marta
+   aynan shu bo'lgan).
+   Endi sessiya 4 daqiqa saqlanadi — ya'ni odatda FAQAT BITTA so'rov
+   ketadi. Saqlangan sessiya eskirib qolsa (CSRF rad etilsa), kesh
+   tozalanib BIR MARTA qaytadan urinib ko'riladi. */
+let mobiuzSessiyaKesh = null;
+const MOBIUZ_SESSIYA_TTL = 4 * 60 * 1000;
+
+function mobiuzKeshTozala() { mobiuzSessiyaKesh = null; }
+
+async function mobiuzSession(majburiy) {
+  if (!majburiy && mobiuzSessiyaKesh && mobiuzSessiyaKesh.expiresAt > Date.now()) {
+    return mobiuzSessiyaKesh;
+  }
   const res = await fetch(MOBIUZ_BASE + '/uz/app', {
     headers: { 'user-agent': MOBIUZ_UA },
     signal: timeoutSignal()
@@ -859,11 +917,26 @@ async function mobiuzSession() {
   const html = await res.text();
   const m = html.match(/csrf-token"\s+content="([^"]+)"/);
   if (!m || !cookie) throw new Error('Mobiuz: CSRF token yoki cookie topilmadi');
-  return { cookie, csrf: m[1] };
+  mobiuzSessiyaKesh = { cookie, csrf: m[1], expiresAt: Date.now() + MOBIUZ_SESSIYA_TTL };
+  return mobiuzSessiyaKesh;
 }
 
 async function searchMobiuz(boxes, cfg, limit) {
-  const { cookie, csrf } = await mobiuzSession();
+  try {
+    return await mobiuzQidir(boxes, cfg, limit, false);
+  } catch (e) {
+    /* Saqlangan sessiya eskirgan bo'lishi mumkin — bir marta yangisi
+       bilan urinib ko'ramiz. Muddat tugashi (timeout) bo'lsa qayta
+       urinmaymiz: vaqt allaqachon yo'q. */
+    const m = String((e && e.message) || e);
+    if (/timeout|aborted/i.test(m)) throw e;
+    mobiuzKeshTozala();
+    return await mobiuzQidir(boxes, cfg, limit, true);
+  }
+}
+
+async function mobiuzQidir(boxes, cfg, limit, majburiy) {
+  const { cookie, csrf } = await mobiuzSession(majburiy);
   const table = (cfg.prices && cfg.prices.length) ? cfg.prices : DEFAULT_PRICES.Mobiuz;
 
   const form = new URLSearchParams();
@@ -993,8 +1066,20 @@ async function searchPerfektum(boxes, cfg, limit) {
 
 // Xato matnida operator nomi ikki marta takrorlanmasin
 function labelError(opName, reason) {
-  const msg = (reason && reason.message) ? reason.message : String(reason);
-  return msg.startsWith(opName + ':') ? msg : (opName + ': ' + msg);
+  let msg = (reason && reason.message) ? reason.message : String(reason);
+  /* V120: Node'ning o'z xabari ("The operation was aborted due to
+     timeout", "AbortError", "fetch failed") adminga hech narsa
+     aytmaydi — u buni o'qib nima qilishni bilmaydi. Tushunarli
+     o'zbekcha xabarga aylantiramiz. */
+  if (/aborted due to timeout|AbortError|The operation was aborted/i.test(msg)) {
+    msg = 'operator belgilangan vaqtda javob bermadi (sekinlashgan yoki ishlamayapti). '
+      + 'Bu bizning tomondagi xato emas.';
+  } else if (/fetch failed|ENOTFOUND|ECONNREFUSED|EAI_AGAIN/i.test(msg)) {
+    msg = 'operator serveriga ulanib bo\'lmadi (manzil javob bermayapti).';
+  }
+  /* Xabar allaqachon operator nomi bilan boshlansa, uni IKKI MARTA
+     yozmaymiz ("Mobiuz: Mobiuz qidiruv: HTTP 400" ko'rinishi edi). */
+  return msg.startsWith(opName) ? msg : (opName + ': ' + msg);
 }
 
 function collectSettled(settled, opName) {

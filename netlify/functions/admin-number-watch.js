@@ -113,6 +113,37 @@ async function listWatches() {
   });
 }
 
+/* OPERATOR SOG'LIGI VA TEZLIGI (V120).
+   number-watch-check-background.js har bir so'rovning davomiyligini
+   `watch_health/<operator>` hujjatiga yozib boradi. Panel shuni
+   ko'rsatadi — "operator tez ishlayaptimi?" degan savolga taxmin
+   bilan emas, SON bilan javob beriladi. */
+async function listSoglik() {
+  try {
+    const snap = await db.collection('watch_health').get();
+    const chiqim = [];
+    snap.docs.forEach(d => {
+      /* Bu to'plamda xizmat hujjatlari ham bor (soglik_*) — ularni
+         operator deb ko'rsatmaymiz. */
+      if (/^soglik_/.test(d.id)) return;
+      const x = d.data() || {};
+      chiqim.push({
+        operator: d.id,
+        lastMs: Number(x.lastMs) || null,
+        avgMs: Number(x.avgMs) || null,
+        lastMsAt: Number(x.lastMsAt) || null,
+        lastOkAt: Number(x.lastOkAt) || null,
+        streak: Number(x.streak) || 0,
+        backoffUntil: Number(x.backoffUntil) || null,
+        lastError: x.lastError || null,
+        lastErrorAt: Number(x.lastErrorAt) || null
+      });
+    });
+    chiqim.sort((a, b) => a.operator.localeCompare(b.operator));
+    return chiqim;
+  } catch (e) { return []; }
+}
+
 async function toggleWatch(body) {
   const id = String(body.id || '');
   if (!id) { const err = new Error('id kerak'); err.statusCode = 400; throw err; }
@@ -243,7 +274,7 @@ exports.handler = async function (event) {
     let result;
     switch (body.action) {
       case 'create': result = await createWatch(body, decoded.uid); break;
-      case 'list':   result = { watches: await listWatches() }; break;
+      case 'list':   result = { watches: await listWatches(), soglik: await listSoglik() }; break;
       case 'toggle': result = await toggleWatch(body); break;
       case 'delete': result = await deleteWatch(body); break;
       case 'deleteMany': result = await deleteManyWatches(body); break;

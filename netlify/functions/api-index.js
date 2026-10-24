@@ -104,7 +104,19 @@ async function signature() {
     if (d.exists) dirty = Number((d.data() || {}).at) || 0;
   } catch (e) {}
 
-  return { sig: count + ':' + newest + ':' + dirty, total: count };
+  /* TUZATISH (V120). Ilgari `dirty` IMZO ichiga qo'shilardi va
+     hech kim uni TOZALAMASDI. Natija: indeks aslida qayta qurilgan
+     bo'lsa ham, `search_index/dirty` hujjatidagi vaqt joyida
+     qolaverardi va soat sayin ishlaydigan nazoratchi
+     (soglik-background) "Katalog indeksi qayta qurilmayapti,
+     eskirgan deb belgilangan: NNNN daqiqa oldin" deb YOLG'ON
+     ogohlantirish yuborib turardi (2251 daqiqa — aynan shu).
+     Endi `dirty` imzoga qo'shilmaydi, ALOHIDA qaytariladi va
+     `meta.builtAt` bilan solishtiriladi: belgi oxirgi qurilishdan
+     KEYIN qo'yilgan bo'lsa — indeks haqiqatan eskirgan, aks holda
+     hammasi joyida. Hech narsani tozalash kerak emas, ya'ni
+     "tozalashni unutish" xatosi qaytib kelmaydi. */
+  return { sig: count + ':' + newest, dirty, total: count };
 }
 
 /* ======================= QIDIRUV ======================= */
@@ -345,8 +357,41 @@ async function rebuild(sig) {
   return { head: payload, rows: idx.rows, count: idx.count, builtAt: Date.now() };
 }
 
+/* ============ V120: SUIISTE'MOLGA QARSHI CHEGARA ============
+   Bu funksiya ATAYLAB ochiq (mijoz qidirishi uchun). Keshlari ko'p,
+   lekin HAR XIL `p=` naqshi bilan ketma-ket chaqirilsa har biri
+   keshdan o'tib ketadi va Firestore'ga haqiqiy o'qish ketadi — ya'ni
+   skript bilan hisobni xarajatga ko'mish mumkin edi.
+   Chegara XOTIRADA saqlanadi (Firestore'ga qo'shimcha o'qish/yozish
+   QILMAYDI — aks holda himoyaning o'zi xarajat bo'lardi).
+   Daqiqasiga 120 so'rov: oddiy mijoz hech qachon yetmaydi (u daqiqada
+   bir-ikki marta qidiradi), skript esa darhol yetadi. */
+let IP_HISOB = new Map();
+const IP_OYNA_MS = 60000;
+const IP_CHEGARA = 120;
+function ipTezlikOk(event) {
+  const h = (event && event.headers) || {};
+  const ip = String(h['x-nf-client-connection-ip'] || h['client-ip']
+    || ((h['x-forwarded-for'] || '').split(',')[0].trim()) || 'unknown').slice(0, 60);
+  const now = Date.now();
+  if (IP_HISOB.size > 5000) IP_HISOB = new Map();
+  const y = IP_HISOB.get(ip);
+  if (!y || now - y.boshi > IP_OYNA_MS) { IP_HISOB.set(ip, { boshi: now, soni: 1 }); return true; }
+  if (y.soni >= IP_CHEGARA) return false;
+  y.soni++;
+  return true;
+}
+
 exports.handler = async function (event) {
   const qs = (event && event.queryStringParameters) || {};
+
+  if (!ipTezlikOk(event)) {
+    return {
+      statusCode: 429,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ ok: false, error: "Juda ko'p so'rov. Biroz kuting." })
+    };
+  }
 
   // --- QIDIRUV shoxi ---
   if (qs.p) {
@@ -379,20 +424,30 @@ exports.handler = async function (event) {
   };
 
   try {
-    const { sig, total } = await signature();
-    if (MEM.sig === sig && MEM.body) {
-      return { statusCode: 200, headers: Object.assign({ 'X-Index': 'mem' }, headers), body: MEM.body };
-    }
+    const { sig, dirty, total } = await signature();
 
     const metaSnap = await db.collection('search_index').doc('meta').get();
     const meta = metaSnap.exists ? (metaSnap.data() || {}) : {};
+
+    /* "Eskirdi" belgisi oxirgi qurilishdan KEYIN qo'yilganmi? */
+    const eskirdi = dirty > 0 && dirty > Number(meta.builtAt || 0);
+    /* Oxirgi qurilishdan MIN_REBUILD_MS o'tmagan bo'lsa — qayta
+       qurmaymiz (ko'p so'rov bir vaqtda kelganda bazani qayta-qayta
+       o'qib ketmaslik uchun). Ya'ni eskirgan belgi ko'pi bilan 2
+       daqiqa kechikib hisobga olinadi. */
+    const yaqindaQurildi = meta.builtAt && (Date.now() - Number(meta.builtAt) < MIN_REBUILD_MS);
+    const majbur = eskirdi && !yaqindaQurildi;
+
+    if (!majbur && MEM.sig === sig && MEM.body) {
+      return { statusCode: 200, headers: Object.assign({ 'X-Index': 'mem' }, headers), body: MEM.body };
+    }
 
     let head, rows, count, builtAt, src;
     // Imzo o'zgargan bo'lsa ham, oxirgi qurilishdan MIN_REBUILD_MS
     // o'tmagan bo'lsa — saqlangan indeks beriladi. 100 ta diler bir
     // vaqtda raqam qo'shsa ham baza har so'rovda qayta o'qilmaydi.
-    const yaqinda = meta.builtAt && (Date.now() - Number(meta.builtAt) < MIN_REBUILD_MS);
-    if (meta.sig === sig || yaqinda) {
+    const yaqinda = yaqindaQurildi;
+    if (!majbur && (meta.sig === sig || yaqinda)) {
       const stored = await readStored(meta);
       if (stored != null) {
         const h = JSON.parse(meta.head || '{}');

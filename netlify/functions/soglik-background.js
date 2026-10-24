@@ -81,7 +81,7 @@ function vaqtMs(v) {
 }
 
 exports.handler = async function (event) {
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'soglik-background', 2700))) return { statusCode: 403, body: 'forbidden' };
   const natija = [];
 
   /* 1) BEELINE KESHI — har 10 daqiqada yangilanishi kerak.
@@ -118,12 +118,29 @@ exports.handler = async function (event) {
   /* 3) KATALOG INDEKSI — narx tahrirlanganda "eskirdi" belgisi qo'yiladi.
         Belgi 2 soatdan beri turgan bo'lsa, demak indeks qayta qurilmayapti. */
   try {
-    const s = await db.collection('search_index').doc('dirty').get();
-    const t = s.exists ? (Number(s.data().at) || 0) : 0;
-    const yosh = t ? Date.now() - t : 0;
-    const soz = !t || yosh < 2 * 60 * 60 * 1000;
+    /* TUZATISH (V120). Ilgari faqat `dirty` belgisining YOSHI
+       qaralardi. Belgini esa hech kim tozalamasdi — natijada indeks
+       aslida qayta qurilgan bo'lsa ham, bu yerda "qayta qurilmayapti,
+       NNNN daqiqa oldin belgilangan" degan YOLG'ON ogohlantirish
+       har soat chiqib turardi.
+       Endi to'g'ri solishtiriladi: belgi oxirgi QURILISHDAN keyin
+       qo'yilgan bo'lsa — indeks haqiqatan eskirgan. Belgi qurilishdan
+       OLDIN qo'yilgan bo'lsa — hammasi joyida, yoshi qancha bo'lishidan
+       qat'i nazar. */
+    const [d, m] = await Promise.all([
+      db.collection('search_index').doc('dirty').get(),
+      db.collection('search_index').doc('meta').get()
+    ]);
+    const t = d.exists ? (Number(d.data().at) || 0) : 0;
+    const qurilgan = m.exists ? (Number(m.data().builtAt) || 0) : 0;
+    const eskirdi = t > 0 && t > qurilgan;
+    const yosh = eskirdi ? Date.now() - t : 0;
+    /* Haqiqatan eskirgan bo'lsa ham, 2 soatgacha kutamiz (indeks
+       birinchi so'rovda qayta quriladi). */
+    const soz = !eskirdi || yosh < 2 * 60 * 60 * 1000;
     await qayd('indeks', 'Katalog indeksi qayta qurilmayapti',
-      soz, 'Eskirgan deb belgilangan: ' + daqiqa(yosh) + ' daqiqa oldin');
+      soz, 'Eskirdi deb belgilangan: ' + daqiqa(yosh) + ' daqiqa oldin, '
+        + 'oxirgi qurilish: ' + (qurilgan ? daqiqa(Date.now() - qurilgan) + ' daqiqa oldin' : 'umuman yo\'q'));
     natija.push('indeks:' + (soz ? 'ok' : daqiqa(yosh) + 'daq'));
   } catch (e) { natija.push('indeks:tekshirilmadi'); }
 

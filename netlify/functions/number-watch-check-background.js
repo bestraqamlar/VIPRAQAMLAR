@@ -96,7 +96,16 @@ const MAX_RUN_MS = 25 * 1000;
    tor bo'ladi va 100 chegarasi muammo tug'dirmaydi. Shu sabab Beeline
    endi Ucell kabi — HAR BIR KUZATUV O'Z NAQSHI bilan so'raladi.
    Bu operatorga ko'proq so'rov degani, lekin TO'G'RI natija degani. */
-const NO_WILDCARD_OPERATORS = new Set(['Ucell', 'Beeline']);
+/* V120: MOBIUZ ham shu ro'yxatga qo'shildi.
+   SABAB: "hammasini ber" (wildcard) so'rovi Mobiuz'da BUTUN ro'yxatni
+   qaytaradi — bu og'ir va sekin so'rov. Kuzatuvga berilgan muddatga
+   ulgurmay uzilardi va natijada ketma-ket 124 marta "javob bermadi"
+   xatosi yig'ildi. Aniq naqsh bo'yicha so'rov esa yengil va tez:
+   bitta kuzatuv uchun bitta kichik so'rov (bir xil naqshlar bitta
+   so'rovga birlashtiriladi — qarang: finalizePerWatch dagi `kesh`).
+   Sessiya keshi bilan birga (lib/operators.js) bu Mobiuz'ga ketadigan
+   so'rovni ikkitadan BITTAGA tushiradi. */
+const NO_WILDCARD_OPERATORS = new Set(['Ucell', 'Beeline', 'Mobiuz']);
 
 // Operatorning o'zidan BIR SO'ROVDA so'ralishi mumkin bo'lgan eng ko'p
 // natija soni. Beeline'ning o'ziga xos, qattiq 100 chegarasi bor (undan
@@ -216,15 +225,17 @@ async function loadOperatorConfig() {
    bilmasdi. Endi xato ALOHIDA qaytariladi va yuqorida hisobga olinadi. */
 async function fetchOperatorPool(operatorName, config) {
   const limit = BULK_LIMIT_BY_OPERATOR[operatorName] || BULK_LIMIT_DEFAULT;
+  const boshlandi = Date.now();
   try {
     const out = await searchAll(WILDCARD_BOXES, config, { operator: operatorName, limit, deadline: 10000 });
     const items = out.items || [];
     /* searchAll operator xatosini `errors` ichida ham qaytarishi mumkin */
     const xato = (out.errors && out.errors.length) ? String(out.errors[0].message || out.errors[0]) : '';
-    if (!items.length && xato) return { items: [], xato };
-    return { items, xato: '' };
+    const ms = Date.now() - boshlandi;
+    if (!items.length && xato) return { items: [], xato, ms };
+    return { items, xato: '', ms };
   } catch (e) {
-    return { items: [], xato: (e && e.message) || 'nomalum xato' };
+    return { items: [], xato: (e && e.message) || 'nomalum xato', ms: Date.now() - boshlandi };
   }
 }
 
@@ -248,32 +259,82 @@ const SOGLIQ_COLLECTION = 'watch_health';
 const OGOH_SOVISH_MS = 30 * 60 * 1000;
 const OGOH_CHEGARA = 3;
 
-async function sogliqYangila(operatorName, xato) {
+/* ============ V120: TINIM (backoff) ============
+   MUAMMO: Ucell dilerlik API manzili o'zgarib HTTP 404 bera boshlaganda,
+   bu funksiya HAR DAQIQADA qayta-qayta so'rov yuborib turdi va natijada
+   ketma-ket 12 459 marta xato yig'ildi. Bu uch narsani buzadi:
+     * har daqiqada bekorga so'rov — funksiya vaqti va operator yuki;
+     * xato soni ma'nosiz kattalashadi (12 459 soni hech narsa aytmaydi);
+     * bitta o'lik operator butun yurgizishning vaqtini yeb qo'yadi,
+       ya'ni ISHLAYDIGAN operatorlar ham kechikadi.
+   YECHIM: operator ketma-ket 10 martadan ko'p xato bersa, u 15 daqiqa
+   TINIM oladi — bu vaqt ichida unga umuman so'rov yuborilmaydi va
+   kuzatuvlariga xato ham yozilmaydi (holat allaqachon ma'lum). Tinim
+   tugagach bir marta sinab ko'riladi: javob bersa — hammasi odatdagicha
+   davom etadi (va "✅ Kuzatuv tiklandi" xabari ketadi), bermasa —
+   yana 15 daqiqa tinim. Ishlaydigan operatorlar bundan ta'sirlanmaydi. */
+const TINIM_CHEGARA = 10;
+const TINIM_MS = 15 * 60 * 1000;
+
+/* Tinimda bo'lgan operatorlar ro'yxati (bitta yurgizish uchun). */
+async function tinimdagilar(operatorNomlari) {
+  const chiqim = {};
+  await Promise.all(operatorNomlari.map(async (op) => {
+    try {
+      const snap = await db.collection(SOGLIQ_COLLECTION).doc(op).get();
+      const d = snap.exists ? (snap.data() || {}) : {};
+      chiqim[op] = Number(d.backoffUntil || 0) > Date.now();
+    } catch (e) { chiqim[op] = false; }
+  }));
+  return chiqim;
+}
+
+/* V120: TEZLIK O'LCHOVI. "Operator tez ishlayaptimi?" degan savolga
+   taxmin bilan emas, SON bilan javob berish uchun har bir so'rovning
+   davomiyligi yozib boriladi: oxirgi so'rov (lastMs) va silliqlangan
+   o'rtacha (avgMs — har safar 80% eski + 20% yangi, ya'ni bitta
+   tasodifiy sekin javob o'rtachani buzmaydi). Admin panelning
+   "Kuzatuv" bo'limida ko'rinadi. */
+async function sogliqYangila(operatorName, xato, ms) {
   const ref = db.collection(SOGLIQ_COLLECTION).doc(operatorName);
   try {
     const snap = await ref.get();
     const d = snap.exists ? (snap.data() || {}) : {};
     const now = Date.now();
+    /* Tezlik — xato bo'lsa ham yoziladi (sekinlik sababini ko'rish uchun) */
+    const tezlik = {};
+    if (Number(ms) > 0) {
+      tezlik.lastMs = Number(ms);
+      const eski = Number(d.avgMs) || 0;
+      tezlik.avgMs = eski ? Math.round(eski * 0.8 + Number(ms) * 0.2) : Number(ms);
+      tezlik.lastMsAt = Date.now();
+    }
     if (!xato) {
       /* Tiklandi — oldin ogohlantirilgan bo'lsa, "tuzaldi" deb aytamiz */
       if ((d.streak || 0) >= OGOH_CHEGARA && d.alertedAt) {
         await notifyAdmin('✅ Kuzatuv tiklandi\n\n📶 ' + operatorName + ' yana javob beryapti.');
       }
-      if (d.streak || d.alertedAt) await ref.set({ streak: 0, alertedAt: null, lastOkAt: now }, { merge: true });
+      await ref.set(Object.assign({ streak: 0, alertedAt: null, backoffUntil: null, lastOkAt: now }, tezlik), { merge: true });
       return;
     }
     const streak = (d.streak || 0) + 1;
     const yoz = { streak, lastError: String(xato).slice(0, 300), lastErrorAt: now };
+    /* Ketma-ket ko'p xato — operator tinimga chiqariladi (yuqoridagi izoh) */
+    if (streak >= TINIM_CHEGARA) yoz.backoffUntil = now + TINIM_MS;
     if (streak >= OGOH_CHEGARA && (!d.alertedAt || now - d.alertedAt > OGOH_SOVISH_MS)) {
       const yetdi = await notifyAdmin(
         '⚠️ Kuzatuv ishlamayapti\n\n' +
         '📶 ' + operatorName + '\n' +
         '🔁 ketma-ket ' + streak + ' marta xato\n' +
-        '❗ ' + String(xato).slice(0, 180)
+        '❗ ' + String(xato).slice(0, 180) +
+        (streak >= TINIM_CHEGARA
+          ? '\n\n⏸ Bekorga so\'rov yubormaslik uchun bu operator '
+            + (TINIM_MS / 60000) + ' daqiqa tinimga chiqarildi — keyin o\'zi qayta sinab ko\'radi.'
+          : '')
       );
       if (yetdi) yoz.alertedAt = now;
     }
-    await ref.set(yoz, { merge: true });
+    await ref.set(Object.assign(yoz, tezlik), { merge: true });
   } catch (e) { /* sog'liq yozuvi ishlamasa ham, asosiy ish davom etadi */ }
 }
 
@@ -355,11 +416,28 @@ async function finalizePerWatch(docs, config) {
      Ilgari har biri uchun ALOHIDA so'rov ketardi — operatorda bu
      keraksiz yuk va 429 ("so'rovlar chegarasi") xavfi. Endi so'rov
      bir marta yuboriladi, natija esa baham ko'riladi. */
+  /* V120: tinimda bo'lgan operatorning kuzatuvlari umuman tekshirilmaydi
+     (yuqoridagi TINIM izohiga qarang). Ucell aynan shu yo'ldan yuradi —
+     12 459 ketma-ket xato shu yerda yig'ilgan edi. */
+  const tinim = await tinimdagilar([...new Set(docs.map(d => d.data().operator))]);
+  docs = docs.filter(d => !tinim[d.data().operator]);
+  if (!docs.length) return;
+
   const kesh = new Map();
-  async function qidir(operator, boxes) {
+  /* Natija bilan birga SO'ROV DAVOMIYLIGINI ham qaytaradi. Keshdan
+     olingan javob uchun ms = 0 — unga so'rov umuman ketmagan, va uni
+     tezlik o'lchoviga qo'shish ko'rsatkichni asossiz yaxshi qilib
+     ko'rsatardi. */
+  function qidir(operator, boxes) {
     const kalit = operator + '|' + boxes.join(',');
-    if (kesh.has(kalit)) return kesh.get(kalit);
-    const vada = searchAll(boxes, config, { operator, limit: PER_WATCH_LIMIT, deadline: 8000 });
+    if (kesh.has(kalit)) return kesh.get(kalit).then(r => ({ out: r.out, ms: 0 }));
+    /* V120: muddat 8s -> 11s. Sessiya keshi bor (Mobiuz/Humans), ya'ni
+       odatda bitta so'rov ketadi; lekin kesh yangilanishi kerak bo'lgan
+       safar ikki so'rov ketadi va 8 sekund unga yetmasdi. Butun
+       yurgizish chegarasi (MAX_RUN_MS = 25s) buzilmaydi. */
+    const boshlandi = Date.now();
+    const vada = searchAll(boxes, config, { operator, limit: PER_WATCH_LIMIT, deadline: 11000 })
+      .then(out => ({ out, ms: Date.now() - boshlandi }));
     kesh.set(kalit, vada);
     return vada;
   }
@@ -369,8 +447,11 @@ async function finalizePerWatch(docs, config) {
       const watch = doc.data();
       let items = null;
       let xato = '';
+      let ms = 0;
       try {
-        const out = await qidir(watch.operator, watch.boxes);
+        const r = await qidir(watch.operator, watch.boxes);
+        const out = r.out;
+        ms = r.ms;
         items = out.items || [];
         if (!items.length && out.errors && out.errors.length) {
           xato = String(out.errors[0].message || out.errors[0]);
@@ -381,9 +462,9 @@ async function finalizePerWatch(docs, config) {
       if (items === null) {
         /* Tekshirib bo'lmadi — "tekshirildi" deb belgilamaymiz */
         await nishonlaXato(doc, xato);
-        await sogliqYangila(watch.operator, xato);
+        await sogliqYangila(watch.operator, xato, ms);
       } else {
-        await sogliqYangila(watch.operator, '');
+        await sogliqYangila(watch.operator, '', ms);
         await finalizeWatch(doc, items);
       }
       if (Date.now() - START_TIME > MAX_RUN_MS) return;
@@ -398,7 +479,7 @@ let START_TIME = 0;
 exports.handler = async function (event) {
   /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
      tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'number-watch-check-background', 40))) return { statusCode: 403, body: 'forbidden' };
 
   START_TIME = Date.now();
   try {
@@ -447,25 +528,32 @@ exports.handler = async function (event) {
       if (!byOperator[op]) byOperator[op] = [];
       byOperator[op].push(doc);
     }
-    const operatorNames = Object.keys(byOperator);
+    const barchaOperatorlar = Object.keys(byOperator);
+    const tinim = await tinimdagilar(barchaOperatorlar);
+    const operatorNames = barchaOperatorlar.filter(op => !tinim[op]);
+    const otkazilgan = barchaOperatorlar.filter(op => tinim[op]);
     const pools = await Promise.all(
       operatorNames.map(async (op) => {
         const r = await fetchOperatorPool(op, config);
-        return { op, items: r.items, xato: r.xato };
+        return { op, items: r.items, xato: r.xato, ms: r.ms };
       })
     );
     const poolByOperator = {};
     const xatoByOperator = {};
-    pools.forEach(p => { poolByOperator[p.op] = p.items; xatoByOperator[p.op] = p.xato; });
+    const msByOperator = {};
+    pools.forEach(p => { poolByOperator[p.op] = p.items; xatoByOperator[p.op] = p.xato; msByOperator[p.op] = p.ms; });
 
-    /* Operator sog'ligini yangilaymiz (xato bo'lsa — ogohlantirish) */
-    await Promise.all(operatorNames.map(op => sogliqYangila(op, xatoByOperator[op])));
+    /* Operator sog'ligini va TEZLIGINI yangilaymiz */
+    await Promise.all(operatorNames.map(op => sogliqYangila(op, xatoByOperator[op], msByOperator[op])));
 
     /* Operator javob bermagan bo'lsa, uning kuzatuvlari "tekshirildi"
        deb BELGILANMAYDI — faqat xato yoziladi. */
     const docsWithPool = [];
     for (const doc of pooledDue) {
       const op = doc.data().operator;
+      /* Tinimda — so'rov ham yuborilmadi, xato ham yozilmaydi
+         (holat allaqachon ma'lum, xato sonini shishirishdan foyda yo'q) */
+      if (tinim[op]) continue;
       if (xatoByOperator[op]) { await nishonlaXato(doc, xatoByOperator[op]); continue; }
       docsWithPool.push({ doc, poolItems: poolByOperator[op] || [] });
     }
@@ -477,7 +565,9 @@ exports.handler = async function (event) {
 
     return {
       statusCode: 200,
-      body: `ok: ${due.length} ta kuzatuv (${pooledDue.length} pool orqali / ${operatorNames.length} operator, ${perWatchDue.length} Ucell alohida), jami ${snap.size} ta faol`
+      body: `ok: ${due.length} ta kuzatuv (${pooledDue.length} pool orqali / ${operatorNames.length} operator`
+        + (otkazilgan.length ? `, tinimda: ${otkazilgan.join(', ')}` : '')
+        + `, ${perWatchDue.length} alohida), jami ${snap.size} ta faol`
     };
   } catch (err) {
     console.error('NUMBER-WATCH-CHECK XATOSI:', err);

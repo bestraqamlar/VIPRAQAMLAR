@@ -9,7 +9,7 @@ const { buildAndSendReport } = require('./send-excel-now');
 exports.handler = async function (event) {
   /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
      tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'credit-excel-report', 60000))) return { statusCode: 403, body: 'forbidden' };
 
   try{
     const result = await buildAndSendReport();

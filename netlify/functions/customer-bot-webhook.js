@@ -14,7 +14,7 @@ const admin = require('firebase-admin');
 
 /* Instagram sahifamiz — BITTA joyda. Nik o'zgarsa faqat shu ikki
    qator tahrirlanadi (sayt tomonida ham shu nik ishlatiladi). */
-const INSTAGRAM_NIK = 'vipnumbers_uz';
+const INSTAGRAM_NIK = 'vip.raqam.uz';
 const INSTAGRAM_URL = 'https://instagram.com/' + INSTAGRAM_NIK;
 const { getBotControl } = require('./lib/botControl');
 const { checkAndMarkKnown } = require('./lib/knownCustomers');

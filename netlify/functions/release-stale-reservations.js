@@ -86,7 +86,7 @@ async function jonliQulflarniTozala() {
 exports.handler = async function (event) {
   /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
      tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'release-stale-reservations', 480))) return { statusCode: 403, body: 'forbidden' };
 
   try {
     const reservedSnap = await db.collection('numbers').where('reserved', '==', true).get();

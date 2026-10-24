@@ -108,7 +108,7 @@ async function notifyAdmin(text) {
 exports.handler = async function (event) {
   /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
      tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'sync-beeline-background', 480))) return { statusCode: 403, body: 'forbidden' };
 
   const startedAt = Date.now();
   try {

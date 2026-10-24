@@ -135,7 +135,7 @@ function xabar(r, tur, kech) {
 exports.handler = async function (event) {
   /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
      tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
-  if (!jadvalOk(event)) return { statusCode: 403, body: 'forbidden' };
+  if (!(await jadvalOk(event, 'tolov-eslatma-background', 240))) return { statusCode: 403, body: 'forbidden' };
 
   try {
     const { sana, daqiqa } = toshkent();
