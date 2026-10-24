@@ -68,7 +68,7 @@ exports.handler = async function (event) {
   // Firestore'ga BITTA yozuv ketadi.
   const nums = {};       // id -> {views, clicks, orders, number}
   const misses = {};     // kalit -> {q, count}
-  const day = { views: 0, clicks: 0, orders: 0, misses: 0 };
+  const day = { views: 0, clicks: 0, orders: 0, misses: 0, forma: 0, urinish: 0, xato: 0 };
 
   for (const e of events) {
     const t = e && e.t;
@@ -79,6 +79,13 @@ exports.handler = async function (event) {
       if (typeof e.n === 'string' && e.n.length <= 20) n.number = e.n;
       n[t + 's'] += 1;
       day[t + 's'] += 1;
+    } else if (t === 'forma' || t === 'urinish' || t === 'xato') {
+      /* BUYURTMA YO'LI (V119) — kunlik hisob. Raqam bo'yicha emas,
+         faqat umumiy son: maqsad "mijoz qayerda to'xtadi" ni bilish.
+           forma   — buyurtma oynasi ochildi
+           urinish — "Yuborish" bosildi
+           xato    — yuborish ishlamadi (raqam yo'qotildi) */
+      day[t] = (day[t] || 0) + 1;
     } else if (t === 'miss') {
       const q = String(e.q || '').replace(/[^0-9*]/g, '').slice(0, 12);
       if (q.length < 2) continue;
@@ -109,9 +116,9 @@ exports.handler = async function (event) {
     batch.set(db.collection('stats_searches').doc(k), { q: m.q, count: INC(m.count), lastAt: now }, { merge: true });
     writes++;
   }
-  if (day.views || day.clicks || day.orders || day.misses) {
+  if (day.views || day.clicks || day.orders || day.misses || day.forma || day.urinish || day.xato) {
     const patch = { date: today, updatedAt: now };
-    for (const k of ['views', 'clicks', 'orders', 'misses']) if (day[k]) patch[k] = INC(day[k]);
+    for (const k of ['views', 'clicks', 'orders', 'misses', 'forma', 'urinish', 'xato']) if (day[k]) patch[k] = INC(day[k]);
     batch.set(db.collection('stats_daily').doc(today), patch, { merge: true });
     writes++;
   }
