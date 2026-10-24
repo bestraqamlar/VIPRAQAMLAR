@@ -6829,6 +6829,11 @@ async function loadOperatorSettings(){
       opRenderRows(n);
     });
     const uw = document.getElementById('opUcellWarn');  if(uw) uw.textContent = OP_GAPS.Ucell;
+    /* V120: Ucell API manzillari (bo'sh bo'lsa server standartni ishlatadi) */
+    const ul = document.getElementById('opUcellLoginUrl');
+    if(ul) ul.value = (opData.Ucell && opData.Ucell.loginUrl) || '';
+    const us = document.getElementById('opUcellSearchUrl');
+    if(us) us.value = (opData.Ucell && opData.Ucell.searchUrl) || '';
     const pw = document.getElementById('opPerfektumWarn'); if(pw) pw.textContent = OP_GAPS.Perfektum;
     const hw = document.getElementById('opHumansWarn'); if(hw) hw.textContent = OP_GAPS.Humans;
   }catch(err){
@@ -7067,6 +7072,47 @@ function wtRenderStats(watches){
     <div class="wt-stat"><b>${paused}</b><span>to'xtatilgan</span></div>
     <div class="wt-stat wt-stat-found"><b>${found}</b><span>topilgan</span></div>
   `;
+}
+
+/* OPERATOR TEZLIGI VA HOLATI (V120).
+   Har bir operator uchun oxirgi so'rov qancha davom etgani va
+   silliqlangan o'rtachasi ko'rsatiladi. Ranglar: 3 sekundgacha yashil
+   (tez), 3-7 sekund sariq (sekin, lekin ishlaydi), 7 sekunddan yuqori
+   yoki xato — qizil. "Tinim" — operator ketma-ket ko'p xato berib,
+   vaqtincha so'rovdan chiqarilgani. */
+function wtMsMatn(ms){
+  if(!ms) return '—';
+  return ms < 1000 ? (ms + ' ms') : ((ms/1000).toFixed(1) + ' s');
+}
+function wtRenderSoglik(soglik){
+  const box = document.getElementById('wtSoglik');
+  if(!box) return;
+  if(!soglik.length){
+    box.innerHTML = '<div class="wt-soglik-bosh">Tezlik ma\'lumoti hali yig\'ilmagan — '
+      + 'birinchi tekshiruvdan keyin shu yerda har bir operatorning '
+      + 'javob tezligi ko\'rinadi.</div>';
+    return;
+  }
+  const now = Date.now();
+  box.innerHTML = soglik.map(o => {
+    const tinimda = o.backoffUntil && o.backoffUntil > now;
+    const ms = o.avgMs || o.lastMs || 0;
+    let holat = 'tez', izoh = 'tez';
+    if(tinimda){ holat = 'tinim'; izoh = 'tinimda'; }
+    else if(o.streak > 0){ holat = 'xato'; izoh = o.streak + ' marta xato'; }
+    else if(ms >= 7000){ holat = 'xato'; izoh = 'juda sekin'; }
+    else if(ms >= 3000){ holat = 'sekin'; izoh = 'sekinroq'; }
+    else if(ms >= 1500){ holat = 'tez'; izoh = 'yaxshi'; }
+    const tafsilot = tinimda
+      ? ('yana ' + Math.max(1, Math.round((o.backoffUntil - now)/60000)) + ' daqiqadan keyin sinaladi')
+      : (o.lastError ? String(o.lastError).slice(0, 90) : ('oxirgi: ' + wtMsMatn(o.lastMs)));
+    return '<div class="wt-sog wt-sog-' + holat + '">'
+      + '<div class="wt-sog-nom">' + escapeHtml(o.operator) + '</div>'
+      + '<div class="wt-sog-ms">' + wtMsMatn(ms) + '</div>'
+      + '<div class="wt-sog-izoh">' + escapeHtml(izoh) + '</div>'
+      + '<div class="wt-sog-tafsilot">' + escapeHtml(tafsilot) + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 function wtRenderGroups(watches){
@@ -7527,6 +7573,7 @@ async function loadWatchList(){
     const validIds = new Set(watches.map(w => w.id));
     Array.from(wtSelected).forEach(id => { if(!validIds.has(id)) wtSelected.delete(id); });
     wtRenderStats(watches);
+    wtRenderSoglik(data.soglik || []);
     wtRenderGroups(watches);
     wtUpdateBulkBar();
   }catch(err){
@@ -7861,6 +7908,13 @@ async function opSave(){
     if(n === 'Beeline') opData.Beeline.warehouses = opCollect('Beeline');
     else opData[n].prices = opCollect(n);
   });
+  /* V120: Ucell API manzillari. Bo'sh bo'lsa maydon umuman yozilmaydi —
+     server o'z standart manzilini ishlatadi. */
+  const uLog = (document.getElementById('opUcellLoginUrl') || {}).value;
+  const uSrc = (document.getElementById('opUcellSearchUrl') || {}).value;
+  opData.Ucell.loginUrl = String(uLog || '').trim().slice(0, 300);
+  opData.Ucell.searchUrl = String(uSrc || '').trim().slice(0, 300);
+
   opData.Beeline.username = document.getElementById('opBeelineUser').value.trim();
   opData.Beeline.password = document.getElementById('opBeelinePass').value;
 
