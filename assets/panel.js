@@ -4085,12 +4085,41 @@ attachUzPhoneAutoFormat(document.getElementById('crNumber'));
 // o'zi qo'shgan shartnomalarni ko'radi, bosh admin esa har doim hammasini.
 async function creCall(action, extra){
   const idToken = await firebase.auth().currentUser.getIdToken();
+  const tana = JSON.stringify(Object.assign({ action }, extra || {}));
+
+  /* HIMOYA (V120). Muammo: "Shartnoma qo'shish" bosilganda ba'zan
+     "Request payload size exceeds the limit: 18874368 bytes" degan
+     TUSHUNARSIZ xato chiqardi. Bu Netlify'ning o'z xabari — so'rov
+     hajmi chegaradan oshganda u funksiyani UMUMAN ishga tushirmaydi.
+     Hajm esa odatda bitta maydonga juda katta matn tushganda oshadi
+     (masalan "Qo'shimcha ma'lumot" ga rasm yoki uzun matn joylashtirib
+     yuborilganda — bunday paytda bir nechta megabayt bo'lishi mumkin).
+     Endi hajm YUBORISHDAN OLDIN tekshiriladi va aniq, o'zbekcha xabar
+     beriladi. Pastdagi maydon chegaralari esa bunga umuman yo'l
+     qo'ymaydi. */
+  if(tana.length > 900000){
+    throw new Error("Ma'lumot juda katta (" + Math.round(tana.length/1024) + " KB). "
+      + "Odatda bu \"Qo'shimcha ma'lumot\" maydoniga juda uzun matn (yoki rasm) "
+      + "joylashtirilganda bo'ladi — shu maydonni qisqartiring.");
+  }
+
   const res = await fetch('/.netlify/functions/admin-credit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-    body: JSON.stringify(Object.assign({ action }, extra || {}))
+    body: tana
   });
-  const data = await res.json();
+
+  /* Javob JSON bo'lmasligi ham mumkin (platforma xatosi — HTML yoki
+     oddiy matn qaytaradi). Ilgari `res.json()` shu yerda yiqilib,
+     adminga "Unexpected token" kabi chalg'ituvchi xato ko'rinardi. */
+  let data = null;
+  const xomJavob = await res.text();
+  try{ data = JSON.parse(xomJavob); }catch(e){}
+  if(!data){
+    if(res.status === 413) throw new Error("Ma'lumot juda katta — maydonlarni qisqartiring.");
+    if(res.status === 502 || res.status === 504) throw new Error('Server javob bermadi. Birozdan keyin qayta urining.');
+    throw new Error('Server kutilmagan javob qaytardi (HTTP ' + res.status + ')');
+  }
   if(!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
   return data;
 }
@@ -4116,13 +4145,21 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     return;
   }
 
+  /* V120: har bir maydon uzunligi CHEKLANADI. Shartnomaga bundan
+     ortig'i baribir sig'maydi (PDF ham, Telegram xabari ham), lekin
+     cheksiz matn so'rovni megabaytlarga shishirib, Netlify uni
+     butunlay rad etishiga olib kelardi. */
+  const qisq = (v, n) => String(v || '').slice(0, n);
+
   try{
     const data = await creCall('add', {
-      customerName: name, customerPhone: phone, region, number,
+      customerName: qisq(name, 100), customerPhone: qisq(phone, 30),
+      region: qisq(region, 60), number: qisq(number, 30),
       totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
       currency: document.getElementById('crCurrency').value === 'usd' ? 'USD' : 'UZS',
-      additionalInfo: info, startDate: startDateVal,
-      passportNumber, birthDate, permanentAddress
+      additionalInfo: qisq(info, 500), startDate: qisq(startDateVal, 20),
+      passportNumber: qisq(passportNumber, 30), birthDate: qisq(birthDate, 20),
+      permanentAddress: qisq(permanentAddress, 300)
     });
     const contractId = data.contractId;
     const customerChatId = data.customerChatId;
