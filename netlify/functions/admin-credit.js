@@ -85,19 +85,42 @@ async function listContracts(decoded, body) {
   return { contracts };
 }
 
+/* MAYDON CHEGARALARI (V120).
+   ------------------------------------------------------------------
+   SABAB: "Shartnoma qo'shish" bosilganda ba'zan Netlify'ning
+   "Request payload size exceeds the limit" xatosi chiqardi — ya'ni
+   so'rov hajmi platforma chegarasidan oshib ketgan va funksiya UMUMAN
+   ishga tushmagan. Hajm bitta maydonga juda katta matn tushganda
+   oshadi (masalan izohga rasm yoki uzun matn joylashtirilsa).
+   Brauzer tomonida ham chegara qo'yildi (maxlength + kesish), lekin
+   ASOSIY himoya SHU YERDA: so'rov qayerdan kelishidan qat'i nazar,
+   bazaga faqat shu uzunlikdagi qiymat tushadi. Uzun matn xato
+   qaytarmaydi — shunchaki KESILADI, ya'ni admin ishi to'xtab
+   qolmaydi. */
+const CHEGARA = {
+  customerName: 100, customerPhone: 30, region: 60, number: 30,
+  additionalInfo: 500, passportNumber: 30, birthDate: 20,
+  permanentAddress: 300, startDate: 20
+};
+function matn(body, kalit) {
+  return String(body[kalit] == null ? '' : body[kalit]).slice(0, CHEGARA[kalit] || 200).trim();
+}
+
 async function addContract(body, decoded) {
-  const name = String(body.customerName || '').trim();
-  const phone = String(body.customerPhone || '').trim();
-  const region = String(body.region || '').trim();
-  const number = String(body.number || '').trim();
-  const months = Number(body.totalMonths) || 0;
-  const monthly = Number(body.monthlyPayment) || 0;
-  const payDay = Number(body.paymentDay) || 1;
-  const info = String(body.additionalInfo || '').trim();
-  const passportNumber = String(body.passportNumber || '').trim();
-  const birthDate = String(body.birthDate || '');
-  const permanentAddress = String(body.permanentAddress || '').trim();
-  const startDateVal = body.startDate;
+  const name = matn(body, 'customerName');
+  const phone = matn(body, 'customerPhone');
+  const region = matn(body, 'region');
+  const number = matn(body, 'number');
+  /* Son maydonlar ham aqlli chegarada bo'lsin (jadval cheksiz
+     uzun bo'lib ketmasin — 600 oy = 50 yil, bundan ortig'i xato). */
+  const months = Math.min(Math.max(Number(body.totalMonths) || 0, 0), 600);
+  const monthly = Math.min(Math.max(Number(body.monthlyPayment) || 0, 0), 1e12);
+  const payDay = Math.min(Math.max(Number(body.paymentDay) || 1, 1), 31);
+  const info = matn(body, 'additionalInfo');
+  const passportNumber = matn(body, 'passportNumber');
+  const birthDate = matn(body, 'birthDate');
+  const permanentAddress = matn(body, 'permanentAddress');
+  const startDateVal = matn(body, 'startDate');
   /* Valyuta — so'm yoki dollar. Hisob-kitob o'zgarmaydi, faqat qaysi
      valyutada ekani saqlanadi va hamma joyda shunday ko'rsatiladi. */
   const currency = String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS';
@@ -162,7 +185,7 @@ async function addContract(body, decoded) {
 }
 
 async function updatePayment(body, decoded) {
-  const id = String(body.id || '');
+  const id = String(body.id || '').slice(0, 40);
   const month = Number(body.month);
   if (!id || !month) { const err = new Error('id va oy kerak'); err.statusCode = 400; throw err; }
 
@@ -188,7 +211,7 @@ async function updatePayment(body, decoded) {
 }
 
 async function updateContract(body, decoded) {
-  const id = String(body.id || '');
+  const id = String(body.id || '').slice(0, 40);
   if (!id) { const err = new Error('id kerak'); err.statusCode = 400; throw err; }
 
   const ref = db.collection(COLLECTION).doc(id);
@@ -201,9 +224,11 @@ async function updateContract(body, decoded) {
     throw err;
   }
 
-  const payDay = Number(body.paymentDay) || 1;
-  const newTotalMonths = Number(body.totalMonths) || 1;
-  const newStartTs = body.startDate ? new Date(body.startDate + 'T00:00:00').getTime() : Date.now();
+  /* V120: tahrirlashda ham AYNAN SHU chegaralar (qarang: addContract) */
+  const payDay = Math.min(Math.max(Number(body.paymentDay) || 1, 1), 31);
+  const newTotalMonths = Math.min(Math.max(Number(body.totalMonths) || 1, 1), 600);
+  const sanaMatn = matn(body, 'startDate');
+  const newStartTs = sanaMatn ? new Date(sanaMatn + 'T00:00:00').getTime() : Date.now();
 
   const oldPayments = existing.payments || [];
   const payments = [];
@@ -218,16 +243,16 @@ async function updateContract(body, decoded) {
   }
 
   await ref.update({
-    customerName: String(body.customerName || '').trim(),
-    customerPhone: String(body.customerPhone || '').trim(),
-    region: String(body.region || '').trim(),
-    number: String(body.number || '').trim(),
-    monthlyPayment: Number(body.monthlyPayment) || 0,
+    customerName: matn(body, 'customerName'),
+    customerPhone: matn(body, 'customerPhone'),
+    region: matn(body, 'region'),
+    number: matn(body, 'number'),
+    monthlyPayment: Math.min(Math.max(Number(body.monthlyPayment) || 0, 0), 1e12),
     currency: String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS',
-    additionalInfo: String(body.additionalInfo || '').trim(),
-    passportNumber: String(body.passportNumber || '').trim(),
-    birthDate: String(body.birthDate || ''),
-    permanentAddress: String(body.permanentAddress || '').trim(),
+    additionalInfo: matn(body, 'additionalInfo'),
+    passportNumber: matn(body, 'passportNumber'),
+    birthDate: matn(body, 'birthDate'),
+    permanentAddress: matn(body, 'permanentAddress'),
     createdAt: newStartTs,
     paymentDay: payDay,
     totalMonths: newTotalMonths,
@@ -238,8 +263,8 @@ async function updateContract(body, decoded) {
 }
 
 async function updateStatus(body, decoded) {
-  const id = String(body.id || '');
-  const statusKey = String(body.status || '');
+  const id = String(body.id || '').slice(0, 40);
+  const statusKey = String(body.status || '').slice(0, 30);
   if (!id || !statusKey) { const err = new Error('id va status kerak'); err.statusCode = 400; throw err; }
 
   const ref = db.collection(COLLECTION).doc(id);
