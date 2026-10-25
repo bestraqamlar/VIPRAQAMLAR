@@ -466,3 +466,374 @@ Eslatma: saytdagi Instagram havolasi ATAYLAB kodda qat'iy yozilgan —
 adminkadagi qiymat qanday bo'lishidan qat'i nazar, mijoz boshqa
 sahifaga olib ketilmaydi. Shuning uchun uni adminkadan o'zgartirish
 kerak emas.
+
+---
+
+# V120 — TELEGRAM MINI ILOVA VAQTINCHA OLIB TASHLANDI
+
+Siz aytganingizdek, hozircha olib tashlandi — keyin davom ettiramiz.
+
+## Nima olib tashlandi
+- `telegram-ilova.html` (232 KB) — mini ilovaning o'zi;
+- `netlify/functions/check-my-orders-telegram.js` — faqat shu ilova
+  ishlatadigan funksiya (boshqa hech kim chaqirmaydi, tekshirildi).
+
+Ikkala fayl **o'chirilmadi**: zipning ichida, sayt papkasining YONIDA
+turgan `_olib-tashlangan-v120/` papkasiga olib qo'yildi — qaytarish
+kerak bo'lganda shundan olinadi (ish yo'qolmasin).
+Papka ATAYLAB sayt papkasidan TASHQARIDA: aks holda u ham Netlify'ga
+joylanib, ilova eski manzilda yashirincha ochiq qolib ketardi.
+
+## Hech narsa buzilmaydi
+Butun loyiha tekshirildi: saytdan ham, botdan ham, adminkadan ham mini
+ilovaga **birorta havola yo'q** — kirish nuqtasi faqat BotFather'dagi
+menyu tugmasi edi. Shu sabab olib tashlash boshqa hech narsaga ta'sir
+qilmaydi:
+
+- **Telegram bot to'liq ishlaydi.** "Buyurtmalarim" bo'limi botning
+  O'ZIDA ishlaydi (telefon raqami bo'yicha qidiradi), mini ilovaga
+  bog'liq emas.
+- **Kanal posti** ham tegilmadi — undagi tugma allaqachon botning
+  shaxsiy chatiga olib o'tadi, mini ilovaga emas.
+- `menu-redirect.html` **qoldirildi** — bu mini ilova emas, Telegram
+  menyusidan kanalga o'tkazadigan kichik yordamchi sahifa; u ishlaydi
+  va o'zgartirilmadi.
+- Barcha 69 ta Netlify funksiyasi sintaksis tekshiruvidan o'tdi.
+
+## Eski havola oq ekran bermaydi
+`_redirects` ga ikki qator qo'shildi: `/telegram-ilova.html` va
+`/telegram-ilova` endi **saytning o'ziga** yo'naltiriladi. Ya'ni
+BotFather'dagi menyu tugmasi hali eski manzilni ko'rsatayotgan bo'lsa
+ham, mijoz xato emas — saytni ko'radi.
+
+Shunga qaramay **BotFather'dan menyu tugmasini olib tashlashni
+tavsiya qilaman** (`/mybots` → bot → *Bot Settings* → *Menu Button*):
+shunda mijozga "ilova" degan tugma umuman ko'rinmaydi.
+
+## Qaytarish kerak bo'lganda
+1. `_olib-tashlangan-v120/` papkasidagi ikki faylni o'z joyiga qaytaring
+   (`telegram-ilova.html` — ildizga, `check-my-orders-telegram.js` —
+   `netlify/functions/` ichiga);
+2. `_redirects` dagi o'sha ikki qatorni o'chiring;
+3. BotFather'da menyu tugmasini qayta qo'ying.
+
+`netlify.toml` dagi Telegram ruxsati (`frame-ancestors`) ataylab
+qoldirildi — u faqat Telegram domenlariga berilgan, boshqa hech kim
+saytni `<iframe>` ichiga sola olmaydi, va ilova qaytarilganda hech narsa
+sozlash kerak bo'lmaydi.
+
+---
+
+# V120 — SHARTNOMADA RASMIY MUHR VA QR KOD
+
+## 1. Rasmiy muhr ("Tomonlarning imzosi" bo'limida)
+Sotuvchi imzosi CHIZIG'I USTIGA endi haqiqiy kompaniya shtampi kabi
+**dumaloq ko'k muhr** bosiladi — chiziq muhrning yuqori qismidan
+o'tadi, xuddi qo'lda bosilgandek:
+
+- tashqi halqa bo'ylab — **VIP RAQAMLAR**
+- ichki halqa bo'ylab — **RASMIY SHARTNOMA ASOSIDA**
+- markazda — yulduzcha va **VIPRAQAMLAR.UZ**
+- ikki halqa, yon tomonlarda ajratuvchi nuqtalar, ko'k siyoh
+  (`#1B3FA0`), yengil shaffoflik va 11 daraja qiyshiqlik — qo'lda
+  bosilgandek ko'rinadi.
+
+Muhr **butunlay vektor** (chiziqlar va shakllar bilan chiziladi): hech
+qanday rasm fayli yuklanmaydi, bosmada istalgan o'lchamda aniq chiqadi
+va PDF hajmi deyarli oshmaydi (11 KB).
+
+## 2. QR kod — skanerlasa SHU shartnomaning PDF'i ochiladi
+Xaridor ustuni ostida — faqat QR kodning o'zi, ortiqcha yozuvsiz
+(mijoz so'rovi: izoh kerak emas, QR kod o'zi tushunarli).
+
+**Qanday ishlaydi.** QR ichida qisqa havola bor:
+`https://vipraqamlar.uz/s/KR0142/<imzo>.pdf`. Skanerlanganda **sayt
+emas, PDF'ning O'ZI ochiladi** — server `Content-Type: application/pdf`
+va `Content-Disposition: inline` qaytaradi
+(`netlify/functions/shartnoma-pdf.js`).
+
+Havola ATAYLAB `.pdf` bilan tugaydi: telefon skaneri va brauzerlar
+havolaning oxiriga qarab "bu fayl" deb tushunadi va darhol ochadi.
+Himoya esa kengaytmaga bog'liq emas — server baribir imzoni tekshiradi.
+
+MUHIM: bu ishlashi uchun yangi versiya **joylanishi kerak**. Hozir
+`/s/...` manzili hali mavjud emas, shu sabab u saytning umumiy
+qoidasi bo'yicha bosh sahifaga tushadi — siz ko'rgan narsa aynan shu.
+Joylangandan keyin PDF to'g'ridan-to'g'ri ochiladi.
+Yana bir eslatma: men yuborgan NAMUNA PDF'dagi QR sinov kaliti bilan
+yasalgan, shu sabab u joylangandan keyin ham ishlamaydi — haqiqiy
+shartnomalarda to'g'ri imzo bo'ladi.
+
+**Nega telefon raqami so'ralmaydi.** Mavjud "Shartnomani yuklab olish"
+yo'li POST + telefon raqami + App Check talab qiladi — QR skaneri
+bunday so'rov yubora olmaydi. Shu sabab bu alohida, QR uchun yo'l.
+
+**Xavfsizlik — havolani taxmin qilib bo'lmaydi.** Agar manzil shunchaki
+`/s?i=KR0142` bo'lsa, raqamni birma-bir sinab (KR0001, KR0002 ...)
+boshqa odamlarning shartnomasini ochib olish mumkin bo'lardi. Shuning
+uchun havolada **imzo** (`k`) bor: u shartnoma raqamidan maxfiy kalit
+bilan hisoblanadi (HMAC-SHA256, 96 bit) va faqat shu shartnomaga
+yaraydi. Qo'shimcha: IP bo'yicha soatiga 60 ta urinish chegarasi —
+imzolarni ketma-ket sinab ko'rish darhol to'xtatiladi. Shartnoma
+bor-yo'qligi ham oshkor qilinmaydi (ikkala holatda bir xil javob).
+
+Ya'ni PDF'ni faqat qog'oz nusxa qo'lida bo'lgan odam ocha oladi — u esa
+allaqachon shartnomaning egasi.
+
+**Sozlash kerak emas.** Maxfiy kalit `CONTRACT_QR_SECRET` muhit
+o'zgaruvchisidan olinadi; qo'yilmagan bo'lsa serverdagi Firebase xizmat
+kalitidan barqaror tarzda hosil qilinadi (u hech qachon serverdan
+chiqmaydi). Ya'ni hozircha hech narsa qo'shish shart emas. Keyinchalik
+kalitni alohida qo'ymoqchi bo'lsangiz — Netlify'ga
+`CONTRACT_QR_SECRET` qo'shing (lekin shundan keyin ESKI qog'ozlardagi
+QR kodlar ishlamay qoladi, chunki imzo o'zgaradi).
+
+## 3. O'lchangan natijalar
+- QR kod **30 mm** (84 pt), bitta katak ~0,8 mm. Haqiqiy o'qish sinovi
+  (`pyzbar` dekoderi bilan): **64, 72, 90, 100 va 150 dpi** — hammasida
+  o'qildi. Avvalgi 76 pt o'lchamda past sifatli suratda o'qilmasdi, shu
+  sabab kattalashtirildi.
+- Dekoder qaytargan matn to'g'ri havola ekani tasdiqlandi.
+- Funksiya sinovi: to'g'ri imzo → PDF (200), soxta imzo → 404,
+  imzosiz → 400, yo'q shartnoma → 404, POST → 405, 61-urinishdan
+  boshlab → 429.
+- Muhr yozuvlari yoyi 140 darajadan oshmaydi — birinchi urinishda
+  tepadagi va pastdagi yozuv yon tomonlarda bir-biriga kirib ketgan
+  edi, o'lchamlar shunga qarab tanlandi.
+
+## 4. O'zgargan fayllar
+- `netlify/functions/lib/contractPdf.js` — muhr, QR va imzo hisoblash
+- `netlify/functions/shartnoma-pdf.js` — YANGI (QR havolasi shu yerga tushadi)
+- `_redirects` — `/s` qisqa manzili
+- `package.json` — `qrcode` kutubxonasi qo'shildi
+
+Muhr va QR **har ikkala yo'lda** ham chiqadi: saytdagi "Shartnomani
+yuklab olish" tugmasida ham, Telegram botga yuboriladigan PDF'da ham —
+ikkalasi bitta quruvchidan foydalanadi.
+
+---
+
+# V120 — SHRIFT XATOSI TOPILDI VA TUZATILDI
+
+## Sabab — nisbiy (relative) manzil
+Shriftlar allaqachon o'z serverimizda edi, lekin manzil NISBIY yozilgan
+edi: `assets/fonts/jakarta.woff2` (boshida `/` yo'q).
+
+Sayt faqat `/` manzilida emas, CHUQUR manzillarda ham ochiladi —
+masalan `/raqam/90-777-77-77` (SEO sahifasi; ulashilgan havola, QR kod
+yoki qidiruv natijasi aynan shunday manzilga olib keladi). Bunday
+sahifada brauzer nisbiy manzilni JORIY papkaga nisbatan hisoblaydi:
+
+    /raqam/assets/fonts/jakarta.woff2
+
+Bunday fayl yo'q. Saytning umumiy qoidasi esa topilmagan manzilga
+`index.html` qaytaradi — ya'ni brauzer "shrift" deb HTML sahifani
+oladi, uni o'qiy olmaydi va TIZIM shriftiga o'tadi. Mijoz raqamlarni
+xunuk, monospace shriftda ko'radi. Siz ko'rgan narsa aynan shu.
+
+**Isbot (brauzerda o'lchandi):**
+- eski ko'rinish, `/raqam/...` sahifasi:
+  `/raqam/assets/fonts/jakarta.woff2 -> 200 text/html` va
+  `Plus Jakarta Sans=error, Space Grotesk=error` — ikkala shrift ham
+  YUKLANMAGAN;
+- yangi ko'rinish, xuddi shu sahifa: `200 font/woff2` va
+  `Plus Jakarta Sans=loaded, Space Grotesk=loaded`.
+
+## Nima tuzatildi
+1. **Barcha manzillar endi ILDIZDAN** (`/assets/...`) — shriftlar,
+   ikonkalar, logotip, operator belgilari, `manifest.json`. Sayt qaysi
+   manzilda ochilishidan qat'i nazar hammasi topiladi.
+   Tekshirildi: `/`, `/raqam/90-777-77-77`, `/toifa/oltin` va
+   `/qandaydir/chuqur/manzil` — to'rttasida ham ikkala shrift yuklandi.
+2. **`format('woff2-variations')` -> `format('woff2')`.** Birinchisi
+   standartga kirmagan, eski yozuv; ba'zi brauzerlar (ayniqsa
+   iPhone'dagi ilova ichidagi brauzerlar — skaner, Telegram, Instagram)
+   uni tanimaydi va manbani butunlay o'tkazib yuboradi. `woff2` esa
+   hamma joyda tushuniladi; o'zgaruvchan (variable) shrift shu nom
+   bilan ham to'g'ri ishlaydi.
+3. **Ikkala shrift ham oldindan yuklanadi** (`preload`). Ilgari faqat
+   Jakarta yuklanardi — shu sabab RAQAMLAR shrifti (Space Grotesk)
+   kechikib kelardi va bir lahza boshqa shriftda ko'rinardi.
+
+## Internetsiz ham ishlaydi — tekshirildi
+Ikkala shrift Service Worker'ning "shell" ro'yxatida. Brauzerda
+o'lchandi: sayt bir marta ochilgandan keyin internet BUTUNLAY uzildi va
+sahifa qayta yuklandi —
+
+    Keshda: /index.html, /manifest.json, /assets/logo-circle.png,
+            /assets/fonts/jakarta.woff2, /assets/fonts/grotesk.woff2
+    Natija: Plus Jakarta Sans=loaded, Space Grotesk=loaded
+
+Ya'ni shrift bir marta yuklanadi va keyin internetsiz ham o'sha shrift
+ishlatiladi — siz so'raganingizdek.
+
+Kesh nomi `vipraqamlar-v10` dan `v11` ga oshirildi: eski keshdagi
+nusxalar almashishi uchun (aks holda ba'zi telefonlarda eski holat
+qolib ketardi).
+
+---
+
+# V120 — "Zaxira nusxa OLINMADI" — ENDI NUSXA BARIBIR OLINADI
+
+## Sabab
+Rasmiy Firestore eksporti (`exportDocuments`) xizmat hisobida ALOHIDA
+huquq talab qiladi — "Cloud Datastore Import Export Admin". U
+berilmagan, shuning uchun Google "The caller does not have permission"
+deydi.
+
+Eng yomoni shunda edi: **hech qanday nusxa olinmasdi**. Ya'ni eng
+kerakli paytda — baza buzilganda yoki kimdir xato bilan o'chirganda —
+qaytaradigan hech narsa bo'lmasdi.
+
+## Nima qilindi — ZAXIRA YO'L (rolsiz ishlaydi)
+Rasmiy eksport ishlamasa, endi ZAXIRA YO'L ishga tushadi: muhim
+to'plamlar Admin SDK bilan o'qilib, JSON fayl sifatida Storage'ga
+yoziladi — `zaxira-json/<sana>/<toplam>.json`. Buning uchun **hech
+qanday qo'shimcha rol kerak emas**: Admin SDK bazani o'qishga va
+Storage'ga yozishga allaqachon haqli.
+
+Saqlanadigan to'plamlar (eng muhimi oldinda, vaqt yetmay qolsa ham
+shular saqlanadi): shartnomalar, buyurtmalar, zakazlar, mijozlar,
+shaxsiy baza, raqam to'lovlari, dilerlar va ularning yozishmalari,
+katalog raqamlari, narx kategoriyalari, operator sozlamalari, sayt
+sozlamalari, promo-kodlar, adminlar, vazifalar, kuzatuvlar, stories,
+video sharhlar, vakansiyalar va arizalar — jami 25 ta.
+
+Bu rasmiy eksportning o'rnini BOSMAYDI (uni `gcloud firestore import`
+bilan bitta buyruqda tiklash mumkin, JSON'ni esa skript bilan tiklash
+kerak), lekin hech narsadan ko'ra ancha yaxshi.
+
+## Telegram xabari endi aniq yo'riqnoma beradi
+Xabarda sizning xizmat hisobingiz manzili va 5 qadamlik yo'riqnoma
+chiqadi — nusxalab qo'yish kifoya:
+
+    1. console.cloud.google.com -> loyiha: vip-raqamlar
+    2. IAM & Admin -> IAM -> "Grant access"
+    3. Principal: firebase-adminsdk-...@vip-raqamlar.iam.gserviceaccount.com
+    4. Role: Cloud Datastore Import Export Admin
+    5. Save
+
+Shuni qilsangiz — ertangi zaxiradan boshlab yana rasmiy, to'liq eksport
+ishlaydi va JSON yo'liga umuman ehtiyoj qolmaydi.
+
+## Tekshirildi (soxta Firestore va Storage bilan)
+- rasmiy eksport **403** qaytarganda: 25 ta to'plam JSON sifatida
+  saqlandi (4200 ta raqam = 183 KB), sog'liq vaqti yangilandi va
+  Telegram'ga yo'riqnomali xabar ketdi;
+- rasmiy eksport **ishlaganda**: JSON yo'li umuman ishga tushmadi
+  (ortiqcha ish qilinmaydi);
+- **ikkalasi ham** ishlamaganda: aniq xato xabari va 500.
+
+Yana bir tuzatish: eski nusxalarni tozalash endi `zaxira-json/`
+papkasini ham qamrab oladi — ilgari faqat `zaxira/` tozalanardi, ya'ni
+JSON nusxalar cheksiz to'planib, Storage joyini yeb borardi.
+
+## Muhim: nusxalar OCHIQ EMAS
+`storage.rules` da hamma qolgan yo'l uchun `allow read, write: if false`
+turadi (V120 da qo'shilgan), ya'ni zaxira fayllarini saytdan o'qib
+bo'lmaydi — ularga faqat server (Admin SDK) va siz Google Cloud
+konsolidan kira olasiz.
+
+---
+
+# V120 — ORQA FON QAYTA ISHLANDI (kartochka birinchi o'rinda)
+
+## 1. Chiziq endi kartochkada ham, o'rtada ham ko'rinmaydi
+Ikki ish qilindi:
+
+**a) Qolgan shaffof kartochka yopildi.** "Kun tavsiyasi" kartochkasi
+(`.daycard`) hamon yarim shaffof edi — fon uning ichidan ko'rinib
+turardi. Endi unga ham qattiq asos qo'yildi (`--day-base`), xuddi
+raqam kartochkalaridagi kabi.
+
+**b) Chiziqlar ekranning O'RTASIDA umuman chizilmaydi.** `mask` bilan
+o'rta qism kesib tashlandi — chiziq faqat chetlarga yaqin joyda,
+bilinar-bilinmas chiqadi. Siz aytganingizdek: yonlarida bo'lsa mayli,
+lekin o'rtada — kartochkalar turgan joyda — hech narsa bo'lmasin.
+Mask `position:fixed` va animatsiyasiz qatlamda, ya'ni bir marta
+hisoblanadi — aylantirish tezligiga ta'siri yo'q (o'lchandi).
+
+## 2. Fon endi "jonli" — sekin aylanadi
+- **Bitta burchak ochroq** (o'ng yuqori). Yorug'lik manbai bitta
+  bo'lgani uchun surat tinch ko'rinadi va ko'z kartochkaga tushadi.
+- **Bir aylanish 140 soniya** (sekundiga ~2,6 daraja). Ko'z buni
+  harakat sifatida ilg'amaydi, lekin sahifa "muzlab qolgandek" ham
+  tuyilmaydi — aynan siz so'ragan "bilinmasdan, sekin" holat.
+- Qatlam 1,18 barobar kattalashtirilgan — aylanganda chetlarida bo'sh
+  burchak ochilib qolmaydi.
+- Rang ozgina **ochroq va ko'kroq** qilindi (`#061020` -> `#07162B`).
+  Kartochka baribir fondan ochiq bo'lib qoladi, chunki u shu rang
+  ustiga yorug' parda qo'yadi.
+
+## 3. Sekinlashmaydi — o'lchandi
+Faqat `transform` o'zgaradi, ya'ni harakatni VIDEOKARTA bajaradi va
+sahifa qayta chizilmaydi. 60 ta kartochka bilan aylantirib o'lchandi:
+
+    Kuchli qurilma, aylanish yoqilgan ......... 60 FPS
+    Zaif qurilma (low), aylanish 240 soniya ... 60 FPS
+
+(O'lchov dasturiy chizish rejimida — haqiqiy telefonda bundan ham
+yaxshi.)
+
+Ilgari zaif qurilmada harakat BUTUNLAY o'chirilardi. Endi u yerda ham
+qoladi, faqat ikki barobar sekinroq (240 soniya) — ya'ni fon hamma
+joyda "tirik". Faqat foydalanuvchining O'ZI telefonda "harakatni
+kamaytirish"ni yoqsa, harakat to'liq to'xtaydi (bu uning tanlovi).
+
+## Savolingizga javob
+"Orqa fon jonli bo'lsa, odam saytdan chiqib ketmaydimi?" — aksincha,
+sekin va bilinar-bilinmas harakat sahifani "tirik" qiladi va odam
+uzoqroq qoladi. MUHIMI — harakat e'tiborni TORTMASLIGI kerak: shuning
+uchun 140 soniya (ko'z ilg'amaydigan tezlik), bitta yorug' burchak va
+o'rtada chiziq yo'q. Ko'z birinchi navbatda kartochkaga tushadi.
+
+---
+
+# V120 — SHRIFT ENDI UMUMAN O'ZGARMAYDI (sekin internetda ham)
+
+Oldingi tuzatishda shrift MANZILI to'g'rilandi. Lekin yana bitta
+noqulaylik qolgan edi: sekin internetda matn avval TIZIM shriftida
+chiqib, shrift kelgach ALMASHARDI — ya'ni mijoz bir lahza boshqa
+shriftni ko'rardi. Siz aytgan "umuman o'zgarmasin" talabiga shu
+mos kelmasdi.
+
+## Nima o'zgardi
+
+**1. `font-display: swap` -> `font-display: block`.**
+- `swap` — matn DARHOL tizim shriftida chiqadi, shrift kelgach almashadi
+  (ko'zga tashlanadigan sakrash).
+- `block` — matn shrift kelguncha ko'rinmaydi (joyi band turadi, sahifa
+  sakramaydi), kelgach BIRDANIGA to'g'ri shriftda chiqadi. Ya'ni mijoz
+  HECH QACHON boshqa shriftni ko'rmaydi.
+
+**2. Shriftlar endi `<head>` ning ENG BOSHIDA.** Ilgari ular Firebase
+`preconnect`/`preload` qatorlaridan keyin turardi, ya'ni navbatda
+orqaroqda edi. Endi brauzer boshqa hech narsani kutmasdan ularni
+birinchi bo'lib yuklaydi.
+
+## O'lchangan natija (brauzerda, sun'iy sekin internet bilan)
+
+    Sekin 3G (700 kbit/s, 300 ms kechikish):
+        matn paydo bo'ldi ...... 3999 ms
+        shrift tayyor bo'ldi ... 3999 ms
+        farq ................... 0 ms
+
+    O'rtacha tezlik (2,5 Mbit/s):
+        matn paydo bo'ldi ...... 1156 ms
+        shrift tayyor bo'ldi ... 1156 ms
+        farq ................... 0 ms
+
+Ya'ni **noto'g'ri shrift ko'rinadigan oraliq UMUMAN YO'Q**. Sababi
+oddiy: shrift fayllari juda kichik (22 va 27 KB) va eng birinchi
+so'rov bo'lib ketadi — ular sahifaning o'zidan (475 KB) ancha oldin
+keladi.
+
+## Agar shrift umuman kelmasa
+Sinab ko'rildi: shrift so'rovi BUTUNLAY to'sildi — matn 3 soniyadan
+keyin baribir chiqdi (tizim shriftida). Ya'ni sahifa hech qachon
+"bo'sh" bo'lib qolmaydi; bu faqat shrift mutlaqo yetib kelmagan
+holatda bo'ladi.
+
+## Ikkinchi kirishdan boshlab
+Shriftlar Service Worker keshida — internet umuman bo'lmasa ham
+darhol o'sha shriftda ochiladi (oldingi bo'limda o'lchab tekshirilgan).

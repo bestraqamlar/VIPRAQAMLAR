@@ -23,25 +23,25 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "assets/icon-192.png",
+      "src": "/assets/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icon-512.png",
+      "src": "/assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icon-192.png",
+      "src": "/assets/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "assets/icon-512.png",
+      "src": "/assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -54,7 +54,7 @@
       "url": "/#/katalog",
       "icons": [
         {
-          "src": "assets/icon-192.png",
+          "src": "/assets/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -65,7 +65,7 @@
       "url": "/#/sevimlilar",
       "icons": [
         {
-          "src": "assets/icon-192.png",
+          "src": "/assets/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -76,7 +76,7 @@
       "url": "/#/buyurtmalarim",
       "icons": [
         {
-          "src": "assets/icon-192.png",
+          "src": "/assets/icon-192.png",
           "sizes": "192x192"
         }
       ]

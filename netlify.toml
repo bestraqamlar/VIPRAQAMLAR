@@ -269,11 +269,16 @@
 #
 # MUHIM: X-Frame-Options = "DENY" ATAYLAB faqat admin panelga (yuqorida)
 # qo'yilgan, BUTUN saytga (index.html) EMAS — chunki bu sayt Telegram
-# "Mini ilova" (Web App) sifatida ham ochiladi, va Telegram Web
-# (web.telegram.org) Mini ilovalarni HAQIQIY <iframe> ichida ko'rsatadi.
-# Agar bosh sahifaga ham X-Frame-Options: DENY qo'yilsa, Telegram Web
-# orqali "Mini ilova" tugmasi bosilganda sahifa OCHILMAY QOLAR EDI (oq
-# ekran) — bu haqiqiy, sinovdan o'tgan Telegram cheklovi.
+# ichida ham ochilishi mumkin, va Telegram Web (web.telegram.org)
+# sahifani HAQIQIY <iframe> ichida ko'rsatadi. Agar bosh sahifaga ham
+# X-Frame-Options: DENY qo'yilsa, Telegram orqali ochilganda sahifa
+# OCHILMAY QOLAR EDI (oq ekran) — bu haqiqiy, sinovdan o'tgan cheklov.
+#
+# V120: alohida "Mini ilova" sahifasi (telegram-ilova.html) VAQTINCHA
+# olib tashlandi (mijoz so'rovi). Quyidagi `frame-ancestors` ruxsati esa
+# ATAYLAB QOLDIRILDI — u faqat Telegram domenlariga berilgan (boshqa hech
+# kim saytni <iframe> ichiga sola olmaydi), va ilova qaytarilganda hech
+# narsa sozlash kerak bo'lmaydi.
 [[headers]]
   for = "/*"
   [headers.values]

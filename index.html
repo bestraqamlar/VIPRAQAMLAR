@@ -12,6 +12,13 @@
      shu sabab 08-js-boot.html ichida qo'shimcha JS himoya bor. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#07152B">
+<!-- SHRIFTLAR ENG BIRINCHI SO'ROV (V120).
+     Ular <head> ning eng boshida turadi — brauzer boshqa hech narsani
+     kutmasdan darhol yuklashni boshlaydi. Ilgari ular Firebase
+     preconnect/preload qatorlaridan KEYIN turardi, ya'ni navbatda
+     orqaroqda edi va sekin internetda kechikardi. -->
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jakarta.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/grotesk.woff2" crossorigin>
 <title>VIP RAQAMLAR — chiroyli va VIP telefon raqamlar</title>
 <meta name="description" content="O'zbekiston bo'ylab VIP, oltin va chiroyli telefon raqamlar. Barcha operatorlar, bo'lib to'lash, bepul yetkazib berish va rasmiy shartnoma.">
 <link rel="canonical" href="https://vipraqamlar.uz/">
@@ -28,8 +35,8 @@
 <meta name="twitter:image" content="https://vipraqamlar.uz/assets/og-image.jpg">
 <meta property="og:url" content="https://vipraqamlar.uz/">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="assets/logo-circle.png">
-<link rel="apple-touch-icon" href="assets/icon-512.png">
+<link rel="icon" href="/assets/logo-circle.png">
+<link rel="apple-touch-icon" href="/assets/icon-512.png">
 <!-- IPHONE'DA BILDIRISHNOMA UCHUN KERAK.
      Apple qoidasi: veb-sayt bildirishnoma yubora olishi uchun u
      "Bosh ekranga qo'shish" orqali qo'shilgan bo'lishi SHART, va
@@ -40,7 +47,7 @@
      DIQQAT: bu teglar saytda hech qanday "ilovani o'rnating" taklifi
      chiqarmaydi — bizning taklifimiz alohida va o'chirilgan
      (index.html ichidagi PWA_OCHIQ = false). -->
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VIP RAQAMLAR">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -79,31 +86,64 @@ try{
 
 <link rel="preconnect" href="https://www.gstatic.com">
 <link rel="preconnect" href="https://firestore.googleapis.com">
-<!-- SHRIFT — O'Z SERVERIMIZDA.
-     Ilgari shriftlar Google'dan (fonts.googleapis.com + fonts.gstatic.com)
-     yuklanardi. Bu uchta muammo tug'dirardi:
-       1. ikkita BEGONA domenga ulanish — DNS + TLS, O'zbekistonda
-          ko'pincha 150-400 ms;
-       2. avval CSS fayl, keyin undan shrift fayli — ketma-ket IKKI
-          marta kutish;
-       3. Google bloklansa yoki sekinlashsa — sayt ham ta'sirlanardi.
-     Endi ikkala shrift ham `assets/fonts/` da, O'ZGARUVCHAN (variable)
-     ko'rinishda: bitta fayl 400 dan 800 gacha barcha qalinlikni
-     beradi, ya'ni 8 ta fayl o'rniga 1 ta. Jami 49 KB.
-     `preload` + `font-display:swap`: matn darhol tizim shrifti bilan
-     chiqadi, shrift kelgach almashadi — "oq ekran" yo'q. -->
-<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
+<!-- SHRIFT — O'Z SERVERIMIZDA (V120 da TUZATILDI).
+     Ilgari shriftlar Google'dan yuklanardi; keyin o'z serverimizga
+     ko'chirildi. Lekin manzil NISBIY yozilgan edi
+     ("assets/fonts/jakarta.woff2") va aynan shu KATTA XATO edi:
+
+       Sayt faqat "/" manzilida emas, CHUQUR manzillarda ham ochiladi —
+       masalan /raqam/90-777-77-77 (SEO sahifasi, qarang: seo-number.js;
+       ulashilgan havola yoki QR kod aynan shunday manzilga olib keladi).
+       Bunday sahifada brauzer nisbiy manzilni JORIY papkaga nisbatan
+       hisoblaydi: /raqam/assets/fonts/jakarta.woff2 — bunday fayl yo'q,
+       umumiy qoida bo'yicha o'rniga index.html qaytariladi, ya'ni
+       "shrift fayli" buzuq bo'lib chiqadi va brauzer TIZIM shriftiga
+       o'tadi. Mijoz esa raqamlarni xunuk, monospace shriftda ko'radi.
+
+     Endi manzil ILDIZDAN boshlanadi ("/assets/...") — sayt qaysi
+     manzilda ochilishidan QAT'I NAZAR shrift topiladi.
+
+     Ikkinchi tuzatish: format nomi endi standart `format('woff2')`.
+     `woff2-variations` — standartga kirmagan, eski yozuv; ba'zi
+     brauzerlar (ayniqsa iPhone'dagi ilova ichidagi brauzerlar) uni
+     TANIMAYDI va manbani butunlay o'tkazib yuboradi. `woff2` esa
+     hamma joyda tushuniladi, o'zgaruvchan (variable) shrift ham
+     shu nom bilan to'g'ri ishlaydi.
+
+     Ikkala shrift ham OLDINDAN yuklanadi (preload) — ilgari faqat
+     bittasi yuklanardi, shu sabab raqamlar shrifti (Space Grotesk)
+     kechikib kelardi.
+
+     UCHINCHI TUZATISH (mijoz so'rovi: "shu shrift bo'yicha qolsin,
+     umuman o'zgarmasin, internet sekin bo'lganda ham"):
+     `font-display` endi `swap` emas, `block`.
+       * `swap` — matn DARHOL tizim shriftida chiqadi, shrift kelgach
+         ALMASHADI. Ya'ni sekin internetda mijoz avval boshqa
+         (xunuk) shriftni ko'rardi, keyin u sakrab almashardi — siz
+         ko'rgan noqulaylik aynan shu edi.
+       * `block` — matn shrift kelguncha KO'RINMAYDI (joyi band
+         turadi, sahifa sakramaydi), kelgach esa BIRDANIGA to'g'ri
+         shriftda chiqadi. Ya'ni mijoz HECH QACHON boshqa shriftni
+         ko'rmaydi.
+     Fayllar juda kichik (22 va 27 KB) va eng birinchi so'rov bo'lib
+     ketadi, shu sabab kutish sezilmaydi; ikkinchi kirishdan boshlab
+     esa ular Service Worker keshidan darhol olinadi (internetsiz
+     ham).
+
+     Internetsiz ishlashi: ikkala fayl ham Service Worker'ning
+     "shell" ro'yxatida (sw.js) — bir marta ochilgandan keyin internet
+     umuman bo'lmasa ham sayt O'Z shriftida ochiladi. -->
 <style>
 @font-face{
   font-family:'Plus Jakarta Sans';
-  src:url('assets/fonts/jakarta.woff2') format('woff2-variations');
-  font-weight:200 800;font-style:normal;font-display:swap;
+  src:url('/assets/fonts/jakarta.woff2') format('woff2');
+  font-weight:200 800;font-style:normal;font-display:block;
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face{
   font-family:'Space Grotesk';
-  src:url('assets/fonts/grotesk.woff2') format('woff2-variations');
-  font-weight:300 700;font-style:normal;font-display:swap;
+  src:url('/assets/fonts/grotesk.woff2') format('woff2');
+  font-weight:300 700;font-style:normal;font-display:block;
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 </style>
@@ -179,6 +219,7 @@ window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
   --glow-a:rgba(36,87,230,.17); --glow-b:rgba(124,58,237,.13);
   --tg-glow:rgba(45,160,220,.16); --tg-line:rgba(45,160,220,.26); --tg-line-2:rgba(45,160,220,.5);
   --day-bg:linear-gradient(160deg,rgba(255,255,255,.86),rgba(240,252,249,.72));
+  --day-base:#CBD6E9;
   --day-glow:rgba(16,160,132,.14); --day-line:rgba(16,160,132,.25); --day-line-2:rgba(16,160,132,.5);
   --day-rib:rgba(16,160,132,.13); --day-rib-ink:#0A6A58;
   --blob-1:rgba(36,87,230,.17); --blob-2:rgba(192,138,46,.13);
@@ -202,7 +243,10 @@ window.YM_ID = 0;   /* <-- Metrika hisoblagich raqamini shu yerga yozing */
   --app-w:480px;
 }
 html[data-theme="dark"]{
-  --ground:#061020;      --ground-2:#040A17;
+  /* V120: fon ozgina OCHROQ va KO'KROQ (mijoz so'rovi). Kartochka
+     baribir fondan ochiq bo'lib qoladi (u shu rang ustiga yorug'
+     parda qo'yadi), ya'ni ko'z avvalgidek kartochkaga tushadi. */
+  --ground:#07162B;      --ground-2:#051020;
   --glass:rgba(18,41,76,.72);
   --edge:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0));
   --card:#12294C;        --card-2:#1A3763;      --card-3:#20406F;
@@ -217,13 +261,14 @@ html[data-theme="dark"]{
   --red:#FF8A87;         --red-tint:rgba(194,48,46,.22); --red-line:rgba(255,138,135,.32);
   --navy-grad:linear-gradient(150deg,#12294C 0%,#1E457E 100%);
   --nc-bg:linear-gradient(160deg,rgba(132,170,230,.14),rgba(90,125,190,.07));
-  --nc-base:#061020;
+  --nc-base:#07162B;
   --nc-hov:rgba(143,180,255,.45);
   --nc-edge:rgba(255,255,255,.14);
   --nc-line:rgba(255,255,255,.1);
   --glow-a:rgba(92,150,255,.30); --glow-b:rgba(164,123,255,.23);
   --tg-glow:rgba(56,176,227,.22); --tg-line:rgba(56,176,227,.3); --tg-line-2:rgba(56,176,227,.6);
   --day-bg:linear-gradient(160deg,rgba(38,196,164,.14),rgba(20,110,95,.08));
+  --day-base:#07162B;
   --day-glow:rgba(45,210,176,.2); --day-line:rgba(45,210,176,.26); --day-line-2:rgba(45,210,176,.55);
   --day-rib:rgba(45,210,176,.16); --day-rib-ink:#8FEFD9;
   --blob-1:rgba(46,95,224,.34); --blob-2:rgba(201,160,65,.2);
@@ -270,66 +315,92 @@ body{
   overscroll-behavior-y:none; position:relative; min-height:100dvh;
   touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
-/* Yumshoq nurli fon — statik, hech narsani sekinlashtirmaydi */
+/* "JONLI" FON (V120 da qayta ishlangan).
+   ------------------------------------------------------------------
+   MAQSAD: ko'z BIRINCHI NAVBATDA kartochkaga tushsin, fon esa
+   shunchaki "tirik" tuyilsin — e'tiborni tortmasin.
+   Shuning uchun:
+     * BITTA BURCHAK ochroq (o'ng yuqori) — qolgan joy to'q. Yorug'lik
+       manbai bitta bo'lgani uchun surat tinch ko'rinadi;
+     * yorug'lik juda SEKIN aylanadi (90 soniyada bir marta) — ko'z uni
+       harakat sifatida ilg'amaydi, lekin sahifa "muzlab qolgandek"
+       ham tuyilmaydi;
+     * qatlam boshlang'ich holatda 1.18 barobar KATTALASHTIRILGAN —
+       aylanganda chetlarida bo'sh burchak ochilib qolmaydi.
+
+   TEZLIK QOIDASI (o'zgarmadi): faqat `transform` o'zgaradi. Brauzer
+   bunday animatsiyani videokartada bajaradi — sahifa QAYTA
+   CHIZILMAYDI, ya'ni aylantirish tezligiga ta'siri yo'q. `opacity`,
+   `filter`, rang va o'lcham ATAYLAB o'zgartirilmaydi. */
 body::before{
   content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
-  /* "JONLI" FON (V116).
-     Rangli yorug'lik juda sekin suzadi — bilinar-bilinmas, lekin yuza
-     "tirik" tuyiladi.
-     TEZLIK QOIDASI: faqat `transform` o'zgaradi. Brauzer bunday
-     animatsiyani videokartada bajaradi — sahifa QAYTA CHIZILMAYDI,
-     ya'ni aylantirish tezligiga ta'sir qilmaydi. `opacity`, `filter`,
-     rang yoki o'lcham ATAYLAB o'zgartirilmaydi.
-     Harakat 1.5% dan oshmaydi va bir aylanish 48 soniya davom etadi —
-     ko'z uni harakat sifatida ilg'amaydi, faqat "jonli" tuyg'u qoladi. */
-  transform:translate3d(0,0,0);
+  transform:scale(1.18) rotate(0deg);
   will-change:transform;
-  animation:fonSuz 48s ease-in-out infinite;
+  animation:fonAylan 140s linear infinite;
   background:
-    radial-gradient(760px 460px at 10% -6%, var(--blob-1), transparent 60%),
-    radial-gradient(620px 420px at 94% 10%, var(--blob-2), transparent 58%),
-    radial-gradient(700px 520px at 52% 46%, var(--blob-3), transparent 60%),
-    radial-gradient(900px 700px at 50% 108%, var(--blob-4), transparent 62%);
+    /* 1) ASOSIY YORUG'LIK — o'ng yuqori burchak (eng ochiq joy) */
+    radial-gradient(820px 620px at 96% -4%, var(--blob-1), transparent 62%),
+    /* 2) iliq, juda xira aks-sado — shu burchakning ichida */
+    radial-gradient(420px 340px at 88% 4%, var(--blob-2), transparent 60%),
+    /* 3) pastki chapda sovuq, chuqur soya — kontrast beradi */
+    radial-gradient(880px 640px at -6% 104%, var(--blob-4), transparent 64%);
 }
 html[data-theme="dark"] body::before{
   background:
-    radial-gradient(900px 540px at 12% -8%, rgba(58,110,255,.20), transparent 62%),
-    radial-gradient(760px 480px at 92% 4%, rgba(230,200,119,.12), transparent 60%),
-    radial-gradient(900px 700px at 50% 108%, rgba(46,95,224,.14), transparent 62%);
+    radial-gradient(860px 650px at 96% -4%, rgba(66,122,255,.30), transparent 62%),
+    radial-gradient(430px 350px at 88% 4%, rgba(230,200,119,.10), transparent 60%),
+    radial-gradient(900px 660px at -6% 104%, rgba(32,74,186,.20), transparent 64%);
 }
-/* ---- V120: "SIGNAL TO'LQINLARI" ----
-   Juda ingichka (1 px) halqalar o'ng yuqori burchakdan tarqaladi,
-   ikkinchi, siyrakroq to'plam esa pastki chapdan. TAKRORLANMAYDI,
-   ya'ni plitka chokkasi ham, "tayyor shablon" tuyg'usi ham yo'q.
-   Animatsiyasi yo'q — bir marta chiziladi, aylantirishga ta'siri yo'q.
-   z-index:-1 — ya'ni yorug'lik qatlamidan (z-index:-2) yuqorida,
-   lekin sahifa mazmunidan PASTDA: kartochka ustiga chiqmaydi. */
+/* ---- V120: "SIGNAL TO'LQINLARI" — FAQAT CHEKKALARDA ----
+   Chiziqlar ekranning O'RTASIDA ko'rinmaydi, faqat chetlariga yaqin
+   joyda bilinar-bilinmas chiqadi. Sabab (mijoz so'rovi): o'rtada
+   kartochkalar turadi va chiziq ularning ortidan/yonidan o'tib,
+   KO'ZNI CHALG'ITARDI. Endi ko'z birinchi navbatda kartochkaga
+   tushadi, fon esa faqat chekkalarni "to'ldiradi".
+   Bajarilishi: `mask` bilan o'rta qism butunlay kesib tashlanadi.
+   Qatlam `position:fixed` va ANIMATSIYASIZ — ya'ni mask bir marta
+   hisoblanadi, har kadrda emas (aylantirish tezligiga ta'siri yo'q;
+   o'lchandi). */
 body::after{
   content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
     repeating-radial-gradient(circle at 112% -12%,
-      rgba(11,36,72,.045) 0 1px, transparent 1px 58px),
+      rgba(11,36,72,.040) 0 1px, transparent 1px 62px),
     repeating-radial-gradient(circle at -12% 108%,
-      rgba(11,36,72,.028) 0 1px, transparent 1px 88px);
+      rgba(11,36,72,.026) 0 1px, transparent 1px 92px);
+  -webkit-mask-image:radial-gradient(118% 78% at 50% 46%, #0000 0 52%, #000 100%);
+  mask-image:radial-gradient(118% 78% at 50% 46%, #0000 0 52%, #000 100%);
 }
 html[data-theme="dark"] body::after{
   background:
     repeating-radial-gradient(circle at 112% -12%,
-      rgba(255,255,255,.052) 0 1px, transparent 1px 58px),
+      rgba(255,255,255,.048) 0 1px, transparent 1px 62px),
     repeating-radial-gradient(circle at -12% 108%,
-      rgba(255,255,255,.030) 0 1px, transparent 1px 88px);
+      rgba(255,255,255,.028) 0 1px, transparent 1px 92px);
 }
 
-@keyframes fonSuz{
-  0%,100%{ transform:translate3d(0,0,0) scale(1); }
-  33%    { transform:translate3d(1.2%,-1%,0) scale(1.035); }
-  66%    { transform:translate3d(-1%,0.8%,0) scale(1.015); }
+/* To'liq, UZLUKSIZ aylanish: boshi va oxiri bir xil bo'lgani uchun
+   "sakrash" bo'lmaydi. `linear` — tezlik o'zgarmaydi, ya'ni harakat
+   umuman sezilmaydi, faqat yorug'lik asta-sekin joy almashadi. */
+@keyframes fonAylan{
+  from{ transform:scale(1.18) rotate(0deg); }
+  to  { transform:scale(1.18) rotate(360deg); }
 }
 /* Zaif qurilmada va "harakatni kamaytirish" yoqilganda — butunlay jim.
    `low` sinfi <head> da qo'yiladi (qarang: 01-head.html). */
-html.low body::before{ animation:none; will-change:auto; }
+/* ZAIF QURILMA. Ilgari bu yerda aylanish BUTUNLAY o'chirilardi.
+   Lekin bu qatlam `position:fixed` va faqat `transform` o'zgaradi —
+   bunday harakatni videokarta bajaradi, sahifa qayta chizilmaydi.
+   Shu sabab zaif qurilmada ham harakat QOLADI, faqat ikki barobar
+   sekinroq (240 soniya) — ya'ni fon hamma joyda "tirik" bo'ladi.
+   O'lchandi: 60 ta kartochka bilan aylantirishda 60 FPS (dasturiy
+   chizish rejimida, ya'ni haqiqiy telefonda bundan ham yaxshi). */
+html.low body::before{ animation-duration:240s; }
+/* "Harakatni kamaytirish" — foydalanuvchining O'Z tanlovi, shu sabab
+   bu yerda harakat to'liq to'xtaydi. Kattalashtirish qoladi, aks holda
+   chetlarda bo'sh burchak ko'rinib qolardi. */
 @media (prefers-reduced-motion:reduce){
-  body::before{ animation:none; will-change:auto; }
+  body::before{ animation:none; will-change:auto; transform:scale(1.18); }
 }
 
 body.noscroll{overflow:hidden}
@@ -2120,6 +2191,8 @@ html[data-theme="dark"] ::selection{background:transparent}
   background:
     radial-gradient(150px 120px at 100% 0%, var(--day-glow), transparent 70%),
     var(--day-bg);
+  /* Qattiq asos — fon naqshi kartochka ichidan ko'rinmasin (V120) */
+  background-color:var(--day-base);
   border:1px solid var(--day-line);
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
   /* backdrop-filter yo'q — yuqoridagi izohga qarang (unumdorlik) */
@@ -3218,7 +3291,7 @@ html[data-theme="dark"] ::selection{background:transparent}
      Katta kompaniyalar ilovasidagi push xabari kabi ko'rinadi: tepadan
      yumshoq tushadi, bosilsa xabarlar oynasi ochiladi. -->
 <div class="push" id="pushBox" role="button" tabindex="0" aria-live="polite">
-  <div class="push-ic"><img src="assets/logo-circle.png" alt="" width="34" height="34" loading="lazy" decoding="async"></div>
+  <div class="push-ic"><img src="/assets/logo-circle.png" alt="" width="34" height="34" loading="lazy" decoding="async"></div>
   <div class="push-b">
     <div class="push-h"><span class="push-n">VIP RAQAMLAR</span><span class="push-w" id="pushWhen"></span></div>
     <div class="push-t" id="pushTitle"></div>
@@ -3269,12 +3342,12 @@ let TEST_YUKLANDI = false;
 const FN = '/.netlify/functions/';
 
 const OPERATOR_META = {
-  Mobiuz:{color:'#C0392B', logo:'assets/operators/mobiuz.png'},
-  Beeline:{color:'#B8860B', logo:'assets/operators/beeline.png'},
-  Ucell:{color:'#8E5BA6', logo:'assets/operators/ucell.png'},
-  Uzmobile:{color:'#2E63C7', logo:'assets/operators/uzmobile.png'},
-  Humans:{color:'#A8791B', logo:'assets/operators/humans.svg'},
-  Perfektum:{color:'#D9541F', logo:'assets/operators/perfektum.svg'}
+  Mobiuz:{color:'#C0392B', logo:'/assets/operators/mobiuz.png'},
+  Beeline:{color:'#B8860B', logo:'/assets/operators/beeline.png'},
+  Ucell:{color:'#8E5BA6', logo:'/assets/operators/ucell.png'},
+  Uzmobile:{color:'#2E63C7', logo:'/assets/operators/uzmobile.png'},
+  Humans:{color:'#A8791B', logo:'/assets/operators/humans.svg'},
+  Perfektum:{color:'#D9541F', logo:'/assets/operators/perfektum.svg'}
 };
 const opMeta = (op) => OPERATOR_META[op] || { color:'#6b7280' };
 const LIVE_OPERATORS = ['Beeline','Ucell','Humans','Mobiuz','Perfektum'];

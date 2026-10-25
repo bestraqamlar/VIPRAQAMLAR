@@ -65,6 +65,28 @@
 /identitytoolkit.googleapis.com/*   /.netlify/functions/auth-proxy   200
 /securetoken.googleapis.com/*       /.netlify/functions/auth-proxy   200
 
+# SHARTNOMA QR KODI (V120).
+# Shartnoma PDF'ining pastida QR kod bor; u skanerlanganda AYNAN shu
+# shartnomaning PDF'i ochiladi. Manzil ATAYLAB juda qisqa (`/s`) —
+# havola qancha qisqa bo'lsa, QR kodning kataklari shuncha yirik
+# bo'ladi va bosilgan qog'ozdan bir urinishda o'qiladi.
+# Himoya: havoladagi `k` imzosi (HMAC) — qarang: shartnoma-pdf.js
+# Asosiy ko'rinish: /s/KR0142/<imzo>.pdf  -> PDF'ning O'ZI ochiladi.
+# `.pdf` bilan tugagani uchun telefon skaneri uni "fayl" deb biladi va
+# darhol ochadi (sayt ochilib, keyin yuklab olish so'ralmaydi).
+/s/:i/:k   /.netlify/functions/shartnoma-pdf?i=:i&k=:k   200
+# Eski ko'rinish ham ishlayversin (orqaga moslik uchun).
+/s         /.netlify/functions/shartnoma-pdf             200
+
+# TELEGRAM MINI ILOVA — V120 da VAQTINCHA OLIB TASHLANDI (mijoz so'rovi:
+# "hozircha xatosi ko'p"). Fayl o'chirilgani uchun eski havola pastdagi
+# umumiy qoida bo'yicha baribir bosh sahifaga tushadi, lekin buni ANIQ
+# yozib qo'yamiz: BotFather'dagi menyu tugmasi hali eski manzilni
+# ko'rsatayotgan bo'lsa ham, mijoz oq ekran emas — SAYTNING O'ZINI
+# ko'radi. Ilova qaytarilganda shu ikki qatorni olib tashlash kifoya.
+/telegram-ilova.html   /index.html   200
+/telegram-ilova        /index.html   200
+
 # BOSHQA BARCHA manzillar (mavjud bo'lmagan/tasodifiy sahifalar, masalan
 # /qandaydir-notogri-havola.html) — bosh sahifaga (index.html) yo'naltiriladi.
 # DIQQAT: bu qoida faqat "fayl topilmagan" holatlarda ishlaydi — mavjud
