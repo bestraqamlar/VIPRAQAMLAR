@@ -60,14 +60,100 @@ async function kirishTokeni() {
 async function eskilarniTozala() {
   try {
     const chegara = Date.now() - SAQLASH_KUN * 24 * 60 * 60 * 1000;
-    const [fayllar] = await admin.storage().bucket(BUCKET).getFiles({ prefix: 'zaxira/' });
+    const bucket = admin.storage().bucket(BUCKET);
+    /* V120: ikkala papka ham tozalanadi — rasmiy eksport (`zaxira/`)
+       va zaxira yo'l bilan olingan JSON nusxalar (`zaxira-json/`).
+       Ilgari faqat birinchisi tozalanardi, ya'ni JSON nusxalar
+       cheksiz to'planib, Storage joyini yeb borardi. */
     let ochirildi = 0;
-    for (const f of fayllar) {
-      const vaqt = Date.parse((f.metadata && f.metadata.timeCreated) || '') || 0;
-      if (vaqt && vaqt < chegara) { await f.delete().catch(() => {}); ochirildi++; }
+    for (const prefix of ['zaxira/', 'zaxira-json/']) {
+      const [fayllar] = await bucket.getFiles({ prefix });
+      for (const f of fayllar) {
+        const vaqt = Date.parse((f.metadata && f.metadata.timeCreated) || '') || 0;
+        if (vaqt && vaqt < chegara) { await f.delete().catch(() => {}); ochirildi++; }
+      }
     }
     return ochirildi;
   } catch (e) { return -1; }
+}
+
+/* ==================================================================
+   ZAXIRA YO'L (V120) — ROLSIZ ISHLAYDIGAN JSON NUSXA
+   ------------------------------------------------------------------
+   MUAMMO. Yuqoridagi rasmiy eksport ("exportDocuments") xizmat
+   hisobida ALOHIDA huquq talab qiladi: "Cloud Datastore Import Export
+   Admin". U berilmagan bo'lsa Google "The caller does not have
+   permission" deydi va zaxira UMUMAN olinmaydi. Ya'ni eng kerakli
+   paytda — baza buzilganda — hech narsa yo'q bo'lardi.
+
+   YECHIM. Rasmiy eksport ishlamasa, ZAXIRA YO'L ishga tushadi:
+   muhim to'plamlar Admin SDK bilan o'qilib, JSON fayl sifatida
+   Storage'ga yoziladi (`zaxira-json/<sana>/<toplam>.json`). Buning
+   uchun hech qanday qo'shimcha rol KERAK EMAS — Admin SDK bazani
+   o'qishga va Storage'ga yozishga allaqachon haqli.
+
+   Bu rasmiy eksportning O'RNINI bosmaydi (uni `gcloud firestore
+   import` bilan bir buyruqda tiklash mumkin, JSON'ni esa qo'lda yoki
+   skript bilan tiklash kerak), LEKIN hech narsadan ko'ra ancha yaxshi:
+   mijozlar, buyurtmalar, shartnomalar va narxlar saqlanib qoladi.
+
+   ESLATMA: Firestore sana maydonlari JSON'da
+   {"_seconds":...,"_nanoseconds":...} ko'rinishida saqlanadi —
+   tiklashda shuni hisobga olish kerak.
+   ================================================================== */
+const JSON_TOPLAMLAR = [
+  /* Eng muhimlari oldinda: vaqt yetmay qolsa ham shular saqlanadi */
+  'credit_contracts', 'orders', 'custom_orders', 'manual_customers',
+  'personal_numbers', 'number_payments', 'sellers', 'seller_messages',
+  'numbers', 'number_price_categories', 'operator_config', 'site_settings',
+  'promo_codes', 'admins', 'admin_tasks', 'number_watches',
+  'watch_notify_recipients', 'stories', 'video_testimonials',
+  'vacancies', 'job_applications', 'hamkor_arizalari',
+  'seller_plan_requests', 'tolov_tranzaksiya', 'known_customers'
+];
+/* Jadvalli funksiyaning umumiy muddati ~30 soniya. 20 soniyadan
+   oshmaymiz — qolgani xabar yuborish va tozalashga kerak. */
+const JSON_MAX_MS = 20000;
+const JSON_MAX_HUJJAT = 20000;
+
+async function jsonZaxira(sana) {
+  const db = admin.firestore();
+  const bucket = admin.storage().bucket(BUCKET);
+  const boshlandi = Date.now();
+  const saqlandi = [], otkazildi = [];
+
+  for (const nom of JSON_TOPLAMLAR) {
+    if (Date.now() - boshlandi > JSON_MAX_MS) { otkazildi.push(nom); continue; }
+    try {
+      const snap = await db.collection(nom).limit(JSON_MAX_HUJJAT).get();
+      if (snap.empty) { saqlandi.push(nom + ':0'); continue; }
+      const rows = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+      const buf = Buffer.from(JSON.stringify(rows), 'utf8');
+      await bucket.file('zaxira-json/' + sana + '/' + nom + '.json')
+        .save(buf, { contentType: 'application/json; charset=utf-8', resumable: false });
+      saqlandi.push(nom + ':' + rows.length);
+    } catch (e) {
+      otkazildi.push(nom + '(xato)');
+      console.error('ZAXIRA-JSON', nom, (e && e.message) || e);
+    }
+  }
+  return { saqlandi, otkazildi, ms: Date.now() - boshlandi };
+}
+
+/* Xizmat hisobining manzili — xabarda ko'rsatiladi, shunda admin uni
+   Google Cloud Console'ga nusxalab qo'yadi (bu maxfiy ma'lumot emas). */
+function xizmatHisobi() {
+  return process.env.FIREBASE_CLIENT_EMAIL || '(FIREBASE_CLIENT_EMAIL sozlanmagan)';
+}
+
+function yoriqnoma() {
+  return '\n\n──────────'
+    + '\nRASMIY EKSPORTNI YOQISH (bir martalik, 2 daqiqa):'
+    + '\n1. console.cloud.google.com → loyiha: ' + LOYIHA
+    + '\n2. IAM & Admin → IAM → "Grant access"'
+    + '\n3. Principal: ' + xizmatHisobi()
+    + '\n4. Role: Cloud Datastore Import Export Admin'
+    + '\n5. Save. Ertangi zaxiradan boshlab rasmiy eksport ishlaydi.';
 }
 
 exports.handler = async function (event) {
@@ -92,10 +178,32 @@ exports.handler = async function (event) {
 
     if (!res.ok) {
       const sabab = (javob.error && javob.error.message) || ('HTTP ' + res.status);
+      console.error('ZAXIRA (rasmiy eksport) XATOSI:', sabab);
+
+      /* V120: rasmiy eksport ishlamadi — ZAXIRA YO'L bilan JSON nusxa
+         olamiz, ya'ni baribir nusxa bo'ladi. Ilgari bu yerda shunchaki
+         xato yozilib, HECH QANDAY nusxa olinmasdi. */
+      const z = await jsonZaxira(sana);
+      if (z.saqlandi.length) {
+        try {
+          await admin.firestore().collection('watch_health').doc('soglik_zaxira_vaqt')
+            .set({ at: Date.now(), manzil: 'gs://' + BUCKET + '/zaxira-json/' + sana, usul: 'json' }, { merge: true });
+        } catch (e) {}
+        const ochirildi = await eskilarniTozala();
+        await telegram('💾 Zaxira nusxa olindi (JSON usuli)\n\n'
+          + '📁 gs://' + BUCKET + '/zaxira-json/' + sana + '\n'
+          + '📦 ' + z.saqlandi.length + ' ta to\'plam saqlandi'
+          + (z.otkazildi.length ? '\n⏭ o\'tkazib yuborildi: ' + z.otkazildi.join(', ') : '')
+          + (ochirildi > 0 ? '\n🧹 ' + ochirildi + ' ta eski fayl tozalandi' : '')
+          + '\n\n⚠️ Rasmiy (to\'liq) eksport ishlamadi: ' + sabab
+          + yoriqnoma());
+        return { statusCode: 200, body: 'ok(json): ' + z.saqlandi.join(', ') };
+      }
+
       await telegram('⚠️ Zaxira nusxa OLINMADI\n\n' + sabab
-        + '\n\nSabab odatda: xizmat hisobida "Cloud Datastore Import Export Admin"'
-        + ' huquqi yo\'q. Google Cloud Console → IAM → shu hisobga o\'sha rolni bering.');
-      console.error('ZAXIRA XATOSI:', sabab);
+        + '\n\nZaxira yo\'l (JSON) ham ishlamadi: '
+        + (z.otkazildi.length ? z.otkazildi.join(', ') : 'to\'plamlar bo\'sh')
+        + yoriqnoma());
       return { statusCode: 500, body: 'zaxira xatosi: ' + sabab };
     }
 

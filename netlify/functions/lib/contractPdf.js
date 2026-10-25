@@ -12,6 +12,8 @@
 // kerak emas, shuning uchun Netlify'da ham doim ishlaydi.
 
 const PDFDocument = require('pdfkit');
+const crypto = require('crypto');
+const QRCode = require('qrcode');
 
 const SUPPORT_PHONE = '+998878880101';
 const SELLER_NAME   = 'VIP RAQAMLAR';
@@ -35,7 +37,10 @@ const C = {
   head:    '#EDF0F5',
   accent:  '#B8862B',
   paid:    '#1B7A4B',
-  overdue: '#B3261E'
+  overdue: '#B3261E',
+  /* Muhr siyohi — haqiqiy shtamp kabi KO'K. Qora matndan ajralib
+     turadi: nusxa ko'chirilganda ham "asl" ekani bilinadi. */
+  muhr:    '#1B3FA0'
 };
 
 /* Shartnoma so'mda ham, dollarda ham bo'lishi mumkin. `cur` berilmasa —
@@ -187,6 +192,166 @@ function letterhead(doc, contract){
 }
 
 /* Har sahifa pastidagi kolontitul */
+/* ==================================================================
+   QR KOD HAVOLASI (V120)
+   ------------------------------------------------------------------
+   Shartnomaning qog'oz nusxasidagi QR kod skanerlanganda AYNAN SHU
+   shartnomaning PDF'i ochilishi kerak. Lekin PDF manzili shunchaki
+   "/s?i=KR001" bo'lsa, raqamni birma-bir sinab boshqa odamlarning
+   shartnomasini ham ochib olish mumkin bo'lardi. Shu sabab havolaga
+   IMZO (`k`) qo'shiladi: u shartnoma raqamidan maxfiy kalit bilan
+   hisoblanadi (HMAC-SHA256), taxmin qilib bo'lmaydi va faqat SHU
+   shartnomaga yaraydi.
+
+   Maxfiy kalit: `CONTRACT_QR_SECRET` muhit o'zgaruvchisi bo'lsa —
+   o'sha. Bo'lmasa — serverdagi Firebase xizmat kalitidan barqaror
+   tarzda hosil qilinadi (u hech qachon serverdan chiqmaydi), ya'ni
+   hech narsa sozlash SHART EMAS va havolalar qayta joylashdan keyin
+   ham ishlayveradi.
+   ================================================================== */
+function qrSir(){
+  if (process.env.CONTRACT_QR_SECRET) return String(process.env.CONTRACT_QR_SECRET);
+  return crypto.createHash('sha256')
+    .update('vipraqamlar-shartnoma-qr|' + (process.env.FIREBASE_PRIVATE_KEY || 'zaxira'))
+    .digest('hex');
+}
+function qrKalit(id){
+  return crypto.createHmac('sha256', qrSir())
+    .update(String(id || '').trim().toUpperCase())
+    .digest('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    .slice(0, 16);
+}
+function qrHavola(id){
+  const v = String(id || '').trim().toUpperCase();
+  if(!v) return '';
+  /* Havola ATAYLAB qisqa: QR kod qancha qisqa bo'lsa, kataklari shuncha
+     yirik bo'ladi — bosilgan qog'ozdan ham, ekrandan ham bir urinishda
+     o'qiladi.
+     Oxiri `.pdf` bilan tugaydi (V120): telefon skaneri va brauzerlar
+     havolaning oxiriga qarab "bu fayl" deb tushunadi va PDF'ni
+     DARHOL ochadi — sayt ochilib, keyin yuklab olish so'ralmaydi.
+     Server ham baribir `Content-Type: application/pdf` qaytaradi, ya'ni
+     himoya kengaytmaga bog'liq emas. */
+  return 'https://' + SELLER_SITE + '/s/' + encodeURIComponent(v) + '/' + qrKalit(v) + '.pdf';
+}
+
+/* QR kodni RASM sifatida emas, VEKTOR kvadratchalar bilan chizamiz —
+   shunda u har qanday o'lchamda (ekranda ham, bosmada ham) aniq
+   chiqadi va fayl hajmi deyarli oshmaydi. */
+function qrChiz(doc, matn, x, y, olcham){
+  let qr;
+  try{
+    qr = QRCode.create(matn, { errorCorrectionLevel: 'M' });
+  }catch(e){ return false; }
+  const n = qr.modules.size;
+  const data = qr.modules.data;
+  /* Atrofida bo'sh "tinch zona" (4 katak) — standart talabi, usiz
+     ba'zi skanerlar o'qimaydi. */
+  const zona = 4;
+  const k = olcham / (n + zona * 2);
+  doc.save();
+  doc.rect(x, y, olcham, olcham).fill('#FFFFFF');
+  doc.fillColor(C.ink);
+  for(let r = 0; r < n; r++){
+    for(let c = 0; c < n; c++){
+      if(data[r * n + c]){
+        /* Katakchalar orasida ko'rinmas tirqish qolmasligi uchun
+           o'lchamga ozgina qo'shamiz (bosmada oq chiziqlar chiqmasin). */
+        doc.rect(x + (c + zona) * k, y + (r + zona) * k, k + 0.12, k + 0.12).fill();
+      }
+    }
+  }
+  doc.restore();
+  return true;
+}
+
+/* ==================================================================
+   RASMIY MUHR (V120)
+   ------------------------------------------------------------------
+   Haqiqiy kompaniya shtampi kabi: ikki halqa, halqa bo'ylab yozuv,
+   markazda yulduzcha va sayt manzili. Ko'k siyoh, yengil shaffoflik
+   va bir oz qiyshiq (-11°) — qo'lda bosilgandek ko'rinadi.
+   Butunlay VEKTOR: hech qanday rasm fayli yo'q, demak Netlify'da
+   hech narsa yuklanmaydi va bosmada ham aniq chiqadi.
+   ================================================================== */
+function halqaMatn(doc, matn, cx, cy, r, boshBurchak, yonalish, oOlcham, harfOraligi){
+  /* Har bir harf alohida, markaz atrofida aylantirib qo'yiladi —
+     PDF'da "egri matn" boshqa yo'l bilan bo'lmaydi. */
+  doc.font('Helvetica-Bold').fontSize(oOlcham);
+  const harflar = String(matn).split('');
+  const enlar = harflar.map(h => doc.widthOfString(h) + harfOraligi);
+  const jami = enlar.reduce((a, b) => a + b, 0);
+  /* Yozuvni berilgan burchakdan boshlab, O'RTASI aniq shu yo'nalishga
+     to'g'ri kelishi uchun yarmiga surib qo'yamiz. */
+  let burchak = boshBurchak - yonalish * (jami / r) / 2;
+  harflar.forEach((h, i) => {
+    const en = enlar[i];
+    const o = burchak + yonalish * (en / r) / 2;
+    const px = cx + r * Math.cos(o);
+    const py = cy + r * Math.sin(o);
+    doc.save();
+    doc.translate(px, py);
+    /* Harf halqaga TIK tursin: pastki yoyda teskari aylantiriladi. */
+    doc.rotate((o * 180 / Math.PI) + (yonalish > 0 ? 90 : -90));
+    doc.text(h, -en / 2, -oOlcham * 0.72, { lineBreak: false, width: en, align: 'center' });
+    doc.restore();
+    burchak += yonalish * (en / r);
+  });
+}
+
+function muhrChiz(doc, cx, cy, r){
+  doc.save();
+  try{ doc.opacity(0.88); }catch(e){}
+  doc.translate(cx, cy);
+  doc.rotate(-11);
+  doc.translate(-cx, -cy);
+
+  doc.lineWidth(1.9).strokeColor(C.muhr).circle(cx, cy, r).stroke();
+  doc.lineWidth(0.8).strokeColor(C.muhr).circle(cx, cy, r - 5.5).stroke();
+  doc.lineWidth(0.6).strokeColor(C.muhr).circle(cx, cy, r - 17).stroke();
+
+  doc.fillColor(C.muhr);
+  /* Tepada — kompaniya nomi, pastda — asos. */
+  /* O'lchamlar SINOV asosida tanlangan: yozuv yoyi 140 darajadan
+     oshmasin — aks holda tepadagi va pastdagi yozuvlar yon tomonlarda
+     bir-biriga kirib ketadi (birinchi urinishda aynan shunday bo'ldi). */
+  halqaMatn(doc, 'VIP RAQAMLAR', cx, cy, r - 12, -Math.PI / 2, 1, 7.2, 1.2);
+  halqaMatn(doc, 'RASMIY SHARTNOMA ASOSIDA', cx, cy, r - 11.5, Math.PI / 2, -1, 4.6, 0.5);
+
+  /* Yon tomonlardagi ikki nuqta — tepa va pastki yozuvni ajratadi
+     (haqiqiy muhrlarda shunday). */
+  [0, Math.PI].forEach(a => {
+    doc.circle(cx + (r - 12) * Math.cos(a), cy + (r - 12) * Math.sin(a), 1.25).fill(C.muhr);
+  });
+
+  /* Markaz: kichik yulduzcha va uning OSTIDA bitta qator (sayt
+     manzili). Ilgari bu yerda ikki qator bor edi — ichki halqa
+     (diametri ~50 pt) ularga tor kelib, yozuvlar yulduzcha bilan
+     ustma-ust tushib ketgan edi. Endi faqat bitta, kichik qator. */
+  doc.save();
+  doc.translate(cx, cy - 7.5);
+  const yulduz = [];
+  for(let i = 0; i < 10; i++){
+    const rr = (i % 2 === 0) ? 6 : 2.6;
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    yulduz.push([rr * Math.cos(a), rr * Math.sin(a)]);
+  }
+  doc.moveTo(yulduz[0][0], yulduz[0][1]);
+  yulduz.slice(1).forEach(pq => doc.lineTo(pq[0], pq[1]));
+  doc.closePath().fill(C.muhr);
+  doc.restore();
+
+  /* Yozuv ikki qatorga bo'linib ketmasligi uchun o'lcham KICHIK va
+     quti KENG (ichki halqaga baribir sig'adi — sinovda o'lchandi). */
+  doc.font('Helvetica-Bold').fontSize(5).fillColor(C.muhr)
+     .text(SELLER_SITE.toUpperCase(), cx - 40, cy + 2.5,
+           { width: 80, align: 'center', lineBreak: false });
+
+  try{ doc.opacity(1); }catch(e){}
+  doc.restore();
+}
+
 function footer(doc, contract, pageNo){
   // Kolontitul pastki chekkadan HAM pastroqqa yoziladi; shuning uchun
   // pdfkit'ning "sahifa to'ldi, yangisini och" qoidasini vaqtincha
@@ -365,9 +530,16 @@ function buildContractPdfBuffer(contract){
       doc.y = sy + 60;
 
       /* ---- 5. Imzolar ---- */
-      if (doc.y > PAGE_H - 150) { doc.addPage(); doc.y = M + 10; }
+      /* V120: endi bu blokda MUHR va QR KOD ham bor, shuning uchun
+         joy talabi oshdi (150 -> 235). Aks holda muhr sahifa chekkasiga
+         chiqib ketardi. */
+      if (doc.y > PAGE_H - 250) { doc.addPage(); doc.y = M + 10; }
       sectionTitle(doc, 6, 'Tomonlarning imzosi');
-      const sgY = doc.y + 24;
+      /* V120: imzo chizig'i pastroqqa surildi (24 -> 46). Sabab: muhr
+         endi AYNAN SHU CHIZIQ USTIGA bosiladi (mijoz so'rovi), ya'ni
+         uning yuqori qismi chiziqdan tepada turadi — bo'lim
+         sarlavhasiga tegib ketmasligi uchun joy kerak. */
+      const sgY = doc.y + 46;
       const half = (CW - 40) / 2;
       [[M, 'Sotuvchi', SELLER_NAME], [M + half + 40, 'Xaridor', contract.customerName || '']].forEach(([x, role, name]) => {
         hair(doc, sgY, x, x + half, C.rule);
@@ -378,7 +550,38 @@ function buildContractPdfBuffer(contract){
         doc.font('Helvetica').fontSize(7.6).fillColor(C.muted)
            .text('imzo / sana', x + half - 60, sgY + 6, { width: 60, align: 'right' });
       });
-      doc.y = sgY + 42;
+
+      /* ---- V120: RASMIY MUHR va QR KOD ----
+         Muhr — Sotuvchi ustunining tagida, imzo chizig'iga biroz
+         tegib turadi (haqiqiy hujjatlarda shunday bosiladi).
+         QR kod — o'ng tomonda, Xaridor ustuni ostida; yonida nima
+         uchun kerakligi yozilgan. */
+      const muhrR = 42;
+      /* Muhr SOTUVCHI IMZOSI CHIZIG'I USTIGA bosiladi — haqiqiy
+         hujjatlardagidek: chiziq muhrning yuqori qismidan o'tadi.
+         Gorizontal joyi "VIP RAQAMLAR" yozuvidan keyin boshlanadi,
+         shunda nom o'qilishicha qoladi. */
+      const muhrCx = M + 120;
+      const muhrCy = sgY + 16;
+      try{ muhrChiz(doc, muhrCx, muhrCy, muhrR); }catch(e){ /* muhr chizilmasa ham hujjat buziladi deb hisoblamaymiz */ }
+
+      /* 84 pt = ~30 mm. Sinovda o'lchandi: shu o'lchamda bitta katak
+         ~0,8 mm bo'ladi va telefon kamerasi bosilgan qog'ozdan ham,
+         ekrandan ham bir urinishda o'qiydi (76 pt da past sifatli
+         suratda ba'zan o'qilmasdi). */
+      const qrOlcham = 84;
+      const qrX = M + CW - qrOlcham;
+      const qrY = sgY + 24;
+      const havola = qrHavola(contract.contractId);
+      let qrBor = false;
+      if(havola){
+        try{ qrBor = qrChiz(doc, havola, qrX, qrY, qrOlcham); }catch(e){ qrBor = false; }
+      }
+      /* QR kod OSTIDA izoh yozuvi ATAYLAB YO'Q (mijoz so'rovi).
+         QR kodning o'zi tushunarli — ortiqcha yozuv hujjatni
+         chalkashtiradi. */
+
+      doc.y = Math.max(sgY + 42, muhrCy + muhrR + 14, qrY + qrOlcham + 16);
 
       doc.font('Helvetica').fontSize(7.8).fillColor(C.muted)
          .text('Ushbu hujjat vipraqamlar.uz tizimi tomonidan avtomatik shakllantirilgan va elektron nusxa sifatida kuchga ega.',
@@ -398,4 +601,4 @@ function buildContractPdfBuffer(contract){
   });
 }
 
-module.exports = { buildContractPdfBuffer, paymentState, STATE_LABELS, fmtMoney, fmtDate };
+module.exports = { buildContractPdfBuffer, paymentState, STATE_LABELS, fmtMoney, fmtDate, qrKalit, qrHavola };
