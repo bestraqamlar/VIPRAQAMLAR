@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=120">
-<link rel="preload" as="script" href="assets/panel.js?v=120">
+<link rel="preload" as="style" href="assets/panel.css?v=121">
+<link rel="preload" as="script" href="assets/panel.js?v=121">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,7 +52,7 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=120">
+<link rel="stylesheet" href="assets/panel.css?v=121">
 
 </head>
 <body>
@@ -1345,15 +1345,15 @@
       <div class="cr-form-grid">
         <div class="cr-field">
           <label for="crName">Mijoz ismi</label>
-          <input type="text" id="crName" placeholder="Ism Familiya">
+          <input type="text" id="crName" maxlength="100" placeholder="Ism Familiya">
         </div>
         <div class="cr-field">
           <label for="crPhone">Ishlab turgan raqami</label>
-          <input type="text" id="crPhone" placeholder="+998 90 123-45-67">
+          <input type="text" id="crPhone" maxlength="30" placeholder="+998 90 123-45-67">
         </div>
         <div class="cr-field">
           <label for="crPassport">Pasport seriya va raqami</label>
-          <input type="text" id="crPassport" placeholder="AD 1234567">
+          <input type="text" id="crPassport" maxlength="30" placeholder="AD 1234567">
         </div>
         <div class="cr-field">
           <label for="crBirthDate">Tug'ilgan sana</label>
@@ -1361,7 +1361,7 @@
         </div>
         <div class="cr-field cr-field-wide">
           <label for="crAddress">Doimiy yashash joyi</label>
-          <input type="text" id="crAddress" placeholder="Viloyat, tuman, ko'cha, uy">
+          <input type="text" id="crAddress" maxlength="300" placeholder="Viloyat, tuman, ko'cha, uy">
         </div>
         <div class="cr-field">
           <label for="crRegion">Manzil (viloyat)</label>
@@ -1376,7 +1376,7 @@
         </div>
         <div class="cr-field">
           <label for="crNumber">Kreditga olingan raqam</label>
-          <input type="text" id="crNumber" placeholder="+998 90 777-77-77">
+          <input type="text" id="crNumber" maxlength="30" placeholder="+998 90 777-77-77">
         </div>
         <div class="cr-field">
           <label for="crMonths">Necha oyga (muddat)</label>
@@ -1403,7 +1403,8 @@
         </div>
         <div class="cr-field cr-field-wide">
           <label for="crInfo">Qo'shimcha ma'lumot (ixtiyoriy)</label>
-          <input type="text" id="crInfo" placeholder="Izoh...">
+          <!-- maxlength: cheksiz matn so'rovni megabaytlarga shishirib yuborardi (V120) -->
+          <input type="text" id="crInfo" maxlength="500" placeholder="Izoh...">
         </div>
       </div>
       <button id="addCreditBtn">+ Shartnoma qo'shish</button>
@@ -2400,6 +2401,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=120"></script>
+<script defer src="assets/panel.js?v=121"></script>
 </body>
 </html>

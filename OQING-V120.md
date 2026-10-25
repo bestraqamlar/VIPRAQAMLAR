@@ -837,3 +837,61 @@ holatda bo'ladi.
 ## Ikkinchi kirishdan boshlab
 Shriftlar Service Worker keshida — internet umuman bo'lmasa ham
 darhol o'sha shriftda ochiladi (oldingi bo'limda o'lchab tekshirilgan).
+
+---
+
+# V120 — "Request payload size exceeds the limit" XATOSI
+
+## Sabab
+Bu Netlify'ning O'Z xabari: so'rov hajmi platforma chegarasidan
+(18 MB) oshib ketgan va funksiya UMUMAN ishga tushmagan. Shuning uchun
+xabar ham o'zbekcha emas edi — u bizning kodimizdan chiqmagan.
+
+Hajm shunchalik oshishi uchun bitta maydonga juda katta matn tushishi
+kerak — odatda "Qo'shimcha ma'lumot" yoki "Doimiy yashash joyi"
+maydoniga uzun matn (yoki rasm) joylashtirilganda. Forma maydonlarida
+hech qanday uzunlik chegarasi YO'Q edi, ya'ni brauzer megabaytlab
+matnni bemalol qabul qilib, hammasini serverga yuborardi.
+
+## Uch qatlam himoya qo'yildi
+
+**1. Brauzer darajasida — `maxlength`.** Ism 100, telefon 30, passport
+30, raqam 30, manzil 300, izoh 500 belgi. Endi bunday matnni kiritib
+ham bo'lmaydi.
+
+**2. Yuborishdan oldin — hajm tekshiruvi.** So'rov 900 KB dan oshsa,
+u UMUMAN yuborilmaydi va aniq, o'zbekcha xabar chiqadi:
+"Ma'lumot juda katta (… KB). Odatda bu «Qo'shimcha ma'lumot» maydoniga
+juda uzun matn (yoki rasm) joylashtirilganda bo'ladi — shu maydonni
+qisqartiring." Tekshirildi: so'rov haqiqatan yuborilmaydi.
+
+**3. Serverda — ASOSIY himoya.** `admin-credit.js` endi har bir
+maydonni o'zi kesadi (so'rov qayerdan kelishidan qat'i nazar):
+
+    izoh ............ 500 belgi
+    manzil .......... 300
+    ism ............. 100
+    telefon/raqam/passport ... 30
+    muddat .......... 1-600 oy
+    to'lov kuni ..... 1-31
+    oylik to'lov .... 0 … 1 000 000 000 000
+
+Tekshirildi: 5 MB lik matn yuborilganda — xato qaytarmaydi, shunchaki
+500 belgigacha KESILADI va shartnoma normal yaratiladi (admin ishi
+to'xtab qolmaydi). Muddat 99 999 oy yuborilganda 600 ga, to'lov kuni 77
+yuborilganda 31 ga cheklandi. Bu ayni paytda bazani "cheksiz uzun
+jadval" dan ham himoya qiladi.
+
+## Xato xabarlari ham tushunarli bo'ldi
+Ilgari server JSON emas, oddiy matn yoki HTML qaytarsa (platforma
+xatosi), panel `res.json()` da yiqilib, adminga "Unexpected token …"
+kabi chalg'ituvchi xato ko'rsatardi. Endi:
+
+    413 -> "Ma'lumot juda katta — maydonlarni qisqartiring."
+    502/504 -> "Server javob bermadi. Birozdan keyin qayta urining."
+    boshqa -> "Server kutilmagan javob qaytardi (HTTP …)"
+
+Hammasi sinovdan o'tkazildi.
+
+Shuningdek, tahrirlash (`updateContract`) ham aynan shu chegaralarga
+o'tkazildi — ilgari faqat qo'shishda tekshirilardi.
