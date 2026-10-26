@@ -109,7 +109,11 @@ const JSON_TOPLAMLAR = [
   'promo_codes', 'admins', 'admin_tasks', 'number_watches',
   'watch_notify_recipients', 'stories', 'video_testimonials',
   'vacancies', 'job_applications', 'hamkor_arizalari',
-  'seller_plan_requests', 'tolov_tranzaksiya', 'known_customers'
+  'seller_plan_requests', 'tolov_tranzaksiya', 'known_customers',
+  /* V130: mijozning "telefon -> Telegram" bog'lanishi. Yo'qolsa har
+     bir mijoz kabinetga kirish uchun qaytadan botda tasdiqlashga
+     majbur bo'lardi — shuning uchun zaxiraga ham kiradi. */
+  'kabinet_chatids'
 ];
 /* Jadvalli funksiyaning umumiy muddati ~30 soniya. 20 soniyadan
    oshmaymiz — qolgani xabar yuborish va tozalashga kerak. */
@@ -174,7 +178,21 @@ const HISOBLAGICH_TOPLAMLAR = [
   'order_create_rate_limits',
   'sms_verifications_ip',
   'contract_qr_rate_limits',
-  'story_stat_rate_limits'
+  'story_stat_rate_limits',
+  'kabinet_code_rate_limits',
+  'kabinet_code_check_limits',
+  /* Kirish kodlari — 5 daqiqalik, lekin tekshirilmagani o'chmasdan
+     qoladi. 3 kundan eskisi aniq keraksiz. */
+  'kabinet_login_codes',
+  'kabinet_login_nonces',
+  'kabinet_login_keys'
+  /* DIQQAT: `kabinet_chatids` bu ro'yxatda YO'Q va bo'lmasligi ham
+     kerak — u vaqtinchalik hisoblagich emas, mijozning doimiy
+     "telefon -> Telegram" bog'lanishi. O'chirilsa mijoz qaytadan
+     botda tasdiqlashga majbur bo'lardi.
+     `kabinet_login_fails` ham yo'q: u kunlik/soatlik kalit bilan
+     ishlaydi va hajmi kichik, lekin o'chirilsa chegara nolga
+     tushib, taxmin qilish yo'li ochilardi. */
 ];
 
 async function hisoblagichlarniTozala() {
@@ -189,7 +207,7 @@ async function hisoblagichlarniTozala() {
       let paket = db.batch(), n = 0;
       for (const d of snap.docs) {
         const x = d.data() || {};
-        const oxirgi = Number(x.lastAttemptAt || x.lastAt || 0);
+        const oxirgi = Number(x.lastAttemptAt || x.lastAt || x.sentAt || x.expiresAt || 0);
         if (oxirgi && oxirgi < chegara) {
           paket.delete(d.ref); n++; ochirildi++;
           /* Firestore bitta paketga 500 tadan ko'p amal qabul qilmaydi */
