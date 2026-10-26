@@ -156,6 +156,54 @@ function yoriqnoma() {
     + '\n5. Save. Ertangi zaxiradan boshlab rasmiy eksport ishlaydi.';
 }
 
+/* ==================================================================
+   TEZLIK HISOBLAGICHLARINI TOZALASH (V124)
+   ------------------------------------------------------------------
+   Sayt bir nechta joyda IP bo'yicha soatlik hisoblagich yuritadi
+   (buyurtma, SMS, kabinet, QR, stories). Ularning har biri uchun
+   Firestore'da HAR BIR IP manzilga alohida hujjat yaratiladi —
+   lekin hech kim ularni O'CHIRMASDI. Ya'ni bir yilda o'n minglab
+   keraksiz hujjat to'planib qolardi: zarar qilmaydi (o'qish aniq
+   hujjat ID bo'yicha boradi), lekin joy va pul yeydi, zaxira
+   nusxasini ham shishiradi.
+   Endi kunlik zaxira bilan birga 3 kundan eski hisoblagichlar
+   o'chiriladi. Hisoblagichning o'zi SOATLIK, ya'ni 3 kundan eskisi
+   hech qanday himoya bermaydi. */
+const HISOBLAGICH_TOPLAMLAR = [
+  'order_lookup_rate_limits',
+  'order_create_rate_limits',
+  'sms_verifications_ip',
+  'contract_qr_rate_limits',
+  'story_stat_rate_limits'
+];
+
+async function hisoblagichlarniTozala() {
+  const db = admin.firestore();
+  const chegara = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  let ochirildi = 0;
+  for (const nom of HISOBLAGICH_TOPLAMLAR) {
+    try {
+      /* Bir yurishda ko'pi bilan 2000 ta — funksiya muddatiga
+         sig'ishi uchun. Qolgani ertangi kuni o'chiriladi. */
+      const snap = await db.collection(nom).limit(2000).get();
+      let paket = db.batch(), n = 0;
+      for (const d of snap.docs) {
+        const x = d.data() || {};
+        const oxirgi = Number(x.lastAttemptAt || x.lastAt || 0);
+        if (oxirgi && oxirgi < chegara) {
+          paket.delete(d.ref); n++; ochirildi++;
+          /* Firestore bitta paketga 500 tadan ko'p amal qabul qilmaydi */
+          if (n >= 450) { await paket.commit(); paket = db.batch(); n = 0; }
+        }
+      }
+      if (n) await paket.commit();
+    } catch (e) {
+      console.error('HISOBLAGICH TOZALASH', nom, (e && e.message) || e);
+    }
+  }
+  return ochirildi;
+}
+
 exports.handler = async function (event) {
   if (!(await jadvalOk(event, 'zaxira-background', 60000))) return { statusCode: 403, body: 'forbidden' };
 
@@ -190,11 +238,13 @@ exports.handler = async function (event) {
             .set({ at: Date.now(), manzil: 'gs://' + BUCKET + '/zaxira-json/' + sana, usul: 'json' }, { merge: true });
         } catch (e) {}
         const ochirildi = await eskilarniTozala();
+        const hisoblagichJ = await hisoblagichlarniTozala();
         await telegram('💾 Zaxira nusxa olindi (JSON usuli)\n\n'
           + '📁 gs://' + BUCKET + '/zaxira-json/' + sana + '\n'
           + '📦 ' + z.saqlandi.length + ' ta to\'plam saqlandi'
           + (z.otkazildi.length ? '\n⏭ o\'tkazib yuborildi: ' + z.otkazildi.join(', ') : '')
           + (ochirildi > 0 ? '\n🧹 ' + ochirildi + ' ta eski fayl tozalandi' : '')
+          + (hisoblagichJ > 0 ? '\n🧽 ' + hisoblagichJ + ' ta eski hisoblagich o\'chirildi' : '')
           + '\n\n⚠️ Rasmiy (to\'liq) eksport ishlamadi: ' + sabab
           + yoriqnoma());
         return { statusCode: 200, body: 'ok(json): ' + z.saqlandi.join(', ') };
@@ -215,8 +265,10 @@ exports.handler = async function (event) {
     }catch(e){}
 
     const ochirildi = await eskilarniTozala();
+    const hisoblagich = await hisoblagichlarniTozala();
     await telegram('💾 Zaxira nusxa olindi\n\n📁 ' + manzil
-      + (ochirildi > 0 ? '\n🧹 ' + ochirildi + ' ta eski fayl tozalandi' : ''));
+      + (ochirildi > 0 ? '\n🧹 ' + ochirildi + ' ta eski fayl tozalandi' : '')
+      + (hisoblagich > 0 ? '\n🧽 ' + hisoblagich + ' ta eski hisoblagich o\'chirildi' : ''));
     return { statusCode: 200, body: 'ok: ' + manzil };
   } catch (err) {
     console.error('ZAXIRA XATOSI:', err);

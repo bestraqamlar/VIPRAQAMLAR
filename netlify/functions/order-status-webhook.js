@@ -11,6 +11,7 @@
 //     "@vip_raqamlar_uz" ishlatiladi.
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
 const { webhookTekshir } = require('./lib/webhookSirri');
 if (!admin.apps.length) {
@@ -697,7 +698,7 @@ async function confirmAksiyaDuration(chatId, hours){
   }
   const expiresAt = Date.now() + hours * 3600 * 1000;
   await setPendingAksiya({ ...pending, hours, expiresAt });
-  const untilStr = new Date(expiresAt).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', dateStyle: 'medium', timeStyle: 'short' });
+  const untilStr = sanaVaqtUz(expiresAt);   // V121: kun.oy.yil
   await sendTelegram('sendMessage', {
     chat_id: chatId,
     text: `📱 ${pending.number}\n💵 Eski narx: ${formatSum(pending.oldPrice)}\n🔥 Hozirgi narx: ${formatSum(pending.price)}\n⏱ Muddat: ${hours} soat\n🕐 Tugash vaqti: ${untilStr}\n\nTasdiqlaysizmi?`,

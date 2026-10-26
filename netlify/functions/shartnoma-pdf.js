@@ -86,12 +86,39 @@ exports.handler = async function (event) {
     return sahifa(503, "Hozir ochib bo'lmadi", "Server vaqtincha javob bermayapti. Birozdan keyin qayta urinib ko'ring.");
   }
 
+  /* ============ PARAMETRLARNI O'QISH (V121 da TUZATILDI) ============
+     QR kod havolasi `/s/KR0142/<imzo>.pdf` ko'rinishida.
+     ILGARI shartnoma raqami va imzo `_redirects` dagi `:i`/`:k` o'rin
+     egallari orqali olinardi. Amalda ular funksiyaga YETIB BORMADI —
+     parametrlar bo'sh bo'lib, "Havola to'liq emas" sahifasi chiqardi
+     va mijoz saytga tushib ketardi (mijoz xabar bergan holat).
+     ENDI: avval oddiy so'rov parametrlari qaraladi (eski `?i=&k=`
+     ko'rinishi uchun), bo'lmasa — YO'LNING O'ZIDAN o'qiladi. Yo'l esa
+     har doim keladi: `rawUrl` (to'liq manzil) yoki `path`. Shu bilan
+     Netlify o'rin egallarini qanday uzatishiga umuman bog'liq
+     bo'lmay qoldi. */
   const qs = (event && event.queryStringParameters) || {};
-  const id = String(qs.i || qs.id || '').trim().toUpperCase().slice(0, 40);
-  /* Havola `.../<imzo>.pdf` ko'rinishida keladi — oxiridagi `.pdf`
-     faqat brauzer uchun, imzoning bir qismi emas, shu sabab kesiladi.
-     Eski (`/s?i=...&k=...`) ko'rinishi ham ishlayveradi. */
-  const kalit = String(qs.k || '').trim().replace(/\.pdf$/i, '').slice(0, 40);
+  let id = String(qs.i || qs.id || '').trim();
+  let kalit = String(qs.k || '').trim();
+
+  if (!id || !kalit) {
+    let yol = '';
+    try {
+      if (event && event.rawUrl) yol = new URL(event.rawUrl).pathname;
+      else if (event && event.path) yol = String(event.path);
+    } catch (e) { yol = String((event && event.path) || ''); }
+
+    /* `/s/KR0142/abc123.pdf`  ->  ['s','KR0142','abc123.pdf'] */
+    const bolak = yol.split('?')[0].split('/').filter(Boolean);
+    const sIdx = bolak.indexOf('s');
+    const dan = (sIdx >= 0) ? sIdx + 1 : (bolak.length >= 2 ? bolak.length - 2 : 0);
+    if (!id) id = bolak[dan] || '';
+    if (!kalit) kalit = bolak[dan + 1] || '';
+  }
+
+  id = id.trim().toUpperCase().slice(0, 40);
+  /* Oxiridagi `.pdf` faqat brauzer uchun — imzoning bir qismi emas. */
+  kalit = kalit.trim().replace(/\.pdf$/i, '').slice(0, 40);
 
   if (!id || !kalit) {
     return sahifa(400, "Havola to'liq emas", "QR kodni qaytadan skanerlang yoki saytdagi “Shartnomani tekshirish” bo'limidan foydalaning.");

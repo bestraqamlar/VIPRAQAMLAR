@@ -41,9 +41,12 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ ok: false, skipped: true }) };
     }
 
+    /* V122: bosqichlar qatori to'ldirildi — mijoz har bosqichda
+       xabar oladi va "qani mening raqamim?" deb qo'ng'iroq qilmaydi. */
     const STATUS_MESSAGES = {
-      "Bog'lanildi": "📞 Operatorlarimiz siz bilan bog'landi.",
-      'Yakunlandi': "✅ Haridingiz uchun rahmat! Tez orada raqamingiz yetib boradi.",
+      "Bog'lanildi": "📞 Buyurtmangiz tasdiqlandi — operatorlarimiz siz bilan bog'landi.",
+      "Yo'lda": "🚚 Kuryerimiz yo'lga chiqdi. Raqamingiz bugun-ertaga yetib boradi.",
+      'Yakunlandi': "✅ Raqamingiz yetkazildi. Haridingiz uchun rahmat!",
       'Bekor qilindi': "❌ Sizning buyurtmangiz bekor qilindi."
     };
     const text = `${STATUS_MESSAGES[status] || `📌 Buyurtmangiz holati: ${status}`}\n\n📱 ${number}`;
