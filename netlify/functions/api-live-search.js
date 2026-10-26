@@ -22,8 +22,10 @@ const {
   testBeelinePublic,
   searchBeelinePublic,
   matchesBoxes,
-  BEELINE_PUBLIC_RARE_IDS
+  BEELINE_PUBLIC_RARE_IDS,
+  sessiyaOmboriQoy
 } = require('./lib/operators');
+const { sessiyaOmbori } = require('./lib/sessiyaOmbori');
 const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
@@ -40,6 +42,11 @@ const db = admin.firestore();
    Qarang: lib/tezlik.js */
 const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
+/* V134 — HUMANS TEZLIGI. Operator sessiyalari endi umumiy omborda
+   (Firestore) saqlanadi: funksiya har safar yangidan ishga tushsa
+   ham sessiya tayyor turadi va mijoz kutib qolmaydi.
+   Batafsil: lib/sessiyaOmbori.js */
+sessiyaOmboriQoy(sessiyaOmbori(db));
 
 // Bir qidiruvda ~20 ta tashqi so'rov ketadi. Bir necha mijoz bir vaqtda bir xil
 // maskani qidirsa operatorlarni bekorga charchatmaslik uchun qisqa kesh.
