@@ -694,6 +694,15 @@ textarea{resize:vertical;min-height:120px}
 
 <div id="toasts" aria-live="polite"></div>
 <script>
+/* SANA: KUN.OY.YIL (V121). Brauzerda `uz-UZ` lokali sanani teskari
+   (ISO) tartibda beradi, shu sabab o'zimiz yig'amiz. */
+function sanaVaqtUz(x){
+  const d = (x instanceof Date) ? x : new Date(x);
+  if(!d || isNaN(d.getTime())) return '';
+  const q = n => String(n).padStart(2,'0');
+  return q(d.getDate())+'.'+q(d.getMonth()+1)+'.'+d.getFullYear()+', '+q(d.getHours())+':'+q(d.getMinutes());
+}
+
 /* ==========================================================================
    SOTUVCHI KABINETI — mantiq
    Hech qanday kutubxona yo'q: bitta fayl, bitta API funksiyasi.
@@ -1989,7 +1998,7 @@ async function yukChat(){
     const rows = j.rows || [];
     $('#chatBox').innerHTML = rows.length
       ? rows.map(m => '<div class="msg ' + (m.from === 'seller' ? 'me' : 'ad') + '">' + esc(m.text) +
-          '<span class="w">' + new Date(m.at).toLocaleString('uz-UZ') + '</span></div>').join('')
+          '<span class="w">' + sanaVaqtUz(m.at) + '</span></div>').join('')
       : '<div class="empty">Yozishma bo‘sh. Savolingizni yozing.</div>';
     const b = $('#chatBox'); b.scrollTop = b.scrollHeight;
   }catch(e){ $('#chatBox').innerHTML = '<div class="empty">'+esc(e.message)+'</div>'; }

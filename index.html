@@ -334,9 +334,13 @@ body{
    `filter`, rang va o'lcham ATAYLAB o'zgartirilmaydi. */
 body::before{
   content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
-  transform:scale(1.18) rotate(0deg);
-  will-change:transform;
-  animation:fonAylan 140s linear infinite;
+  transform:scale(1.18);
+  /* V121: ORQA FON HARAKATI OLIB TASHLANDI (mijoz so'rovi).
+     Sabab: sekin Android telefonlarda bu qatlam har kadrda qayta
+     kompozitsiya qilinardi va kartochka ochilishi "qotib" qolardi.
+     Fon endi butunlay STATIK — bir marta chiziladi, keyin umuman
+     tegilmaydi. Ko'rinishi o'zgarmadi (bitta burchak ochroq), faqat
+     aylanish yo'q. */
   background:
     /* 1) ASOSIY YORUG'LIK — o'ng yuqori burchak (eng ochiq joy) */
     radial-gradient(820px 620px at 96% -4%, var(--blob-1), transparent 62%),
@@ -379,15 +383,8 @@ html[data-theme="dark"] body::after{
       rgba(255,255,255,.028) 0 1px, transparent 1px 92px);
 }
 
-/* To'liq, UZLUKSIZ aylanish: boshi va oxiri bir xil bo'lgani uchun
-   "sakrash" bo'lmaydi. `linear` — tezlik o'zgarmaydi, ya'ni harakat
-   umuman sezilmaydi, faqat yorug'lik asta-sekin joy almashadi. */
-@keyframes fonAylan{
-  from{ transform:scale(1.18) rotate(0deg); }
-  to  { transform:scale(1.18) rotate(360deg); }
-}
-/* Zaif qurilmada va "harakatni kamaytirish" yoqilganda — butunlay jim.
-   `low` sinfi <head> da qo'yiladi (qarang: 01-head.html). */
+/* Fon STATIK — animatsiya yo'q (V121). Shu sabab "harakatni
+   kamaytirish" yoki zaif qurilma uchun alohida qoida ham kerak emas. */
 /* ZAIF QURILMA. Ilgari bu yerda aylanish BUTUNLAY o'chirilardi.
    Lekin bu qatlam `position:fixed` va faqat `transform` o'zgaradi —
    bunday harakatni videokarta bajaradi, sahifa qayta chizilmaydi.
@@ -395,13 +392,11 @@ html[data-theme="dark"] body::after{
    sekinroq (240 soniya) — ya'ni fon hamma joyda "tirik" bo'ladi.
    O'lchandi: 60 ta kartochka bilan aylantirishda 60 FPS (dasturiy
    chizish rejimida, ya'ni haqiqiy telefonda bundan ham yaxshi). */
-html.low body::before{ animation-duration:240s; }
+
 /* "Harakatni kamaytirish" — foydalanuvchining O'Z tanlovi, shu sabab
    bu yerda harakat to'liq to'xtaydi. Kattalashtirish qoladi, aks holda
    chetlarda bo'sh burchak ko'rinib qolardi. */
-@media (prefers-reduced-motion:reduce){
-  body::before{ animation:none; will-change:auto; transform:scale(1.18); }
-}
+
 
 body.noscroll{overflow:hidden}
 body.netbar-on #app{padding-top:58px}
@@ -431,7 +426,8 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.012em}
     radial-gradient(160px 70px at 6% 0%, var(--glow-a), transparent 72%),
     radial-gradient(180px 80px at 96% 100%, var(--glow-b), transparent 72%),
     var(--navbg);
-  backdrop-filter:saturate(170%) blur(26px);-webkit-backdrop-filter:saturate(170%) blur(26px);
+  /* V121: 26px -> 16px (yuqoridagi izohga qarang) */
+  backdrop-filter:saturate(165%) blur(16px);-webkit-backdrop-filter:saturate(165%) blur(16px);
   border-bottom:1px solid var(--navline);
   box-shadow:inset 0 1px 0 var(--nc-edge),0 8px 24px -18px rgba(9,24,44,.5);
   padding:calc(var(--top) + 14px) 18px 13px;
@@ -467,8 +463,12 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.012em}
     var(--navbg);
   /* Instagram uslubidagi "suv shisha": kuchli blur + to'yintirish +
      ozgina yorqinlik. Bu FAQAT bitta qatlamda — shu sabab tez ishlaydi. */
-  backdrop-filter:saturate(195%) brightness(1.06) blur(30px);
-  -webkit-backdrop-filter:saturate(195%) brightness(1.06) blur(30px);
+  /* V121: blur 30px -> 18px. Blur narxi radiusga KVADRATIK bog'liq,
+     ya'ni bu ~2,7 barobar arzon; ko'zga esa farq deyarli bilinmaydi.
+     Menyu ekranga mahkamlangani uchun u HAR KADRDA qaytadan
+     hisoblanardi — oyna ochilishi aynan shundan kechikardi. */
+  backdrop-filter:saturate(190%) brightness(1.05) blur(18px);
+  -webkit-backdrop-filter:saturate(190%) brightness(1.05) blur(18px);
   border:1px solid var(--navline);border-radius:999px;
   /* kompozitorga alohida qatlam sifatida beriladi — scroll paytida
      qayta chizilmaydi, FPS tushmaydi */
@@ -483,18 +483,34 @@ html[data-theme="dark"] #nav{box-shadow:0 14px 34px -12px rgba(0,0,0,.6),inset 0
    qurilmalar (ko'pchilik Android). Blur radiusi videokarta ishini
    KVADRATIK oshiradi: 30px -> 14px taxminan 4 barobar arzon, ko'zga
    esa deyarli bir xil ko'rinadi. */
+/* V121: ZAIF QURILMADA BLUR BUTUNLAY O'CHADI.
+   Ilgari bu yerda blur faqat KAMAYTIRILARDI (30px -> 14px). Lekin
+   mijoz sekin Android telefonda tekshirganda ma'lum bo'ldi: kichik
+   blur ham yetarlicha qimmat — pastki menyu va tepa panel EKRANGA
+   MAHKAMLANGAN, ya'ni aylantirganda ham, oyna ochilganda ham ortidagi
+   tasvir qaytadan o'qib xiralashtiriladi. Natijada kartochka bosilsa
+   "qotib" ochilardi.
+   Endi bunday qurilmada blur UMUMAN yo'q: o'rniga QATTIQ (shaffof
+   bo'lmagan) fon qo'yiladi. Ko'rinish deyarli bir xil — menyu baribir
+   to'q va chiroyli — lekin videokarta uchun BEPUL.
+   Kuchli telefonlarda shisha effekti avvalgidek qoladi. */
+html.low #nav,
+html.low .topbar, html.low .apbar, html.low #deskhead,
+html.low .sheet .bd, html.low .tgnote, html.low .toast,
+html.low .menu-pn, html.low .stv-head, html.low .netbar{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
 html.low #nav{
-  backdrop-filter:saturate(160%) blur(14px);
-  -webkit-backdrop-filter:saturate(160%) blur(14px);
   background:
     linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 55%),
-    rgba(18,38,70,.72);
+    #0E2340;
   box-shadow:0 8px 20px -10px rgba(0,0,0,.6), inset 0 1px 0 var(--nc-edge);
 }
-html.low .topbar, html.low .apbar, html.low #deskhead{
-  backdrop-filter:saturate(150%) blur(12px);
-  -webkit-backdrop-filter:saturate(150%) blur(12px);
+html.low .apbar, html.low .topbar, html.low #deskhead{
+  background:#0A1B32;
 }
+html.low .sheet .bd{ background:rgba(4,12,26,.74); }
 /* Katta, yoyilgan soyalar ham Androidda qimmat — ro'yxatdagi o'nlab
    kartochkada ular har kadrda qayta chiziladi. */
 html.low .numcard, html.low .daycard, html.low .card, html.low .ptile{
@@ -1660,20 +1676,117 @@ html.low .stv-img.keldi{ animation:none; }
 @keyframes tout{to{opacity:0;transform:translateY(10px) scale(.97)}}
 @media (prefers-reduced-motion:reduce){ .toast{animation:none} }
 
+/* ==================================================================
+   BUYURTMA BOSQICHLARI + MIJOZ KABINETI (V122)
+   ------------------------------------------------------------------
+   Bosqichlar: tik zanjir, chapda nuqtalar va ularni bog'lovchi chiziq.
+   O'tilgan bosqich — yashil belgili, joriysi — ko'k va "nafas oladi",
+   keyingilari — xira. Faqat `transform`/`opacity` animatsiyasi.
+   ================================================================== */
+.bsq{margin-top:14px;padding-top:13px;border-top:1px solid var(--line-3);display:flex;flex-direction:column;gap:0}
+.bsq-q{position:relative;display:flex;gap:11px;align-items:flex-start;padding:0 0 13px 0}
+.bsq-q:last-child{padding-bottom:0}
+/* nuqtalarni bog'lovchi chiziq */
+.bsq-q::before{
+  content:'';position:absolute;left:8px;top:17px;bottom:-1px;width:2px;
+  background:var(--line-2);border-radius:2px;
+}
+.bsq-q:last-child::before{display:none}
+.bsq-q.ok::before{background:var(--green)}
+.bsq-nuqta{
+  position:relative;z-index:1;flex:none;width:18px;height:18px;border-radius:50%;
+  background:var(--card-3);border:2px solid var(--line-2);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+.bsq-q.ok .bsq-nuqta{background:var(--green);border-color:var(--green)}
+.bsq-q.on .bsq-nuqta{
+  background:var(--blue);border-color:var(--blue);
+  box-shadow:0 0 0 4px var(--blue-tint);
+}
+.bsq-matn{min-width:0;line-height:1.35}
+.bsq-matn b{display:block;font-size:13px;font-weight:700;color:var(--muted-2)}
+.bsq-matn i{display:block;font-style:normal;font-size:11px;color:var(--faint);font-weight:600;margin-top:2px}
+.bsq-q.ok .bsq-matn b{color:var(--text-2)}
+.bsq-q.on .bsq-matn b{color:var(--blue-text);font-weight:800}
+.bsq-q.on .bsq-matn i{color:var(--muted-2)}
+
+/* ---- Kabinet sarlavhasi: kim kirgan + "Chiqish" (V124) ---- */
+.kab-bosh{
+  display:flex;align-items:center;gap:12px;margin-bottom:12px;
+  padding:11px 14px;border-radius:var(--r-l);
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
+}
+.kab-bosh-t{flex:1;min-width:0;line-height:1.3}
+.kab-bosh-t b{display:block;font-size:14.5px;font-weight:800;
+  font-family:'Space Grotesk','Plus Jakarta Sans',monospace;font-variant-numeric:tabular-nums}
+.kab-bosh-t i{display:block;font-style:normal;font-size:11px;color:var(--muted-2);font-weight:600;margin-top:2px}
+.kab-chiq{
+  flex:none;display:flex;align-items:center;gap:6px;
+  padding:8px 12px;border-radius:10px;cursor:pointer;
+  background:var(--card-2);border:1px solid var(--line-2);color:var(--muted-2);
+  font-size:12px;font-weight:700;
+  transition:color .15s ease,border-color .15s ease;
+}
+.kab-chiq:hover{color:var(--red);border-color:var(--red-line,var(--red))}
+
+/* ---- Kabinetdagi shartnoma kartochkasi ---- */
+.kab-bar{margin-top:12px;height:6px;border-radius:99px;background:var(--card-3);overflow:hidden}
+.kab-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--green));
+  transition:width .5s cubic-bezier(.22,1,.3,1)}
+.kab-qator{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;font-size:12.5px}
+.kab-qator span{color:var(--muted-2);font-weight:600}
+.kab-qator b{font-weight:800;font-family:'Space Grotesk','Plus Jakarta Sans',monospace;font-variant-numeric:tabular-nums}
+.kab-jadval{margin-top:12px;border-top:1px solid var(--line-3);padding-top:10px}
+.kab-jadval summary{
+  cursor:pointer;font-size:12.5px;font-weight:700;color:var(--blue-text);
+  list-style:none;display:flex;align-items:center;gap:6px;
+}
+.kab-jadval summary::-webkit-details-marker{display:none}
+.kab-jadval summary::after{content:'▾';font-size:11px;transition:transform .2s ease}
+.kab-jadval[open] summary::after{transform:rotate(180deg)}
+.kab-oylar{margin-top:9px;display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
+.kab-oy{
+  display:grid;grid-template-columns:22px 1fr auto 18px;align-items:center;gap:9px;
+  padding:7px 9px;border-radius:9px;background:var(--card-2);font-size:12px;
+}
+.kab-oy-n{color:var(--faint);font-weight:700;text-align:center}
+.kab-oy-s{color:var(--muted-2);font-weight:600}
+.kab-oy-p{font-weight:700;font-family:'Space Grotesk','Plus Jakarta Sans',monospace;font-variant-numeric:tabular-nums}
+.kab-oy-b{text-align:center;font-weight:800}
+.kab-oy.kab-tolandi{background:var(--green-tint)}
+.kab-oy.kab-tolandi .kab-oy-b{color:var(--green)}
+.kab-oy.kab-kechikdi{background:var(--red-tint)}
+.kab-oy.kab-kechikdi .kab-oy-b{color:var(--red)}
+.kab-oy.kab-kechikdi .kab-oy-s{color:var(--red);font-weight:700}
+.kab-oy.kab-kutilmoqda .kab-oy-b{color:var(--faint)}
+.kab-pdf{width:100%}
+
 /* ---------- Sheet ---------- */
 .sheet{position:fixed;inset:0;z-index:100;display:none;justify-content:center;align-items:flex-end}
 .sheet.on{display:flex}
-.sheet .bd{position:absolute;inset:0;background:rgba(6,18,37,.5);backdrop-filter:blur(4px);animation:fin .5s cubic-bezier(.22,.7,.3,1) both}
+/* ===== YANGI OYNA (sheet) OCHILISHI — V121 da TEZLASHTIRILDI =====
+   MUAMMO. Sekin Android telefonlarda kartochka bosilganda oyna
+   "qotib" ochilardi. Ikki sabab bor edi:
+     1. Fon parda (`.bd`) `backdrop-filter: blur(4px)` ishlatardi —
+        bu butun sahifa tasvirini o'qib, har kadrda qaytadan
+        xiralashtirishni talab qiladi. Eng qimmat amal aynan shu.
+     2. Animatsiya juda UZOQ edi (0,62 s) — zaif qurilmada bu
+        "sekin ochilyapti" emas, "osilib qoldi" bo'lib tuyiladi.
+   YECHIM. Blur BUTUNLAY olib tashlandi (o'rniga biroz to'qroq parda —
+   ko'zga deyarli bir xil, lekin bepul), animatsiya esa qisqartirildi:
+   oyna 0,62 s -> 0,28 s, parda 0,5 s -> 0,16 s. Faqat `transform` va
+   `opacity` o'zgaradi, ya'ni ish videokartada bajariladi. */
+.sheet .bd{position:absolute;inset:0;background:rgba(6,18,37,.62);animation:fin .16s linear both}
 @keyframes fin{from{opacity:0}}
 .sheet .pn{
   position:relative;width:100%;max-width:var(--app-w);max-height:94dvh;background:var(--ground);
   border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;flex-direction:column;overflow:hidden;
-  animation:sin .62s cubic-bezier(.19,1,.22,1) both;will-change:transform;
+  animation:sin .28s cubic-bezier(.22,.9,.28,1) both;
 }
-@keyframes sin{from{transform:translateY(16%) scale(.985);opacity:0}60%{opacity:1}to{transform:translateY(0) scale(1);opacity:1}}
-.sheet.closing .pn{animation:sout .34s cubic-bezier(.45,0,.75,.3) forwards}
-.sheet.closing .bd{animation:fout .3s ease forwards}
-@keyframes sout{to{transform:translateY(12%) scale(.99);opacity:0}}
+@keyframes sin{from{transform:translateY(12%);opacity:0}to{transform:translateY(0);opacity:1}}
+.sheet.closing .pn{animation:sout .2s cubic-bezier(.4,0,.7,.4) forwards}
+.sheet.closing .bd{animation:fout .18s linear forwards}
+@keyframes sout{to{transform:translateY(10%);opacity:0}}
 @keyframes fout{to{opacity:0}}
 .sheet .grip{padding:11px 0 0;display:flex;justify-content:center;flex:none}
 .sheet .grip span{width:40px;height:4px;border-radius:2px;background:var(--line-2)}
@@ -2978,25 +3091,25 @@ html[data-theme="dark"] ::selection{background:transparent}
 <section class="screen" id="sc-orders" data-route="orders">
   <header class="apbar">
     <a class="iconbtn mobonly" href="#/profil" aria-label="Orqaga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
-    <div style="flex:1;min-width:0"><h1 data-t="Buyurtmalarim">Buyurtmalarim</h1><div class="sub" data-t="Buyurtma holatini tekshirish">Buyurtma holatini tekshirish</div></div>
+    <div style="flex:1;min-width:0"><h1 data-t="Mening kabinetim">Mening kabinetim</h1><div class="sub" data-t="Buyurtmalar, shartnoma va to'lovlar">Buyurtmalar, shartnoma va to'lovlar</div></div>
   </header>
   <div class="pad wrap" style="padding-top:16px">
     <div style="max-width:620px;margin:0 auto">
 
-      <div class="card" style="background:var(--navy-grad);border-color:transparent;color:#fff;position:relative;overflow:hidden">
+      <div class="card" id="oqTushuntirish" style="background:var(--navy-grad);border-color:transparent;color:#fff;position:relative;overflow:hidden">
         <div style="position:absolute;right:-50px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(230,200,119,.22),transparent 68%)"></div>
         <div style="position:relative;display:flex;align-items:center;gap:14px">
           <span style="width:48px;height:48px;border-radius:15px;background:rgba(230,200,119,.18);display:flex;align-items:center;justify-content:center;flex:none">
             <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="#E6C877" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"></path><path d="M4 7.5 12 11l8-3.5M12 11v9"></path></svg>
           </span>
           <div style="flex:1;min-width:0">
-            <div style="font-size:17px;font-weight:800" data-t="Buyurtmam qayerda?">Buyurtmam qayerda?</div>
-            <div style="margin-top:5px;font-size:12px;color:#A9BCD6;font-weight:600;line-height:1.5" data-t="Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting.">Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting.</div>
+            <div style="font-size:17px;font-weight:800" data-t="Hammasi bir joyda">Hammasi bir joyda</div>
+            <div style="margin-top:5px;font-size:12px;color:#A9BCD6;font-weight:600;line-height:1.5" data-t="Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting — buyurtmalaringiz, shartnomangiz va to'lov jadvalingiz shu yerda chiqadi.">Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting — buyurtmalaringiz, shartnomangiz va to'lov jadvalingiz shu yerda chiqadi.</div>
           </div>
         </div>
       </div>
 
-      <div class="card" style="margin-top:12px">
+      <div class="card" style="margin-top:12px" id="oqForma">
         <div class="fld">
           <label for="oqPhone" data-t="Ishlab turgan telefon raqamingiz">Ishlab turgan telefon raqamingiz</label>
           <div class="inp"><span class="sg" style="font-size:14.5px;font-weight:700;color:var(--text-3)">+998</span><span style="width:1px;height:22px;background:var(--line-2)"></span><input id="oqPhone" type="tel" inputmode="numeric" placeholder="90 123 45 67" autocomplete="tel"></div>
@@ -3020,7 +3133,7 @@ html[data-theme="dark"] ::selection{background:transparent}
 
       <button class="card" data-goroute="contract" style="margin-top:14px;width:100%;text-align:left;display:flex;align-items:center;gap:12px">
         <span style="width:38px;height:38px;border-radius:12px;background:var(--gold-tint);color:var(--gold-ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg></span>
-        <span style="flex:1;min-width:0"><b style="display:block;font-size:14px" data-t="Kredit shartnomam">Kredit shartnomam</b><i style="display:block;font-style:normal;margin-top:3px;font-size:11.5px;color:var(--muted-2);font-weight:600" data-t="To'lovlar jadvali va PDF">To'lovlar jadvali va PDF</i></span>
+        <span style="flex:1;min-width:0"><b style="display:block;font-size:14px" data-t="Shartnoma ID bo'yicha qidirish">Shartnoma ID bo'yicha qidirish</b><i style="display:block;font-style:normal;margin-top:3px;font-size:11.5px;color:var(--muted-2);font-weight:600" data-t="Masalan KR0142">Masalan KR0142</i></span>
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--faint)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
       </button>
     </div>
@@ -3654,6 +3767,33 @@ function kartaNarx(item){
 }
 RU["so'mdan"] = 'сум';
 RU["Bo'lib to'lash bor"] = 'Есть рассрочка';
+/* V122 — kabinet va bosqichlar */
+RU['Mening kabinetim'] = 'Мой кабинет';
+RU["Buyurtmalar, shartnoma va to'lovlar"] = 'Заказы, договор и платежи';
+RU['Hammasi bir joyda'] = 'Всё в одном месте';
+RU["Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting — buyurtmalaringiz, shartnomangiz va to'lov jadvalingiz shu yerda chiqadi."] = 'Введите свой номер телефона и последние 4 цифры купленного номера — здесь появятся ваши заказы, договор и график платежей.';
+RU["Shartnoma ID bo'yicha qidirish"] = 'Поиск по ID договора';
+RU['Masalan KR0142'] = 'Например KR0142';
+RU['Shartnoma tayyorlanmadi'] = 'Договор не подготовлен';
+
+/* ---------- SANA: KUN.OY.YIL (V121) ----------
+   Brauzerda `toLocaleDateString('uz-UZ')` sanani TESKARI — ISO
+   tartibida qaytaradi ("2026-03-09"). O'lchab tekshirildi. Buyurtma
+   vaqti shu ko'rinishda bazaga YOZILARDI va admin panelida ham,
+   Telegram xabarida ham teskari ko'rinardi. Endi sanani o'zimiz
+   yig'amiz — har qanday brauzerda bir xil. */
+function sanaUz(x){
+  const d = (x instanceof Date) ? x : new Date(x);
+  if(!d || isNaN(d.getTime())) return '';
+  const q = n => String(n).padStart(2,'0');
+  return q(d.getDate()) + '.' + q(d.getMonth()+1) + '.' + d.getFullYear();
+}
+function sanaVaqtUz(x){
+  const d = (x instanceof Date) ? x : new Date(x);
+  if(!d || isNaN(d.getTime())) return '';
+  const q = n => String(n).padStart(2,'0');
+  return sanaUz(d) + ', ' + q(d.getHours()) + ':' + q(d.getMinutes());
+}
 
 /* ---------- Tarmoq ---------- */
 function withClientTimeout(p, ms){
@@ -4082,12 +4222,14 @@ function closeSheet(id){
   const el = id ? document.getElementById(id) : document.getElementById(sheetStack[sheetStack.length-1]);
   if(!el) return;
   el.classList.add('closing');
+  /* 240 -> 210 ms: yopilish animatsiyasi ham qisqartirildi (0,2 s),
+     shu sabab kutish ham qisqardi — oyna "osilib" turmaydi (V121). */
   setTimeout(()=>{
     el.classList.remove('on','closing');
     el.style.zIndex = '';
     sheetStack = sheetStack.filter(s => s !== el.id);
     if(!sheetStack.length) document.body.classList.remove('noscroll');
-  }, 240);
+  }, 210);
 }
 document.addEventListener('click', (e)=>{
   const c = e.target.closest('[data-close]');
@@ -4231,6 +4373,10 @@ function renderRoute(keepScroll){
   const navKey = (r === 'orders' || r === 'contract') ? 'more' : r;
   $$('#nav a, .dh-nav a').forEach(a => a.classList.toggle('on', a.dataset.nav === navKey));
   if(r === 'fav') renderFavorites();
+  /* V124: kabinet O'ZI ochiladi. Ilgari mijoz bu bo'limga har kirganda
+     telefon raqami va oxirgi 4 ta raqamni QAYTA yozishi kerak edi —
+     "kabinet" uchun bu noto'g'ri: kabinet o'zi ochilishi kerak. */
+  if(r === 'orders') kabAvtoOch();
   if(r === 'catalog'){ reshuffle(); catShown = PAGE_SIZE; renderCatalog(); }
   if(r === 'home') pickHome();
   if(typeof moveNavPill === 'function') requestAnimationFrame(moveNavPill);
@@ -6715,7 +6861,7 @@ function buildPayload(){
 async function submitOrder(smsVerified){
   const it = ORD.item, payload = buildPayload();
   payload.smsVerified = !!smsVerified;
-  const orderTime = new Date().toLocaleString('uz-UZ');
+  const orderTime = sanaVaqtUz(new Date());
   let orderId = null, blocked = null;
 
   /* SO'ROV BELGISI (V120). Bitta buyurtma urinishi uchun BITTA belgi.
@@ -6942,11 +7088,55 @@ async function submitOrder(smsVerified){
    BUYURTMANI TEKSHIRISH (check-my-orders)
    ================================================================== */
 const ORDER_STATUS = {
-  'Yangi':          { tag:'blue',  label:'YANGI' },
-  "Bog'lanildi":    { tag:'vip',   label:"BOG'LANILDI" },
-  'Yakunlandi':     { tag:'green', label:'YAKUNLANDI' },
+  'Yangi':          { tag:'blue',  label:'QABUL QILINDI' },
+  "Bog'lanildi":    { tag:'vip',   label:'TASDIQLANDI' },
+  "Yo'lda":         { tag:'vip',   label:"KURYER YO'LDA" },
+  'Yakunlandi':     { tag:'green', label:'YETKAZILDI' },
   'Bekor qilindi':  { tag:'red',   label:'BEKOR QILINDI' }
 };
+
+/* ==================================================================
+   BUYURTMA BOSQICHLARI (V122)
+   ------------------------------------------------------------------
+   Mijoz buyurtma bergach "endi nima bo'ladi?" degan savolga javob
+   topa olmasdi — faqat quruq status so'zi turardi. Endi to'rt
+   bosqichli zanjir ko'rinadi va mijoz qaysi bosqichda ekanini bir
+   qarashda tushunadi.
+   Bosqich nomlari ATAYLAB mijoz tilida: bazada "Bog'lanildi" deb
+   turadi, mijoz esa "Tasdiqlandi" deb ko'radi.
+   ================================================================== */
+const BOSQICHLAR = [
+  { kalit:'Yangi',        nom:'Qabul qilindi', izoh:'Buyurtmangiz tizimga tushdi' },
+  { kalit:"Bog'lanildi",  nom:'Tasdiqlandi',   izoh:"Operator siz bilan bog'landi" },
+  { kalit:"Yo'lda",       nom:"Kuryer yo'lda", izoh:'Raqamingiz yo\'lga chiqdi' },
+  { kalit:'Yakunlandi',   nom:'Yetkazildi',    izoh:'Raqam sizga topshirildi' }
+];
+const BOSQICH_RU = {
+  'Qabul qilindi':'Принят', 'Tasdiqlandi':'Подтверждён',
+  "Kuryer yo'lda":'Курьер в пути', 'Yetkazildi':'Доставлен',
+  'Buyurtmangiz tizimga tushdi':'Заказ поступил в систему',
+  "Operator siz bilan bog'landi":'Оператор связался с вами',
+  "Raqamingiz yo'lga chiqdi":'Номер в пути',
+  'Raqam sizga topshirildi':'Номер передан вам'
+};
+const bq = (x) => (LANG === 'ru' ? (BOSQICH_RU[x] || x) : x);
+
+function bosqichlarHtml(status){
+  /* Bekor qilingan buyurtmada zanjir ko'rsatilmaydi — u zanjirdan
+     tashqaridagi holat. */
+  if(status === 'Bekor qilindi') return '';
+  let joriy = BOSQICHLAR.findIndex(b => b.kalit === status);
+  if(joriy < 0) joriy = 0;
+  return '<div class="bsq">' + BOSQICHLAR.map((b, i) => {
+    const holat = i < joriy ? 'ok' : (i === joriy ? 'on' : '');
+    return '<div class="bsq-q ' + holat + '">'
+      + '<span class="bsq-nuqta">' + (i < joriy
+          ? '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
+          : '') + '</span>'
+      + '<div class="bsq-matn"><b>' + esc(bq(b.nom)) + '</b><i>' + esc(bq(b.izoh)) + '</i></div>'
+      + '</div>';
+  }).join('') + '</div>';
+}
 
 async function lookupOrders(){
   const phone = extractRawDigits($('#oqPhone').value);
@@ -6957,19 +7147,55 @@ async function lookupOrders(){
   const btn = $('#oqBtn'); btn.disabled = true; btn.textContent = t('Tekshirilmoqda…');
   box.innerHTML = skeletons(2);
   try{
-    const res = await withClientTimeout(fetch(FN + 'check-my-orders', {
+    /* V122: MIJOZ KABINETI. Ilgari bu yerda faqat buyurtmalar
+       olinardi (`check-my-orders`), shartnoma esa BOSHQA bo'limda,
+       shartnoma ID'si bilan qidirilardi — mijoz uni eslab qolmasdi.
+       Endi bitta so'rov: buyurtmalar HAM, shartnomalar HAM keladi. */
+    const res = await withClientTimeout(fetch(FN + 'api-kabinet', {
       method:'POST',
       headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
       body: JSON.stringify({ phone, lastDigits: last })
-    }), kutishVaqti(12000));
+    }), kutishVaqti(14000));
     const data = await res.json();
-    if(!data.ok || !data.orders || !data.orders.length){
+    const buyurtmalar = (data && data.orders) || [];
+    const shartnomalar = (data && data.contracts) || [];
+
+    if(!data.ok || (!buyurtmalar.length && !shartnomalar.length)){
+      /* Eslab qolingan ma'lumot endi ishlamayapti (masalan mijoz
+         boshqa raqam kiritgan) — uni tozalaymiz va formani qaytaramiz,
+         aks holda bo'lim har ochilganda shu xato chiqaverardi. */
+      try{ localStorage.removeItem(KAB_KALIT); }catch(e){}
+      const f2 = $('#oqForma'); if(f2) f2.style.display = '';
+      const t2 = $('#oqTushuntirish'); if(t2) t2.style.display = '';
       box.innerHTML = emptyBox(IC_BOX, t('Buyurtma topilmadi'), data.error || (LANG==='ru'?'По этим номерам заказов нет. Проверьте телефон и последние 4 цифры.':"Bu raqamlar bo'yicha buyurtma yo'q. Telefon va oxirgi 4 ta raqamni tekshiring."), null);
       return;
     }
-    const COL = { 'Yangi':'var(--blue)', "Bog'lanildi":'var(--gold)', 'Yakunlandi':'var(--green)', 'Bekor qilindi':'var(--red)' };
-    box.innerHTML = `<div class="eyebrow" style="padding:0 4px;margin-bottom:10px">${data.orders.length} ${t('ta buyurtma')}</div>` +
-      data.orders.map(o => {
+
+    KAB_TEL = phone;
+    /* V124: bir marta kirgandan keyin eslab qolamiz — keyingi safar
+       kabinet o'zi ochiladi. */
+    kabEslab(phone.slice(-9), last);
+    const forma = $('#oqForma'); if(forma) forma.style.display = 'none';
+    /* Kirgan mijozga "telefon raqamingizni kiriting" degan tushuntirish
+       kerak emas — u faqat chalkashtiradi. */
+    const tush = $('#oqTushuntirish'); if(tush) tush.style.display = 'none';
+
+    let html = `<div class="kab-bosh">
+      <div class="kab-bosh-t">
+        <b>+998 ${esc(formatUzNumber(phone))}</b>
+        <i>${LANG==='ru'?'Ваш кабинет':'Sizning kabinetingiz'}</i>
+      </div>
+      <button type="button" class="kab-chiq" data-kabchiq>
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 17l5-5-5-5"></path><path d="M20 12H9"></path><path d="M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path></svg>
+        <span>${LANG==='ru'?'Выйти':'Chiqish'}</span>
+      </button>
+    </div>`;
+
+    /* ---------- BUYURTMALAR (bosqichlar bilan) ---------- */
+    if(buyurtmalar.length){
+      const COL = { 'Yangi':'var(--blue)', "Bog'lanildi":'var(--gold)', "Yo'lda":'#7C5CFF', 'Yakunlandi':'var(--green)', 'Bekor qilindi':'var(--red)' };
+      html += `<div class="eyebrow" style="padding:0 4px;margin-bottom:10px">${buyurtmalar.length} ${t('ta buyurtma')}</div>`;
+      html += buyurtmalar.map(o => {
         const st = ORDER_STATUS[o.status] || { tag:'grey', label: String(o.status||'—').toUpperCase() };
         const bar = COL[o.status] || 'var(--line-2)';
         return `<div class="rescard">
@@ -6987,14 +7213,182 @@ async function lookupOrders(){
             </div>
             <div class="amt sg">${formatPrice(o.price)}${o.currency==='USD'?' $':''}</div>
           </div>
+          ${bosqichlarHtml(o.status)}
         </div>`;
       }).join('');
+    }
+
+    /* ---------- SHARTNOMALAR (to'lov jadvali bilan) ---------- */
+    if(shartnomalar.length){
+      html += `<div class="eyebrow" style="padding:0 4px;margin:18px 0 10px">${shartnomalar.length} ${LANG==='ru'?'договор':'ta shartnoma'}</div>`;
+      html += shartnomalar.map(c => kabShartnomaHtml(c)).join('');
+    }
+
+    box.innerHTML = html;
   }catch(err){
     box.innerHTML = emptyBox(IC_WARN, t("Tekshirib bo'lmadi"), xatoMatni(err), t('Qayta urinish'), 'id="oqRetry"', true);
   }finally{
     btn.disabled = false; btn.textContent = t('Tekshirish');
   }
 }
+
+/* Kabinet so'rovi uchun ishlatilgan telefon — PDF yuklab olishda
+   qaytadan so'ramaslik uchun eslab qolinadi. */
+let KAB_TEL = '';
+
+/* ==================================================================
+   KABINETNI ESLAB QOLISH (V124)
+   ------------------------------------------------------------------
+   MUAMMO. Oldingi versiyada kabinet to'g'ri ishlardi, lekin mijoz
+   bo'limga HAR KIRGANDA telefon raqamini va oxirgi 4 ta raqamni
+   QAYTA yozishi kerak edi. "Kabinet" deb atalgan narsa uchun bu
+   noto'g'ri — kabinet o'zi ochilishi kerak.
+
+   YECHIM. Bir marta muvaffaqiyatli kirgandan keyin telefon va 4 ta
+   raqam SHU TELEFONNING O'ZIDA saqlanadi (localStorage) va keyingi
+   safar bo'lim o'zi, hech narsa so'ramasdan ochiladi.
+
+   XAVFSIZLIK. Saqlanadigan narsa — mijozning O'ZI kiritgan, o'zining
+   telefon raqami va o'zi sotib olgan raqamning 4 ta raqami. Hech
+   qanday parol, token yoki shaxsiy hujjat ma'lumoti saqlanmaydi.
+   Ma'lumotning O'ZI (buyurtma, shartnoma) saqlanmaydi — u har safar
+   serverdan, o'sha ikki bosqichli tekshiruvdan o'tib keladi.
+   Boshqa odamning telefoniga o'tib qolmasligi uchun "Chiqish" tugmasi
+   ko'rinib turadi. */
+const KAB_KALIT = 'vip_kabinet';
+function kabEslaganni(){
+  try{
+    const o = JSON.parse(localStorage.getItem(KAB_KALIT) || 'null');
+    if(o && /^\d{9}$/.test(String(o.tel||'')) && /^\d{4}$/.test(String(o.oxirgi||''))) return o;
+  }catch(e){}
+  return null;
+}
+function kabEslab(tel, oxirgi){
+  try{ localStorage.setItem(KAB_KALIT, JSON.stringify({ tel, oxirgi, at: Date.now() })); }catch(e){}
+}
+function kabUnut(){
+  try{ localStorage.removeItem(KAB_KALIT); }catch(e){}
+  KAB_TEL = '';
+  const box = $('#oqResult'); if(box) box.innerHTML = '';
+  const tel = $('#oqPhone'); if(tel) tel.value = '';
+  const l = $('#oqLast'); if(l) l.value = '';
+  $$('#oqDigits input').forEach(b => { b.value = ''; });
+  const forma = $('#oqForma'); if(forma) forma.style.display = '';
+  const tush = $('#oqTushuntirish'); if(tush) tush.style.display = '';
+  toast(LANG==='ru' ? 'Вы вышли из кабинета' : 'Kabinetdan chiqdingiz');
+}
+
+/* Bo'lim ochilganda: eslab qolingan bo'lsa — o'zi yuklanadi. */
+let KAB_YUKLANDI = false;
+function kabAvtoOch(){
+  const o = kabEslaganni();
+  if(!o){
+    const f = $('#oqForma'); if(f) f.style.display = '';
+    const t0 = $('#oqTushuntirish'); if(t0) t0.style.display = '';
+    return;
+  }
+  /* Forma yashiriladi — mijoz uni ko'rib "yana yozishim kerakmi?"
+     deb o'ylamasin. "Chiqish" tugmasi natija ustida turadi. */
+  const f = $('#oqForma'); if(f) f.style.display = 'none';
+  const t0 = $('#oqTushuntirish'); if(t0) t0.style.display = 'none';
+  const tel = $('#oqPhone'); if(tel && !tel.value) tel.value = formatUzNumber(o.tel);
+  const l = $('#oqLast'); if(l) l.value = o.oxirgi;
+  $$('#oqDigits input').forEach((b,i) => { b.value = o.oxirgi[i] || ''; });
+  if(KAB_YUKLANDI) return;      /* bir marta — keyin qayta so'rov yubormaymiz */
+  KAB_YUKLANDI = true;
+  lookupOrders();
+}
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('[data-kabchiq]')){ e.preventDefault(); KAB_YUKLANDI = false; kabUnut(); }
+});
+
+function kabShartnomaHtml(c){
+  const val = c.currency === 'USD' ? ' $' : (' ' + SUM());
+  const foiz = c.jamiOy ? Math.round(c.tolanganOy / c.jamiOy * 100) : 0;
+  const kech = Number(c.kechikkanOy) || 0;
+
+  /* To'lov jadvali: faqat eng muhim qismi ochiq turadi — qolgani
+     "hammasini ko'rish" bilan ochiladi (uzun ro'yxat ekranni
+     to'ldirib yubormasin). */
+  const qatorlar = (c.oylar || []).map(o => {
+    const belgi = o.holat === 'tolandi' ? '✓' : (o.holat === 'kechikdi' ? '!' : '·');
+    return `<div class="kab-oy kab-${esc(o.holat)}">
+      <span class="kab-oy-n">${esc(o.oy)}</span>
+      <span class="kab-oy-s">${esc(o.sana)}</span>
+      <span class="kab-oy-p">${formatPrice(o.summa)}${esc(val)}</span>
+      <span class="kab-oy-b">${belgi}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="rescard">
+    <span class="rb" style="background:${kech ? 'var(--red)' : 'var(--gold)'}"></span>
+    <div class="rh">
+      <span class="id sg">${esc(c.contractId)}</span>
+      <span class="tag ${kech ? 'red' : (c.qolganSumma === 0 ? 'green' : 'vip')}" style="margin-left:auto">
+        ${kech ? (LANG==='ru' ? kech+' мес. просрочка' : kech + ' oy kechikdi')
+               : (c.qolganSumma === 0 ? (LANG==='ru'?'ПОГАШЕН':'TO\'LANDI') : (LANG==='ru'?'АКТИВЕН':'AMALDA'))}
+      </span>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div class="big sg">${esc(shortNumber(c.number))}</div>
+        <div class="sub">${esc(c.tolanganOy)} / ${esc(c.jamiOy)} ${t('oy')} ${LANG==='ru'?'оплачено':'to\'langan'}</div>
+      </div>
+      <div class="amt sg">${formatPrice(c.qolganSumma)}${esc(val)}</div>
+    </div>
+
+    <div class="kab-bar" aria-hidden="true"><i style="width:${foiz}%"></i></div>
+
+    <div class="kab-qator">
+      <span>${LANG==='ru'?'Оплачено':'To\'langan'}</span>
+      <b>${formatPrice(c.tolanganSumma)}${esc(val)}</b>
+    </div>
+    ${c.keyingiSana ? `<div class="kab-qator">
+      <span>${LANG==='ru'?'Следующий платёж':'Keyingi to\'lov'}</span>
+      <b${kech ? ' style="color:var(--red)"' : ''}>${esc(c.keyingiSana)} · ${formatPrice(c.monthlyPayment)}${esc(val)}</b>
+    </div>` : ''}
+
+    <details class="kab-jadval">
+      <summary>${LANG==='ru'?'График платежей':"To'lovlar jadvali"} (${esc(c.jamiOy)} ${t('oy')})</summary>
+      <div class="kab-oylar">${qatorlar}</div>
+    </details>
+
+    <button class="btn ghost kab-pdf" data-kabpdf="${esc(c.contractId)}" style="margin-top:12px">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M8 11.5l4 4 4-4"></path><path d="M5 19h14"></path></svg>
+      <span>${t('Shartnomani yuklab olish')}</span>
+    </button>
+  </div>`;
+}
+
+/* Kabinetdagi "Shartnomani yuklab olish" — shartnoma ID'si allaqachon
+   bizda, telefon ham: mijozdan hech narsa so'ralmaydi. */
+document.addEventListener('click', async (e)=>{
+  const b = e.target.closest('[data-kabpdf]');
+  if(!b) return;
+  const id = b.dataset.kabpdf;
+  const asl = b.innerHTML;
+  b.disabled = true; b.textContent = t('Tayyorlanmoqda…');
+  try{
+    const res = await withClientTimeout(fetch(FN + 'generate-contract-pdf', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ contractId: id, phone: KAB_TEL })
+    }), kutishVaqti(20000));
+    const r = await res.json();
+    if(!r.ok || !r.pdfBase64){ toast(r.error || t('Shartnoma tayyorlanmadi'), 'bad'); return; }
+    const chars = atob(r.pdfBase64);
+    const bytes = new Uint8Array(chars.length);
+    for(let i=0;i<chars.length;i++) bytes[i] = chars.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type:'application/pdf' }));
+    window.open(url, '_blank');
+    setTimeout(()=> URL.revokeObjectURL(url), 60000);
+    toast(LANG==='ru'?'Договор скачан':'Shartnoma yuklab olindi');
+  }catch(err){
+    toast(xatoMatni(err), 'bad');
+  }finally{
+    b.disabled = false; b.innerHTML = asl;
+  }
+});
 
 /* ==================================================================
    SHARTNOMA HOLATI (check-contract-status + generate-contract-pdf)
@@ -7074,7 +7468,7 @@ async function lookupContract(){
           ${pays.map(p => {
             const over = p.status === 'pending' && p.dueDate && p.dueDate < now;
             const done = p.status === 'paid';
-            const dd = p.dueDate ? new Date(p.dueDate).toLocaleDateString('uz-UZ') : '—';
+            const dd = p.dueDate ? sanaUz(p.dueDate) : '—';
             return `<div class="payrow">
               <span class="pn" style="background:${done?'var(--green)':over?'var(--red)':'var(--card-3)'};color:${done||over?'#fff':'var(--muted)'}">${done?'✓':(p.month||'•')}</span>
               <span class="pt">${p.month?p.month+'-'+t("to'lov"):t("to'lov")} · ${esc(dd)}</span>
@@ -7236,7 +7630,7 @@ async function submitCustom(){
       downPayment:          d ? (d.downPayment||0) : 0,
       ownershipTransfer:    d ? !!d.ownershipTransfer : false,
       tariffMonths:         d ? (d.tariffMonths||0) : 0,
-      createdAt: new Date().toLocaleString('uz-UZ'),
+      createdAt: sanaVaqtUz(new Date()),
       createdAtSort: Date.now()
     });
     $('#genBody').innerHTML = `<div style="text-align:center;padding:26px 0">
@@ -7437,7 +7831,7 @@ async function submitVac(){
       createdAt: FV.serverTimestamp()
     });
     try{
-      const text = `💼 Yangi ish uchun ariza\n\n📋 Lavozim: ${vacPick.title}\n👤 Ism: ${name}\n☎️ Telefon: +998 ${formatUzNumber(raw)}\n${exp?`📝 Tajriba: ${exp}\n`:''}🕐 Vaqti: ${new Date().toLocaleString('uz-UZ')}`;
+      const text = `💼 Yangi ish uchun ariza\n\n📋 Lavozim: ${vacPick.title}\n👤 Ism: ${name}\n☎️ Telefon: +998 ${formatUzNumber(raw)}\n${exp?`📝 Tajriba: ${exp}\n`:''}🕐 Vaqti: ${sanaVaqtUz(new Date())}`;
       fetch(FN + 'telegram-notify', { method:'POST', headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) }, body: JSON.stringify({ text }) }).catch(()=>{});
     }catch(e){}
     $('#genBody').innerHTML = `<div style="text-align:center;padding:26px 0">
@@ -7595,7 +7989,7 @@ async function submitHamkor(){
         '\n☎️ +998 ' + formatUzNumber(raw) +
         '\n\u{1F4CD} ' + reg + '\n\u{1F522} Raqamlari: ' + cnt +
         (note ? '\n\u{1F4DD} ' + note : '') +
-        '\n\u{1F550} ' + new Date().toLocaleString('uz-UZ');
+        '\n\u{1F550} ' + sanaVaqtUz(new Date());
       fetch(FN + 'telegram-notify', { method:'POST',
         headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
         body: JSON.stringify({ text }) }).catch(()=>{});
@@ -7709,8 +8103,13 @@ function msgVaqt(ms){
   if(kun === 1) return t('kecha');
   if(kun < 7) return kun + ' ' + t('kun oldin');
   try{
-    return new Date(d).toLocaleDateString(LANG === 'ru' ? 'ru-RU' : 'uz-UZ',
-      { day:'numeric', month:'short' });
+    /* V121: `uz-UZ` lokali brauzerda sanani ISO tartibida beradi, shu
+       sabab o'zbekcha ko'rinish O'ZIMIZDA yig'iladi. Ruscha esa
+       lokalning o'zidan olinadi (u to'g'ri ishlaydi). */
+    if(LANG === 'ru') return new Date(d).toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
+    const OYLAR = ['yan','fev','mar','apr','may','iyn','iyl','avg','sen','okt','noy','dek'];
+    const dd = new Date(d);
+    return dd.getDate() + '-' + OYLAR[dd.getMonth()];
   }catch(e){ return ''; }
 }
 

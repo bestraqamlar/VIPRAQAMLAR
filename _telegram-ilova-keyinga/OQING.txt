@@ -1,0 +1,9 @@
+telegram-ilova.html — Telegram mini ilovasi.
+
+Siz V120 da "hozircha olib tasha, keyin davom ettiramiz" degan
+edingiz. Shu papka saytning ishiga aralashmaydi (nomi `_` bilan
+boshlanadi, Netlify uni sahifa deb qaramaydi).
+
+Qaytarish kerak bo'lganda shu faylni omborning ILDIZIGA ko'chirsangiz
+kifoya, va `_redirects` ichidagi `/telegram-ilova.html → /index.html`
+qatorini o'chirsangiz.

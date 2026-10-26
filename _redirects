@@ -74,9 +74,16 @@
 # Asosiy ko'rinish: /s/KR0142/<imzo>.pdf  -> PDF'ning O'ZI ochiladi.
 # `.pdf` bilan tugagani uchun telefon skaneri uni "fayl" deb biladi va
 # darhol ochadi (sayt ochilib, keyin yuklab olish so'ralmaydi).
-/s/:i/:k   /.netlify/functions/shartnoma-pdf?i=:i&k=:k   200
-# Eski ko'rinish ham ishlayversin (orqaga moslik uchun).
-/s         /.netlify/functions/shartnoma-pdf             200
+# TUZATISH (V121). Ilgari bu yerda `:i`/`:k` o'rin egallari ishlatilardi:
+#   /s/:i/:k  ->  ...shartnoma-pdf?i=:i&k=:k
+# Amalda ular funksiyaga YETIB BORMADI — funksiya bo'sh parametr olib,
+# "Havola to'liq emas" sahifasini ko'rsatardi va mijoz saytga tushardi.
+# Endi o'rin egallari UMUMAN ishlatilmaydi: butun yo'l funksiyaga
+# uzatiladi, funksiya esa shartnoma raqami va imzoni YO'LNING O'ZIDAN
+# o'qiydi (qarang: shartnoma-pdf.js). Shu bilan bu Netlify'ning
+# o'rin egallarini qanday uzatishiga umuman bog'liq bo'lmay qoldi.
+/s/*       /.netlify/functions/shartnoma-pdf   200
+/s         /.netlify/functions/shartnoma-pdf   200
 
 # TELEGRAM MINI ILOVA — V120 da VAQTINCHA OLIB TASHLANDI (mijoz so'rovi:
 # "hozircha xatosi ko'p"). Fayl o'chirilgani uchun eski havola pastdagi
