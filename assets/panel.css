@@ -5552,3 +5552,42 @@ body::after{
   .st-row{flex-wrap:wrap}
   .st-act{width:100%;justify-content:flex-start}
 }
+
+
+/* ---- SANA MAYDONI (kun.oy.yil) — V121 ----
+   Asl `<input type="date">` ko'rinmaydi, lekin DOM da qoladi: qiymatni
+   o'qiydigan butun kod o'zgarmasdan ishlayveradi va taqvim ham o'shaning
+   o'zidan ochiladi. Ustida oddiy matn maydoni turadi. */
+.uzsana{position:relative;display:block;width:100%;}
+.uzsana input[type="date"]{
+  position:absolute;left:0;bottom:0;width:1px;height:1px;
+  opacity:0;pointer-events:none;border:0;padding:0;margin:0;
+}
+.uzsana > input[type="text"]{padding-right:34px;}
+.uzsana-btn{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  background:none;border:0;border-radius:7px;color:var(--muted);cursor:pointer;
+  transition:color .15s ease,background .15s ease;
+}
+.uzsana-btn:hover{color:var(--text);background:rgba(255,255,255,.07);}
+:root[data-theme="light"] .uzsana-btn:hover{background:rgba(16,32,60,.06);}
+
+
+/* ---- V122: "Yo'lda" bosqichi (kuryer yo'lga chiqdi) ----
+   Rangi binafsha-ko'k: "Bog'lanildi" (sariq) va "Yakunlandi" (yashil)
+   orasidagi oraliq bosqich ekani bir qarashda bilinadi. */
+.order-card.st-yolda{
+  border-left-color:#7C5CFF;
+  background:linear-gradient(rgba(124,92,255,.07),rgba(124,92,255,.07)),var(--panel);
+}
+.admin-row-collapsed.oc-wrap.st-yolda{border-left-color:#7C5CFF;}
+.oc-status-badge.st-yolda{background:rgba(124,92,255,.16);color:#A58BFF;}
+#adminOrdersList .order-card.st-yolda .oc-summary-grid::before{background:#7C5CFF;}
+.zk-order-badge.opt-yolda{background:rgba(124,92,255,.16);color:#A58BFF;}
+.zk-status-select.opt-yolda{border-color:#7C5CFF;color:#A58BFF;}
+.zk-stat-card.st-yolda b{color:#A58BFF;}
+:root[data-theme="light"] .oc-status-badge.st-yolda,
+:root[data-theme="light"] .zk-order-badge.opt-yolda{background:rgba(92,60,220,.12);color:#5C3CDC;}
+:root[data-theme="light"] .zk-status-select.opt-yolda{border-color:#5C3CDC;color:#5C3CDC;}
+:root[data-theme="light"] .zk-stat-card.st-yolda b{color:#5C3CDC;}

@@ -1,3 +1,136 @@
+
+/* ==================================================================
+   SANA FORMATI — KUN.OY.YIL (V121)
+   ------------------------------------------------------------------
+   MUAMMO. Hamma joyda `toLocaleDateString('uz-UZ')` ishlatilardi.
+   Brauzerda (Chrome) o'zbek lokali sanani TESKARI — ISO tartibida
+   qaytaradi: "2026-03-09". Admin esa kun.oy.yil kutadi.
+   Tekshirildi (brauzerda o'lchangan):
+       uz-UZ  ->  2026-03-09     (teskari)
+       ru-RU  ->  09.03.2026     (to'g'ri)
+   Lokalga tayanmaymiz: sanani O'ZIMIZ yig'amiz, shunda u HAR QANDAY
+   brauzerda, har qanday til sozlamasida bir xil chiqadi.
+   ================================================================== */
+function sanaUz(x){
+  const d = (x instanceof Date) ? x : new Date(x);
+  if(!d || isNaN(d.getTime())) return '';
+  const q = n => String(n).padStart(2, '0');
+  return q(d.getDate()) + '.' + q(d.getMonth() + 1) + '.' + d.getFullYear();
+}
+function sanaVaqtUz(x){
+  const d = (x instanceof Date) ? x : new Date(x);
+  if(!d || isNaN(d.getTime())) return '';
+  const q = n => String(n).padStart(2, '0');
+  return sanaUz(d) + ', ' + q(d.getHours()) + ':' + q(d.getMinutes());
+}
+/* "2026-03-09" (input qiymati) -> "09.03.2026" */
+function isoSanaUz(iso){
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? (m[3] + '.' + m[2] + '.' + m[1]) : '';
+}
+/* "09.03.2026" -> "2026-03-09" (input qiymati uchun) */
+function uzSanaIso(uz){
+  const m = String(uz || '').match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if(!m) return '';
+  const k = Number(m[1]), o = Number(m[2]), y = Number(m[3]);
+  if(k < 1 || k > 31 || o < 1 || o > 12 || y < 1900 || y > 2200) return '';
+  return m[3] + '-' + m[2] + '-' + m[1];
+}
+
+/* ==================================================================
+   SANA MAYDONI — KUN.OY.YIL KO'RINISHIDA (V121)
+   ------------------------------------------------------------------
+   MUAMMO. `<input type="date">` ni brauzer O'ZI chizadi va qaysi
+   tartibda ko'rsatishni BRAUZER TILI hal qiladi — biz emas. Sinab
+   ko'rildi: elementga `lang="ru-RU"` qo'yish ham yordam bermaydi,
+   Chrome baribir o'z interfeys tilidagi tartibni ishlatadi
+   (ko'pincha oy/kun/yil yoki yil-oy-kun). Admin esa KUN.OY.YIL
+   kutadi.
+
+   YECHIM. Asl `type="date"` maydoni DOM da QOLADI (ko'rinmaydi) —
+   demak uni o'qiydigan/yozadigan butun mavjud kod o'zgarmasdan
+   ishlayveradi. Uning ustiga oddiy MATN maydoni qo'yiladi: u
+   kun.oy.yil ko'rinishida yoziladi va yozilayotganda nuqtalar o'zi
+   qo'yiladi. Yonidagi tugma esa brauzerning o'z taqvimini ochadi.
+
+   Qo'shimcha nozik joy: mavjud kod ba'zan `el.value = '2026-10-26'`
+   deb TO'G'RIDAN-TO'G'RI yozadi (masalan formani tozalaganda). Oddiy
+   hodisa tinglash bunda ishlamaydi, shu sabab shu ELEMENTNING O'ZIDA
+   `value` xossasi ustidan yoziladi — qiymat o'zgarishi bilan matn
+   maydoni ham yangilanadi. */
+function sanaMaydoniUz(el){
+  if(!el || el.dataset.uzSana === '1') return;
+  el.dataset.uzSana = '1';
+
+  const oram = document.createElement('div');
+  oram.className = 'uzsana';
+  el.parentNode.insertBefore(oram, el);
+  oram.appendChild(el);
+
+  const matn = document.createElement('input');
+  matn.type = 'text';
+  matn.inputMode = 'numeric';
+  matn.autocomplete = 'off';
+  matn.placeholder = 'kun.oy.yil';
+  matn.maxLength = 10;
+  matn.className = el.className;
+  if(el.id) matn.id = el.id + '_uz';
+  oram.appendChild(matn);
+
+  const tugma = document.createElement('button');
+  tugma.type = 'button';
+  tugma.className = 'uzsana-btn';
+  tugma.setAttribute('aria-label', 'Taqvimni ochish');
+  tugma.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';
+  oram.appendChild(tugma);
+
+  const tavsif = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const matndanIso = () => uzSanaIso(matn.value);
+
+  function matnniYangila(){ matn.value = isoSanaUz(tavsif.get.call(el)); }
+
+  /* Asl maydon qiymati O'ZGARTIRILSA (kod orqali ham) — matn ergashadi */
+  Object.defineProperty(el, 'value', {
+    configurable: true,
+    get(){ return tavsif.get.call(el); },
+    set(v){ tavsif.set.call(el, v); matnniYangila(); }
+  });
+
+  el.addEventListener('change', matnniYangila);
+  el.addEventListener('input', matnniYangila);
+
+  matn.addEventListener('input', ()=>{
+    const r = matn.value.replace(/\D/g, '').slice(0, 8);
+    let chiq = r.slice(0, 2);
+    if(r.length > 2) chiq += '.' + r.slice(2, 4);
+    if(r.length > 4) chiq += '.' + r.slice(4, 8);
+    matn.value = chiq;
+    const iso = matndanIso();
+    if(iso){
+      tavsif.set.call(el, iso);
+      el.dispatchEvent(new Event('change', { bubbles:true }));
+    }
+  });
+  matn.addEventListener('blur', ()=>{
+    /* To'liq bo'lmasa — asl qiymatga qaytaramiz (yarim sana saqlanmasin) */
+    if(!matndanIso()) matnniYangila();
+  });
+
+  tugma.addEventListener('click', ()=>{
+    try{ if(typeof el.showPicker === 'function'){ el.showPicker(); return; } }catch(e){}
+    try{ el.focus(); el.click(); }catch(e){}
+  });
+
+  matnniYangila();
+}
+
+/* Sahifadagi BARCHA sana maydonlarini bir yo'la o'zgartiradi.
+   Keyin qo'shilganlari uchun ham qayta chaqirish mumkin — allaqachon
+   o'zgartirilganlari ikkinchi marta tegilmaydi. */
+function sanaMaydonlariniUzlashtir(ildiz){
+  const joy = ildiz || document;
+  joy.querySelectorAll('input[type="date"]').forEach(sanaMaydoniUz);
+}
 /* ==================================================================
    VIP RAQAMLAR — BOSHQARUV PANELI MANTIQI
    ------------------------------------------------------------------
@@ -341,7 +474,7 @@ function relativeTimeUz(ts){
   const diffD = Math.floor(diffH / 24);
   if(diffD === 1) return 'kecha';
   if(diffD < 7) return diffD + ' kun oldin';
-  return new Date(ts).toLocaleDateString('uz-UZ');
+  return sanaUz(ts);
 }
 
 async function refreshDashboardPane(){
@@ -467,7 +600,7 @@ async function refreshDashboardPane(){
           <div class="dash-task-dot"></div>
           <div>
             <div class="dash-task-title">${escapeHtml(t.text || '')}</div>
-            <div class="dash-task-meta">${t.dueAt ? new Date(t.dueAt).toLocaleString('uz-UZ') : ''}</div>
+            <div class="dash-task-meta">${t.dueAt ? sanaVaqtUz(t.dueAt) : ''}</div>
           </div>
         </div>`).join('') : '<div class="wt-empty">Faol vazifa yo\'q</div>';
     }catch(e){ tasksEl.innerHTML = '<div class="wt-empty">Yuklab bo\'lmadi</div>'; }
@@ -648,7 +781,14 @@ document.addEventListener('blur', (e)=>{
   if(yangi !== el.value) el.value = yangi;
 }, true);
 
-const ORDER_STATUSES = ["Yangi","Bog'lanildi","Yakunlandi","Bekor qilindi"];
+/* BUYURTMA BOSQICHLARI (V122 da "Yo'lda" qo'shildi).
+   Mijoz saytda o'z buyurtmasining qaysi bosqichda ekanini ko'radi:
+       Yangi -> Bog'lanildi -> Yo'lda -> Yakunlandi
+   ("Bekor qilindi" — alohida, zanjirdan tashqarida.)
+   Ilgari "Bog'lanildi" dan keyin to'g'ridan-to'g'ri "Yakunlandi" edi,
+   ya'ni mijoz kuryer yo'lga chiqqanini BILMASDI va "qani mening
+   raqamim?" deb qo'ng'iroq qilardi. */
+const ORDER_STATUSES = ["Yangi","Bog'lanildi","Yo'lda","Yakunlandi","Bekor qilindi"];
 
 /* Buyurtmada raqam ko'rinishi. Eski Telegram bot xatosi tufayli bazada
    raqami BO'SH ("+998 00-000-00-00") buyurtmalar bo'lishi mumkin —
@@ -893,11 +1033,11 @@ async function loadPriceCategories(){
   }
 }
 
-const ZAKAZ_STATUS_OPTIONS = ['Yangi', "Bog'lanildi", 'Yakunlandi', 'Bekor qilindi'];
-const ZAKAZ_STATUS_CLASS = { 'Yangi':'opt-yangi', "Bog'lanildi":'opt-boglanildi', 'Yakunlandi':'opt-yakunlandi', 'Bekor qilindi':'opt-bekor' };
+const ZAKAZ_STATUS_OPTIONS = ['Yangi', "Bog'lanildi", "Yo'lda", 'Yakunlandi', 'Bekor qilindi'];
+const ZAKAZ_STATUS_CLASS = { 'Yangi':'opt-yangi', "Bog'lanildi":'opt-boglanildi', "Yo'lda":'opt-yolda', 'Yakunlandi':'opt-yakunlandi', 'Bekor qilindi':'opt-bekor' };
 
 function renderZkStats(orders){
-  const counts = { 'Yangi':0, "Bog'lanildi":0, 'Yakunlandi':0, 'Bekor qilindi':0 };
+  const counts = { 'Yangi':0, "Bog'lanildi":0, "Yo'lda":0, 'Yakunlandi':0, 'Bekor qilindi':0 };
   orders.forEach(o => { if(counts[o.status] !== undefined) counts[o.status]++; });
   const ordersCountEl = document.getElementById('zkOrdersCount');
   if(ordersCountEl) ordersCountEl.textContent = orders.length;
@@ -906,6 +1046,7 @@ function renderZkStats(orders){
     <div class="zk-stat-card"><b>${orders.length}</b><span>Jami so'rov</span></div>
     <div class="zk-stat-card st-new"><b>${counts['Yangi']}</b><span>Yangi</span></div>
     <div class="zk-stat-card st-contacted"><b>${counts["Bog'lanildi"]}</b><span>Bog'lanildi</span></div>
+    <div class="zk-stat-card st-yolda"><b>${counts["Yo'lda"]}</b><span>Yo'lda</span></div>
     <div class="zk-stat-card st-done"><b>${counts['Yakunlandi']}</b><span>Yakunlandi</span></div>
     <div class="zk-stat-card st-cancelled"><b>${counts['Bekor qilindi']}</b><span>Bekor qilindi</span></div>
   `;
@@ -1277,7 +1418,7 @@ async function loadJobApplications(){
     listEl.innerHTML = apps.map((a, i) => {
       const status = a.status || 'new';
       const badgeClass = VAC_APP_STATUS_CLASS[status] || 'opt-yangi';
-      const dateStr = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().toLocaleString('uz-UZ') : '';
+      const dateStr = a.createdAt && a.createdAt.toDate ? sanaVaqtUz(a.createdAt.toDate()) : '';
       return `
         <div class="zk-order-card" data-id="${a.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s;">
           <div class="zk-order-summary" data-id="${a.id}">
@@ -1461,7 +1602,7 @@ document.getElementById('zkCustAddBtn').addEventListener('click', async ()=>{
   try{
     await db.collection('manual_customers').add({
       name, workingPhone, orderedPhone,
-      createdAt: new Date().toLocaleString('uz-UZ'),
+      createdAt: sanaVaqtUz(new Date()),
       createdAtSort: Date.now()
     });
     // Muvaffaqiyatli qo'shilgandan keyin — zamonaviy animatsiya bilan xabar
@@ -1714,7 +1855,7 @@ document.getElementById('pbAddNumberBtn').addEventListener('click', async ()=>{
     }else{
       await db.collection('personal_numbers').add({
         number, monthlyPayment, cashPrice, status: 'ochiq',
-        createdAt: new Date().toLocaleString('uz-UZ'),
+        createdAt: sanaVaqtUz(new Date()),
         createdAtSort: Date.now()
       });
       document.getElementById('pbAddNumberFormWrap').style.display = 'none';
@@ -2255,7 +2396,7 @@ document.getElementById('vzAddTaskBtn').addEventListener('click', async ()=>{
       important: vzImportantSelected,
       completed: false,
       notified5h: false,
-      createdAt: new Date().toLocaleString('uz-UZ'),
+      createdAt: sanaVaqtUz(new Date()),
       createdAtSort: Date.now()
     });
     document.querySelector('#vzAddTaskPanel .zk-inline-body').style.display = 'none';
@@ -2544,7 +2685,7 @@ async function recordSessionEvent(type){
       name: (window.CURRENT_ADMIN_NAME || user.email || ''),
       type,
       device: detectDevice(navigator.userAgent),
-      loginAt: new Date().toLocaleString('uz-UZ'),
+      loginAt: sanaVaqtUz(new Date()),
       loginAtSort: Date.now()
     });
   }catch(e){ console.error('Seansni yozishda xato:', e); }
@@ -4068,7 +4209,7 @@ function calcDueDate(startTs, payDay, monthIndex){
 }
 function formatDate(ts){
   const d = new Date(ts);
-  return d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric' });
+  return sanaUz(d);
 }
 
 /* Kredit formasidagi telefon maydonlari — saytdagi BOSHQA barcha
@@ -9894,6 +10035,7 @@ if('Notification' in window && Notification.permission === 'default'){
 
 function statusClass(status){
   if(status === "Bog'lanildi") return 'st-boglanildi';
+  if(status === "Yo'lda") return 'st-yolda';          /* V122 */
   if(status === 'Bekor qilindi') return 'st-bekor';
   if(status === 'Yakunlandi') return 'st-yakunlandi';
   return 'st-yangi';
@@ -9997,7 +10139,10 @@ function renderAdminOrders(orders){
       updateStatusCounts(currentOrdersCache);
 
       try{
-        await db.collection('orders').doc(id).update({ status: newStatus });
+        /* V122: holat o'zgargan VAQT ham yoziladi — mijoz kabinetida
+           "qachon" ko'rsatiladi va qaysi bosqichda qancha turgani
+           bilinadi. */
+        await db.collection('orders').doc(id).update({ status: newStatus, statusAt: Date.now() });
 
         const numberId = cached ? cached.numberId : null;
         if(numberId){
@@ -10944,7 +11089,7 @@ function xbPreview(){
 }
 
 function xbVaqt(ms){
-  try{ return new Date(Number(ms) || 0).toLocaleString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  try{ return sanaVaqtUz(Number(ms) || 0); }
   catch(e){ return ''; }
 }
 
@@ -11193,7 +11338,7 @@ function tlvKeyingiOy(due){
 }
 function tlvSana(s){
   if(!s) return '—';
-  try{ return new Date(s + 'T00:00:00').toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+  try{ return sanaUz(s + 'T00:00:00'); }
   catch(e){ return s; }
 }
 
@@ -11273,7 +11418,7 @@ function tlvCard(r){
   }
 
   const tarix = (r.payments || []).slice(-3).reverse().map(x =>
-    `<div><span>${tlvEsc(new Date(x.at).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}))}</span><span>${tlvSon(x.amount)} so'm</span></div>`).join('');
+    `<div><span>${tlvEsc(sanaUz(x.at))}</span><span>${tlvSon(x.amount)} so'm</span></div>`).join('');
 
   const kd = Array.isArray(r.remindDays) ? r.remindDays.slice().sort((a,b)=>b-a) : [];
   const oldin = kd.filter(x => x > 0);
@@ -12645,3 +12790,29 @@ function stChiz(){
   box.querySelectorAll('[data-stup]').forEach(b => b.onclick = ()=> kochir(Number(b.dataset.stup), Number(b.dataset.stup) - 1));
   box.querySelectorAll('[data-stdown]').forEach(b => b.onclick = ()=> kochir(Number(b.dataset.stdown), Number(b.dataset.stdown) + 1));
 }
+
+
+/* ---- Sana maydonlarini kun.oy.yil ko'rinishiga o'tkazish (V121) ----
+   Sahifa tayyor bo'lgach bir marta; keyin DOM ga yangi sana maydoni
+   qo'shilsa (masalan "Kredit" bo'limidagi tahrirlash formasi) — u ham
+   avtomatik o'zgaradi (kuzatuvchi). Allaqachon o'zgartirilganlariga
+   ikkinchi marta tegilmaydi. */
+(function(){
+  function boshla(){
+    try{ sanaMaydonlariniUzlashtir(); }catch(e){}
+    try{
+      const kuzat = new MutationObserver((lar)=>{
+        for(const l of lar){
+          for(const n of l.addedNodes){
+            if(!(n instanceof HTMLElement)) continue;
+            if(n.matches && n.matches('input[type="date"]')) { try{ sanaMaydoniUz(n); }catch(e){} }
+            else if(n.querySelectorAll) { try{ sanaMaydonlariniUzlashtir(n); }catch(e){} }
+          }
+        }
+      });
+      kuzat.observe(document.body, { childList:true, subtree:true });
+    }catch(e){}
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boshla);
+  else boshla();
+})();
