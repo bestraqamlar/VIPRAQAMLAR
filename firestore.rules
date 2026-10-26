@@ -832,6 +832,9 @@ service cloud.firestore {
     // qayerda saqlanmaydi, qarang api-kabinet-kod.js),
     // kabinet_code_rate_limits, kabinet_code_check_limits (— o'sha
     // kirishning IP bo'yicha soatlik cheklovlari),
+    // operator_sessions (— operatorlarning vaqtinchalik anonim sessiya
+    // tokenlari; Humans qidiruvini tezlashtirish uchun, qarang
+    // lib/sessiyaOmbori.js — brauzerga umuman kerak emas),
     // kabinet_login_nonces (— saytdan botga yuboriladigan bir martalik
     // havola belgisi: nonce -> telefon, 10 daqiqa),
     // kabinet_login_keys (— Telegram xabaridagi «Bir bosishda kirish»

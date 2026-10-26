@@ -3054,6 +3054,116 @@ function qulfSanoq(qoldiMs){
   qulfTimer = setInterval(chiz, 1000);
 }
 
+/* ==================================================================
+   PANELNI OCHISH (V132)
+   ------------------------------------------------------------------
+   Ilgari bu qadamlar faqat `doLogin()` ichida edi. Natijada SAHIFA
+   YANGILANSA (F5 yoki "qayta yuklash") panel baribir login ekranini
+   ko'rsatardi — garchi Firebase'da seans o'chmagan bo'lsa ham.
+   Admin har yangilaganda login va parolni qaytadan yozishga majbur
+   bo'lardi.
+
+   Endi bu qadamlar alohida funksiyaga ajratildi va IKKI joydan
+   chaqiriladi:
+     * `doLogin()` — admin endigina kirganda;
+     * `seansniTikla()` — sahifa yangilanganda, Firebase seansi
+       joyida bo'lsa.
+
+   XAVFSIZLIK O'ZGARMADI: dashboard faqat ruxsatlar SERVERDAN
+   tasdiqlangandan keyin ko'rsatiladi (`checkAdminClaimStatus()`),
+   shu sabab cheklangan sub-admin uchun yopiq bo'limlar bir lahzaga
+   ham "chaqnab" ko'rinmaydi. Haqiqiy himoya baribir Firestore
+   qoidalari va funksiyalardagi `requireAdmin()` da — bu yer faqat
+   ko'rinish.
+   ================================================================== */
+async function panelniOch(sozlama){
+  const yangiKirish = !!(sozlama && sozlama.yangiKirish);
+  const authGate = document.getElementById('authGateScreen');
+  if(loginScreen) loginScreen.style.display = 'none';
+  if(authGate) authGate.style.display = 'flex';
+  await loadLastSeen();
+  // ism va ruxsatlarni birinchi o'rnatamiz — Seanslar yozuvi to'g'ri ism
+  // bilan yozilsin, applyAccessControl() shu yerda ishlaydi
+  await checkAdminClaimStatus();
+  if(authGate) authGate.style.display = 'none';
+  dashboard.style.display = 'block';
+  /* Seans jurnaliga FAQAT haqiqiy kirish yoziladi. Sahifani yangilash
+     "yangi kirish" emas — aks holda jurnal bir kunda o'nlab keraksiz
+     yozuv bilan to'lardi. */
+  if(yangiKirish) recordSession();
+  if(hasFeaturePerm('numbers')) refreshNumbers();
+  if(hasFeaturePerm('orders')) refreshOrders();
+  refreshDashboardPane();
+  if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
+  if(hasFeaturePerm('vazifalar')) startVazifalarWatch();
+  if(hasFeaturePerm('vakansiya')) loadJobApplications();
+  // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
+  // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
+  // avtomatik chiqarilmaydi.
+  startVisitorTracking();
+}
+
+/* ------------------------------------------------------------------
+   SEANSNI TIKLASH — sahifa yangilanganda
+   Firebase Auth seansni brauzerda O'ZI saqlaydi (LOCAL persistence),
+   lekin uni O'QISH asinxron: sahifa ochilgan lahzada
+   `firebase.auth().currentUser` hali `null` bo'ladi. Shuning uchun
+   `onAuthStateChanged` kutiladi — aks holda panel "kirmagan" deb
+   o'ylab login ekranini ko'rsatib qo'yardi (aynan shu xato edi).
+   Kutilayotganda login ekrani EMAS, "Ruxsatlar tekshirilmoqda..."
+   ekrani turadi — admin bir lahzaga bo'lsa ham login formasini
+   ko'rmaydi.
+   ------------------------------------------------------------------ */
+(function seansniTikla(){
+  if(typeof firebase === 'undefined' || !firebase.auth) return;
+  const authGate = document.getElementById('authGateScreen');
+
+  /* Seans brauzerda saqlansin (standart holat shu, lekin ataylab
+     yozib qo'yamiz — kelajakda kimdir o'zgartirib qo'ymasin). */
+  try{
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+  }catch(e){}
+
+  /* Dastlab login ekranini yashirib turamiz — Firebase javobini
+     kutyapmiz. Agar seans yo'q bo'lsa, darhol qaytariladi. */
+  let hal = false;
+  if(loginScreen) loginScreen.style.display = 'none';
+  if(authGate) authGate.style.display = 'flex';
+
+  /* Firebase javob bermay qolsa (internet yo'q, CDN to'silgan) —
+     3 soniyadan keyin login ekranini ko'rsatamiz, admin kutib
+     qolmasin. */
+  const himoya = setTimeout(()=>{
+    if(hal) return;
+    hal = true;
+    if(authGate) authGate.style.display = 'none';
+    if(loginScreen) loginScreen.style.display = 'block';
+  }, 3000);
+
+  const uzil = firebase.auth().onAuthStateChanged(async (user)=>{
+    if(hal && !user) return;
+    hal = true;
+    clearTimeout(himoya);
+    try{ uzil(); }catch(e){}
+    if(user){
+      try{
+        await panelniOch({ yangiKirish: false });
+      }catch(err){
+        console.error('Seansni tiklashda xato:', err);
+        if(authGate) authGate.style.display = 'none';
+        if(loginScreen) loginScreen.style.display = 'block';
+        if(loginError){
+          loginError.textContent = "Seansni tiklab bo'lmadi. Qaytadan kiring.";
+          loginError.style.display = 'block';
+        }
+      }
+    }else{
+      if(authGate) authGate.style.display = 'none';
+      if(loginScreen) loginScreen.style.display = 'block';
+    }
+  });
+})();
+
 async function doLogin(){
   const btn = document.getElementById('loginBtn');
   const authGate = document.getElementById('authGateScreen');
@@ -3085,22 +3195,7 @@ async function doLogin(){
     // to'g'ri bo'limlar yashirilgan holatda birinchi marta ko'rsatiladi.
     // Shu bilan cheklangan sub-admin uchun yopiq bo'limlar hech qachon,
     // hatto bir lahzaga ham "chaqnab" ko'rinmaydi.
-    authGate.style.display = 'flex';
-    await loadLastSeen();
-    await checkAdminClaimStatus(); // ism va ruxsatlarni birinchi o'rnatamiz — Seanslar yozuvi to'g'ri ism bilan yozilsin, applyAccessControl() shu yerda ishlaydi
-    authGate.style.display = 'none';
-    dashboard.style.display = 'block';
-    recordSession();
-    if(hasFeaturePerm('numbers')) refreshNumbers();
-    if(hasFeaturePerm('orders')) refreshOrders();
-    refreshDashboardPane();
-    if(hasFeaturePerm('watch') && document.getElementById('watchNotifyIdList')) loadWatchNotifyIds();
-    if(hasFeaturePerm('vazifalar')) startVazifalarWatch();
-    if(hasFeaturePerm('vakansiya')) loadJobApplications();
-    // 10 daqiqalik avtomatik seans tugashi (startSessionTimer) so'rov
-    // bo'yicha OLIB TASHLANDI — endi admin faol ishlatmasa ham saytdan
-    // avtomatik chiqarilmaydi.
-    startVisitorTracking();
+    await panelniOch({ yangiKirish: true });
   }catch(err){
     // Firebase'ning haqiqiy sababini ko'rsatamiz — "noto'g'ri" degan umumiy
     // matn bilan nima bo'lganini aniqlab bo'lmas edi (parolmi, emailmi,
@@ -7284,11 +7379,23 @@ function wtRenderSoglik(soglik){
     const tafsilot = tinimda
       ? ('yana ' + Math.max(1, Math.round((o.backoffUntil - now)/60000)) + ' daqiqadan keyin sinaladi')
       : (o.lastError ? String(o.lastError).slice(0, 90) : ('oxirgi: ' + wtMsMatn(o.lastMs)));
+    /* V134: SABAB va NIMA QILISH. Ilgari bu yerda faqat xom xato matni
+       ("HTTP 404") turardi — undan nima qilish kerakligi tushunarsiz
+       edi. Endi server xatoni turkumlab, sababini va aniq qadamini
+       yozib beradi (qarang: netlify/functions/lib/xatoSababi.js). */
+    const sabab = (o.streak > 0 && o.sababMatn)
+      ? '<div class="wt-sog-sabab">'
+        + '<b>Sababi:</b> ' + escapeHtml(String(o.sababMatn).slice(0, 160))
+        + (o.sababQadam ? '<br><b>Nima qilish:</b> ' + escapeHtml(String(o.sababQadam).slice(0, 200)) : '')
+        + (o.oziTuzaladi ? '<br><i>Bu holat o\'zi tuzaladi — aralashuv shart emas.</i>' : '')
+        + '</div>'
+      : '';
     return '<div class="wt-sog wt-sog-' + holat + '">'
       + '<div class="wt-sog-nom">' + escapeHtml(o.operator) + '</div>'
       + '<div class="wt-sog-ms">' + wtMsMatn(ms) + '</div>'
       + '<div class="wt-sog-izoh">' + escapeHtml(izoh) + '</div>'
       + '<div class="wt-sog-tafsilot">' + escapeHtml(tafsilot) + '</div>'
+      + sabab
       + '</div>';
   }).join('');
 }

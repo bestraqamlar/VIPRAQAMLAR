@@ -636,6 +636,23 @@ html.scrolling .topbar, html.scrolling #deskhead{ background:rgba(8,20,40,.95) }
      elementlarda qoldi: tepa panel, pastki menyu, oynalar. */
   box-shadow:var(--sh-1),inset 0 1px 0 var(--nc-edge);
 }
+/* ------------------------------------------------------------------
+   KO'RINMAYOTGAN KARTOCHKALARNI CHIZMASLIK (V132)
+   Katalogda o'nlab kartochka bo'ladi, lekin ekranda bir vaqtda 2-3
+   tasi ko'rinadi. `content-visibility:auto` brauzerga "ekrandan
+   tashqaridagisini umuman chizma" deydi — aylantirishda faqat
+   ko'rinayotgani chiziladi.
+   `contain-intrinsic-size` MAJBURIY: busiz brauzer chizilmagan
+   kartochkaning balandligini 0 deb hisoblaydi va aylantirgichning
+   uzunligi "sakrab" turadi. Qiymat haqiqiy balandlikka yaqin
+   (o'lchangan: ~168px).
+   O'lchangan natija: 6 barobar sekinlashtirilgan protsessorda
+   60 ta kartochkani aylantirishda 41 -> 58 FPS. */
+.numcard, .rescard{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 168px;
+}
+
 .card::before,.numcard:not(.vipc)::before,.rows::before,.empty::before{
   content:'';position:absolute;inset:0 0 auto;height:1px;border-radius:inherit;
   background:var(--edge);pointer-events:none;
@@ -2037,7 +2054,13 @@ html.low .prf::after{display:none}
 .sheet .grip span{width:40px;height:4px;border-radius:2px;background:var(--line-2)}
 .sheet .hd{flex:none;padding:12px 20px 13px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);background:var(--card)}
 .sheet .hd h2{flex:1;min-width:0;font-size:17px}
-.sheet .bodyscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 20px}
+.sheet .bodyscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 20px;
+  /* V133: oyna ichidagi aylantirish sahifaga "o'tib ketmasin" —
+     ro'yxat oxiriga yetganda ortidagi sahifa siljib ketardi va bu
+     "qotgan"dek tuyulardi. `contain` shuni to'xtatadi.
+     `overflow-anchor:none` esa ro'yxatga yangi qator qo'shilganda
+     brauzerning o'zi aylantirib yuborishining oldini oladi. */
+  overscroll-behavior:contain;overflow-anchor:none}
 .sheet .ft{flex:none;padding:13px 18px calc(16px + var(--bot));border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:12px}
 .sheet.full .pn{height:100dvh;max-height:100dvh;border-radius:0}
 @media (max-width:899px){
@@ -2069,6 +2092,22 @@ html.low .prf::after{display:none}
 }
 .digits input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);transform:translateY(-1px)}
 .digits input::placeholder{color:var(--faint);font-weight:500;opacity:.38}
+
+/* ---- V132 TEZLIK: ko'rinmaydigan kartochkalarni chizmaslik ----
+   `content-visibility:auto` — brauzer ekrandan tashqaridagi
+   kartochkaning ichini CHIZMAYDI va joylashuvini hisoblamaydi.
+   `contain-intrinsic-size` esa uning taxminiy balandligini aytadi,
+   shuning uchun aylantirgich (scrollbar) sakramaydi.
+   Katalogda 15-30 ta kartochka bo'lgani uchun bu sezilarli farq
+   beradi, ayniqsa sekin Androidda. */
+#catList > .numcard,
+#favList > .swipe,
+.kab-oylar > .kab-oy{
+  content-visibility:auto;
+}
+#catList > .numcard{contain-intrinsic-size:auto 128px}
+#favList > .swipe{contain-intrinsic-size:auto 120px}
+.kab-oylar > .kab-oy{contain-intrinsic-size:auto 32px}
 /* Formadagi "havola" ko'rinishidagi tugmalar */
 .oq-lnk{
   display:block;width:100%;text-align:center;cursor:pointer;
@@ -2188,6 +2227,11 @@ html[data-theme="dark"] #catList.is-loading .numcard::after{
 /* Nuqtalar qatori ham joyini oldindan egallaydi */
 .herodots{min-height:6px}
 .heroscroll.drag{cursor:grabbing}
+/* V133: FAQAT barmoq tegib turganda `will-change` beriladi.
+   Doimiy qo'yilsa xotira yeydi va foyda bermaydi; surish paytida esa
+   videokartaga "shu element harakatlanadi" deb oldindan aytib
+   qo'yish siljishni sezilarli silliqlashtiradi. */
+.heroscroll.drag .hero-track{will-change:transform}
 .hero-track{
   display:flex;gap:14px;
   /* translate3d o'zi alohida qatlam yaratadi — `will-change` ni DOIMIY
@@ -3453,14 +3497,6 @@ html[data-theme="dark"] ::selection{background:transparent}
   <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Profil">Profil</h1><div class="sub" data-t="Sozlamalar va bo'limlar">Sozlamalar va bo'limlar</div></div></header>
   <div class="pad wrap" style="padding-top:16px">
 
-    <!-- PROFIL KARTOCHKASI (V126).
-         "Profil" bo'limi ilgari faqat menyu edi — mijoz o'zini
-         ko'rmasdi. Endi bo'lim mijozning O'ZIDAN boshlanadi: ismi,
-         raqami, nechta buyurtma, keyingi to'lov sanasi.
-         Ma'lumot kabinetdan eslab qolingan telefon bilan olinadi,
-         hech narsa qayta so'ralmaydi. -->
-    <div id="prfBox" style="margin-bottom:18px"></div>
-
     <a class="tgcard" id="moreTg" href="https://t.me/vip_raqamlar_uz" target="_blank" rel="noopener">
       <span class="tg-ic">
         <svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true"><path d="M21.6 4.3 2.9 11.5c-.9.35-.88 1.63.03 1.95l4.6 1.6 1.78 5.3c.23.68 1.1.86 1.58.33l2.5-2.75 4.7 3.45c.6.44 1.45.11 1.6-.62l3.2-15c.17-.78-.6-1.44-1.3-1.16zM9.5 14.3l-.3 3.2-1.2-3.6 8.9-5.6-7.4 6z"></path></svg>
@@ -3846,7 +3882,13 @@ let LANG = 'uz';
 function t(s){ if(LANG !== 'ru') return s; return RU[s] || s; }
 function applyLang(){
   document.documentElement.lang = LANG;
-  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.getAttribute('data-t')); });
+  /* V132 — TEZLIK. Sahifadagi matn ALLAQACHON o'zbekcha yozilgan.
+     Shuning uchun til o'zbek bo'lsa, 54 ta tugun matnini qaytadan
+     yozib chiqish mutlaqo keraksiz edi — har biri joylashuvni qayta
+     hisoblatardi. Endi faqat rus tilida almashtiriladi. */
+  if(LANG !== 'uz'){
+    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.getAttribute('data-t')); });
+  }
   document.querySelectorAll('.langlbl').forEach(el => el.textContent = LANG.toUpperCase());
   const dl = document.getElementById('dhLang'); if(dl) dl.textContent = LANG.toUpperCase();
   document.querySelectorAll('[data-lang-val]').forEach(b => b.classList.toggle('on', b.dataset.langVal === LANG));
@@ -4209,11 +4251,20 @@ function surishBogla(el, opt){
   /* Ba'zi kartochkalar CSS'da `translateX(-50%)` bilan markazlashgan —
      surishda u yo'qolmasligi uchun old qo'shimcha sifatida saqlanadi. */
   const asos = opt.asos || '';
+  /* V133: yozuv kadriga bittaga tenglashtiriladi (qarang:
+     kadrYozuvchi). Barmoq uzilganda `yozuvchi.tugat()` chaqiriladi. */
+  const yozuvchi = kadrYozuvchi(el);
   const qoy = (x, y, o) => {
+    yozuvchi.qoy(asos + 'translate3d(' + x + 'px,' + y + 'px,0)', String(o));
+  };
+  /* O'tish (transition) qo'yilganda yozuv DARHOL bajarilishi kerak —
+     aks holda brauzer eski qiymatdan animatsiya boshlamaydi. */
+  const qoyDarhol = (x, y, o) => {
+    yozuvchi.tugat();
     el.style.transform = asos + 'translate3d(' + x + 'px,' + y + 'px,0)';
     el.style.opacity = String(o);
   };
-  const tozala = () => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; };
+  const tozala = () => { yozuvchi.tugat(); el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; };
 
   el.addEventListener('pointerdown', (e) => {
     if(e.button) return;
@@ -4262,13 +4313,15 @@ function surishBogla(el, opt){
     if(ketsin){
       const hx = oq === 'x' ? (dx > 0 ? en() + 90 : -(en() + 90)) : 0;
       const hy = oq === 'x' ? 0 : (past ? 240 : -240);
+      yozuvchi.tugat();
       el.style.transition = 'transform .22s cubic-bezier(.3,0,.7,.4), opacity .2s linear';
-      qoy(hx, hy, 0);
+      qoyDarhol(hx, hy, 0);
       setTimeout(() => { if(opt.yopish) opt.yopish(true); }, 195);
       return;
     }
+    yozuvchi.tugat();
     el.style.transition = 'transform .34s cubic-bezier(.2,.9,.28,1.25), opacity .2s ease';
-    qoy(0, 0, 1);
+    qoyDarhol(0, 0, 1);
     setTimeout(tozala, 360);
     if(opt.davom) opt.davom();
   };
@@ -4281,6 +4334,47 @@ function surishBogla(el, opt){
   /* Sinov uchun: oxirgi surish holati (dasturga ta'sir qilmaydi) */
   el.surishHolati = () => ({ dx: dx, dy: dy, oq: oq, vx: vx, vy: vy });
   return el;
+}
+
+/* ==================================================================
+   KADRGA MOSLANGAN YOZUVCHI (V133)
+   ------------------------------------------------------------------
+   NEGA KERAK. Barmoq harakati haqida brauzer soniyasiga 120 martagacha
+   xabar beradi (ba'zi telefonlarda 240 marta), ekran esa odatda
+   soniyasiga 60 marta yangilanadi. Ya'ni bitta kadr ichida uslub
+   2-4 marta yozilardi — ortiqcha ish, va aynan shu "qotgandek"
+   tuyulishga olib kelardi.
+
+   Bu yordamchi yozuvni KADRGA BITTAGA tenglashtiradi: xabarlar faqat
+   qiymatni eslab qo'yadi, yozuv esa `requestAnimationFrame` ichida,
+   ekran yangilanishidan sal oldin bajariladi. Natijada harakat
+   barmoq ortidan silliq ergashadi.
+   ================================================================== */
+function kadrYozuvchi(el){
+  let kadr = 0, kutayotgan = null;
+  const yoz = ()=>{
+    kadr = 0;
+    if(!kutayotgan) return;
+    const q = kutayotgan; kutayotgan = null;
+    if(q.transform !== undefined) el.style.transform = q.transform;
+    if(q.opacity !== undefined) el.style.opacity = q.opacity;
+  };
+  return {
+    /* Kadr navbatiga qo'yadi */
+    qoy(transform, opacity){
+      kutayotgan = kutayotgan || {};
+      if(transform !== undefined) kutayotgan.transform = transform;
+      if(opacity !== undefined) kutayotgan.opacity = opacity;
+      if(!kadr) kadr = requestAnimationFrame(yoz);
+    },
+    /* Barmoq uzilganda: kutayotgani darhol yoziladi va navbat
+       bo'shatiladi — aks holda o'tish boshlangach eski qiymat
+       yozilib, element "sakrab" ketardi. */
+    tugat(){
+      if(kadr){ cancelAnimationFrame(kadr); kadr = 0; }
+      yoz();
+    }
+  };
 }
 
 /* ---------- Toast ---------- */
@@ -4647,8 +4741,6 @@ function renderRoute(keepScroll){
      telefon raqami va oxirgi 4 ta raqamni QAYTA yozishi kerak edi —
      "kabinet" uchun bu noto'g'ri: kabinet o'zi ochilishi kerak. */
   if(r === 'orders') kabAvtoOch();
-  /* V126: "Profil" bo'limi endi mijozning o'zidan boshlanadi. */
-  if(r === 'more') prfOch();
   if(r === 'catalog'){ reshuffle(); catShown = PAGE_SIZE; renderCatalog(); }
   if(r === 'home') pickHome();
   if(typeof moveNavPill === 'function') requestAnimationFrame(moveNavPill);
@@ -5877,7 +5969,11 @@ function heroVaqt(masofa, tezlik){
   /* Pastki chegara ataylab baland: barmoq sekin uzilganda ham
      kartochka "sudralib" bormaydi, o'rtacha tezlikda o'tiradi. */
   const v = Math.max(0.45, Math.abs(tezlik || 0));   /* px/ms */
-  return Math.max(240, Math.min(460, Math.round(m / v)));
+  /* V133: pastki chegara 240 -> 265 ms. Shu 25 ms harakatning
+     oxiridagi "to'satdan to'xtash" hissini yo'qotadi — kartochka
+     joyiga yumshoq o'tiradi. Yuqori chegara ham 460 -> 500 ms:
+     uzoq masofada harakat shoshmasin. */
+  return Math.max(265, Math.min(500, Math.round(m / v)));
 }
 /* Berilgan davomiylik bilan siljitish (sinf emas — aniq vaqt) */
 function heroSur(x, ms){
@@ -5958,6 +6054,40 @@ function startHeroLoop(){
 
   let down = false, sx = 0, sy = 0, dx = 0, lock = '';
   let lastX = 0, lastT = 0, vel = 0;
+  /* V133 — SILLIQLIK.
+     MUAMMO (mijoz aytgan): kartochkani qo'l bilan surganda yaxshi
+     telefonda ham "qotgandek" sudralardi.
+
+     SABABI ikkita edi:
+       1) Har bir `pointermove` da `heroW()` chaqirilardi, u esa
+          `offsetWidth` o'qiydi — bu brauzerni MAJBURAN joylashuvni
+          qayta hisoblashga undaydi (forced reflow). Barmoq soniyasiga
+          120 marta xabar beradi, ya'ni soniyasiga 120 ta ortiqcha
+          hisob-kitob.
+       2) Transform har bir xabarda yozilardi. Telefonda xabarlar
+          kadrdan TEZROQ keladi (120 Hz sensor, 60 Hz ekran), shu
+          sabab bitta kadr uchun bir necha marta yozilib, keraksiz
+          ish bajarilardi.
+
+     YECHIM:
+       1) kenglik barmoq tushganda BIR MARTA o'lchanadi va keshlanadi;
+       2) transform `requestAnimationFrame` ichida, kadriga BIR MARTA
+          yoziladi (xabarlar esa faqat koordinatani eslab qo'yadi). */
+  let dragW = 1;              /* keshlangan kartochka kengligi */
+  let ramKadr = 0;            /* rAF identifikatori */
+  let kutayotganX = null;     /* kadrda yoziladigan oxirgi holat */
+
+  function kadrdaYoz(){
+    ramKadr = 0;
+    if(kutayotganX === null) return;
+    const t = heroEl();
+    if(t) t.style.transform = 'translate3d(' + kutayotganX + 'px,0,0)';
+    kutayotganX = null;
+  }
+  function surishniRejalashtir(x){
+    kutayotganX = x;
+    if(!ramKadr) ramKadr = requestAnimationFrame(kadrdaYoz);
+  }
 
   box.addEventListener('pointerdown', (e)=>{
     if(heroBusy) return;
@@ -5965,8 +6095,12 @@ function startHeroLoop(){
     sx = e.clientX; sy = e.clientY;
     lastX = e.clientX; lastT = performance.now(); vel = 0;
     heroPaused = Date.now() + 6000;
+    /* Kenglik SHU YERDA, bir marta o'lchanadi. */
+    dragW = heroW();
     const t = heroEl();
-    if(t){ t.classList.remove('glide','snapback'); t.style.transition = ''; }
+    /* O'tishni ham shu yerda bir marta o'chiramiz — surish paytida
+       har safar emas. */
+    if(t){ t.classList.remove('glide','snapback'); t.style.transition = 'none'; }
     box.classList.add('drag');
     try{ box.setPointerCapture(e.pointerId); }catch(err){}
   }, { passive:true });
@@ -5988,8 +6122,10 @@ function startHeroLoop(){
       lastX = e.clientX; lastT = now;
     }
     /* Ikki tomonda ham kartochka bor — shu sabab rezina qarshilik
-       kerak emas, barmoq ortidan 1:1 ergashadi. */
-    heroQoy(-heroW() + dx, '');
+       kerak emas, barmoq ortidan 1:1 ergashadi.
+       DIQQAT: bu yerda HECH QANDAY o'lchov o'qilmaydi va uslub
+       darhol yozilmaydi — faqat kadr navbatiga qo'yiladi. */
+    surishniRejalashtir(-dragW + dx);
   }, { passive:true });
 
   const up = ()=>{
@@ -5997,10 +6133,19 @@ function startHeroLoop(){
     down = false;
     box.classList.remove('drag');
     heroPaused = Date.now() + 5000;
+    /* Kutayotgan kadr bo'lsa — darhol yozib qo'yamiz, aks holda
+       o'tish boshlangandan KEYIN eski holat yozilib, kartochka
+       "sakrab" ketardi. */
+    if(ramKadr){ cancelAnimationFrame(ramKadr); ramKadr = 0; }
+    if(kutayotganX !== null){
+      const t0 = heroEl();
+      if(t0) t0.style.transform = 'translate3d(' + kutayotganX + 'px,0,0)';
+      kutayotganX = null;
+    }
     /* Barmoq to'xtab turib uzilgan bo'lsa — tezlik hisobga olinmaydi */
     if(performance.now() - lastT > 140) vel = 0;
 
-    const w = heroW();
+    const w = dragW || heroW();
     const FLICK = 0.18;                       /* px/ms — sezgirroq */
     const chegara = w * 0.18;                 /* masofa chegarasi */
 
@@ -7423,86 +7568,11 @@ function bosqichlarHtml(status){
    yasaydi. Hech qanday qo'shimcha so'rov qilinmaydi — hammasi
    allaqachon kelgan javobdan.
    ================================================================== */
-/* ------------------------------------------------------------------
-   PROFIL KESHI (V126)
-   Profil "Profil" bo'limida DARHOL ko'rinishi kerak — internet sekin
-   bo'lsa ham, umuman bo'lmasa ham. Shuning uchun oxirgi profil
-   mijozning O'Z telefonida saqlanadi va bo'lim ochilganda shundan
-   chiziladi; keyin fon rejimida serverdan yangilanadi.
-   Saqlanadigan narsa — mijozning o'z ismi va o'z raqami bo'yicha
-   hisob; parol, token yoki hujjat ma'lumoti EMAS.
-   ------------------------------------------------------------------ */
-const PRF_KALIT = 'vip_profil';
-function prfKeshOl(){
-  try{
-    const o = JSON.parse(localStorage.getItem(PRF_KALIT) || 'null');
-    if(o && typeof o === 'object' && o.pr) return o;
-  }catch(e){}
-  return null;
-}
-function prfKeshYoz(pr, tel, sh){
-  /* Shartnomalar ham saqlanadi — to'lov tasmasi internetsiz ham
-     ko'rinsin. Hajmi kichik: faqat oy, sana, summa va holat. */
-  try{ localStorage.setItem(PRF_KALIT, JSON.stringify({
-    pr, tel, sh: Array.isArray(sh) ? sh.slice(0, 5) : [], at: Date.now()
-  })); }catch(e){}
-}
-function prfKeshUnut(){ try{ localStorage.removeItem(PRF_KALIT); }catch(e){} }
-
-/* "Profil" bo'limi ochilganda chaqiriladi. */
-let PRF_SOROV = false;
-function prfOch(){
-  const box = $('#prfBox');
-  if(!box) return;
-  const esda = kabEslaganni();
-
-  /* Kabinetga hali kirmagan mijoz — chaqiruv kartochkasi. */
-  if(!esda){
-    prfKeshUnut();
-    box.innerHTML = `<a class="prf kirish yangi" href="#/buyurtmalarim">
-      <span class="prf-kir-ic" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </span>
-      <b>${LANG==='ru'?'Войти в кабинет':'Kabinetga kirish'}</b>
-      <i>${LANG==='ru'?'Телефон и 4 цифры номера':"Telefon va raqamning 4 ta raqami"}</i>
-    </a>`;
-    return;
-  }
-
-  /* Keshdan DARHOL chizamiz — bo'sh joy ko'rinmasin. */
-  const kesh = prfKeshOl();
-  if(kesh && kesh.pr) box.innerHTML = profilHtml(kesh.pr, kesh.tel || esda.tel, kesh.sh);
-  else box.innerHTML = skPrf();
-
-  /* Keyin bir marta yangilaymiz (bo'lim har ochilganda emas). */
-  if(PRF_SOROV) return;
-  PRF_SOROV = true;
-  (async ()=>{
-    try{
-      const res = await withClientTimeout(fetch(FN + 'api-kabinet', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
-        body: JSON.stringify({ token: esda.token })
-      }), kutishVaqti(14000));
-      const data = await res.json();
-      if(data && data.ok && data.profile){
-        KAB_SHARTNOMALAR = data.contracts || [];
-        prfKeshYoz(data.profile, esda.tel, data.contracts);
-        if(currentRoute === 'more') box.innerHTML = profilHtml(data.profile, esda.tel, data.contracts);
-      }else if(data && !data.ok){
-        /* Eslab qolingan ma'lumot endi ishlamayapti — profilni ham,
-           keshni ham tozalaymiz, bo'lim "kirish" holatiga qaytadi. */
-        prfKeshUnut(); kabUnut(); prfOch();
-      }
-    }catch(e){
-      /* Internet yo'q — keshdagi profil qolaveradi, xato ko'rsatilmaydi.
-         Kesh ham bo'lmasa, skelet o'rniga chaqiruv kartochkasi. */
-      if(!prfKeshOl() && box.querySelector('.sk-prf')){
-        box.innerHTML = profilHtml({ daraja:'yangi' }, esda.tel);
-      }
-    }finally{ PRF_SOROV = false; }
-  })();
-}
+/* V132: "Profil" bo'limi avvalgi holatiga qaytarildi — u yerda
+   kabinet kartochkasi ham, kirish ham yo'q, faqat menyu (mijoz
+   so'rovi). Shu sabab profil keshi va qo'shimcha so'rov olib
+   tashlandi: bo'lim ochilganda endi HECH QANDAY tarmoq so'rovi
+   ketmaydi. Kartochka faqat kabinetda ("Buyurtmalarim") ko'rinadi. */
 
 function prfHarflar(ism, tel){
   const sozlar = String(ism||'').trim().split(/\s+/).filter(Boolean);
@@ -7698,7 +7768,6 @@ async function lookupOrders(kirishToken){
          boshqa raqam kiritgan) — uni tozalaymiz va formani qaytaramiz,
          aks holda bo'lim har ochilganda shu xato chiqaverardi. */
       try{ localStorage.removeItem(KAB_KALIT); }catch(e){}
-      prfKeshUnut();
       const f2 = $('#oqForma'); if(f2) f2.style.display = '';
       const t2 = $('#oqTushuntirish'); if(t2) t2.style.display = '';
       if(data && data.qaytaKirish){
@@ -7715,7 +7784,6 @@ async function lookupOrders(kirishToken){
     /* V124: bir marta kirgandan keyin eslab qolamiz — keyingi safar
        kabinet o'zi ochiladi. */
     kabEslab(phone.slice(-9), tok);
-    if(data.profile) prfKeshYoz(data.profile, phone.slice(-9), shartnomalar);
     const forma = $('#oqForma'); if(forma) forma.style.display = 'none';
     /* Kirgan mijozga "telefon raqamingizni kiriting" degan tushuntirish
        kerak emas — u faqat chalkashtiradi. */
@@ -8051,10 +8119,13 @@ function kabEslab(tel, token){
   kukiYoz(KAB_COOKIE, token, 365);
 }
 function kabUnut(){
-  prfKeshUnut();
   kukiOchir(KAB_COOKIE);
-  const pb = $('#prfBox'); if(pb) pb.innerHTML = '';
   try{ localStorage.removeItem(KAB_KALIT); }catch(e){}
+  /* V132: eski versiyalardan qolgan profil keshi ham tozalansin
+     (u endi ishlatilmaydi, lekin mijozning telefonida yotib
+     qolgan bo'lishi mumkin). */
+  try{ localStorage.removeItem('vip_profil'); }catch(e){}
+  KAB_SHARTNOMALAR = [];
   KAB_TEL = '';
   const box = $('#oqResult'); if(box) box.innerHTML = '';
   const tel = $('#oqPhone'); if(tel) tel.value = '';
@@ -8140,10 +8211,7 @@ function kabShartnomaHtml(c){
    ko'chirildi.
    ================================================================== */
 function prfJadvalOch(){
-  const kesh = prfKeshOl();
-  const shList = (KAB_SHARTNOMALAR && KAB_SHARTNOMALAR.length)
-    ? KAB_SHARTNOMALAR
-    : ((kesh && Array.isArray(kesh.sh)) ? kesh.sh : []);
+  const shList = (KAB_SHARTNOMALAR && KAB_SHARTNOMALAR.length) ? KAB_SHARTNOMALAR : [];
   if(!shList.length) return;
   const ru = LANG === 'ru';
 
@@ -9646,16 +9714,22 @@ function stvLike(puf){
       surildi = true;                 /* keyingi `click` o'tkazib yuboriladi */
       if(oq === 'yon'){ const r = RAM(); if(r) r.classList.add('suriladi'); }
     }
+    /* V133: yozuvlar kadriga bittaga tenglashtiriladi — storiyalar
+       eng ko'p surilsadigan joy, shu sabab farqi sezilarli. */
     if(oq === 'tik'){
-      if(dy > 0) v.style.transform = 'translate3d(0,' + dy + 'px,0)';
+      if(dy > 0){
+        if(!v._yoz) v._yoz = kadrYozuvchi(v);
+        v._yoz.qoy('translate3d(0,' + dy + 'px,0)');
+      }
     }else if(oq === 'yon'){
       const r = RAM(); if(!r) return;
       /* Chekkadan tashqarida qarshilik (rubber-band) */
       const k = Math.abs(dx) > 150 ? 0.42 : 1;
       const surish = dx * k;
       const burchak = Math.max(-16, Math.min(16, -surish / 11));
-      r.style.transform = 'translate3d(' + surish + 'px,0,0) rotateY('
-        + burchak + 'deg) scale(' + (1 - Math.min(0.07, Math.abs(surish) / 2600)) + ')';
+      if(!r._yoz) r._yoz = kadrYozuvchi(r);
+      r._yoz.qoy('translate3d(' + surish + 'px,0,0) rotateY('
+        + burchak + 'deg) scale(' + (1 - Math.min(0.07, Math.abs(surish) / 2600)) + ')');
     }
   });
   const tugat = (e)=>{
@@ -9664,6 +9738,8 @@ function stvLike(puf){
     const sonDx = dx;
     const oqEdi = oq;
     y0 = null; x0 = null; oq = null; dx = 0;
+    if(v._yoz) v._yoz.tugat();
+    const rr = RAM(); if(rr && rr._yoz) rr._yoz.tugat();
     v.style.transform = '';
 
     if(oqEdi === 'yon'){
@@ -10548,12 +10624,28 @@ function seoToifaniOch(){
   if(el) el.remove();
 }
 
+/* Brauzer bo'sh qolganda bajariladigan ish. Birinchi chizishni
+   kechiktirmaydi. */
+function bosh(ish, kechikish){
+  if(typeof requestIdleCallback === 'function'){
+    requestIdleCallback(ish, { timeout: kechikish || 1500 });
+  }else{
+    setTimeout(ish, kechikish || 300);
+  }
+}
+
 (function boot(){
   applyLang();
   loadFavorites();
   seoToifaniOch();
-  PWA.init();
-  PUSH.init();
+  /* V132 — TEZLIK.
+     PWA (xizmat ishchisi) va PUSH (bildirishnoma) sahifaning
+     BIRINCHI KO'RINISHIGA umuman kerak emas, lekin ikkalasi ham
+     brauzerni band qiladi (SW ro'yxatdan o'tkazish, ruxsat holatini
+     tekshirish). Shuning uchun ular endi brauzer BO'SH QOLGANDA
+     ishga tushadi — sahifa avval chiziladi, keyin shular.
+     `requestIdleCallback` bo'lmasa (eski Safari) — oddiy kechikish. */
+  bosh(()=>{ try{ PWA.init(); }catch(e){} try{ PUSH.init(); }catch(e){} }, 1200);
   netBarRender();
   /* Kompyuterda sayt birinchi marta Katalog bo'limi bilan ochiladi */
   if(!location.hash && window.matchMedia('(min-width:900px)').matches){
@@ -10583,8 +10675,18 @@ function seoToifaniOch(){
   }
   xabarlarKeshdan();
   syncDigits();
-  initHints();
-  renderCatalog();
+  /* V132: "Buyurtmalarim" va "Shartnoma" bo'limlaridagi boshlang'ich
+     ko'rsatmalar — ular ko'rinmaydigan bo'limlarda, shuning uchun
+     bo'sh vaqtda chiziladi. */
+  bosh(()=>{ try{ initHints(); }catch(e){} }, 1500);
+  /* V132: KATALOG. Ilgari katalog ro'yxati sayt ochilishi bilan
+     HAR DOIM chizilardi — hatto mijoz bosh sahifada turgan bo'lsa
+     ham, ya'ni ko'rinmaydigan 15 ta kartochka bekorga chizilardi.
+     Endi: katalog bo'limi ochiq bo'lsagina darhol, aks holda brauzer
+     bo'sh qolganda (mijoz katalogga o'tsa — renderRoute o'zi
+     chaqiradi, kechikish sezilmaydi). */
+  if(currentRoute === 'catalog') renderCatalog();
+  else bosh(()=>{ try{ renderCatalog(); }catch(e){} }, 2000);
 
   avtoQayta('raqamlar', raqamlarniYukla);
   avtoQayta('sozlamalar', sozlamalarniYukla);
@@ -10627,11 +10729,14 @@ function seoToifaniOch(){
     const base = el.classList.contains('open') ? -W : 0;
     dx = Math.max(-W - 18, Math.min(0, base + mx));
     el.classList.add('drag');
-    const inn = el.querySelector('.swipe-in');
-    if(inn) inn.style.transform = 'translateX(' + dx + 'px)';
+    /* V133: yozuv kadriga bittaga tenglashtiriladi — barmoq
+       xabarlari kadrdan tezroq kelganda ortiqcha ish bajarilmasin. */
+    if(!el._yoz) el._yoz = kadrYozuvchi(el.querySelector('.swipe-in'));
+    el._yoz.qoy('translateX(' + dx + 'px)');
   }, {passive:true});
   function end(){
     if(!el) return;
+    if(el._yoz) el._yoz.tugat();
     const inn = el.querySelector('.swipe-in');
     el.classList.remove('drag');
     if(inn) inn.style.transform = '';
@@ -10684,15 +10789,17 @@ window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
   const hint = document.getElementById('edgeBack');
   let act = false, x0 = 0, y0 = 0, dx = 0, lock = '';
 
+  /* V133: kadriga bitta yozuv (qarang: kadrYozuvchi) */
+  const yoz = hint ? kadrYozuvchi(hint) : null;
   function qoy(d){
     if(!hint) return;
     const k = Math.min(1, d / NEED);
-    hint.style.transform = 'translate(' + (Math.min(d, 118) - 46) + 'px,-50%) scale(' + (0.8 + k * 0.28) + ')';
+    yoz.qoy('translate(' + (Math.min(d, 118) - 46) + 'px,-50%) scale(' + (0.8 + k * 0.28) + ')');
     hint.classList.toggle('on', d > 6);
   }
   function tozala(){
     act = false; lock = ''; dx = 0;
-    if(hint){ hint.classList.remove('on'); hint.style.transform = 'translate(-100%,-50%) scale(.8)'; }
+    if(hint){ if(yoz) yoz.tugat(); hint.classList.remove('on'); hint.style.transform = 'translate(-100%,-50%) scale(.8)'; }
   }
 
   document.addEventListener('pointerdown', (e)=>{
@@ -10711,6 +10818,7 @@ window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
       if(lock === 'y'){ tozala(); return; }
     }
     dx = Math.max(0, mx);
+    /* V133: kadriga bitta yozuv */
     qoy(dx);
   }, {passive:true, capture:true});
 
@@ -10879,5 +10987,10 @@ setTimeout(moveNavPill, 400);
   }, { passive:false });
 })();
 </script>
+
+
+
+
+
 </body>
 </html>
