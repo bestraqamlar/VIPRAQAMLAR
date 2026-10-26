@@ -827,6 +827,20 @@ service cloud.firestore {
     // api-create-order.js'dagi IP bo'yicha soatlik buyurtma cheklovi
     // hisoblagichi), sms_verifications_ip (— send-sms-code.js'dagi IP
     // bo'yicha soatlik SMS cheklovi hisoblagichi),
+    // kabinet_login_codes (— kabinetga Telegram kodi bilan kirish:
+    // kodning XESHI, muddati va urinishlar soni; kodning o'zi hech
+    // qayerda saqlanmaydi, qarang api-kabinet-kod.js),
+    // kabinet_code_rate_limits, kabinet_code_check_limits (— o'sha
+    // kirishning IP bo'yicha soatlik cheklovlari),
+    // kabinet_login_nonces (— saytdan botga yuboriladigan bir martalik
+    // havola belgisi: nonce -> telefon, 10 daqiqa),
+    // kabinet_login_keys (— Telegram xabaridagi «Bir bosishda kirish»
+    // tugmasining bir martalik kaliti, 10 daqiqa),
+    // kabinet_login_fails (— TELEFON bo'yicha xato urinishlar va
+    // kunlik kod hisobi; IP almashtirish bilan aylanib o'tib
+    // bo'lmasligi uchun), kabinet_chatids (— "telefon -> Telegram chat
+    // ID" bog'lanishi; mijoz botda o'z raqamini tasdiqlaganda
+    // yoziladi, qarang customer-bot-webhook.js `kabinet_bind`),
     // admin_ai_pending_actions, watch_notify_recipients (— "Baza raqam"
     // uchun qo'shimcha Telegram bildirishnoma ID'lari — qarang:
     // admin-number-watch.js), number_watches (— "Baza raqam" kuzatuvi:

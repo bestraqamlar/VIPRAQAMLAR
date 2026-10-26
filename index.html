@@ -1729,6 +1729,251 @@ html.low .stv-img.keldi{ animation:none; }
 }
 .kab-chiq:hover{color:var(--red);border-color:var(--red-line,var(--red))}
 
+/* ==================================================================
+   PROFIL — PLASTIK KARTOCHKA (V127)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: tepada BITTA kartochka, haqiqiy plastik kartochka
+   o'lchamida, premium ko'rinishda. Shuning uchun ko'rsatkichlar to'ri
+   va alohida eslatma qatori olib tashlandi — hammasi kartochkaning
+   o'z ichiga joylashtirildi.
+
+   O'LCHAM. `aspect-ratio: 1.586` — bu ID-1 standarti, ya'ni bank
+   kartochkasining aniq nisbati (85.6 x 54 mm). Eni ota elementga
+   moslashadi, balandligi o'zi hisoblanadi: 390px ekranda ~358x226.
+
+   TEZLIK. Bezakning hammasi gradient va chiziq:
+   `backdrop-filter` YO'Q, `filter`/`blur` YO'Q, animatsiya YO'Q,
+   rasm YO'Q. Brauzer bir marta chizadi va aylantirishda qayta
+   tegmaydi. Juda sust telefonlarda naqsh butunlay o'chiriladi.
+   ================================================================== */
+.prf{
+  position:relative;overflow:hidden;isolation:isolate;
+  width:100%;aspect-ratio:1.586;min-height:196px;max-height:250px;
+  display:flex;flex-direction:column;
+  padding:clamp(14px,4.4vw,18px);border-radius:clamp(16px,4.6vw,20px);
+  margin-bottom:12px;color:#fff;text-decoration:none;
+  background:
+    radial-gradient(128% 96% at 8% -10%, rgba(120,172,255,.26), transparent 56%),
+    linear-gradient(152deg, #1A3868 0%, #102747 48%, #0A1830 100%);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -1px 0 rgba(0,0,0,.3),
+    0 20px 42px -26px rgba(1,8,20,.95);
+}
+/* O'yilgandek diagonal naqsh — plastikning yaltiroq yuzasi hissi */
+.prf::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(116deg,
+    rgba(255,255,255,.06) 0 1px, transparent 1px 8px);
+  -webkit-mask-image:radial-gradient(120% 110% at 100% 0%, #000 0 32%, #0000 76%);
+          mask-image:radial-gradient(120% 110% at 100% 0%, #000 0 32%, #0000 76%);
+}
+/* Yon tarafdan o'tgan yorug'lik tasmasi */
+.prf::after{
+  content:'';position:absolute;right:-28%;top:-60%;width:86%;height:230%;
+  transform:rotate(18deg);pointer-events:none;z-index:-1;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+}
+
+/* ---- 1-qator: brend va chiqish ---- */
+.prf-top{display:flex;align-items:flex-start;gap:10px;position:relative}
+.prf-brend{flex:1;min-width:0;line-height:1.2}
+.prf-brend b{
+  display:block;font-size:11.5px;font-weight:800;letter-spacing:1.6px;
+  text-transform:uppercase;color:rgba(255,255,255,.95);
+}
+.prf-brend i{
+  display:block;font-style:normal;font-size:8.5px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.44);margin-top:3px;
+}
+.prf.vip .prf-brend b{
+  background:linear-gradient(94deg,#FFE9BC,#FFC869 46%,#FFEFD2);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.prf-chiq{
+  flex:none;display:grid;place-items:center;width:30px;height:30px;
+  border-radius:9px;cursor:pointer;
+  background:linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.17);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+  color:rgba(255,255,255,.9);
+  transition:background .15s ease,border-color .15s ease,transform .12s ease;
+}
+.prf-chiq:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.34)}
+.prf-chiq:active{transform:scale(.92)}
+
+/* ---- TO'LOV TASMASI (V128) ----
+   MIJOZ SO'ROVI: pastdagi oylik to'lovlar ham shu kartochkaning
+   ichiga kirsin. 12 (yoki nechta bo'lsa) oyni ro'yxat qilib
+   joylashtirib bo'lmaydi — kartochka plastik o'lchamida qolishi
+   kerak. Shuning uchun har bir oy BITTA ustun bo'lib turadi:
+     * to'langan   — to'liq, yorqin (VIP'da tilla);
+     * kechikkan   — qizil;
+     * kutilmoqda  — xira.
+   Bir qarashda "qancha to'ladim, qancha qoldi" ko'rinadi. Kartochka
+   bosilsa — to'liq jadval (sana, summa, holat) oynada ochiladi.
+   Ustunlar `flex` bilan teng bo'linadi, ya'ni 3 oy ham, 60 oy ham
+   bir xil joyga sig'adi. */
+.prf-jad{margin-top:auto;padding-top:2px;cursor:pointer}
+.prf-tasma{
+  display:flex;align-items:flex-end;gap:2px;height:16px;
+}
+.prf-tasma s{
+  flex:1 1 0;min-width:1px;height:7px;border-radius:2px;
+  text-decoration:none;display:block;
+  background:rgba(255,255,255,.17);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+.prf-tasma s.ok{height:14px;background:linear-gradient(180deg,#8FE3BC,#4FBF8E)}
+.prf-tasma s.kech{height:14px;background:linear-gradient(180deg,#FF9C8C,#F2644E)}
+.prf.vip .prf-tasma s.ok{background:linear-gradient(180deg,#FFE6B8,#E9B45C)}
+.prf-jad-t{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:7px;font-size:9.5px;font-weight:800;letter-spacing:.85px;
+  text-transform:uppercase;color:rgba(255,255,255,.56);
+  font-variant-numeric:tabular-nums;
+}
+.prf-jad-t b{color:rgba(255,255,255,.94);font-weight:800}
+.prf-jad-t .ogoh{color:#FFB2A4}
+.prf-jad-t em{
+  font-style:normal;display:inline-flex;align-items:center;gap:3px;
+  color:rgba(255,255,255,.72);
+}
+
+/* ---- Raqam ---- */
+.prf-raqam{
+  margin-top:auto;font-family:'Space Grotesk','Plus Jakarta Sans',monospace;
+  font-size:clamp(19px,5.6vw,23px);font-weight:800;letter-spacing:1.4px;
+  font-variant-numeric:tabular-nums;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+.prf.vip .prf-raqam{color:#FFF6E4}
+
+/* ---- Pastki qator: ism va daraja ---- */
+.prf-past{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  margin-top:12px;position:relative;
+}
+.prf-ism{flex:1;min-width:0;line-height:1.25}
+.prf-ism b{
+  display:block;font-size:12.5px;font-weight:800;letter-spacing:.9px;
+  text-transform:uppercase;color:rgba(255,255,255,.96);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.prf-ism i{
+  display:block;font-style:normal;font-size:9px;font-weight:800;
+  letter-spacing:1.1px;text-transform:uppercase;
+  color:rgba(255,255,255,.46);margin-top:4px;
+  font-variant-numeric:tabular-nums;
+}
+.prf-ong{flex:none;text-align:right;line-height:1.25}
+.prf-nishon{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 9px;border-radius:99px;
+  font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+.prf-nishon svg{flex:none;opacity:.95}
+.prf-nishon.vip{
+  background:linear-gradient(180deg, rgba(255,205,112,.34), rgba(255,170,60,.16));
+  border:1px solid rgba(255,205,112,.54);color:#FFE2A8;
+}
+.prf-nishon.doimiy{
+  background:linear-gradient(180deg, rgba(94,208,154,.28), rgba(94,208,154,.12));
+  border:1px solid rgba(94,208,154,.46);color:#9CE9C6;
+}
+.prf-nishon.yangi{
+  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.07));
+  border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.86);
+}
+/* Daraja ostidagi mayda qator: keyingi to'lov yoki kechikish */
+.prf-izoh{
+  display:block;font-size:9px;font-weight:800;letter-spacing:.9px;
+  text-transform:uppercase;margin-top:5px;
+  color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums;
+}
+.prf-izoh.ogoh{color:#FFB2A4}
+
+/* ---- "Kabinetga kirish" holati — kartochka shakli saqlanadi,
+        lekin ichi sodda: ikona, matn va o'q. ---- */
+.prf.kirish{justify-content:center;align-items:center;text-align:center;gap:3px}
+.prf.kirish .prf-kir-ic{
+  width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(158deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.13);
+  color:#fff;margin-bottom:11px;
+}
+.prf.kirish b{font-size:15.5px;font-weight:800;color:#fff;letter-spacing:-.1px}
+.prf.kirish i{font-style:normal;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.6);margin-top:5px}
+
+/* Profil skeleti — o'lchami kartochkanikiga TENG, shuning uchun
+   ma'lumot kelganda sahifa sakramaydi. */
+.sk-prf{
+  width:100%;aspect-ratio:1.586;min-height:196px;max-height:250px;
+  border-radius:clamp(16px,4.6vw,20px);margin-bottom:12px;
+  background:var(--card);border:1px solid var(--line);
+}
+
+/* Oynaning o'zi aylanadi — ro'yxat ichida IKKINCHI aylantirish
+   bo'lmasin (barmoq qaysi biriga tegishini bilmay qoladi). */
+.kab-oylar.prf-jadval-sh{max-height:none;overflow:visible}
+.kab-oylar.prf-jadval-sh .kab-oy{border-radius:10px}
+.prf-sh-bosh{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border-radius:14px;margin-bottom:12px;
+  background:var(--card-2);border:1px solid var(--line-2);
+}
+.prf-sh-bosh span{font-size:11px;font-weight:800;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--muted-2)}
+.prf-sh-bosh b{display:block;font-size:15px;font-weight:800;margin-top:3px;
+  font-family:'Space Grotesk','Plus Jakarta Sans',monospace;font-variant-numeric:tabular-nums}
+
+/* ---- KREDIT HOLATI: SPIDOMETR (V131) ----
+   Mijoz so'rovi: mashinaning tezlik o'lchagichiga o'xshasin —
+   180 gradusli yarim aylana, qizil/sariq/yashil zonalar va
+   ko'rsatkich strelkasi qayerda turgani.
+
+   O'NGGA SILJIGANI SARI YOMON: chapda yashil (kechikish yo'q),
+   o'rtada sariq, o'ngda qizil (to'lov ko'p qoldirilgan) — xuddi
+   tezlik oshgani sari qizilga kirgani kabi.
+
+   NEGA SVG: o'lchami kichik (56x30), bir marta chiziladi, rasm
+   yuklanmaydi va har qanday ekranda aniq ko'rinadi. Animatsiya yo'q. */
+.prf-spid{
+  flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;line-height:1;
+}
+.prf-spid svg{display:block;overflow:visible}
+.prf-spid-y{
+  font-size:7.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
+  color:rgba(255,255,255,.52);white-space:nowrap;
+}
+.prf-spid.yashil .prf-spid-y{color:#9CE9C6}
+.prf-spid.sariq  .prf-spid-y{color:#FFDC9A}
+.prf-spid.qizil  .prf-spid-y{color:#FFC0B5}
+
+/* Kartochka ichidagi kichik rasmiy izoh — bitta qator, xira */
+.prf-izohlash{
+  position:relative;margin-top:7px;
+  font-size:8.5px;font-weight:700;letter-spacing:.3px;line-height:1.4;
+  color:rgba(255,255,255,.42);
+}
+
+/* To'lovlar oynasidagi rasmiy tushuntirish */
+.prf-legend{
+  display:flex;flex-wrap:wrap;gap:10px 16px;
+  padding:12px 14px;border-radius:13px;margin-bottom:12px;
+  background:var(--card-2);border:1px solid var(--line-2);
+}
+.prf-legend div{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--muted-2)}
+.prf-legend i{width:9px;height:9px;border-radius:50%;flex:none}
+
+html.low .prf::before,
+html.low .prf::after{display:none}
+
 /* ---- Kabinetdagi shartnoma kartochkasi ---- */
 .kab-bar{margin-top:12px;height:6px;border-radius:99px;background:var(--card-3);overflow:hidden}
 .kab-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--green));
@@ -1824,6 +2069,14 @@ html.low .stv-img.keldi{ animation:none; }
 }
 .digits input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);transform:translateY(-1px)}
 .digits input::placeholder{color:var(--faint);font-weight:500;opacity:.38}
+/* Formadagi "havola" ko'rinishidagi tugmalar */
+.oq-lnk{
+  display:block;width:100%;text-align:center;cursor:pointer;
+  background:none;border:0;padding:6px 0;
+  font-size:12.5px;font-weight:700;color:var(--blue-text);
+}
+.oq-lnk:disabled{color:var(--faint);cursor:default}
+.oq-lnk:hover:not(:disabled){text-decoration:underline}
 
 /* ---------- Toggle ---------- */
 .tgl{width:46px;height:28px;border-radius:14px;background:var(--line-2);display:flex;align-items:center;padding:0 3px;flex:none;transition:background .2s}
@@ -3104,7 +3357,7 @@ html[data-theme="dark"] ::selection{background:transparent}
           </span>
           <div style="flex:1;min-width:0">
             <div style="font-size:17px;font-weight:800" data-t="Hammasi bir joyda">Hammasi bir joyda</div>
-            <div style="margin-top:5px;font-size:12px;color:#A9BCD6;font-weight:600;line-height:1.5" data-t="Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting — buyurtmalaringiz, shartnomangiz va to'lov jadvalingiz shu yerda chiqadi.">Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting — buyurtmalaringiz, shartnomangiz va to'lov jadvalingiz shu yerda chiqadi.</div>
+            <div style="margin-top:5px;font-size:12px;color:#A9BCD6;font-weight:600;line-height:1.5" data-t="Telefon raqamingizni yozing va «Kodni olish» ni bosing — Telegram botimiz ochilib, 4 xonali kod yuboradi. Kodni shu yerga joylashtirsangiz kabinet ochiladi va eslab qolinadi.">Telefon raqamingizni yozing va «Kodni olish» ni bosing — Telegram botimiz ochilib, 4 xonali kod yuboradi. Kodni shu yerga joylashtirsangiz kabinet ochiladi va eslab qolinadi.</div>
           </div>
         </div>
       </div>
@@ -3114,18 +3367,27 @@ html[data-theme="dark"] ::selection{background:transparent}
           <label for="oqPhone" data-t="Ishlab turgan telefon raqamingiz">Ishlab turgan telefon raqamingiz</label>
           <div class="inp"><span class="sg" style="font-size:14.5px;font-weight:700;color:var(--text-3)">+998</span><span style="width:1px;height:22px;background:var(--line-2)"></span><input id="oqPhone" type="tel" inputmode="numeric" placeholder="90 123 45 67" autocomplete="tel"></div>
         </div>
-        <div class="fld" style="margin-top:14px">
-          <label for="oqLast" data-t="Sotib olingan raqamning oxirgi 4 ta raqami">Sotib olingan raqamning oxirgi 4 ta raqami</label>
-          <div class="digits" style="margin-top:8px;max-width:230px" id="oqDigits">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="1" data-o="0" aria-label="1"><input type="text" inputmode="numeric" maxlength="1" placeholder="2" data-o="1" aria-label="2">
-            <input type="text" inputmode="numeric" maxlength="1" placeholder="3" data-o="2" aria-label="3"><input type="text" inputmode="numeric" maxlength="1" placeholder="4" data-o="3" aria-label="4">
+
+        <!-- KOD KATAKLARI: formaning asosiy qismi, doim ko'rinadi.
+             Mijoz «Kodni olish» ni bosadi -> bot ochiladi -> kod
+             keladi -> shu kataklarga joylashtiradi. -->
+        <div class="fld" style="margin-top:16px">
+          <label for="oqKodVal" data-t="Telegramdan kelgan 4 xonali kod">Telegramdan kelgan 4 xonali kod</label>
+          <div class="digits" style="margin-top:8px;max-width:230px" id="oqKod">
+            <input type="text" inputmode="numeric" maxlength="1" aria-label="1"><input type="text" inputmode="numeric" maxlength="1" aria-label="2">
+            <input type="text" inputmode="numeric" maxlength="1" aria-label="3"><input type="text" inputmode="numeric" maxlength="1" aria-label="4">
           </div>
-          <input id="oqLast" type="hidden">
-          <div class="hint" data-t="Bu — xavfsizlik uchun ikkinchi tekshiruv">Bu — xavfsizlik uchun ikkinchi tekshiruv</div>
+          <input id="oqKodVal" type="hidden">
+          <div class="hint" id="oqKodHint" data-t="Kodni Telegramda bosib nusxalang va shu yerga joylashtiring">Kodni Telegramda bosib nusxalang va shu yerga joylashtiring</div>
         </div>
-        <button class="btn" id="oqBtn" style="margin-top:16px">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-          <span data-t="Tekshirish">Tekshirish</span>
+
+        <button class="btn" id="oqKodBtn" style="margin-top:16px">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21.6 4.3 2.9 11.5c-.9.35-.88 1.63.03 1.95l4.6 1.6 1.78 5.3c.23.68 1.1.86 1.58.33l2.5-2.75 4.7 3.45c.6.44 1.45.11 1.6-.62l3.2-15c.17-.78-.6-1.44-1.3-1.16zM9.5 14.3l-.3 3.2-1.2-3.6 8.9-5.6-7.4 6z"></path></svg>
+          <span data-t="Kodni olish">Kodni olish</span>
+        </button>
+        <button class="btn ghost" id="oqKirBtn" style="margin-top:10px">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 17l5-5-5-5"></path><path d="M20 12H9"></path><path d="M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path></svg>
+          <span data-t="Kabinetga kirish">Kabinetga kirish</span>
         </button>
       </div>
 
@@ -3190,6 +3452,14 @@ html[data-theme="dark"] ::selection{background:transparent}
 <section class="screen" id="sc-more" data-route="more">
   <header class="apbar"><div style="flex:1;min-width:0"><h1 data-t="Profil">Profil</h1><div class="sub" data-t="Sozlamalar va bo'limlar">Sozlamalar va bo'limlar</div></div></header>
   <div class="pad wrap" style="padding-top:16px">
+
+    <!-- PROFIL KARTOCHKASI (V126).
+         "Profil" bo'limi ilgari faqat menyu edi — mijoz o'zini
+         ko'rmasdi. Endi bo'lim mijozning O'ZIDAN boshlanadi: ismi,
+         raqami, nechta buyurtma, keyingi to'lov sanasi.
+         Ma'lumot kabinetdan eslab qolingan telefon bilan olinadi,
+         hech narsa qayta so'ralmaydi. -->
+    <div id="prfBox" style="margin-bottom:18px"></div>
 
     <a class="tgcard" id="moreTg" href="https://t.me/vip_raqamlar_uz" target="_blank" rel="noopener">
       <span class="tg-ic">
@@ -4358,7 +4628,7 @@ function haptic(kind){
 applyTheme(themeNow());
 
 /* ---------- Marshrut ---------- */
-const ROUTES = { '':'home', '/':'home', '/katalog':'catalog', '/sevimlilar':'fav', '/buyurtmalarim':'orders', '/shartnoma':'contract', '/profil':'more', '/yana':'more' };
+const ROUTES = { '':'home', '/':'home', '/kirish':'orders', '/katalog':'catalog', '/sevimlilar':'fav', '/buyurtmalarim':'orders', '/shartnoma':'contract', '/profil':'more', '/yana':'more' };
 const ROUTE_HASH = { home:'#/', catalog:'#/katalog', fav:'#/sevimlilar', orders:'#/buyurtmalarim', contract:'#/shartnoma', more:'#/profil' };
 let currentRoute = 'home';
 const go = (r) => { location.hash = ROUTE_HASH[r] || '#/'; };
@@ -4377,6 +4647,8 @@ function renderRoute(keepScroll){
      telefon raqami va oxirgi 4 ta raqamni QAYTA yozishi kerak edi —
      "kabinet" uchun bu noto'g'ri: kabinet o'zi ochilishi kerak. */
   if(r === 'orders') kabAvtoOch();
+  /* V126: "Profil" bo'limi endi mijozning o'zidan boshlanadi. */
+  if(r === 'more') prfOch();
   if(r === 'catalog'){ reshuffle(); catShown = PAGE_SIZE; renderCatalog(); }
   if(r === 'home') pickHome();
   if(typeof moveNavPill === 'function') requestAnimationFrame(moveNavPill);
@@ -4853,6 +5125,12 @@ function numCard(item){
     </div>
   </article>`;
 }
+function skPrf(){
+  /* Kartochka bir butun yuza — ichini chizish shart emas, chunki
+     o'lchami aniq va joylashuv baribir sakramaydi. */
+  return '<div class="sk-prf shim" aria-hidden="true"></div>';
+}
+
 function skeletons(n){ let h=''; for(let i=0;i<n;i++) h += '<div class="sk shim"><b></b><i></i><div class="rw"><u></u><s></s></div></div>'; return h; }
 
 /* ---------- SKELET YORDAMCHILARI (V120) ----------
@@ -7138,14 +7416,269 @@ function bosqichlarHtml(status){
   }).join('') + '</div>';
 }
 
-async function lookupOrders(){
-  const phone = extractRawDigits($('#oqPhone').value);
-  const last  = ($('#oqLast').value||'').replace(/\D/g,'');
+/* ==================================================================
+   PROFIL KARTOCHKASI (V126)
+   ------------------------------------------------------------------
+   Serverdan kelgan `profile` obyektidan kabinetning yuqori qismini
+   yasaydi. Hech qanday qo'shimcha so'rov qilinmaydi — hammasi
+   allaqachon kelgan javobdan.
+   ================================================================== */
+/* ------------------------------------------------------------------
+   PROFIL KESHI (V126)
+   Profil "Profil" bo'limida DARHOL ko'rinishi kerak — internet sekin
+   bo'lsa ham, umuman bo'lmasa ham. Shuning uchun oxirgi profil
+   mijozning O'Z telefonida saqlanadi va bo'lim ochilganda shundan
+   chiziladi; keyin fon rejimida serverdan yangilanadi.
+   Saqlanadigan narsa — mijozning o'z ismi va o'z raqami bo'yicha
+   hisob; parol, token yoki hujjat ma'lumoti EMAS.
+   ------------------------------------------------------------------ */
+const PRF_KALIT = 'vip_profil';
+function prfKeshOl(){
+  try{
+    const o = JSON.parse(localStorage.getItem(PRF_KALIT) || 'null');
+    if(o && typeof o === 'object' && o.pr) return o;
+  }catch(e){}
+  return null;
+}
+function prfKeshYoz(pr, tel, sh){
+  /* Shartnomalar ham saqlanadi — to'lov tasmasi internetsiz ham
+     ko'rinsin. Hajmi kichik: faqat oy, sana, summa va holat. */
+  try{ localStorage.setItem(PRF_KALIT, JSON.stringify({
+    pr, tel, sh: Array.isArray(sh) ? sh.slice(0, 5) : [], at: Date.now()
+  })); }catch(e){}
+}
+function prfKeshUnut(){ try{ localStorage.removeItem(PRF_KALIT); }catch(e){} }
+
+/* "Profil" bo'limi ochilganda chaqiriladi. */
+let PRF_SOROV = false;
+function prfOch(){
+  const box = $('#prfBox');
+  if(!box) return;
+  const esda = kabEslaganni();
+
+  /* Kabinetga hali kirmagan mijoz — chaqiruv kartochkasi. */
+  if(!esda){
+    prfKeshUnut();
+    box.innerHTML = `<a class="prf kirish yangi" href="#/buyurtmalarim">
+      <span class="prf-kir-ic" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <b>${LANG==='ru'?'Войти в кабинет':'Kabinetga kirish'}</b>
+      <i>${LANG==='ru'?'Телефон и 4 цифры номера':"Telefon va raqamning 4 ta raqami"}</i>
+    </a>`;
+    return;
+  }
+
+  /* Keshdan DARHOL chizamiz — bo'sh joy ko'rinmasin. */
+  const kesh = prfKeshOl();
+  if(kesh && kesh.pr) box.innerHTML = profilHtml(kesh.pr, kesh.tel || esda.tel, kesh.sh);
+  else box.innerHTML = skPrf();
+
+  /* Keyin bir marta yangilaymiz (bo'lim har ochilganda emas). */
+  if(PRF_SOROV) return;
+  PRF_SOROV = true;
+  (async ()=>{
+    try{
+      const res = await withClientTimeout(fetch(FN + 'api-kabinet', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+        body: JSON.stringify({ token: esda.token })
+      }), kutishVaqti(14000));
+      const data = await res.json();
+      if(data && data.ok && data.profile){
+        KAB_SHARTNOMALAR = data.contracts || [];
+        prfKeshYoz(data.profile, esda.tel, data.contracts);
+        if(currentRoute === 'more') box.innerHTML = profilHtml(data.profile, esda.tel, data.contracts);
+      }else if(data && !data.ok){
+        /* Eslab qolingan ma'lumot endi ishlamayapti — profilni ham,
+           keshni ham tozalaymiz, bo'lim "kirish" holatiga qaytadi. */
+        prfKeshUnut(); kabUnut(); prfOch();
+      }
+    }catch(e){
+      /* Internet yo'q — keshdagi profil qolaveradi, xato ko'rsatilmaydi.
+         Kesh ham bo'lmasa, skelet o'rniga chaqiruv kartochkasi. */
+      if(!prfKeshOl() && box.querySelector('.sk-prf')){
+        box.innerHTML = profilHtml({ daraja:'yangi' }, esda.tel);
+      }
+    }finally{ PRF_SOROV = false; }
+  })();
+}
+
+function prfHarflar(ism, tel){
+  const sozlar = String(ism||'').trim().split(/\s+/).filter(Boolean);
+  if(sozlar.length >= 2) return (sozlar[0][0] + sozlar[1][0]).toUpperCase();
+  if(sozlar.length === 1 && sozlar[0].length) return sozlar[0].slice(0,2).toUpperCase();
+  /* Ism yo'q bo'lsa — telefonning oxirgi 2 raqami, bo'sh doira emas */
+  return String(tel||'').replace(/\D/g,'').slice(-2) || '—';
+}
+
+function prfSana(ms, matn){
+  if(!matn) return '';
+  return matn;
+}
+
+function profilHtml(pr, tel, shartnomalar){
+  if(!pr) pr = {};
+  const ru = LANG === 'ru';
+  const ism = String(pr.ism||'').trim();
+  const nishonMatn = { vip: ru?'VIP':'VIP',
+                       doimiy: ru?'Постоянный':'DOIMIY',
+                       yangi: ru?'Клиент':'MIJOZ' }[pr.daraja] || (ru?'Клиент':'MIJOZ');
+  const nishonSinf = ['vip','doimiy','yangi'].indexOf(pr.daraja) >= 0 ? pr.daraja : 'yangi';
+  const nishonIc = nishonSinf === 'vip'
+    ? '<svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="m12 2.6 2.6 6.1 6.6.55-5 4.33 1.5 6.45L12 16.6l-5.7 3.43 1.5-6.45-5-4.33 6.6-.55z"/></svg>'
+    : (nishonSinf === 'doimiy'
+      ? '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>'
+      : '');
+
+  /* ---- KREDIT HOLATI: SPIDOMETR (V131) ----
+     Mashinaning tezlik o'lchagichi kabi: 180 gradusli yarim aylana,
+     chapda yashil, o'rtada sariq, o'ngda qizil, va strelka qayerda
+     turganini ko'rsatadi. O'ngga siljigani sari yomon — to'lov ko'p
+     qoldirilgan.
+
+     Strelka burchagi KECHIKKAN OYLAR soniga qarab:
+        0 oy  -> chap chekka (yashil)
+        1 oy  -> o'rta (sariq)
+        2 oy  -> qizilning boshi
+        3+ oy -> o'ng chekka (qizil)
+     Bosilsa to'lovlar jadvali ochiladi (u yerda rasmiy tushuntirish
+     ham bor). */
+  const spidHolat = ['yashil','sariq','qizil'].indexOf(pr.kreditHolat) >= 0 ? pr.kreditHolat : '';
+  let spid = '';
+  if(spidHolat){
+    const kech = Math.max(0, Number(pr.kechikkanOy) || 0);
+    /* 0 -> 0.08 (chap chekkaga yaqin, lekin tirkalmagan), 3+ -> 0.92 */
+    const n = kech === 0 ? 0.08 : (kech === 1 ? 0.5 : (kech === 2 ? 0.72 : 0.92));
+    const burchak = -90 + 180 * n;                 // -90° .. +90°
+    const rad = burchak * Math.PI / 180;
+    const Cx = 32, Cy = 28, R = 23;                // markaz va radius
+    const ux = Cx + Math.sin(rad) * (R - 4.5);
+    const uy = Cy - Math.cos(rad) * (R - 4.5);
+    /* Yoy bo'laklari: har biri 60 gradus (3 x 60 = 180) */
+    const yoy = (a1, a2) => {
+      const p1 = [Cx + Math.sin(a1*Math.PI/180)*R, Cy - Math.cos(a1*Math.PI/180)*R];
+      const p2 = [Cx + Math.sin(a2*Math.PI/180)*R, Cy - Math.cos(a2*Math.PI/180)*R];
+      return `M ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A ${R} ${R} 0 0 1 ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+    };
+    const izohTooltip = ru
+      ? 'Состояние платежей: зелёный — без просрочки, жёлтый — 1 мес., красный — 2 и более мес.'
+      : "To'lov holati: yashil — kechikish yo'q, sariq — 1 oy, qizil — 2 va undan ko'p oy kechikkan";
+    spid = `<span class="prf-spid ${spidHolat}" data-prfjadval role="button" tabindex="0" title="${izohTooltip}">
+      <svg viewBox="0 0 64 34" width="64" height="34" aria-hidden="true">
+        <path d="${yoy(-90,-30)}" fill="none" stroke="#4FBF8E" stroke-width="5.5" stroke-linecap="round" opacity="${spidHolat==='yashil'?1:.28}"/>
+        <path d="${yoy(-28,28)}"  fill="none" stroke="#F5B942" stroke-width="5.5" stroke-linecap="round" opacity="${spidHolat==='sariq'?1:.28}"/>
+        <path d="${yoy(30,90)}"   fill="none" stroke="#F2644E" stroke-width="5.5" stroke-linecap="round" opacity="${spidHolat==='qizil'?1:.28}"/>
+        <line x1="${Cx}" y1="${Cy}" x2="${ux.toFixed(2)}" y2="${uy.toFixed(2)}"
+              stroke="#fff" stroke-width="2.3" stroke-linecap="round"/>
+        <circle cx="${Cx}" cy="${Cy}" r="3.1" fill="#fff"/>
+      </svg>
+      <span class="prf-spid-y">${ru?'платежи':"to'lov"}</span>
+    </span>`;
+  }
+
+  /* ---- TO'LOV TASMASI (V128) ----
+     Pastdagi "to'lovlar jadvali" endi shu kartochkaning ichida.
+     Har bir oy — bitta ustun; to'langani yorqin, kechikkani qizil,
+     kutilayotgani xira. Kartochka bosilsa to'liq jadval ochiladi.
+     Shartnoma bo'lmasa tasma umuman chiqmaydi (bo'sh joy ko'rinmaydi,
+     o'rniga ism qatori pastga suriladi). */
+  const shList = Array.isArray(shartnomalar) ? shartnomalar : [];
+  const barchaOylar = [];
+  for(const c of shList){
+    for(const o of (c.oylar || [])) barchaOylar.push(o);
+  }
+  barchaOylar.sort((a,b)=> (a.sanaMs||0) - (b.sanaMs||0));
+
+  let tasma = '';
+  if(barchaOylar.length){
+    const tolangan = barchaOylar.filter(o => o.holat === 'tolandi').length;
+    const jamiOy = barchaOylar.length;
+    const qolgan = shList.reduce((a,c)=> a + (Number(c.qolganSumma)||0), 0);
+    const valyuta = shList[0] && shList[0].currency === 'USD' ? ' $' : ' ' + SUM();
+    /* Ustun soni ko'p bo'lsa (masalan 60 oy) har biri 1px'gacha
+       ingichkalashadi — shunda ham o'qiladi, chunki rang bloklari
+       yonma-yon turadi. */
+    const ustunlar = barchaOylar.map(o =>
+      `<s class="${o.holat === 'tolandi' ? 'ok' : (o.holat === 'kechikdi' ? 'kech' : '')}"></s>`).join('');
+    tasma = `<div class="prf-jad" data-prfjadval role="button" tabindex="0"
+        aria-label="${ru?'График платежей':"To'lovlar jadvali"}">
+      <div class="prf-tasma" aria-hidden="true">${ustunlar}</div>
+      <div class="prf-jad-t">
+        <span><b>${tolangan}/${jamiOy}</b> ${ru?'мес. оплачено':"oy to'landi"}</span>
+        <em>${qolgan > 0
+            ? `${ru?'остаток':'qoldi'} <b>${formatPrice(qolgan)}${esc(valyuta)}</b>`
+            : `<b>${ru?'погашен':"to'liq to'landi"}</b>`}
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </em>
+      </div>
+    </div>`;
+  }
+
+  /* Daraja ostidagi mayda qator. Ustuvorlik: kechikish > keyingi
+     to'lov > nechta raqam olingani. Kartochkada joy oz, shuning uchun
+     FAQAT BITTASI ko'rinadi — eng muhimi. */
+  let izoh = '', izohOgoh = false;
+  if(pr.kechikkanOy){
+    izoh = pr.kechikkanOy + ' ' + (ru?'мес. просрочка':'oy kechikdi');
+    izohOgoh = true;
+  }else if(pr.keyingiSana){
+    izoh = (ru?'платёж ':"to'lov ") + pr.keyingiSana;
+  }else if(pr.yakunlangan){
+    izoh = pr.yakunlangan + ' ' + (ru?'номер':'ta raqam');
+  }else if(pr.jamiBuyurtma){
+    izoh = pr.jamiBuyurtma + ' ' + (ru?'заказ':'ta buyurtma');
+  }
+
+  /* Pastki chap burchak: ism, uning ostida mijozlik sanasi (bank
+     kartochkasidagi "valid thru" o'rnida). Ism bo'lmasa — telefon
+     tepaga chiqadi, pastda esa shunchaki "mijoz". */
+  const pastIzoh = pr.mijozlikSana
+    ? (ru?'клиент с ':'mijoz ') + pr.mijozlikSana
+    : (ru?'клиент':'mijoz');
+
+  return `<div class="prf ${nishonSinf}">
+    <div class="prf-top">
+      <div class="prf-brend">
+        <b>VIP RAQAMLAR</b>
+      </div>
+      ${spid}
+      <button type="button" class="prf-chiq" data-kabchiq aria-label="${ru?'Выйти':'Chiqish'}" title="${ru?'Выйти':'Chiqish'}">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 17l5-5-5-5"></path><path d="M20 12H9"></path><path d="M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path></svg>
+      </button>
+    </div>
+
+    <div class="prf-raqam">+998 ${esc(formatUzNumber(tel))}</div>
+    ${tasma}
+    ${spidHolat ? `<div class="prf-izohlash">${ru
+        ? 'Шкала платежей: зелёный — без просрочки, красный — есть просроченные месяцы.'
+        : "To'lov shkalasi: yashil — kechikish yo'q, qizil — to'lov ko'p qoldirilgan."}</div>` : ''}
+
+    <div class="prf-past">
+      <div class="prf-ism">
+        <b>${ism ? esc(ism) : (ru?'Клиент':'Mijoz')}</b>
+        <i>${esc(pastIzoh)}</i>
+      </div>
+      <div class="prf-ong">
+        <span class="prf-nishon ${nishonSinf}">${nishonIc}${nishonMatn}</span>
+        ${izoh ? `<span class="prf-izoh${izohOgoh?' ogoh':''}">${esc(izoh)}</span>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function lookupOrders(kirishToken){
   const box = $('#oqResult');
-  if(phone.length < 9){ toast(LANG==='ru'?'Введите полный номер телефона':"To'liq telefon raqamini kiriting",'bad'); return; }
-  if(last.length !== 4){ toast(LANG==='ru'?'Введите последние 4 цифры номера':'Raqamning oxirgi 4 ta raqamini kiriting','bad'); return; }
-  const btn = $('#oqBtn'); btn.disabled = true; btn.textContent = t('Tekshirilmoqda…');
-  box.innerHTML = skeletons(2);
+  /* V131: kabinet FAQAT token bilan ochiladi (Telegram kodi orqali
+     olingan). Telefon va "raqamning oxirgi 4 ta raqami" endi
+     so'ralmaydi — bitta, ishonchli yo'l. */
+  const tok = kirishToken || kabTokenOl();
+  if(!tok){ return; }
+  const phone = (kabEslaganni() || {}).tel || extractRawDigits(($('#oqPhone')||{}).value || '');
+  const btn = $('#oqKirBtn'); btn.disabled = true; btn.textContent = t('Tekshirilmoqda…');
+  /* V126: avval profil skeleti, keyin buyurtma skeletlari — kelgan
+     ma'lumot shu joylarning o'rniga tushadi, sahifa sakramaydi. */
+  box.innerHTML = skPrf() + skeletons(2);
   try{
     /* V122: MIJOZ KABINETI. Ilgari bu yerda faqat buyurtmalar
        olinardi (`check-my-orders`), shartnoma esa BOSHQA bo'limda,
@@ -7154,7 +7687,7 @@ async function lookupOrders(){
     const res = await withClientTimeout(fetch(FN + 'api-kabinet', {
       method:'POST',
       headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
-      body: JSON.stringify({ phone, lastDigits: last })
+      body: JSON.stringify({ token: tok })
     }), kutishVaqti(14000));
     const data = await res.json();
     const buyurtmalar = (data && data.orders) || [];
@@ -7165,31 +7698,32 @@ async function lookupOrders(){
          boshqa raqam kiritgan) — uni tozalaymiz va formani qaytaramiz,
          aks holda bo'lim har ochilganda shu xato chiqaverardi. */
       try{ localStorage.removeItem(KAB_KALIT); }catch(e){}
+      prfKeshUnut();
       const f2 = $('#oqForma'); if(f2) f2.style.display = '';
       const t2 = $('#oqTushuntirish'); if(t2) t2.style.display = '';
+      if(data && data.qaytaKirish){
+        box.innerHTML = emptyBox(IC_WARN, t('Qaytadan kiring'),
+          LANG==='ru' ? 'Срок входа истёк. Запросите новый код.' : "Kirish muddati tugadi. Yangi kod so'rang.", null);
+        return;
+      }
       box.innerHTML = emptyBox(IC_BOX, t('Buyurtma topilmadi'), data.error || (LANG==='ru'?'По этим номерам заказов нет. Проверьте телефон и последние 4 цифры.':"Bu raqamlar bo'yicha buyurtma yo'q. Telefon va oxirgi 4 ta raqamni tekshiring."), null);
       return;
     }
 
     KAB_TEL = phone;
+    KAB_SHARTNOMALAR = shartnomalar;
     /* V124: bir marta kirgandan keyin eslab qolamiz — keyingi safar
        kabinet o'zi ochiladi. */
-    kabEslab(phone.slice(-9), last);
+    kabEslab(phone.slice(-9), tok);
+    if(data.profile) prfKeshYoz(data.profile, phone.slice(-9), shartnomalar);
     const forma = $('#oqForma'); if(forma) forma.style.display = 'none';
     /* Kirgan mijozga "telefon raqamingizni kiriting" degan tushuntirish
        kerak emas — u faqat chalkashtiradi. */
     const tush = $('#oqTushuntirish'); if(tush) tush.style.display = 'none';
 
-    let html = `<div class="kab-bosh">
-      <div class="kab-bosh-t">
-        <b>+998 ${esc(formatUzNumber(phone))}</b>
-        <i>${LANG==='ru'?'Ваш кабинет':'Sizning kabinetingiz'}</i>
-      </div>
-      <button type="button" class="kab-chiq" data-kabchiq>
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 17l5-5-5-5"></path><path d="M20 12H9"></path><path d="M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path></svg>
-        <span>${LANG==='ru'?'Выйти':'Chiqish'}</span>
-      </button>
-    </div>`;
+    /* V126: kabinet endi PROFILDAN boshlanadi — kim kirgan, qancha
+       vaqtdan beri mijoz, nechta buyurtma va qachon to'lov. */
+    let html = profilHtml(data.profile, phone, shartnomalar);
 
     /* ---------- BUYURTMALAR (bosqichlar bilan) ---------- */
     if(buyurtmalar.length){
@@ -7228,9 +7762,200 @@ async function lookupOrders(){
   }catch(err){
     box.innerHTML = emptyBox(IC_WARN, t("Tekshirib bo'lmadi"), xatoMatni(err), t('Qayta urinish'), 'id="oqRetry"', true);
   }finally{
-    btn.disabled = false; btn.textContent = t('Tekshirish');
+    if(btn){ btn.disabled = false; btn.textContent = t('Kabinetga kirish'); }
   }
 }
+
+/* ==================================================================
+   KABINETGA KIRISH — BITTA YO'L: TELEGRAM BOTI (V131)
+   ------------------------------------------------------------------
+   1. Mijoz telefon raqamini yozadi va «Kodni olish» ni bosadi.
+   2. Sayt serverdan botga MAXSUS HAVOLA oladi va uni ochadi.
+      Telegram havolani ochishi bilan «Start» ni O'ZI bosadi —
+      mijoz hech narsa yozmaydi.
+   3. Bot raqam egasini tekshiradi va 4 xonali kodni bosib
+      nusxalanadigan ko'rinishda yuboradi.
+   4. Mijoz kodni shu yerga joylashtiradi — kabinet ochiladi va
+      1 yilga eslab qolinadi.
+
+   Telegram xabarida «⚡️ Bir bosishda kirish» tugmasi ham bor: u
+   saytni ochib, kodni ham kiritmasdan kiritadi (boshqa brauzerdan
+   kirish uchun eng qulay yo'l).
+
+   SMS YO'Q, "raqamning oxirgi 4 ta raqami" degan zaxira yo'l ham
+   YO'Q — ataylab olib tashlandi (xavfsizlik uchun).
+   ================================================================== */
+
+/* Botga havola olish va uni ochish. */
+async function kodYubor(){
+  const phone = extractRawDigits($('#oqPhone').value);
+  if(phone.length < 9){
+    toast(LANG==='ru'?'Введите полный номер телефона':"To'liq telefon raqamini kiriting",'bad');
+    const el = $('#oqPhone'); if(el) el.focus();
+    return;
+  }
+  const btn = $('#oqKodBtn');
+  const asl = btn.innerHTML;
+  btn.disabled = true; btn.textContent = t('Ochilmoqda…');
+
+  /* MUHIM: yangi oynani so'rovdan OLDIN ochamiz. Brauzerlar
+     "popup"ni faqat odam bosgan paytda ochishga ruxsat beradi;
+     so'rov javobini kutib tursak, oyna BLOKLANADI. Shuning uchun
+     bo'sh oyna darhol ochiladi va manzili keyin qo'yiladi. */
+  let oyna = null;
+  try{ oyna = window.open('', '_blank'); }catch(e){}
+
+  try{
+    const res = await withClientTimeout(fetch(FN + 'api-kabinet-kod', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ action:'boshla', phone })
+    }), kutishVaqti(14000));
+    const data = await res.json();
+
+    if(data && data.ok && data.havola){
+      /* Telefon raqamini shu yerda eslab qo'yamiz — kodni
+         tekshirishda kerak bo'ladi (mijoz maydonni tozalab yuborsa
+         ham ishlasin). */
+      KOD_TEL = phone.slice(-9);
+      if(oyna){ oyna.location.href = data.havola; }
+      else { location.href = data.havola; }   /* popup bloklangan bo'lsa */
+      const h = $('#oqKodHint');
+      if(h) h.textContent = LANG==='ru'
+        ? 'Бот открыт. Скопируйте код и вставьте сюда.'
+        : "Bot ochildi. Kodni nusxalab shu yerga joylashtiring.";
+      const b0 = $$('#oqKod input')[0]; if(b0) b0.focus();
+      return;
+    }
+    if(oyna) { try{ oyna.close(); }catch(e){} }
+    toast((data && data.error) || t("Hozir ochib bo'lmadi"), 'bad');
+  }catch(err){
+    if(oyna) { try{ oyna.close(); }catch(e){} }
+    toast(xatoMatni(err), 'bad');
+  }finally{
+    btn.disabled = false; btn.innerHTML = asl;
+  }
+}
+
+/* «Kodni olish» bosilgan telefon — kodni tekshirishda ishlatiladi. */
+let KOD_TEL = '';
+
+let KOD_TEKSHIRILMOQDA = false;
+async function kodTekshir(){
+  /* Oxirgi katak to'lganda ham, Enter bosilganda ham, yopishtirilganda
+     ham shu funksiya chaqiriladi — ikki marta yuborilib ketmasin
+     (aks holda bitta kod uchun ikkita urinish sarflanardi). */
+  if(KOD_TEKSHIRILMOQDA) return;
+  const phone = KOD_TEL || extractRawDigits($('#oqPhone').value).slice(-9);
+  const kod = ($('#oqKodVal').value || '').replace(/\D/g,'');
+  if(phone.length !== 9){
+    toast(LANG==='ru'?'Введите полный номер телефона':"To'liq telefon raqamini kiriting",'bad');
+    return;
+  }
+  if(kod.length !== 4){
+    toast(LANG==='ru'?'Введите 4-значный код':'4 xonali kodni kiriting','bad');
+    return;
+  }
+  KOD_TEKSHIRILMOQDA = true;
+  const btn = $('#oqKirBtn');
+  const asl = btn.innerHTML;
+  btn.disabled = true; btn.textContent = t('Tekshirilmoqda…');
+  try{
+    const res = await withClientTimeout(fetch(FN + 'api-kabinet-kod', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ action:'tekshir', phone, code: kod })
+    }), kutishVaqti(14000));
+    const data = await res.json();
+    if(data && data.ok && data.token){
+      kabEslab(phone, data.token);
+      $$('#oqKod input').forEach(b => b.value = '');
+      $('#oqKodVal').value = '';
+      haptic('medium');
+      await lookupOrders(data.token);
+      return;
+    }
+    toast((data && data.error) || t("Kod noto'g'ri"), 'bad');
+    $$('#oqKod input').forEach(b => b.value = '');
+    $('#oqKodVal').value = '';
+    const b0 = $$('#oqKod input')[0]; if(b0) b0.focus();
+  }catch(err){
+    toast(xatoMatni(err), 'bad');
+  }finally{
+    btn.disabled = false; btn.innerHTML = asl;
+    KOD_TEKSHIRILMOQDA = false;
+  }
+}
+
+/* ------------------------------------------------------------------
+   «BIR BOSISHDA KIRISH» — Telegram xabaridagi tugma
+   Bot yuborgan havola: /#/kirish?k=<bir martalik kalit>
+   Kalit tokenga almashtiriladi va kabinet darhol ochiladi. Bu BOSHQA
+   BRAUZERDAN (Safari, Chrome) kirishning eng qisqa yo'li — kod ham
+   kiritilmaydi.
+   Kalit BIR MARTALIK va 10 daqiqa yashaydi: havola chat tarixida
+   qolsa ham ikkinchi marta ishlamaydi.
+   ------------------------------------------------------------------ */
+async function kirishKaliti(){
+  const h = String(location.hash || '');
+  const m = h.match(/[?&]k=([\w-]{16,64})/);
+  if(!m) return false;
+  const kalit = m[1];
+  /* Manzilni darhol tozalaymiz — kalit brauzer tarixida qolmasin. */
+  try{ history.replaceState(null, '', location.pathname + location.search + '#/buyurtmalarim'); }catch(e){}
+  try{
+    const res = await withClientTimeout(fetch(FN + 'api-kabinet-kod', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', ...(await getAppCheckHeaders()) },
+      body: JSON.stringify({ action:'kalit', key: kalit })
+    }), kutishVaqti(14000));
+    const data = await res.json();
+    if(data && data.ok && data.token){
+      kabEslab(String(data.phone || data.token.split('.')[0]), data.token);
+      KAB_YUKLANDI = false;
+      toast(LANG==='ru' ? 'Вы вошли' : 'Kabinetga kirdingiz', 'ok');
+      return true;
+    }
+    toast((data && data.error) || t('Havola yaroqsiz'), 'bad');
+  }catch(err){ toast(xatoMatni(err), 'bad'); }
+  return false;
+}
+
+(function(){
+  const kb = $('#oqKodBtn');  if(kb) kb.addEventListener('click', kodYubor);
+  const kr = $('#oqKirBtn');  if(kr) kr.addEventListener('click', ()=> kodTekshir());
+
+  /* 4 ta katak: avtomatik keyingisiga o'tish, Backspace bilan orqaga,
+     va butun kodni bir marta joylashtirish (Telegram'dan nusxa olib
+     qo'yganda hamma katakka tarqaladi). */
+  const boxes = $$('#oqKod input'), hidden = $('#oqKodVal');
+  if(boxes.length && hidden){
+    const sync = ()=> hidden.value = boxes.map(b=>b.value).join('');
+    boxes.forEach((b,i)=>{
+      b.addEventListener('input', ()=>{
+        b.value = b.value.replace(/\D/g,'').slice(0,1);
+        if(b.value && boxes[i+1]) boxes[i+1].focus();
+        sync();
+        if(hidden.value.length === 4) kodTekshir();
+      });
+      b.addEventListener('keydown', (e)=>{
+        if(e.key === 'Backspace' && !b.value && boxes[i-1]) boxes[i-1].focus();
+        if(e.key === 'Enter') kodTekshir();
+      });
+      b.addEventListener('focus', ()=> b.select());
+      b.addEventListener('paste', (e)=>{
+        const matn = ((e.clipboardData || window.clipboardData).getData('text') || '').replace(/\D/g,'');
+        if(!matn) return;
+        e.preventDefault();
+        boxes.forEach((x,j)=> x.value = matn[j] || '');
+        sync();
+        const oxirgi = boxes[Math.min(matn.length, boxes.length) - 1];
+        if(oxirgi) oxirgi.focus();
+        if(hidden.value.length === 4) kodTekshir();
+      });
+    });
+  }
+})();
 
 /* Kabinet so'rovi uchun ishlatilgan telefon — PDF yuklab olishda
    qaytadan so'ramaslik uchun eslab qolinadi. */
@@ -7256,23 +7981,85 @@ let KAB_TEL = '';
    Boshqa odamning telefoniga o'tib qolmasligi uchun "Chiqish" tugmasi
    ko'rinib turadi. */
 const KAB_KALIT = 'vip_kabinet';
-function kabEslaganni(){
+const KAB_COOKIE = 'vipkab';
+
+/* ------------------------------------------------------------------
+   KIRISHNI SAQLASH — IKKI YO'L BILAN (V131)
+   Mijoz so'rovi: saytdan chiqib ketib qaytsa ham, kabinet saqlanib
+   qolsin. Shuning uchun token IKKI joyga yoziladi:
+     1) localStorage — asosiy joy;
+     2) cookie (1 yil) — zaxira. Ba'zi brauzerlar (xususan iOS Safari
+        "Private" yoki saytlar ma'lumotini tozalash sozlamasi)
+        localStorage'ni o'chirib yuboradi, cookie esa qoladi — yoki
+        aksincha. Biri yo'qolsa, ikkinchisidan tiklanadi.
+   BOSHQA BRAUZER (Chrome -> Safari) — bu boshqa qurilma kabi:
+   brauzerlar bir-birining ma'lumotini KO'RA OLMAYDI (bu ularning
+   xavfsizlik qoidasi, aylanib o'tib bo'lmaydi). Shuning uchun u
+   yerda bir marta kod olinadi — yoki Telegram'dagi «Bir bosishda
+   kirish» tugmasi bosiladi, u o'sha brauzerda darhol kiritadi.
+   MA'LUMOTNING O'ZI (buyurtma, shartnoma, to'lovlar) serverda —
+   qaysi brauzerdan kirmasin, hammasi joyida turadi.
+   ------------------------------------------------------------------ */
+function kukiYoz(nom, qiymat, kun){
+  try{
+    const muddat = new Date(Date.now() + (kun||365)*864e5).toUTCString();
+    document.cookie = nom + '=' + encodeURIComponent(qiymat)
+      + '; expires=' + muddat + '; path=/; SameSite=Lax'
+      + (location.protocol === 'https:' ? '; Secure' : '');
+  }catch(e){}
+}
+function kukiOl(nom){
+  try{
+    const m = document.cookie.match(new RegExp('(?:^|; )' + nom + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : '';
+  }catch(e){ return ''; }
+}
+function kukiOchir(nom){
+  try{ document.cookie = nom + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'; }catch(e){}
+}
+
+const TOKEN_SHAKLI = /^\d{9}\.\d{10,16}\.[\w-]{8,64}$/;
+
+/* Tokenni qayerdan topsa — o'shandan oladi, va ikkinchi joyga
+   qaytarib yozib qo'yadi (biri yo'qolgan bo'lsa tiklanadi). */
+function kabTokenOl(){
+  let t = '', tel = '';
   try{
     const o = JSON.parse(localStorage.getItem(KAB_KALIT) || 'null');
-    if(o && /^\d{9}$/.test(String(o.tel||'')) && /^\d{4}$/.test(String(o.oxirgi||''))) return o;
+    if(o && TOKEN_SHAKLI.test(String(o.token||''))){ t = o.token; tel = String(o.tel||''); }
   }catch(e){}
-  return null;
+  if(!t){
+    const c = kukiOl(KAB_COOKIE);
+    if(TOKEN_SHAKLI.test(c)){ t = c; tel = c.split('.')[0]; }
+  }
+  if(t){
+    /* Ikkala joyda ham turishini ta'minlaymiz */
+    try{ localStorage.setItem(KAB_KALIT, JSON.stringify({ tel: tel || t.split('.')[0], token: t, at: Date.now() })); }catch(e){}
+    if(kukiOl(KAB_COOKIE) !== t) kukiYoz(KAB_COOKIE, t, 365);
+  }
+  return t;
 }
-function kabEslab(tel, oxirgi){
-  try{ localStorage.setItem(KAB_KALIT, JSON.stringify({ tel, oxirgi, at: Date.now() })); }catch(e){}
+
+function kabEslaganni(){
+  const t = kabTokenOl();
+  if(!t) return null;
+  return { tel: t.split('.')[0], token: t };
+}
+function kabEslab(tel, token){
+  if(!TOKEN_SHAKLI.test(String(token||''))) return;
+  try{ localStorage.setItem(KAB_KALIT, JSON.stringify({ tel, token, at: Date.now() })); }catch(e){}
+  kukiYoz(KAB_COOKIE, token, 365);
 }
 function kabUnut(){
+  prfKeshUnut();
+  kukiOchir(KAB_COOKIE);
+  const pb = $('#prfBox'); if(pb) pb.innerHTML = '';
   try{ localStorage.removeItem(KAB_KALIT); }catch(e){}
   KAB_TEL = '';
   const box = $('#oqResult'); if(box) box.innerHTML = '';
   const tel = $('#oqPhone'); if(tel) tel.value = '';
-  const l = $('#oqLast'); if(l) l.value = '';
-  $$('#oqDigits input').forEach(b => { b.value = ''; });
+  $$('#oqKod input').forEach(b => { b.value = ''; });
+  const kv = $('#oqKodVal'); if(kv) kv.value = '';
   const forma = $('#oqForma'); if(forma) forma.style.display = '';
   const tush = $('#oqTushuntirish'); if(tush) tush.style.display = '';
   toast(LANG==='ru' ? 'Вы вышли из кабинета' : 'Kabinetdan chiqdingiz');
@@ -7292,8 +8079,6 @@ function kabAvtoOch(){
   const f = $('#oqForma'); if(f) f.style.display = 'none';
   const t0 = $('#oqTushuntirish'); if(t0) t0.style.display = 'none';
   const tel = $('#oqPhone'); if(tel && !tel.value) tel.value = formatUzNumber(o.tel);
-  const l = $('#oqLast'); if(l) l.value = o.oxirgi;
-  $$('#oqDigits input').forEach((b,i) => { b.value = o.oxirgi[i] || ''; });
   if(KAB_YUKLANDI) return;      /* bir marta — keyin qayta so'rov yubormaymiz */
   KAB_YUKLANDI = true;
   lookupOrders();
@@ -7306,19 +8091,6 @@ function kabShartnomaHtml(c){
   const val = c.currency === 'USD' ? ' $' : (' ' + SUM());
   const foiz = c.jamiOy ? Math.round(c.tolanganOy / c.jamiOy * 100) : 0;
   const kech = Number(c.kechikkanOy) || 0;
-
-  /* To'lov jadvali: faqat eng muhim qismi ochiq turadi — qolgani
-     "hammasini ko'rish" bilan ochiladi (uzun ro'yxat ekranni
-     to'ldirib yubormasin). */
-  const qatorlar = (c.oylar || []).map(o => {
-    const belgi = o.holat === 'tolandi' ? '✓' : (o.holat === 'kechikdi' ? '!' : '·');
-    return `<div class="kab-oy kab-${esc(o.holat)}">
-      <span class="kab-oy-n">${esc(o.oy)}</span>
-      <span class="kab-oy-s">${esc(o.sana)}</span>
-      <span class="kab-oy-p">${formatPrice(o.summa)}${esc(val)}</span>
-      <span class="kab-oy-b">${belgi}</span>
-    </div>`;
-  }).join('');
 
   return `<div class="rescard">
     <span class="rb" style="background:${kech ? 'var(--red)' : 'var(--gold)'}"></span>
@@ -7348,10 +8120,8 @@ function kabShartnomaHtml(c){
       <b${kech ? ' style="color:var(--red)"' : ''}>${esc(c.keyingiSana)} · ${formatPrice(c.monthlyPayment)}${esc(val)}</b>
     </div>` : ''}
 
-    <details class="kab-jadval">
-      <summary>${LANG==='ru'?'График платежей':"To'lovlar jadvali"} (${esc(c.jamiOy)} ${t('oy')})</summary>
-      <div class="kab-oylar">${qatorlar}</div>
-    </details>
+    <!-- V128: to'lovlar jadvali endi TEPADAGI kartochkadan ochiladi
+         (mijoz so'rovi). Bu yerda takrorlanmaydi. -->
 
     <button class="btn ghost kab-pdf" data-kabpdf="${esc(c.contractId)}" style="margin-top:12px">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M8 11.5l4 4 4-4"></path><path d="M5 19h14"></path></svg>
@@ -7359,6 +8129,76 @@ function kabShartnomaHtml(c){
     </button>
   </div>`;
 }
+
+/* ==================================================================
+   TO'LOVLAR JADVALI OYNASI (V128)
+   ------------------------------------------------------------------
+   Tepadagi kartochka bosilganda ochiladi. Ichida har bir shartnoma
+   bo'yicha: jami/to'langan/qolgan va oyma-oy ro'yxat (sana, summa,
+   holat). Ilgari bu jadval pastdagi shartnoma kartochkasining ichida
+   edi — mijoz so'roviga ko'ra u yerdan olib tashlandi va shu yerga
+   ko'chirildi.
+   ================================================================== */
+function prfJadvalOch(){
+  const kesh = prfKeshOl();
+  const shList = (KAB_SHARTNOMALAR && KAB_SHARTNOMALAR.length)
+    ? KAB_SHARTNOMALAR
+    : ((kesh && Array.isArray(kesh.sh)) ? kesh.sh : []);
+  if(!shList.length) return;
+  const ru = LANG === 'ru';
+
+  const boliklar = shList.map(c => {
+    const val = c.currency === 'USD' ? ' $' : (' ' + SUM());
+    const qatorlar = (c.oylar || []).map(o => {
+      const belgi = o.holat === 'tolandi' ? '✓' : (o.holat === 'kechikdi' ? '!' : '·');
+      return `<div class="kab-oy kab-${esc(o.holat)}">
+        <span class="kab-oy-n">${esc(o.oy)}</span>
+        <span class="kab-oy-s">${esc(o.sana)}</span>
+        <span class="kab-oy-p">${formatPrice(o.summa)}${esc(val)}</span>
+        <span class="kab-oy-b">${belgi}</span>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:20px">
+      <div class="eyebrow" style="padding:0 4px;margin-bottom:10px">
+        ${esc(c.contractId || '')} · ${esc(shortNumber(c.number || ''))}
+      </div>
+      <div class="prf-sh-bosh">
+        <div><span>${ru?'Оплачено':"To'langan"}</span><b>${esc(c.tolanganOy)}/${esc(c.jamiOy)} ${t('oy')}</b></div>
+        <div style="text-align:right"><span>${ru?'Остаток':'Qoldi'}</span>
+          <b${Number(c.kechikkanOy) ? ' style="color:var(--red)"' : ''}>${formatPrice(c.qolganSumma)}${esc(val)}</b></div>
+      </div>
+      <div class="kab-oylar prf-jadval-sh">${qatorlar}</div>
+    </div>`;
+  }).join('');
+
+  $('#genTitle').textContent = ru ? 'График платежей' : "To'lovlar jadvali";
+  const ft = $('#genFoot'); if(ft) ft.style.display = 'none';
+  /* Rasmiy tushuntirish — kartochkadagi spidometr nimani bildirishini
+     aytadi. Kartochkada joy oz, shuning uchun to'liq izoh shu yerda. */
+  const legend = `<div class="prf-legend">
+    <div><i style="background:#4FBF8E"></i>${ru?'Без просрочки':"Kechikish yo'q"}</div>
+    <div><i style="background:#F5B942"></i>${ru?'1 месяц просрочки':'1 oy kechikkan'}</div>
+    <div><i style="background:#F2644E"></i>${ru?'2 и более месяцев':'2 va undan ko\'p oy'}</div>
+  </div>`;
+  $('#genBody').innerHTML = legend + boliklar;
+  openSheet('shGen');
+}
+
+/* Kartochka bosilganda yoki klaviaturadan Enter/Probel bosilganda */
+document.addEventListener('click', (e)=>{
+  /* "Chiqish" tugmasi kartochka ichida — uning bosilishi jadvalni
+     ochmasligi kerak. */
+  if(e.target.closest('[data-kabchiq]')) return;
+  if(e.target.closest('[data-prfjadval]')){ e.preventDefault(); prfJadvalOch(); }
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target && e.target.closest && e.target.closest('[data-prfjadval]');
+  if(el){ e.preventDefault(); prfJadvalOch(); }
+});
+
+/* Kabinetdan kelgan shartnomalar — jadval oynasi uchun eslab qolinadi. */
+let KAB_SHARTNOMALAR = [];
 
 /* Kabinetdagi "Shartnomani yuklab olish" — shartnoma ID'si allaqachon
    bizda, telefon ham: mijozdan hech narsa so'ralmaydi. */
@@ -9354,7 +10194,7 @@ document.addEventListener('click', (e)=>{
 
   const gr = e.target.closest('[data-goroute]');
   if(gr){ e.preventDefault(); go(gr.dataset.goroute); return; }
-  if(e.target.closest('#oqBtn') || e.target.closest('#oqRetry')){ lookupOrders(); return; }
+  if(e.target.closest('#oqRetry')){ lookupOrders(); return; }
   if(e.target.closest('#ctBtn')){ lookupContract(); return; }
   if(e.target.closest('#ctPdf')){ downloadContractPdf(); return; }
 
@@ -9469,23 +10309,8 @@ function openFilter(){
   if(el){ el.setAttribute('inputmode','tel');
     el.addEventListener('blur', ()=>{ el.value = formatUzNumber(extractRawDigits(el.value)); }); }
 });
-(function(){
-  const boxes = $$('#oqDigits input'), hidden = $('#oqLast');
-  if(!boxes.length || !hidden) return;
-  const sync = ()=> hidden.value = boxes.map(b=>b.value).join('');
-  boxes.forEach((b,i)=>{
-    b.addEventListener('input', ()=>{
-      b.value = b.value.replace(/\D/g,'').slice(0,1);
-      if(b.value && boxes[i+1]) boxes[i+1].focus();
-      sync();
-    });
-    b.addEventListener('keydown', (e)=>{
-      if(e.key === 'Backspace' && !b.value && boxes[i-1]) boxes[i-1].focus();
-      if(e.key === 'Enter') lookupOrders();
-    });
-    b.addEventListener('focus', ()=> b.select());
-  });
-})();
+/* V131: "raqamning oxirgi 4 ta raqami" kataklari olib tashlandi —
+   kabinetga endi faqat Telegram kodi bilan kiriladi. */
 
 /* Buyurtma va shartnoma ekranlarida boshlang'ich ko'rsatma */
 function hintBox(icon, title, body){
@@ -9496,8 +10321,8 @@ function initHints(){
   if(o && !o.innerHTML.trim()) o.innerHTML = hintBox(
     '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5z"></path><path d="M4 7.5 12 11l8-3.5M12 11v9"></path></svg>',
     LANG==='ru' ? 'Здесь появятся ваши заказы' : 'Buyurtmalaringiz shu yerda chiqadi',
-    LANG==='ru' ? 'Введите номер телефона и последние 4 цифры купленного номера, затем нажмите «Проверить».'
-                : "Telefon raqamingiz va sotib olgan raqamingizning oxirgi 4 ta raqamini kiriting, so'ng «Tekshirish» tugmasini bosing.");
+    LANG==='ru' ? 'Введите номер телефона — отправим 4-значный код в Telegram.'
+                : "Telefon raqamingizni kiriting — Telegram'ga 4 xonali kod yuboramiz.");
   if(c && !c.innerHTML.trim()) c.innerHTML = hintBox(
     '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg>',
     LANG==='ru' ? 'Статус договора и график' : "Shartnoma holati va to'lovlar jadvali",
@@ -9734,7 +10559,14 @@ function seoToifaniOch(){
   if(!location.hash && window.matchMedia('(min-width:900px)').matches){
     location.replace('#/katalog');
   }
-  renderRoute();
+  /* V131: Telegram'dagi «Bir bosishda kirish» tugmasi bilan
+     kelgan bo'lsa — kalitni tokenga almashtiramiz va kabinetni
+     ochamiz. Kalit manzildan darhol tozalanadi. */
+  if(/[?&]k=[\w-]{16,}/.test(String(location.hash||''))){
+    kirishKaliti().then((ok)=>{ renderRoute(); if(ok) go('orders'); });
+  }else{
+    renderRoute();
+  }
   seoRaqamniOch();
 
   if(!keshdanOqi()){
