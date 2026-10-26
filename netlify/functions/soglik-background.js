@@ -56,7 +56,7 @@ async function qayd(kalit, nom, soz, izoh) {
   if (soz) {
     if (oldin.alertedAt) {
       await telegram('✅ Tiklandi\n\n' + nom + ' yana ishlayapti.');
-      await ref.set({ soz: true, alertedAt: null, lastOkAt: now }, { merge: true }).catch(() => {});
+      await ref.set({ soz: true, alertedAt: null, alertCount: 0, lastOkAt: now }, { merge: true }).catch(() => {});
     } else {
       await ref.set({ soz: true, lastOkAt: now }, { merge: true }).catch(() => {});
     }
@@ -64,9 +64,25 @@ async function qayd(kalit, nom, soz, izoh) {
   }
 
   const yoz = { soz: false, lastBadAt: now, izoh: String(izoh).slice(0, 300) };
-  if (!oldin.alertedAt || now - oldin.alertedAt > SOVISH_MS) {
-    const yetdi = await telegram('⚠️ Tizimda nosozlik\n\n' + nom + '\n' + izoh);
-    if (yetdi) yoz.alertedAt = now;
+  /* ============ V134: XABAR HADEB QAYTARILMAYDI ============
+     Ilgari bir xil nosozlik haqida xabar HAR 30 DAQIQADA
+     qaytarilaverardi — muammo bir hafta turib qolsa, bot bir haftada
+     300 ta bir xil xabar yuborardi va odam ularga umuman qaramay
+     qo'yardi ("bot charchatdi" holati).
+
+     Endi (V135, mijoz so'rovi): birinchi xabar DARHOL, keyin esa
+     muammo davom etsa ham KUNIGA BIR MARTA. Nosozlik tuzalsa
+     hisoblagich nolga qaytadi va keyingi safar yana darhol xabar
+     keladi. */
+  const KUNLIK_MS = 24 * 60 * 60 * 1000;
+  const nechta = Number(oldin.alertCount) || 0;
+  /* Birinchi xabar darhol, keyingilari kuniga bir marta. */
+  const oraliq = nechta === 0 ? 0 : KUNLIK_MS;
+  if (!oldin.alertedAt || now - oldin.alertedAt >= oraliq) {
+    const yetdi = await telegram('⚠️ Tizimda nosozlik\n\n' + nom + '\n' + izoh
+      + '\n\n🔕 Bu xabar kuniga BIR MARTA keladi — muammo hal bo\'lmaguncha '
+      + 'bot sizni bezovta qilmaydi. Tuzalsa darhol xabar beradi.');
+    if (yetdi) { yoz.alertedAt = now; yoz.alertCount = nechta + 1; }
   }
   await ref.set(yoz, { merge: true }).catch(() => {});
 }

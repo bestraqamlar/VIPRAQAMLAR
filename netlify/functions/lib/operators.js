@@ -14,6 +14,47 @@
 // past turishi kerak, aks holda so'rov bekorga osilib turadi.
 const DEFAULT_TIMEOUT = 6500;
 
+/* ==================================================================
+   UMUMIY SESSIYA OMBORI (V134)
+   ------------------------------------------------------------------
+   MUAMMO (mijoz aytgan): "Humans sekin — saytda ochilsa darhol
+   kelmayapti."
+
+   SABABI. Humans'da qidiruvdan OLDIN anonim sessiya ochish kerak
+   (joinAnonymous). Ya'ni ikkita ketma-ket so'rov: avval sessiya,
+   keyin qidiruv. Sessiya funksiya xotirasida 4 daqiqa saqlanardi —
+   LEKIN Netlify funksiyasi har safar deyarli YANGIDAN ishga tushadi
+   (cold start). Natijada mijoz uchun kesh deyarli har doim BO'SH
+   bo'lardi va har qidiruv ikkita to'liq borib-kelishga teng edi.
+
+   YECHIM. Sessiya endi UMUMIY omborga (Firestore'ga) ham yoziladi.
+   Firestore'dan bitta hujjatni o'qish ~20-40 ms, Humans'dan sessiya
+   olish esa ~300-800 ms. Ya'ni mijoz uchun qidiruv bitta borib-kelish
+   vaqtiga qisqaradi.
+
+   Bu fayl ATAYLAB Firestore'ni BILMAYDI (u faqat operator API'lari
+   bilan ishlaydi va testda mustaqil ishga tushishi kerak). Shuning
+   uchun ombor tashqaridan beriladi:
+       sessiyaOmboriQoy({ ol(nom), yoz(nom, qiymat, ttlMs), ochir(nom) })
+   Ombor berilmasa — hammasi avvalgidek, faqat xotira keshi bilan
+   ishlaydi.
+   ================================================================== */
+let SESSIYA_OMBORI = null;
+function sessiyaOmboriQoy(ombor) { SESSIYA_OMBORI = ombor || null; }
+
+async function omborOl(nom) {
+  if (!SESSIYA_OMBORI || !SESSIYA_OMBORI.ol) return null;
+  try { return await SESSIYA_OMBORI.ol(nom); } catch (e) { return null; }
+}
+async function omborYoz(nom, qiymat, ttlMs) {
+  if (!SESSIYA_OMBORI || !SESSIYA_OMBORI.yoz) return;
+  try { await SESSIYA_OMBORI.yoz(nom, qiymat, ttlMs); } catch (e) {}
+}
+async function omborOchir(nom) {
+  if (!SESSIYA_OMBORI || !SESSIYA_OMBORI.ochir) return;
+  try { await SESSIYA_OMBORI.ochir(nom); } catch (e) {}
+}
+
 /* ---------- Umumiy yordamchilar ---------- */
 
 function timeoutSignal(ms) {
@@ -784,8 +825,19 @@ const HUMANS_SESSIYA_TTL = 4 * 60 * 1000;
 function humansKeshTozala() { humansSessiyaKesh = null; }
 
 async function humansSession(majburiy) {
+  /* 1) Shu funksiya nusxasining xotirasi — eng tez (0 ms). */
   if (!majburiy && humansSessiyaKesh && humansSessiyaKesh.expiresAt > Date.now()) {
     return humansSessiyaKesh;
+  }
+  /* 2) UMUMIY ombor (V134) — boshqa nusxa olgan sessiya shu yerda
+     turadi. Bitta hujjat o'qish Humans'ga borib kelishdan ~10-20
+     barobar tez. */
+  if (!majburiy) {
+    const u = await omborOl('humans');
+    if (u && u.token && u.userID && Number(u.expiresAt) > Date.now() + 10000) {
+      humansSessiyaKesh = { token: u.token, userID: u.userID, expiresAt: Number(u.expiresAt) };
+      return humansSessiyaKesh;
+    }
   }
   const deviceID = randomUuid();
   const res = await fetch(HUMANS_API + '/graphql', {
@@ -811,7 +863,24 @@ async function humansSession(majburiy) {
     throw new Error('Humans sessiya olinmadi: ' + msg);
   }
   humansSessiyaKesh = { token, userID, expiresAt: Date.now() + HUMANS_SESSIYA_TTL };
+  /* Umumiy omborga ham yozamiz — keyingi so'rov (boshqa nusxada
+     bo'lsa ham) sessiya olish uchun kutmasin. */
+  await omborYoz('humans', humansSessiyaKesh, HUMANS_SESSIYA_TTL);
   return humansSessiyaKesh;
+}
+
+/* Sessiyani OLDINDAN tayyorlab qo'yish (V134).
+   Kuzatuv funksiyasi har daqiqada ishlaydi — shu yerda sessiya
+   yangilab turiladi, natijada mijoz qidirganda u ALLAQACHON tayyor
+   bo'ladi. Xato bo'lsa jim o'tadi: bu faqat tezlik uchun. */
+async function humansIsitish() {
+  try {
+    const u = await omborOl('humans');
+    /* Muddati tugashiga 90 soniyadan kam qolgan bo'lsa — yangilaymiz */
+    if (u && Number(u.expiresAt) > Date.now() + 90000) return false;
+    await humansSession(true);
+    return true;
+  } catch (e) { return false; }
 }
 
 async function searchHumans(boxes, cfg, limit) {
@@ -828,6 +897,9 @@ async function searchHumans(boxes, cfg, limit) {
     const m = String((e && e.message) || e);
     if (/timeout|aborted/i.test(m)) throw e;
     humansKeshTozala();
+    /* Umumiy ombordagi sessiya ham eskirgan bo'lishi mumkin —
+       tozalaymiz, aks holda boshqa nusxalar ham xato olaveradi. */
+    await omborOchir('humans');
     return await humansQidir(boxes, cfg, limit, true);
   }
 }
@@ -1294,5 +1366,8 @@ module.exports = {
   BEELINE_PUBLIC_CATEGORIES,
   BEELINE_PUBLIC_RARE_IDS,
   beelineSalePrice,
-  toSalePrice
+  toSalePrice,
+  /* V134 — Humans tezligi: umumiy sessiya ombori */
+  sessiyaOmboriQoy,
+  humansIsitish
 };

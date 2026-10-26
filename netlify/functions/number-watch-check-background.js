@@ -43,7 +43,9 @@
 
 const admin = require('firebase-admin');
 const { jadvalOk } = require('./lib/jadvalQalqon');
-const { searchAll, matchesBoxes } = require('./lib/operators');
+const { searchAll, matchesBoxes, sessiyaOmboriQoy, humansIsitish } = require('./lib/operators');
+const { sessiyaOmbori } = require('./lib/sessiyaOmbori');
+const { xatoSababi, ogohOraligi } = require('./lib/xatoSababi');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -55,6 +57,11 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* V134 — HUMANS TEZLIGI. Operator sessiyalari umumiy omborda
+   saqlanadi; kuzatuv har daqiqada ishlagani uchun sessiyani ISITIB
+   turadi — mijoz qidirganda u allaqachon tayyor bo'ladi.
+   Batafsil: lib/sessiyaOmbori.js */
+sessiyaOmboriQoy(sessiyaOmbori(db));
 db.settings({ preferRest: true });
 
 const COLLECTION = 'number_watches';
@@ -312,27 +319,72 @@ async function sogliqYangila(operatorName, xato, ms) {
     if (!xato) {
       /* Tiklandi — oldin ogohlantirilgan bo'lsa, "tuzaldi" deb aytamiz */
       if ((d.streak || 0) >= OGOH_CHEGARA && d.alertedAt) {
-        await notifyAdmin('✅ Kuzatuv tiklandi\n\n📶 ' + operatorName + ' yana javob beryapti.');
+        await notifyAdmin('✅ ' + operatorName + ' tiklandi\n\n'
+          + 'Yana javob beryapti' + (d.sababMatn ? ' (oldingi sabab: ' + String(d.sababMatn).slice(0, 90) + ')' : '') + '.');
       }
-      await ref.set(Object.assign({ streak: 0, alertedAt: null, backoffUntil: null, lastOkAt: now }, tezlik), { merge: true });
+      await ref.set(Object.assign({
+        streak: 0, alertedAt: null, alertCount: 0, firstErrorAt: null,
+        backoffUntil: null, lastOkAt: now,
+        sababTurkum: null, sababMatn: null, sababQadam: null, oziTuzaladi: null
+      }, tezlik), { merge: true });
       return;
     }
     const streak = (d.streak || 0) + 1;
-    const yoz = { streak, lastError: String(xato).slice(0, 300), lastErrorAt: now };
-    /* Ketma-ket ko'p xato — operator tinimga chiqariladi (yuqoridagi izoh) */
-    if (streak >= TINIM_CHEGARA) yoz.backoffUntil = now + TINIM_MS;
-    if (streak >= OGOH_CHEGARA && (!d.alertedAt || now - d.alertedAt > OGOH_SOVISH_MS)) {
+    /* ============ V134: SABABNI ANIQLASH ============
+       Ilgari xabarda xom xato matni turardi ("HTTP 404") va u har
+       30 daqiqada QAYTARILAVERARDI. Endi xato turkumlanadi
+       (qarang: lib/xatoSababi.js): sabab odam tilida yoziladi, aniq
+       qadam beriladi, va xabar oralig'i turkumga qarab belgilanadi. */
+    const sabab = xatoSababi(operatorName, xato);
+    const yoz = {
+      streak,
+      lastError: String(xato).slice(0, 300),
+      lastErrorAt: now,
+      /* Adminka "Kuzatuv" bo'limi shularni ko'rsatadi */
+      sababTurkum: sabab.turkum,
+      sababMatn: sabab.sabab,
+      sababQadam: sabab.qadam,
+      oziTuzaladi: sabab.ozi
+    };
+    /* Ketma-ket ko'p xato — operator tinimga chiqariladi (yuqoridagi izoh).
+       Manzil/parol xatosida tinim UZOQROQ: odam tuzatmaguncha
+       so'rov yuborishning ma'nosi yo'q (404 bo'lsa hech qachon
+       o'zi tuzalmaydi). */
+    if (streak >= TINIM_CHEGARA) {
+      const uzoq = (sabab.turkum === 'manzil' || sabab.turkum === 'parol' || sabab.turkum === 'sozlama');
+      yoz.backoffUntil = now + (uzoq ? 60 * 60 * 1000 : TINIM_MS);
+    }
+
+    /* XABAR YUBORISHMI? (V135 — mijoz so'rovi: kuniga bir marta)
+         * birinchi xabar — darhol;
+         * keyin — muammo davom etsa ham HAR 24 SOATDA BIR MARTA.
+       Istisno: o'zi tuzaladigan turkumlar (timeout, 5xx, 429, tarmoq)
+       odatda bir necha daqiqada o'tib ketadi — ular bo'yicha BIRINCHI
+       xabar ham darhol emas, nosozlik 3 soatdan oshgandagina ketadi.
+       Qarang: lib/xatoSababi.js -> ogohOraligi(). */
+    const nechta = Number(d.alertCount) || 0;
+    const oraliq = ogohOraligi(sabab, nechta);
+    const vaqtKeldi = !d.alertedAt || (now - Number(d.alertedAt) >= oraliq);
+    /* Birinchi xabar uchun "qancha vaqtdan beri buzuq" ham tekshiriladi
+       (faqat o'zi tuzaladigan turkumlarda ta'sir qiladi). */
+    const birinchiKutish = (nechta > 0) || (now - Number(d.firstErrorAt || now) >= oraliq);
+    if (!d.firstErrorAt) yoz.firstErrorAt = now;
+
+    if (streak >= OGOH_CHEGARA && vaqtKeldi && birinchiKutish) {
       const yetdi = await notifyAdmin(
-        '⚠️ Kuzatuv ishlamayapti\n\n' +
-        '📶 ' + operatorName + '\n' +
-        '🔁 ketma-ket ' + streak + ' marta xato\n' +
-        '❗ ' + String(xato).slice(0, 180) +
-        (streak >= TINIM_CHEGARA
-          ? '\n\n⏸ Bekorga so\'rov yubormaslik uchun bu operator '
-            + (TINIM_MS / 60000) + ' daqiqa tinimga chiqarildi — keyin o\'zi qayta sinab ko\'radi.'
-          : '')
+        '⚠️ ' + operatorName + ' ishlamayapti\n\n' +
+        '❓ SABABI: ' + sabab.sabab + '\n\n' +
+        '🛠 NIMA QILISH: ' + sabab.qadam + '\n\n' +
+        '🔁 ketma-ket ' + streak + ' marta xato' +
+        (yoz.backoffUntil
+          ? '\n⏸ Bekorga so\'rov yubormaslik uchun tinimga chiqarildi ('
+            + Math.round((yoz.backoffUntil - now) / 60000) + ' daqiqa) — keyin o\'zi sinab ko\'radi.'
+          : '') +
+        '\n\n🔕 Bu xabar kuniga BIR MARTA keladi — muammo hal bo\'lmaguncha '
+        + 'bot sizni bezovta qilmaydi. Tuzalsa darhol xabar beradi.' +
+        '\n📄 Texnik xato: ' + String(xato).slice(0, 140)
       );
-      if (yetdi) yoz.alertedAt = now;
+      if (yetdi) { yoz.alertedAt = now; yoz.alertCount = nechta + 1; }
     }
     await ref.set(Object.assign(yoz, tezlik), { merge: true });
   } catch (e) { /* sog'liq yozuvi ishlamasa ham, asosiy ish davom etadi */ }
@@ -482,9 +534,15 @@ exports.handler = async function (event) {
   if (!(await jadvalOk(event, 'number-watch-check-background', 40))) return { statusCode: 403, body: 'forbidden' };
 
   START_TIME = Date.now();
+  /* V134: Humans sessiyasini ISITIB qo'yamiz — mijoz saytda qidirganda
+     u allaqachon tayyor bo'lsin. Natijani kutmaymiz va xatosini
+     e'tiborsiz qoldiramiz: bu faqat tezlik uchun, kuzatuvning
+     o'ziga aloqasi yo'q. */
+  const isitish = humansIsitish().catch(() => false);
+
   try {
     const snap = await db.collection(COLLECTION).where('active', '==', true).get();
-    if (snap.empty) return { statusCode: 200, body: 'ok: kuzatuv yoq' };
+    if (snap.empty) { await isitish; return { statusCode: 200, body: 'ok: kuzatuv yoq' }; }
 
     const now = admin.firestore.Timestamp.now();
 
