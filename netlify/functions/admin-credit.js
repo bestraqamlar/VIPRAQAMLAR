@@ -156,6 +156,15 @@ async function addContract(body, decoded) {
 
   await db.collection(COLLECTION).doc(contractId).set({
     contractId, customerName: name, customerPhone: phone, region, number,
+    /* QIDIRUV MAYDONI (V122). Mijoz kabineti shartnomani TELEFON
+       bo'yicha topadi. Firestore faqat ANIQ moslik bo'yicha qidira
+       oladi, telefon esa turli ko'rinishda yozilishi mumkin
+       ("+998 90 123-45-67", "998901234567"...). Shu sabab oxirgi 9
+       raqam alohida, toza holda saqlanadi — xuddi `orders` dagi
+       `phoneNormalized` kabi. Busiz kabinet butun to'plamni o'qishga
+       majbur bo'lardi (qimmat va sekin). */
+    phoneNormalized: phone.replace(/\D/g, '').slice(-9),
+    numberNormalized: number.replace(/\D/g, '').slice(-9),
     totalMonths: months, monthlyPayment: monthly, currency, paymentDay: payDay,
     additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active',
     customerChatId, passportNumber, birthDate, permanentAddress,
@@ -245,8 +254,10 @@ async function updateContract(body, decoded) {
   await ref.update({
     customerName: matn(body, 'customerName'),
     customerPhone: matn(body, 'customerPhone'),
+    phoneNormalized: matn(body, 'customerPhone').replace(/\D/g, '').slice(-9),
     region: matn(body, 'region'),
     number: matn(body, 'number'),
+    numberNormalized: matn(body, 'number').replace(/\D/g, '').slice(-9),
     monthlyPayment: Math.min(Math.max(Number(body.monthlyPayment) || 0, 0), 1e12),
     currency: String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS',
     additionalInfo: matn(body, 'additionalInfo'),
@@ -290,17 +301,34 @@ async function migrateContracts(decoded) {
     throw err;
   }
   const snap = await db.collection(COLLECTION).get();
-  let migrated = 0, skipped = 0;
+  let migrated = 0, skipped = 0, qidiruv = 0;
   for (const docSnap of snap.docs) {
     const data = docSnap.data();
     const properId = data.contractId;
-    if (!properId) { skipped++; continue; }
-    if (docSnap.id === properId) { skipped++; continue; }
-    await db.collection(COLLECTION).doc(properId).set(data);
+
+    /* V122: ESKI shartnomalarga qidiruv maydonlarini qo'shamiz —
+       ularsiz mijoz kabineti shartnomani telefon bo'yicha topa
+       olmaydi. Hujjat ID'si to'g'ri bo'lsa ham shu ish bajariladi. */
+    const kerak = {};
+    const tel = String(data.customerPhone || '').replace(/\D/g, '').slice(-9);
+    const raq = String(data.number || '').replace(/\D/g, '').slice(-9);
+    if (tel && data.phoneNormalized !== tel) kerak.phoneNormalized = tel;
+    if (raq && data.numberNormalized !== raq) kerak.numberNormalized = raq;
+
+    if (!properId || docSnap.id === properId) {
+      if (Object.keys(kerak).length) {
+        await docSnap.ref.update(kerak);
+        qidiruv++;
+      }
+      skipped++;
+      continue;
+    }
+    await db.collection(COLLECTION).doc(properId).set(Object.assign({}, data, kerak));
     await db.collection(COLLECTION).doc(docSnap.id).delete();
     migrated++;
+    if (Object.keys(kerak).length) qidiruv++;
   }
-  return { migrated, skipped };
+  return { migrated, skipped, qidiruv };
 }
 
 exports.handler = async function (event) {

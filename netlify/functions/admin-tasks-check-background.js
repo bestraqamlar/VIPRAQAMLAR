@@ -9,6 +9,7 @@
 // uzoqroq ishlay oladigan "Background Function" qiladi.
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
 const { jadvalOk } = require('./lib/jadvalQalqon');
 if (!admin.apps.length) {
@@ -74,7 +75,7 @@ exports.handler = async function (event) {
 
       const escapedText = String(task.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const dueDate = new Date(task.dueAt);
-      const dueStr = dueDate.toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const dueStr = sanaVaqtUz(dueDate);   // V121: kun.oy.yil
       const label = task.important ? '⭐️ MUHIM VAZIFA' : '⏰ Vazifa';
       const text = `${label} tugashiga 5 soatdan kam qoldi!\n\n<b>${escapedText}</b>\n\n🗓 Muddati: ${dueStr}`;
 

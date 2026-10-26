@@ -11,6 +11,7 @@
 //   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
 /* Instagram sahifamiz — BITTA joyda. Nik o'zgarsa faqat shu ikki
    qator tahrirlanadi (sayt tomonida ham shu nik ishlatiladi). */
@@ -1124,7 +1125,7 @@ exports.handler = async function (event) {
       const manzil = session.draftDistrict
         ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
         : (session.draftRegion || '');
-      const time = new Date().toLocaleString('uz-UZ');
+      const time = sanaVaqtUz(new Date());
 
       if(!session.zakazPattern || String(session.zakazPattern).replace(/\D/g,'').length < 2){
         session = { step: 'menu' };
@@ -1201,7 +1202,7 @@ exports.handler = async function (event) {
         return { statusCode: 200, body: 'ok' };
       }
 
-      const time = new Date().toLocaleString('uz-UZ');
+      const time = sanaVaqtUz(new Date());
       const manzil = session.draftDistrict
         ? `${session.draftDistrict}, ${regionDisplayName(session.draftRegion)}`
         : (session.draftRegion || '');

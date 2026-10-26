@@ -29,6 +29,7 @@
 // { "ok": false, "error": "Ma'lumot topilmadi. ID va raqamni tekshiring." }
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -98,9 +99,9 @@ exports.handler = async function (event) {
         status: p.status || 'pending',
         paid: p.status === 'paid',
         overdue: isOverdue,
-        dueDate: p.dueDate ? new Date(p.dueDate).toLocaleDateString('uz-UZ') : '',
+        dueDate: p.dueDate ? sanaUz(p.dueDate) : '',
         dueDateRaw: p.dueDate || null,
-        paidAt: p.paidAt ? new Date(p.paidAt).toLocaleDateString('uz-UZ') : null
+        paidAt: p.paidAt ? sanaUz(p.paidAt) : null
       };
     });
 

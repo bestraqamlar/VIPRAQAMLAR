@@ -26,6 +26,7 @@
 //     raqam sotilmaydi.
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 const { tezlikOk } = require('./lib/tezlik');
 
 /* Ulanish xatosi (muhit o'zgaruvchilari yo'q/noto'g'ri) fayl
@@ -131,7 +132,7 @@ exports.handler = async function (event) {
 
     const yozuv = Object.assign({}, payload, {
       status: 'Yangi',
-      createdAt: payload.createdAt || new Date().toLocaleString('uz-UZ'),
+      createdAt: payload.createdAt || sanaVaqtUz(new Date()),
       createdAtSort: Date.now()
     });
     if (sorovId) yozuv.sorovId = sorovId;
