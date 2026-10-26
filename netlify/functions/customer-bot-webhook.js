@@ -190,7 +190,7 @@ function tezlikOk(chatId){
    kutayotgan bo'lsa — yozgan raqamini ISM deb qabul qilardi va
    oxirida bo'm-bo'sh buyurtma ("+998 00-000-00-00", narxi noma'lum)
    yozilib qolardi. Shuning uchun bu bosqichlar ESKIRADI. */
-const CHALA_BOSQICHLAR = ['awaiting_name','awaiting_phone','awaiting_region','awaiting_district','confirm'];
+const CHALA_BOSQICHLAR = ['awaiting_name','awaiting_phone','awaiting_region','awaiting_district','confirm','kabinet_bind'];
 const SEANS_MUDDATI = 30 * 60 * 1000;      // 30 daqiqa
 
 async function getSession(chatId){
@@ -233,6 +233,97 @@ async function clearInlineButtons(chatId, messageId){
   try{
     await tg('editMessageReplyMarkup', { chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [] } });
   }catch(e){ /* muhim emas */ }
+}
+
+/* ============ KABINET KODI: yordamchi funksiyalar (V131) ============ */
+function kabinetKontaktKb(){
+  return { keyboard: [[{ text: '📱 Raqamimni yuborish', request_contact: true }], [BTN.CANCEL]],
+           resize_keyboard: true, one_time_keyboard: true };
+}
+
+/* 4 xonali kodni yaratadi, XESHINI saqlaydi va chatga yuboradi.
+   Kodning o'zi bazaga YOZILMAYDI. Xabar ikki xil qulaylik beradi:
+     * <code> ichidagi kod — Telegram'da bosilsa O'ZI nusxalanadi;
+     * "Bir bosishda kirish" havolasi — bir martalik kalit bilan,
+       boshqa brauzerdan (Safari, Chrome) kirish uchun qulay. */
+async function kabinetKodYubor(chatId, tel9){
+  const crypto2 = require('crypto');
+  const kod = String(crypto2.randomInt(1000, 10000));
+  const xesh = crypto2.createHash('sha256').update(tel9 + ':' + kod + ':kabinet').digest('hex');
+  await withRetry(() => db.collection('kabinet_login_codes').doc(tel9).set({
+    hash: xesh, expiresAt: Date.now() + 5 * 60 * 1000, sentAt: Date.now(), attempts: 0,
+    chatId: String(chatId)
+  }));
+
+  /* Bir martalik kirish kaliti — token EMAS (token 1 yil amal
+     qiladi, uni chat tarixida qoldirish noto'g'ri bo'lardi). */
+  const kalit = crypto2.randomBytes(18).toString('base64url');
+  await withRetry(() => db.collection('kabinet_login_keys').doc(kalit).set({
+    tel9, expiresAt: Date.now() + 10 * 60 * 1000, createdAt: Date.now()
+  }));
+
+  const sayt = (process.env.SITE_URL || 'https://vipraqamlar.uz').replace(/\/+$/, '');
+  await sendHtml(chatId,
+    '🔐 <b>Kabinetga kirish kodi</b>\n\n'
+    + '<code>' + kod + '</code>\n'
+    + '<i>Kodni bosing — o\'zi nusxalanadi.</i>\n\n'
+    + 'Kod 5 daqiqa amal qiladi.\n'
+    + '⚠️ Bu kodni <b>hech kimga</b> bermang.',
+    { inline_keyboard: [[{ text: '⚡️ Bir bosishda kirish', url: sayt + '/#/kirish?k=' + kalit }]] });
+}
+
+/* Deep link (`/start k_<nonce>`) kelganda bajariladigan jarayon. */
+async function kabinetKodJarayoni(chatId, message, nonce, oldingi){
+  if(!/^[\w-]{10,64}$/.test(String(nonce || ''))){
+    await send(chatId, 'Havola yaroqsiz. Saytga qaytib qaytadan urinib ko\'ring.', mainMenuKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+  const ref = db.collection('kabinet_login_nonces').doc(nonce);
+  const snap = await withRetry(() => ref.get());
+  if(!snap.exists){
+    await send(chatId, 'Havola yaroqsiz yoki ishlatilgan. Saytga qaytib qaytadan urinib ko\'ring.', mainMenuKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+  const d = snap.data() || {};
+  /* Bir martalik: o'qilishi bilan o'chiriladi. */
+  try{ await ref.delete(); }catch(e){}
+  if(Date.now() > (Number(d.expiresAt) || 0)){
+    await send(chatId, 'Havola muddati tugadi. Saytga qaytib qaytadan urinib ko\'ring.', mainMenuKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+  const tel9 = String(d.tel9 || '').replace(/\D/g, '').slice(-9);
+  if(!/^\d{9}$/.test(tel9)){
+    await send(chatId, 'Havola yaroqsiz.', mainMenuKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* 1-yo'l: bu raqam shu Telegram hisobi orqali ALLAQACHON
+     tasdiqlangan bo'lsa — darhol kod. */
+  let tasdiqlangan = false;
+  try{
+    const bog = await withRetry(() => db.collection('kabinet_chatids').doc(tel9).get());
+    if(bog.exists && String((bog.data() || {}).chatId || '') === String(chatId)) tasdiqlangan = true;
+  }catch(e){}
+
+  if(tasdiqlangan){
+    await kabinetKodYubor(chatId, tel9);
+    /* Mijozning oldingi ishi buzilmasin. */
+    if(oldingi){
+      await saveSession(chatId, oldingi);
+      await send(chatId, "Davom etamiz — to'xtagan joyingizdan.", contactKeyboard());
+    }
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  /* 2-yo'l: raqamni Telegram tugmasi bilan tasdiqlatamiz. */
+  await saveSession(chatId, { step: 'kabinet_bind', bindTel: tel9, bindAt: Date.now(), oldin: oldingi || null });
+  await sendHtml(chatId,
+    '🔐 <b>Kabinetga kirish</b>\n\n'
+    + 'Xavfsizlik uchun raqamingizni bir marta tasdiqlang.\n\n'
+    + 'Pastdagi <b>«📱 Raqamimni yuborish»</b> tugmasini bosing — '
+    + 'kod shu yerga darhol keladi.',
+    kabinetKontaktKb());
+  return { statusCode: 200, body: 'ok' };
 }
 
 /* ---------------- Telegram yordamchi funksiyalari ---------------- */
@@ -326,7 +417,13 @@ function districtKeyboard(region){
 // (bu "o'yin uchun" soxta buyurtma berishning oldini oladi; raqam quyida
 // haqiqiy O'zbekiston operator kodlariga qarshi tekshiriladi).
 function contactKeyboard(){
-  return replyKb([[BTN.CANCEL, BTN.STEP_BACK]]);
+  /* V130: Telegram'ning o'z "raqamni yuborish" tugmasi qo'shildi —
+     mijoz qo'lda yozib xato qilmasin, va ayni paytda raqami kabinet
+     uchun ham tasdiqlangan bo'lsin (qarang: kabinet_chatids). */
+  return { keyboard: [
+    [{ text: '📱 Raqamimni yuborish', request_contact: true }],
+    [BTN.CANCEL, BTN.STEP_BACK]
+  ], resize_keyboard: true };
 }
 
 /* VALYUTA — adminkada raqamga "dollar" belgilangan bo'lsa (currency:'USD'),
@@ -1285,6 +1382,113 @@ exports.handler = async function (event) {
   const text = (message.text || '').trim();
   let session = await getSession(chatId);
 
+  /* ============ KABINETGA KIRISH: KOD YUBORISH (V131) ============
+     Mijoz saytda telefon raqamini yozib «Kodni olish» ni bosadi.
+     Sayt uni shu botga MAXSUS HAVOLA bilan yuboradi:
+         t.me/<bot>?start=k_<nonce>
+     Telegram havolani ochishi bilan «Start» ni O'ZI bosadi va shu
+     matnni botga yuboradi. Ya'ni mijoz hech narsa yozmaydi.
+
+     ============== XAVFSIZLIK — ENG MUHIM JOY ==============
+     Eng katta xavf: kimdir BEGONA raqamni saytga yozib, havolani
+     O'Z Telegram'ida ochadi va kodni oladi. Shunda u begona
+     kabinetga kirib qolardi.
+
+     Shuning uchun kod yuborishdan OLDIN bot raqam EGASINI
+     tekshiradi. Ikki yo'l bilan:
+       1) `kabinet_chatids/<tel9>` da shu chat ID allaqachon
+          yozilgan bo'lsa — demak bu raqam ilgari aynan shu Telegram
+          hisobi orqali tasdiqlangan;
+       2) aks holda Telegram'ning o'z «kontakt yuborish» tugmasi
+          so'raladi va:
+            * `contact.user_id` yozgan odamning ID'siga TENG bo'lishi
+              shart (birovning kontakt kartochkasi o'tmaydi);
+            * yuborilgan raqam saytda KIRITILGAN raqam bilan BIR XIL
+              bo'lishi shart.
+     Hujumchi begona raqamni yozsa, Telegram unga faqat O'Z raqamini
+     beradi — mos kelmaydi, kod yuborilmaydi va urinish jurnalga
+     yoziladi.
+
+     Nonce bir martalik va 10 daqiqa yashaydi, ya'ni havolani keyin
+     qayta ishlatib bo'lmaydi.
+
+     MIJOZ BOTDA BIRON ISH QILAYOTGAN BO'LSA (masalan buyurtma
+     berayotgan bo'lsa) — o'sha bosqich SAQLANADI va kod
+     yuborilgandan keyin joyiga QAYTARILADI, ya'ni ishi buzilmaydi. */
+  if(text.indexOf('/start k_') === 0 || text.indexOf('/kabinet k_') === 0){
+    const nonce = text.split('k_')[1].trim().slice(0, 64);
+    /* Mijozning yarim qolgan ishi saqlanadi — lekin kabinet
+       bosqichining O'ZI saqlanmaydi (aks holda aylanib qolardi). */
+    const oldingi = (session && session.step !== 'kabinet_bind'
+      && CHALA_BOSQICHLAR.indexOf(session.step) !== -1) ? session : null;
+    const natija = await kabinetKodJarayoni(chatId, message, nonce, oldingi);
+    return natija;
+  }
+
+  if(session.step === 'kabinet_bind'){
+    if(text === BTN.CANCEL){
+      const qayt = session.oldin || { step: 'menu' };
+      await saveSession(chatId, qayt);
+      await send(chatId, 'Bekor qilindi.', mainMenuKeyboard());
+      return { statusCode: 200, body: 'ok' };
+    }
+    const kontakt = message.contact;
+    const from2 = message.from || {};
+    const kutilgan = String(session.bindTel || '');
+
+    if(!kontakt){
+      await sendHtml(chatId,
+        "Raqamni <b>qo'lda yozib bo'lmaydi</b> — xavfsizlik uchun faqat "
+        + 'Telegram tugmasi orqali qabul qilinadi.\n\n'
+        + 'Pastdagi <b>«📱 Raqamimni yuborish»</b> tugmasini bosing.',
+        kabinetKontaktKb());
+      return { statusCode: 200, body: 'ok' };
+    }
+    /* Birovning kontakt kartochkasi */
+    if(String(kontakt.user_id || '') !== String(from2.id || '')){
+      console.warn('KABINET: begona kontakt yuborildi, chatId=', chatId);
+      await send(chatId, "Bu sizning raqamingiz emas. Faqat o'z raqamingizni yuboring.", kabinetKontaktKb());
+      return { statusCode: 200, body: 'ok' };
+    }
+    const tel9 = String(kontakt.phone_number || '').replace(/\D/g, '').slice(-9);
+    if(!/^\d{9}$/.test(tel9)){
+      await send(chatId, "Raqamni o'qib bo'lmadi. Saytga qaytib qaytadan urinib ko'ring.", mainMenuKeyboard());
+      await saveSession(chatId, session.oldin || { step: 'menu' });
+      return { statusCode: 200, body: 'ok' };
+    }
+    /* ENG MUHIM TEKSHIRUV: saytda kiritilgan raqam bilan bir xilmi? */
+    if(kutilgan && tel9 !== kutilgan){
+      console.warn('KABINET: raqam mos kelmadi, chatId=', chatId);
+      await sendHtml(chatId,
+        '⚠️ <b>Raqam mos kelmadi</b>\n\n'
+        + 'Saytda boshqa raqam kiritilgan. Kod faqat raqam egasiga yuboriladi.\n\n'
+        + "Saytga qaytib, O'ZINGIZNING raqamingizni kiriting.",
+        mainMenuKeyboard());
+      await saveSession(chatId, session.oldin || { step: 'menu' });
+      return { statusCode: 200, body: 'ok' };
+    }
+    /* Tasdiqlandi — bog'laymiz va kodni yuboramiz. */
+    await withRetry(() => db.collection('kabinet_chatids').doc(tel9).set({
+      chatId: String(chatId), at: Date.now(), source: 'bot'
+    }, { merge: true }));
+    await kabinetKodYubor(chatId, tel9);
+    await saveSession(chatId, session.oldin || { step: 'menu' });
+    if(session.oldin){
+      await send(chatId, "Davom etamiz — to'xtagan joyingizdan.", contactKeyboard());
+    }
+    return { statusCode: 200, body: 'ok' };
+  }
+
+  if(text === '/kabinet'){
+    await sendHtml(chatId,
+      '🔐 <b>Kabinetga kirish</b>\n\n'
+      + "Kod olish uchun saytdagi kabinet bo'limiga kiring, telefon "
+      + "raqamingizni yozing va «Kodni olish» tugmasini bosing — "
+      + 'kod shu yerga keladi.',
+      mainMenuKeyboard());
+    return { statusCode: 200, body: 'ok' };
+  }
+
   if(text === '/start'){
     session = { step: 'menu' };
     await saveSession(chatId, session);
@@ -1878,6 +2082,16 @@ ${monthsLines}
     if(rawDigits.length < 9 || !VALID_UZ_CODES.includes(rawDigits.slice(0, 2))){
       await send(chatId, "Bunday raqam mavjud emas. Iltimos, to'g'ri O'zbekiston raqamini kiriting (masalan: 90 123 45 67).", contactKeyboard());
       return { statusCode: 200, body: 'ok' };
+    }
+    /* V130: mijoz Telegram tugmasi bilan O'Z kontaktini yuborgan
+       bo'lsa — kabinet uchun ham bog'lab qo'yamiz. Bu "bepul" imkon:
+       keyin saytda kod so'rasa, darhol ishlaydi. */
+    if(message.contact && String(message.contact.user_id || '') === String((message.from || {}).id || '')){
+      try{
+        await withRetry(() => db.collection('kabinet_chatids').doc(rawDigits).set({
+          chatId: String(chatId), at: Date.now(), source: 'order'
+        }, { merge: true }));
+      }catch(e){ /* muhim emas — buyurtma to'xtab qolmasin */ }
     }
     session.draftPhone = phone;
     session.step = 'awaiting_region';

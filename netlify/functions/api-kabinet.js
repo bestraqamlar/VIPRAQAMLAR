@@ -26,6 +26,7 @@
 
 const admin = require('firebase-admin');
 const { sanaUz } = require('./lib/sana');
+const { kabinetToken } = require('./lib/kabinetToken');
 
 let ULANISH_XATOSI = null;
 if (!admin.apps.length) {
@@ -139,14 +140,25 @@ exports.handler = async function (event) {
 
   try {
     const kirish = JSON.parse(event.body || '{}');
-    const tel9 = String(kirish.phone || '').replace(/\D/g, '').slice(-9);
-    const oxirgi4 = String(kirish.lastDigits || '').replace(/\D/g, '');
+
+    /* FAQAT TOKEN (V131).
+       Ilgari zaxira yo'l ham bor edi: telefon + sotib olingan
+       raqamning oxirgi 4 ta raqami. U ATAYLAB OLIB TASHLANDI —
+       4 ta raqam "parol" darajasidagi himoya emas va serverda ochiq
+       qolishi xavfsizlik teshigi edi. Endi kabinet faqat Telegram
+       kodi orqali olingan IMZOLANGAN TOKEN bilan ochiladi. */
+    const tokenTel = kirish.token ? kabinetToken.ochib(kirish.token) : null;
+    const tel9 = tokenTel || '';
 
     /* Xato xabari HAR DOIM bir xil: "topilmadi" va "noto'g'ri kalit"
        farqlanmaydi — aks holda telefon bazada bor-yo'qligini bilib
        olish mumkin bo'lardi. */
-    const topilmadi = javob(200, { ok: false, error: "Ma'lumot topilmadi. Raqamlarni tekshiring." });
-    if (tel9.length !== 9 || oxirgi4.length !== 4) return topilmadi;
+    const topilmadi = javob(200, { ok: false, error: "Ma'lumot topilmadi." });
+    /* Token yo'q yoki yaroqsiz/muddati o'tgan — mijozni qayta
+       kirishga yo'naltiramiz. */
+    if (!tokenTel) {
+      return javob(200, { ok: false, qaytaKirish: true, error: "Kirish muddati tugadi. Qaytadan kiring." });
+    }
 
     const [buyurtmaSnap, shartnomaSnap] = await Promise.all([
       db.collection('orders').where('phoneNormalized', '==', tel9).limit(50).get(),
@@ -161,9 +173,9 @@ exports.handler = async function (event) {
 
     /* IKKINCHI KALIT: oxirgi 4 ta raqam buyurtmalardan YOKI
        shartnomalardan biriga to'g'ri kelishi shart. */
-    const mos = (x) => String(x || '').replace(/\D/g, '').slice(-4) === oxirgi4;
-    const kalitTogri = buyurtmalar.some(o => mos(o.number)) || shartnomalar.some(c => mos(c.number));
-    if (!kalitTogri) return topilmadi;
+    /* IKKINCHI KALIT TEKSHIRUVI OLIB TASHLANDI: token Telegram
+       orqali tasdiqlangan raqam egasiga berilgan, undan kuchliroq
+       tekshiruv yo'q. */
 
     const chiqBuyurtmalar = buyurtmalar.slice(0, 30).map(o => ({
       number: o.number || '',
@@ -197,8 +209,110 @@ exports.handler = async function (event) {
       };
     }).sort((a, b) => String(a.contractId).localeCompare(String(b.contractId)));
 
+    /* ---------- PROFIL (V126) ----------
+       Mijoz kabinetga kirganda birinchi ko'rishi kerak bo'lgan narsa —
+       O'ZI: ismi, raqami va "men bu yerda kimman" degan savolga javob.
+       Ilgari kabinet darhol buyurtmalar ro'yxatidan boshlanardi, ya'ni
+       "kabinet" emas, "qidiruv natijasi" edi.
+
+       MA'LUMOT QAYERDAN. Hammasi mijozning O'ZI kiritgan ma'lumot:
+       buyurtma bergandagi ism va hudud, yoki shartnomadagi shu
+       maydonlar. Yangi maydon yozilmaydi, yangi so'rov qilinmaydi —
+       allaqachon o'qilgan hujjatlardan hisoblanadi.
+
+       PASSPORT, TUG'ILGAN SANA va YASHASH JOYI bu yerga HAM
+       qo'shilmaydi (yuqoridagi izohga qarang). */
+    const oxB = buyurtmalar[0] || {};
+    const oxS = shartnomalar[0] || {};
+    const ism = String(oxB.name || oxS.customerName || '').slice(0, 100);
+    const hudud = String(oxB.region || oxS.region || '').slice(0, 200);
+
+    const yakunlangan = buyurtmalar.filter(o => o.status === 'Yakunlandi').length;
+    const bekor = buyurtmalar.filter(o => o.status === 'Bekor qilindi').length;
+    const jarayonda = buyurtmalar.length - yakunlangan - bekor;
+
+    /* Jami xarid — FAQAT yakunlangan buyurtmalar bo'yicha. Valyutalar
+       aralashmasligi uchun so'm va dollar alohida yig'iladi. */
+    let xaridUzs = 0, xaridUsd = 0;
+    for (const o of buyurtmalar) {
+      if (o.status !== 'Yakunlandi') continue;
+      const n = Number(o.price) || 0;
+      if (String(o.currency).toUpperCase() === 'USD') xaridUsd += n; else xaridUzs += n;
+    }
+
+    const faolShartnoma = chiqShartnomalar.filter(c => c.contractStatus === 'active').length;
+    const qolganJami = chiqShartnomalar.reduce((a, c) => a + (Number(c.qolganSumma) || 0), 0);
+    const kechikkanJami = chiqShartnomalar.reduce((a, c) => a + (Number(c.kechikkanOy) || 0), 0);
+
+    /* Eng yaqin to'lov sanasi — barcha shartnomalar bo'yicha eng
+       yaqini (mijoz "qachon to'lashim kerak" degan savolga darhol
+       javob topsin). */
+    let keyingiMs = 0;
+    for (const c of chiqShartnomalar) {
+      const m = Number(c.keyingiSanaMs) || 0;
+      if (m && (!keyingiMs || m < keyingiMs)) keyingiMs = m;
+    }
+
+    /* Mijozlik boshlangan sana — eng birinchi buyurtma yoki
+       shartnomaning sanasi. */
+    let birinchiMs = 0;
+    for (const o of buyurtmalar) {
+      const m = Number(o.createdAtSort) || 0;
+      if (m && (!birinchiMs || m < birinchiMs)) birinchiMs = m;
+    }
+    for (const c of shartnomalar) {
+      const m = Number(c.createdAt) || 0;
+      if (m && (!birinchiMs || m < birinchiMs)) birinchiMs = m;
+    }
+
+    /* Daraja — sotib olingan raqamlar soni bo'yicha. Mijoz uchun
+       "meni taniydi" hissi, biz uchun esa qaytib kelgan mijozni
+       ko'rsatadigan oddiy belgi. Hech qanday chegirma yoki huquq
+       bermaydi — faqat belgi. */
+    const sotibOlgan = yakunlangan + faolShartnoma;
+    const daraja = sotibOlgan >= 5 ? 'vip' : (sotibOlgan >= 2 ? 'doimiy' : 'yangi');
+
+    /* ---- KREDIT HOLATI: YASHIL / SARIQ / QIZIL (V129) ----
+       Banklardagi kabi oddiy "svetofor". Faqat KECHIKKAN oylar soniga
+       qaraydi, chunki mijoz uchun eng muhim savol shu: "men orqada
+       qoldimmi?"
+         yashil — kechikish yo'q;
+         sariq  — 1 oy kechikkan (ogohlantirish, hali tuzatsa bo'ladi);
+         qizil  — 2 va undan ko'p oy kechikkan.
+       Shartnomasi yo'q mijozda holat 'yoq' — svetofor ko'rsatilmaydi,
+       chunki baholaydigan narsa yo'q. */
+    let kreditHolat = 'yoq';
+    if (chiqShartnomalar.length) {
+      if (kechikkanJami >= 2) kreditHolat = 'qizil';
+      else if (kechikkanJami === 1) kreditHolat = 'sariq';
+      else kreditHolat = 'yashil';
+    }
+
+    const profil = {
+      kreditHolat,
+      ism,
+      hudud,
+      telefon: tel9,
+      daraja,
+      jamiBuyurtma: buyurtmalar.length,
+      yakunlangan,
+      jarayonda,
+      bekor,
+      xaridUzs,
+      xaridUsd,
+      jamiShartnoma: chiqShartnomalar.length,
+      faolShartnoma,
+      qolganSumma: qolganJami,
+      kechikkanOy: kechikkanJami,
+      keyingiSana: keyingiMs ? sanaUz(keyingiMs) : '',
+      keyingiSanaMs: keyingiMs,
+      mijozlikSana: birinchiMs ? sanaUz(birinchiMs) : '',
+      mijozlikMs: birinchiMs
+    };
+
     return javob(200, {
       ok: true,
+      profile: profil,
       orders: chiqBuyurtmalar,
       contracts: chiqShartnomalar
     });
