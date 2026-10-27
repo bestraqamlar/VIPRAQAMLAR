@@ -5,6 +5,14 @@
 <!-- Mijoz so'roviga ko'ra sayt FAQAT tungi fonda ishlaydi — yorug' mavzu
      va uni almashtirish tugmasi olib tashlandi. -->
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
+<!-- SAYTDA QAYSI VERSIYA TURGANINI BILISH UCHUN (V138).
+     Mijoz "eski ishlayapti" deganda birinchi savol shu bo'ladi:
+     yangi fayllar haqiqatan yuklanganmi? Endi tekshirish oson —
+     telefonda saytni ochib, manzil satriga shuni yozing:
+         javascript:alert(document.querySelector('meta[name=vip-versiya]').content)
+     yoki kompyuterda sahifa kodini ochib (Ctrl+U) "vip-versiya" ni
+     qidiring. Ko'rsatilgan son shu arxivning raqami bo'lishi kerak. -->
+<meta name="vip-versiya" content="138">
 <meta charset="UTF-8">
 <!-- Mijoz so'rovi: sayt YAQINLASHTIRILMAYDI (zoom o'chirilgan).
      Ikki barmoq bilan ham, ikki marta bosganda ham o'lcham o'zgarmaydi —
@@ -3912,6 +3920,42 @@ html[data-theme="dark"] ::selection{background:transparent}
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
 <script defer src="/assets/app.js?v=137"></script>
+<!-- ==================================================================
+     "JONSIZ SAYT" QALQONI (V138)
+     ------------------------------------------------------------------
+     Sayt GitHub'ga QO'LDA, papka-papka yuklanadi. Agar `assets/app.js`
+     yuklanmay qolsa (unutilsa yoki 404 bo'lsa), sahifa OCHILADI —
+     kartochkalar, menyu, hammasi ko'rinadi — lekin hech narsa
+     ISHLAMAYDI. Sabab esa ko'rinmaydi: "sayt buzildi" deb o'ylanadi.
+
+     Endi shunday holatda sahifa jim turmaydi: aniq, o'zbekcha xabar
+     chiqadi va nima qilish kerakligi yoziladi. Tekshiruv arzon —
+     app.js ishga tushsa, u o'zi `window.__APP_ISHLADI` ni belgilaydi.
+     ================================================================== -->
+<script>
+(function(){
+  setTimeout(function(){
+    try{
+      if(window.__APP_ISHLADI) return;      /* hammasi joyida */
+      var d = document.createElement('div');
+      d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;'
+        + 'align-items:center;justify-content:center;padding:24px;'
+        + 'background:#0B1120;color:#fff;font:600 14px/1.6 system-ui,sans-serif;text-align:center');
+      d.innerHTML = '<div style="max-width:380px">'
+        + '<div style="font-size:34px;margin-bottom:12px">&#9888;&#65039;</div>'
+        + '<div style="font-size:17px;font-weight:800;margin-bottom:10px">Sayt to\'liq yuklanmadi</div>'
+        + '<div style="color:#A9BCD6">Saytning asosiy kodi — <b style="color:#fff">assets/app.js</b> — '
+        + 'topilmadi.<br><br>GitHub\'ga yuklashda <b style="color:#fff">assets</b> papkasi ichidagi '
+        + '<b style="color:#fff">app.js</b> fayli tashlanmagan bo\'lishi mumkin. Shu faylni yuklasangiz '
+        + 'sayt darhol ishlaydi.</div>'
+        + '<div style="margin-top:18px"><a href="/" style="display:inline-block;padding:11px 20px;'
+        + 'border-radius:12px;background:#2f6bff;color:#fff;text-decoration:none;font-weight:800">Qayta urinish</a></div>'
+        + '</div>';
+      document.body.appendChild(d);
+    }catch(e){}
+  }, 6000);
+})();
+</script>
 
 
 

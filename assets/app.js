@@ -24,6 +24,10 @@
    ================================================================== */
 
 
+/* Sayt kodi ishga tushdi — "jonsiz sayt" qalqoni shu belgiga qaraydi
+   (izohi index.html da, app.js skriptidan keyin). */
+try{ window.__APP_ISHLADI = true; }catch(e){}
+
 /* ===== 1-qism (avvalgi index.html, 3808-satr) ===== */
 
 /* ==================================================================

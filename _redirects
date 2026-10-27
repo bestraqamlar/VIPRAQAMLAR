@@ -91,13 +91,27 @@
 # yozib qo'yamiz: BotFather'dagi menyu tugmasi hali eski manzilni
 # ko'rsatayotgan bo'lsa ham, mijoz oq ekran emas — SAYTNING O'ZINI
 # ko'radi. Ilova qaytarilganda shu ikki qatorni olib tashlash kifoya.
-# V136: MINI ILOVA endi saytning O'ZI (index.html). Eski alohida
-# sahifaga qilingan havolalar ham shu yerga tushadi — BotFather'dagi
-# menyu tugmasi eski manzilda qolgan bo'lsa ham ishlaydi.
-/telegram-ilova.html   /index.html   200
-/telegram-ilova        /index.html   200
-/ilova                 /index.html   200
-/app                   /index.html   200
+# ==================================================================
+# MINI ILOVA endi saytning O'ZI (index.html).
+# ------------------------------------------------------------------
+# DIQQAT — "200!" DAGI UNDOV BELGISI MUHIM (V138).
+#
+# TOPILGAN MUAMMO. GitHub'ga fayl yuklaganda eski fayllar O'CHMAYDI,
+# faqat qo'shiladi va almashtiriladi. Shu sabab saytda eski
+# `telegram-ilova.html` fayli QOLIB KETGAN edi. Netlify esa HAQIQIY
+# faylni oddiy (undovsiz) "200" qoidasidan USTUN qo'yadi — ya'ni bot
+# menyusidagi tugma bosilganda baribir ESKI sahifa ochilaverardi.
+# Mijoz aynan shuni ko'rgan: "menda bunaqa emas, avvalgi eski
+# ishlayapti".
+#
+# Undov belgisi (`200!`) — bu "MAJBURIY" degani: fayl mavjud bo'lsa
+# ham qoida ustun turadi. Endi eski faylni o'chirish SHART EMAS,
+# u baribir hech qachon ochilmaydi.
+# ==================================================================
+/telegram-ilova.html   /index.html   200!
+/telegram-ilova        /index.html   200!
+/ilova                 /index.html   200!
+/app                   /index.html   200!
 
 # BOSHQA BARCHA manzillar (mavjud bo'lmagan/tasodifiy sahifalar, masalan
 # /qandaydir-notogri-havola.html) — bosh sahifaga (index.html) yo'naltiriladi.

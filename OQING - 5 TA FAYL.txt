@@ -1,0 +1,40 @@
+TEZ TUZATISH — FAQAT 5 TA FAYL
+==============================
+
+Rasmdan ko'rinib turibdi: saytingizda hali ESKI mini ilova ochilyapti.
+Sababi — eski fayl (telegram-ilova.html) saytda qolgan, GitHub'ga
+yuklashda esa eski fayllar o'chmaydi.
+
+Bu arxivda shu muammoni butunlay yopadigan 5 ta fayl bor.
+
+ICHIDAGILAR
+-----------
+  telegram-ilova.html  <- ildizga  (ESKI FAYLNI ALMASHTIRADI — eng muhimi!)
+  _redirects           <- ildizga  (majburiy yo'naltirish: 200!)
+  index.html           <- ildizga  (yangi sayt = mini ilova)
+  sw.js                <- ildizga  (kesh yangilansin)
+  assets/app.js        <- assets papkasiga (saytning asosiy kodi)
+
+QANDAY YUKLASH
+--------------
+1. Arxivni kompyuterda oching.
+2. GitHub'da omborni oching:
+   github.com/bestraqamlar/VIPRAQAMLAR
+3. Yuqorida: Add file -> Upload files
+4. Arxivdan chiqqan HAMMA NARSANI bir yo'la tashlang:
+   telegram-ilova.html, _redirects, index.html, sw.js va assets papkasi
+5. Pastda: Commit changes
+
+Tamom. GitHub bir xil nomli fayllarni ALMASHTIRADI — ya'ni eski
+237 KB'lik mini ilova o'rniga 1 KB'lik yo'naltirish qoladi va bot
+menyusidagi tugma endi YANGI ilovani ochadi.
+
+KEYIN — MAJBURAN YANGILANG
+--------------------------
+Telegram botni butunlay yopib, qaytadan oching (eski nusxa keshda
+qolgan bo'lishi mumkin).
+
+TEKSHIRISH
+----------
+Kompyuterda saytni ochib Ctrl+U bosing, "vip-versiya" ni qidiring.
+138 bo'lishi kerak.
