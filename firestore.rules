@@ -832,6 +832,8 @@ service cloud.firestore {
     // qayerda saqlanmaydi, qarang api-kabinet-kod.js),
     // kabinet_code_rate_limits, kabinet_code_check_limits (— o'sha
     // kirishning IP bo'yicha soatlik cheklovlari),
+    // kabinet_tg_rate_limits (— mini ilovadagi kodsiz kirishning IP
+    // bo'yicha soatlik cheklovi, qarang api-kabinet-tg.js),
     // operator_sessions (— operatorlarning vaqtinchalik anonim sessiya
     // tokenlari; Humans qidiruvini tezlashtirish uchun, qarang
     // lib/sessiyaOmbori.js — brauzerga umuman kerak emas),

@@ -91,8 +91,13 @@
 # yozib qo'yamiz: BotFather'dagi menyu tugmasi hali eski manzilni
 # ko'rsatayotgan bo'lsa ham, mijoz oq ekran emas — SAYTNING O'ZINI
 # ko'radi. Ilova qaytarilganda shu ikki qatorni olib tashlash kifoya.
+# V136: MINI ILOVA endi saytning O'ZI (index.html). Eski alohida
+# sahifaga qilingan havolalar ham shu yerga tushadi — BotFather'dagi
+# menyu tugmasi eski manzilda qolgan bo'lsa ham ishlaydi.
 /telegram-ilova.html   /index.html   200
 /telegram-ilova        /index.html   200
+/ilova                 /index.html   200
+/app                   /index.html   200
 
 # BOSHQA BARCHA manzillar (mavjud bo'lmagan/tasodifiy sahifalar, masalan
 # /qandaydir-notogri-havola.html) — bosh sahifaga (index.html) yo'naltiriladi.
