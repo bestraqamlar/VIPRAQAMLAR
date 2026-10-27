@@ -1,0 +1,31 @@
+V142 — MENYU VA KARUSEL SILLIQLIGI
+==================================
+
+Bu paketda 3 TA FAYL bor:
+
+    index.html        — bo'lim almashish animatsiyasi
+    assets/app.js     — karusel va menyu mantig'i   <-- assets PAPKASI ICHIGA
+    sw.js             — kesh raqami
+
+NIMA QILISH KERAK
+-----------------
+1. GitHub'da omboringizni oching.
+2. "Add file" -> "Upload files".
+3. Shu papkadagi HAMMA NARSANI (index.html, sw.js va assets papkasini)
+   birdaniga tashlang — GitHub papka tuzilishini o'zi saqlaydi, ya'ni
+   app.js aynan assets/ ichiga tushadi.
+4. Pastda "Commit changes" — BITTA commit.
+
+KEYIN — DEPLOY
+--------------
+Netlify -> Deploys -> Trigger deploy -> "Clear cache and deploy site".
+
+TEKSHIRISH
+----------
+Sayt ochilgach manzil qatoriga yozing:
+    javascript:alert(document.querySelector('meta[name=vip-versiya]').content)
+"142" chiqsa — yangi versiya o'rnatildi.
+
+NIMA O'ZGARGANI
+---------------
+OQING-V142.md faylini o'qing (to'liq paket ichida).

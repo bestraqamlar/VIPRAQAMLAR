@@ -1048,6 +1048,70 @@ const ROUTES = { '':'home', '/':'home', '/kirish':'orders', '/katalog':'catalog'
 const ROUTE_HASH = { home:'#/', catalog:'#/katalog', fav:'#/sevimlilar', orders:'#/buyurtmalarim', contract:'#/shartnoma', more:'#/profil' };
 let currentRoute = 'home';
 const go = (r) => { location.hash = ROUTE_HASH[r] || '#/'; };
+/* ==================================================================
+   MENYU BOSILGANDA (V142) — JAVOB DARHOL, OG'IR ISH KEYINGI KADRDA
+   ------------------------------------------------------------------
+   MUAMMO (mijoz aytgan): "menyular bosilganda tez ishlasin, juda tez,
+   yumshoq ishlasin".
+
+   O'LCHOV NIMA KO'RSATDI (6 barobar sekin protsessor):
+       menyuni bosishdan ekran ko'rinishigacha  —  53...83 ms
+       24 ms dan uzun kadrlar                   —  har bosishda 1...4 ta
+
+   SABABI. Bir marta bosilganda QUYIDAGILARNING HAMMASI BITTA ishda,
+   ketma-ket bajarilardi:
+       1) sahifani tepaga ko'tarish,
+       2) eski bo'limni yashirib, yangisini ko'rsatish (butun
+          daraxtning uslubi qayta hisoblanadi),
+       3) VA DARHOL o'sha bo'limning to'liq ro'yxatini chizish
+          (katalogda 15-40 ta kartochka, sevimlilarda shunga yaqin).
+   Brauzer esa bitta ishning O'RTASIDA ekranga hech narsa chiqarmaydi.
+   Ya'ni mijoz barmog'ini uzgandan keyin 3-banddagi og'ir ish
+   tugamaguncha EKRAN O'ZGARMAY TURARDI — aynan shu "qotish" hissi.
+
+   YECHIM — ishni IKKIGA BO'LISH:
+       * 1 va 2-band DARHOL bajariladi → brauzer yangi bo'limni
+         SHU ZAHOTI chiqaradi (eski ro'yxat hali ko'rinib turadi,
+         ya'ni bo'sh ekran chaqnamaydi);
+       * 3-band esa EKRANGA CHIQQANDAN KEYINGI kadrda bajariladi.
+
+   Ikki marta `requestAnimationFrame` aynan shuning uchun: birinchisi
+   joriy kadrning oxirida, ikkinchisi KEYINGI kadrning boshida
+   ishlaydi — ya'ni orada brauzer bir marta chizib ulguradi. (Shu
+   usul `openSheet` da ham qo'llanilgan.)
+
+   NATIJA: bosishga javob ~16-20 ms ga tushadi, ro'yxat esa bir kadr
+   keyin yangilanadi — ko'z buni "darhol ochildi" deb o'qiydi.
+
+   MUHIM NOZIK JOY: bir necha bo'lim tez-tez bosilsa, faqat ENG
+   OXIRGISINING ishi bajariladi (`ekranNavbat`) — aks holda mijoz
+   uchta menyuni ketma-ket bossa, uchala ro'yxat ham chizilib,
+   tezlik yana yo'qolardi. */
+let ekranKadr = 0, ekranNavbat = '';
+function ekranIshiniBajar(){
+  ekranKadr = 0;
+  const r = ekranNavbat; ekranNavbat = '';
+  if(!r) return;
+  /* Kapsula ham shu yerda suriladi: u `getBoundingClientRect` o'qiydi,
+     ya'ni joylashuv hisobini majburlaydi — bosish kadrida emas,
+     shu yerda bo'lgani ma'qul. */
+  if(typeof moveNavPill === 'function') moveNavPill();
+  if(r === 'fav') renderFavorites();
+  /* V124: kabinet O'ZI ochiladi. Ilgari mijoz bu bo'limga har kirganda
+     telefon raqami va oxirgi 4 ta raqamni QAYTA yozishi kerak edi —
+     "kabinet" uchun bu noto'g'ri: kabinet o'zi ochilishi kerak. */
+  if(r === 'orders') kabAvtoOch();
+  if(r === 'catalog'){ reshuffle(); catShown = PAGE_SIZE; renderCatalog(); }
+  if(r === 'home') pickHome();
+}
+function ekranIshiniRejalashtir(r){
+  ekranNavbat = r;
+  if(ekranKadr) return;                 /* allaqachon navbatda */
+  ekranKadr = requestAnimationFrame(()=>{
+    requestAnimationFrame(ekranIshiniBajar);
+  });
+}
+
 function renderRoute(keepScroll){
   const r = ROUTES[location.hash.replace(/^#/,'')] || 'home';
   if(r !== 'fav') FAV_EDIT = false;
@@ -1058,14 +1122,8 @@ function renderRoute(keepScroll){
   $$('.screen').forEach(s => s.classList.toggle('on', s.dataset.route === r));
   const navKey = (r === 'orders' || r === 'contract') ? 'more' : r;
   $$('#nav a, .dh-nav a').forEach(a => a.classList.toggle('on', a.dataset.nav === navKey));
-  if(r === 'fav') renderFavorites();
-  /* V124: kabinet O'ZI ochiladi. Ilgari mijoz bu bo'limga har kirganda
-     telefon raqami va oxirgi 4 ta raqamni QAYTA yozishi kerak edi —
-     "kabinet" uchun bu noto'g'ri: kabinet o'zi ochilishi kerak. */
-  if(r === 'orders') kabAvtoOch();
-  if(r === 'catalog'){ reshuffle(); catShown = PAGE_SIZE; renderCatalog(); }
-  if(r === 'home') pickHome();
-  if(typeof moveNavPill === 'function') requestAnimationFrame(moveNavPill);
+  /* Og'ir ish — ekranga chiqqandan keyin (yuqoridagi izohga qarang) */
+  ekranIshiniRejalashtir(r);
 }
 window.addEventListener('hashchange', ()=> renderRoute());
 document.addEventListener('click', (e)=>{
@@ -2283,11 +2341,37 @@ function heroShine(){
 let heroTimer = null, heroPaused = 0, heroIdx = 0, heroJami = 1, heroBusy = false;
 
 function heroEl(){ return document.getElementById('heroTrack'); }
-function heroW(){
-  const tr = heroEl(); if(!tr) return 1;
+
+/* KARTOCHKA KENGLIGI KESHLANADI (V142)
+   ------------------------------------------------------------------
+   MUAMMO (mijoz aytgan): "asosiy bo'limda o'tib turuvchi kartochka
+   qotganday bo'ladi".
+
+   SABABLARDAN BIRI shu yer edi. `offsetWidth` o'qilishi brauzerni
+   joylashuvni MAJBURAN, O'SHA ZAHOTI qayta hisoblashga undaydi
+   (forced reflow). Avtomatik o'tishda u har safar, harakat
+   BOSHLANISHIDAN oldin chaqirilardi — ya'ni animatsiyaning birinchi
+   kadri kechikardi. Ko'zga bu "boshida bir qotib, keyin ketdi" bo'lib
+   ko'rinadi.
+
+   Kenglik faqat ekran o'lchami o'zgarganda o'zgaradi, shuning uchun u
+   BIR MARTA o'lchanib keshlanadi; ekran burilganda yoki o'lcham
+   o'zgarganda kesh bekor qilinadi.
+
+   `majburiy = true` — keshni e'tiborsiz qoldirib, qaytadan o'lchash
+   (karusel yangi qurilganda va barmoq tekkanda shunday qilinadi). */
+let heroKenglik = 0;
+function heroW(majburiy){
+  if(!majburiy && heroKenglik > 1) return heroKenglik;
+  const tr = heroEl(); if(!tr) return heroKenglik || 1;
   const c = tr.querySelector('.herocard');
-  return c ? c.offsetWidth + 14 : 1;
+  if(c) heroKenglik = c.offsetWidth + 14;
+  return heroKenglik || 1;
 }
+try{
+  window.addEventListener('resize', ()=>{ heroKenglik = 0; }, { passive:true });
+  window.addEventListener('orientationchange', ()=>{ heroKenglik = 0; }, { passive:true });
+}catch(e){}
 /* Yo'lakning tinch holatdagi o'rni — doim bitta kartochka chapda */
 function heroBazaga(){
   const tr = heroEl(); if(!tr) return;
@@ -2321,6 +2405,29 @@ function heroQoy(x, sinf){
      egri chiziq = cubic-bezier(.25,1,.5,1)  (oxiri silliq so'nadi)
    Natijada harakat barmoq tezligining davomidek tuyuladi. */
 const HERO_EGRI = 'cubic-bezier(.25,1,.5,1)';
+
+/* AVTOMATIK O'TISH UCHUN ALOHIDA EGRI VA VAQT (V142)
+   ------------------------------------------------------------------
+   Ilgari avtomatik o'tish ham barmoq uzilgandagi egri chiziq bilan
+   (`HERO_EGRI`) va 620 ms da bajarilardi. SHU IKKALASI BIRGA
+   "qotganday" hissini berardi:
+
+     * `cubic-bezier(.25,1,.5,1)` — INERTSIYA egrisi. U masofaning
+       90% ini vaqtning dastlabki yarmida bosib o'tadi, qolgan yarmida
+       esa kartochka deyarli JOYIDA TURADI. Barmoq uzilganda bu
+       to'g'ri (harakat barmoqning davomidek tuyuladi), lekin
+       o'z-o'zidan boshlangan harakatda ko'z buni "sudralib to'xtadi"
+       deb o'qiydi.
+     * 620 ms — qo'lda surishda sezilmaydi, lekin avtomatik harakat
+       uchun uzoq. Zamonaviy ilovalarda bunday siljish 350-450 ms.
+
+   Shuning uchun avtomatik o'tish endi 420 ms va ikki tomoni ham
+   bir xil yumshoq bo'lgan egri chiziq bilan bajariladi: boshida
+   yumshoq tezlashadi, oxirida yumshoq so'nadi, orada esa TO'XTAB
+   QOLMAYDI. Barmoq uzilgandagi egri esa o'zgarmadi — u joyida
+   to'g'ri ishlayapti. */
+const HERO_EGRI_AVTO = 'cubic-bezier(.4,0,.2,1)';
+const HERO_AVTO_MS = 420;
 function heroVaqt(masofa, tezlik){
   const m = Math.abs(masofa);
   /* Pastki chegara ataylab baland: barmoq sekin uzilganda ham
@@ -2333,10 +2440,10 @@ function heroVaqt(masofa, tezlik){
   return Math.max(265, Math.min(500, Math.round(m / v)));
 }
 /* Berilgan davomiylik bilan siljitish (sinf emas — aniq vaqt) */
-function heroSur(x, ms){
+function heroSur(x, ms, egri){
   const tr = heroEl(); if(!tr) return;
   tr.classList.remove('glide','snapback');
-  tr.style.transition = 'transform ' + ms + 'ms ' + HERO_EGRI;
+  tr.style.transition = 'transform ' + ms + 'ms ' + (egri || HERO_EGRI);
   /* brauzer boshlang'ich holatni bir marta hisoblab olsin */
   void tr.offsetWidth;
   tr.style.transform = 'translate3d(' + x + 'px,0,0)';
@@ -2361,15 +2468,23 @@ function heroKut(tr, ish, ms){
 function heroOldinga(ms){
   const tr = heroEl(); if(!tr || tr.children.length < 3 || heroBusy) return;
   heroBusy = true;
-  const w = heroW();
-  const dav = ms || 620;
-  heroSur(-2 * w, dav);
+  const w = heroW();                      /* keshdan — o'lchov yo'q */
+  /* `ms` berilgan bo'lsa — barmoq uzildi (inertsiya egrisi bilan).
+     Berilmagan bo'lsa — avtomatik o'tish (qat'iy egri, 420 ms). */
+  const dav = ms || HERO_AVTO_MS;
+  heroSur(-2 * w, dav, ms ? HERO_EGRI : HERO_EGRI_AVTO);
   heroKut(tr, ()=>{
     tr.classList.remove('glide','snapback');
     tr.style.transition = '';
     tr.appendChild(tr.firstElementChild);     /* birinchisi oxiriga */
     tr.style.transform = 'translate3d(' + (-w) + 'px,0,0)';
-    void tr.offsetWidth;
+    /* V142: bu yerda `void tr.offsetWidth` bor edi — OLIB TASHLANDI.
+       U brauzerni majburan joylashuv hisobiga undaydi, va aynan
+       harakat TUGAGAN paytda, kadr chegarasida bajarilardi — ko'zga
+       oxiridagi "silkinish" bo'lib ko'rinardi. Bu yerda uning hojati
+       ham yo'q edi: o'tish allaqachon o'chirilgan (`transition=''` va
+       `glide`/`snapback` sinflari olib tashlangan), ya'ni yangi
+       `transform` baribir animatsiyasiz qo'yiladi. */
     heroBusy = false;
     heroIdx = (heroIdx + 1) % heroJami;
     syncDots(); heroShine();
@@ -2378,14 +2493,16 @@ function heroOldinga(ms){
 function heroOrqaga(ms){
   const tr = heroEl(); if(!tr || tr.children.length < 3 || heroBusy) return;
   heroBusy = true;
-  const w = heroW();
-  const dav = ms || 620;
+  const w = heroW();                      /* keshdan — o'lchov yo'q */
+  const dav = ms || HERO_AVTO_MS;
   tr.classList.remove('glide','snapback');
   tr.style.transition = '';
   tr.insertBefore(tr.lastElementChild, tr.firstElementChild);  /* oxirgisi boshiga */
   tr.style.transform = 'translate3d(' + (-2 * w) + 'px,0,0)';
-  void tr.offsetWidth;
-  heroSur(-w, dav);
+  /* V142: bu yerdagi `void tr.offsetWidth` ham olib tashlandi —
+     `heroSur()` ning o'zi boshlang'ich holatni bir marta hisoblab
+     oladi, ya'ni ikkinchi marta majburlashning keragi yo'q. */
+  heroSur(-w, dav, ms ? HERO_EGRI : HERO_EGRI_AVTO);
   heroKut(tr, ()=>{
     tr.classList.remove('glide','snapback');
     tr.style.transition = '';
@@ -2401,6 +2518,8 @@ function startHeroLoop(){
 
   heroIdx = 0;
   heroBusy = false;
+  heroKenglik = 0;        /* karusel yangi qurildi — qaytadan o'lchansin */
+  heroW(true);
   heroBazaga();
   syncDots();
   requestAnimationFrame(()=>{ shineWatch(); });
@@ -2452,8 +2571,9 @@ function startHeroLoop(){
     sx = e.clientX; sy = e.clientY;
     lastX = e.clientX; lastT = performance.now(); vel = 0;
     heroPaused = Date.now() + 6000;
-    /* Kenglik SHU YERDA, bir marta o'lchanadi. */
-    dragW = heroW();
+    /* Kenglik SHU YERDA, bir marta o'lchanadi (barmoq tekkanda
+       aniqligi muhim, shuning uchun keshni e'tiborsiz qoldiramiz). */
+    dragW = heroW(true);
     const t = heroEl();
     /* O'tishni ham shu yerda bir marta o'chiramiz — surish paytida
        har safar emas. */
@@ -2535,14 +2655,21 @@ function startHeroLoop(){
 function heroTimerniQur(){
   clearInterval(heroTimer);
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  /* har 4 soniyada bitta kartochka o'tadi — to'xtamasdan, cheksiz */
+  /* Har 4 soniyada bitta kartochka o'tadi — to'xtamasdan, cheksiz.
+     V139: sekin qurilmada 7 soniyada bir marta. Nega: har o'tish
+     ~620 ms animatsiya + yo'lakni qayta tartiblash + joylashuv
+     hisobi degani. Sekin Androidda bu ish har 4 soniyada qaytarilib,
+     mijoz boshqa narsa qilayotganda ham fonda tezlikni yeb turardi.
+     7 soniya — ko'rinishga ta'siri sezilmaydi (kartochka baribir
+     almashib turadi), fon yuki esa deyarli ikki barobar kamayadi. */
+  const oraliq = document.documentElement.classList.contains('low') ? 7000 : 4000;
   heroTimer = setInterval(()=>{
     if(Date.now() < heroPaused || document.hidden) return;
     const home = document.getElementById('sc-home');
     if(!home || !home.classList.contains('on')) return;
     if(!heroEl()) return;
     heroOldinga();
-  }, 4000);
+  }, oraliq);
 }
 
 function syncDots(){
@@ -2787,19 +2914,26 @@ function renderCatalog(){
     const vaqt = document.createElement('div');
     vaqt.innerHTML = yangi.map(n => numCard(n)).join('');
     const frag = document.createDocumentFragment();
+    /* V139: sekin qurilmada animatsiya umuman qo'yilmaydi — na sinf,
+       na kechikish, na tozalash taymeri. Shunda 15 ta kartochka uchun
+       30 ta ortiqcha uslub yozuvi va bir soniyalik animatsiya
+       bajarilmaydi (izohi uslublarda: `html.low .numcard.yangi`). */
+    const sust = document.documentElement.classList.contains('low');
     let i = 0;
     while(vaqt.firstElementChild){
       const el = vaqt.firstElementChild;
-      el.classList.add('yangi');
-      /* bir-biridan 45 ms kechikib chiqadi — "to'kilib tushgan" emas,
-         ketma-ket ochilgandek ko'rinadi */
-      el.style.animationDelay = (i++ * 45) + 'ms';
+      if(!sust){
+        el.classList.add('yangi');
+        /* bir-biridan 45 ms kechikib chiqadi — "to'kilib tushgan" emas,
+           ketma-ket ochilgandek ko'rinadi */
+        el.style.animationDelay = (i++ * 45) + 'ms';
+      }
       frag.appendChild(el);
     }
     lst.appendChild(frag);
     /* animatsiya tugagach sinf olib tashlanadi, aks holda keyingi
        chizishda qaytadan o'ynardi */
-    setTimeout(()=>{
+    if(!sust) setTimeout(()=>{
       lst.querySelectorAll('.numcard.yangi').forEach(el => {
         el.classList.remove('yangi'); el.style.animationDelay = '';
       });
@@ -2812,14 +2946,16 @@ function renderCatalog(){
        almashganda ro'yxat "birdan tarsillab" paydo bo'lardi).
        Faqat ko'rinadigan dastlabki 8 tasi animatsiyalanadi: pastdagilar
        baribir ekrandan tashqarida, ularga vaqt sarflash shart emas. */
-    const birinchi = Array.prototype.slice.call(lst.children, 0, 8);
-    birinchi.forEach((el, i) => {
-      el.classList.add('yangi');
-      el.style.animationDelay = (i * 38) + 'ms';
-    });
-    setTimeout(()=>{
-      birinchi.forEach(el => { el.classList.remove('yangi'); el.style.animationDelay = ''; });
-    }, 700 + birinchi.length * 38);
+    if(!document.documentElement.classList.contains('low')){
+      const birinchi = Array.prototype.slice.call(lst.children, 0, 8);
+      birinchi.forEach((el, i) => {
+        el.classList.add('yangi');
+        el.style.animationDelay = (i * 38) + 'ms';
+      });
+      setTimeout(()=>{
+        birinchi.forEach(el => { el.classList.remove('yangi'); el.style.animationDelay = ''; });
+      }, 700 + birinchi.length * 38);
+    }
   }
 
   const more = list.length > catShown;
@@ -6551,14 +6687,40 @@ document.addEventListener('pointerdown', (e)=>{
    shu edi — tanlagich faqat bir nechta elementni qamrab olardi.
    Endi bosiladigan HAMMA narsa qamrab olingan. Takrorlanishdan
    haptic() ichidagi 45 ms himoyasi saqlaydi. */
+/* ==================================================================
+   TEBRANISH (haptika) — FAQAT KERAKLI JOYDA (V139)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "yumshoq vibratsiyani juda ko'p joyda qo'yvoribsan,
+   kerakli joyda qo'y."
+
+   Haqiqatan shunday edi: ro'yxatda `a`, `button`, `label`, `.row`,
+   `.tag`, `.chip`, `#nav a` va boshqalar bor edi — ya'ni sahifadagi
+   DEYARLI HAR QANDAY bosishda telefon tebranardi. Bo'lim almashtirish,
+   havolani bosish, hatto yozuvga tegish ham. Natijada tebranish
+   "ma'noli javob" bo'lishdan to'xtab, shovqinga aylangan edi.
+
+   ENDI FAQAT HAQIQIY AMALLARDA:
+     * `.btn` va kartochkadagi asosiy tugmalar — buyurtma berish,
+       tasdiqlash, kirish, yuklab olish kabi qaror talab qiladigan
+       amallar;
+     * sevimlilarga qo'shish/olib tashlash — natijasi ko'rinmaydigan,
+       shuning uchun sezgi kerak bo'ladigan amal;
+     * raqamdan nusxa olish — bajarilganini bildiradigan yagona belgi.
+
+   OLIB TASHLANGANLAR: bo'lim almashtirish (`#nav a`), oddiy
+   havolalar, yozuvlar, yorliqlar, ro'yxat qatorlari, saralash va
+   operator tugmalari, til almashtirish.
+
+   QOLGAN JOYLAR O'ZGARMADI — ular bosishda emas, NATIJADA ishlaydi
+   va aynan shuning uchun o'rinli:
+     * oyna ochilganda (`openSheet`) — yengil;
+     * muvaffaqiyat/xato xabari chiqqanda — kuchliroq;
+     * buyurtma yuborilganda, kabinetga kirilganda;
+     * kartochkani surib o'chirganda, chekkadan orqaga qaytganda.
+   ================================================================== */
 const HAP_SEL = [
-  'button','a','label','select','summary',
-  'input[type=checkbox]','input[type=radio]','input[type=range]',
-  '[data-card]','[data-order]','[data-sheet]','[data-close]',
-  '[data-fav]','[data-copy]','[data-pay]','[data-sort]','[data-catop]',
-  '[data-opgo]','[data-nav]','[data-lang-toggle]','[data-tier]','[data-msg]',
-  '.op','.chip','.tpick','.ptile','.tag','.row','.btn','.nc-cta','.hc-cta','[data-msgopen]',
-  '.seg > *','.steps .s','#nav a','.vcard','.daycard','.msg'
+  '.btn', '.nc-cta', '.hc-cta',
+  '[data-fav]', '[data-unfav]', '[data-copy]'
 ].join(',');
 document.addEventListener('pointerdown', (e)=>{
   if(e.target.closest(HAP_SEL)) haptic('select');

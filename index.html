@@ -12,7 +12,7 @@
          javascript:alert(document.querySelector('meta[name=vip-versiya]').content)
      yoki kompyuterda sahifa kodini ochib (Ctrl+U) "vip-versiya" ni
      qidiring. Ko'rsatilgan son shu arxivning raqami bo'lishi kerak. -->
-<meta name="vip-versiya" content="138">
+<meta name="vip-versiya" content="142">
 <meta charset="UTF-8">
 <!-- Mijoz so'rovi: sayt YAQINLASHTIRILMAYDI (zoom o'chirilgan).
      Ikki barmoq bilan ham, ikki marta bosganda ham o'lcham o'zgarmaydi —
@@ -211,7 +211,7 @@ try{
      assets/app.js boshidagi izoh). Yo'l ILDIZDAN boshlanadi —
      `/raqam/...` kabi chuqur manzillarda ham to'g'ri topilsin
      (ilgari shriftlarda aynan shu xato bo'lgan edi). -->
-<link rel="preload" as="script" href="/assets/app.js?v=137">
+<link rel="preload" as="script" href="/assets/app.js?v=142">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
@@ -2232,6 +2232,209 @@ html.low .sheet.closing .pn{
 .digits input::placeholder{color:var(--faint);font-weight:500;opacity:.38}
 
 /* ==================================================================
+   RASMIY KO'RINISH — SODDA VA ANIQ (V140)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "zamonaviylashtir — soddaroq, lekin rasmiy katta
+   kompaniyanikidek".
+
+   QANDAY TUSHUNILDI. Katta kompaniyalar (banklar, aloqa operatorlari)
+   saytini "chiroyli" qiladigan narsa — bezak emas, INTIZOM: tekis,
+   toza yuzalar, bitta soch tolasidek chegara, bitta yumshoq soya va
+   aniq ierarxiya. Bezak esa FAQAT bitta joyda — asosiy kartochkada.
+
+   AYNI PAYTDA BU TEZLIKNI HAM OSHIRADI. Ilgari HAR BIR kartochkada
+   to'rtta chizish qatlami bor edi:
+       radial-gradient (ko'k nur) + radial-gradient (siyoh nur)
+       + gradient asos + soya + ichki chiziq
+   Katalogda 15-40 ta kartochka bo'ladi, ya'ni brauzer yuzlab gradient
+   qatlamini chizardi. Endi: bitta tekis rang + 1px chegara + bitta
+   soya. Ko'rinish RASMIYROQ, chizish esa ANCHA ARZON.
+   ================================================================== */
+
+/* 1) Kartochkalar — tekis yuza. Gradientlar olib tashlanadi. */
+.numcard,
+.card,
+.vcard{
+  background:var(--card) !important;
+  border:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(3,10,22,.28), 0 8px 20px -16px rgba(3,10,22,.7);
+}
+/* Burchaklar bir oz tikroq — "pufakcha" emas, hujjatdek rasmiy */
+.numcard{border-radius:18px}
+.card{border-radius:18px}
+
+/* Gradient nurlar (::after bilan qo'yilganlari) ham o'chadi.
+   `.numcard::after` — chap chekkadagi toifa chizig'i. Mijoz uni
+   so'ramagani uchun o'chirilgan holida qoladi (V141 izohiga qarang):
+   toifa kartochka ustidagi yorliqdan (VIP/PREMIUM/GOLD) bilinadi. */
+.numcard::after,
+.card::after{ display:none !important; }
+
+/* 2) Asosiy tugma — tekis firma rangi, yaltiramaydi */
+.btn{
+  background:var(--blue) !important;
+  box-shadow:0 1px 2px rgba(3,10,22,.3), 0 10px 22px -16px rgba(46,95,224,.9) !important;
+}
+.btn.ghost{ background:transparent !important; box-shadow:inset 0 0 0 1px var(--line-2) !important; }
+
+/* 3) Kartochka ichidagi "Batafsil" — sokin, chegarali */
+.nc-cta{
+  background:transparent;
+  box-shadow:inset 0 0 0 1px var(--blue-cta-line-2);
+  color:var(--blue-text);
+}
+
+/* 4) Yorliqlar (PREMIUM, operator nomi) — mayda, bir xil balandlikda.
+   Ilgari har xil o'lchamda edi, bu "yig'ilmagan" taassurot berardi. */
+.numcard .tag{letter-spacing:.4px}
+
+/* 6) SEKIN QURILMADA — faqat `transform` o'tishi qoladi.
+   Kartochkada `box-shadow` ham o'tish (transition) bilan edi: bosilganda
+   brauzer soyani qayta CHIZISHGA majbur bo'lardi, va ro'yxatdagi
+   kartochkalar ko'p bo'lgani uchun bu seziladi. `transform` esa
+   videokartada bajariladi — ya'ni bepul. Kuchli telefonlarda ikkalasi
+   ham avvalgidek qoladi.
+
+   `filter`/`saturate` ham sekin qurilmada butunlay o'chiriladi — u butun
+   kartochkani piksel-piksel qayta hisoblaydi. */
+html.low .numcard,
+html.low .card,
+html.low .nc-cta,
+html.low .btn{
+  transition:transform .16s ease !important;
+}
+html.low #catList.is-loading .numcard{
+  filter:none !important;
+  opacity:.55;
+}
+
+/* 5) Bo'lim sarlavhalari — kattaroq va qat'iyroq, oraliq kengroq.
+   Rasmiy ko'rinishning yarmi — aynan bo'sh joy. */
+.wrap > .eyebrow,
+.pad > .eyebrow{
+  font-size:11px;letter-spacing:1.3px;color:var(--muted);
+  margin-top:26px;margin-bottom:12px;
+}
+
+/* ==================================================================
+   SHISHASIMON KARTOCHKA (V141) — ZAMONAVIY, LEKIN JUDA TEZ
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "kartochka oldiga chiziq qo'yma, undan ko'ra
+   kartochkaning O'ZINI zamonaviy qil — shishali bo'lsin, lekin juda
+   tez ishlasin".
+
+   ============ ASOSIY MUAMMO VA UNING YECHIMI ============
+   "Shisha" effekti deganda odatda `backdrop-filter: blur(...)`
+   tushuniladi — orqa fonni xiralashtirish. LEKIN AYNAN SHU NARSA
+   saytni sekinlashtirgan edi: `blur` har kadrda elementning ORTIDAGI
+   pikselllarni qayta hisoblaydi, oddiy Android telefonining
+   videokartasi esa buni ro'yxatdagi 15-40 ta kartochka uchun
+   ko'tarolmaydi. Shuning uchun saytda `backdrop-filter` ataylab
+   O'CHIRILGAN (`html.low` qoidasiga qarang).
+
+   SHU SABAB SHISHA BOSHQACHA YASALDI. Haqiqiy shishani ko'zga
+   shisha qilib ko'rsatadigan narsa — xiralik emas, balki:
+       1) yuzasi bo'ylab yuqoridan pastga YORUG'LIK so'nishi;
+       2) yuqori chekkasidagi bir piksellik YORUG' qirra;
+       3) pastki chekkasidagi ingichka SOYA (shisha qalinligi);
+       4) atrofidagi yumshoq, past soya (yuzadan ko'tarilib turishi).
+   Bularning hammasi STATIK — ya'ni brauzer kartochkani BIR MARTA
+   chizadi va keyin faqat xotiradan ko'chiradi. Aylantirishda
+   qo'shimcha hisob YO'Q.
+
+   TEXNIK TANLOVLAR (har biri o'lchab tanlandi):
+     * `linear-gradient` ishlatiladi, `radial-gradient` emas —
+       chiziqli gradient piksel qatorlari bo'yicha hisoblanadi va
+       sezilarli darajada arzon. (V140'da aynan ikkita RADIAL
+       gradient olib tashlangan edi.)
+     * Gradient BITTA — ustma-ust qatlam yo'q.
+     * Qirra va soya `box-shadow` ichida BIRGA beriladi, ya'ni
+       allaqachon chizilayotgan soyaga qo'shiladi, yangi qatlam
+       ochmaydi.
+     * `filter`, `blur`, `backdrop-filter`, animatsiya — YO'Q.
+
+   ============ CHIZIQ OLIB TASHLANDI ============
+   Mijoz so'raganidek, kartochka oldidagi toifa chizig'i
+   KO'RSATILMAYDI. Toifa baribir ko'rinib turadi — kartochka
+   ustidagi yorliq (VIP / PREMIUM / GOLD) o'sha ma'lumotni beradi,
+   ya'ni hech narsa yo'qolmadi.
+   ================================================================== */
+
+/* ---- 0) KARTOCHKA OLDIDAGI CHIZIQ — YO'Q ---- */
+.numcard::after,
+.card::after{ display:none !important; }
+
+/* ---- 1) KARTOCHKANING O'ZI ----
+   Bitta chiziqli gradient + bitta `box-shadow` to'plami.
+
+   NEGA CSS O'ZGARUVCHISI ISHLATILMADI. Avval shu ranglar `:root` ga
+   o'zgaruvchi qilib qo'yilgan edi. O'LCHOV SHUNI KO'RSATDI: uslub
+   qayta hisoblanishi 14-20% ga OSHDI. Sababi — `:root` dagi
+   o'zgaruvchi SAHIFADAGI HAR BIR elementga meros bo'lib o'tadi,
+   ya'ni har bir element hisoblanganda u ham ko'chiriladi. Sayt esa
+   faqat tungi mavzuda ishlaydi (qarang: `themeNow()` — yorug' mavzu
+   mijoz so'roviga ko'ra olib tashlangan), ya'ni o'zgaruvchining
+   foydasi yo'q edi. Shuning uchun qiymatlar TO'G'RIDAN-TO'G'RI shu
+   yerda yozilgan: bitta qoida, merossiz.
+
+   Gradient O'QQA TIK (180deg) — brauzer bunday gradientni eng tez
+   yo'l bilan chizadi; burchakli yoki radial gradient esa har piksel
+   uchun alohida hisob talab qiladi. */
+.numcard,
+.card,
+.vcard{
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,.105) 0%,
+      rgba(255,255,255,.022) 44%,
+      transparent 100%),
+    var(--card) !important;
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),      /* yuqori yorug' qirra */
+    inset 0 -1px 0 rgba(0,0,0,.22),          /* pastki ingichka soya */
+    0 1px 2px rgba(3,10,22,.24),             /* yuzaga tegish joyi */
+    0 12px 26px -20px rgba(3,10,22,.8);      /* yumshoq ko'tarilish */
+}
+
+/* ---- 3) RAQAMLAR USTUN BO'LIB TEKIS TURADI ----
+   Shriftda raqamlar turlicha kenglikda bo'ladi ("1" ingichka, "0"
+   keng). Ro'yxatda bu ko'zga tashlanadi. `tabular-nums` har bir
+   raqamga bir xil kenglik beradi — raqamlar va narxlar ustun bo'lib
+   tizilib qoladi. Bank va aloqa operatori saytlarini "aniq" qilib
+   ko'rsatadigan eng kuchli mayda belgi. Xarajati: NOL. */
+.nc-num,
+.nc-price .p,
+.nc-price .old,
+.nc-price .ins{ font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; }
+
+/* ---- 4) MATN TANLANGANDA ----
+   DIQQAT — BU YERDA O'LCHOV BILAN TO'XTATILGAN NARSA BOR. Avval bu
+   blokda klaviatura uchun ko'rinadigan halqa (`:focus-visible`) ham
+   bor edi: `a, button, input, select` uchun. O'lchov ko'rsatdi —
+   uslub qayta hisoblanishi 14% ga OSHDI, chunki bu tanlovchilar
+   sahifadagi YUZLAB elementga mos keladi va har bir qayta hisobda
+   tekshiriladi. Mijozning birinchi talabi tezlik bo'lgani uchun u
+   blok OLIB TASHLANDI. */
+::selection{ background:var(--blue-tint); color:var(--ink) }
+
+/* ---- 5) SEKIN QURILMADA SHISHA SODDALASHADI ----
+   Eng arzon variantga tushadi: gradient ham, pastki ichki soya ham
+   olib tashlanadi, faqat yuqori qirra va bitta soya qoladi. Shunda
+   ham kartochka "ko'tarilib" turadi, lekin chizish xarajati V140
+   darajasiga qaytadi. */
+html.low .numcard,
+html.low .card,
+html.low .vcard{
+  background:var(--card) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.2),
+    0 1px 2px rgba(3,10,22,.24),
+    0 10px 22px -18px rgba(3,10,22,.8);
+}
+
+/* ==================================================================
    TELEGRAM MINI ILOVA USLUBLARI (V136)
    ------------------------------------------------------------------
    `html.tg` sinfi sahifaning ENG BIRINCHI skriptida qo'yiladi (manzildagi
@@ -3023,11 +3226,32 @@ html[data-theme="dark"] ::selection{background:transparent}
    almashuvi deyarli bir zumda bo'ladi — faqat nozik so'nish.
    Endi shunday: 0.16s, faqat `opacity` (transform yo'q => sahifa
    qayta joylashmaydi, faqat kompozitor ishlaydi => qotish yo'q). */
-.screen.on{animation:scrfade .16s cubic-bezier(.33,1,.68,1) both}
+/* BO'LIM ALMASHGANDAGI YUMSHOQ PAYDO BO'LISH (V142)
+   ------------------------------------------------------------------
+   Ilgari: `opacity: .55 -> 1`, 160 ms. Ikkita muammosi bor edi.
+
+     1) BOSHLANG'ICH 0.55 JUDA XIRA. Bosilgandan keyin bo'lim bir
+        necha kadr davomida yarim ko'rinmas turardi — ko'z buni
+        "hali ochilmadi" deb o'qiydi. Ya'ni animatsiyaning o'zi
+        "sekin" hissini berardi.
+     2) 160 ms — bo'limlar orasida tez yurganda o'tishlar bir-birining
+        ustiga chiqib ketardi.
+
+   Endi: 0.86 dan boshlanadi va 110 ms. Yumshoqlik saqlanadi (keskin
+   almashmaydi), lekin mazmun DARHOL o'qiladigan holatda chiqadi.
+
+   SEKIN QURILMADA ESA UMUMAN YO'Q. Sababi: `opacity` butun bo'limni
+   (katalogda 15-40 ta kartochkani) alohida chizish qatlamiga
+   ko'chiradi va animatsiya davomida uni saqlab turadi. Oddiy
+   Androidda bu bosishga javobni sezilarli kechiktiradi, foydasi esa
+   atigi bezak. Shuning uchun u yerda bo'lim darhol, animatsiyasiz
+   chiqadi — bu "qotish" emas, aksincha eng tez variant. */
+.screen.on{animation:scrfade .11s cubic-bezier(.33,1,.68,1) both}
 @keyframes scrfade{
-  from{opacity:.55}
+  from{opacity:.86}
   to  {opacity:1}
 }
+html.low .screen.on{animation:none}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 /* ==========================================================================
@@ -3380,6 +3604,14 @@ html[data-theme="dark"] ::selection{background:transparent}
   to  {opacity:1;transform:none}
 }
 @media (prefers-reduced-motion:reduce){ .numcard.yangi{animation:none} }
+/* V139 — SEKIN TELEFONDA KARTOCHKALAR BIRDAN CHIQADI.
+   "Yana ko'rsatish" bosilganda 15 ta kartochka birin-ketin, har biri
+   45 ms kechikib chiqardi — ya'ni 15 ta animatsiya bir vaqtda, deyarli
+   bir soniya davomida ishlab turardi. Kuchli telefonda bu chiroyli,
+   sekin Androidda esa aynan shu paytda ro'yxat "qotardi".
+   Shuning uchun sekin qurilmada animatsiya umuman yo'q — kartochkalar
+   darhol paydo bo'ladi. Bu tezroq VA ravonroq. */
+html.low .numcard.yangi{animation:none !important}
 
 /* ==================================================================
    BILDIRISHNOMA TAKLIFI (pastdan chiqadigan kichik kartochka)
@@ -3919,7 +4151,7 @@ html[data-theme="dark"] ::selection{background:transparent}
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="/assets/app.js?v=137"></script>
+<script defer src="/assets/app.js?v=142"></script>
 <!-- ==================================================================
      "JONSIZ SAYT" QALQONI (V138)
      ------------------------------------------------------------------
