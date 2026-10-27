@@ -181,6 +181,7 @@ const HISOBLAGICH_TOPLAMLAR = [
   'story_stat_rate_limits',
   'kabinet_code_rate_limits',
   'kabinet_code_check_limits',
+  'kabinet_tg_rate_limits',
   /* Kirish kodlari — 5 daqiqalik, lekin tekshirilmagani o'chmasdan
      qoladi. 3 kundan eskisi aniq keraksiz. */
   'kabinet_login_codes',
