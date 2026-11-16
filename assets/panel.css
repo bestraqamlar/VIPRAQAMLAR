@@ -2059,7 +2059,7 @@
      o'chirish ikonkalari to'liq kenglikdagi bo'sh amber panelga aylanib
      qolishi shundan edi) — endi ular bundan chiqarib qo'yilgan (o'zlarining
      maxsus CSS qoidalari ishlaydi).*/
-  .settings-form button:not(.zk-op-btn):not(.zk-op-toggle):not(.zk-del-btn):not(.zk-edit-btn):not(.vz-filtr-chip):not(.vz-tozala-btn):not(.zk-inline-back):not(.zk-cust-card){
+  .settings-form button:not(.zk-op-btn):not(.zk-op-toggle):not(.zk-del-btn):not(.zk-edit-btn):not(.vz-filtr-chip):not(.vz-tozala-btn):not(.zk-inline-back):not(.zk-cust-card):not(.uzsana-btn){
     width:100%;margin-top:16px;background:var(--amber);color:var(--bg);border:none;border-radius:8px;
     padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;
   }
@@ -5210,9 +5210,11 @@ body::after{
   .pane h3, .vm-back h3{font-size:15px;margin:0 0 11px;}
 
   /* Tugmalar barmoqqa qulay */
-  .pane .settings-form button, .pane .card > button,
+  /* V143: `:not(.uzsana-btn)` — sana maydonidagi taqvim belgisi bu
+     qoidaga tushib, 46px balandlikdagi tugmaga aylanib qolgan edi. */
+  .pane .settings-form button:not(.uzsana-btn), .pane .card > button:not(.uzsana-btn),
   .pane .primary-btn, .pane .add-btn,
-  .vm-back .settings-form button, .vm-back .vm-foot button{min-height:46px;}
+  .vm-back .settings-form button:not(.uzsana-btn), .vm-back .vm-foot button{min-height:46px;}
 
   /* Keng jadvallar sahifani cho'zib yubormasin */
   .pane table{display:block;width:100%;overflow-x:auto;}
@@ -5566,20 +5568,75 @@ body::after{
    Asl `<input type="date">` ko'rinmaydi, lekin DOM da qoladi: qiymatni
    o'qiydigan butun kod o'zgarmasdan ishlayveradi va taqvim ham o'shaning
    o'zidan ochiladi. Ustida oddiy matn maydoni turadi. */
+/* ==================================================================
+   SANA MAYDONI — V143 DA TO'LIQ TUZATILDI
+   ------------------------------------------------------------------
+   MIJOZ AYTGAN: "kredit bo'limida sana kartochkasi umuman bossa
+   ishlamaydi va juda noqulay, yozuv kiritish ustiga turib qolgan".
+
+   IKKITA ALOHIDA XATO BOR EDI.
+
+   1-XATO — TAQVIM TUGMASI KO'K, KATTA TUGMAGA AYLANIB QOLGAN.
+      Kredit formasi `.settings-form` ichida. Faylning boshqa joyida
+      `.settings-form button:not(...)` degan qoida bor va u BARCHA
+      tugmalarni "to'liq kenglik + ko'k fon + 13px ichki bo'shliq"
+      qilib bo'yaydi. O'sha qoidaning aniqligi (0,7,1), bizning
+      `.uzsana-btn` niki esa (0,1,0) — ya'ni bizniki YUTQAZARDI.
+      Mobil qoidalar ichidagi `min-height:46px` ham shunga qo'shilib,
+      tugma maydon ichiga sig'may, matn ustiga chiqib ketgan.
+      TUZATILDI: o'sha ikkala qoidaga `:not(.uzsana-btn)` qo'shildi,
+      va bu yerda o'lchamlar `!important` bilan mahkamlandi — kelajakda
+      yana bir umumiy qoida paydo bo'lsa ham buzilmaydi.
+
+   2-XATO — BOSILGANDA TAQVIM OCHILMAYDI.
+      Asl `type="date"` maydoni 1x1 piksel, `pointer-events:none`
+      qilib yashirilgan edi, taqvim esa faqat JS orqali
+      (`el.showPicker()`) ochilardi. `showPicker()` telefon
+      brauzerlarida ishonchsiz: eski Chrome/Safari'da umuman yo'q,
+      ba'zilarida esa "foydalanuvchi amali" shartini qoniqtirmay
+      jim rad etadi. Natijada admin bosadi — hech narsa bo'lmaydi.
+
+      TUZATILDI: endi asl `type="date"` maydoni o'ng chekkada,
+      taqvim belgisi USTIDA, ko'rinmas holda (opacity:0) turadi va
+      bosishni O'ZI qabul qiladi. Ya'ni barmoq tekkanda BRAUZERNING
+      O'Z taqvimi ochiladi — hech qanday JS shart emas, hamma
+      telefonda ishlaydi. Chizilgan taqvim belgisi esa endi faqat
+      BEZAK (`pointer-events:none`), ya'ni bosishni to'smaydi.
+
+      Matn maydonining o'ng tomonida 44px bo'sh joy qoldirilgan —
+      shu sabab ko'rinmas maydon yozuvni ham, kursorni ham
+      to'smaydi: chap tomon yozish uchun, o'ng chekka taqvim uchun.
+   ================================================================== */
 .uzsana{position:relative;display:block;width:100%;}
+
+/* Matn maydoni — o'ng chekkada taqvim uchun joy qoldiradi */
+.uzsana > input[type="text"]{width:100%;padding-right:44px;}
+
+/* Asl sana maydoni — ko'rinmas, lekin BOSILADI (taqvim shundan ochiladi) */
 .uzsana input[type="date"]{
-  position:absolute;left:0;bottom:0;width:1px;height:1px;
-  opacity:0;pointer-events:none;border:0;padding:0;margin:0;
+  position:absolute !important;right:0;top:0;
+  width:44px !important;height:100% !important;
+  min-height:0 !important;margin:0 !important;padding:0 !important;border:0 !important;
+  opacity:0 !important;pointer-events:auto !important;cursor:pointer;
+  background:transparent !important;z-index:2;
+  -webkit-appearance:none;appearance:none;
 }
-.uzsana > input[type="text"]{padding-right:34px;}
-.uzsana-btn{
-  position:absolute;right:6px;top:50%;transform:translateY(-50%);
-  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-  background:none;border:0;border-radius:7px;color:var(--muted);cursor:pointer;
-  transition:color .15s ease,background .15s ease;
+
+/* Chizilgan taqvim belgisi — faqat bezak, bosishni to'smaydi */
+.uzsana .uzsana-btn{
+  position:absolute !important;right:4px !important;top:50% !important;
+  transform:translateY(-50%) !important;
+  width:36px !important;height:36px !important;min-height:0 !important;
+  padding:0 !important;margin:0 !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  background:transparent !important;border:0 !important;border-radius:9px !important;
+  color:var(--muted) !important;box-shadow:none !important;
+  pointer-events:none !important;z-index:1;
+  font-size:0 !important;line-height:0 !important;
 }
-.uzsana-btn:hover{color:var(--text);background:rgba(255,255,255,.07);}
-:root[data-theme="light"] .uzsana-btn:hover{background:rgba(16,32,60,.06);}
+/* Barmoq/sichqoncha o'ng chekkada bo'lganda belgi yonadi */
+.uzsana:hover .uzsana-btn,
+.uzsana:focus-within .uzsana-btn{color:var(--text) !important;}
 
 
 /* ---- V122: "Yo'lda" bosqichi (kuryer yo'lga chiqdi) ----
@@ -5599,3 +5656,27 @@ body::after{
 :root[data-theme="light"] .zk-order-badge.opt-yolda{background:rgba(92,60,220,.12);color:#5C3CDC;}
 :root[data-theme="light"] .zk-status-select.opt-yolda{border-color:#5C3CDC;color:#5C3CDC;}
 :root[data-theme="light"] .zk-stat-card.st-yolda b{color:#5C3CDC;}
+
+
+/* ==================================================================
+   KREDIT BO'LIMI — V143 QO'SHIMCHALARI
+   ================================================================== */
+
+/* Boshlang'ich to'lov ptichkasi */
+.cr-check{
+  display:flex !important;align-items:center;gap:10px;
+  margin:14px 0 2px !important;cursor:pointer;
+  font-size:13px !important;font-weight:650 !important;color:var(--text) !important;
+}
+.cr-check input[type="checkbox"]{
+  width:20px;height:20px;flex:none;margin:0;cursor:pointer;accent-color:var(--amber);
+}
+
+/* Shartnoma raqami — raqam tagida, kichkina va sokin.
+   `<u>` tanlangani ataylab: ro'yxatdagi matn oqimida ajralib turmaydi,
+   lekin tagidagi chiziq olib tashlangani uchun "havola" ham emas. */
+.qzc-shid{
+  display:block;margin-top:3px;text-decoration:none;
+  font-size:10.5px;font-weight:700;letter-spacing:.02em;
+  color:var(--muted);font-variant-numeric:tabular-nums;
+}

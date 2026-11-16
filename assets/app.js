@@ -1408,7 +1408,15 @@ async function raqamlarniYukla(){
 
   /* 2-yo'l (zaxira): to'g'ridan-to'g'ri Firestore.
      `hidden: true` — admin yashirgan raqam, saytda ko'rinmaydi. */
-  const snap = await withClientTimeout(db.collection('numbers').get(), kutishVaqti(10000));
+  /* V144: `.limit()` QO'SHILDI. Ilgari bu yerda butun `numbers`
+     to'plami o'qilardi. Odatda bu yo'l ishlamaydi (yuqoridagi tezkor
+     yo'l ishlaydi), LEKIN Netlify funksiyasi ishlamay qolgan kunlari
+     HAR BIR TASHRIF butun katalogni o'qirdi — ya'ni 2000 ta raqam
+     bo'lsa, bitta mijoz 2000 ta o'qishga teng edi. Kunlik o'qish
+     kvotasi shunda bir necha soatda tugaydi va sayt butunlay
+     to'xtaydi. Chegara qo'yilgandan keyin eng yomon holatda ham
+     bitta tashrif 1500 o'qishdan oshmaydi. */
+  const snap = await withClientTimeout(db.collection('numbers').limit(1500).get(), kutishVaqti(10000));
   NUMBERS = snap.docs.map(d => ({ id:d.id, ...d.data() })).filter(n => !n.hidden);
   numbersLoaded = true;
   try{ localStorage.setItem('raqamuz_cache', JSON.stringify(NUMBERS)); }catch(e){}
@@ -1519,9 +1527,70 @@ function tashrifHisobi(){
         .then(()=> localStorage.setItem('raqamuz_counted','1')).catch(()=>{});
     }
   }catch(e){}
-  const sid = 'sess_' + Math.random().toString(36).slice(2) + '_' + Date.now();
-  const beat = ()=> db.collection('active_sessions').doc(sid).set({ lastSeen: FV.serverTimestamp() }).catch(()=>{});
-  beat(); setInterval(beat, 20000);
+  /* ==================================================================
+     "HOZIR SAYTDA" SIGNALI — V144 DA TO'LIQ QAYTA YOZILDI
+     ------------------------------------------------------------------
+     BU YERDA JIDDIY XATO BOR EDI VA U BAZANI TO'LDIRIB QO'YGAN.
+
+     ESKI KOD:
+         const sid = 'sess_' + tasodifiy + '_' + Date.now();
+         beat(); setInterval(beat, 20000);
+
+     UCHTA ALOHIDA MUAMMO:
+
+     1) HAR SAHIFA OCHILISHIDA YANGI HUJJAT.
+        `sid` har safar yangidan yasalardi — ya'ni bitta mijoz saytni
+        10 marta ochsa, bazada 10 ta ABADIY hujjat paydo bo'lardi.
+        Qayta yuklash, mini ilovani ochish, boshqa bo'limga o'tib
+        qaytish — hammasi yangi hujjat.
+
+     2) HECH KIM O'CHIRMASDI.
+        Butun loyihada `active_sessions` to'plami FAQAT bitta joyda —
+        admin panelidagi "hozir saytda" sanog'ida — O'QILARDI.
+        O'chiradigan kod umuman yo'q edi. Ya'ni to'plam oylar davomida
+        faqat o'sib bordi va Firestore'ning bepul saqlash joyini
+        to'ldirib qo'ydi. Saqlash joyi to'lgach, Firestore BARCHA
+        amallarni rad eta boshlaydi — sayt ham, admin panel ham
+        "ishlamay qoladi".
+
+     3) 20 SONIYADA BIR MARTA YOZISH, FON OYNADA HAM.
+        Mijoz saytni ochiq qoldirsa, telefon cho'ntakda yotganda ham
+        soatiga 180 marta yozuv ketardi — bu kunlik yozuv kvotasini
+        yeb qo'yardi.
+
+     YANGI KOD QUYIDAGICHA ISHLAYDI:
+       * sessiya raqami `sessionStorage` da saqlanadi — bitta oynada
+         necha marta yangilanmasin, hujjat BITTA bo'lib qoladi;
+       * signal faqat sahifa KO'RINIB TURGANDA yuboriladi (fon
+         oynada butunlay to'xtaydi);
+       * oraliq 20 soniyadan 60 soniyaga uzaytirildi — "hozir saytda"
+         sanog'i 40 soniyalik oyna bilan ishlagani uchun sanoq
+         aniqligiga ta'sir qilmaydi (pastdagi `tirik` izohiga qarang);
+       * hujjatga `expireAt` yoziladi — eski yozuvlarni tozalaydigan
+         funksiya aynan shu maydon bo'yicha ishlaydi.
+     ================================================================== */
+  let sid = '';
+  try{ sid = sessionStorage.getItem('raqamuz_sid') || ''; }catch(e){}
+  if(!sid){
+    sid = 'sess_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+    try{ sessionStorage.setItem('raqamuz_sid', sid); }catch(e){}
+  }
+
+  const beat = ()=>{
+    /* Fon oynada yozmaymiz — mijoz saytni ko'rmayotgan bo'lsa,
+       "hozir saytda" ro'yxatida turishi ham noto'g'ri. */
+    if(document.hidden) return;
+    db.collection('active_sessions').doc(sid).set({
+      lastSeen: FV.serverTimestamp(),
+      /* Tozalash funksiyasi shu maydonga qaraydi (24 soatdan keyin
+         yozuv keraksiz — "hozir saytda" sanog'i 40 soniyalik). */
+      expireAt: Date.now() + 86400000
+    }, { merge:true }).catch(()=>{});
+  };
+  beat();
+  setInterval(beat, 60000);
+  /* Fon oynadan qaytganda darhol bitta signal — sanoq kechikmasin */
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) beat(); });
 }
 let __nnFirst = true;
 function yangiRaqamKuzatuvi(){
@@ -2490,22 +2559,53 @@ function heroOldinga(ms){
     syncDots(); heroShine();
   }, dav + 240);
 }
+/* ORQAGA — ENDI OLDINGA BILAN AYNAN BIR XIL (V143)
+   ------------------------------------------------------------------
+   MUAMMO (mijoz aytgan): "o'ngdan chapga yaxshi o'tyapti qo'l bilan,
+   lekin chapdan o'ngga umuman g'alati — kartochka o'zi bilan
+   qaytgani yo'q".
+
+   SABABI TOPILDI VA U HAQIQATAN HAM JIDDIY EDI. Ikki tomon ikki xil
+   usulda yozilgan edi:
+
+     OLDINGA (chapga surish) — TO'G'RI usul:
+         yo'lak barmoq qayerda uzilgan bo'lsa O'SHA YERDAN -2w ga
+         yumshoq suriladi, va FAQAT animatsiya TUGAGANDAN KEYIN
+         kartochkalar qayta tartiblanadi. Ya'ni harakat barmoqning
+         to'xtagan joyidan uzluksiz davom etadi.
+
+     ORQAGA (o'ngga surish) — NOTO'G'RI usul:
+         animatsiyadan OLDIN oxirgi kartochka boshiga ko'chirilar va
+         yo'lak darhol -2w ga QO'YILARDI. Barmoq esa -w + dx da
+         uzilgan edi. Ya'ni:
+             1) kartochka avval o'sha `dx` masofaga ORQAGA SAKRARDI
+                (barmoqni "tashlab ketardi"),
+             2) keyin to'liq bir kartochka masofasini qaytadan bosib
+                o'tardi.
+         Aynan shu "o'zi bilan qaytmadi" degani.
+
+   YECHIM — ORQAGA ham OLDINGA ning KO'ZGUDAGI AKSI qilindi:
+       yo'lak barmoq uzilgan joydan 0 ga yumshoq suriladi (chapdagi
+       ko'rinmay turgan zaxira kartochka shunda ko'rinadi), va faqat
+       animatsiya tugagach oxirgi kartochka boshiga ko'chirilib,
+       yo'lak yana -w ga qo'yiladi. Ko'z buni sezmaydi.
+
+   Natijada ikkala tomonda ham harakat barmoqning davomidek tuyuladi,
+   sakrash umuman yo'q. Qo'shimcha foyda: endi bu yerda animatsiyadan
+   oldin DOM qayta tartiblanmaydi va majburiy joylashuv hisobi ham
+   yo'q — ya'ni orqaga surish oldingisidan tezroq boshlanadi. */
 function heroOrqaga(ms){
   const tr = heroEl(); if(!tr || tr.children.length < 3 || heroBusy) return;
   heroBusy = true;
   const w = heroW();                      /* keshdan — o'lchov yo'q */
   const dav = ms || HERO_AVTO_MS;
-  tr.classList.remove('glide','snapback');
-  tr.style.transition = '';
-  tr.insertBefore(tr.lastElementChild, tr.firstElementChild);  /* oxirgisi boshiga */
-  tr.style.transform = 'translate3d(' + (-2 * w) + 'px,0,0)';
-  /* V142: bu yerdagi `void tr.offsetWidth` ham olib tashlandi —
-     `heroSur()` ning o'zi boshlang'ich holatni bir marta hisoblab
-     oladi, ya'ni ikkinchi marta majburlashning keragi yo'q. */
-  heroSur(-w, dav, ms ? HERO_EGRI : HERO_EGRI_AVTO);
+  /* Barmoq uzilgan joydan 0 ga — uzluksiz */
+  heroSur(0, dav, ms ? HERO_EGRI : HERO_EGRI_AVTO);
   heroKut(tr, ()=>{
     tr.classList.remove('glide','snapback');
     tr.style.transition = '';
+    tr.insertBefore(tr.lastElementChild, tr.firstElementChild);  /* oxirgisi boshiga */
+    tr.style.transform = 'translate3d(' + (-w) + 'px,0,0)';
     heroBusy = false;
     heroIdx = (heroIdx - 1 + heroJami) % heroJami;
     syncDots(); heroShine();
@@ -3229,8 +3329,8 @@ function numberFacts(item){
                     : (LANG==='ru'?'Есть в наличии, оформляется сразу':'Bazamizda mavjud, darhol rasmiylashtiriladi') });
   f.push({ icon:'✓', bg:'var(--green-tint)', fg:'var(--green)',
     text: LANG==='ru' ? 'Официальный договор, после оплаты переходит на ваше имя' : "Rasmiy shartnoma bilan, to'lov tugagach nomingizga o'tkaziladi" });
-  f.push({ icon:'→', bg:'var(--card-2)', fg:'var(--text-3)',
-    text: LANG==='ru' ? 'Бесплатная доставка по Узбекистану' : "O'zbekiston bo'ylab bepul yetkazib berish" });
+  /* V143: "O'zbekiston bo'ylab bepul yetkazib berish" qatori MIJOZ
+     SO'ROVI bilan olib tashlandi. */
   return f.slice(0,4);
 }
 
@@ -3305,16 +3405,16 @@ function renderOrder(){
         </div>
       </div>
 
+      ${!canIns ? '' : `
       <div class="card" style="margin-top:12px">
         <div class="eyebrow">${t("To'lov usuli")}</div>
         <div style="margin-top:12px;display:flex;gap:9px">
-          ${(canIns ? ['cash','installment'] : ['cash']).map(p => `<button data-pay="${p}" style="flex:1;padding:13px 10px;border-radius:14px;border:1.5px solid ${ORD.paymentType===p?'var(--blue)':'var(--line-2)'};background:${ORD.paymentType===p?'var(--blue-tint)':'var(--card)'};text-align:center">
+          ${['cash','installment'].map(p => `<button data-pay="${p}" style="flex:1;padding:13px 10px;border-radius:14px;border:1.5px solid ${ORD.paymentType===p?'var(--blue)':'var(--line-2)'};background:${ORD.paymentType===p?'var(--blue-tint)':'var(--card)'};text-align:center">
             <span style="display:block;font-size:13.5px;font-weight:${ORD.paymentType===p?'800':'700'};color:${ORD.paymentType===p?'var(--blue-ink)':'var(--text-2)'}">${p==='cash'?t("To'liq to'lov"):t("Bo'lib to'lash")}</span>
             <span style="display:block;margin-top:3px;font-size:10.5px;font-weight:650;color:var(--muted-2)">${p==='cash'?t('Bir martada'):months[0]+'–'+months[months.length-1]+' '+t('oy')}</span>
           </button>`).join('')}
         </div>
-        ${canIns ? '' : `<div style="margin-top:10px;font-size:11.5px;color:var(--muted-2);font-weight:600">${LANG==='ru'?'Для этого номера рассрочка не предусмотрена.':"Bu raqam uchun bo'lib to'lash ko'zda tutilmagan."}</div>`}
-        ${(canIns && ORD.paymentType==='installment') ? `
+        ${(ORD.paymentType==='installment') ? `
         <div style="margin-top:14px">
           <div class="eyebrow">${t('Muddat')}</div>
           <div style="margin-top:10px;display:grid;grid-template-columns:repeat(${months.length},minmax(0,1fr));gap:8px">
@@ -3325,13 +3425,12 @@ function renderOrder(){
             ${ORD.down?`<div style="margin-top:8px;display:flex;align-items:baseline"><span style="flex:1;font-size:12.5px;color:var(--text-3);font-weight:650">${t("Bosh to'lov")}</span><span class="sg" style="font-size:14px;font-weight:700">${formatPrice(ORD.down)} ${SUM()}</span></div>`:''}
           </div>
         </div>` : ''}
-      </div>
+      </div>`}
 
 
       <div class="card" style="margin-top:12px">
         <div style="display:flex;flex-direction:column;gap:10px">
           ${ORD.paymentType === 'installment' ? '' : `<div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Raqam narxi')}</span><span class="sg" style="font-size:13.5px;font-weight:700">${formatPrice(it.price)}${isUsd(it)?' $':''}</span></div>`}
-          <div style="display:flex"><span style="flex:1;font-size:13px;color:var(--text-3);font-weight:600">${t('Yetkazib berish')}</span><span class="sg" style="font-size:13.5px;font-weight:700;color:var(--green)">${t('Bepul')}</span></div>
           <div style="height:1px;background:var(--line-3)"></div>
           <div style="display:flex;align-items:baseline"><span style="flex:1;font-size:14.5px;font-weight:800">${ORD.paymentType==='installment'?t('Oyiga'):t('Jami')}</span><span class="sg" style="font-size:20px;font-weight:700">${ORD.paymentType==='installment'?formatPrice(ORD.monthly):formatPrice(finalPrice())} ${(ORD.paymentType!=='installment'&&isUsd(ORD.item))?'<span class="cur-usd">$</span>':`<span style="font-family:'Plus Jakarta Sans';font-size:12px;color:var(--muted-2);font-weight:600">${SUM()}</span>`}</span></div>
         </div>

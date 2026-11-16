@@ -12,7 +12,7 @@
          javascript:alert(document.querySelector('meta[name=vip-versiya]').content)
      yoki kompyuterda sahifa kodini ochib (Ctrl+U) "vip-versiya" ni
      qidiring. Ko'rsatilgan son shu arxivning raqami bo'lishi kerak. -->
-<meta name="vip-versiya" content="142">
+<meta name="vip-versiya" content="144">
 <meta charset="UTF-8">
 <!-- Mijoz so'rovi: sayt YAQINLASHTIRILMAYDI (zoom o'chirilgan).
      Ikki barmoq bilan ham, ikki marta bosganda ham o'lcham o'zgarmaydi —
@@ -211,7 +211,7 @@ try{
      assets/app.js boshidagi izoh). Yo'l ILDIZDAN boshlanadi —
      `/raqam/...` kabi chuqur manzillarda ham to'g'ri topilsin
      (ilgari shriftlarda aynan shu xato bo'lgan edi). -->
-<link rel="preload" as="script" href="/assets/app.js?v=142">
+<link rel="preload" as="script" href="/assets/app.js?v=144">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js">
 <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js">
@@ -2128,17 +2128,26 @@ html.low .prf::after{display:none}
    ko'zga deyarli bir xil, lekin bepul), animatsiya esa qisqartirildi:
    oyna 0,62 s -> 0,28 s, parda 0,5 s -> 0,16 s. Faqat `transform` va
    `opacity` o'zgaradi, ya'ni ish videokartada bajariladi. */
-.sheet .bd{position:absolute;inset:0;background:rgba(6,18,37,.62);animation:fin .16s linear both}
+/* V143: parda 160 -> 220 ms. Mijoz "qotib, keskin ochilyapti" dedi —
+   pardaning birdan qorayishi ham shu hissiyotning bir qismi edi. */
+.sheet .bd{position:absolute;inset:0;background:rgba(6,18,37,.62);animation:fin .22s linear both}
 @keyframes fin{from{opacity:0}}
 .sheet .pn{
   position:relative;width:100%;max-width:var(--app-w);max-height:94dvh;background:var(--ground);
   border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;flex-direction:column;overflow:hidden;
-  animation:sin .28s cubic-bezier(.22,.9,.28,1) both;
+  /* V143: 280 -> 340 ms va yumshoqroq egri chiziq.
+     MIJOZ SO'ROVI: "kartochka ustiga bosganda to'liq ma'lumot
+     ochganda qotib, tez ochilyapti — yumshoq, o'rtacha me'yorda
+     animatsiya bilan ochilsin".
+     Egri chiziq oxirida sekin so'nadi, ya'ni panel joyiga "o'tiradi",
+     to'xtab qolmaydi. Boshlang'ich siljish 12% -> 9%: uzoqdan
+     otilib kelmaydi, yaqindan yumshoq ko'tariladi. */
+  animation:sin .34s cubic-bezier(.26,.9,.3,1) both;
 }
-@keyframes sin{from{transform:translateY(12%);opacity:0}to{transform:translateY(0);opacity:1}}
-.sheet.closing .pn{animation:sout .2s cubic-bezier(.4,0,.7,.4) forwards}
-.sheet.closing .bd{animation:fout .18s linear forwards}
-@keyframes sout{to{transform:translateY(10%);opacity:0}}
+@keyframes sin{from{transform:translateY(9%);opacity:0}to{transform:translateY(0);opacity:1}}
+.sheet.closing .pn{animation:sout .24s cubic-bezier(.4,0,.7,.4) forwards}
+.sheet.closing .bd{animation:fout .22s linear forwards}
+@keyframes sout{to{transform:translateY(9%);opacity:0}}
 @keyframes fout{to{opacity:0}}
 .sheet .grip{padding:11px 0 0;display:flex;justify-content:center;flex:none}
 .sheet .grip span{width:40px;height:4px;border-radius:2px;background:var(--line-2)}
@@ -2173,15 +2182,34 @@ html.low .prf::after{display:none}
    bo'ladi. Natija — "bosdim, qotib ochildi".
 
    Shuning uchun sekin qurilmada sirg'alish o'rniga FAQAT shaffoflik
-   (opacity) o'zgaradi va u ham qisqa — 120 ms. Opacity allaqachon
-   chizilgan qatlam uchun eng arzon amal. Ko'rinish deyarli bir xil:
-   oyna baribir "paydo bo'ladi", faqat pastdan sirg'almaydi. */
-@keyframes sheetPaydo{ from{opacity:0} to{opacity:1} }
+   (opacity) o'zgarardi va u ham qisqa — 120 ms.
+
+   ============== V143 — BU YERDA O'ZGARDI ==============
+   MIJOZ AYTDI: "qotib, tez ochilyapti — yumshoq, o'rtacha me'yorda
+   bo'lsin". Haqiqatan ham 120 ms'lik oddiy shaffoflik ochilish
+   EMAS, "birdan paydo bo'lish" bo'lib ko'rinadi.
+
+   Endi sekin qurilmada ham panel pastdan sirg'aladi, lekin
+   YENGILLASHTIRILGAN holda:
+       * siljish 9% emas, 6% — bosib o'tiladigan masofa kichik,
+         ya'ni har kadrda birlashtiriladigan maydon ham kichik;
+       * davomiyligi 240 ms — kuchli telefondagidan qisqa, lekin
+         "paydo bo'lish" emas, haqiqiy ochilish sifatida o'qiladi.
+
+   NEGA ENDI BU ARZON. V137'da `tayyorlanyapti` qoidasi qo'shilgan:
+   panel avval BIR KADR davomida animatsiyasiz chiziladi va faqat
+   keyin animatsiya boshlanadi. Ya'ni "hali chizilmagan panelni
+   sirg'atish" muammosi allaqachon yo'q — sirg'alish endi tayyor,
+   videokartadagi qatlam ustida bajariladi. */
+@keyframes sheetPaydo{
+  from{transform:translateY(6%);opacity:0}
+  to  {transform:translateY(0);opacity:1}
+}
 html.low .sheet .pn{
-  animation:sheetPaydo .12s linear both !important;
+  animation:sheetPaydo .24s cubic-bezier(.26,.9,.3,1) both !important;
 }
 html.low .sheet.closing .pn{
-  animation:sheetPaydo .1s linear reverse both !important;
+  animation:sheetPaydo .18s cubic-bezier(.4,0,.7,.4) reverse both !important;
 }
 
 .sheet.tayyorlanyapti .pn{
@@ -4151,7 +4179,7 @@ html.low .numcard.yangi{animation:none !important}
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="/assets/app.js?v=142"></script>
+<script defer src="/assets/app.js?v=144"></script>
 <!-- ==================================================================
      "JONSIZ SAYT" QALQONI (V138)
      ------------------------------------------------------------------

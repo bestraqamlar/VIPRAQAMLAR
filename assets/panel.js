@@ -77,10 +77,15 @@ function sanaMaydoniUz(el){
   if(el.id) matn.id = el.id + '_uz';
   oram.appendChild(matn);
 
-  const tugma = document.createElement('button');
-  tugma.type = 'button';
+  /* Chizilgan taqvim belgisi — V143 dan boshlab FAQAT BEZAK.
+     Bosishni asl `type="date"` maydonining o'zi qabul qiladi (uslublar
+     faylidagi batafsil izohga qarang), shu sabab bu yerda `<span>`
+     ishlatiladi: `<button>` bo'lsa `.settings-form button` kabi umumiy
+     qoidalar yana uni katta ko'k tugmaga aylantirib qo'yardi, va u
+     klaviatura bilan yurganda keraksiz to'xtash nuqtasi bo'lardi. */
+  const tugma = document.createElement('span');
   tugma.className = 'uzsana-btn';
-  tugma.setAttribute('aria-label', 'Taqvimni ochish');
+  tugma.setAttribute('aria-hidden', 'true');
   tugma.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';
   oram.appendChild(tugma);
 
@@ -116,10 +121,40 @@ function sanaMaydoniUz(el){
     if(!matndanIso()) matnniYangila();
   });
 
-  tugma.addEventListener('click', ()=>{
-    try{ if(typeof el.showPicker === 'function'){ el.showPicker(); return; } }catch(e){}
-    try{ el.focus(); el.click(); }catch(e){}
+  /* V143 — MAYDON BOSILGANDA BUTUN SANA BELGILANADI.
+     MUAMMO: maydonda allaqachon sana turgan bo'lsa (masalan bugungi
+     kun o'zi qo'yilgan), uning uzunligi 10 ta belgiga — ya'ni
+     `maxlength` ga — yetgan bo'ladi. Admin ustiga yozmoqchi bo'lsa
+     hech narsa kiritilmasdi: avval o'chirishi kerak edi. Telefonda bu
+     ayniqsa noqulay.
+     YECHIM: maydonga kirilganda matn butunlay belgilanadi, shu sabab
+     birinchi bosilgan raqam eskisini ALMASHTIRADI. */
+  const belgila = ()=>{ try{ matn.select(); }catch(e){} };
+  matn.addEventListener('focus', belgila);
+  matn.addEventListener('click', ()=>{
+    /* Faqat kursor hali ko'chirilmagan bo'lsa belgilaymiz — admin
+       sananing o'rtasini tuzatmoqchi bo'lsa xalaqit bermaymiz. */
+    if(matn.selectionStart === matn.selectionEnd && matn.selectionStart === 0) belgila();
   });
+
+  /* Asl maydon bosilganda brauzer taqvimi O'ZI ochiladi (u ko'rinmas
+     holda o'ng chekkada turadi). Kompyuterdagi Chrome faqat taqvim
+     belgisi bosilgandagina ochadi, shuning uchun u yerda qo'shimcha
+     `showPicker()` chaqiriladi — telefonda esa bu shartsiz ishlaydi.
+     Xato bersa (eski brauzer) — hech narsa buzilmaydi, maydonning
+     o'z xatti-harakati qoladi. */
+  el.addEventListener('click', ()=>{
+    try{ if(typeof el.showPicker === 'function') el.showPicker(); }catch(e){}
+  });
+  /* Sana tanlangach, fokus matn maydoniga qaytsin — admin darhol
+     keyingi maydonga o'tа oladi. */
+  el.addEventListener('change', ()=>{ matnniYangila(); });
+
+  /* Maydonga ism berib qo'yamiz — ekran o'qituvchi uchun */
+  if(!matn.getAttribute('aria-label')){
+    const lbl = el.id ? document.querySelector('label[for="' + el.id + '"]') : null;
+    matn.setAttribute('aria-label', (lbl && lbl.textContent.trim()) || 'Sana');
+  }
 
   matnniYangila();
 }
@@ -2233,8 +2268,9 @@ let vzWatchStarted = false;
 
 async function vzGlobalCheck(){
   // Admin hozir biror joyga yozayotgan bo'lsa — bu tekshiruvni o'tkazib
-  // yuboramiz (keyingi 30 soniyalik siklda baribir qayta ishlaydi).
+  // yuboramiz (keyingi siklda baribir qayta ishlaydi).
   if(isUserTyping) return;
+  if(document.hidden) return;   /* V144: fon oynada o'qimaymiz */
   try{
     const snap = await db.collection('admin_tasks').where('completed', '==', false).get();
     const now = Date.now();
@@ -2268,7 +2304,11 @@ function startVazifalarWatch(){
   if(vzWatchStarted) return;
   vzWatchStarted = true;
   vzGlobalCheck();
-  setInterval(vzGlobalCheck, 30000);
+  /* V144: 30 soniya -> 2 daqiqa. Bu tekshiruv `admin_tasks` dagi
+     BARCHA tugallanmagan vazifalarni o'qiydi. Dedlayn ogohlantirishi
+     uchun 2 daqiqalik aniqlik mutlaqo yetarli, o'qishlar esa to'rt
+     barobar kamayadi. */
+  setInterval(vzGlobalCheck, 120000);
 }
 document.getElementById('taskBellBtn').addEventListener('click', ()=>{
   document.querySelector('.tab[data-tab="vazifalar"]').click();
@@ -4371,12 +4411,21 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
   const startDateVal = document.getElementById('crStartDate').value;
   const payDay = Number(document.getElementById('crPayDay').value) || 1;
   const info = document.getElementById('crInfo').value.trim();
+  const hasDown = !!(document.getElementById('crHasDown') || {}).checked;
+  const downSum = Number((document.getElementById('crDown') || {}).value) || 0;
   const passportNumber = document.getElementById('crPassport').value.trim();
   const birthDate = document.getElementById('crBirthDate').value;
   const permanentAddress = document.getElementById('crAddress').value.trim();
 
   if(!name || !phone || !region || !number || months <= 0 || monthly <= 0){
     msg.textContent = "Barcha maydonlarni to'g'ri to'ldiring";
+    msg.className = 'settings-msg bad';
+    return;
+  }
+  /* Ptichka yoqilgan, lekin summa kiritilmagan — yarim holatda
+     shartnoma yaratmaymiz, aks holda jadval noto'g'ri quriladi. */
+  if(hasDown && downSum <= 0){
+    msg.textContent = "Boshlang'ich to'lov summasini kiriting (yoki ptichkani o'chiring)";
     msg.className = 'settings-msg bad';
     return;
   }
@@ -4392,6 +4441,9 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
       customerName: qisq(name, 100), customerPhone: qisq(phone, 30),
       region: qisq(region, 60), number: qisq(number, 30),
       totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
+      /* Bosh to'lov (V143) — ptichka va summa birga yuboriladi.
+         Server summa 0 bo'lsa bosh to'lovni YO'Q deb hisoblaydi. */
+      hasDownPayment: hasDown, downPayment: downSum,
       currency: document.getElementById('crCurrency').value === 'usd' ? 'USD' : 'UZS',
       additionalInfo: qisq(info, 500), startDate: qisq(startDateVal, 20),
       passportNumber: qisq(passportNumber, 30), birthDate: qisq(birthDate, 20),
@@ -4419,9 +4471,11 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
       }catch(e){ console.error('Shartnoma PDF yuborishda xato:', e); }
     }
 
-    ['crName','crPhone','crRegion','crNumber','crMonths','crMonthly','crPayDay','crInfo','crPassport','crBirthDate','crAddress'].forEach(id=>{
-      document.getElementById(id).value = '';
+    ['crName','crPhone','crRegion','crNumber','crMonths','crMonthly','crPayDay','crInfo','crPassport','crBirthDate','crAddress','crDown'].forEach(id=>{
+      const e = document.getElementById(id); if(e) e.value = '';
     });
+    const hd = document.getElementById('crHasDown');
+    if(hd){ hd.checked = false; hd.dispatchEvent(new Event('change', { bubbles:true })); }
     document.getElementById('crStartDate').value = new Date().toISOString().slice(0,10);
     loadCreditContracts();
     refreshCrLivePreview();
@@ -4456,30 +4510,55 @@ function refreshCrLivePreview(){
     return;
   }
 
-  const jami = months * monthly;
+  /* BOSH TO'LOV (V143) */
+  const hasDown = !!(document.getElementById('crHasDown') || {}).checked;
+  const downSum = Number(V('crDown')) || 0;
+  const boshBor = hasDown && downSum > 0;
+
+  const jami = months * monthly + (boshBor ? downSum : 0);
   let html = '';
   if(name) html += '<div class="cr-live-row"><span>Mijoz</span><b>' + escapeHtml(name.slice(0, 24)) + '</b></div>';
   html += '<div class="cr-live-row"><span>Muddat</span><b>' + (months ? months + ' oy' : '—') + '</b></div>';
+  if(boshBor) html += '<div class="cr-live-row"><span>Boshlang\'ich to\'lov</span><b>' + pul(downSum) + VAL + '</b></div>';
   html += '<div class="cr-live-row"><span>Oylik to\'lov</span><b>' + (monthly ? pul(monthly) + VAL : '—') + '</b></div>';
-  html += '<div class="cr-live-row is-big"><span>Jami summa</span><b>' + (jami ? pul(jami) + VAL : '—') + '</b></div>';
+  html += '<div class="cr-live-row is-big"><span>Jami to\'lanadi</span><b>' + (jami ? pul(jami) + VAL : '—') + '</b></div>';
 
+  /* JADVALNI SERVERDAGI AYNAN SHU QOIDA BO'YICHA QURAMIZ (V143).
+     MUHIM: bu yerdagi hisob serverdagi `jadvalQur()` bilan BIR XIL
+     bo'lishi shart — aks holda admin ko'rgan jadval saqlangandan
+     keyingisidan farq qilib, ishonch yo'qolardi.
+       * bosh to'lovsiz: 1-to'lov shartnoma sanasida, qolganlari
+         keyingi oydan, to'lov kunida;
+       * bosh to'lov bilan: bosh to'lov shartnoma sanasida, oyliklar
+         to'liq N ta bo'lib keyingi oydan.
+     Qisqa oylar ham hisobga olinadi (31-sana fevralda 28/29 ga). */
   const boshlanish = startVal ? new Date(startVal + 'T00:00:00') : new Date();
+  const q = (x) => String(x).padStart(2, '0');
+  const fmt = (d) => q(d.getDate()) + '.' + q(d.getMonth() + 1) + '.' + d.getFullYear();
+  const oyKuni = (yil, oy) => new Date(yil, oy + 1, 0).getDate();
+  const sanaOl = (oyQoshish) => {
+    const norm = new Date(boshlanish.getFullYear(), boshlanish.getMonth() + oyQoshish, 1);
+    const kun = Math.min(payDay, oyKuni(norm.getFullYear(), norm.getMonth()));
+    return new Date(norm.getFullYear(), norm.getMonth(), kun);
+  };
+  const tolovSana = (i) => {
+    if(boshBor) return sanaOl(i + 1);
+    if(i === 0) return new Date(boshlanish.getFullYear(), boshlanish.getMonth(), boshlanish.getDate());
+    return sanaOl(i);
+  };
+
   if(months){
-    const oxiri = new Date(boshlanish);
-    oxiri.setMonth(oxiri.getMonth() + months);
-    oxiri.setDate(payDay);
-    const q = (x) => String(x).padStart(2, '0');
-    html += '<div class="cr-live-row"><span>Yakunlanadi</span><b>' + q(oxiri.getDate()) + '.' + q(oxiri.getMonth() + 1) + '.' + oxiri.getFullYear() + '</b></div>';
+    html += '<div class="cr-live-row"><span>Yakunlanadi</span><b>' + fmt(tolovSana(months - 1)) + '</b></div>';
   }
 
   if(months && monthly){
     html += '<div class="cr-live-sched"><div class="cr-live-sched-t">Dastlabki to\'lov jadvali</div>';
+    if(boshBor){
+      html += '<div class="cr-live-sched-row" style="color:var(--amber);font-weight:700"><span>Bosh to\'lov · ' + fmt(boshlanish) + '</span><span>' + pul(downSum) + '</span></div>';
+    }
     const n = Math.min(months, 4);
     for(let i = 0; i < n; i++){
-      const d = new Date(boshlanish);
-      d.setMonth(d.getMonth() + i + 1);
-      d.setDate(payDay);
-      const q = (x) => String(x).padStart(2, '0');
+      const d = tolovSana(i);
       html += '<div class="cr-live-sched-row"><span>' + (i + 1) + '-oy · ' + q(d.getDate()) + '.' + q(d.getMonth() + 1) + '</span><span>' + pul(monthly) + '</span></div>';
     }
     if(months > n) html += '<div class="cr-live-sched-row" style="color:var(--muted);"><span>... yana ' + (months - n) + ' ta to\'lov</span><span></span></div>';
@@ -4495,10 +4574,23 @@ function refreshCrLivePreview(){
    asosiy sababi aynan shu edi. Endi yozish tingach (250 ms) bir
    marta chiziladi — natija bir xil, yozish esa mutlaqo erkin. */
 const crLiveKechikkan = debounce(refreshCrLivePreview, 250);
-['crName','crMonths','crMonthly','crPayDay','crStartDate','crCurrency'].forEach(id => {
+['crName','crMonths','crMonthly','crPayDay','crStartDate','crCurrency','crDown','crHasDown'].forEach(id => {
   const el = document.getElementById(id);
   if(el){ el.addEventListener('input', crLiveKechikkan); el.addEventListener('change', refreshCrLivePreview); }
 });
+/* Ptichka yoqilganda summa maydoni ko'rinadi/yashirinadi */
+(function boshTolovPtichka(){
+  const p = document.getElementById('crHasDown');
+  const w = document.getElementById('crDownWrap');
+  if(!p || !w) return;
+  const yangila = ()=>{
+    w.hidden = !p.checked;
+    if(!p.checked){ const d = document.getElementById('crDown'); if(d) d.value = ''; }
+    refreshCrLivePreview();
+  };
+  p.addEventListener('change', yangila);
+  yangila();
+})();
 refreshCrLivePreview();
 
 // "short" — tor ekran va kredit kartasi uchun qisqa nom. To'liq nomi
@@ -4805,6 +4897,12 @@ function renderCreditList(contracts){
           '<i>' + escapeHtml(d.customerName || '') +
             (d.customerPhone ? ' · <a href="tel:' + escapeHtml((d.customerPhone || '').replace(/\s/g, '')) + '">' + escapeHtml(d.customerPhone) + '</a>' : '') +
           '</i>' +
+          /* SHARTNOMA RAQAMI — RAQAM TAGIDA, KICHKINA (V143).
+             Mijoz so'rovi: "kredit shartnomalar ko'rayotganda admin
+             kichkina qilib raqam tagiga qo'yib ket". Admin mijoz bilan
+             gaplashayotganda shartnoma raqamini aytishi kerak bo'ladi,
+             ilgari esa uni ko'rish uchun kartochkani ochish kerak edi. */
+          (d.contractId ? '<u class="qzc-shid">Shartnoma № ' + escapeHtml(String(d.contractId)) + '</u>' : '') +
         '</span>' +
         // 2-ustun: holati
         '<span class="qzc qzc-state">' + qzPill(a) + '</span>' +
@@ -8584,13 +8682,32 @@ let visitorTrackingTimer = null;
 function startVisitorTracking(){
   updateVisitorStats();
   if(visitorTrackingTimer) clearInterval(visitorTrackingTimer);
-  visitorTrackingTimer = setInterval(updateVisitorStats, 15000);
+  /* V144: 15 soniya -> 60 soniya.
+     NEGA. Bu tekshiruv har safar IKKI so'rov yuboradi:
+       `active_sessions` (hozir saytdagilar) + `site_stats` hujjati.
+     15 soniyada bir marta = soatiga 240 sikl. Agar saytda 20 kishi
+     bo'lsa, bu soatiga ~5000 o'qish — VA FAQAT BITTA ochiq admin
+     oynasidan. Admin panelni ish kuni davomida ochiq qoldirsa, bu
+     yolg'iz o'zi kunlik bepul o'qish kvotasini yeb qo'yadi va
+     keyin BUTUN sayt "ishlamay qoladi" (Firestore amallarni rad
+     eta boshlaydi).
+     60 soniya "hozir saytda" sanog'i uchun yetarli aniq. */
+  visitorTrackingTimer = setInterval(updateVisitorStats, 60000);
 }
 
 async function updateVisitorStats(){
   // Admin hozir yozayotgan bo'lsa — bu davriy so'rovni o'tkazib yuboramiz
-  // (keyingi 15 soniyalik siklda baribir davom etadi).
+  // (keyingi siklda baribir davom etadi).
   if(isUserTyping) return;
+  /* V144: ikkita QAT'IY to'xtatuvchi shart.
+     1) Oyna fonda bo'lsa (admin boshqa ilovada) — o'qish SHART EMAS,
+        baribir hech kim ko'rmaydi;
+     2) Boshqaruv paneli bo'limi ochiq bo'lmasa — bu sanoqlar faqat
+        o'sha bo'limda ko'rsatiladi, boshqa bo'limda o'qish behuda.
+     Shu ikki shart o'qishlarning katta qismini butunlay yo'q qiladi. */
+  if(document.hidden) return;
+  const dash = document.getElementById('paneDashboard');
+  if(!dash || !dash.classList.contains('active')) return;
   try{
     // Ayni vaqtda saytda: oxirgi 40 soniya ichida "men shu yerdaman" deb signal bergan seanslar
     // (lastSeen endi Firestore serverTimestamp — solishtirish uchun ham Timestamp kerak)
