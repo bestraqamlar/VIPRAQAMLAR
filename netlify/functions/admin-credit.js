@@ -32,18 +32,104 @@ const db = admin.firestore();
 db.settings({ preferRest: true });
 
 const COLLECTION = 'credit_contracts';
-const ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/* SHARTNOMA RAQAMI — 2 HARF + 5 RAQAM (V146)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "shartnoma ID berayotganda endi XX12345 — tasodifiy
+   2 harf 5 ta son berilsin".  Masalan: KD48217, PR90134.
+
+   NEGA HARFLAR CHEKLANGAN. `I`, `O`, `Q`, `S` ishlatilmaydi: ular
+   og'zaki aytilganda va qo'lda yozilganda `1`, `0`, `9`, `5` bilan
+   adashtiriladi. Shartnoma raqamini admin telefonda mijozga aytadi,
+   shuning uchun chalkashlik bo'lmasligi muhim.
+
+   ESKI SHARTNOMALAR TEGILMAYDI — bu faqat YANGI shartnomaga beriladi.
+   TAKRORLANMASLIK: 21x21x90000 = ~40 mln variant, ustiga quyida
+   bazadan tekshiruv ham bor. */
+const ID_HARF = 'ABCDEFGHJKLMNPRTUVXYZ';
 
 function randomContractId() {
-  let id = '';
-  for (let i = 0; i < 5; i++) id += ID_CHARS[Math.floor(Math.random() * ID_CHARS.length)];
-  return id;
+  const h = () => ID_HARF[Math.floor(Math.random() * ID_HARF.length)];
+  return h() + h() + String(10000 + Math.floor(Math.random() * 90000));
 }
 
-function calcDueDate(startTs, payDay, monthOffset) {
+/* ==================================================================
+   TO'LOV JADVALI — IKKI XIL (V146)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI (oxirgi tahrir, aynan):
+     "bundan keyin kredit qo'shganda ikki xil bo'lsin — bosh to'lov
+      yoki bosh to'lovsiz, ikkisidan birini tanlab qilaveramiz.
+      Agar bosh to'lov bosilsa, to'lov qisqa: 23 oyi qoladi.
+      Narigisida esa keyingi oydan to'lov bo'ladi."
+
+   ============ 1) BOSH TO'LOVSIZ ============
+   Shartnoma kunida hech qanday to'lov yo'q. To'lovlar KEYINGI OYDAN
+   boshlanadi va to'liq N ta bo'ladi.
+       24 oy, shartnoma 10.11.2026, to'lov kuni 10:
+         1-to'lov   10.12.2026
+         ...
+         24-to'lov  10.11.2028
+
+   ============ 2) BOSH TO'LOV BILAN ============
+   Bosh to'lov SHARTNOMA KUNIDA olinadi va u BIRINCHI OY O'RNIGA
+   hisoblanadi. Shuning uchun oylik to'lovlar bittaga KAM bo'ladi.
+       24 oy, shartnoma 10.11.2026, to'lov kuni 10:
+         Bosh to'lov  10.11.2026
+         1-to'lov     10.12.2026
+         ...
+         23-to'lov    10.10.2028     <-- 23 ta (mijoz aytganidek)
+
+   IKKALA HOLATDA HAM oylik to'lovlar keyingi oydan boshlanadi —
+   farq faqat SONIDA (N yoki N-1) va bosh to'lov borligida.
+
+   ============ NOZIK JOY — QISQA OYLAR ============
+   To'lov kuni 31 bo'lsa, fevralda 31-sana yo'q. `new Date(yil,oy,31)`
+   esa jimgina keyingi oyga o'tib ketadi (3-mart bo'lib qoladi) va
+   jadvalni buzardi. Shuning uchun kun oyning haqiqiy uzunligiga
+   qisqartiriladi: fevralda 28 (kabisa yilida 29), aprelda 30.
+   ================================================================== */
+
+/* Oyning oxirgi kuni (oy 0-11 tartibida) */
+function oyningOxirgiKuni(yil, oy) {
+  return new Date(yil, oy + 1, 0).getDate();
+}
+
+/* Shartnoma sanasidan `oyQoshish` oy keyingi, `payDay` kunidagi sana */
+function calcDueDate(startTs, payDay, oyQoshish) {
   const d = new Date(startTs);
-  const target = new Date(d.getFullYear(), d.getMonth() + monthOffset + 1, payDay);
-  return target.getTime();
+  const norm = new Date(d.getFullYear(), d.getMonth() + oyQoshish, 1);
+  const kun = Math.min(payDay, oyningOxirgiKuni(norm.getFullYear(), norm.getMonth()));
+  return new Date(norm.getFullYear(), norm.getMonth(), kun).getTime();
+}
+
+/* Kunning boshiga keltiradi */
+function kunBoshi(ts) {
+  const d = new Date(ts);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/* NECHTA OYLIK TO'LOV BO'LADI — bosh to'lov birinchi oy o'rniga
+   hisoblangani uchun bittaga kam. */
+function oylikSoni(months, boshTolovBor) {
+  return boshTolovBor ? Math.max(0, months - 1) : months;
+}
+
+/* JADVALNI QURADI. `eskiTolovlar` — tahrirlashda to'langan oylar
+   saqlanib qolsin. */
+function jadvalQur(startTs, payDay, months, boshTolovBor, eskiTolovlar) {
+  const eski = eskiTolovlar || [];
+  const n = oylikSoni(months, boshTolovBor);
+  const payments = [];
+  for (let i = 0; i < n; i++) {
+    const dueDate = calcDueDate(startTs, payDay, i + 1);   /* keyingi oydan */
+    const old = eski.find(p => p.month === i + 1);
+    payments.push({
+      month: i + 1,
+      dueDate,
+      status: old ? old.status : 'pending',
+      paidAt: old ? old.paidAt : null
+    });
+  }
+  return payments;
 }
 
 // Berilgan shartnomaga kim tegishligini (huquqni) tekshiradi: bosh admin
@@ -139,10 +225,24 @@ async function addContract(body, decoded) {
   }
 
   const startTs = startDateVal ? new Date(startDateVal + 'T00:00:00').getTime() : Date.now();
-  const payments = [];
-  for (let i = 0; i < months; i++) {
-    payments.push({ month: i + 1, dueDate: calcDueDate(startTs, payDay, i), status: 'pending', paidAt: null });
+
+  /* BOSH TO'LOV (V143). Admin formasidagi ptichka yoqilgan bo'lsa,
+     summa ham kelishi kerak; summa 0 yoki kelmagan bo'lsa — bosh
+     to'lov YO'Q deb hisoblanadi (ptichka adashib bosilgan bo'lishi
+     mumkin, yarim holat bilan shartnoma yaratmaymiz). */
+  const downPayment = Math.min(Math.max(Number(body.downPayment) || 0, 0), 1e12);
+  const boshTolovBor = !!body.hasDownPayment && downPayment > 0;
+  /* CHEKKA HOLAT HIMOYASI (V146). Bosh to'lov birinchi oy o'rniga
+     hisoblanadi, shuning uchun 1 oylik shartnomada oylik to'lov
+     umuman qolmaydi va jadval bo'sh bo'lib qolardi — "qolgan summa",
+     eslatmalar va PDF shunda noto'g'ri ishlardi. */
+  if (boshTolovBor && months < 2) {
+    const err = new Error("Boshlang'ich to'lov bilan muddat kamida 2 oy bo'lishi kerak");
+    err.statusCode = 400;
+    throw err;
   }
+
+  const payments = jadvalQur(startTs, payDay, months, boshTolovBor, null);
 
   let customerChatId = null;
   try {
@@ -166,6 +266,16 @@ async function addContract(body, decoded) {
     phoneNormalized: phone.replace(/\D/g, '').slice(-9),
     numberNormalized: number.replace(/\D/g, '').slice(-9),
     totalMonths: months, monthlyPayment: monthly, currency, paymentDay: payDay,
+    /* Bosh to'lov alohida maydonlarda saqlanadi, `payments` ichiga
+       QO'SHILMAYDI. Sababi: butun tizim bo'ylab "to'langan oylar",
+       "qolgan summa", eslatmalar va PDF `payments` ro'yxatini OYLIK
+       to'lovlar deb biladi. Bosh to'lovni o'sha ro'yxatga tiqib
+       qo'ysak, 24 oylik shartnoma 25 oylik bo'lib ko'rinib, barcha
+       hisob-kitob buzilardi. */
+    downPayment: boshTolovBor ? downPayment : 0,
+    downPaymentDueDate: boshTolovBor ? kunBoshi(startTs) : null,
+    downPaymentStatus: boshTolovBor ? 'pending' : null,
+    downPaymentPaidAt: null,
     additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active',
     customerChatId, passportNumber, birthDate, permanentAddress,
     // Kim qo'shgani — HAR DOIM tekshirilgan tokendan olinadi, mijoz
@@ -239,17 +349,18 @@ async function updateContract(body, decoded) {
   const sanaMatn = matn(body, 'startDate');
   const newStartTs = sanaMatn ? new Date(sanaMatn + 'T00:00:00').getTime() : Date.now();
 
-  const oldPayments = existing.payments || [];
-  const payments = [];
-  for (let i = 0; i < newTotalMonths; i++) {
-    const old = oldPayments.find(p => p.month === i + 1);
-    payments.push({
-      month: i + 1,
-      dueDate: calcDueDate(newStartTs, payDay, i),
-      status: old ? old.status : 'pending',
-      paidAt: old ? old.paidAt : null
-    });
-  }
+  /* BOSH TO'LOV — tahrirlashda. `hasDownPayment` yuborilmagan bo'lsa
+     (eski panel yoki boshqa chaqiruv) mavjud holat SAQLANADI, aks
+     holda shartnomani tahrirlash bosh to'lovni jimgina o'chirib
+     yuborardi. */
+  const eskiBoshBor = Number(existing.downPayment) > 0;
+  const boshBerilgan = Object.prototype.hasOwnProperty.call(body, 'hasDownPayment');
+  const yangiBoshSumma = boshBerilgan
+    ? Math.min(Math.max(Number(body.downPayment) || 0, 0), 1e12)
+    : Number(existing.downPayment) || 0;
+  const boshTolovBor = boshBerilgan ? (!!body.hasDownPayment && yangiBoshSumma > 0) : eskiBoshBor;
+
+  const payments = jadvalQur(newStartTs, payDay, newTotalMonths, boshTolovBor, existing.payments || []);
 
   await ref.update({
     customerName: matn(body, 'customerName'),
@@ -267,6 +378,11 @@ async function updateContract(body, decoded) {
     createdAt: newStartTs,
     paymentDay: payDay,
     totalMonths: newTotalMonths,
+    downPayment: boshTolovBor ? yangiBoshSumma : 0,
+    downPaymentDueDate: boshTolovBor ? kunBoshi(newStartTs) : null,
+    /* To'langan bosh to'lov holati saqlanadi */
+    downPaymentStatus: boshTolovBor ? (existing.downPaymentStatus || 'pending') : null,
+    downPaymentPaidAt: boshTolovBor ? (existing.downPaymentPaidAt || null) : null,
     payments
   });
 

@@ -1,55 +1,74 @@
 ================================================================
-  V144 — SHOSHILINCH TUZATISH
-  "Sayt ishlamay qoldi / xotira to'ldi" muammosi
+  VIP RAQAMLAR — V149 TO'LIQ PAKET
+  (V146 + V147 + V148 + V149 hammasi birga)
 ================================================================
 
-!!! ENG MUHIMI: FAYL YUKLASHDAN OLDIN 1-QADAMNI BAJARING !!!
-Fayllarni yuklash o'zi saytni tiklamaydi. Avval bazadagi joyni
-bo'shatish kerak.
+BU PAKET NIMA UCHUN
+-------------------
+Oldin men sizga kichik paketlar berdim (3-6 ta fayl). Ular
+BIR-BIRIGA BOG'LIQ edi va tartib bilan yuklanishi kerak edi.
 
-----------------------------------------------------------------
-1-QADAM — BAZANI BO'SHATISH (saytni DARHOL tiklaydi)
-----------------------------------------------------------------
-  1. console.firebase.google.com ga kiring
-  2. Loyihangizni tanlang -> chap menyuda "Firestore Database"
-  3. To'plamlar ro'yxatidan "active_sessions" ni toping
-  4. Uning yonidagi uch nuqta (⋮) -> "Delete collection"
-  5. Tasdiqlang va tugashini kuting
+Agar bittasini o'tkazib yuborsangiz, muammo chiqardi:
+  * index.html `assets/sayt.css` ni so'raydi (V146 da qo'shilgan) —
+    u bo'lmasa saytning bir qismi uslubsiz qolardi;
+  * netlify.toml `tools/qisqartir.js` ni talab qiladi (V147) —
+    u bo'lmasa DEPLOY UMUMAN ISHLAMAYDI.
 
-  BU XAVFSIZMI? HA. Bu to'plamda faqat "hozir saytda nechta odam
-  bor" degan vaqtinchalik sanoq turadi. Mijozlar, buyurtmalar,
-  shartnomalar, raqamlar — HECH BIRIGA tegmaydi. Sanoq o'zi
-  qaytadan to'planadi.
+Shu paketda HAMMASI bor. Oldingilarini yuklagan-yuklamaganingizdan
+qat'i nazar, FAQAT SHUNI yuklasangiz yetadi.
 
-  To'plam juda katta bo'lsa konsol uni bir urinishda o'chira
-  olmasligi mumkin — o'chirishni 2-3 marta takrorlang.
+================================================================
+QANDAY YUKLASH
+================================================================
 
-----------------------------------------------------------------
-2-QADAM — FAYLLARNI YUKLASH (qaytib to'lmasligi uchun)
-----------------------------------------------------------------
-  GitHub -> "Add file" -> "Upload files" -> shu papkadagi
-  HAMMA narsani birdaniga tashlang (papkalari bilan):
+1. GitHub -> omboringiz -> "Add file" -> "Upload files"
 
-      index.html
-      sw.js
-      assets/app.js
-      assets/panel.js
-      assets/panel.css
-      netlify/functions/admin-tozalash.js
+2. Shu papkadagi HAMMA NARSANI birdaniga tashlang
+   (papkalari bilan: assets, netlify, tools).
 
-  Pastda "Commit changes" — BITTA commit.
+3. Pastda "Commit changes" — BITTA commit.
+   (Har commit 15 kredit. Alohida-alohida yuklasangiz ko'p ketadi.)
 
-----------------------------------------------------------------
-3-QADAM — DEPLOY
-----------------------------------------------------------------
-  Netlify -> Deploys -> Trigger deploy ->
-  "Clear cache and deploy site"
+4. Netlify -> Deploys -> Trigger deploy ->
+   "Clear cache and deploy site"
 
-----------------------------------------------------------------
+================================================================
 TEKSHIRISH
-----------------------------------------------------------------
-  Sayt ochilgach manzil qatoriga yozing:
-  javascript:alert(document.querySelector('meta[name=vip-versiya]').content)
-  "144" chiqsa — o'rnatildi.
+================================================================
+Sayt ochilgach manzil qatoriga yozing:
 
-Nima bo'lganini bilish uchun: OQING-V144.md faylini o'qing.
+javascript:alert(document.querySelector('meta[name=vip-versiya]').content)
+
+"149" chiqsa — hammasi o'rnatildi.
+
+================================================================
+NIMA O'ZGARMAYDI
+================================================================
+Bu paketda FAQAT o'zgargan fayllar bor. Rasmlar, shriftlar, logo,
+qolgan 60 dan ortiq funksiya — hammasi GitHub'da o'z joyida qoladi.
+GitHub bir xil nomli faylni almashtiradi, qolganlariga tegmaydi.
+
+================================================================
+ICHIDAGI 14 TA FAYL
+================================================================
+  index.html                                  sayt sahifasi
+  sw.js                                       oflayn kesh
+  netlify.toml                                deploy sozlamasi
+  package.json                                qurilish paketlari
+  panel-boshqaruv.html                        admin panel
+  assets/app.js                               sayt mantig'i
+  assets/sayt.css                             sayt uslublari (YANGI)
+  assets/panel.js                             panel mantig'i
+  assets/panel.css                            panel uslublari
+  assets/panel-mobil.css                      telefon paneli (YANGI)
+  netlify/functions/admin-credit.js           kredit shartnomalari
+  netlify/functions/customer-bot-webhook.js   mijoz boti
+  netlify/functions/admin-tozalash.js         baza tozalash (YANGI)
+  tools/qisqartir.js                          izohlarni olib tashlash (YANGI)
+
+================================================================
+ESLATMA — FIREBASE
+================================================================
+Agar `active_sessions` to'plamini hali o'chirmagan bo'lsangiz,
+Firebase konsolida o'chiring (V144 da tushuntirilgan). Fayl yuklash
+buni qilmaydi.

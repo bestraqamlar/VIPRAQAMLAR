@@ -1,0 +1,624 @@
+/* ==================================================================
+   ADMIN PANEL — TELEFON KO'RINISHI (V143)
+   MIJOZ SAYTI SHABLONIDA, 0 DAN
+   ==================================================================
+
+   MIJOZ SO'ROVI (aynan):
+     "telefon uchun admin panelni huddi mijoz sayti shablonda 0 dan
+      qurib chiq — rang mavzu, faqat shakl va rangni, kartochkalarni
+      aytdim, ya'ni haqiqiy katta kompaniyanikiday bo'lsin. Hozirgisi
+      juda oddiy va noqulay, tartibsiz, kamchiligi juda ko'p."
+
+   ============== NIMA ANIQLANDI (telefonda o'lchandi) ==============
+   Eski ko'rinishning aniq kamchiliklari:
+     1. YORUG' MAVZU. Mijoz sayti faqat tungi mavzuda ishlaydi, panel
+        esa oq edi — ikkisi bir mahsulotdek ko'rinmasdi.
+     2. YOZUVLAR JUDA YIRIK. Sahifa sarlavhasi ekranga sig'may
+        kesilardi ("Boshqaruv paneli" ning tepasi ko'rinmasdi).
+     3. HAR BO'LIMDA KERAKSIZ KATAKLAR. "Jami raqam / VIP raqam /
+        Jami buyurtma / Hozir saytda" katakchalari Kredit bo'limida
+        ham chiqib, ekranning yarmini egallab turardi.
+     4. KARTOCHKALAR HAR XIL. Biri ko'k, biri yashil, biri binafsha
+        tepa chiziqli, burchaklari ham turlicha — "tartibsiz" degani
+        aynan shu.
+     5. CHIPLAR EKRANDAN CHIQIB KETARDI va pastki menyu mazmunni
+        to'sib turardi.
+
+   ============== QANDAY QURILDI ==============
+   Mijoz saytining AYNAN O'SHA dizayn tizimi olindi:
+     * RANG: tungi ko'k fon (#07162B), kartochka #12294C, bitta soch
+       tolasidek chegara, ko'k firma rangi #2E5FE0, oltin urg'u
+       #E6C877 — qiymatlar mijoz saytidan ko'chirilgan.
+     * SHAKL: 20px burchak, shishasimon kartochka (yuqoridan pastga
+       so'nuvchi yorug'lik + yuqori qirra), tekis ko'k tugma.
+     * TIPOGRAFIKA: Plus Jakarta Sans, raqamlar uchun tabular-nums —
+       summalar ustun bo'lib tekis turadi (bank uslubi).
+
+   ============== TEZLIK QOIDASI ==============
+   Bu yerda `backdrop-filter`, `blur`, `filter` va yangi animatsiya
+   YO'Q. Hamma bezak — statik gradient va soya, ya'ni brauzer bir
+   marta chizib, keyin xotiradan ko'chiradi. Mijoz saytidagi V141/V142
+   ishlaridan keyin o'rganilgan qoida shu.
+
+   MUHIM: faqat 899px dan tor ekranda ishlaydi. Kompyuterdagi panel
+   mijoz so'roviga ko'ra AVVALGIDEK qoladi — bu fayl u yerga umuman
+   tegmaydi.
+   ================================================================== */
+
+@media (max-width: 899px){
+
+  /* ============ 1) RANG MAVZUSI — MIJOZ SAYTIDAN ============ */
+  :root,
+  :root[data-theme="light"],
+  :root[data-theme="dark"]{
+    --bg:#07162B;
+    --panel:#12294C;
+    --panel-2:#1A3763;
+    --line:rgba(255,255,255,.11);
+    --text:#FFFFFF;
+    --text-2:#CBD8EA;
+    --muted:#93A6C2;
+    --amber:#2E5FE0;              /* panelda "asosiy rang" shu nom bilan */
+    --amber-soft:rgba(46,95,224,.22);
+    --green:#3DD68C;
+    --red:#FF8A87;
+
+    /* Mijoz saytidagi qo'shimcha ohanglar */
+    --m-oltin:#E6C877;
+    --m-oltin-tint:rgba(230,200,119,.14);
+    --m-kok-ink:#8FB4FF;
+    --m-yashil-tint:rgba(17,135,92,.22);
+    --m-qizil-tint:rgba(194,48,46,.22);
+    --m-qirra:rgba(255,255,255,.2);
+    --m-shisha:linear-gradient(180deg,
+                 rgba(255,255,255,.105) 0%,
+                 rgba(255,255,255,.022) 44%,
+                 transparent 100%);
+    --m-soya:0 1px 2px rgba(3,10,22,.24), 0 12px 26px -20px rgba(3,10,22,.8);
+  }
+
+  html, body{
+    background:var(--bg) !important;
+    color:var(--text) !important;
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  /* Orqa fondagi naqsh/gradientlar olib tashlanadi — mijoz saytida
+     ham fon tekis, va tekis fon chizishga eng arzon. */
+  body::before, body::after,
+  .main-content::before, .main-content::after{ display:none !important; }
+
+  /* ============ 2) SAHIFA KARKASI ============ */
+  .main-content{
+    background:transparent !important;
+    padding:0 14px calc(86px + env(safe-area-inset-bottom)) !important;
+    /* pastki menyu mazmunni to'smasligi uchun joy qoldiriladi */
+  }
+  .pane{ padding:0 !important; }
+
+  /* Yon menyu telefonda umuman kerak emas (pastki menyu bor) */
+  .sidebar, .tabs-col, .tab-group{ display:none !important; }
+
+  /* ---- Yuqoridagi qator: ixcham, yopishib turadigan ---- */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    margin:0 -14px 12px; padding:calc(10px + env(safe-area-inset-top)) 14px 10px !important;
+    background:rgba(7,22,43,.92) !important;
+    border-bottom:1px solid var(--line) !important;
+    box-shadow:none !important;
+    display:flex; align-items:center; gap:10px;
+    min-height:0 !important;
+  }
+
+  /* ============ 3) SAHIFA SARLAVHASI ============
+     Eski muammo: sarlavha 28-32px edi va ekranga sig'may kesilardi.
+     Mijoz saytidagi o'lcham olindi: 19px sarlavha + 11.5px izoh. */
+  .page-head{
+    display:flex; align-items:flex-start; gap:10px;
+    margin:2px 0 14px !important; padding:0 !important;
+    background:none !important; border:0 !important; box-shadow:none !important;
+  }
+  .page-head .ph-txt{ flex:1; min-width:0; }
+  .page-head h1{
+    font-size:19px !important; line-height:1.25; font-weight:800 !important;
+    color:var(--text) !important; margin:0 !important; letter-spacing:-.01em;
+  }
+  .page-head p{
+    font-size:11.5px !important; line-height:1.5; color:var(--muted) !important;
+    margin:4px 0 0 !important; font-weight:600;
+  }
+  .page-head .ph-acts{ display:flex; gap:8px; flex:none; }
+
+  /* Asosiy amal tugmasi — ixcham, yumaloq, mijoz saytidagidek */
+  .ph-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    height:38px; padding:0 14px; border-radius:12px;
+    background:var(--panel-2) !important; color:var(--text) !important;
+    border:1px solid var(--line) !important; box-shadow:none !important;
+    font-size:12.5px; font-weight:700; white-space:nowrap;
+  }
+  .ph-btn.is-primary{
+    background:var(--amber) !important; border-color:transparent !important;
+    color:#fff !important;
+  }
+  .ph-btn svg{ width:16px; height:16px; }
+  .ph-btn span{ display:inline; }
+
+  /* ============ 4) KARTOCHKALAR — BITTA SHAKL, BITTA RANG ============
+     Mijoz saytidagi shishasimon kartochkaning aynan o'zi:
+     tekis asos + yuqoridan so'nuvchi yorug'lik + yuqori qirra. */
+  .settings-form, .card, .dash-card, .mgmt-card, .fin-card,
+  .wt-item, .uzx-item, .zk-cust-card, .order-card, .qz-item,
+  .cr-live, .admin-row-collapsed, .sessions-list > *{
+    background:var(--m-shisha), var(--panel) !important;
+    border:1px solid var(--line) !important;
+    border-radius:20px !important;
+    box-shadow:inset 0 1px 0 var(--m-qirra), var(--m-soya) !important;
+    color:var(--text);
+  }
+  .settings-form, .card, .dash-card, .mgmt-card{
+    padding:15px 15px 16px !important;
+    margin:0 0 12px !important;
+  }
+  .pane h3{
+    font-size:14.5px !important; font-weight:800 !important;
+    color:var(--text) !important; margin:0 0 12px !important;
+  }
+
+  /* Ichki "tepa rangli chiziq"lar olib tashlanadi — tartibsizlikning
+     asosiy sababi aynan shu edi (har kartochkada boshqa rang). */
+  .dash-card::before, .dash-card::after,
+  .order-card::before, .zk-stat-card::before{ display:none !important; }
+  .order-card, .admin-row-collapsed{ border-left-width:1px !important; }
+
+  /* ============ 5) KO'RSATKICH KATAKLARI ============ */
+  .pb-stat-card, .zk-stat-card, .qz-stat, .cr-stat, .fin-stat{
+    background:var(--m-shisha), var(--panel) !important;
+    border:1px solid var(--line) !important;
+    border-left:1px solid var(--line) !important;
+    border-radius:16px !important;
+    padding:12px 13px !important;
+    box-shadow:inset 0 1px 0 var(--m-qirra) !important;
+  }
+  .pb-stat-card b, .zk-stat-card b, .qz-stat b, .cr-stat b{
+    font-size:19px !important; font-weight:800 !important;
+    color:var(--text) !important; font-variant-numeric:tabular-nums;
+  }
+  .pb-stat-card span, .zk-stat-card span, .qz-stat span{
+    font-size:10.5px !important; color:var(--muted) !important;
+    letter-spacing:.04em; font-weight:700;
+  }
+
+  /* KERAKSIZ KATAKLAR — faqat Boshqaruv panelida qolsin.
+     Eski xato: bu qator HAR BO'LIMDA chiqib, Kredit yoki Buyurtmalar
+     ichida ham ekranning yarmini egallab turardi. */
+  /* O'LCHANDI: bu qator `#overviewRow` (ichida `.ov-card`) va u
+     FAOL bo'limning ichiga ko'chiriladi — shu sabab Kredit, Buyurtma
+     va boshqa bo'limlarda ham chiqib, ekranning yarmini egallardi.
+     Endi u faqat Boshqaruv panelida ko'rinadi. */
+  .pane:not(#paneDashboard) #overviewRow,
+  .pane:not(#paneDashboard) > .overview-row,
+  .pane:not(#paneDashboard) > .stats-row,
+  .pane:not(#paneDashboard) > .stat-cards,
+  .pane:not(#paneDashboard) > .pb-stats-row{ display:none !important; }
+
+  /* Boshqaruv panelidagi ko'rsatkichlar — ikki ustun, ixcham */
+  #paneDashboard #overviewRow{
+    display:grid !important; grid-template-columns:1fr 1fr; gap:9px;
+    background:none !important; border:0 !important; box-shadow:none !important;
+    padding:0 !important; margin:0 0 12px !important;
+  }
+  #paneDashboard .ov-card{
+    background:var(--m-shisha), var(--panel) !important;
+    border:1px solid var(--line) !important; border-radius:16px !important;
+    box-shadow:inset 0 1px 0 var(--m-qirra) !important;
+    padding:12px 13px !important; margin:0 !important;
+  }
+
+  /* ============ 6) MAYDONLAR ============ */
+  .pane input[type="text"], .pane input[type="tel"], .pane input[type="number"],
+  .pane input[type="search"], .pane input[type="email"], .pane input[type="password"],
+  .pane input[type="date"], .pane select, .pane textarea,
+  .vm-body input, .vm-body select, .vm-body textarea{
+    width:100%; box-sizing:border-box;
+    min-height:46px; padding:12px 13px !important;
+    background:#0E1F3C !important;
+    border:1px solid var(--line) !important; border-radius:14px !important;
+    color:var(--text) !important; font-size:16px !important; /* 16px — iPhone zoom qilmasin */
+    font-family:inherit; font-weight:600;
+    outline:none; box-shadow:none !important;
+    -webkit-appearance:none; appearance:none;
+  }
+  .pane textarea, .vm-body textarea{ min-height:84px; line-height:1.5; }
+  .pane input::placeholder, .vm-body input::placeholder{ color:#6F82A0 !important; font-weight:500; }
+  .pane input:focus, .pane select:focus, .pane textarea:focus,
+  .vm-body input:focus, .vm-body select:focus, .vm-body textarea:focus{
+    border-color:var(--amber) !important;
+    box-shadow:0 0 0 3px var(--amber-soft) !important;
+  }
+  .ig-field label, .cr-field label, .akt-field label,
+  .cr-edit-label, .wt-field label, .pane label{
+    font-size:11.5px !important; font-weight:700 !important;
+    color:var(--text-2) !important; margin:12px 0 6px !important; display:block;
+  }
+  /* Sana maydonidagi taqvim belgisi — tungi fonda ko'rinsin */
+  .uzsana .uzsana-btn{ color:var(--muted) !important; }
+
+  /* ============ 7) TUGMALAR ============ */
+  .pane .settings-form button:not(.uzsana-btn):not(.zk-op-btn):not(.zk-op-toggle),
+  .vm-body button:not(.uzsana-btn):not(.vm-x),
+  .pane .primary-btn, .pane .add-btn{
+    min-height:48px !important; border-radius:14px !important;
+    background:var(--amber) !important; color:#fff !important;
+    border:0 !important; box-shadow:none !important;
+    font-size:14px !important; font-weight:800 !important;
+    font-family:inherit;
+  }
+  .pane button:active, .vm-body button:active{ transform:scale(.985); }
+
+  /* ============ 8) QIDIRUV QATORI ============ */
+  .qz-search, .cr-search, .mg-search, .search-row{
+    background:#0E1F3C !important;
+    border:1px solid var(--line) !important; border-radius:14px !important;
+    box-shadow:none !important;
+  }
+  .qz-search input, .cr-search input{ font-size:15px !important; }
+
+  /* ============ 9) FILTR CHIPLARI — EKRANDAN CHIQMAYDI ============
+     Eski xato: chiplar qatori o'ralmagan va aylanmagan, oxirgilari
+     ekrandan chiqib ketardi. Endi yonga silliq aylanadi. */
+  .qz-chips, .cr-chips, .vz-filtr, .chips-row{
+    display:flex !important; flex-wrap:nowrap !important;
+    gap:8px !important; overflow-x:auto; overflow-y:hidden;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    margin:0 -14px 12px !important; padding:2px 14px 8px !important;
+  }
+  .qz-chips::-webkit-scrollbar, .cr-chips::-webkit-scrollbar{ display:none; }
+  .qz-chip, .cr-chip, .vz-filtr-chip{
+    flex:none !important; white-space:nowrap;
+    height:36px; padding:0 14px !important; border-radius:999px !important;
+    background:var(--panel) !important; border:1px solid var(--line) !important;
+    color:var(--text-2) !important; font-size:12.5px !important; font-weight:700 !important;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .qz-chip.is-active, .cr-chip.is-active, .vz-filtr-chip.active{
+    background:var(--amber) !important; border-color:transparent !important; color:#fff !important;
+  }
+
+  /* ============ 10) SHARTNOMA / BUYURTMA QATORLARI ============ */
+  .qz-item{ margin-bottom:10px !important; overflow:hidden; }
+
+  /* ---- SHARTNOMA QATORI — TELEFON UCHUN TARTIB ----
+     DIQQAT, BU YER NOZIK. `.qz-head` CSS-gridning NOMLI MAYDONLARIDAN
+     foydalanadi (`grid-area: num / debt / state / month / prog / act`).
+     Avval bu yerda faqat `grid-template-columns` o'zgartirilgan edi —
+     natijada maydonlar nomi eski joyida qolib, "78 kun kechikdi"
+     nishoni "13 500 000" summasining USTIGA tushib qolgandi
+     (o'lchov bilan aniqlandi).
+
+     Shuning uchun endi MAYDONLAR TARTIBI butunlay qayta beriladi:
+         raqam            — butun qatorni egallaydi (kesilmasin);
+         holat + qarz     — ikkinchi qator;
+         oylik to'lov     — uchinchi qator, o'ngga tekislangan;
+         jadval chizig'i  — to'rtinchi qator;
+         tugma            — eng pastda, butun kenglikda.
+     Telefonda hech narsa qisqarmaydi va ustma-ust tushmaydi. */
+  .qz-head{
+    display:grid !important;
+    grid-template-columns:1fr auto !important;
+    grid-template-areas:
+      "num   num"
+      "state debt"
+      "month month"
+      "prog  prog"
+      "act   act" !important;
+    gap:7px 10px !important; padding:14px 15px !important; align-items:center;
+  }
+  .qzc-num{ grid-area:num !important; }
+  .qzc-state{ grid-area:state !important; justify-self:start; }
+  .qzc-debt{ grid-area:debt !important; justify-self:end; text-align:right; }
+  .qzc-month{ grid-area:month !important; justify-self:end; text-align:right; }
+  .qzc-prog{ grid-area:prog !important; margin-top:2px; }
+  .qzc-act{ grid-area:act !important; margin-top:4px; }
+  /* Raqam endi butun qatorda — qisqartirishning hojati yo'q */
+  .qzc-num b{ white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
+  .qzc-debt b{ font-size:15.5px !important; font-variant-numeric:tabular-nums; }
+  .qzc-debt i, .qzc-month i{
+    display:block; font-style:normal; margin-top:2px;
+    font-size:10.5px; color:var(--muted) !important; font-weight:600;
+  }
+  .qz-arrow{ display:none !important; }
+  .qzc-num b{
+    display:block; font-size:16px !important; font-weight:800 !important;
+    color:var(--text) !important; font-variant-numeric:tabular-nums;
+  }
+  .qzc-num i{
+    display:block; margin-top:3px; font-style:normal;
+    font-size:11.5px; color:var(--muted) !important; font-weight:600;
+  }
+  .qzc-num i a{ color:var(--m-kok-ink) !important; text-decoration:none; }
+  .qzc-shid{ color:var(--muted) !important; }
+  /* Telefonda uchinchi-to'rtinchi ustunlar sig'maydi — ular pastga
+     o'tadi, ya'ni hech narsa kesilmaydi. */
+
+  /* Holat yorlig'i — mijoz saytidagi `tag` uslubida */
+  .qz-pill, .oc-status-badge, .zk-order-badge{
+    display:inline-flex; align-items:center; height:24px; padding:0 10px;
+    border-radius:8px !important; font-size:10.5px !important; font-weight:800 !important;
+    letter-spacing:.04em; text-transform:uppercase;
+  }
+
+  /* To'lovni tasdiqlash tugmasi — kartochka ichida, tekis */
+  .qz-pay-cta{
+    width:100% !important; box-sizing:border-box;
+    display:flex !important; align-items:center; justify-content:space-between; gap:10px;
+    margin:0 !important; padding:12px 14px !important; min-height:0 !important;
+    border-radius:14px !important;
+    background:var(--amber-soft) !important;
+    border:1px solid var(--line) !important;
+    color:var(--m-kok-ink) !important; font-size:12.5px !important; font-weight:800 !important;
+    text-align:left; line-height:1.3;
+  }
+  .qz-pay-cta > span:first-child{ flex:1; min-width:0; }
+  .qz-pay-cta.is-overdue{
+    background:var(--m-qizil-tint) !important; color:var(--red) !important;
+  }
+  .qz-cta-sub{ display:block; margin-top:3px; font-size:10.5px; font-weight:600; opacity:.85; }
+  .qz-cta-sum{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .qz-pay-done{
+    padding:12px 15px; border-top:1px solid var(--line);
+    color:var(--green) !important; font-size:12.5px; font-weight:700;
+  }
+
+  /* ============ 11) OYNA (modal) ============ */
+  .vm-back{ background:rgba(3,10,22,.72) !important; padding:0 !important; align-items:flex-end !important; }
+  .vm{
+    width:100% !important; max-width:none !important;
+    max-height:92dvh !important;
+    background:var(--bg) !important;
+    border:0 !important; border-top:1px solid var(--line) !important;
+    border-radius:22px 22px 0 0 !important;
+    box-shadow:0 -18px 44px -24px rgba(0,0,0,.9) !important;
+    display:flex; flex-direction:column;
+  }
+  .vm-head{
+    flex:none; padding:14px 16px !important;
+    border-bottom:1px solid var(--line) !important;
+    background:var(--panel) !important;
+    display:flex; align-items:center; gap:11px;
+  }
+  .vm-head h3{ font-size:16px !important; margin:0 !important; }
+  .vm-head p{ font-size:11px !important; color:var(--muted) !important; margin:3px 0 0 !important; }
+  .vm-ico{
+    width:36px; height:36px; border-radius:11px; flex:none;
+    background:var(--amber-soft); color:var(--m-kok-ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .vm-ico svg{ width:18px; height:18px; }
+  .vm-x{
+    width:34px; height:34px; min-height:0 !important; flex:none;
+    border-radius:10px !important; background:var(--panel-2) !important;
+    border:1px solid var(--line) !important; color:var(--text) !important;
+    display:flex; align-items:center; justify-content:center; padding:0 !important;
+  }
+  .vm-x svg{ width:16px; height:16px; }
+  .vm-body{
+    flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:14px 16px calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+  /* Oyna ichidagi forma — "kartochka ustida kartochka" bo'lmasin */
+  .vm-body > .settings-form, .vm-body .settings-form{
+    background:none !important; border:0 !important; box-shadow:none !important;
+    padding:0 !important; margin:0 !important; border-radius:0 !important;
+  }
+  .vm-body .cr-form-split, .vm-body .cr-form-grid{
+    display:block !important;
+  }
+  /* Jonli hisob-kitob — formadan keyin, alohida kartochka */
+  .vm-body .cr-live, .vm-body #crLive{
+    margin-top:16px !important;
+    background:var(--m-shisha), var(--panel) !important;
+    border:1px solid var(--line) !important; border-radius:18px !important;
+    padding:14px 15px !important;
+  }
+  .cr-live-row b{ font-variant-numeric:tabular-nums; }
+
+  /* ============ 12) PASTKI MENYU — MIJOZ SAYTIDAGIDEK ============ */
+  #mnav{
+    /* `transform:none` SHART: eski uslubda `left:50%` + `translateX(-50%)`
+       bilan markazlashtirilgan edi. Biz `left:0;right:0` qo'ysak ham
+       eski `transform` qolib, menyu ekranning yarmicha chapga surilib
+       ketardi (o'lchandi: x = -195px). */
+    position:fixed !important; left:0 !important; right:0 !important; bottom:0 !important;
+    transform:none !important; z-index:60;
+    box-sizing:border-box;
+    display:flex; align-items:stretch; justify-content:space-around;
+    gap:2px; padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+    background:rgba(10,26,50,.96) !important;
+    border-top:1px solid var(--line);
+    box-shadow:0 -10px 26px -20px rgba(0,0,0,.9);
+    border-radius:0 !important;
+    margin:0 !important; width:auto !important;
+  }
+  #mnav button{
+    flex:1; min-width:0; position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    min-height:52px !important; padding:6px 2px !important;
+    background:none !important; border:0 !important; box-shadow:none !important;
+    color:var(--muted) !important; border-radius:13px !important;
+  }
+  #mnav button svg{ width:22px; height:22px; stroke-width:2; }
+  #mnav button b{ font-size:10px; font-weight:700; letter-spacing:.01em; }
+  #mnav button.on{ color:var(--text) !important; background:var(--amber-soft) !important; }
+  #mnav button:active svg{ transform:scale(.9); transition:transform .08s; }
+  /* Eski "suriluvchi kapsula" olib tashlandi: u har bosishda
+     `getBoundingClientRect` o'qib, joylashuvni majburan hisoblardi.
+     Endi tanlangan tugmaning o'zi bo'yaladi — bu bepul. */
+  #mnPill{ display:none !important; }
+  #mnav .mn-nb{
+    position:absolute; top:3px; right:calc(50% - 20px);
+    min-width:17px; height:17px; padding:0 4px; border-radius:99px;
+    background:var(--red); color:#2B0806; font-size:9.5px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; font-style:normal;
+  }
+
+  /* ============ 13) BO'LIM KARTOCHKALARI (menyu ekrani) ============ */
+  /* DIQQAT: `display` faqat `.on` bo'lganda beriladi.
+     Avval shu yerda shartsiz `display:flex` turgan edi va natijada
+     bo'lim ochilganda ham menyu kartochkalari ekranda qolib,
+     mazmundan oldin yarim ekranni egallardi (o'lchandi: 405px). */
+  #mgrid{ display:none; }
+  #mgrid.on{ display:flex; flex-direction:column; gap:9px; padding:0 0 8px; }
+  .mg-search{
+    position:relative;
+    display:flex; align-items:center; gap:9px;
+    height:46px; padding:0 13px; margin-bottom:4px;
+    background:#0E1F3C; border:1px solid var(--line); border-radius:14px;
+  }
+  /* Qidiruv belgisi eski uslubda `position:absolute` — shuning uchun
+     maydonga chapdan joy qoldiriladi, aks holda belgi yozuv ustiga
+     tushardi. */
+  .mg-search svg{ width:17px; height:17px; color:var(--muted); flex:none; left:13px; }
+  .mg-search input{
+    flex:1; min-width:0; background:none !important; border:0 !important;
+    min-height:0 !important; padding:0 0 0 26px !important;
+    color:var(--text) !important; font-size:15px !important; font-weight:600;
+    box-shadow:none !important;
+  }
+  .mg-x{
+    width:26px; height:26px; min-height:0 !important; padding:0 !important;
+    border-radius:8px !important; background:var(--panel-2) !important;
+    border:0 !important; color:var(--muted) !important; font-size:12px !important;
+  }
+  .mg-card{
+    position:relative; width:100%; text-align:left;
+    display:flex; align-items:center; gap:12px;
+    padding:13px 14px !important; min-height:0 !important;
+    background:var(--m-shisha), var(--panel) !important;
+    border:1px solid var(--line) !important; border-radius:18px !important;
+    box-shadow:inset 0 1px 0 var(--m-qirra) !important;
+    color:var(--text) !important;
+    transition:transform .12s cubic-bezier(.2,.9,.3,1);
+  }
+  .mg-card:active{ transform:scale(.978); }
+  .mg-ico{
+    width:40px; height:40px; flex:none; border-radius:13px;
+    background:var(--amber-soft); color:var(--m-kok-ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mg-ico svg{ width:20px; height:20px; stroke-width:1.9; }
+  .mg-txt{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .mg-nom{ font-size:14px; font-weight:800; color:var(--text); }
+  .mg-izoh{ font-size:11px; font-weight:600; color:var(--muted); line-height:1.4; }
+  .mg-badge{
+    position:absolute; top:11px; right:12px;
+    min-width:20px; height:20px; padding:0 6px; border-radius:99px;
+    background:var(--red); color:#2B0806;
+    font-size:10.5px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* Guruh sarlavhasi (masalan "TEZ-TEZ ISHLATILADIGAN") */
+  #mgrid > .mg-bolim, .mg-group-t{
+    font-size:10.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); margin:14px 2px 2px;
+  }
+
+  /* "Orqaga" tugmasi */
+  #mback{
+    width:36px; height:36px; min-height:0 !important; flex:none; padding:0 !important;
+    border-radius:11px !important; background:var(--panel) !important;
+    border:1px solid var(--line) !important; color:var(--text) !important;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #mback svg{ width:19px; height:19px; }
+
+  /* ============ 14) JADVALLAR ============
+     Telefonda keng jadval sahifani cho'zib yuboradi — yonga
+     aylanadigan qilinadi va ichki yuzasi kartochka bilan bir xil. */
+  .pane table{
+    display:block; width:100%; overflow-x:auto;
+    -webkit-overflow-scrolling:touch; border-collapse:collapse;
+  }
+  .pane th, .pane td{
+    white-space:nowrap; font-size:12px; padding:10px 12px;
+    border-bottom:1px solid var(--line); color:var(--text-2);
+  }
+  .pane th{ color:var(--muted); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; }
+
+  /* ============ 15) BO'SH HOLAT VA XABARLAR ============ */
+  .wt-empty, .cr-live-empty, .qz-empty, .empty-state{
+    color:var(--muted) !important; font-size:12.5px !important;
+    text-align:center; padding:26px 14px !important; line-height:1.6;
+  }
+  .settings-msg{ font-size:12px; font-weight:700; margin-top:10px; }
+  .settings-msg.ok{ color:var(--green) !important; }
+  .settings-msg.bad{ color:var(--red) !important; }
+  .mgmt-hint, .qz-hint{
+    background:var(--amber-soft) !important; border:1px solid var(--line) !important;
+    border-radius:14px !important; padding:12px 13px !important;
+    color:var(--text-2) !important; font-size:11.5px !important; line-height:1.55;
+  }
+
+  /* ============ 16) BO'LIM ALMASHISH ============
+     Yumshoq, lekin qisqa — mijoz saytidagi bilan bir xil o'lchov. */
+  .pane.active{ animation:mPaydo .16s cubic-bezier(.33,1,.68,1) both; }
+  @keyframes mPaydo{ from{opacity:.86} to{opacity:1} }
+  /* ---- TEPA QATORNI YENGILLASHTIRISH (V148) ----
+     Telefonda joy kam: soat, versiya raqami va ovoz tugmasi
+     ish uchun shart emas, lekin qatorni to'ldirib, admin ismi va
+     orqaga tugmasini siqib qo'yardi. */
+  /* O'LCHANDI: tepa qator 390px, ichidagilar esa 489px gacha cho'zilib
+     ketardi — ya'ni o'ng chekkadagi tugmalar ekrandan CHIQIB qolardi.
+     Sababi: soat (`#topbarClock`) va versiya yorlig'i (`#panelVer`)
+     264px joy egallardi. Ikkalasi ham telefonda ish uchun kerak emas:
+     soat tizimning o'zida bor, versiya esa faqat nosozlik qidirganda
+     kerak. */
+  #topbarClock, #panelVer, .panel-ver{ display:none !important; }
+  .topbar .header-actions{
+    margin-left:auto; display:flex; align-items:center; gap:7px;
+    flex:none; min-width:0;
+  }
+  .topbar .header-actions button{
+    width:36px; height:36px; min-height:0 !important; padding:0 !important;
+    border-radius:11px !important; flex:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .topbar .tb-breadcrumb{
+    flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-size:13px;
+  }
+  /* Telefonda faqat JORIY bo'lim nomi muhim. Oldingi bo'g'inlar
+     ("Admin / Moliya /") joy yeb, nomni kesib qo'yardi. */
+  .topbar .tb-breadcrumb > *:not(:last-child){ display:none !important; }
+  .topbar .tb-breadcrumb{ font-size:13.5px; font-weight:800; color:var(--text); }
+
+  /* ---- "TO'LOVNI TASDIQLASH" QATORI ----
+     O'lchov ko'rsatdi: ko'rinadigan tugma `.qz-pay-cta` emas,
+     `.qz-row-pay` ekan. Shuning uchun uslub aynan shunga beriladi. */
+  .qz-row-pay{
+    width:100% !important; box-sizing:border-box;
+    min-height:46px !important; margin-top:4px !important;
+    border-radius:14px !important; border:0 !important;
+    background:var(--amber) !important; color:#fff !important;
+    font-size:13.5px !important; font-weight:800 !important;
+  }
+  .qz-row-pay.is-late{
+    background:var(--m-qizil-tint) !important;
+    color:var(--red) !important;
+    border:1px solid var(--red) !important;
+  }
+
+  /* ---- Qidiruv maydoni ----
+     16px ataylab saqlanadi: iPhone undan kichik shriftli maydonga
+     bosilganda sahifani ZUMLAB yuboradi, bu juda noqulay. */
+  #paneCredit input[type="text"], #paneCredit input[type="search"]{ font-size:16px !important; }
+
+}
+
+/* Juda tor ekran (320-360px) — yozuvlar yana bir pog'ona kichrayadi */
+@media (max-width: 360px){
+  .page-head h1{ font-size:17.5px !important; }
+  .mg-nom{ font-size:13.5px; }
+  .qzc-num b{ font-size:15px !important; }
+  #mnav button b{ font-size:9.5px; }
+}

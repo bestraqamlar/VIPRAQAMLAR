@@ -1,5 +1,41 @@
 [build]
-  command = "npm install"
+  # QURILISH BUYRUG'I (V147) — izohlarni olib tashlaydi.
+  #
+  # NEGA. Kod ichidagi izohlar loyihaning eng qimmatli qismi, lekin
+  # ular mijozning telefoniga ham yuklanadi. O'lchov: izohlar
+  # yuklanadigan hajmning 30% ini egallaydi (368 KB -> 257 KB).
+  #
+  # Shu buyruq OMBORDAGI fayllarga TEGMAYDI — faqat Netlify'ning
+  # vaqtinchalik nusxasida ishlaydi. Ya'ni GitHub'da izohlar to'liq
+  # qoladi, mijozga esa qisqartirilgani boradi.
+  #
+  # XAVFSIZ: skript hech qachon deployni to'xtatmaydi. Biror fayl
+  # bilan muammo bo'lsa, u fayl o'z holicha qoladi.
+  # Batafsil: tools/qisqartir.js
+  command = "node tools/qisqartir.js"
+  # ==================================================================
+  # BUILD DAQIQALARINI TEJASH (V139)
+  # ------------------------------------------------------------------
+  # TOPILGAN MUAMMO. Bu yerda `command = "npm install"` turardi.
+  # Netlify esa `package.json` ni ko'rsa, kutubxonalarni BUYRUQDAN
+  # OLDIN, O'ZI o'rnatadi. Ya'ni o'rnatish IKKI MARTA bajarilardi:
+  # avval Netlify, keyin yana shu buyruq.
+  #
+  # Bu arzimas narsa emas: ro'yxatda firebase-admin va @resvg/resvg-js
+  # kabi og'ir kutubxonalar bor (resvg'da native fayllar). Har bir
+  # yuklash (commit) yangi build boshlaydi, va bepul tarifda oyiga
+  # atigi 300 daqiqa beriladi — shu sabab daqiqalar tez tugab qoldi.
+  #
+  # Endi buyruq olib tashlandi. Netlify kutubxonalarni baribir
+  # o'rnatadi va funksiyalarni yig'adi — ya'ni sayt avvalgidek
+  # ishlaydi, faqat har build ikki barobar tez tugaydi.
+  #
+  # QO'SHIMCHA MASLAHAT: GitHub'ga fayllarni BITTA commit bilan
+  # yuklash ham tejaydi — har bir "Commit changes" alohida build
+  # boshlaydi. Uchta qismni ketma-ket yuklaganda uchta build ketadi.
+  # ==================================================================
+  publish = "."
+
 
 # QO'SHIMCHA HIMOYA QATLAMI (2-eshik): admin panelga (panel-boshqaruv.html)
 # kirishdan OLDIN, HTTP darajasida alohida login/parol so'raladi — batafsili
@@ -38,7 +74,11 @@
 # raqam uchun eslatma VAQTI alohida belgilanadi (masalan 08:00, 10:30) —
 # soatiga bir marta tekshirilsa, belgilangan vaqtdan ancha kech ketardi.
 [functions."tolov-eslatma-background"]
-  schedule = "*/5 * * * *"
+  # V144 — KREDIT TEJASH: */5 * * * * -> */30 * * * *
+  #    Eslatma kunning belgilangan vaqtida yuboriladi — bu funksiya
+  #    shunchaki "vaqti keldimi" deb qarab turadi. 30 daqiqalik
+  #    aniqlik yetarli.
+  schedule = "*/30 * * * *"
 
 [functions."check-credit-payments"]
   schedule = "0 */6 * * *"
@@ -47,7 +87,9 @@
   schedule = "0 4 * * *"
 
 [functions."personal-bot-reminder-check"]
-  schedule = "*/5 * * * *"
+  # V144 — KREDIT TEJASH: */5 * * * * -> */30 * * * *
+  #    Yuqoridagi bilan bir xil sabab.
+  schedule = "*/30 * * * *"
 
 # BEELINE — kamyob toifalarni (Bronze/Silver/Gold) fonda yig'ib keshlash.
 #
@@ -75,7 +117,9 @@
 # almashtirildi — qarang: lib/operators.js). Nusxasi "qoshimcha/
 # ishlatilmaydi/" papkasida saqlanadi, kerak bo'lib qolsa deb.
 [functions."sync-beeline-background"]
-  schedule = "*/10 * * * *"
+  # V144 — KREDIT TEJASH: */10 * * * * -> 0 * * * *
+  #    Operator katalogi soatiga bir marta yangilansa yetarli.
+  schedule = "0 * * * *"
 
 [functions."personal-bot-evening-reminder"]
   schedule = "0 18 * * *"
@@ -121,10 +165,18 @@
 # (sinxronizatsiya, kuzatuv, indeks, zaxira) payqab, Telegram'ga xabar
 # beradi. Batafsil: netlify/functions/soglik-background.js
 [functions."soglik-background"]
-  schedule = "25 * * * *"
+  # V144 — KREDIT TEJASH: 25 * * * * -> 25 */6 * * *
+  #    Operatorlar sog'ligi tekshiruvi — 6 soatda bir marta.
+  #    Nosozlik xabari baribir kuniga bir marta keladi (V135).
+  schedule = "25 */6 * * *"
 
 [functions."number-watch-check-background"]
-  schedule = "* * * * *"
+  # V144 — KREDIT TEJASH: * * * * * -> */10 * * * *
+  #    Har DAQIQADA ishlardi — oyiga 43 200 chaqiruv, ya'ni butun fon
+  #    yukining yarmi shu bitta funksiyada edi. Ustiga u har safar
+  #    Firestore'dan ikkita CHEKLANMAGAN ro'yxat o'qirdi. Kuzatuvdagi
+  #    raqam bo'shaganini 10 daqiqada bilish mutlaqo yetarli.
+  schedule = "*/10 * * * *"
 
 # UZEX auksion kuzatuvi — admin AI yordamchiga "shu raqam/shartlar
 # chiqsa aytib ber" deyilganda yaratilgan kuzatuvlarni tekshiradi
@@ -132,20 +184,27 @@
 # murojaat qilish uchun har 10 daqiqada ishga tushadi (kuzatuvning o'zi
 # ham o'z intervaliga qarab, tez-tez emas, navbat bilan tekshiriladi).
 [functions."uzex-watch-check-background"]
-  schedule = "*/10 * * * *"
+  # V144 — KREDIT TEJASH: */10 * * * * -> */30 * * * *
+  #    Auksion kuzatuvi — 30 daqiqa.
+  schedule = "*/30 * * * *"
 
 # Saqlangan UZEX raqamlari — savdo tugashiga 3 soat va 1 soat qolganda
 # Telegram orqali ogohlantiradi (batafsili izoh funksiya faylida). Har
 # 5 daqiqada tekshiradi — bu darajadagi aniqlik yetarli.
 [functions."uzex-saved-expiry-check-background"]
-  schedule = "*/5 * * * *"
+  # V144 — KREDIT TEJASH: */5 * * * * -> 0 * * * *
+  #    Saqlangan auksion e'lonining muddati tugashi — kunlik hodisa,
+  #    soatiga bir marta tekshirish yetarli.
+  schedule = "0 * * * *"
 
 # "Vazifalar" (admin dedlayn) kuzatuvi — tugashiga 5 soatdan kam qolgan
 # va hali bajarilmagan har bir vazifa uchun Telegram orqali BIR MARTA
 # ogohlantirish yuboradi (panel yopiq bo'lsa ham). Har 5 daqiqada tekshi-
 # radi — bu darajadagi aniqlik yetarli (soatlik dedlaynlar uchun ham).
 [functions."admin-tasks-check-background"]
-  schedule = "*/5 * * * *"
+  # V144 — KREDIT TEJASH: */5 * * * * -> */30 * * * *
+  #    Vazifa dedlayni ogohlantirishi — 30 daqiqalik aniqlik yetarli.
+  schedule = "*/30 * * * *"
 
 # HAVOLANI ILOVADA OCHISH (deep link) uchun kerakli fayllar.
 # Apple "apple-app-site-association" faylini FAQAT "application/json"
@@ -194,11 +253,6 @@
 # Shriftlar — nomi hech qachon o'zgarmaydi, mazmuni ham. Bir yilga
 # keshlanadi: mijoz saytga ikkinchi marta kirganda umuman qayta
 # yuklamaydi.
-[[headers]]
-  for = "/assets/fonts/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
 
 # ADMIN PANELNING USLUB va MANTIQ fayllari — BIR YILGA keshlanadi.
 #
@@ -216,6 +270,26 @@
 # YANGI VERSIYA CHIQARGANDA: HTML'dagi havolaning oxiridagi raqamni
 # (?v=68) oshiring — manzil o'zgargani uchun brauzer yangi nusxani
 # oladi, eski keshdan emas.
+# TARTIB MUHIM (V144): bu UMUMIY qoida aniq fayllardan OLDIN turadi.
+# Netlify mos keladigan qoidalarni ketma-ket qo'llaydi, shuning uchun
+# aniq fayl qoidasi (app.js, panel.js, panel.css) KEYIN turib, umumiy
+# qiymatni almashtiradi. Agar tartib teskari bo'lsa, umumiy qoida
+# aniqlarining ustiga yozilib, bir yillik kesh 30 kunga tushib
+# qolardi — ko'zga ko'rinmaydigan, lekin trafik (ya'ni kredit)
+# yeydigan xato.
+#
+# Rasm, belgi va ovoz fayllari — 30 kun (ilgari 1 soat edi).
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+
 [[headers]]
   for = "/assets/panel.css"
   [headers.values]
@@ -226,10 +300,38 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# MIJOZ SAYTINING MANTIQ FAYLI — BIR YILGA (V144).
+#
+# NEGA BU QO'SHILDI. `app.js` 380 KB — saytdagi eng katta fayl. U
+# `/assets/*` qoidasiga tushib, atigi BIR SOATGA keshlanardi. Ya'ni
+# mijoz kuniga besh marta kirsa, 380 KB ni besh marta qayta yuklardi.
+#
+# Netlify'da trafik KREDIT yeydi (1 GB = 20 kredit), shuning uchun bu
+# bevosita pul edi. `panel.js` allaqachon bir yilga keshlanardi —
+# `app.js` esa e'tibordan chetda qolgan ekan.
+#
+# XAVFSIZMI? HA, chunki havolada versiya bor: `app.js?v=144`. Yangi
+# versiya chiqarilganda raqam oshadi, manzil o'zgaradi va brauzer
+# yangi nusxani oladi. Eski manzil esa o'zgarmasligi KAFOLATLANGAN.
+#
+# !!! DIQQAT: `assets/app.js` ni o'zgartirsangiz, `index.html` dagi
+# `?v=` raqamini ALBATTA oshiring. Aks holda mijozlarda eski nusxa
+# qolib ketadi. (Bir xil qoida `panel.js` uchun ham amal qiladi.)
+# MIJOZ SAYTINING USLUB FAYLI — BIR YILGA (V146).
+# Ilgari bu 170 KB uslub `index.html` ICHIDA edi va har tashrifda
+# qaytadan yuklanardi (HTML keshlanmaydi va keshlanmasligi kerak).
+# Endi alohida fayl va havolada versiya bor: `sayt.css?v=146`.
+# !!! Faylni o'zgartirsangiz `index.html` dagi `?v=` ni oshiring.
 [[headers]]
-  for = "/assets/*"
+  for = "/assets/sayt.css"
   [headers.values]
-    Cache-Control = "public, max-age=3600"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/app.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 
 # XAVFSIZLIK: admin panel manzili endi taxmin qilib bo'lmaydigan, tasodifiy
 # nomda joylashgan (index.html yoki boshqa hech qanday sahifada unga

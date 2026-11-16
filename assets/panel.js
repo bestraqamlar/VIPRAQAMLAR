@@ -4429,6 +4429,13 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     msg.className = 'settings-msg bad';
     return;
   }
+  /* V146: bosh to'lov birinchi oy O'RNIGA hisoblanadi — shuning uchun
+     1 oylik shartnomada oylik to'lov qolmaydi. */
+  if(hasDown && months < 2){
+    msg.textContent = "Boshlang'ich to'lov bilan muddat kamida 2 oy bo'lishi kerak";
+    msg.className = 'settings-msg bad';
+    return;
+  }
 
   /* V120: har bir maydon uzunligi CHEKLANADI. Shartnomaga bundan
      ortig'i baribir sig'maydi (PDF ham, Telegram xabari ham), lekin
@@ -4515,7 +4522,8 @@ function refreshCrLivePreview(){
   const downSum = Number(V('crDown')) || 0;
   const boshBor = hasDown && downSum > 0;
 
-  const jami = months * monthly + (boshBor ? downSum : 0);
+  /* Jami = oylik to'lovlar soni x oylik summa + bosh to'lov */
+  const jami = (boshBor ? Math.max(0, months - 1) : months) * monthly + (boshBor ? downSum : 0);
   let html = '';
   if(name) html += '<div class="cr-live-row"><span>Mijoz</span><b>' + escapeHtml(name.slice(0, 24)) + '</b></div>';
   html += '<div class="cr-live-row"><span>Muddat</span><b>' + (months ? months + ' oy' : '—') + '</b></div>';
@@ -4541,14 +4549,16 @@ function refreshCrLivePreview(){
     const kun = Math.min(payDay, oyKuni(norm.getFullYear(), norm.getMonth()));
     return new Date(norm.getFullYear(), norm.getMonth(), kun);
   };
-  const tolovSana = (i) => {
-    if(boshBor) return sanaOl(i + 1);
-    if(i === 0) return new Date(boshlanish.getFullYear(), boshlanish.getMonth(), boshlanish.getDate());
-    return sanaOl(i);
-  };
+  /* V146 — YANGI QOIDA. Ikkala holatda ham oylik to'lovlar KEYINGI
+     OYDAN boshlanadi; bosh to'lov bo'lsa ular bittaga KAM bo'ladi
+     (bosh to'lov birinchi oy o'rniga hisoblanadi). Bu hisob
+     serverdagi `jadvalQur()` bilan AYNAN bir xil bo'lishi shart. */
+  const oylikSoni = boshBor ? Math.max(0, months - 1) : months;
+  const tolovSana = (i) => sanaOl(i + 1);
 
-  if(months){
-    html += '<div class="cr-live-row"><span>Yakunlanadi</span><b>' + fmt(tolovSana(months - 1)) + '</b></div>';
+  if(boshBor) html += '<div class="cr-live-row"><span>Oylik to\'lovlar</span><b>' + oylikSoni + ' oy</b></div>';
+  if(oylikSoni){
+    html += '<div class="cr-live-row"><span>Yakunlanadi</span><b>' + fmt(tolovSana(oylikSoni - 1)) + '</b></div>';
   }
 
   if(months && monthly){
@@ -4556,12 +4566,12 @@ function refreshCrLivePreview(){
     if(boshBor){
       html += '<div class="cr-live-sched-row" style="color:var(--amber);font-weight:700"><span>Bosh to\'lov · ' + fmt(boshlanish) + '</span><span>' + pul(downSum) + '</span></div>';
     }
-    const n = Math.min(months, 4);
+    const n = Math.min(oylikSoni, 4);
     for(let i = 0; i < n; i++){
       const d = tolovSana(i);
       html += '<div class="cr-live-sched-row"><span>' + (i + 1) + '-oy · ' + q(d.getDate()) + '.' + q(d.getMonth() + 1) + '</span><span>' + pul(monthly) + '</span></div>';
     }
-    if(months > n) html += '<div class="cr-live-sched-row" style="color:var(--muted);"><span>... yana ' + (months - n) + ' ta to\'lov</span><span></span></div>';
+    if(oylikSoni > n) html += '<div class="cr-live-sched-row" style="color:var(--muted);"><span>... yana ' + (oylikSoni - n) + ' ta to\'lov</span><span></span></div>';
     html += '</div>';
   }
 

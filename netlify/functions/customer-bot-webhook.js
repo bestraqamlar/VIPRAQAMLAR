@@ -366,6 +366,31 @@ async function withTyping(chatId, fn){
 function replyKb(rows){ return { keyboard: rows, resize_keyboard: true }; }
 function inlineKb(rows){ return { inline_keyboard: rows }; }
 
+/* ==================================================================
+   "ILOVADA OCHISH" TUGMASI (V149)
+   ------------------------------------------------------------------
+   MUAMMO. Savdo asosan Telegram orqali ketadi, lekin botdagi raqamni
+   mijoz MINI ILOVADA ochib ko'ra olmasdi — ilovaga kirib, o'sha
+   raqamni QO'LDA qidirishi kerak edi. Ko'p mijoz shu yerda
+   yo'qolardi.
+
+   Endi har bir raqam xabarida shu tugma chiqadi va bosilganda mini
+   ilova AYNAN o'sha raqam kartochkasi bilan ochiladi.
+
+   TEXNIK IZOH. `web_app` turidagi tugma mini ilovani Telegram ICHIDA
+   ochadi (brauzerga chiqmaydi). U FAQAT shaxsiy yozishmada ishlaydi —
+   kanal va guruhlarda Telegram bunday tugmaga ruxsat bermaydi, shu
+   sabab u yerda oddiy havola kerak bo'ladi (OQING-V149.md ga qarang).
+
+   Manzildagi `?r=` ni ilova o'qiydi: `assets/app.js` dagi
+   `botdanRaqamOch()` funksiyasiga qarang. */
+function ilovaTugmasi(item){
+  const sayt = (process.env.SITE_URL || 'https://vipraqamlar.uz').replace(/\/+$/, '');
+  const id = String((item && item.id) || '').trim();
+  if(!id) return null;
+  return { text: '📱 Ilovada ochish', web_app: { url: sayt + '/?r=' + encodeURIComponent(id) } };
+}
+
 function mainMenuKeyboard(){
   return replyKb([
     [BTN.CHOOSE],
@@ -619,8 +644,14 @@ async function showNumberDetail(chatId, item, instOnly){
             [{ text: "🛒 Buyurtma berish", callback_data: `buy|${item.id}` }],
             [{ text: '⬅️ Orqaga', callback_data: 'backtolist' }]
           ];
+  /* "Ilovada ochish" — eng tepaga, chunki mijoz avval ko'rib,
+     keyin buyurtma beradi. Band raqamda ham ko'rsatiladi: mijoz
+     o'xshash raqamlarni ilovada ko'rib chiqishi mumkin. */
+  const ilova = ilovaTugmasi(item);
+  const tugmalar = ilova ? [[ilova], ...buttons] : buttons;
+
   await tg('sendChatAction', { chat_id: chatId, action: 'typing' });
-  await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(buttons) });
+  await tg('sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', reply_markup: inlineKb(tugmalar) });
 }
 
 /* ---------------- "Zakaz qilish" — narx/shartlar kartochkasi ---------------- */

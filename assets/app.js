@@ -46,14 +46,92 @@ const firebaseConfig = {
   appId: "1:872049914686:web:32fd7945238fdbf5eeb26f",
   measurementId: "G-SB37FEXJ0F"
 };
-firebase.initializeApp(firebaseConfig);
-try{ firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true); }catch(e){}
-const db = firebase.firestore();
-/* Ba'zi O'zbekiston tarmoqlari Firestore streamini bloklaydi — bu sozlama shart */
-try{ db.settings({ experimentalAutoDetectLongPolling: true }); }catch(e){}
-const FV = firebase.firestore.FieldValue;
+/* ==================================================================
+   FIREBASE — ENDI KECHIKTIRIB YUKLANADI (V145)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "telegram ilova juda sekin ishlayapti, oddiy
+   telefonda ham muammo qilmasin".
+
+   O'LCHOV (6 barobar sekin protsessor, haqiqiy fayllar):
+       firebase-app-compat.js          274 ms
+       firebase-firestore-compat.js    258 ms
+       firebase-app-check-compat.js    261 ms
+       ------------------------------------
+       JAMI                            793 ms
+
+   Ya'ni sahifa ochilishida, mijoz hali hech narsa ko'rmay turib,
+   ASOSIY OQIM 793 ms band bo'lardi — va bu tezkor internetdagi
+   o'lchov. Haqiqiy telefonda, mobil internetda bundan ko'proq.
+
+   NEGA BU ISROF EDI. Katalog Firestore'dan EMAS, `api-index`
+   funksiyasidan keladi (oddiy `fetch`). Firestore brauzerda faqat
+   KEYINROQ kerak bo'ladi: sayt sozlamalari, mijoz fikrlari,
+   "hozir saytda" sanog'i, buyurtma yuborish. Bularning hech biri
+   birinchi ko'rinish uchun shart emas. Shunga qaramay 793 ms'lik
+   kutubxona HAMMASIDAN OLDIN yuklanardi.
+
+   ENDI QANDAY. Uch fayl `index.html` dan olib tashlandi va bu yerga
+   ko'chirildi: ular birinchi chizishdan KEYIN, fonda yuklanadi.
+   `db` endi o'zgaruvchi (`let`) — kutubxona tayyor bo'lgach
+   to'ldiriladi.
+
+   XAVFSIZLIK CHORASI. `db` ga murojaat qiladigan har bir joy
+   oldidan `await firebaseniKut()` chaqiriladi. U kutubxona
+   allaqachon tayyor bo'lsa DARHOL qaytadi (hech qanday kechikish
+   yo'q), tayyor bo'lmasa — tayyor bo'lishini kutadi. Shu sabab
+   buyurtma yuborish kabi muhim amallar hech qachon "db yo'q" degan
+   xatoga uchramaydi.
+
+   Qo'shimcha: yuklash birinchi chizishdan so'ng DARHOL boshlanadi,
+   ya'ni mijoz buyurtma tugmasiga yetguncha kutubxona allaqachon
+   tayyor bo'ladi.
+   ================================================================== */
+const FB_MANBA = 'https://www.gstatic.com/firebasejs/10.13.2/';
+const FB_FAYL = ['firebase-app-compat.js', 'firebase-firestore-compat.js', 'firebase-app-check-compat.js'];
+
+let db = null;
+let FV = null;
+let FB_YUKLANMOQDA = null;
+
+function fbSkript(nom){
+  return new Promise((res)=>{
+    const s = document.createElement('script');
+    s.src = FB_MANBA + nom;
+    /* `async=false` — fayllar AYNAN shu tartibda bajarilsin
+       (firestore `app` dan keyin kelishi shart). */
+    s.async = false;
+    s.onload = res;
+    s.onerror = res;     /* xato bo'lsa ham to'xtab qolmaymiz */
+    document.head.appendChild(s);
+  });
+}
+
+function firebaseniKut(){
+  if(db) return Promise.resolve(db);
+  if(FB_YUKLANMOQDA) return FB_YUKLANMOQDA;
+  FB_YUKLANMOQDA = (async ()=>{
+    for(const f of FB_FAYL) await fbSkript(f);
+    try{
+      if(!(window.firebase && firebase.initializeApp)) return null;
+      if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      try{ firebase.appCheck().activate('6LddC2ItAAAAAPajc0NSM_wtRLb_6ik0VDVCV7ll', true); }catch(e){}
+      db = firebase.firestore();
+      /* Ba'zi O'zbekiston tarmoqlari Firestore streamini bloklaydi —
+         bu sozlama shart */
+      try{ db.settings({ experimentalAutoDetectLongPolling: true }); }catch(e){}
+      FV = firebase.firestore.FieldValue;
+    }catch(e){ console.error('Firebase yuklanmadi:', e); }
+    return db;
+  })();
+  return FB_YUKLANMOQDA;
+}
+
 async function getAppCheckHeaders(){
-  try{ const t = await firebase.appCheck().getToken(); return { 'X-Firebase-AppCheck': t.token }; }
+  try{
+    await firebaseniKut();
+    const t = await firebase.appCheck().getToken();
+    return { 'X-Firebase-AppCheck': t.token };
+  }
   catch(e){ return {}; }
 }
 
@@ -904,6 +982,42 @@ function openSheet(id){
   setTimeout(()=>{ if(typeof upperAll === 'function') upperAll(el); }, 0);
   if(!sheetStack.includes(id)) sheetStack.push(id);
 }
+/* ==================================================================
+   OYNA TUGMASINI TELEGRAM TUGMASIGA KO'CHIRISH (V149)
+   ------------------------------------------------------------------
+   Mini ilova ichida oynaning pastidagi asosiy tugma (masalan "Davom
+   etish", "Buyurtmani tasdiqlash") Telegram'ning O'Z tugmasiga
+   ko'chiriladi, saytdagi nusxasi esa yashiriladi.
+
+   NEGA bu yaxshi:
+     * Telegram tugmasi ekranning eng pastida, klaviatura ustida
+       turadi — yozayotganda ustiga chiqib qolmaydi;
+     * sahifa aylantirilganda ham joyida qoladi;
+     * mijozga ilova "haqiqiy Telegram ilovasi"dek tuyuladi.
+
+   MANTIQ TAKRORLANMAYDI: Telegram tugmasi bosilganda saytdagi
+   tugmaning O'ZI bosiladi (`click()`). Ya'ni buyurtma mantig'i bitta
+   joyda qoladi va ikkisi hech qachon bir-biridan farq qilmaydi.
+
+   Telegramdan tashqarida bu funksiya hech narsa qilmaydi. */
+function tgOynaTugmasi(footSelector){
+  if(!tgIchida() || !TG.bor()) return;
+  try{
+    const foot = document.querySelector(footSelector);
+    if(!foot){ TG.tugmaYop(); return; }
+    /* Faqat ASOSIY tugma ko'chiriladi (`.btn`, lekin "ghost" emas) */
+    const btn = foot.querySelector('.btn:not(.ghost)');
+    if(!btn || btn.disabled){ TG.tugmaYop(); foot.classList.remove('tg-yashir'); return; }
+    const matn = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+    const ok = TG.tugma(matn, ()=>{
+      const jonli = document.querySelector(footSelector + ' .btn:not(.ghost)');
+      if(jonli && !jonli.disabled) jonli.click();
+    });
+    /* Telegram tugmasi chiqqandagina saytdagisini yashiramiz */
+    foot.classList.toggle('tg-yashir', !!ok);
+  }catch(e){}
+}
+
 function closeSheet(id){
   const el = id ? document.getElementById(id) : document.getElementById(sheetStack[sheetStack.length-1]);
   if(!el) return;
@@ -915,6 +1029,9 @@ function closeSheet(id){
     el.style.zIndex = '';
     sheetStack = sheetStack.filter(s => s !== el.id);
     if(!sheetStack.length) document.body.classList.remove('noscroll');
+    /* V149: oyna yopilgach Telegram tugmasi ham olib tashlanadi,
+       aks holda u ekranda osilib qolardi. */
+    try{ TG.tugmaYop(); document.querySelectorAll('.tg-yashir').forEach(f=>f.classList.remove('tg-yashir')); }catch(e){}
   }, 210);
 }
 document.addEventListener('click', (e)=>{
@@ -1381,6 +1498,7 @@ function indeksniOch(pack){
 }
 
 async function raqamlarniYukla(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   /* 1-yo'l (asosiy): ixcham indeks — tez va arzon */
   try{
     /* So'rov <head> da, sahifa yuklanishi bilanoq boshlangan — shu
@@ -1448,6 +1566,7 @@ function keshdanOqi(){
   return false;
 }
 async function sozlamalarniYukla(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   const doc = await withClientTimeout(db.collection('site_settings').doc('general').get(), kutishVaqti(9000));
   if(!doc.exists) return;
   const s = doc.data() || {}; SETTINGS = s;
@@ -1498,6 +1617,7 @@ function tidyLink(raw, host, fallbackHandle){
 }
 
 async function moliyalashYukla(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   const doc = await withClientTimeout(db.collection('site_settings').doc('operator_financing').get(), kutishVaqti(9000));
   if(!doc.exists) return;
   const d = doc.data() || {}, by = { Humans:{}, Ucell:{}, Beeline:{} };
@@ -1514,13 +1634,15 @@ async function moliyalashYukla(){
   OPERATOR_FINANCING = { byOperator:by, tariffsByOperator:{ Humans:tb.Humans||[], Ucell:tb.Ucell||[], Beeline:tb.Beeline||[] } };
 }
 async function fikrlarniYukla(){
-  const snap = await withClientTimeout(db.collection('video_testimonials').limit(3000).get(), kutishVaqti(12000));
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
+  const snap = await withClientTimeout(db.collection('video_testimonials').limit(12).get(), kutishVaqti(12000));
   TESTIMONIALS = snap.docs.map(d => ({ id:d.id, ...d.data() }))
     .sort((a,b)=> (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
   TEST_YUKLANDI = true;
   renderTestimonials();
 }
-function tashrifHisobi(){
+async function tashrifHisobi(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   try{
     if(!localStorage.getItem('raqamuz_counted')){
       db.collection('site_stats').doc('counter').set({ totalVisitors: FV.increment(1) }, { merge:true })
@@ -1593,7 +1715,8 @@ function tashrifHisobi(){
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) beat(); });
 }
 let __nnFirst = true;
-function yangiRaqamKuzatuvi(){
+async function yangiRaqamKuzatuvi(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   try{
     db.collection('numbers').orderBy('addedAt','desc').limit(1).onSnapshot(snap => {
       if(__nnFirst){ __nnFirst = false; return; }
@@ -1999,6 +2122,7 @@ let ST_YUKLANDI = false;
    Internet bo'lmasa — qayta-qayta uriniladi (avtoQayta), ya'ni aloqa
    tiklanishi bilan lenta o'zi to'ladi. */
 async function storiesYukla(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   if(stKeshdanOch()) ST_YUKLANDI = true;
   else renderStories();                 /* skelet darhol ko'rinsin */
   try{
@@ -2185,8 +2309,59 @@ function renderHome(){
   }
   $('#homeFeatured').innerHTML = html;
 
+  renderOxirgi();
   renderTestimonials();
 }
+
+/* ==================================================================
+   OXIRGI KO'RILGAN RAQAMLAR (V149)
+   ------------------------------------------------------------------
+   MUAMMO. Mijoz o'nlab raqam ochib ko'radi, keyin yoqqanini QAYTA
+   TOPOLMAYDI — katalog har safar aralashadi, qidiruvda esa raqamni
+   eslab qolish kerak. Ko'p mijoz shu yerda ketib qolardi.
+
+   YECHIM. Ochilgan raqamlarning ID'si telefonning o'zida saqlanadi
+   (localStorage) va bosh sahifada alohida qatorda ko'rsatiladi.
+
+   NEGA SERVERGA YOZILMAYDI: bu mijozning shaxsiy ko'rish tarixi,
+   uni bazaga yozish na kerak, na to'g'ri — ustiga har ochilgan
+   raqamga bitta yozuv degani bo'lardi (aynan shunday xato bazani
+   to'ldirib qo'ygan edi, V144 ga qarang).
+
+   Eng ko'pi 12 ta saqlanadi; ro'yxatda 10 tasi ko'rsatiladi. */
+const OXIRGI_KALIT = 'vip_oxirgi_korilgan';
+const OXIRGI_MAX = 12;
+
+function oxirgiOqi(){
+  try{ const a = JSON.parse(localStorage.getItem(OXIRGI_KALIT) || '[]'); return Array.isArray(a) ? a : []; }
+  catch(e){ return []; }
+}
+function oxirgiQosh(id){
+  if(!id) return;
+  try{
+    let a = oxirgiOqi().filter(x => x !== id);
+    a.unshift(id);
+    if(a.length > OXIRGI_MAX) a = a.slice(0, OXIRGI_MAX);
+    localStorage.setItem(OXIRGI_KALIT, JSON.stringify(a));
+  }catch(e){}
+}
+function renderOxirgi(){
+  const wrap = $('#homeOxirgiWrap'), box = $('#homeOxirgi');
+  if(!wrap || !box) return;
+  const list = (typeof NUMBERS !== 'undefined' && NUMBERS) ? NUMBERS : [];
+  /* Sotilgan yoki o'chirilgan raqamlar tarixdan o'zi tushib qoladi */
+  const bor = oxirgiOqi().map(id => list.find(n => n.id === id)).filter(Boolean).slice(0, 10);
+  if(bor.length < 2){ wrap.style.display = 'none'; return; }   /* bitta bo'lsa — ma'nosiz */
+  wrap.style.display = '';
+  box.innerHTML = bor.map(numCard).join('');
+}
+/* "Tozalash" */
+document.addEventListener('click', (e)=>{
+  const b = e.target.closest && e.target.closest('#oxirgiTozala');
+  if(!b) return;
+  try{ localStorage.removeItem(OXIRGI_KALIT); }catch(err){}
+  renderOxirgi();
+});
 
 /* ==================================================================
    KUN TAVSIYASI — admin panelda tanlangan raqamlar.
@@ -2200,6 +2375,7 @@ let DAY_PICKS = { title:'', subtitle:'', items:[] };
 const DAY_OBJS = {};
 
 async function kunTavsiyasiYukla(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   try{
     const doc = await withClientTimeout(
       db.collection('site_settings').doc('daily_picks').get(), kutishVaqti(9000));
@@ -2779,6 +2955,31 @@ function syncDots(){
   dots.forEach((d,k) => d.classList.toggle('on', k === i));
 }
 
+/* Mijoz fikri kartochkasi bosilganda — video o'ynaydi va shundagina
+   brauzer tugmalari chiqadi (V148). */
+document.addEventListener('click', (e)=>{
+  const k = e.target.closest && e.target.closest('#homeTest .vcard');
+  if(!k) return;
+  const v = k.querySelector('video');
+  if(!v) return;
+  e.preventDefault();
+  if(v.paused){
+    /* Boshqalarini to'xtatamiz — bir vaqtda bitta video o'ynasin */
+    document.querySelectorAll('#homeTest video').forEach(x=>{
+      if(x !== v){ try{ x.pause(); x.controls = false; }catch(err){} x.closest('.vcard') && x.closest('.vcard').classList.remove('oynayapti'); }
+    });
+    v.preload = 'metadata';
+    v.controls = true;
+    k.classList.add('oynayapti');
+    const p = v.play();
+    if(p && p.catch) p.catch(()=>{});
+  }else{
+    try{ v.pause(); }catch(err){}
+    v.controls = false;
+    k.classList.remove('oynayapti');
+  }
+});
+
 /* ---------- Mijozlar video fikrlari ---------- */
 function renderTestimonials(){
   const wrap = $('#homeTestWrap'), box = $('#homeTest');
@@ -2790,19 +2991,99 @@ function renderTestimonials(){
   if(!TEST_YUKLANDI){ wrap.style.display = ''; box.innerHTML = skVideos(4); return; }
   if(!TESTIMONIALS.length){ wrap.style.display = 'none'; return; }
   wrap.style.display = '';
-  box.innerHTML = TESTIMONIALS.slice(0, 10).map(v => `
+
+  /* ==================================================================
+     MIJOZLAR FIKRI — V148 DA TUZATILDI
+     ------------------------------------------------------------------
+     NIMA BUZILGAN EDI (men kiritgan xato). V145 da tezlik uchun
+     `preload="none"` qo'ygandim. U tarmoq so'rovlarini kamaytirdi,
+     LEKIN birinchi kadr ham yuklanmay qoldi — natijada kartochkalar
+     QOP-QORA bo'sh quti bo'lib ko'rindi, ustida xunuk brauzer
+     tugmalari bilan. Mijoz "umuman ko'rinmayapti" degani aynan shu.
+
+     ENDI QANDAY ISHLAYDI — ikkalasi ham bor: tez ham, ko'rinadi ham.
+
+       1) Video DARHOL yuklanmaydi (`preload="none"`) — sahifa
+          ochilishida bitta ham ortiqcha so'rov ketmaydi.
+       2) Kartochka EKRANGA YAQINLASHGANDA (IntersectionObserver)
+          `preload` "metadata" ga o'tadi va birinchi kadr chiqadi.
+          Ya'ni mijoz ko'rayotgan kartochkagina yuklanadi.
+       3) Agar bazada muqova rasmi bo'lsa (`posterUrl`/`thumbUrl`),
+          u DARHOL qo'yiladi — rasm videodan ancha yengil.
+       4) Brauzerning xunuk tugmalari olib tashlandi. O'rniga toza
+          "ijro" belgisi; bosilganda video o'ynaydi va shundagina
+          tugmalar chiqadi.
+
+     YANA BIR XATO TUZATILDI: `videoUrl` bo'sh bo'lgan yozuvlar endi
+     TASHLAB KETILADI. Ilgari ular `<video src="#t=0.1">` bo'lib
+     qolardi, bu esa manzil sifatida SAHIFANING O'ZINI bildiradi —
+     brauzer har bir bunday kartochka uchun butun sahifani (220 KB)
+     "video" deb qaytadan yuklardi. */
+  const royxat = TESTIMONIALS.filter(v => v && String(v.videoUrl || '').trim()).slice(0, 10);
+  if(!royxat.length){ wrap.style.display = 'none'; return; }
+
+  box.innerHTML = royxat.map(v => {
+    const muqova = String(v.posterUrl || v.thumbUrl || v.poster || '').trim();
+    return `
     <div class="vcard">
-      <video src="${esc(v.videoUrl)}#t=0.1" preload="${videoPreload()}" playsinline muted loop controls></video>
+      <div class="vwrap">
+        <video src="${esc(v.videoUrl)}#t=0.1" preload="none" playsinline muted loop
+               ${muqova ? `poster="${esc(muqova)}"` : ''}></video>
+        <button class="vplay" type="button" aria-label="${esc(t('Ko\'rish'))}">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>
+        </button>
+      </div>
       <div class="vm">
         ${v.number ? `<b class="sg">${esc(shortNumber(v.number))}</b>` : ''}
         ${v.caption ? `<i>${esc(v.caption)}</i>` : ''}
       </div>
-    </div>`).join('');
+    </div>`; }).join('');
+
+  fikrlarKuzatuvi(box);
+}
+
+/* Ekranga yaqinlashgan kartochkaning birinchi kadrini yuklaydi.
+   Bir marta yuklangach kuzatuvdan chiqariladi — keraksiz ish yo'q. */
+let FIKR_KUZ = null;
+function fikrlarKuzatuvi(box){
+  try{
+    if(!('IntersectionObserver' in window)){
+      /* Eski brauzer — hammasini oddiy yo'l bilan ko'rsatamiz */
+      box.querySelectorAll('video').forEach(v => { v.preload = 'metadata'; });
+      return;
+    }
+    if(FIKR_KUZ) FIKR_KUZ.disconnect();
+    FIKR_KUZ = new IntersectionObserver((yozuvlar, kuz)=>{
+      yozuvlar.forEach(y=>{
+        if(!y.isIntersecting) return;
+        const v = y.target.querySelector('video');
+        if(v && v.preload !== 'metadata'){ v.preload = 'metadata'; try{ v.load(); }catch(e){} }
+        kuz.unobserve(y.target);
+      });
+    }, { root:null, rootMargin:'300px', threshold:0 });
+    box.querySelectorAll('.vcard').forEach(c => FIKR_KUZ.observe(c));
+  }catch(e){}
 }
 function videoPreload(){
   try{
     const c = navigator.connection;
     if(c && (c.saveData || /2g/.test(c.effectiveType||''))) return 'none';
+  }catch(e){}
+  /* V145 — SEKIN TELEFON VA TELEGRAM UCHUN.
+     `preload="metadata"` har bir video uchun ALOHIDA tarmoq so'rovi
+     yuboradi va fayl boshidan bir necha yuz kilobayt tortadi. Bosh
+     sahifada 10 tagacha video bor — ya'ni mijoz ularni ko'rmasa ham
+     o'nlab so'rov va megabaytlab trafik ketardi.
+
+     Mini ilova va sekin telefonda bu eng sezilarli yuklardan biri
+     edi: videolar ekranning pastida, lekin tarmoqni va protsessorni
+     SAHIFA OCHILISHIDA band qilardi.
+
+     Endi u yerda umuman oldindan yuklanmaydi — mijoz videoni bossa,
+     o'shanda yuklanadi. Kuchli telefonda avvalgidek qoladi. */
+  try{
+    const d = document.documentElement.classList;
+    if(d.contains('low') || d.contains('tg')) return 'none';
   }catch(e){}
   return 'metadata';
 }
@@ -3220,6 +3501,7 @@ const findItem = (id) =>
   FAV_ITEMS[id] || null;
 
 function openDetail(id){
+  try{ oxirgiQosh(id); }catch(e){}   /* V149: oxirgi ko'rilganlar ro'yxati */
   const item = findItem(id); if(!item) return;
   CURRENT = item;
   /* analitika: qaysi raqam qancha ochildi */
@@ -3383,6 +3665,8 @@ function renderOrder(){
   if(ORD.step <= 3) setSteps(ORD.step);
   $('#ordTitle').textContent = t(STEP_TITLES[ORD.step-1] || 'Buyurtma');
   const body = $('#ordBody'), foot = $('#ordFoot');
+  /* V149: bu bosqich chizilgach Telegram tugmasi yangilanadi */
+  setTimeout(()=> tgOynaTugmasi('#ordFoot'), 0);
 
   /* ---- 1: raqam va to'lov turi ---- */
   if(ORD.step === 1){
@@ -3876,6 +4160,7 @@ function buildPayload(){
 }
 
 async function submitOrder(smsVerified){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   const it = ORD.item, payload = buildPayload();
   payload.smsVerified = !!smsVerified;
   const orderTime = sanaVaqtUz(new Date());
@@ -5164,6 +5449,7 @@ function renderCustom(){
   }, 0);
 }
 async function loadCustomPrice(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   CO.loading = true; renderCustom();
   try{
     const doc = await withClientTimeout(db.collection('number_price_categories').doc(`${CO.operator}_${CO.pattern}`).get(), kutishVaqti(8000));
@@ -5172,6 +5458,7 @@ async function loadCustomPrice(){
   CO.loading = false; renderCustom();
 }
 async function submitCustom(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   const name = ($('#coInName').value||'').trim();
   const raw = extractRawDigits($('#coInPhone').value);
   const region = $('#coInRegion').value;
@@ -5331,6 +5618,7 @@ function openAbout(){
 
 let VACANCIES = [], vacPick = null;
 async function openJobs(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   $('#genTitle').textContent = t("Bo'sh ish o'rinlari");
   $('#genFoot').style.display = 'none';
   $('#genBody').innerHTML = skeletons(3);
@@ -5382,6 +5670,7 @@ function openVacForm(id){
   }, 0);
 }
 async function submitVac(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   const name = ($('#vfInName').value||'').trim();
   const raw = extractRawDigits($('#vfInPhone').value);
   const exp = ($('#vfInExp').value||'').trim().slice(0, 2900);
@@ -5531,6 +5820,7 @@ function openHamkor(){
 }
 
 async function submitHamkor(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   const name = ($('#hkInName').value || '').trim();
   const raw  = extractRawDigits($('#hkInPhone').value);
   const reg  = ($('#hkInRegion').value || '').trim();
@@ -5697,6 +5987,7 @@ function msgFiltr(list){
 }
 
 async function xabarlarniYukla(){
+  await firebaseniKut();   /* V145: Firebase kechiktirib yuklanadi — tayyor bo'lsa darhol qaytadi */
   try{
     const doc = await withClientTimeout(
       db.collection('site_settings').doc('xabarlar').get(), kutishVaqti(9000));
@@ -7149,7 +7440,46 @@ const TG = (function(){
         if(!W || !W.BackButton) return;
         if(korinsin) W.BackButton.show(); else W.BackButton.hide();
       }catch(e){}
-    }
+    },
+
+    /* ==============================================================
+       TELEGRAM'NING O'Z TUGMASI — MainButton (V149)
+       --------------------------------------------------------------
+       Telegram mini ilovaning PASTIDA, klaviatura ustida turadigan
+       katta tugmani o'zi chizadi. Uning ikkita afzalligi bor:
+         * u ilovaning bir qismi emas, TELEGRAM'niki — shuning uchun
+           har doim ko'rinadi, sahifa aylantirilsa ham joyida turadi
+           va klaviatura ochilganda ustiga chiqib qolmaydi;
+         * mijozga ilova "haqiqiy Telegram ilovasi"dek tuyuladi.
+
+       Saytdagi o'z tugmamiz esa shu paytda YASHIRILADI, aks holda
+       ekranda ikkita bir xil tugma turardi.
+
+       `bos` — bosilganda chaqiriladigan funksiya. Har safar eskisi
+       olib tashlanadi, aks holda tugma bir necha marta ishlab
+       ketardi (Telegram tinglovchilarni to'plab boradi). */
+    tugma(matn, bos, kutilmoqda){
+      try{
+        if(!W || !W.MainButton) return false;
+        const mb = W.MainButton;
+        if(this._bos){ try{ mb.offClick(this._bos); }catch(e){} }
+        this._bos = bos;
+        mb.setParams({ text: String(matn || '').slice(0, 64), is_active: !kutilmoqda, is_visible: true });
+        if(kutilmoqda){ try{ mb.showProgress(true); }catch(e){} }
+        else { try{ mb.hideProgress(); }catch(e){} }
+        if(bos) mb.onClick(bos);
+        mb.show();
+        return true;
+      }catch(e){ return false; }
+    },
+    tugmaYop(){
+      try{
+        if(!W || !W.MainButton) return;
+        if(this._bos){ try{ W.MainButton.offClick(this._bos); }catch(e){} this._bos = null; }
+        W.MainButton.hide();
+      }catch(e){}
+    },
+    _bos: null
   };
 })();
 
@@ -7399,6 +7729,78 @@ function seoRaqamniOch(){
   urin();
 }
 
+/* ==================================================================
+   BOTDAN KELGAN MIJOZ — AYNAN O'SHA RAQAM OCHILADI (V149)
+   ------------------------------------------------------------------
+   MUAMMO. Savdo asosan Telegram orqali ketadi, lekin botdagi yoki
+   kanaldagi raqamni mijoz ILOVADA ochib ko'ra olmasdi — ilovaga
+   kirib, o'sha raqamni QO'LDA qidirishi kerak edi. Ko'p mijoz shu
+   yerda yo'qolardi.
+
+   ENDI bot xabaridagi "Ilovada ochish" tugmasi bosilganda mini ilova
+   AYNAN o'sha raqam kartochkasi bilan ochiladi.
+
+   UCHTA MANBADAN O'QIYMIZ, chunki Telegram holatga qarab har xil
+   yo'l bilan uzatadi:
+     1) `?r=...`  — bot xabaridagi `web_app` tugmasi shunday ochadi
+        (tugmaga to'g'ridan-to'g'ri manzil beriladi);
+     2) `tgWebAppStartParam=...` — `t.me/bot/app?startapp=...`
+        havolasi orqali kelganda Telegram manzil hashiga yozadi
+        (kanal postidagi tugma shunday ishlaydi);
+     3) `initDataUnsafe.start_param` — SDK yuklangach o'sha qiymat.
+
+   QIYMAT KO'RINISHI: `raqam_998901234567` yoki shunchaki raqam, yoki
+   bazadagi hujjat ID'si. Hammasi qo'llab-quvvatlanadi.
+
+   Kartochka ochilgach manzil TOZALANADI — mijoz orqaga qaytsa yoki
+   sahifani yangilasa, o'sha oyna qayta-qayta ochilavermaydi. */
+function botdanRaqamOch(){
+  let p = '';
+  try{
+    const q = new URLSearchParams(location.search || '');
+    p = q.get('r') || q.get('raqam') || '';
+  }catch(e){}
+  if(!p){
+    try{
+      const m = String(location.hash || '').match(/[?&#]tgWebAppStartParam=([^&]+)/);
+      if(m) p = decodeURIComponent(m[1]);
+    }catch(e){}
+  }
+  if(!p){
+    try{
+      const u = window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe;
+      if(u && u.start_param) p = String(u.start_param);
+    }catch(e){}
+  }
+  if(!p) return;
+
+  /* `raqam_`, `id_`, `n_` kabi oldqo'shimchalar olib tashlanadi */
+  const toza = String(p).replace(/^(raqam|id|n)[_-]/i, '').trim();
+  const raqamli = toza.replace(/\D/g, '');
+
+  /* Manzilni darhol tozalaymiz — Telegram belgilari (tgWebAppData)
+     SAQLANADI, aks holda ilova "Telegram ichidaman" deb bilmay
+     qolardi. */
+  try{
+    const h = String(location.hash || '').replace(/[?&#]tgWebAppStartParam=[^&]*/, '');
+    history.replaceState(null, '', location.pathname + h);
+  }catch(e){}
+
+  let n = 0;
+  const urin = ()=>{
+    const list = (typeof NUMBERS !== 'undefined' && NUMBERS) ? NUMBERS : [];
+    let hit = null;
+    if(toza) hit = list.find(x => String(x.id) === toza);
+    if(!hit && raqamli.length >= 7){
+      hit = list.find(x => String(x.number||'').replace(/\D/g,'').slice(-9) === raqamli.slice(-9));
+    }
+    if(hit){ try{ openDetail(hit.id); }catch(e){} return; }
+    /* Baza hali yuklanmagan bo'lishi mumkin — 6 soniyagacha kutamiz */
+    if(++n < 25) setTimeout(urin, 240);
+  };
+  urin();
+}
+
 /* Toifa sahifasidan kelgan bo'lsa (masalan /ucell-vip-raqamlar),
    katalogni darhol o'sha filtr bilan ochamiz. Server sahifani
    Google uchun tayyorlab beradi, bu yerda esa mijoz uchun ilova
@@ -7432,6 +7834,20 @@ function bosh(ish, kechikish){
   applyLang(true);   /* birinchi ochilish — qarang: applyLang() izohi */
   loadFavorites();
   seoToifaniOch();
+
+  /* FIREBASE'NI BIRINCHI CHIZISHDAN KEYIN YUKLASHNI BOSHLAYMIZ (V145).
+     ------------------------------------------------------------------
+     Ikki marta `requestAnimationFrame` — ya'ni brauzer sahifani BIR
+     MARTA chizib ulgurgandan keyin. Shundan so'ng 793 ms'lik kutubxona
+     fonda yuklanadi va mijoz buyurtma tugmasiga yetguncha allaqachon
+     tayyor bo'ladi.
+
+     MUHIM: bu yerda `await` yo'q — yuklash BOSHLANADI, lekin hech kim
+     uni kutib turmaydi. Kutish faqat `db` haqiqatan kerak bo'lgan
+     joyda (`await firebaseniKut()`) bo'ladi. */
+  try{
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ firebaseniKut(); }); });
+  }catch(e){ setTimeout(firebaseniKut, 80); }
   /* V132 — TEZLIK.
      PWA (xizmat ishchisi) va PUSH (bildirishnoma) sahifaning
      BIRINCHI KO'RINISHIGA umuman kerak emas, lekin ikkalasi ham
@@ -7464,6 +7880,7 @@ function bosh(ish, kechikish){
   }
   seoRaqamniOch();
 
+  botdanRaqamOch();   /* V149: botdan kelgan raqamni ochish */
   if(!keshdanOqi()){
     /* V120: sahifa ochilishi bilanoq HAR BIR bo'lim o'z skeletini
        ko'rsatadi — tepadagi karusel, raqam kartochkalari, "Mijozlar

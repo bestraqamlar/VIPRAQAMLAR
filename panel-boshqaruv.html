@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=135">
-<link rel="preload" as="script" href="assets/panel.js?v=135">
+<link rel="preload" as="style" href="assets/panel.css?v=148">
+<link rel="preload" as="script" href="assets/panel.js?v=148">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,7 +52,12 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=135">
+<link rel="stylesheet" href="assets/panel.css?v=148">
+<!-- TELEFON KO'RINISHI (V148) — mijoz sayti shablonida.
+     `panel.css` dan KEYIN turishi shart: u faqat 899px dan tor
+     ekranda ishlaydi va asosiy uslublar ustiga yoziladi.
+     Kompyuterda bu fayl bitta ham qoida bermaydi. -->
+<link rel="stylesheet" href="assets/panel-mobil.css?v=148">
 
 </head>
 <body>
@@ -1401,6 +1406,20 @@
           <label for="crPayDay">Har oyning nechinchi sanasida (1-31)</label>
           <input type="number" id="crPayDay" min="1" max="31" placeholder="10">
         </div>
+        <!-- BOSH TO'LOV (V143) — mijoz so'rovi bo'yicha qo'shildi.
+             Yoqilsa: bosh to'lov SHARTNOMA SANASIDA alohida olinadi va
+             oylik to'lovlar keyingi oydan boshlanadi (to'liq muddat).
+             O'chiq bo'lsa: 1-to'lov shartnoma sanasining o'zida. -->
+        <div class="cr-field cr-field-wide">
+          <label class="cr-check">
+            <input type="checkbox" id="crHasDown">
+            <span>Boshlang'ich to'lov bor</span>
+          </label>
+        </div>
+        <div class="cr-field" id="crDownWrap" hidden>
+          <label for="crDown">Boshlang'ich to'lov summasi</label>
+          <input type="number" id="crDown" min="0" placeholder="3000000">
+        </div>
         <div class="cr-field cr-field-wide">
           <label for="crInfo">Qo'shimcha ma'lumot (ixtiyoriy)</label>
           <!-- maxlength: cheksiz matn so'rovni megabaytlarga shishirib yuborardi (V120) -->
@@ -1448,7 +1467,7 @@
          javob oladi; pastdagi ro'yxat esa kechikkanlardan boshlanadi. -->
     <div class="qz-stats" id="qzStats"></div>
 
-    <input type="text" id="creditSearchInput" placeholder="🔍 Raqam, telefon yoki ism bo'yicha qidirish..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
+    <input type="text" id="creditSearchInput" placeholder="Raqam, telefon yoki ism…" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;margin-bottom:10px;">
 
     <div class="qz-filters" id="qzFilters"></div>
     <div id="creditList"></div>
@@ -2401,6 +2420,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=135"></script>
+<script defer src="assets/panel.js?v=148"></script>
 </body>
 </html>
