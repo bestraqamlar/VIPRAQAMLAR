@@ -36,7 +36,7 @@ const path = require('path');
 const JS_FAYL  = ['assets/app.js', 'assets/panel.js'];
 const CSS_FAYL = ['assets/sayt.css', 'assets/panel.css', 'assets/panel-mobil.css'];
 /* `index.html` ichidagi <style> bloklari ham tozalanadi */
-const HTML_FAYL = ['index.html'];
+const HTML_FAYL = ['index.html', 'panel-yangi.html'];
 
 const KB = (n) => (n / 1024).toFixed(1) + ' KB';
 let tejov = 0, xato = 0;

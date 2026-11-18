@@ -1,0 +1,1517 @@
+<!doctype html><html lang="uz"><head>
+<script>
+/* Mavzu sahifa chizilishidan OLDIN qo'yiladi — aks holda tun mavzuda
+   bir lahza oq ekran "chaqnab" ketadi. Tartib: admin tanlagan mavzu ->
+   telefon/kompyuter sozlamasi -> tun (standart). */
+(function(){
+  var t=null;
+  try{ t=localStorage.getItem('vip_panel_tema'); }catch(e){}
+  if(t!=='tun'&&t!=='kun'){
+    t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'kun' : 'tun';
+  }
+  document.documentElement.setAttribute('data-tema',t);
+})();
+</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VIP RAQAMLAR — Boshqaruv</title>
+<style>@font-face{font-family:'Inter';src:url('assets/fonts/jakarta.woff2') format('woff2-variations');font-weight:200 800;font-style:normal;font-display:swap}</style>
+<style>
+/* ==================================================================
+   VIP RAQAMLAR — ADMIN (yangi tuzilma)
+   Dizayn tizimi: 4px qadam, 3 ta yuza qatlami, bitta urg'u rangi,
+   bitta harakat egri chizig'i. Hamma komponent shundan tuziladi.
+   ================================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  /* --- qadam (4px) --- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+  /* --- burchak --- */
+  --r1:8px; --r2:10px; --r3:14px; --r4:18px; --r5:24px;
+  /* --- harakat: "yumshoq to'xtash" egri chizig'i --- */
+  --ez:cubic-bezier(.32,.72,0,1);
+  --t1:.12s; --t2:.2s; --t3:.34s;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+
+/* ---------------- TUN (standart) ---------------- */
+html[data-tema="tun"]{
+  --b0:#07090E;     /* eng pastki fon */
+  --b1:#0C0F16;     /* ish maydoni */
+  --b2:#12161F;     /* kartochka */
+  --b3:#181D28;     /* ko'tarilgan yuza */
+  --b4:#1F2532;     /* hover */
+  --chiz:#232A38;
+  --chiz-2:#1A202B;
+  --t1c:#F2F5F9;    /* asosiy matn */
+  --t2c:#AAB4C4;
+  --t3c:#6F7B8D;
+  --urg:#5B7FFF;    /* urg'u */
+  --urg-2:#8AA4FF;
+  --urg-f:rgba(91,127,255,.15);
+  --yax:#34D99B; --yax-f:rgba(52,217,155,.14);
+  --ogo:#FFB443; --ogo-f:rgba(255,180,67,.14);
+  --yom:#FF6274; --yom-f:rgba(255,98,116,.14);
+  --soy1:0 1px 2px rgba(0,0,0,.4);
+  --soy2:0 8px 24px -8px rgba(0,0,0,.6);
+  --soy3:0 24px 64px -16px rgba(0,0,0,.8);
+  --shisha:rgba(12,15,22,.72);
+  color-scheme:dark;
+}
+/* ---------------- KUN ---------------- */
+html[data-tema="kun"]{
+  --b0:#EEF0F4;
+  --b1:#F7F8FA;
+  --b2:#FFFFFF;
+  --b3:#FFFFFF;
+  --b4:#F1F3F7;
+  --chiz:#E3E6EC;
+  --chiz-2:#EDEFF3;
+  --t1c:#0B0F18;
+  --t2c:#49566B;
+  --t3c:#8A95A6;
+  --urg:#3A49E0;
+  --urg-2:#2A36B8;
+  --urg-f:#EDEFFE;
+  --yax:#07794C; --yax-f:#E7F8F0;
+  --ogo:#9A5B00; --ogo-f:#FFF5E3;
+  --yom:#C0271F; --yom-f:#FDEDEC;
+  --soy1:0 1px 2px rgba(11,15,24,.05);
+  --soy2:0 6px 20px -6px rgba(11,15,24,.12);
+  --soy3:0 28px 64px -18px rgba(11,15,24,.22);
+  --shisha:rgba(247,248,250,.78);
+  color-scheme:light;
+}
+
+html,body{height:100%}
+body{
+  font-family:var(--font);background:var(--b1);color:var(--t1c);
+  font-size:14px;line-height:1.45;letter-spacing:-.008em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-variant-numeric:tabular-nums;
+  overflow:hidden;
+}
+button,input,select,textarea{font:inherit;color:inherit;background:none;border:none;outline:none}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--urg-f);color:var(--t1c)}
+*{scrollbar-width:thin;scrollbar-color:var(--chiz) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:var(--chiz);border-radius:20px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--t3c);background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+:focus-visible{outline:2px solid var(--urg);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ================== QOBIQ ================== */
+:root{--yon:260px}
+html[data-yon="yop"]{--yon:68px}
+.qobiq{display:grid;grid-template-columns:var(--yon) 1fr;height:100dvh;overflow:hidden;
+  transition:grid-template-columns var(--t3) var(--ez)}
+
+/* ---------- YON MENYU ---------- */
+.yon{background:var(--b0);border-right:1px solid var(--chiz-2);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.yon-bosh{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;min-height:60px}
+.logo{width:36px;height:36px;border-radius:11px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--urg),var(--urg-2));color:#fff;font-weight:800;font-size:13px;letter-spacing:-.04em;
+  box-shadow:0 4px 14px -4px var(--urg)}
+.logo-yoz{min-width:0;overflow:hidden;white-space:nowrap}
+.logo-yoz b{display:block;font-size:13.5px;font-weight:700;letter-spacing:-.02em}
+.logo-yoz span{display:block;font-size:11px;color:var(--t3c);font-weight:500;margin-top:-1px}
+.yon-yig{margin-left:auto;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:var(--t3c);flex:none;
+  transition:background var(--t1),color var(--t1)}
+.yon-yig:hover{background:var(--b2);color:var(--t1c)}
+.yon-yig svg{width:16px;height:16px;transition:transform var(--t3) var(--ez)}
+html[data-yon="yop"] .yon-yig svg{transform:rotate(180deg)}
+html[data-yon="yop"] .logo-yoz,html[data-yon="yop"] .yon-yig{display:none}
+html[data-yon="yop"] .yon-bosh{justify-content:center;padding:14px 0 12px}
+
+/* qidiruv tugmasi */
+.qid-tug{margin:0 12px 10px;height:36px;border-radius:var(--r2);background:var(--b2);border:1px solid var(--chiz-2);
+  display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--t3c);font-size:13px;font-weight:500;
+  transition:border-color var(--t1),background var(--t1)}
+.qid-tug:hover{border-color:var(--chiz);background:var(--b3)}
+.qid-tug svg{width:15px;height:15px;flex:none}
+.qid-tug kbd{margin-left:auto;font:inherit;font-size:10.5px;font-weight:650;color:var(--t3c);
+  background:var(--b3);border:1px solid var(--chiz-2);border-radius:5px;padding:1px 5px;letter-spacing:.02em}
+html[data-yon="yop"] .qid-tug{margin:0 10px 10px;justify-content:center;padding:0;width:48px}
+html[data-yon="yop"] .qid-tug span,html[data-yon="yop"] .qid-tug kbd{display:none}
+
+.yon-ro{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 12px 12px}
+.yon-guruh{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3c);
+  padding:14px 10px 6px;white-space:nowrap}
+html[data-yon="yop"] .yon-guruh{text-align:center;padding:14px 0 6px;font-size:0}
+html[data-yon="yop"] .yon-guruh::after{content:'···';font-size:11px;letter-spacing:.1em}
+.nav{display:flex;align-items:center;gap:11px;height:36px;padding:0 10px;border-radius:var(--r2);
+  color:var(--t2c);font-size:13.5px;font-weight:500;white-space:nowrap;position:relative;
+  transition:background var(--t1),color var(--t1)}
+.nav svg{width:18px;height:18px;flex:none;opacity:.85}
+.nav:hover{background:var(--b2);color:var(--t1c)}
+.nav.on{background:var(--urg-f);color:var(--urg);font-weight:620}
+.nav.on svg{opacity:1}
+.nav .son{margin-left:auto;font-size:11px;font-weight:700;color:var(--t3c);background:var(--b3);
+  border-radius:20px;padding:1px 7px;min-width:20px;text-align:center}
+.nav.ogoh .son{background:var(--yom);color:#fff}
+html[data-yon="yop"] .nav{justify-content:center;padding:0}
+html[data-yon="yop"] .nav span.lbl,html[data-yon="yop"] .nav .son{display:none}
+
+.yon-pas{padding:10px 12px;border-top:1px solid var(--chiz-2)}
+.kim{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--r2);transition:background var(--t1)}
+.kim:hover{background:var(--b2)}
+.kim-av{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--urg-f);color:var(--urg);font-size:11.5px;font-weight:700}
+.kim-yoz{min-width:0;overflow:hidden;white-space:nowrap}
+.kim-yoz b{display:block;font-size:12.5px;font-weight:620}
+.kim-yoz span{display:block;font-size:11px;color:var(--t3c)}
+html[data-yon="yop"] .kim-yoz{display:none}
+html[data-yon="yop"] .kim{justify-content:center;padding:7px 0}
+</style>
+<style>
+/* ---------- ASOSIY MAYDON ---------- */
+.ish{display:flex;flex-direction:column;min-width:0;background:var(--b1);overflow:hidden}
+.tep{height:60px;flex:none;display:flex;align-items:center;gap:var(--s3);padding:0 var(--s5);
+  border-bottom:1px solid var(--chiz-2);background:var(--shisha);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  position:relative;z-index:20}
+.tep-yol{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--t3c);min-width:0}
+.tep-yol b{color:var(--t1c);font-weight:620}
+.tep-yol i{font-style:normal;opacity:.4}
+.tep-osh{flex:1}
+.ik{width:34px;height:34px;border-radius:var(--r2);display:grid;place-items:center;color:var(--t2c);flex:none;
+  border:1px solid transparent;transition:background var(--t1),color var(--t1),border-color var(--t1)}
+.ik:hover{background:var(--b2);color:var(--t1c);border-color:var(--chiz-2)}
+.ik svg{width:17px;height:17px}
+.ik.nuq{position:relative}
+.ik.nuq::after{content:'';position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;
+  background:var(--yom);border:2px solid var(--b1)}
+.jonli{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:20px;
+  background:var(--yax-f);color:var(--yax);font-size:11.5px;font-weight:650;flex:none}
+.jonli i{width:6px;height:6px;border-radius:50%;background:currentColor;animation:nab 2s var(--ez) infinite}
+@keyframes nab{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+
+.ich{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+.ich-pad{max-width:1400px;margin:0 auto;padding:var(--s5) var(--s5) var(--s10)}
+
+/* ---------- SAHIFA BOSHI ---------- */
+.sb{display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s5);flex-wrap:wrap}
+.sb-yoz{flex:1;min-width:0}
+.sb h1{font-size:24px;font-weight:700;letter-spacing:-.03em;line-height:1.15}
+.sb p{font-size:13.5px;color:var(--t2c);margin-top:3px}
+.sb-amal{display:flex;gap:var(--s2);flex:none}
+
+/* ---------- TUGMA ---------- */
+.tug{height:36px;padding:0 14px;border-radius:var(--r2);display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  font-size:13px;font-weight:620;white-space:nowrap;border:1px solid transparent;
+  transition:transform var(--t1) var(--ez),background var(--t1),border-color var(--t1),color var(--t1),box-shadow var(--t1)}
+.tug svg{width:15px;height:15px;flex:none}
+.tug:active{transform:scale(.97)}
+.tug-asos{background:var(--urg);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2),0 6px 18px -8px var(--urg)}
+.tug-asos:hover{background:var(--urg-2)}
+.tug-ikki{background:var(--b2);color:var(--t1c);border-color:var(--chiz);box-shadow:var(--soy1)}
+.tug-ikki:hover{background:var(--b3);border-color:var(--t3c)}
+.tug-shaf{color:var(--t2c)}
+.tug-shaf:hover{background:var(--b2);color:var(--t1c)}
+.tug-xatar{background:var(--yom-f);color:var(--yom);border-color:transparent}
+.tug-xatar:hover{background:var(--yom);color:#fff}
+.tug:disabled{opacity:.45;pointer-events:none}
+.tug-kich{height:30px;padding:0 10px;font-size:12.5px;border-radius:var(--r1)}
+
+/* ---------- KARTOCHKA ---------- */
+.k{background:var(--b2);border:1px solid var(--chiz-2);border-radius:var(--r4);box-shadow:var(--soy1);overflow:hidden}
+.k-bosh{display:flex;align-items:center;gap:var(--s3);padding:14px var(--s4);border-bottom:1px solid var(--chiz-2)}
+.k-bosh h3{font-size:14.5px;font-weight:650;letter-spacing:-.015em}
+.k-bosh .osh{flex:1}
+.k-tan{padding:var(--s4)}
+.k-tan.tekis{padding:0}
+.yorliq{font-size:11.5px;font-weight:620;color:var(--t2c);background:var(--b3);border:1px solid var(--chiz-2);
+  padding:3px 9px;border-radius:20px;white-space:nowrap}
+
+/* ---------- KO'RSATKICH ---------- */
+.kolar{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s3);margin-bottom:var(--s4)}
+.ko{background:var(--b2);border:1px solid var(--chiz-2);border-radius:var(--r4);padding:var(--s4) var(--s4) 30px;
+  position:relative;overflow:hidden;box-shadow:var(--soy1);
+  transition:transform var(--t2) var(--ez),box-shadow var(--t2) var(--ez),border-color var(--t2)}
+.ko:hover{transform:translateY(-3px);box-shadow:var(--soy2);border-color:var(--chiz)}
+.ko-tep{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.ko-ik{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--urg-f);color:var(--urg);flex:none}
+.ko-ik svg{width:16px;height:16px}
+.ko-ik.y{background:var(--yax-f);color:var(--yax)} .ko-ik.o{background:var(--ogo-f);color:var(--ogo)}
+.ko-ik.x{background:var(--yom-f);color:var(--yom)}
+.ko-nom{font-size:12.5px;font-weight:600;color:var(--t2c)}
+.ko-son{font-size:30px;font-weight:700;letter-spacing:-.035em;line-height:1}
+.ko-ost{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3c);margin-top:7px;white-space:nowrap;overflow:hidden}
+.ozg{display:inline-flex;align-items:center;gap:3px;font-weight:680;font-size:11.5px;padding:2px 6px;border-radius:6px}
+.ozg.yuq{background:var(--yax-f);color:var(--yax)} .ozg.pas{background:var(--yom-f);color:var(--yom)}
+.ozg svg{width:11px;height:11px}
+.spark{position:absolute;left:0;right:0;bottom:0;width:100%;height:30px;opacity:.45;pointer-events:none;z-index:0}
+.ko > *:not(.spark){position:relative;z-index:1}
+
+/* ---------- GRAFIK ---------- */
+.graf{position:relative;height:230px;padding:var(--s2) 0 0}
+.graf svg{width:100%;height:100%;overflow:visible}
+.graf-xat{display:flex;justify-content:space-between;margin-top:9px;font-size:11.5px;color:var(--t3c);font-weight:550}
+.sgm{display:inline-flex;background:var(--b3);border:1px solid var(--chiz-2);border-radius:var(--r1);padding:2px;gap:2px}
+.sgm button{height:26px;padding:0 11px;border-radius:7px;font-size:12px;font-weight:600;color:var(--t3c);
+  transition:background var(--t1),color var(--t1)}
+.sgm button.on{background:var(--b2);color:var(--t1c);box-shadow:var(--soy1)}
+
+/* ---------- JADVAL ---------- */
+.asb{display:flex;align-items:center;gap:var(--s2);padding:12px var(--s4);border-bottom:1px solid var(--chiz-2);flex-wrap:wrap}
+.qid{flex:1;min-width:180px;height:34px;border-radius:var(--r2);background:var(--b1);border:1px solid var(--chiz-2);
+  display:flex;align-items:center;gap:8px;padding:0 11px;transition:border-color var(--t1),background var(--t1)}
+.qid:focus-within{border-color:var(--urg);background:var(--b2);box-shadow:0 0 0 3px var(--urg-f)}
+.qid svg{width:15px;height:15px;color:var(--t3c);flex:none}
+.qid input{flex:1;min-width:0;font-size:13.5px}
+.qid input::placeholder{color:var(--t3c)}
+.filt{height:34px;padding:0 11px;border-radius:var(--r2);border:1px solid var(--chiz-2);background:var(--b1);
+  display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--t2c);
+  transition:border-color var(--t1),color var(--t1),background var(--t1)}
+.filt:hover{border-color:var(--t3c);color:var(--t1c)}
+.filt.on{border-color:var(--urg);color:var(--urg);background:var(--urg-f)}
+.filt svg{width:14px;height:14px}
+
+.jad{width:100%;border-collapse:collapse}
+.jad thead th{position:sticky;top:0;z-index:2;background:var(--b2);text-align:left;
+  font-size:11.5px;font-weight:650;color:var(--t3c);letter-spacing:.01em;
+  padding:10px var(--s4);border-bottom:1px solid var(--chiz);white-space:nowrap}
+.jad thead th.o{text-align:right}
+.jad tbody td{padding:11px var(--s4);border-bottom:1px solid var(--chiz-2);font-size:13.5px;vertical-align:middle}
+.jad tbody tr{transition:background var(--t1)}
+.jad tbody tr:hover{background:var(--b1)}
+.jad tbody tr:last-child td{border-bottom:none}
+.jad tbody tr.tan{background:var(--urg-f)}
+.jad td.o{text-align:right}
+.raq{font-weight:620;letter-spacing:-.01em;white-space:nowrap}
+.mijoz{display:flex;align-items:center;gap:10px;min-width:0}
+.av{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:11px;font-weight:700;background:var(--b3);color:var(--t2c)}
+.mijoz-yoz{min-width:0}
+.mijoz-yoz b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mijoz-yoz span{display:block;font-size:11.5px;color:var(--t3c)}
+.hol{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:640;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.hol i{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+.hol.y{background:var(--yax-f);color:var(--yax)} .hol.o{background:var(--ogo-f);color:var(--ogo)}
+.hol.x{background:var(--yom-f);color:var(--yom)} .hol.n{background:var(--b3);color:var(--t2c)}
+.ckb{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--chiz);background:var(--b1);flex:none;
+  display:grid;place-items:center;transition:background var(--t1),border-color var(--t1)}
+.ckb svg{width:11px;height:11px;color:#fff;opacity:0;transform:scale(.6);transition:opacity var(--t1),transform var(--t1) var(--ez)}
+.ckb.on{background:var(--urg);border-color:var(--urg)}
+.ckb.on svg{opacity:1;transform:scale(1)}
+.qator-amal{display:flex;gap:4px;justify-content:flex-end;opacity:0;transition:opacity var(--t1)}
+tr:hover .qator-amal,tr.tan .qator-amal{opacity:1}
+.mik{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--t3c);
+  transition:background var(--t1),color var(--t1)}
+.mik:hover{background:var(--b3);color:var(--t1c)}
+.mik svg{width:15px;height:15px}
+</style>
+<style>
+/* ---------- TANLANGANLAR PANELI (jadval ustida suzadi) ---------- */
+.tanpan{position:fixed;left:calc(50% + var(--yon)/2);bottom:var(--s6);transform:translate(-50%,16px);z-index:50;
+  display:flex;align-items:center;gap:var(--s3);padding:9px 10px 9px var(--s4);
+  background:var(--b3);border:1px solid var(--chiz);border-radius:var(--r3);box-shadow:var(--soy3);
+  opacity:0;pointer-events:none;transition:opacity var(--t2),transform var(--t2) var(--ez)}
+.tanpan.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.tanpan b{font-size:13px;font-weight:650;white-space:nowrap}
+
+/* ---------- O'NG TAFSILOT OYNASI (drawer) ---------- */
+.parda{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity var(--t3) var(--ez)}
+.parda.on{opacity:1;pointer-events:auto}
+.tafs{position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);z-index:91;
+  background:var(--b2);border-left:1px solid var(--chiz);box-shadow:var(--soy3);
+  display:flex;flex-direction:column;transform:translateX(100%);
+  transition:transform var(--t3) var(--ez)}
+.tafs.on{transform:translateX(0)}
+.tafs-bosh{display:flex;align-items:flex-start;gap:var(--s3);padding:var(--s5);border-bottom:1px solid var(--chiz-2);flex:none}
+.tafs-bosh h2{font-size:19px;font-weight:700;letter-spacing:-.025em}
+.tafs-bosh p{font-size:13px;color:var(--t3c);margin-top:3px}
+.tafs-tan{flex:1;overflow-y:auto;padding:var(--s5)}
+.tafs-pas{flex:none;display:flex;gap:var(--s2);padding:var(--s4) var(--s5);border-top:1px solid var(--chiz-2);background:var(--b1)}
+.jft{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-bottom:var(--s5)}
+.jft-k{background:var(--b1);border:1px solid var(--chiz-2);border-radius:var(--r3);padding:12px 13px}
+.jft-k span{display:block;font-size:11.5px;color:var(--t3c);font-weight:600;margin-bottom:5px}
+.jft-k b{font-size:17px;font-weight:700;letter-spacing:-.025em}
+.bolim-nom{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3c);margin:var(--s5) 0 var(--s3)}
+.bolim-nom:first-child{margin-top:0}
+
+/* to'lov jadvali — vertikal chiziq */
+.jadv{position:relative;padding-left:26px}
+.jadv::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:var(--chiz);border-radius:2px;z-index:0}
+.jadv-q{position:relative;display:flex;align-items:center;gap:var(--s3);padding:9px 0}
+.jadv-q::before{content:'';position:absolute;left:-22px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;background:var(--b2);border:2px solid var(--chiz);z-index:1}
+.jadv-q.tl::before{background:var(--yax);border-color:var(--yax)}
+.jadv-q.ku::before{background:var(--b2);border-color:var(--urg);box-shadow:0 0 0 3px var(--urg-f)}
+.jadv-q.ke::before{background:var(--yom);border-color:var(--yom)}
+.jadv-q .oy{font-size:13px;font-weight:600;flex:1}
+.jadv-q .sana{font-size:12px;color:var(--t3c);white-space:nowrap}
+.jadv-q .sum{font-size:13px;font-weight:650;white-space:nowrap;margin-left:auto}
+
+/* ---------- ⌘K QIDIRUV ---------- */
+.plt-parda{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity var(--t2)}
+.plt-parda.on{opacity:1;pointer-events:auto}
+.plt{position:fixed;left:50%;top:14vh;transform:translate(-50%,-10px) scale(.97);z-index:121;
+  width:min(620px,calc(100vw - 32px));background:var(--b2);border:1px solid var(--chiz);
+  border-radius:var(--r4);box-shadow:var(--soy3);overflow:hidden;
+  opacity:0;pointer-events:none;transition:opacity var(--t2),transform var(--t2) var(--ez)}
+.plt.on{opacity:1;transform:translate(-50%,0) scale(1);pointer-events:auto}
+.plt-qid{display:flex;align-items:center;gap:11px;padding:15px var(--s5);border-bottom:1px solid var(--chiz-2)}
+.plt-qid svg{width:18px;height:18px;color:var(--t3c);flex:none}
+.plt-qid input{flex:1;font-size:15.5px;font-weight:500}
+.plt-qid input:focus-visible{outline:none}
+.qid input:focus-visible{outline:none}
+.plt-qid input::placeholder{color:var(--t3c)}
+.plt-ro{max-height:min(380px,50vh);overflow-y:auto;padding:var(--s2)}
+.plt-g{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3c);padding:10px 12px 5px}
+.plt-q{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:var(--r2);font-size:13.5px;color:var(--t2c)}
+.plt-q svg{width:17px;height:17px;flex:none;opacity:.8}
+.plt-q.on{background:var(--urg-f);color:var(--urg)}
+.plt-q .yon-yoz{margin-left:auto;font-size:11px;color:var(--t3c)}
+.plt-pas{display:flex;align-items:center;gap:var(--s4);padding:9px var(--s5);border-top:1px solid var(--chiz-2);
+  font-size:11.5px;color:var(--t3c);background:var(--b1)}
+.plt-pas kbd{font:inherit;font-size:10.5px;font-weight:650;background:var(--b3);border:1px solid var(--chiz-2);
+  border-radius:4px;padding:1px 5px;margin-right:4px}
+
+/* ---------- XABAR (toast) ---------- */
+.xabar-joy{position:fixed;right:var(--s5);bottom:var(--s5);z-index:140;display:flex;flex-direction:column;gap:var(--s2);align-items:flex-end}
+.xabar{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--r3);
+  background:var(--b3);border:1px solid var(--chiz);box-shadow:var(--soy3);font-size:13px;font-weight:550;
+  animation:xab .34s var(--ez) both}
+@keyframes xab{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.xabar.ket{animation:xabk .22s var(--ez) both}
+@keyframes xabk{to{opacity:0;transform:translateX(16px)}}
+.xabar svg{width:17px;height:17px;flex:none;color:var(--yax)}
+
+/* ---------- SKELET (yuklanish) ---------- */
+.skl{background:linear-gradient(90deg,var(--b3) 25%,var(--b4) 37%,var(--b3) 63%);
+  background-size:400% 100%;animation:sklm 1.3s ease infinite;border-radius:6px}
+@keyframes sklm{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+/* ---------- KO'RINISH ALMASHISHI ---------- */
+.kor{display:none}
+.kor.on{display:block;animation:korin .3s var(--ez) both}
+@keyframes korin{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.ich-pad > .kor.on > *{animation:korin .34s var(--ez) both}
+.ich-pad > .kor.on > *:nth-child(1){animation-delay:.01s}
+.ich-pad > .kor.on > *:nth-child(2){animation-delay:.05s}
+.ich-pad > .kor.on > *:nth-child(3){animation-delay:.09s}
+.ich-pad > .kor.on > *:nth-child(n+4){animation-delay:.12s}
+
+.ikki{display:grid;grid-template-columns:1.6fr 1fr;gap:var(--s4);align-items:start}
+.ustun{display:flex;flex-direction:column;gap:var(--s4);min-width:0}
+
+/* vazifa qatori */
+.vz{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--chiz-2)}
+.vz:last-child{border-bottom:none}
+.vz-n{width:8px;height:8px;border-radius:50%;flex:none}
+.vz b{flex:1;font-size:13px;font-weight:550;color:var(--t2c)}
+.vz span{font-size:12px;color:var(--t3c);font-weight:600}
+/* progress */
+.prg{height:6px;border-radius:4px;background:var(--b3);overflow:hidden;margin-top:10px}
+.prg i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--urg),var(--urg-2));
+  transition:width .9s var(--ez)}
+
+
+/* ==================================================================
+   KIRISH EKRANI
+   ------------------------------------------------------------------
+   Kompyuterda ikki ustun: chapda brend va jonli fon, o'ngda forma.
+   Telefonda faqat forma, fon esa uning ortida qoladi.
+
+   FON MAVZUSI — telefon signali: markazdan sekin tarqaladigan
+   halqalar va suzib yuruvchi raqam yorliqlari. Bu shunchaki bezak
+   emas, ishimizning o'zi haqida.
+
+   TEZLIK. Hamma harakat faqat `transform` va `opacity` ustida —
+   ya'ni videokartada chiziladi, sahifani qayta joylashtirmaydi.
+   Telefonda halqalar soni va `blur` kamaytirilgan: `blur` eng qimmat
+   effekt, arzon telefonda aynan u kadrni tushiradi.
+   ================================================================== */
+.kirish{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:1.05fr .95fr;
+  background:var(--b0);overflow:hidden}
+.kirish.yopiq{display:none}
+
+/* ---- chap ustun: brend va jonli fon ---- */
+.kir-chap{position:relative;overflow:hidden;display:flex;flex-direction:column;
+  justify-content:space-between;padding:40px 44px;
+  background:linear-gradient(155deg,#101832 0%,#0A0E1A 48%,#0B1420 100%)}
+.kir-chap::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(64% 52% at 68% 50%,transparent 34%,rgba(7,9,14,.78) 100%)}
+.halqalar{position:absolute;left:68%;top:50%;width:min(520px,62%);aspect-ratio:1;
+  transform:translate(-50%,-50%);pointer-events:none}
+.halqalar i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(123,157,255,.34);
+  opacity:0;transform:scale(.34);animation:halqa 7s var(--ez) infinite;will-change:transform,opacity}
+.halqalar i:nth-child(2){animation-delay:1.75s}
+.halqalar i:nth-child(3){animation-delay:3.5s}
+.halqalar i:nth-child(4){animation-delay:5.25s}
+@keyframes halqa{
+  0%{opacity:0;transform:scale(.34)}
+  14%{opacity:.85}
+  100%{opacity:0;transform:scale(1.18)}
+}
+.halqalar b{position:absolute;left:50%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;
+  border-radius:50%;background:var(--urg);box-shadow:0 0 0 7px rgba(91,127,255,.16),0 0 34px 6px rgba(91,127,255,.5);
+  animation:yurak 7s var(--ez) infinite}
+@keyframes yurak{0%,100%{transform:scale(1)}10%{transform:scale(1.45)}24%{transform:scale(1)}}
+/* suzib yuruvchi raqam yorliqlari */
+.suzgi{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.suzgi span{position:absolute;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:.01em;
+  color:rgba(190,208,255,.26);padding:7px 13px;border-radius:20px;
+  border:1px solid rgba(123,157,255,.14);background:rgba(123,157,255,.045);
+  animation:suz linear infinite;will-change:transform,opacity}
+@keyframes suz{
+  0%{opacity:0;transform:translate3d(0,26px,0)}
+  16%,78%{opacity:1}
+  100%{opacity:0;transform:translate3d(0,-34px,0)}
+}
+.kir-brend{position:relative;z-index:3;display:flex;align-items:center;gap:12px}
+.kir-brend .bm{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--urg),#8AA4FF);color:#fff;font-weight:800;font-size:14px;
+  letter-spacing:-.04em;box-shadow:0 8px 24px -8px var(--urg)}
+.kir-brend b{font-size:14.5px;font-weight:700;letter-spacing:-.015em;color:#EEF2FB;display:block}
+.kir-brend span{font-size:11.5px;color:rgba(190,204,230,.6);display:block;margin-top:1px}
+.kir-shior{position:relative;z-index:3;max-width:370px}
+.kir-shior h2{font-size:29px;font-weight:700;letter-spacing:-.035em;line-height:1.16;color:#F3F6FC}
+.kir-shior p{font-size:14px;line-height:1.6;color:rgba(190,204,230,.68);margin-top:12px}
+.kir-xus{position:relative;z-index:3;display:flex;flex-direction:column;gap:11px}
+.kir-xus div{display:flex;align-items:center;gap:11px;font-size:13px;color:rgba(205,217,240,.78)}
+.kir-xus svg{width:16px;height:16px;flex:none;color:#7B9DFF}
+
+/* ---- o'ng ustun: forma ---- */
+.kir-ong{position:relative;display:grid;place-items:center;background:var(--b1);
+  padding:32px max(20px,env(safe-area-inset-right,0px)) 32px max(20px,env(safe-area-inset-left,0px));
+  overflow-y:auto}
+.kir-k{width:100%;max-width:352px}
+.kir-k > *{animation:kirkir .55s var(--ez) both}
+.kir-k > *:nth-child(1){animation-delay:.04s} .kir-k > *:nth-child(2){animation-delay:.1s}
+.kir-k > *:nth-child(3){animation-delay:.16s} .kir-k > *:nth-child(4){animation-delay:.22s}
+.kir-k > *:nth-child(5){animation-delay:.28s} .kir-k > *:nth-child(6){animation-delay:.34s}
+@keyframes kirkir{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.kir-brend-tel{display:none;align-items:center;gap:11px;margin-bottom:26px}
+.kir-brend-tel .bm{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--urg),#8AA4FF);color:#fff;font-weight:800;font-size:14px;
+  letter-spacing:-.04em;box-shadow:0 8px 24px -8px var(--urg)}
+.kir-brend-tel b{font-size:14px;font-weight:700;letter-spacing:-.015em;display:block;color:var(--t1c)}
+.kir-brend-tel span{font-size:11.5px;color:var(--t3c);display:block;margin-top:1px}
+.kir-k h1{font-size:25px;font-weight:720;letter-spacing:-.03em}
+.kir-k .ost{font-size:13.5px;color:var(--t3c);margin:6px 0 26px}
+
+/* maydon: suzuvchi yorliq */
+.maydon{position:relative;margin-bottom:14px}
+.maydon .quti{position:relative;display:flex;align-items:center;gap:10px;height:56px;padding:0 13px;
+  border-radius:var(--r3);background:var(--b2);border:1px solid var(--chiz);
+  transition:border-color var(--t2) var(--ez),box-shadow var(--t2) var(--ez),background var(--t2)}
+.maydon .quti:focus-within{border-color:var(--urg);box-shadow:0 0 0 4px var(--urg-f)}
+.maydon .quti > svg{width:17px;height:17px;color:var(--t3c);flex:none;transition:color var(--t2)}
+.maydon .quti:focus-within > svg{color:var(--urg)}
+.maydon input{flex:1;min-width:0;font-size:15px;font-weight:550;padding:18px 0 4px}
+.maydon input:focus-visible{outline:none}
+.maydon label{position:absolute;left:40px;top:18px;font-size:14.5px;font-weight:500;color:var(--t3c);
+  pointer-events:none;transform-origin:left top;
+  transition:transform var(--t2) var(--ez),color var(--t2)}
+/* maydon bo'sh VA fokusda emas -> yorliq o'rtada; aks holda tepaga ko'tariladi */
+.maydon input:not(:placeholder-shown) + label,
+.maydon input:focus + label{transform:translateY(-12px) scale(.78);color:var(--urg)}
+.kir-koz{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--t3c);flex:none;
+  transition:background var(--t1),color var(--t1)}
+.kir-koz:hover{background:var(--b3);color:var(--t1c)}
+.kir-koz svg{width:17px;height:17px}
+.caps{display:none;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:600;color:var(--ogo)}
+.caps.bor{display:flex;animation:kirkir .3s var(--ez) both}
+.caps svg{width:13px;height:13px}
+
+.kir-tug{position:relative;width:100%;height:52px;margin-top:20px;border-radius:var(--r3);
+  background:var(--urg);color:#fff;font-size:15px;font-weight:650;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  box-shadow:0 8px 26px -10px var(--urg);
+  transition:transform var(--t1) var(--ez),background var(--t2),box-shadow var(--t2)}
+.kir-tug:hover{background:var(--urg-2);box-shadow:0 10px 30px -10px var(--urg)}
+.kir-tug:active{transform:scale(.985)}
+.kir-tug:disabled{pointer-events:none}
+.kir-tug.yuk{background:var(--urg)}
+.kir-tug.bold{background:var(--yax);box-shadow:0 8px 26px -10px var(--yax)}
+/* tugma ustidan o'tuvchi yorug'lik — faqat yuklanayotganda */
+.kir-tug.yuk::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.22) 50%,transparent 80%);
+  transform:translateX(-100%);animation:yalt 1.1s linear infinite}
+@keyframes yalt{to{transform:translateX(100%)}}
+.aylana{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;animation:ayl .65s linear infinite}
+@keyframes ayl{to{transform:rotate(360deg)}}
+.belgi-ani{width:20px;height:20px}
+.belgi-ani path{stroke-dasharray:26;stroke-dashoffset:26;animation:belgich .4s var(--ez) forwards}
+@keyframes belgich{to{stroke-dashoffset:0}}
+
+.kir-xato{display:none;margin-top:14px;padding:11px 13px;border-radius:var(--r2);
+  background:var(--yom-f);color:var(--yom);font-size:12.5px;font-weight:550;line-height:1.5;white-space:pre-line}
+.kir-xato.bor{display:block;animation:silk .4s var(--ez)}
+@keyframes silk{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.kir-pas{margin-top:22px;padding-top:16px;border-top:1px solid var(--chiz-2);
+  display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t3c);line-height:1.5}
+.kir-pas svg{width:14px;height:14px;flex:none;color:var(--yax)}
+/* muvaffaqiyat: karta ko'tarilib yo'qoladi */
+.kirish.ketdi .kir-k{animation:kirket .42s var(--ez) both}
+.kirish.ketdi{animation:kirfon .42s var(--ez) .08s both}
+@keyframes kirket{to{opacity:0;transform:translateY(-14px) scale(.985)}}
+@keyframes kirfon{to{opacity:0}}
+
+/* kutish pardasi (seans tiklanayotganda) */
+.kutish{position:fixed;inset:0;z-index:210;display:grid;place-items:center;align-content:center;
+  justify-items:center;gap:15px;background:var(--b1)}
+.kutish.yopiq{display:none}
+.kutish .aylana{width:26px;height:26px;border-color:var(--chiz);border-top-color:var(--urg)}
+.kutish span{font-size:13px;color:var(--t3c)}
+
+@media (max-width:980px){
+  .kirish{grid-template-columns:1fr}
+  .kir-chap{display:none}
+  /* fon telefonda formaning ORTIDA qoladi — halqalar xiraroq */
+  .kir-ong{background:
+    radial-gradient(900px 520px at 50% -8%,rgba(91,127,255,.13),transparent 62%),
+    radial-gradient(700px 440px at 50% 108%,rgba(52,217,155,.07),transparent 64%),var(--b1)}
+  .kir-k{max-width:380px}
+  .kir-k h1{font-size:23px}
+  .kir-brend-tel{display:flex}
+}
+@media (prefers-reduced-motion:reduce){
+  .halqalar i,.halqalar b,.suzgi span,.kir-tug.yuk::after{animation:none}
+  .halqalar i:nth-child(1){opacity:.5;transform:scale(1)}
+}
+
+/* ---------- TELEFON ---------- */
+.pas-nav{display:none}
+@media (max-width:900px){
+  .qobiq{grid-template-columns:1fr}
+  .yon{position:fixed;left:0;top:0;bottom:0;width:272px;z-index:100;transform:translateX(-100%);
+    transition:transform var(--t3) var(--ez);border-right:1px solid var(--chiz)}
+  html[data-menyu="ochiq"] .yon{transform:none}
+  .tep{height:54px;padding:0 var(--s3);gap:var(--s2)}
+  .tep-yol{display:none}
+  .ich-pad{padding:var(--s3) var(--s3) 88px}
+  .sb{gap:var(--s2)}
+  .sb h1{font-size:21px;white-space:nowrap}
+  .sb p{display:none}
+  .sb-amal{width:100%;order:3}
+  .sb-amal .tug{flex:1}
+  .tanpan{left:50%;right:auto;bottom:80px;width:calc(100vw - 24px);justify-content:space-between}
+  .tanpan .tug span{display:none}
+  .ko-ost{font-size:11.5px;text-overflow:ellipsis}
+  .ozg{flex:none}
+  .kolar{grid-template-columns:1fr 1fr;gap:var(--s2);margin-bottom:var(--s3)}
+  .ko{padding:13px;border-radius:var(--r3)}
+  .ko-son{font-size:23px}
+  .ko-tep{margin-bottom:9px}
+  .ikki{grid-template-columns:1fr;gap:var(--s3)}
+  .ustun{gap:var(--s3)}
+  .k-bosh{padding:12px 13px}
+  .k-tan{padding:13px}
+  .graf{height:180px}
+  .tafs{width:100vw;border-left:none;border-radius:var(--r5) var(--r5) 0 0;top:auto;height:92dvh;
+    transform:translateY(100%)}
+  .tafs.on{transform:translateY(0)}
+  .plt{top:0;left:0;transform:translateY(-8px);width:100vw;border-radius:0;height:100dvh;max-width:none}
+  .plt.on{transform:none}
+  .plt-ro{max-height:calc(100dvh - 132px)}
+  .xabar-joy{right:var(--s3);left:var(--s3);bottom:84px;align-items:stretch}
+  /* pastki menyu */
+  .pas-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;height:66px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;
+    background:var(--shisha);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-top:1px solid var(--chiz-2)}
+  .pn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    border-radius:var(--r2);color:var(--t3c);font-size:10.5px;font-weight:600;position:relative;
+    transition:color var(--t1),background var(--t1)}
+  .pn svg{width:20px;height:20px}
+  .pn.on{color:var(--urg);background:var(--urg-f)}
+  .pn .nuqta{position:absolute;top:7px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:var(--yom)}
+  .jad thead th,.jad tbody td{padding:10px 13px}
+  /* Filtrlar — yonga suriladi (ikki qatorga bo'linib ketmasin) */
+  .asb{padding:10px 13px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .asb::-webkit-scrollbar{display:none}
+  .qid{min-width:62vw}
+  .filt{flex:none}
+
+  /* ====== TELEFONDA JADVAL -> KARTOCHKA ======
+     Ustunli jadval telefonga sig'maydi: narx va holat o'ngga chiqib
+     ketib, aynan eng kerakli ikki ma'lumot ko'rinmay qoladi. Shuning
+     uchun har bir qator mustaqil kartochkaga aylanadi. */
+  .jad thead{display:none}
+  .jad,.jad tbody,.jad tr{display:block;width:100%}
+  .jad tbody td{border:none;padding:0;min-width:0}
+  #raqJad tr{
+    display:grid;grid-template-columns:auto 1fr auto;
+    grid-template-areas:"ck raq narx" "ck mij hol" "ck ope sana";
+    gap:5px 11px;padding:13px;border-bottom:1px solid var(--chiz-2);align-items:center}
+  #raqJad td:nth-child(1){grid-area:ck;align-self:center}
+  #raqJad td:nth-child(2){grid-area:raq}
+  #raqJad td:nth-child(3){grid-area:mij}
+  #raqJad td:nth-child(4){grid-area:ope;font-size:12px}
+  #raqJad td:nth-child(5){grid-area:sana;text-align:right;font-size:12px}
+  #raqJad td:nth-child(6){grid-area:narx;text-align:right}
+  #raqJad td:nth-child(7){grid-area:hol;justify-self:end}
+  #raqJad td:nth-child(8){display:none}
+  #raqJad .mijoz .av{display:none}
+  #raqJad .mijoz-yoz span{display:none}
+  #raqJad .mijoz-yoz b{font-size:12.5px;color:var(--t2c);font-weight:550}
+
+  #krJad tr{
+    display:grid;grid-template-columns:1fr auto;
+    grid-template-areas:"mij hol" "meta narx";
+    gap:7px 11px;padding:13px;border-bottom:1px solid var(--chiz-2);align-items:center}
+  #krJad td:nth-child(1){grid-area:mij}
+  #krJad td:nth-child(2){grid-area:meta;font-size:12.5px}
+  #krJad td:nth-child(3){grid-area:narx;text-align:right}
+  #krJad td:nth-child(4){grid-area:hol;justify-self:end;width:auto}
+
+  #sonBuyurtma tr{
+    display:grid;grid-template-columns:1fr auto;
+    grid-template-areas:"mij narx" "mij hol";
+    gap:3px 11px;padding:11px 13px;border-bottom:1px solid var(--chiz-2);align-items:center}
+  #sonBuyurtma td:nth-child(1){grid-area:mij}
+  #sonBuyurtma td:nth-child(2){grid-area:narx;text-align:right}
+  #sonBuyurtma td:nth-child(3){grid-area:hol;justify-self:end;width:auto}
+}
+@media (min-width:901px){ .menyu-tug{display:none} }
+</style>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+</head><body>
+
+<svg style="display:none" aria-hidden="true"><defs>
+<symbol id="i-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+<symbol id="i-buyurtma" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-raqam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></symbol>
+<symbol id="i-baza" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+<symbol id="i-kredit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></symbol>
+<symbol id="i-pul" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5v19"/><path d="M17 6H9.8a3.3 3.3 0 0 0 0 6.6h4.4a3.3 3.3 0 0 1 0 6.6H6"/></symbol>
+<symbol id="i-odam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.5" r="3.8"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="i-hisobot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5v17h17"/><path d="M7.5 16.5v-5M12 16.5v-9M16.5 16.5v-3"/></symbol>
+<symbol id="i-auksion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5.5 21V9.5L12 4.5l6.5 5V21"/><path d="M9.5 21v-5.5h5V21"/></symbol>
+<symbol id="i-koz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.8-6.5 10-6.5S22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="i-ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 16l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></symbol>
+<symbol id="i-yuborish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2.5L10.5 13.5"/><path d="M21.5 2.5l-7 19-4-8.5-8.5-4z"/></symbol>
+<symbol id="i-stories" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.6"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10.5 9.5l5 2.5-5 2.5z"/></symbol>
+<symbol id="i-sozlama" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.84 2.84l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06A2 2 0 1 1 4.1 16.9l.06-.06a1.7 1.7 0 0 0 .34-1.88 1.7 1.7 0 0 0-1.56-1H2.8a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.56-1.1 1.7 1.7 0 0 0-.34-1.88l-.06-.06A2 2 0 1 1 6.9 4.1l.06.06a1.7 1.7 0 0 0 1.88.34H9a1.7 1.7 0 0 0 1-1.56V2.8a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.84 2.84l-.06.06a1.7 1.7 0 0 0-.34 1.88V9a1.7 1.7 0 0 0 1.56 1h.16a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.56 1z"/></symbol>
+<symbol id="i-qidir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></symbol>
+<symbol id="i-qongiroq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10a6 6 0 1 1 12 0c0 4.2 1.6 5.8 1.6 5.8H4.4S6 14.2 6 10z"/><path d="M10 19.5a2 2 0 0 0 4 0"/></symbol>
+<symbol id="i-oy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.3A8.5 8.5 0 1 1 9.7 3.5a6.6 6.6 0 0 0 10.8 10.8z"/></symbol>
+<symbol id="i-quyosh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-chap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-yop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+<symbol id="i-menyu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+<symbol id="i-yuqori" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+<symbol id="i-past" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></symbol>
+<symbol id="i-nuqta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></symbol>
+<symbol id="i-filtr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
+<symbol id="i-tahrir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-ogoh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5M12 17.2h.01"/></symbol>
+<symbol id="i-belgi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+<symbol id="i-odam2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-qulf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="11" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
+<symbol id="i-koz2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.8-6.5 10-6.5S22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="i-koz-yop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.9 9.9 0 0 1 12 6c6.2 0 10 6 10 6a17 17 0 0 1-3.3 3.9M6.6 7.9A17 17 0 0 0 2 12s3.8 6 10 6c1.3 0 2.5-.2 3.5-.6"/></symbol>
+<symbol id="i-chiqish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></symbol>
+<symbol id="i-yuklab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></symbol>
+</defs></svg>
+<div class="kutish" id="kutish"><div class="aylana"></div><span>Tekshirilmoqda…</span></div>
+
+<div class="kirish yopiq" id="kirish">
+
+  <!-- chap: brend va jonli fon (telefonda yashiriladi) -->
+  <div class="kir-chap">
+    <div class="halqalar" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
+    <div class="suzgi" id="suzgi" aria-hidden="true"></div>
+
+    <div class="kir-brend">
+      <div class="bm">VR</div>
+      <div><b>VIP RAQAMLAR</b><span>Boshqaruv paneli</span></div>
+    </div>
+
+    <div class="kir-shior">
+      <h2>Raqamlar, shartnomalar va to'lovlar — bitta joyda.</h2>
+      <p>Sotuvdan tortib oxirgi to'lovgacha bo'lgan yo'l shu panelda boshqariladi.</p>
+    </div>
+
+    <div class="kir-xus">
+      <div><svg><use href="#i-raqam"/></svg>Raqamlar bazasi va narxlar</div>
+      <div><svg><use href="#i-kredit"/></svg>Bo'lib to'lash shartnomalari</div>
+      <div><svg><use href="#i-hisobot"/></svg>Kunlik va oylik hisobotlar</div>
+    </div>
+  </div>
+
+  <!-- o'ng: forma -->
+  <div class="kir-ong">
+    <form class="kir-k" id="kirForma" autocomplete="on">
+      <div class="kir-brend-tel">
+        <div class="bm">VR</div>
+        <div><b>VIP RAQAMLAR</b><span>Boshqaruv paneli</span></div>
+      </div>
+      <h1>Xush kelibsiz</h1>
+      <div class="ost">Davom etish uchun hisobingizga kiring.</div>
+
+      <div class="maydon">
+        <div class="quti">
+          <svg><use href="#i-odam2"/></svg>
+          <input id="kirNom" name="username" type="text" autocomplete="username"
+                 placeholder=" " autocapitalize="off" spellcheck="false" required>
+          <label for="kirNom">Ism yoki telefon raqami</label>
+        </div>
+      </div>
+
+      <div class="maydon">
+        <div class="quti">
+          <svg><use href="#i-qulf"/></svg>
+          <input id="kirParol" name="password" type="password" autocomplete="current-password"
+                 placeholder=" " required>
+          <label for="kirParol">Parol</label>
+          <button type="button" class="kir-koz" id="kirKoz" aria-label="Parolni ko'rsatish"><svg id="kirKozIk"><use href="#i-koz2"/></svg></button>
+        </div>
+        <div class="caps" id="capsOgoh"><svg><use href="#i-ogoh"/></svg>Caps Lock yoqilgan</div>
+      </div>
+
+      <button type="submit" class="kir-tug" id="kirTug">Kirish</button>
+      <div class="kir-xato" id="kirXato"></div>
+      <div class="kir-pas">
+        <svg><use href="#i-qulf"/></svg>
+        <span>Seans 24 soat davom etadi, shundan keyin qaytadan kirish so'raladi.</span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="qobiq" id="qobiq" style="display:none">
+
+<aside class="yon">
+  <div class="yon-bosh">
+    <div class="logo">VR</div>
+    <div class="logo-yoz"><b>VIP RAQAMLAR</b><span>Boshqaruv paneli</span></div>
+    <button class="yon-yig" id="yonYig" aria-label="Menyuni yig'ish"><svg><use href="#i-chap"/></svg></button>
+  </div>
+
+  <button class="qid-tug" id="pltOch">
+    <svg><use href="#i-qidir"/></svg><span>Qidirish yoki buyruq…</span><kbd>⌘K</kbd>
+  </button>
+
+  <nav class="yon-ro">
+    <div class="yon-guruh">Sotuv</div>
+    <a class="nav on" data-kor="panel"><svg><use href="#i-panel"/></svg><span class="lbl">Boshqaruv paneli</span></a>
+    <a class="nav ogoh" data-kor="buyurtma"><svg><use href="#i-buyurtma"/></svg><span class="lbl">Buyurtmalar</span><span class="son">7</span></a>
+    <a class="nav" data-kor="raqam"><svg><use href="#i-raqam"/></svg><span class="lbl">Raqamlar</span><span class="son">1248</span></a>
+    <a class="nav" data-kor="baza"><svg><use href="#i-baza"/></svg><span class="lbl">Baza raqam</span></a>
+    <a class="nav" data-kor="auksion"><svg><use href="#i-auksion"/></svg><span class="lbl">UZEX auksion</span></a>
+    <a class="nav" data-kor="kuzatuv"><svg><use href="#i-koz"/></svg><span class="lbl">Kuzatuv</span></a>
+
+    <div class="yon-guruh">Moliya</div>
+    <a class="nav ogoh" data-kor="kredit"><svg><use href="#i-kredit"/></svg><span class="lbl">Kredit</span><span class="son">3</span></a>
+    <a class="nav" data-kor="tolov"><svg><use href="#i-pul"/></svg><span class="lbl">Kirim-chiqim</span></a>
+    <a class="nav" data-kor="hisobot"><svg><use href="#i-hisobot"/></svg><span class="lbl">Hisobotlar</span></a>
+    <a class="nav" data-kor="mijoz"><svg><use href="#i-odam"/></svg><span class="lbl">Mijozlar</span></a>
+
+    <div class="yon-guruh">Kontent</div>
+    <a class="nav" data-kor="stories"><svg><use href="#i-stories"/></svg><span class="lbl">Stories</span></a>
+    <a class="nav" data-kor="kanal"><svg><use href="#i-yuborish"/></svg><span class="lbl">Kanal posti</span></a>
+    <a class="nav" data-kor="video"><svg><use href="#i-video"/></svg><span class="lbl">Video sharhlar</span></a>
+    <a class="nav" data-kor="ai"><svg><use href="#i-ai"/></svg><span class="lbl">AI yordamchi</span></a>
+
+    <div class="yon-guruh">Tizim</div>
+    <a class="nav" data-kor="sozlama"><svg><use href="#i-sozlama"/></svg><span class="lbl">Sozlamalar</span></a>
+  </nav>
+
+  <div class="yon-pas">
+    <div class="kim">
+      <div class="kim-av">AR</div>
+      <div class="kim-yoz" id="kimYoz"><b>Admin</b><span>Boshqaruv</span></div>
+      <button class="mik" id="chiqishTug" title="Chiqish" style="margin-left:auto"><svg><use href="#i-chiqish"/></svg></button>
+    </div>
+  </div>
+</aside>
+
+<main class="ish">
+  <header class="tep">
+    <button class="ik menyu-tug" id="menyuTug" aria-label="Menyu"><svg><use href="#i-menyu"/></svg></button>
+    <div class="tep-yol"><span>Sotuv</span><i>/</i><b id="yolNom">Boshqaruv paneli</b></div>
+    <div class="tep-osh"></div>
+    <span class="jonli"><i></i>Jonli</span>
+    <button class="ik nuq" aria-label="Bildirishnomalar"><svg><use href="#i-qongiroq"/></svg></button>
+    <button class="ik" id="temaTug" aria-label="Mavzu"><svg id="temaIk"><use href="#i-quyosh"/></svg></button>
+  </header>
+
+  <div class="ich" id="ich"><div class="ich-pad">
+
+  <!-- ================= BOSHQARUV PANELI ================= -->
+  <section class="kor on" id="kor-panel">
+    <div class="sb">
+      <div class="sb-yoz"><h1>Boshqaruv paneli</h1><p>Bugungi savdo, to'lovlar va faoliyat — bir joyda.</p></div>
+      <div class="sb-amal">
+        <button class="tug tug-ikki"><svg><use href="#i-yuklab"/></svg>Hisobot</button>
+        <button class="tug tug-asos" data-xabar="Raqam qo'shish oynasi ochildi"><svg><use href="#i-plus"/></svg>Raqam qo'shish</button>
+      </div>
+    </div>
+
+    <div class="kolar">
+      <div class="ko">
+        <div class="ko-tep"><span class="ko-ik"><svg><use href="#i-buyurtma"/></svg></span><span class="ko-nom">Bugungi buyurtma</span></div>
+        <div class="ko-son">14</div>
+        <div class="ko-ost"><span class="ozg yuq"><svg><use href="#i-yuqori"/></svg>22%</span>kechagiga nisbatan</div>
+        <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none" data-spark="6,9,7,12,8,16,14"></svg>
+      </div>
+      <div class="ko">
+        <div class="ko-tep"><span class="ko-ik y"><svg><use href="#i-baza"/></svg></span><span class="ko-nom">Bazadagi raqam</span></div>
+        <div class="ko-son">1 248</div>
+        <div class="ko-ost"><span class="ozg yuq"><svg><use href="#i-yuqori"/></svg>36</span>shundan 96 ta VIP</div>
+        <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none" data-spark="1180,1196,1205,1218,1226,1240,1248"></svg>
+      </div>
+      <div class="ko">
+        <div class="ko-tep"><span class="ko-ik o"><svg><use href="#i-kredit"/></svg></span><span class="ko-nom">Faol shartnoma</span></div>
+        <div class="ko-son">37</div>
+        <div class="ko-ost">oylik <b style="color:var(--t2c);font-weight:650">42,6 mln</b> so'm</div>
+        <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none" data-spark="29,31,30,33,35,36,37"></svg>
+      </div>
+      <div class="ko">
+        <div class="ko-tep"><span class="ko-ik x"><svg><use href="#i-ogoh"/></svg></span><span class="ko-nom">Kechikkan to'lov</span></div>
+        <div class="ko-son">3</div>
+        <div class="ko-ost"><span class="ozg pas"><svg><use href="#i-past"/></svg>5,4 mln</span>so'm kutilmoqda</div>
+        <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none" data-spark="1,2,2,4,3,4,3"></svg>
+      </div>
+    </div>
+
+    <div class="ikki">
+      <div class="ustun">
+        <div class="k">
+          <div class="k-bosh">
+            <h3>Savdo dinamikasi</h3><div class="osh"></div>
+            <div class="sgm" id="sgmDavr">
+              <button class="on" data-davr="7">7 kun</button><button data-davr="30">30 kun</button><button data-davr="90">3 oy</button>
+            </div>
+          </div>
+          <div class="k-tan">
+            <div class="graf"><svg id="grafSvg" viewBox="0 0 700 230" preserveAspectRatio="none"></svg></div>
+            <div class="graf-xat" id="grafXat"></div>
+          </div>
+        </div>
+
+        <div class="k">
+          <div class="k-bosh"><h3>So'nggi buyurtmalar</h3><div class="osh"></div><span class="yorliq">jami 14 ta</span></div>
+          <div class="k-tan tekis">
+            <table class="jad"><tbody id="sonBuyurtma"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div class="ustun">
+        <div class="k">
+          <div class="k-bosh"><h3>Oylik reja</h3></div>
+          <div class="k-tan">
+            <div style="display:flex;align-items:baseline;gap:7px">
+              <span style="font-size:28px;font-weight:700;letter-spacing:-.035em">186,4</span>
+              <span style="font-size:13px;color:var(--t2c);font-weight:600">/ 250 mln so'm</span>
+            </div>
+            <div class="prg"><i style="width:0" data-kenglik="74%"></i></div>
+            <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--t3c)">
+              <span>74% bajarildi</span><span>11 kun qoldi</span></div>
+          </div>
+        </div>
+
+        <div class="k">
+          <div class="k-bosh"><h3>Bugungi vazifalar</h3><div class="osh"></div><span class="yorliq">4 ta</span></div>
+          <div class="k-tan">
+            <div class="vz"><span class="vz-n" style="background:var(--yom)"></span><b>Kechikkan 3 ta to'lovni eslatish</b><span>09:00</span></div>
+            <div class="vz"><span class="vz-n" style="background:var(--ogo)"></span><b>UZEX auksioni yakuni</b><span>14:00</span></div>
+            <div class="vz"><span class="vz-n" style="background:var(--urg)"></span><b>Kanalga 5 ta yangi raqam</b><span>18:00</span></div>
+            <div class="vz"><span class="vz-n" style="background:var(--yax)"></span><b>Haftalik hisobot</b><span>20:00</span></div>
+          </div>
+        </div>
+
+        <div class="k">
+          <div class="k-bosh"><h3>Operatorlar</h3></div>
+          <div class="k-tan" id="operBlok"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RAQAMLAR ================= -->
+  <section class="kor" id="kor-raqam">
+    <div class="sb">
+      <div class="sb-yoz"><h1>Raqamlar</h1><p>Sotuvdagi barcha raqamlar, narxi va holati.</p></div>
+      <div class="sb-amal">
+        <button class="tug tug-ikki"><svg><use href="#i-yuklab"/></svg>Eksport</button>
+        <button class="tug tug-asos" data-xabar="Yangi raqam qo'shish"><svg><use href="#i-plus"/></svg>Raqam qo'shish</button>
+      </div>
+    </div>
+
+    <div class="k" style="position:relative">
+      <div class="asb">
+        <div class="qid"><svg><use href="#i-qidir"/></svg><input id="raqQid" placeholder="Raqam, mijoz yoki shartnoma bo'yicha qidirish…"></div>
+        <button class="filt on" data-f="hammasi">Hammasi <span style="opacity:.6">12</span></button>
+        <button class="filt" data-f="bosh">Bo'sh <span style="opacity:.6">7</span></button>
+        <button class="filt" data-f="band">Band <span style="opacity:.6">3</span></button>
+        <button class="filt" data-f="vip">VIP <span style="opacity:.6">2</span></button>
+        <button class="filt"><svg><use href="#i-filtr"/></svg>Filtr</button>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="jad">
+        <thead><tr>
+          <th style="width:42px"><span class="ckb" id="hammaCkb"><svg><use href="#i-belgi"/></svg></span></th>
+          <th>Raqam</th><th>Mijoz</th><th>Operator</th><th>Qo'shilgan</th>
+          <th class="o">Narx</th><th>Holat</th><th style="width:90px"></th>
+        </tr></thead>
+        <tbody id="raqJad"></tbody>
+      </table>
+      </div>
+      <div class="tanpan" id="tanPan">
+        <b id="tanSon">0 ta belgilandi</b>
+        <button class="tug tug-kich tug-ikki"><svg><use href="#i-tahrir"/></svg>Tahrirlash</button>
+        <button class="tug tug-kich tug-ikki"><svg><use href="#i-yuborish"/></svg>Kanalga</button>
+        <button class="tug tug-kich tug-xatar">O'chirish</button>
+        <button class="mik" id="tanYop"><svg><use href="#i-yop"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KREDIT ================= -->
+  <section class="kor" id="kor-kredit">
+    <div class="sb">
+      <div class="sb-yoz"><h1>Kredit shartnomalari</h1><p>Bo'lib to'lash shartnomalari va to'lov jadvali.</p></div>
+      <div class="sb-amal">
+        <button class="tug tug-asos" data-xabar="Yangi shartnoma oynasi"><svg><use href="#i-plus"/></svg>Shartnoma</button>
+      </div>
+    </div>
+    <div class="kolar" style="grid-template-columns:repeat(3,1fr)">
+      <div class="ko"><div class="ko-tep"><span class="ko-ik"><svg><use href="#i-kredit"/></svg></span><span class="ko-nom">Faol shartnoma</span></div><div class="ko-son">37</div><div class="ko-ost">jami 312 mln so'm</div></div>
+      <div class="ko"><div class="ko-tep"><span class="ko-ik y"><svg><use href="#i-pul"/></svg></span><span class="ko-nom">Bu oy tushdi</span></div><div class="ko-son">34,2</div><div class="ko-ost">mln so'm · 29 ta to'lov</div></div>
+      <div class="ko"><div class="ko-tep"><span class="ko-ik x"><svg><use href="#i-ogoh"/></svg></span><span class="ko-nom">Kechikkan</span></div><div class="ko-son">3</div><div class="ko-ost">5,4 mln so'm</div></div>
+    </div>
+    <div class="k">
+      <div class="k-bosh"><h3>Shartnomalar</h3><div class="osh"></div><span class="yorliq">bosing — tafsilot ochiladi</span></div>
+      <div class="k-tan tekis"><table class="jad"><tbody id="krJad"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ================= BOSHQA BO'LIMLAR (hozircha namuna) ============ -->
+  <section class="kor" id="kor-bosh">
+    <div class="sb"><div class="sb-yoz"><h1 id="boshNom">Bo'lim</h1><p>Bu bo'lim hozirgi paneldan ko'chiriladi — tuzilma tayyor.</p></div></div>
+    <div class="k"><div class="k-tan" style="padding:48px;text-align:center;color:var(--t3c)">
+      <svg style="width:38px;height:38px;opacity:.35;margin-bottom:12px"><use href="#i-panel"/></svg>
+      <div style="font-size:14px;font-weight:600;color:var(--t2c)">Bu yerga mavjud bo'lim ko'chiriladi</div>
+      <div style="font-size:13px;margin-top:5px">Yangi dizayn va komponentlar bilan.</div>
+    </div></div>
+  </section>
+
+  </div></div>
+</main>
+</div>
+
+<!-- pastki menyu (telefon) -->
+<nav class="pas-nav">
+  <button class="pn on" data-kor="panel"><svg><use href="#i-panel"/></svg>Asosiy</button>
+  <button class="pn" data-kor="raqam"><svg><use href="#i-raqam"/></svg>Raqamlar</button>
+  <button class="pn" data-kor="buyurtma"><span class="nuqta"></span><svg><use href="#i-buyurtma"/></svg>Buyurtma</button>
+  <button class="pn" data-kor="kredit"><svg><use href="#i-kredit"/></svg>Kredit</button>
+  <button class="pn" id="pnQid"><svg><use href="#i-qidir"/></svg>Qidiruv</button>
+</nav>
+
+<!-- o'ng tafsilot oynasi -->
+<div class="parda" id="parda"></div>
+<aside class="tafs" id="tafs">
+  <div class="tafs-bosh">
+    <div style="flex:1;min-width:0">
+      <h2 id="tafsNom">—</h2><p id="tafsOst">—</p>
+    </div>
+    <button class="mik" id="tafsYop"><svg><use href="#i-yop"/></svg></button>
+  </div>
+  <div class="tafs-tan" id="tafsTan"></div>
+  <div class="tafs-pas">
+    <button class="tug tug-ikki" style="flex:1"><svg><use href="#i-tahrir"/></svg>Tahrirlash</button>
+    <button class="tug tug-asos" style="flex:1" data-xabar="To'lov qabul qilindi"><svg><use href="#i-belgi"/></svg>To'lovni qabul qilish</button>
+  </div>
+</aside>
+
+<!-- ⌘K -->
+<div class="plt-parda" id="pltParda"></div>
+<div class="plt" id="plt">
+  <div class="plt-qid"><svg><use href="#i-qidir"/></svg><input id="pltInp" placeholder="Bo'lim, raqam yoki buyruq yozing…"></div>
+  <div class="plt-ro" id="pltRo"></div>
+  <div class="plt-pas"><span><kbd>↑↓</kbd>tanlash</span><span><kbd>↵</kbd>ochish</span><span><kbd>esc</kbd>yopish</span></div>
+</div>
+
+<div class="xabar-joy" id="xabarJoy"></div>
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const pul=n=>n.toLocaleString('ru-RU').replace(/,/g,' ');
+const bosh=s=>s.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+
+/* ---------------- MA'LUMOT (namuna) ---------------- */
+const RAQAMLAR=[
+ {r:'+998 90 777-77-77',m:'Asadbek Rustamov',t:'+998 90 123-45-67',o:'Ucell',s:'2 kun oldin',n:24000000,h:'band',v:1},
+ {r:'+998 94 222-22-22',m:'Javohir Qodirov',t:'+998 94 555-11-22',o:'Beeline',s:'3 kun oldin',n:15500000,h:'kutilmoqda'},
+ {r:'+998 91 345-67-89',m:'',t:'',o:'Mobiuz',s:'5 kun oldin',n:9800000,h:'bosh'},
+ {r:'+998 93 111-22-33',m:'Bekzod To\'rayev',t:'+998 93 111-22-33',o:'Ucell',s:'1 hafta oldin',n:31200000,h:'band',v:1},
+ {r:'+998 95 500-50-05',m:'',t:'',o:'Uzmobile',s:'1 hafta oldin',n:12400000,h:'bosh'},
+ {r:'+998 90 999-99-99',m:'Madina Saidova',t:'+998 90 777-00-11',o:'Ucell',s:'2 hafta oldin',n:42000000,h:'band',v:1},
+ {r:'+998 97 123-45-67',m:'',t:'',o:'Beeline',s:'2 hafta oldin',n:8600000,h:'bosh'},
+ {r:'+998 88 800-80-08',m:'',t:'',o:'Humans',s:'3 hafta oldin',n:18900000,h:'bosh'},
+ {r:'+998 99 777-00-77',m:'Sardor Aliyev',t:'+998 99 222-33-44',o:'Mobiuz',s:'3 hafta oldin',n:27500000,h:'kutilmoqda'},
+ {r:'+998 90 101-01-01',m:'',t:'',o:'Ucell',s:'1 oy oldin',n:35800000,h:'bosh'},
+ {r:'+998 94 600-06-00',m:'',t:'',o:'Beeline',s:'1 oy oldin',n:11200000,h:'bosh'},
+ {r:'+998 91 555-55-55',m:'Nodira Yusupova',t:'+998 91 400-50-60',o:'Uzmobile',s:'1 oy oldin',n:29600000,h:'band'}
+];
+const HOLAT={band:['y','Sotilgan'],bosh:['n','Bo\'sh'],kutilmoqda:['o','Kutilmoqda'],kechikkan:['x','Kechikkan']};
+
+const SHARTNOMA=[
+ {id:'KQ48217',m:'Asadbek Rustamov',r:'+998 90 777-77-77',jami:24000000,oy:12,tol:3,oylik:1500000,h:'tl'},
+ {id:'MX70934',m:'Javohir Qodirov',r:'+998 94 222-22-22',jami:23520000,oy:24,tol:6,oylik:980000,h:'ke'},
+ {id:'BT15602',m:'Madina Saidova',r:'+998 90 999-99-99',jami:42000000,oy:18,tol:11,oylik:2333000,h:'tl'},
+ {id:'PR33781',m:'Sardor Aliyev',r:'+998 99 777-00-77',jami:27500000,oy:12,tol:9,oylik:2291000,h:'tl'},
+ {id:'ZU90146',m:'Nodira Yusupova',r:'+998 91 555-55-55',jami:29600000,oy:24,tol:2,oylik:1233000,h:'ke'}
+];
+const BUYURTMA=[
+ {m:'Asadbek Rustamov',r:'+998 90 777-77-77',v:'12 daqiqa oldin',n:24000000,h:'band'},
+ {m:'Javohir Qodirov',r:'+998 94 222-22-22',v:'48 daqiqa oldin',n:15500000,h:'kutilmoqda'},
+ {m:'Madina Saidova',r:'+998 91 345-67-89',v:'2 soat oldin',n:9800000,h:'band'},
+ {m:'Bekzod To\'rayev',r:'+998 93 111-22-33',v:'3 soat oldin',n:31200000,h:'kechikkan'}
+];
+const OPER=[['Ucell',482,'#7C5CFF'],['Beeline',361,'#FFB443'],['Mobiuz',243,'#FF6274'],['Uzmobile',162,'#34B4FF'],['Humans',87,'#34D99B']];
+const DAVR={7:{x:['Du','Se','Ch','Pa','Ju','Sh','Ya'],y:[6,9,7,12,8,16,6]},
+ 30:{x:['1-h','2-h','3-h','4-h'],y:[38,44,36,52]},
+ 90:{x:['Iyun','Iyul','Avg'],y:[142,168,151]}};
+
+/* ---------------- KO'RINISH ALMASHISH ---------------- */
+const NOM={panel:'Boshqaruv paneli',raqam:'Raqamlar',kredit:'Kredit',buyurtma:'Buyurtmalar',baza:'Baza raqam',
+ auksion:'UZEX auksion',kuzatuv:'Kuzatuv',tolov:'Kirim-chiqim',hisobot:'Hisobotlar',mijoz:'Mijozlar',
+ stories:'Stories',kanal:'Kanal posti',video:'Video sharhlar',ai:'AI yordamchi',sozlama:'Sozlamalar'};
+function korsat(k){
+  const bor=$('#kor-'+k);
+  $$('.kor').forEach(x=>x.classList.remove('on'));
+  if(bor) bor.classList.add('on');
+  else { $('#boshNom').textContent=NOM[k]||'Bo\'lim'; $('#kor-bosh').classList.add('on'); }
+  $$('.nav').forEach(n=>n.classList.toggle('on',n.dataset.kor===k));
+  $$('.pn').forEach(n=>n.classList.toggle('on',n.dataset.kor===k));
+  $('#yolNom').textContent=NOM[k]||'Bo\'lim';
+  $('#ich').scrollTop=0;
+  document.documentElement.removeAttribute('data-menyu');
+}
+$$('.nav,.pn').forEach(n=>n.dataset.kor&&n.addEventListener('click',()=>korsat(n.dataset.kor)));
+$('#yonYig').onclick=()=>{const h=document.documentElement;
+  h.setAttribute('data-yon',h.getAttribute('data-yon')==='yop'?'ochiq':'yop');};
+$('#menyuTug').onclick=()=>{const h=document.documentElement;
+  h.setAttribute('data-menyu',h.getAttribute('data-menyu')==='ochiq'?'yopiq':'ochiq');};
+
+/* ---------------- MAVZU ---------------- */
+$('#temaTug').onclick=()=>{
+  const h=document.documentElement, tun=h.dataset.tema==='tun';
+  h.dataset.tema=tun?'kun':'tun';
+  try{ localStorage.setItem('vip_panel_tema', h.dataset.tema); }catch(e){}
+  $('#temaIk').innerHTML='<use href="#'+(tun?'i-oy':'i-quyosh')+'"/>';
+  grafChiz(); sparkChiz();
+  xabar(tun?'Kunduzgi mavzu':'Tungi mavzu');
+};
+
+/* ---------------- XABAR ---------------- */
+function xabar(matn){
+  const el=document.createElement('div');
+  el.className='xabar';
+  el.innerHTML='<svg><use href="#i-belgi"/></svg><span>'+matn+'</span>';
+  $('#xabarJoy').appendChild(el);
+  setTimeout(()=>{el.classList.add('ket');setTimeout(()=>el.remove(),240);},2600);
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-xabar]');if(t)xabar(t.dataset.xabar);});
+
+/* ---------------- GRAFIK (maydonli chiziq) ---------------- */
+let joriyDavr=7;
+function egri(nuq){                       /* yumshoq (Catmull-Rom -> Bezier) */
+  if(nuq.length<2) return '';
+  let d='M'+nuq[0][0]+','+nuq[0][1];
+  for(let i=0;i<nuq.length-1;i++){
+    const p0=nuq[i-1]||nuq[i], p1=nuq[i], p2=nuq[i+1], p3=nuq[i+2]||p2;
+    const c1x=p1[0]+(p2[0]-p0[0])/6, c1y=p1[1]+(p2[1]-p0[1])/6;
+    const c2x=p2[0]-(p3[0]-p1[0])/6, c2y=p2[1]-(p3[1]-p1[1])/6;
+    d+='C'+c1x+','+c1y+' '+c2x+','+c2y+' '+p2[0]+','+p2[1];
+  }
+  return d;
+}
+function grafChiz(){
+  const svg=$('#grafSvg'); if(!svg) return;
+  const d=DAVR[joriyDavr], W=700, H=230, pad=14;
+  const max=Math.max(...d.y)*1.18, qadam=(W-pad*2)/(d.y.length-1);
+  const nuq=d.y.map((v,i)=>[pad+i*qadam, H-pad-(v/max)*(H-pad*2)]);
+  const chiz=egri(nuq);
+  const maydon=chiz+'L'+nuq[nuq.length-1][0]+','+(H-pad)+'L'+nuq[0][0]+','+(H-pad)+'Z';
+  const st=getComputedStyle(document.documentElement);
+  const urg=st.getPropertyValue('--urg').trim(), setka=st.getPropertyValue('--chiz-2').trim();
+  let chiziqlar='';
+  for(let i=0;i<=3;i++){ const y=pad+i*((H-pad*2)/3);
+    chiziqlar+='<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="'+setka+'" stroke-width="1"/>'; }
+  svg.innerHTML=
+    '<defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+urg+'" stop-opacity=".30"/>'+
+      '<stop offset="100%" stop-color="'+urg+'" stop-opacity="0"/></linearGradient></defs>'+
+    chiziqlar+
+    '<path d="'+maydon+'" fill="url(#gr)"/>'+
+    '<path d="'+chiz+'" fill="none" stroke="'+urg+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" '+
+      'style="stroke-dasharray:2200;stroke-dashoffset:2200;animation:chiz 1.1s cubic-bezier(.32,.72,0,1) forwards"/>'+
+    nuq.map((p,i)=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.6" fill="var(--b2)" stroke="'+urg+'" stroke-width="2.2" '+
+      'style="opacity:0;animation:nuqp .3s ease '+(0.5+i*0.07)+'s forwards"><title>'+d.x[i]+': '+d.y[i]+' ta</title></circle>').join('');
+  $('#grafXat').innerHTML=d.x.map(x=>'<span>'+x+'</span>').join('');
+}
+$('#sgmDavr').addEventListener('click',e=>{
+  const b=e.target.closest('[data-davr]'); if(!b) return;
+  $$('#sgmDavr button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  joriyDavr=Number(b.dataset.davr); grafChiz();
+});
+
+/* ---------------- SPARKLINE ---------------- */
+function sparkChiz(){
+  $$('[data-spark]').forEach(svg=>{
+    const y=svg.dataset.spark.split(',').map(Number), W=120,H=42;
+    const mn=Math.min(...y), mx=Math.max(...y), r=(mx-mn)||1;
+    const q=W/(y.length-1);
+    const nuq=y.map((v,i)=>[i*q, H-4-((v-mn)/r)*(H-14)]);
+    const c=getComputedStyle(document.documentElement).getPropertyValue('--urg').trim();
+    svg.innerHTML='<path d="'+egri(nuq)+'L'+W+','+H+'L0,'+H+'Z" fill="'+c+'" opacity=".10"/>'+
+      '<path d="'+egri(nuq)+'" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"/>';
+  });
+}
+
+/* ---------------- JADVALLAR ---------------- */
+function holBel(h){ const [k,n]=HOLAT[h]||HOLAT.bosh; return '<span class="hol '+k+'"><i></i>'+n+'</span>'; }
+function raqJadChiz(list){
+  $('#raqJad').innerHTML=list.map((x,i)=>
+    '<tr data-i="'+i+'">'+
+    '<td><span class="ckb"><svg><use href="#i-belgi"/></svg></span></td>'+
+    '<td><span class="raq">'+x.r+'</span>'+(x.v?' <span class="hol o" style="margin-left:5px">VIP</span>':'')+'</td>'+
+    '<td>'+(x.m?'<div class="mijoz"><span class="av">'+bosh(x.m)+'</span><span class="mijoz-yoz"><b>'+x.m+'</b><span>'+x.t+'</span></span></div>'
+      :'<span style="color:var(--t3c)">—</span>')+'</td>'+
+    '<td style="color:var(--t2c)">'+x.o+'</td>'+
+    '<td style="color:var(--t3c)">'+x.s+'</td>'+
+    '<td class="o"><span class="raq">'+pul(x.n)+'</span></td>'+
+    '<td>'+holBel(x.h)+'</td>'+
+    '<td class="o"><div class="qator-amal">'+
+      '<button class="mik"><svg><use href="#i-tahrir"/></svg></button>'+
+      '<button class="mik"><svg><use href="#i-nuqta"/></svg></button></div></td>'+
+    '</tr>').join('');
+}
+raqJadChiz(RAQAMLAR);
+
+$('#raqQid').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase().replace(/\s/g,'');
+  raqJadChiz(RAQAMLAR.filter(x=>(x.r+x.m+x.o).toLowerCase().replace(/\s/g,'').includes(q)));
+});
+$$('.filt[data-f]').forEach(b=>b.addEventListener('click',()=>{
+  $$('.filt[data-f]').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  const f=b.dataset.f;
+  raqJadChiz(f==='hammasi'?RAQAMLAR:f==='vip'?RAQAMLAR.filter(x=>x.v):RAQAMLAR.filter(x=>x.h===f));
+}));
+
+/* tanlash */
+let tanlangan=new Set();
+function tanYangi(){
+  const n=tanlangan.size;
+  $('#tanPan').classList.toggle('on',n>0);
+  $('#tanSon').textContent=n+' ta belgilandi';
+  $('#hammaCkb').classList.toggle('on',n>0&&n===$$('#raqJad tr').length);
+}
+$('#raqJad').addEventListener('click',e=>{
+  const tr=e.target.closest('tr'); if(!tr) return;
+  if(e.target.closest('.ckb')){
+    const i=tr.dataset.i;
+    tanlangan.has(i)?tanlangan.delete(i):tanlangan.add(i);
+    tr.classList.toggle('tan'); tr.querySelector('.ckb').classList.toggle('on');
+    tanYangi(); return;
+  }
+  if(e.target.closest('.mik')) return;
+  xabar('Raqam kartochkasi ochildi');
+});
+$('#hammaCkb').addEventListener('click',()=>{
+  const hamma=tanlangan.size===$$('#raqJad tr').length;
+  tanlangan.clear();
+  $$('#raqJad tr').forEach(tr=>{
+    tr.classList.toggle('tan',!hamma); tr.querySelector('.ckb').classList.toggle('on',!hamma);
+    if(!hamma) tanlangan.add(tr.dataset.i);
+  });
+  tanYangi();
+});
+$('#tanYop').onclick=()=>{tanlangan.clear();
+  $$('#raqJad tr').forEach(tr=>{tr.classList.remove('tan');tr.querySelector('.ckb').classList.remove('on');});
+  tanYangi();};
+
+/* so'nggi buyurtmalar */
+$('#sonBuyurtma').innerHTML=BUYURTMA.map(x=>
+  '<tr><td><div class="mijoz"><span class="av">'+bosh(x.m)+'</span><span class="mijoz-yoz"><b>'+x.m+'</b><span>'+x.r+' · '+x.v+'</span></span></div></td>'+
+  '<td class="o"><span class="raq">'+pul(x.n)+'</span></td>'+
+  '<td class="o" style="width:120px">'+holBel(x.h)+'</td></tr>').join('');
+
+/* operatorlar */
+$('#operBlok').innerHTML=OPER.map(([n,v,c])=>{
+  const mx=Math.max(...OPER.map(o=>o[1]));
+  return '<div style="margin-bottom:11px">'+
+    '<div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:5px">'+
+    '<span style="width:8px;height:8px;border-radius:50%;background:'+c+'"></span>'+
+    '<span style="flex:1;color:var(--t2c)">'+n+'</span><b style="font-weight:650">'+v+'</b></div>'+
+    '<div class="prg" style="margin:0;height:4px"><i style="width:0;background:'+c+'" data-kenglik="'+(v/mx*100)+'%"></i></div></div>';
+}).join('');
+
+/* kredit jadvali */
+$('#krJad').innerHTML=SHARTNOMA.map((x,i)=>
+  '<tr data-k="'+i+'" style="cursor:pointer">'+
+  '<td><div class="mijoz"><span class="av">'+bosh(x.m)+'</span><span class="mijoz-yoz"><b>'+x.m+'</b><span>'+x.id+' · '+x.r+'</span></span></div></td>'+
+  '<td style="color:var(--t2c)">'+x.tol+'/'+x.oy+' oy</td>'+
+  '<td class="o"><span class="raq">'+pul(x.oylik)+'</span><div style="font-size:11.5px;color:var(--t3c)">oyiga</div></td>'+
+  '<td class="o" style="width:130px">'+(x.h==='ke'?'<span class="hol x"><i></i>Kechikkan</span>':'<span class="hol y"><i></i>Joyida</span>')+'</td>'+
+  '</tr>').join('');
+
+/* ---------------- O'NG TAFSILOT OYNASI ---------------- */
+function tafsOch(i){
+  const x=SHARTNOMA[i];
+  $('#tafsNom').textContent=x.m;
+  $('#tafsOst').textContent=x.id+' · '+x.r;
+  const qolgan=x.oy-x.tol, tolangan=x.oylik*x.tol;
+  let jadval='';
+  for(let k=1;k<=x.oy;k++){
+    const hol=k<=x.tol?'tl':(k===x.tol+1?(x.h==='ke'?'ke':'ku'):'');
+    const oy=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'][(k+3)%12];
+    jadval+='<div class="jadv-q '+hol+'"><span class="oy">'+k+'-to\'lov</span>'+
+      '<span class="sana">'+oy+' '+(k>8?'2027':'2026')+'</span>'+
+      '<span class="sum">'+pul(x.oylik)+'</span></div>';
+  }
+  $('#tafsTan').innerHTML=
+   '<div class="jft">'+
+     '<div class="jft-k"><span>Shartnoma summasi</span><b>'+pul(x.jami)+'</b></div>'+
+     '<div class="jft-k"><span>To\'langan</span><b style="color:var(--yax)">'+pul(tolangan)+'</b></div>'+
+     '<div class="jft-k"><span>Qolgan</span><b>'+pul(x.jami-tolangan)+'</b></div>'+
+     '<div class="jft-k"><span>Muddat</span><b>'+qolgan+' oy</b></div>'+
+   '</div>'+
+   '<div class="prg" style="margin-bottom:4px"><i style="width:'+(x.tol/x.oy*100)+'%"></i></div>'+
+   '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t3c)">'+
+     '<span>'+x.tol+' ta to\'landi</span><span>'+qolgan+' ta qoldi</span></div>'+
+   '<div class="bolim-nom">To\'lov jadvali</div><div class="jadv">'+jadval+'</div>';
+  $('#tafs').classList.add('on'); $('#parda').classList.add('on');
+}
+function tafsYop(){ $('#tafs').classList.remove('on'); $('#parda').classList.remove('on'); }
+$('#krJad').addEventListener('click',e=>{const tr=e.target.closest('[data-k]'); if(tr) tafsOch(Number(tr.dataset.k));});
+$('#tafsYop').onclick=tafsYop; $('#parda').onclick=tafsYop;
+
+/* ---------------- ⌘K QIDIRUV ---------------- */
+const IK={panel:'i-panel',raqam:'i-raqam',kredit:'i-kredit',buyurtma:'i-buyurtma',baza:'i-baza',
+ auksion:'i-auksion',kuzatuv:'i-koz',tolov:'i-pul',hisobot:'i-hisobot',mijoz:'i-odam',
+ stories:'i-stories',kanal:'i-yuborish',video:'i-video',ai:'i-ai',sozlama:'i-sozlama'};
+const BUYRUQ=[
+  ...Object.entries(NOM).map(([k,n])=>({g:'Bo\'limlar',n,k,i:IK[k]||'i-panel'})),
+  {g:'Amallar',n:'Yangi raqam qo\'shish',i:'i-plus',a:()=>xabar('Yangi raqam oynasi')},
+  {g:'Amallar',n:'Yangi shartnoma tuzish',i:'i-kredit',a:()=>xabar('Shartnoma oynasi')},
+  {g:'Amallar',n:'Kanalga post yuborish',i:'i-yuborish',a:()=>xabar('Kanal posti')},
+  {g:'Amallar',n:'Hisobotni yuklab olish',i:'i-yuklab',a:()=>xabar('Hisobot tayyorlanmoqda')},
+  {g:'Amallar',n:'Mavzuni almashtirish',i:'i-oy',a:()=>$('#temaTug').click()}
+];
+let pltTan=0, pltRoy=[];
+function pltChiz(q=''){
+  const s=q.toLowerCase().trim();
+  pltRoy=BUYRUQ.filter(b=>b.n.toLowerCase().includes(s));
+  pltTan=0;
+  let html='', oxirgiG='';
+  pltRoy.forEach((b,i)=>{
+    if(b.g!==oxirgiG){ html+='<div class="plt-g">'+b.g+'</div>'; oxirgiG=b.g; }
+    html+='<div class="plt-q'+(i===0?' on':'')+'" data-i="'+i+'">'+
+      '<svg><use href="#'+(b.i||'i-panel')+'"/></svg><span>'+b.n+'</span>'+
+      (b.k?'<span class="yon-yoz">bo\'lim</span>':'')+'</div>';
+  });
+  $('#pltRo').innerHTML=html||'<div style="padding:26px;text-align:center;color:var(--t3c);font-size:13px">Hech narsa topilmadi</div>';
+}
+function pltOch(){ $('#plt').classList.add('on'); $('#pltParda').classList.add('on');
+  $('#pltInp').value=''; pltChiz(); setTimeout(()=>$('#pltInp').focus(),60); }
+function pltYop(){ $('#plt').classList.remove('on'); $('#pltParda').classList.remove('on'); }
+function pltBajar(i){ const b=pltRoy[i]; if(!b) return; pltYop(); b.k?korsat(b.k):b.a&&b.a(); }
+$('#pltOch').onclick=pltOch; $('#pnQid').onclick=pltOch; $('#pltParda').onclick=pltYop;
+$('#pltInp').addEventListener('input',e=>pltChiz(e.target.value));
+$('#pltRo').addEventListener('click',e=>{const q=e.target.closest('[data-i]'); if(q) pltBajar(Number(q.dataset.i));});
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); $('#plt').classList.contains('on')?pltYop():pltOch(); return; }
+  if(e.key==='Escape'){ pltYop(); tafsYop(); return; }
+  if(!$('#plt').classList.contains('on')) return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    pltTan=Math.max(0,Math.min(pltRoy.length-1,pltTan+(e.key==='ArrowDown'?1:-1)));
+    $$('.plt-q').forEach(x=>x.classList.toggle('on',Number(x.dataset.i)===pltTan));
+    const el=$('.plt-q.on'); if(el) el.scrollIntoView({block:'nearest'});
+  }
+  if(e.key==='Enter') pltBajar(pltTan);
+});
+
+/* ==================================================================
+   KIRISH VA SEANS  (24 SOAT)
+   ------------------------------------------------------------------
+   Parol tekshiruvi SOXTA EMAS: u hozirgi panel ishlatadigan AYNI
+   Firebase hisoblariga murojaat qiladi. Ya'ni bu yerga faqat haqiqiy
+   admin kira oladi, brauzerda yozilgan hech qanday "maxfiy parol"
+   yo'q (uni ochib o'qib bo'lmaydi — tekshiruv serverda).
+
+   SEANS QOIDASI:
+     * sahifa yangilansa — qayta login SO'RALMAYDI;
+     * birinchi kirishdan 24 soat o'tgach — login ekraniga qaytadi;
+     * "Chiqish" bosilsa — darhol yopiladi.
+   Soat KIRISH paytidan sanaladi (oxirgi harakatdan emas), shunda
+   muddatni cheksiz cho'zib bo'lmaydi.
+   ================================================================== */
+const FB_SOZ = {
+  apiKey:"AIzaSyAZVM_C5tRYe77j4OvQtrBhV3dpEZAxk_A",
+  authDomain:"vip-raqamlar.firebaseapp.com",
+  projectId:"vip-raqamlar",
+  storageBucket:"vip-raqamlar.firebasestorage.app",
+  messagingSenderId:"872049914686",
+  appId:"1:872049914686:web:32fd7945238fdbf5eeb26f"
+};
+const SEANS_KALIT='vip_admin_seans_boshi', SEANS_MUDDAT=24*60*60*1000;
+const ADMIN_DOMEN='@070.uz', SUB_DOMEN='@ichki.vipraqamlar-admin.uz';
+const KIRIL={'ў':'u','қ':'q','ғ':'g','ҳ':'h','ш':'sh','ч':'ch','ё':'yo','я':'ya','ю':'yu','ц':'ts','й':'y','х':'x','ж':'j','э':'e'};
+function nomSlug(n){
+  let v=String(n||'').trim().toLowerCase();
+  v=v.replace(/[ўқғҳшчёяюцйхжэ]/g,c=>KIRIL[c]||c);
+  v=v.normalize('NFKD').replace(/[̀-ͯ]/g,'');
+  v=v.replace(/[^a-z0-9]+/g,'.').replace(/^\.+|\.+$/g,'').replace(/\.{2,}/g,'.');
+  return v||'admin';
+}
+/* Hozirgi panel bilan BIR XIL qoida — aks holda login topilmaydi */
+function nomdanEmail(xom){
+  const v=(xom||'').trim();
+  if(v.includes('@')) return v;
+  let r=v.replace(/\D/g,'');
+  if(r.length===9) r='998'+r;
+  else if(r.length===13 && r.startsWith('9998')) r=r.slice(1);
+  if(/[a-zA-Zа-яА-ЯёЁўқғҳЎҚҒҲ]/.test(v)) return nomSlug(v)+SUB_DOMEN;
+  return r ? r+ADMIN_DOMEN : v;
+}
+const seansYoz =()=>{ try{ localStorage.setItem(SEANS_KALIT,String(Date.now())); }catch(e){} };
+const seansOchir=()=>{ try{ localStorage.removeItem(SEANS_KALIT); }catch(e){} };
+function seansQolgan(){
+  let b=0; try{ b=Number(localStorage.getItem(SEANS_KALIT)||0); }catch(e){ return 0; }
+  if(!b||!isFinite(b)) return 0;
+  if(b>Date.now()+60000) return 0;        /* soat orqaga surilgan — ishonmaymiz */
+  return b+SEANS_MUDDAT-Date.now();
+}
+
+const elKirish=$('#kirish'), elKutish=$('#kutish'), elQobiq=$('#qobiq');
+function kutishKor(k){ elKutish.classList.toggle('yopiq',!k); }
+function panelKor(){
+  elKirish.classList.add('yopiq'); elKirish.classList.remove('ketdi'); kutishKor(false);
+  elQobiq.style.display=''; grafChiz(); sparkChiz();
+  requestAnimationFrame(()=>setTimeout(()=>{ $$('[data-kenglik]').forEach(el=>el.style.width=el.dataset.kenglik); },180));
+}
+function loginKor(xabarMatn){
+  elQobiq.style.display='none'; kutishKor(false);
+  elKirish.classList.remove('yopiq','ketdi');
+  const t=$('#kirTug'); if(t){ t.className='kir-tug'; t.textContent='Kirish'; t.disabled=false; }
+  suzgiQur();
+  if(xabarMatn){ const x=$('#kirXato'); x.textContent=xabarMatn; x.classList.add('bor'); }
+}
+async function chiq(sabab){
+  seansOchir();
+  try{ await firebase.auth().signOut(); }catch(e){}
+  loginKor(sabab||'');
+}
+
+/* parolni ko'rsatish */
+$('#kirKoz').onclick=()=>{
+  const i=$('#kirParol'), ochiq=i.type==='text';
+  i.type=ochiq?'password':'text';
+  $('#kirKozIk').innerHTML='<use href="#'+(ochiq?'i-koz2':'i-koz-yop')+'"/>';
+};
+
+/* Caps Lock — "parol noto'g'ri" deyishdan oldin odamga sababni aytamiz */
+['keyup','keydown'].forEach(h=>$('#kirParol').addEventListener(h,(e)=>{
+  let y=false;
+  try{ y = e.getModifierState && e.getModifierState('CapsLock'); }catch(err){}
+  $('#capsOgoh').classList.toggle('bor', !!y);
+}));
+$('#kirParol').addEventListener('blur',()=>$('#capsOgoh').classList.remove('bor'));
+
+/* Chap ustundagi suzib yuruvchi raqam yorliqlari.
+   Raqamlar — namunaviy ko'rinish, hech kimning haqiqiy raqami emas. */
+const SUZ_RAQAM=['+998 90 777-77-77','+998 94 222-22-22','+998 91 100-10-01',
+                 '+998 99 888-88-88','+998 93 555-55-55','+998 95 400-04-00'];
+function suzgiQur(){
+  const q=$('#suzgi'); if(!q || q.childElementCount) return;
+  /* Telefonda chap ustun ko'rinmaydi — yorliqlarni umuman chizmaymiz */
+  if(window.matchMedia('(max-width:980px)').matches) return;
+  q.innerHTML=SUZ_RAQAM.map((r,i)=>{
+    /* Faqat o'ng tomonda — chapda sarlavha turibdi, ustiga chiqmasin */
+    const chap=55+Math.random()*26, tep=9+i*14.5+Math.random()*4;
+    const dav=17+Math.random()*9, kech=i*2.6;
+    return '<span style="left:'+chap.toFixed(1)+'%;top:'+tep.toFixed(1)+'%;'+
+           'animation-duration:'+dav.toFixed(1)+'s;animation-delay:-'+kech.toFixed(1)+'s">'+r+'</span>';
+  }).join('');
+}
+suzgiQur();
+
+$('#kirForma').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const tug=$('#kirTug'), xato=$('#kirXato');
+  xato.classList.remove('bor');
+  tug.disabled=true; tug.classList.add('yuk');
+  tug.innerHTML='<span class="aylana"></span>Tekshirilmoqda…';
+  try{
+    await firebase.auth().signInWithEmailAndPassword(nomdanEmail($('#kirNom').value), $('#kirParol').value);
+    seansYoz();
+    $('#kirParol').value='';
+    /* Muvaffaqiyat: tugma belgi chizadi, karta ko'tarilib yo'qoladi,
+       keyin panel ochiladi. Umumiy vaqt ~0,5 s — kutishdek sezilmaydi,
+       lekin "kirdim" degan aniq javob beradi. */
+    tug.classList.remove('yuk'); tug.classList.add('bold');
+    tug.innerHTML='<svg class="belgi-ani" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+      'stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>Kirildi';
+    elKirish.classList.add('ketdi');
+    await new Promise(r=>setTimeout(r,480));
+    panelKor(); xabar('Xush kelibsiz');
+    return;
+  }catch(err){
+    /* Xavfsizlik: "bunday login yo'q" va "parol xato" ajratilmaydi —
+       aks holda qaysi loginlar mavjudligini bilib olish mumkin. */
+    const tarmoq = err && err.code==='auth/network-request-failed';
+    xato.textContent = tarmoq
+      ? "Internetga ulanib bo'lmadi. Aloqani tekshirib, qayta urining."
+      : "Kirib bo'lmadi. Login va parolni tekshirib, qayta urining.";
+    xato.classList.add('bor');
+    console.error('Kirish xatosi:', err && err.code, err && err.message);
+  }
+  tug.classList.remove('yuk','bold');
+  tug.disabled=false; tug.textContent='Kirish';
+});
+
+$('#chiqishTug').onclick=()=>chiq('');
+
+/* panel ochiq turganda ham muddat tugasa — o'zi chiqaradi */
+setInterval(()=>{
+  if(elQobiq.style.display==='none') return;
+  if(seansQolgan()<=0) chiq("Seans muddati tugadi (24 soat). Qaytadan kiring.");
+}, 60000);
+
+/* ---- ishga tushish: saqlangan seansni tiklaymiz ---- */
+(function boshla(){
+  kutishKor(true);
+  /* Firebase yuklanmasa (internet/to'siq) — 4 soniyadan keyin login */
+  let hal=false;
+  const himoya=setTimeout(()=>{ if(!hal){ hal=true; loginKor(''); } }, 4000);
+  const kut=setInterval(()=>{
+    if(typeof firebase==='undefined' || !firebase.auth) return;
+    clearInterval(kut);
+    try{ if(!firebase.apps.length) firebase.initializeApp(FB_SOZ); }catch(e){}
+    try{ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); }catch(e){}
+    const uzil=firebase.auth().onAuthStateChanged(async (foy)=>{
+      if(hal && !foy) return;
+      hal=true; clearTimeout(himoya); try{ uzil(); }catch(e){}
+      if(!foy){ loginKor(''); return; }
+      if(seansQolgan()<=0){ await chiq("Seans muddati tugadi (24 soat). Qaytadan kiring."); return; }
+      const nom=(foy.displayName||foy.email||'Admin').split('@')[0];
+      const k=$('#kimYoz'); if(k) k.innerHTML='<b>'+nom+'</b><span>Boshqaruv</span>';
+      const av=document.querySelector('.kim-av'); if(av) av.textContent=bosh(nom.replace(/[._]/g,' '));
+      panelKor();
+    });
+  }, 60);
+})();
+</script>
+<style>
+@keyframes chiz{to{stroke-dashoffset:0}}
+@keyframes nuqp{to{opacity:1}}
+</style>
+</body></html>
