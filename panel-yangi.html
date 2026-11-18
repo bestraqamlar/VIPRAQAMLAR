@@ -60,26 +60,38 @@ html[data-tema="tun"]{
 }
 /* ---------------- KUN ---------------- */
 html[data-tema="kun"]{
-  --b0:#EEF0F4;
-  --b1:#F7F8FA;
-  --b2:#FFFFFF;
-  --b3:#FFFFFF;
-  --b4:#F1F3F7;
-  --chiz:#E3E6EC;
-  --chiz-2:#EDEFF3;
-  --t1c:#0B0F18;
-  --t2c:#49566B;
-  --t3c:#8A95A6;
-  --urg:#3A49E0;
-  --urg-2:#2A36B8;
-  --urg-f:#EDEFFE;
-  --yax:#07794C; --yax-f:#E7F8F0;
-  --ogo:#9A5B00; --ogo-f:#FFF5E3;
-  --yom:#C0271F; --yom-f:#FDEDEC;
-  --soy1:0 1px 2px rgba(11,15,24,.05);
-  --soy2:0 6px 20px -6px rgba(11,15,24,.12);
-  --soy3:0 28px 64px -18px rgba(11,15,24,.22);
-  --shisha:rgba(247,248,250,.78);
+  /* KUN MAVZUSI — QAYTA SOZLANDI.
+     Avval ish maydoni ham, kartochka ham, ko'tarilgan yuza ham deyarli
+     OQ edi (#F7F8FA / #FFFFFF / #FFFFFF). Natijada oq kartochka oq
+     fonda yo'qolib, faqat juda xira chiziq bilan ajralib turardi.
+     Endi uch qatlam ANIQ ajraladi:
+       fon      — kulrang  (kartochka undan "ko'tarilib" turadi)
+       kartochka— oq       (ko'z shu yerga tushadi)
+       yordamchi— och kulrang (jadval sarlavhasi, yorliq, chip)
+     Matn ham to'qlashtirildi: asosiy matn deyarli qora, xira matn esa
+     avvalgidek och kulrang emas — uzoq o'qiladigan panel uchun bu
+     ko'zni charchatadi. */
+  --b0:#FFFFFF;      /* yon menyu — oq, toza */
+  --b1:#DFE5F0;      /* ish maydoni — kulrang asos (to'qroq) */
+  --b2:#FFFFFF;      /* kartochka */
+  --b3:#EFF2F8;      /* ko'tarilgan yuza: jadval sarlavhasi, yorliq */
+  --b4:#E4E9F3;      /* ustiga borilganda */
+  --chiz:#C8D0DF;    /* ko'rinadigan chegara */
+  --chiz-2:#E0E6EF;  /* ichki ajratgich */
+  --t1c:#090D15;     /* asosiy matn — deyarli qora */
+  --t2c:#3A4557;
+  --t3c:#69758A;     /* xira matn, lekin hali ham o'qiladi */
+  --urg:#2F3BD4;
+  --urg-2:#2029A8;
+  --urg-f:#E8EBFE;
+  --yax:#066B45; --yax-f:#E3F6EE;
+  --ogo:#8A5100; --ogo-f:#FFF3DE;
+  --yom:#AE221B; --yom-f:#FCEAE8;
+  /* Soyalar kuchliroq — kartochka fondan ko'tarilib tursin */
+  --soy1:0 1px 2px rgba(10,16,30,.06),0 1px 3px rgba(10,16,30,.07);
+  --soy2:0 10px 24px -8px rgba(10,16,30,.16),0 2px 6px -2px rgba(10,16,30,.07);
+  --soy3:0 30px 70px -18px rgba(10,16,30,.3);
+  --shisha:rgba(255,255,255,.76);
   color-scheme:light;
 }
 
@@ -577,6 +589,34 @@ tr:hover .qator-amal,tr.tan .qator-amal{opacity:1}
   .halqalar i,.halqalar b,.suzgi span,.kir-tug.yuk::after{animation:none}
   .halqalar i:nth-child(1){opacity:.5;transform:scale(1)}
 }
+
+
+/* ================== KUN MAVZUSI — ANIQLIK ==================
+   Yorug' fonda ingichka chiziq ko'rinmay qoladi, shuning uchun
+   kartochka chegaralari bu yerda bir pog'ona to'qroq olinadi.
+   Tun mavzuda bunga hojat yo'q — u yerda chegara fonga nisbatan
+   yorug'roq bo'lgani uchun o'zi ajralib turadi. */
+html[data-tema="kun"] .k,
+html[data-tema="kun"] .ko,
+html[data-tema="kun"] .jft-k,
+html[data-tema="kun"] .kir-k .quti{ border-color:var(--chiz); }
+html[data-tema="kun"] .yon{ border-right-color:var(--chiz); }
+html[data-tema="kun"] .tep{ border-bottom-color:var(--chiz); }
+html[data-tema="kun"] .pas-nav{ border-top-color:var(--chiz); }
+/* Jadval sarlavhasi oq kartochka ichida yo'qolmasin */
+html[data-tema="kun"] .jad thead th{ background:var(--b3); color:var(--t2c); font-weight:680; }
+/* Qator ustiga borilganda sezilarli bo'lsin */
+html[data-tema="kun"] .jad tbody tr:hover{ background:var(--b3); }
+/* Kartochka sarlavhasi — kuchliroq */
+html[data-tema="kun"] .k-bosh h3{ font-weight:690; }
+html[data-tema="kun"] .ko-nom{ color:var(--t2c); font-weight:620; }
+/* Yon menyudagi faol bo'lim aniqroq ajralsin */
+html[data-tema="kun"] .nav.on{ background:var(--urg-f); box-shadow:inset 0 0 0 1px rgba(47,59,212,.14); }
+/* Shisha yuzalar: faqat tepa qator, pastki menyu va qidiruv oynasi.
+   Blur eng qimmat effekt — shu uchun atigi uch joyda. */
+html[data-tema="kun"] .plt{ background:rgba(255,255,255,.92);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+html[data-tema="kun"] .tafs{ border-left-color:var(--chiz); }
 
 /* ---------- TELEFON ---------- */
 .pas-nav{display:none}
