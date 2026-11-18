@@ -1,0 +1,480 @@
+/* ==================================================================
+   VIP RAQAMLAR — ADMIN PANEL DIZAYN QATLAMI  (V151)
+   ------------------------------------------------------------------
+   NIMA UCHUN ALOHIDA FAYL.
+   `panel.css` ichida 29 ta bo'limning MINGLAB aniq qoidasi bor va
+   ularning aksariyati ishlayotgan funksiyaga bog'liq (o'lcham, joy-
+   lashuv, ko'rinish-yashirin holat). Uni qayta yozish — ishlaydigan
+   paneli buzish demak. Shuning uchun KO'RINISH qatlami alohida fayl-
+   ga chiqarildi va panel.css dan KEYIN yuklanadi: tuzilma o'z joyida
+   qoladi, ko'rinish esa butunlay yangilanadi.
+
+   QANDAY ISHLAYDI.
+   panel.css ning o'zi ranglarni 1400 dan ortiq joyda `var(--...)`
+   orqali oladi. Demak tokenlarni (pastdagi birinchi blok) qayta
+   belgilashning o'zi butun panelni — hali qo'l tegmagan bo'limlarni
+   ham — yangi rangga o'tkazadi. Qolgani: shrift o'lchovi, zichlik,
+   kartochka, tugma, maydon, ro'yxat, oyna va animatsiya.
+
+   IKKI MAVZU.
+   Quyuq (standart)  — "B" namunasi: chuqur siyoh fon, yorqin ko'k urg'u.
+   Ochiq             — "A" namunasi: oq-kulrang fon, indigo urg'u.
+   Almashtirish allaqachon bor: :root[data-theme="light"].
+
+   USTUNLIK (specificity) HAQIDA.
+   Qoidalar `html[data-ds]` bilan boshlanadi — bu panel.css dagi
+   `:root[data-theme="light"] .x` kabi qoidalar bilan teng kuchda
+   bo'lib, fayl keyin yuklangani uchun ustun chiqadi. `!important`
+   faqat chorasiz joyda ishlatilgan.
+   ================================================================== */
+
+/* ====================== 1. TOKENLAR ============================== */
+:root{
+  /* --- quyuq mavzu (standart) --- */
+  --bg:#0A0D14;
+  --panel:#141821;
+  --panel-2:#1B202B;
+  --raised:#1B202B;
+  --card:#141821;
+
+  --line:#252B38;
+  --line-soft:#1E232E;
+  --tint:rgba(255,255,255,.045);
+
+  --text:#F5F7FA;
+  --text-2:#C3CBD8;
+  --muted:#99A2B3;
+  --muted-2:#6B7486;
+
+  --amber:#4F7DFF;                      /* brend/urg'u rangi */
+  --amber-soft:rgba(79,125,255,.14);
+  --amber-bright:#7FA0FF;
+  --blue:#4F7DFF;
+
+  --green:#2FD48F;  --green-soft:rgba(47,212,143,.13);
+  --red:#FF5F6D;    --red-soft:rgba(255,95,109,.13);
+  --warn:#FFB340;   --warn-soft:rgba(255,179,64,.13);
+
+  /* burchak radiusi */
+  --r-xs:8px; --r-sm:10px; --r:12px; --r-lg:16px; --r-xl:20px;
+
+  /* soyalar */
+  --sh-1:0 1px 2px rgba(0,0,0,.35);
+  --sh-2:0 4px 12px -2px rgba(0,0,0,.45);
+  --sh-3:0 16px 40px -10px rgba(0,0,0,.65);
+
+  /* harakat — "o'rtacha: tez va yumshoq" */
+  --ez:cubic-bezier(.22,.61,.36,1);     /* chiqish — tez boshlanib, yumshoq to'xtaydi */
+  --ez-in:cubic-bezier(.4,0,.2,1);
+  --t-fast:.14s; --t:.22s; --t-slow:.3s;
+
+  color-scheme:dark;
+}
+
+:root[data-theme="light"]{
+  --bg:#F6F7F9;
+  --panel:#FFFFFF;
+  --panel-2:#F2F4F7;
+  --raised:#FFFFFF;
+  --card:#FFFFFF;
+
+  --line:#E4E7EC;
+  --line-soft:#EFF1F4;
+  --tint:rgba(16,24,40,.04);
+
+  --text:#0C111D;
+  --text-2:#344054;
+  --muted:#667085;
+  --muted-2:#98A2B3;
+
+  --amber:#3538CD;
+  --amber-soft:#EEF0FF;
+  --amber-bright:#2A2CA8;
+  --blue:#3538CD;
+
+  --green:#027A48;  --green-soft:#ECFDF3;
+  --red:#B42318;    --red-soft:#FEF3F2;
+  --warn:#B54708;   --warn-soft:#FFFAEB;
+
+  --sh-1:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  --sh-2:0 4px 8px -2px rgba(16,24,40,.08),0 2px 4px -2px rgba(16,24,40,.05);
+  --sh-3:0 20px 48px -12px rgba(16,24,40,.22);
+
+  color-scheme:light;
+}
+
+/* ====================== 2. ASOS ================================== */
+html[data-ds] body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  letter-spacing:-.006em;
+}
+/* Eski bezak qatlamlari (rangli yorug'lik, naqsh) olib tashlanadi —
+   e'tibor ma'lumotda bo'lishi kerak, fonda emas. */
+html[data-ds] body::before,
+html[data-ds] body::after{ content:none !important; display:none !important; }
+
+/* Raqamlar hamma joyda bir xil kenglikda — ustunlar "sakramaydi" */
+html[data-ds] b, html[data-ds] strong,
+html[data-ds] .ov-card b, html[data-ds] td, html[data-ds] th,
+html[data-ds] input[type="number"]{ font-variant-numeric:tabular-nums; }
+
+html[data-ds] ::selection{ background:var(--amber-soft); color:var(--text); }
+
+/* Suriluvchi joylar — ingichka va bosilmaydigan panjara */
+html[data-ds] *{ scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
+html[data-ds] ::-webkit-scrollbar{ width:10px; height:10px; }
+html[data-ds] ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:20px; border:3px solid transparent; background-clip:content-box; }
+html[data-ds] ::-webkit-scrollbar-thumb:hover{ background:var(--muted-2); background-clip:content-box; }
+html[data-ds] ::-webkit-scrollbar-track{ background:transparent; }
+
+/* Fokus — klaviatura bilan yuradiganlar uchun aniq, sichqoncha bilan ko'rinmaydi */
+html[data-ds] :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; border-radius:6px; }
+
+/* Harakatni kamaytirish sozlamasi yoqilgan bo'lsa — hurmat qilamiz */
+@media (prefers-reduced-motion:reduce){
+  html[data-ds] *, html[data-ds] *::before, html[data-ds] *::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; scroll-behavior:auto !important;
+  }
+}
+
+/* ====================== 3. QOBIQ (shell) ========================= */
+/* Chap menyu — endi mavzuga ERGASHADI (avval har doim to'q ko'k edi va
+   ochiq mavzuda kontent bilan kelishmay turardi). */
+html[data-ds] .sidebar{
+  width:244px;
+  background:var(--panel) !important;
+  border-right:1px solid var(--line) !important;
+  box-shadow:none !important;
+}
+html[data-ds] .sidebar-logo{
+  padding:16px 16px 14px;
+  border-bottom:1px solid var(--line-soft);
+  margin-bottom:6px;
+}
+html[data-ds] .sidebar-logo-dot{
+  width:34px;height:34px;
+  box-shadow:0 0 0 1px var(--line), 0 2px 6px -2px rgba(0,0,0,.4) !important;
+  background:var(--panel-2);
+}
+html[data-ds] .sidebar-logo-text{
+  font-family:Inter,sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:-.01em;color:var(--text) !important;
+}
+html[data-ds] .sidebar-logo-text small{
+  font-size:11px;font-weight:500;color:var(--muted) !important;margin-top:1px;
+}
+
+html[data-ds] .tabs{ padding:6px 10px 20px; gap:1px; }
+/* Guruhlar orasidagi vertikal chiziq — olib tashlandi, ro'yxat tinchroq */
+html[data-ds] .tab-group-body::before{ display:none; }
+html[data-ds] .tab-group-body .tab,
+html[data-ds] .tab-group-body .tab.active{ padding-left:11px; }
+html[data-ds] .tab-group + .tab-group{ margin-top:4px; }
+
+html[data-ds] .tab{
+  padding:8px 11px;border-radius:var(--r-sm);min-height:36px;gap:11px;
+  font-size:13.5px;font-weight:550;letter-spacing:-.008em;
+  color:var(--muted) !important;background:transparent !important;
+  transition:background-color var(--t-fast) var(--ez-in), color var(--t-fast) var(--ez-in);
+}
+html[data-ds] .tab .tab-ico{ color:currentColor;opacity:.85;width:18px;height:18px; }
+html[data-ds] .tab .tab-ico svg{ width:18px;height:18px; }
+html[data-ds] .tab:hover{ background:var(--tint) !important;color:var(--text) !important; }
+html[data-ds] .tab.active{
+  background:var(--amber-soft) !important;color:var(--amber) !important;font-weight:650;
+}
+html[data-ds] .tab.active .tab-ico{ color:var(--amber);opacity:1; }
+/* Chapdagi ko'rsatkich chiziq — endi kerak emas, fon o'zi yetarli */
+html[data-ds] .tab.active::after{ display:none !important; }
+
+html[data-ds] .tab-divider{ margin:16px 11px 6px; }
+html[data-ds] .tab-divider span{
+  color:var(--muted-2) !important;font-size:10.5px;font-weight:700;letter-spacing:.07em;
+}
+html[data-ds] .tab-divider::before,
+html[data-ds] .tab-divider::after{ background:transparent !important; }
+
+/* ---- Tepa qator ---- */
+html[data-ds] .topbar{
+  height:56px !important;
+  background:color-mix(in srgb, var(--panel) 82%, transparent) !important;
+  backdrop-filter:blur(14px) !important;-webkit-backdrop-filter:blur(14px) !important;
+  border-bottom:1px solid var(--line) !important;
+  box-shadow:none !important;
+  padding:0 20px;gap:10px;
+}
+html[data-ds] .tb-breadcrumb{ font-size:13px;color:var(--muted);font-weight:500; }
+html[data-ds] .tb-breadcrumb b{ color:var(--text);font-weight:650; }
+html[data-ds] .tbc-sep{ opacity:.4;margin:0 2px; }
+
+html[data-ds] .header-actions{ display:flex;align-items:center;gap:8px; }
+html[data-ds] .tb-status{
+  display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;
+  border-radius:20px;background:var(--green-soft);color:var(--green);
+  font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;border:none;
+}
+html[data-ds] .tb-status i{ width:6px;height:6px;border-radius:50%;background:currentColor;flex:none; }
+
+html[data-ds] .bell-btn{
+  width:34px;height:34px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--panel);color:var(--muted);
+  display:grid;place-items:center;position:relative;
+}
+html[data-ds] .bell-btn:hover{ border-color:var(--amber);color:var(--amber);background:var(--amber-soft); }
+html[data-ds] .bell-badge{
+  position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;
+  border-radius:20px;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;
+  display:grid;place-items:center;border:2px solid var(--panel);animation:none !important;
+}
+html[data-ds] .panel-ver{
+  font-size:11px;font-weight:650;color:var(--muted-2);
+  background:var(--panel-2);border:1px solid var(--line);
+  padding:4px 8px;border-radius:20px;
+}
+html[data-ds] #logoutBtn{
+  height:34px;padding:0 13px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--panel);color:var(--text-2);
+  font-size:12.5px;font-weight:620;
+}
+html[data-ds] #logoutBtn:hover{ border-color:var(--red);color:var(--red);background:var(--red-soft); }
+
+html[data-ds] .content-inner{ padding:20px 20px 64px;max-width:1340px; }
+
+/* ====================== 4. SAHIFA BOSHI ========================== */
+html[data-ds] .page-head{
+  padding-bottom:0;margin-bottom:16px;border-bottom:none;align-items:center;gap:14px;
+}
+html[data-ds] .page-head h1{
+  font-family:Inter,sans-serif;font-size:23px;font-weight:720;letter-spacing:-.025em;
+}
+html[data-ds] .page-head p{ font-size:13px;color:var(--muted);margin-top:3px; }
+
+html[data-ds] .ph-btn{
+  height:36px;padding:0 14px;border-radius:var(--r-sm);
+  background:var(--panel);border:1px solid var(--line);color:var(--text-2);
+  font-size:13px;font-weight:620;box-shadow:var(--sh-1);
+  transition:transform var(--t-fast) var(--ez-in),border-color var(--t-fast),color var(--t-fast),background-color var(--t-fast);
+}
+html[data-ds] .ph-btn:hover{ border-color:var(--amber);color:var(--amber);background:var(--amber-soft); }
+html[data-ds] .ph-btn:active{ transform:scale(.97); }
+html[data-ds] .ph-btn.is-primary{
+  background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:var(--sh-1);
+}
+html[data-ds] .ph-btn.is-primary:hover{ filter:brightness(1.08);color:#fff;background:var(--amber); }
+
+/* ====================== 5. YUZALAR (kartochkalar) ================ */
+/* Bitta joyda — panelning HAMMA bo'limidagi "quti"lar. Ro'yxat uzun,
+   lekin aynan shuning hisobiga qo'l tegmagan bo'limlar ham yangi
+   ko'rinishga o'tadi. */
+html[data-ds] .card,
+html[data-ds] .admin-list,
+html[data-ds] .qz-list,
+html[data-ds] .qz-stat,
+html[data-ds] .op-block,
+html[data-ds] .wt-box,
+html[data-ds] .uzx-box,
+html[data-ds] .settings-form,
+html[data-ds] .zk-inline-panel,
+html[data-ds] .zk-cust-card,
+html[data-ds] .ai-card,
+html[data-ds] .an-item,
+html[data-ds] .dash-card,
+html[data-ds] .stat-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--sh-1);
+}
+
+/* Yuqoridagi umumiy ko'rsatkich qatori */
+html[data-ds] .overview-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:12px;background:transparent;border:none;border-radius:0;
+  overflow:visible;margin-bottom:14px;
+}
+html[data-ds] .ov-card{
+  background:var(--card);border:1px solid var(--line) !important;
+  border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--sh-1);
+  display:flex;flex-direction:column;align-items:flex-start;gap:0;
+  transition:transform var(--t) var(--ez),box-shadow var(--t) var(--ez),border-color var(--t);
+}
+html[data-ds] .ov-card:hover{ transform:translateY(-2px);box-shadow:var(--sh-2);border-color:var(--line) !important; }
+html[data-ds] .ov-card-icon{
+  display:grid !important;place-items:center;width:28px;height:28px;border-radius:var(--r-xs);
+  background:var(--amber-soft);color:var(--amber);margin-bottom:10px;
+}
+html[data-ds] .ov-card-icon svg{ width:15px;height:15px; }
+html[data-ds] .ov-card b{
+  font-size:26px;font-weight:720;letter-spacing:-.03em;line-height:1.1;color:var(--text);
+  order:2;
+}
+html[data-ds] .ov-card span{
+  order:1;font-size:12.5px;font-weight:600;color:var(--muted);
+  text-transform:none;letter-spacing:0;margin-bottom:6px;
+}
+html[data-ds] .ov-card .ov-sub{ order:3;font-size:12px;color:var(--muted-2);margin-top:4px; }
+html[data-ds] .ov-vip .ov-card-icon{ background:var(--warn-soft);color:var(--warn); }
+
+/* Ko'rsatkich qatori va tashrif qatori — FAQAT boshqaruv panelida.
+   Avval ular har bir bo'limning tepasida turardi: "Raqamlar" yoki
+   "Kredit" ochganda ham ekranning birinchi 150px i begona raqamlar
+   bilan band bo'lardi. */
+html[data-ds] #overviewRow.ov-yashirin{ display:none !important; }
+html[data-ds] .visitors-box{ display:none; }
+html[data-ds] #paneDashboard .visitors-box{ display:flex; }
+
+html[data-ds] #paneDashboard .visitors-box{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-1);padding:10px 15px;margin:0 0 14px;
+  align-items:center;gap:8px 16px;flex-wrap:wrap;justify-content:flex-start;
+}
+html[data-ds] .visitors-live{ font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:8px; }
+html[data-ds] .visitors-live b,
+html[data-ds] .visitors-total b{ color:var(--text);font-weight:700; }
+html[data-ds] .visitors-dot{ width:7px;height:7px;background:var(--green); }
+html[data-ds] .visitors-total{ font-size:12.5px;color:var(--muted);margin-left:auto; }
+
+/* ====================== 6. TUGMALAR ============================== */
+html[data-ds] .btn,
+html[data-ds] button.btn{
+  height:38px;padding:0 15px;border-radius:var(--r-sm);
+  background:var(--amber);color:#fff;border:1px solid var(--amber);
+  font-size:13.5px;font-weight:620;letter-spacing:-.008em;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  box-shadow:var(--sh-1);
+  transition:transform var(--t-fast) var(--ez-in),filter var(--t-fast),background-color var(--t-fast),border-color var(--t-fast),color var(--t-fast);
+}
+html[data-ds] .btn:hover{ filter:brightness(1.08); }
+html[data-ds] .btn:active{ transform:scale(.97); }
+html[data-ds] .btn:disabled{ opacity:.5;cursor:not-allowed;filter:none;transform:none; }
+html[data-ds] .btn-ghost,
+html[data-ds] button.btn-ghost{
+  background:var(--panel);color:var(--text-2);border:1px solid var(--line);box-shadow:var(--sh-1);
+}
+html[data-ds] .btn-ghost:hover{ border-color:var(--amber);color:var(--amber);background:var(--amber-soft);filter:none; }
+html[data-ds] .btn-danger{ background:var(--red);border-color:var(--red);color:#fff; }
+
+/* ====================== 7. MAYDONLAR ============================= */
+html[data-ds] input[type="text"],
+html[data-ds] input[type="number"],
+html[data-ds] input[type="tel"],
+html[data-ds] input[type="email"],
+html[data-ds] input[type="password"],
+html[data-ds] input[type="date"],
+html[data-ds] input[type="search"],
+html[data-ds] select,
+html[data-ds] textarea,
+html[data-ds] .inp{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  padding:10px 13px;
+  font-size:14px;font-weight:500;font-family:inherit;
+  transition:border-color var(--t-fast),box-shadow var(--t-fast),background-color var(--t-fast);
+}
+html[data-ds] input::placeholder,
+html[data-ds] textarea::placeholder{ color:var(--muted-2);font-weight:450; }
+html[data-ds] input:focus,
+html[data-ds] select:focus,
+html[data-ds] textarea:focus,
+html[data-ds] .inp:focus{
+  outline:none;border-color:var(--amber);background:var(--panel);
+  box-shadow:0 0 0 3px var(--amber-soft);
+}
+html[data-ds] .lbl,
+html[data-ds] label{ font-size:12.5px;font-weight:620;color:var(--text-2);letter-spacing:-.005em; }
+html[data-ds] .muted{ color:var(--muted); }
+
+/* ====================== 8. FON VA RAQAMLAR ======================= */
+/* Eski fon: ochiq mavzuda ko'kimtir-kulrang (#E2E8F4) + burchaklarda
+   rangli yorug'lik. Oq kartochkalar unda "iflos" ko'rinardi. Endi —
+   toza, deyarli neytral asos. */
+html[data-ds][data-theme="light"] body{ background-color:var(--bg) !important; }
+html[data-ds] body{ background-image:none !important; }
+
+/* Kesilgandek ko'rinadigan "chiziqli nol" o'chiriladi. Jakarta shrifti
+   tabular rejimda nolni chiziq bilan chizadi — raqamlar ko'p bo'lgan
+   panelda bu o'qishni qiyinlashtiradi. */
+html[data-ds] *{ font-feature-settings:"zero" 0; }
+
+/* "Unbounded" — bezak shrifti, raqamlar unda torayib ketadi.
+   Katta sonlar endi asosiy shriftning siqilgan ko'rinishida. */
+html[data-ds] .dash-stat-num,
+html[data-ds] .ov-card b,
+html[data-ds] .pb-stat-card b,
+html[data-ds] .zk-stat-card b,
+html[data-ds] .vms-num,
+html[data-ds] .wt-sog-ms{
+  font-family:Inter,-apple-system,system-ui,sans-serif !important;
+  font-weight:720;letter-spacing:-.03em;
+}
+
+/* ====================== 9. BOSHQARUV PANELI ====================== */
+html[data-ds] .dash-stats-row{ gap:12px;margin-bottom:14px; }
+html[data-ds] .dash-stat-card{
+  border-radius:var(--r-lg);padding:15px 16px;
+  background:var(--card);border:1px solid var(--line);
+  box-shadow:var(--sh-1);
+  transition:transform var(--t) var(--ez),box-shadow var(--t) var(--ez);
+}
+html[data-ds] .dash-stat-card:hover{ transform:translateY(-2px);box-shadow:var(--sh-2); }
+/* Tepadagi rangli chiziq — eskirgan bezak, olib tashlandi */
+html[data-ds] .dash-stat-card::before{ display:none; }
+html[data-ds] .dash-stat-top{ margin-bottom:9px; }
+html[data-ds] .dash-stat-label{
+  font-size:12.5px;font-weight:600;text-transform:none;letter-spacing:-.005em;color:var(--muted);
+}
+/* Katta gradientli kvadrat o'rniga — kichik, bosiq belgi */
+html[data-ds] .dash-stat-ico{
+  width:28px;height:28px;border-radius:var(--r-xs);
+  background:var(--amber-soft) !important;color:var(--amber) !important;
+  box-shadow:none !important;
+}
+html[data-ds] .dash-stat-ico svg{ width:15px;height:15px; }
+html[data-ds] .dsc-green .dash-stat-ico{ background:var(--green-soft) !important;color:var(--green) !important; }
+html[data-ds] .dsc-violet .dash-stat-ico{ background:var(--amber-soft) !important;color:var(--amber) !important; }
+html[data-ds] .dsc-red .dash-stat-ico{ background:var(--red-soft) !important;color:var(--red) !important; }
+html[data-ds] .dash-stat-num{ font-size:27px;line-height:1.08; }
+html[data-ds] .dash-stat-sub{ font-size:12px;color:var(--muted-2);margin-top:5px; }
+
+html[data-ds] .dash-grid{ gap:14px; }
+html[data-ds] .dash-main,
+html[data-ds] .dash-side{ gap:14px; }
+html[data-ds] .dash-card{
+  border-radius:var(--r-lg);padding:0;
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-1);
+}
+html[data-ds] .dash-card-head{
+  margin-bottom:0;padding:13px 16px;border-bottom:1px solid var(--line-soft);
+}
+html[data-ds] .dash-card > *:not(.dash-card-head){ padding-left:16px;padding-right:16px; }
+html[data-ds] .dash-card > *:last-child{ padding-bottom:14px; }
+html[data-ds] .dash-card-head + *{ padding-top:14px; }
+html[data-ds] .dash-card-head-ico{
+  width:28px;height:28px;border-radius:var(--r-xs);background:var(--amber-soft);color:var(--amber);
+}
+html[data-ds] .dash-card-head h3{ font-size:14.5px;font-weight:680;letter-spacing:-.015em; }
+html[data-ds] .dash-card-head-sub{
+  font-size:11.5px;font-weight:620;color:var(--muted);background:var(--panel-2);
+  border:1px solid var(--line-soft);padding:3px 9px;
+}
+
+/* ====================== 10. BO'SH HOLATLAR ======================= */
+/* Avval: katta, uzuq-yuluq chiziqli quti — ekranning yarmini egallab,
+   hech qanday foyda bermasdi. Endi: ixcham, tinch qator. */
+html[data-ds] .wt-empty,
+html[data-ds] .empty,
+html[data-ds] .is-empty,
+html[data-ds] .dash-empty,
+html[data-ds] .qz-empty,
+html[data-ds] .zk-empty{
+  border:none !important;background:transparent !important;
+  padding:22px 12px !important;text-align:center;
+  color:var(--muted-2) !important;font-size:13px;font-weight:500;border-radius:var(--r);
+}

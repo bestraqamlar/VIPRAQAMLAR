@@ -3154,6 +3154,67 @@ async function panelniOch(sozlama){
    ekrani turadi — admin bir lahzaga bo'lsa ham login formasini
    ko'rmaydi.
    ------------------------------------------------------------------ */
+/* ==================================================================
+   SEANS MUDDATI — 24 SOAT  (V152)
+   ------------------------------------------------------------------
+   MUAMMO. Firebase seansi `Persistence.LOCAL` bilan saqlanadi, ya'ni
+   u MUDDATSIZ: bir marta kirilgan brauzer "Chiqish" bosilmaguncha
+   abadiy ochiq qoladi. Admin panel uchun bu xavfli — telefon yoki
+   kompyuter birovning qo'liga tushsa, panel ochiq turaveradi.
+
+   TALAB. Sahifani yangilaganda qayta login so'ralmasin (ish uzilmasin),
+   lekin birinchi kirishdan 24 soat o'tgach — login ekraniga qaytsin.
+
+   YECHIM. Kirgan PAYT brauzerda belgilab qo'yiladi. Panel ochilganda
+   va har daqiqada tekshiriladi: 24 soatdan oshgan bo'lsa — seans
+   yopiladi. Soat KIRISH paytidan sanaladi, oxirgi harakatdan emas:
+   shunda "ishlab turibman" deb muddatni cheksiz cho'zib bo'lmaydi.
+
+   ESLATMA. Bu brauzer tomonidagi qoida — server tokeni o'z yo'li
+   bilan yangilanib turadi. Shuning uchun u qulaylik va yo'qotilgan
+   qurilma himoyasi uchun, server ruxsatlari o'rniga emas.
+   ================================================================== */
+const SEANS_KALIT = 'vip_admin_seans_boshi';
+const SEANS_MUDDAT = 24 * 60 * 60 * 1000;          /* 24 soat */
+
+function seansBoshlandi(){
+  try{ localStorage.setItem(SEANS_KALIT, String(Date.now())); }catch(e){}
+}
+function seansTozala(){
+  try{ localStorage.removeItem(SEANS_KALIT); }catch(e){}
+}
+/* Qolgan vaqt (ms). 0 yoki manfiy — muddati tugagan. */
+function seansQolgan(){
+  let b = 0;
+  try{ b = Number(localStorage.getItem(SEANS_KALIT) || 0); }catch(e){ return 0; }
+  if(!b || !isFinite(b)) return 0;
+  /* Soat orqaga surilgan bo'lsa (yoki yozuv buzilgan) — ishonmaymiz */
+  if(b > Date.now() + 60000) return 0;
+  return b + SEANS_MUDDAT - Date.now();
+}
+async function seansniYop(sabab){
+  seansTozala();
+  try{ if(typeof stopSessionTimer === 'function') stopSessionTimer(); }catch(e){}
+  try{ await firebase.auth().signOut(); }catch(e){}
+  try{ if(dashboard) dashboard.style.display = 'none'; }catch(e){}
+  try{
+    if(loginScreen){
+      loginScreen.style.display = 'block';
+      if(loginError && sabab){
+        loginError.textContent = sabab;
+        loginError.style.display = 'block';
+      }
+    }
+  }catch(e){}
+}
+/* Panel ochiq turganda ham muddat o'tsa — o'zi chiqaradi */
+setInterval(()=>{
+  try{
+    if(!dashboard || dashboard.style.display === 'none') return;
+    if(seansQolgan() <= 0) seansniYop("Seans muddati tugadi (24 soat). Qaytadan kiring.");
+  }catch(e){}
+}, 60000);
+
 (function seansniTikla(){
   if(typeof firebase === 'undefined' || !firebase.auth) return;
   const authGate = document.getElementById('authGateScreen');
@@ -3186,6 +3247,12 @@ async function panelniOch(sozlama){
     clearTimeout(himoya);
     try{ uzil(); }catch(e){}
     if(user){
+      /* V152: saqlangan seans 24 soatdan oshgan bo'lsa — tiklanmaydi */
+      if(seansQolgan() <= 0){
+        if(authGate) authGate.style.display = 'none';
+        await seansniYop("Seans muddati tugadi (24 soat). Qaytadan kiring.");
+        return;
+      }
       try{
         await panelniOch({ yangiKirish: false });
       }catch(err){
@@ -3227,6 +3294,7 @@ async function doLogin(){
 
   try{
     await signInWithRetry(loginToEmail(usernameInput.value), passwordInput.value, 2);
+    seansBoshlandi();                       /* V152: 24 soat shu paytdan sanaladi */
     qulfSoragich('ok', loginNomi);          // hisoblagich tozalanadi
     loginError.style.display = 'none';
     loginScreen.style.display = 'none';
@@ -3489,6 +3557,7 @@ async function checkAdminClaimStatus(){
   }catch(e){ console.error('Admin huquqi tekshirilmadi:', e); }
 }
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  seansTozala();                            /* V152 */
   stopSessionTimer();
   await recordLogout(); // hali tizimga kirgan holatda — signOut()dan OLDIN yozilishi shart
   if(ordersUnsubscribe){ ordersUnsubscribe(); ordersUnsubscribe = null; }
@@ -3859,7 +3928,22 @@ function openGroupOfTab(tab){
     /* ---- 3. Ko'rsatkichlar: sarlavhadan PASTDA va to'rtinchi katak ---- */
     const ov = document.getElementById('overviewRow');
     const vis = document.querySelector('.visitors-box');
-    if(ov && vis && !document.getElementById('ovLiveCard')){
+    /* V151 — IKKI KARRA KO'RSATKICH OLIB TASHLANDI.
+       -------------------------------------------------------------
+       Bu qator ("jami raqam / VIP raqam / jami buyurtma") har bir
+       bo'limning tepasiga KO'CHIRILAR edi: "Raqamlar" yoki "Kredit"
+       ochganda ham ekranning birinchi 150 px i o'sha bo'limga aloqasi
+       yo'q raqamlar bilan band bo'lardi. Ustiga-ustak boshqaruv
+       panelida pastda turgan `.dash-stats-row` AYNI o'sha sonlarni
+       boyroq ko'rinishda (bugungi o'zgarish, VIP ulushi, kechikkan
+       to'lov) qaytadan ko'rsatardi — ya'ni bir xil ma'lumot ikki
+       marta, ikkita qator joy egallab.
+       Endi: bu qator umuman ko'rsatilmaydi (DOM'da qoladi, chunki
+       boshqa kod uning ichidagi sonlarni yangilaydi), "hozir saytda"
+       ma'lumoti esa o'zining ixcham qatorida — faqat boshqaruv
+       panelida — turadi. */
+    if(ov) ov.classList.add('ov-yashirin');
+    if(false && ov && vis && !document.getElementById('ovLiveCard')){
       // "Hozir saytda" alohida quti edi — endi to'rtinchi ko'rsatkich bo'ladi
       const live = document.createElement('div');
       live.className = 'ov-card ov-live';
@@ -3880,14 +3964,18 @@ function openGroupOfTab(tab){
       vis.style.display = 'none';
     }
 
-    /* Ko'rsatkichlar chizig'ini faol bo'limning sarlavhasidan keyin qo'yamiz */
+    /* "Hozir saytda" qatori — FAQAT boshqaruv panelida va sahifa
+       sarlavhasidan KEYIN. Avval u sarlavhadan ham tepada turardi:
+       ekranni ochgan odam birinchi bo'lib bo'lim nomini emas, tashrif
+       sanog'ini ko'rardi — bu noto'g'ri tartib. */
     function ovniKochir(){
       const pane = document.querySelector('.pane.active');
-      const row = document.getElementById('overviewRow');
-      if(!pane || !row) return;
+      const box = document.querySelector('.visitors-box');
+      if(!pane || !box) return;
+      if(pane.id !== 'paneDashboard') return;
       const head = pane.querySelector(':scope > .page-head');
-      if(head) head.insertAdjacentElement('afterend', row);
-      else pane.insertBefore(row, pane.firstChild);
+      if(head) head.insertAdjacentElement('afterend', box);
+      else pane.insertBefore(box, pane.firstChild);
     }
     document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setTimeout(ovniKochir, 30)));
     setTimeout(ovniKochir, 120);

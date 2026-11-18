@@ -163,6 +163,19 @@ const PAGE_SIZE = 15;
    TIL (uz / ru)
    ================================================================== */
 const RU = {
+  /* V150 — narx filtri */
+  "Narx oralig'i": 'Ценовой диапазон',
+  'Hammasi': 'Все',
+  'dan': 'от',
+  'gacha': 'до',
+  'ta': 'шт',
+  '10 mln gacha': 'до 10 млн',
+  '10\u201320 mln': '10\u201320 млн',
+  '20\u201335 mln': '20\u201335 млн',
+  '35 mln+': '35 млн+',
+  "Dollarda narxlangan raqamlar bu filtrda ko'rinmaydi": 'Номера с ценой в долларах в этом фильтре не показываются',
+  'Tasodifiy': 'Случайно',
+  'mln': 'млн',
   /* --- v26: premium kartochka, bo'lib to'lash ro'yxati, xabarlar --- */
   "Bo'lib to'lashga":"В рассрочку","Premium Raqamlar":"Премиум номера",
   "Bo'lib to'lashga Premium Raqamlar":"Премиум номера в рассрочку",
@@ -3184,6 +3197,8 @@ function catalogItems(){
     const chek = Date.now() - 14 * 86400000;
     list = list.filter(n => Number(n.addedAt || 0) > chek);
   }
+  /* V150: narx oralig'i */
+  if(narxFiltrBor()) list = list.filter(narxMos);
   list.sort((a,b)=>{
     if(!!a.reserved !== !!b.reserved) return a.reserved ? 1 : -1;
     if(catSort === 'cheap') return (a.price||0)-(b.price||0);
@@ -3194,6 +3209,54 @@ function catalogItems(){
   return list;
 }
 const SORTS = [['default','Tasodifiy'],['cheap','Avval arzoni'],['expensive','Avval qimmati'],['installment',"Bo'lib to'lash"]];
+
+/* ==================================================================
+   NARX BO'YICHA FILTR (V150)
+   ------------------------------------------------------------------
+   MUAMMO. Katalogda operator, toifa va "bo'lib to'lash" filtri bor
+   edi, lekin NARX bo'yicha filtr yo'q edi. Raqamlar 9 mln dan 42 mln
+   gacha — mijoz "20 mln gacha" deb qidira olmasdi va o'nlab
+   kartochkani qo'lda ko'rib chiqishiga to'g'ri kelardi.
+
+   QIYMAT SO'MDA SAQLANADI, lekin mijozga MLN da ko'rsatiladi:
+   "20 000 000" emas, "20 mln" — telefonda yozish ham, o'qish ham
+   osonroq.
+
+   NOZIK JOY — DOLLARLI RAQAMLAR. Ba'zi raqamlar dollarda
+   narxlanadi. Ularni so'mdagi oraliq bilan solishtirib bo'lmaydi
+   (kurs yo'q), shuning uchun narx filtri YOQILGANDA ular
+   ko'rsatilmaydi. Bazada dollarli raqam bo'lsa, filtr oynasida
+   bu haqda bitta qator izoh chiqadi — mijoz nega kamayganini
+   bilib turadi. */
+let catNarxMin = 0, catNarxMax = 0;        /* so'mda; 0 = qo'yilmagan */
+const narxFiltrBor = () => catNarxMin > 0 || catNarxMax > 0;
+
+/* Tayyor oraliqlar — faqat ichida raqam BORLARI ko'rsatiladi */
+const NARX_TAYYOR = [
+  [0,        10000000, '10 mln gacha'],
+  [10000000, 20000000, '10–20 mln'],
+  [20000000, 35000000, '20–35 mln'],
+  [35000000, 0,        '35 mln+']
+];
+/* Raqam shu oraliqqa tushadimi */
+function narxMos(n){
+  if(!narxFiltrBor()) return true;
+  if(isUsd(n)) return false;              /* yuqoridagi izohga qarang */
+  const v = Number(n.price) || 0;
+  if(catNarxMin && v < catNarxMin) return false;
+  if(catNarxMax && v > catNarxMax) return false;
+  return true;
+}
+/* "20000000" -> "20",  "1500000" -> "1,5" */
+const mlnMatn = (v) => {
+  if(!v) return '';
+  const m = v / 1000000;
+  return (Math.round(m * 10) / 10).toString().replace('.', ',');
+};
+const mlnSon = (matn) => {
+  const x = parseFloat(String(matn || '').replace(',', '.').replace(/[^\d.]/g, ''));
+  return (isFinite(x) && x > 0) ? Math.round(x * 1000000) : 0;
+};
 
 function renderCatalog(){
   /* Qidiruv ketayotganda: ro'yxat o'zgarmaydi — faqat oqaradi,
@@ -3262,7 +3325,7 @@ function renderCatalog(){
      chizig'i turadi — mijoz so'rovi: "hattoki yozuvlarigacha". */
   if(numbersLoaded) $('#catCount').textContent = `${formatPrice(list.length)} ${t('ta raqam')}`;
   else skSub($('#catCount'));
-  $('#filterDot').style.display = (catOp || catSort!=='default') ? '' : 'none';
+  $('#filterDot').style.display = (catOp || catSort!=='default' || narxFiltrBor()) ? '' : 'none';
 
   $('#searchInfo').innerHTML = (patternActive() && !liveBusy)
     ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -7211,6 +7274,17 @@ document.addEventListener('click', (e)=>{
   const co = e.target.closest('[data-catop]');
   if(co){ catOp = co.dataset.catop; catShown = PAGE_SIZE; renderCatalog(); window.scrollTo({top:0,behavior:'smooth'}); return; }
 
+  const nx = e.target.closest('[data-narx]');
+  if(nx){
+    const [a,b] = String(nx.dataset.narx).split(':').map(Number);
+    catNarxMin = a || 0; catNarxMax = b || 0;
+    const mi = $('#nfMin'), ma = $('#nfMax');
+    if(mi) mi.value = mlnMatn(catNarxMin);
+    if(ma) ma.value = mlnMatn(catNarxMax);
+    narxHolatiYangila();
+    return;
+  }
+
   const so = e.target.closest('[data-sort]');
   if(so){ catSort = so.dataset.sort; catShown = PAGE_SIZE; renderCatalog(); closeSheet('shGen'); return; }
 
@@ -7299,7 +7373,8 @@ document.addEventListener('click', (e)=>{
     $$('#digits input').forEach(b => b.value = '');
     LIVE_RESULTS = []; COMMITTED = null; catOp = ''; catOnlyInstallment = false;
     catSort = 'default'; catShown = PAGE_SIZE;
-    catNaqsh = ''; reshuffle(); renderCatalog(); closeSheet('shGen');
+    catNaqsh = ''; catNarxMin = 0; catNarxMax = 0;
+    reshuffle(); renderCatalog(); closeSheet('shGen');
     /* Xabar YO'Q — ro'yxatning o'zi yangilanib ko'rinadi. */
     return;
   }
@@ -7320,15 +7395,73 @@ document.addEventListener('click', (e)=>{
   }
 });
 
+/* Narx bo'limi HTML — faqat ICHIDA RAQAM BOR oraliqlar ko'rsatiladi,
+   bo'sh tugmani bosib "0 ta raqam" ni ko'rish mijoz uchun foyda emas. */
+function narxBolimiHtml(){
+  const eskiMin = catNarxMin, eskiMax = catNarxMax;
+  const sanoq = (lo, hi) => { catNarxMin = lo; catNarxMax = hi; const n = catalogItems().length; return n; };
+
+  const tugmalar = [];
+  catNarxMin = 0; catNarxMax = 0;
+  const hammasi = catalogItems().length;
+  tugmalar.push(`<button class="chip${!eskiMin && !eskiMax ? ' on' : ''}" data-narx="0:0">${t('Hammasi')} <i class="nfn">${hammasi}</i></button>`);
+  NARX_TAYYOR.forEach(o => {
+    const n = sanoq(o[0], o[1]);
+    if(!n) return;                                   /* bo'sh oraliq ko'rsatilmaydi */
+    const tanlangan = (eskiMin === o[0] && eskiMax === o[1]);
+    tugmalar.push(`<button class="chip${tanlangan ? ' on' : ''}" data-narx="${o[0]}:${o[1]}">${esc(t(o[2]))} <i class="nfn">${n}</i></button>`);
+  });
+
+  /* dollarli raqamlar borligini aytamiz — ro'yxat nega qisqarganini bilsin */
+  catNarxMin = 0; catNarxMax = 0;
+  const usd = catalogItems().filter(isUsd).length;
+  catNarxMin = eskiMin; catNarxMax = eskiMax;
+
+  return `<div class="nf">
+    <div class="nf-top"><b>${t("Narx oralig'i")}</b><span class="nf-cnt" id="nfCount">${catalogItems().length} ${t('ta')}</span></div>
+    <div class="nf-chips">${tugmalar.join('')}</div>
+    <div class="nf-in">
+      <label><input id="nfMin" type="text" inputmode="decimal" autocomplete="off" placeholder="${t('dan')}" value="${mlnMatn(catNarxMin)}"><span>${t('mln')}</span></label>
+      <label><input id="nfMax" type="text" inputmode="decimal" autocomplete="off" placeholder="${t('gacha')}" value="${mlnMatn(catNarxMax)}"><span>${t('mln')}</span></label>
+    </div>
+    ${usd ? `<div class="nf-note">${t("Dollarda narxlangan raqamlar bu filtrda ko'rinmaydi")}: ${usd}</div>` : ''}
+  </div>`;
+}
+
+/* Oynani butunlay qayta qurmaymiz: aks holda mijoz yozib turgan
+   maydondan fokus uchib ketadi va klaviatura yopiladi. Faqat
+   tugmalarning holati va sanoq yangilanadi. */
+function narxHolatiYangila(){
+  const box = $('#genBody'); if(!box) return;
+  const kalit = catNarxMin + ':' + catNarxMax;
+  box.querySelectorAll('[data-narx]').forEach(b =>
+    b.classList.toggle('on', b.dataset.narx === (narxFiltrBor() ? kalit : '0:0')));
+  const c = $('#nfCount'); if(c) c.textContent = catalogItems().length + ' ' + t('ta');
+  catShown = PAGE_SIZE; renderCatalog();
+}
+
 function openFilter(){
   $('#genTitle').textContent = t('Saralash');
   $('#genFoot').style.display = 'none';
-  $('#genBody').innerHTML = `<div class="rows">${SORTS.map(o => `
+  $('#genBody').innerHTML = narxBolimiHtml() + `<div class="rows">${SORTS.map(o => `
     <button class="row" data-sort="${o[0]}"><span class="rt"><b>${esc(t(o[1]))}</b></span>
       ${catSort===o[0] ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"></path></svg>' : ''}
     </button>`).join('')}</div>
     <button class="btn ghost" data-clearall style="margin-top:14px">${t('Hammasini tozalash')}</button>
     <div style="height:6px"></div>`;
+  /* "dan"/"gacha" maydonlari: yozilgan zahoti emas, 350 ms jim
+     turgandan keyin qo'llanadi — har bosilgan raqamda ro'yxatni
+     qayta chizish sekinlik beradi. */
+  let nfTimer = 0;
+  const nfOqi = ()=>{
+    clearTimeout(nfTimer);
+    nfTimer = setTimeout(()=>{
+      let a = mlnSon($('#nfMin') && $('#nfMin').value), b = mlnSon($('#nfMax') && $('#nfMax').value);
+      if(a && b && a > b){ const x = a; a = b; b = x; }   /* teskari kiritilsa almashtiramiz */
+      catNarxMin = a; catNarxMax = b; narxHolatiYangila();
+    }, 350);
+  };
+  ['#nfMin','#nfMax'].forEach(sel => { const el = $(sel); if(el) el.addEventListener('input', nfOqi); });
   openSheet('shGen');
 }
 
