@@ -42,8 +42,9 @@ const INTERNAL_EMAIL_DOMAIN = '@ichki.vipraqamlar-admin.uz';
 
 // panel-boshqaruv.html'dagi data-tab qiymatlari bilan AYNAN mos bo'lishi shart.
 const FEATURE_KEYS = [
-  'numbers', 'ai', 'instagram', 'telegramai', 'videos', 'premiumvideo',
+  'numbers', 'ai', 'instagram', 'telegramai', 'videos',   /* 'premiumvideo' — bo'lim V118 da olib tashlandi */
   'orders', 'zakaz', 'credit', 'personalbase', 'vazifalar', 'sessions', 'styles', 'operators', 'watch', 'settings', 'finance',
+  'stories',
   'xabarlar', 'tolov'
 ];
 

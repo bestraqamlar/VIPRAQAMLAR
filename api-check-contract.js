@@ -29,6 +29,7 @@
 // { "ok": false, "error": "Ma'lumot topilmadi. ID va raqamni tekshiring." }
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -44,7 +45,12 @@ db.settings({ preferRest: true });
 
 function checkApiKey(event) {
   const expected = process.env.MOBILE_API_KEY;
-  if (!expected) return true;
+  /* XAVFSIZLIK (V73): ilgari kalit sozlanmagan bo'lsa funksiya BUTUNLAY
+     ochiq qolardi ("fail-open") — ya'ni mobil API'ning hamma yo'llari
+     (buyurtma/shartnoma qidirish ham) hammaga ochiq edi. Endi aksincha:
+     kalit yo'q bo'lsa — yopiq. Mobil ilovani ishlatish uchun Netlify'da
+     MOBILE_API_KEY o'zgaruvchisini qo'ying (sayt bunga bog'liq emas). */
+  if (!expected) return false;
   const provided = (event.headers && (event.headers['x-api-key'] || event.headers['X-Api-Key'])) || '';
   return provided === expected;
 }
@@ -93,9 +99,9 @@ exports.handler = async function (event) {
         status: p.status || 'pending',
         paid: p.status === 'paid',
         overdue: isOverdue,
-        dueDate: p.dueDate ? new Date(p.dueDate).toLocaleDateString('uz-UZ') : '',
+        dueDate: p.dueDate ? sanaUz(p.dueDate) : '',
         dueDateRaw: p.dueDate || null,
-        paidAt: p.paidAt ? new Date(p.paidAt).toLocaleDateString('uz-UZ') : null
+        paidAt: p.paidAt ? sanaUz(p.paidAt) : null
       };
     });
 

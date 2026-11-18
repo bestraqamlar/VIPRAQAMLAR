@@ -19,10 +19,13 @@ const admin = require('firebase-admin');
 const {
   searchAll,
   testBeelineLogin,
+  testBeelinePublic,
   searchBeelinePublic,
   matchesBoxes,
-  BEELINE_PUBLIC_RARE_IDS
+  BEELINE_PUBLIC_RARE_IDS,
+  sessiyaOmboriQoy
 } = require('./lib/operators');
+const { sessiyaOmbori } = require('./lib/sessiyaOmbori');
 const { requireAdmin } = require('./lib/adminAuth');
 
 if (!admin.apps.length) {
@@ -35,7 +38,15 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* XAVFSIZLIK (V73): ochiq funksiya — bitta IP uchun soatlik chegara.
+   Qarang: lib/tezlik.js */
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
+/* V134 — HUMANS TEZLIGI. Operator sessiyalari endi umumiy omborda
+   (Firestore) saqlanadi: funksiya har safar yangidan ishga tushsa
+   ham sessiya tayyor turadi va mijoz kutib qolmaydi.
+   Batafsil: lib/sessiyaOmbori.js */
+sessiyaOmboriQoy(sessiyaOmbori(db));
 
 // Bir qidiruvda ~20 ta tashqi so'rov ketadi. Bir necha mijoz bir vaqtda bir xil
 // maskani qidirsa operatorlarni bekorga charchatmaslik uchun qisqa kesh.
@@ -232,6 +243,9 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, headers, body: JSON.stringify({ ok: false, error: 'Faqat GET' }) };
   }
+  if (!(await tezlikOk(db, event, 'live_search_rate_limits', 200))) {
+    return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p so'rov. Birozdan keyin urinib ko'ring." }) };
+  }
 
   const params = event.queryStringParameters || {};
 
@@ -249,8 +263,27 @@ exports.handler = async function (event) {
       return { statusCode: err.statusCode || 401, headers, body: JSON.stringify({ ok: false, error: err.message }) };
     }
     const cfg = (await loadConfig(true)).Beeline || {};
-    const out = await testBeelineLogin((cfg.username || '').trim(), cfg.password || '');
-    return { statusCode: 200, headers, body: JSON.stringify(out) };
+    const user = (cfg.username || '').trim();
+
+    /* V81: avval SAYT ishlatadigan yo'lni (ochiq API, kalitsiz) sinaymiz.
+       Dilerlik login/paroli esa faqat KIRITILGAN bo'lsa sinaladi — u
+       ixtiyoriy zaxira. Shunday qilib admin "nimasi ishlayapti, nimasi
+       yo'q"ni ajrata oladi. */
+    const ochiq = await testBeelinePublic();
+    const diler = user
+      ? await testBeelineLogin(user, cfg.password || '')
+      : { bosh: true };
+
+    return {
+      statusCode: 200, headers,
+      body: JSON.stringify({
+        /* Umumiy "ok" — ochiq API bo'yicha: sayt shunga tayanadi. */
+        ok: ochiq.ok,
+        ochiq,
+        diler,
+        error: ochiq.ok ? '' : ochiq.error
+      })
+    };
   }
 
   const boxes = parseMask(params.mask);

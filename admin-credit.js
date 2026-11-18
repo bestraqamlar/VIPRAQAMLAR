@@ -32,18 +32,104 @@ const db = admin.firestore();
 db.settings({ preferRest: true });
 
 const COLLECTION = 'credit_contracts';
-const ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/* SHARTNOMA RAQAMI — 2 HARF + 5 RAQAM (V146)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "shartnoma ID berayotganda endi XX12345 — tasodifiy
+   2 harf 5 ta son berilsin".  Masalan: KD48217, PR90134.
+
+   NEGA HARFLAR CHEKLANGAN. `I`, `O`, `Q`, `S` ishlatilmaydi: ular
+   og'zaki aytilganda va qo'lda yozilganda `1`, `0`, `9`, `5` bilan
+   adashtiriladi. Shartnoma raqamini admin telefonda mijozga aytadi,
+   shuning uchun chalkashlik bo'lmasligi muhim.
+
+   ESKI SHARTNOMALAR TEGILMAYDI — bu faqat YANGI shartnomaga beriladi.
+   TAKRORLANMASLIK: 21x21x90000 = ~40 mln variant, ustiga quyida
+   bazadan tekshiruv ham bor. */
+const ID_HARF = 'ABCDEFGHJKLMNPRTUVXYZ';
 
 function randomContractId() {
-  let id = '';
-  for (let i = 0; i < 5; i++) id += ID_CHARS[Math.floor(Math.random() * ID_CHARS.length)];
-  return id;
+  const h = () => ID_HARF[Math.floor(Math.random() * ID_HARF.length)];
+  return h() + h() + String(10000 + Math.floor(Math.random() * 90000));
 }
 
-function calcDueDate(startTs, payDay, monthOffset) {
+/* ==================================================================
+   TO'LOV JADVALI — IKKI XIL (V146)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI (oxirgi tahrir, aynan):
+     "bundan keyin kredit qo'shganda ikki xil bo'lsin — bosh to'lov
+      yoki bosh to'lovsiz, ikkisidan birini tanlab qilaveramiz.
+      Agar bosh to'lov bosilsa, to'lov qisqa: 23 oyi qoladi.
+      Narigisida esa keyingi oydan to'lov bo'ladi."
+
+   ============ 1) BOSH TO'LOVSIZ ============
+   Shartnoma kunida hech qanday to'lov yo'q. To'lovlar KEYINGI OYDAN
+   boshlanadi va to'liq N ta bo'ladi.
+       24 oy, shartnoma 10.11.2026, to'lov kuni 10:
+         1-to'lov   10.12.2026
+         ...
+         24-to'lov  10.11.2028
+
+   ============ 2) BOSH TO'LOV BILAN ============
+   Bosh to'lov SHARTNOMA KUNIDA olinadi va u BIRINCHI OY O'RNIGA
+   hisoblanadi. Shuning uchun oylik to'lovlar bittaga KAM bo'ladi.
+       24 oy, shartnoma 10.11.2026, to'lov kuni 10:
+         Bosh to'lov  10.11.2026
+         1-to'lov     10.12.2026
+         ...
+         23-to'lov    10.10.2028     <-- 23 ta (mijoz aytganidek)
+
+   IKKALA HOLATDA HAM oylik to'lovlar keyingi oydan boshlanadi —
+   farq faqat SONIDA (N yoki N-1) va bosh to'lov borligida.
+
+   ============ NOZIK JOY — QISQA OYLAR ============
+   To'lov kuni 31 bo'lsa, fevralda 31-sana yo'q. `new Date(yil,oy,31)`
+   esa jimgina keyingi oyga o'tib ketadi (3-mart bo'lib qoladi) va
+   jadvalni buzardi. Shuning uchun kun oyning haqiqiy uzunligiga
+   qisqartiriladi: fevralda 28 (kabisa yilida 29), aprelda 30.
+   ================================================================== */
+
+/* Oyning oxirgi kuni (oy 0-11 tartibida) */
+function oyningOxirgiKuni(yil, oy) {
+  return new Date(yil, oy + 1, 0).getDate();
+}
+
+/* Shartnoma sanasidan `oyQoshish` oy keyingi, `payDay` kunidagi sana */
+function calcDueDate(startTs, payDay, oyQoshish) {
   const d = new Date(startTs);
-  const target = new Date(d.getFullYear(), d.getMonth() + monthOffset + 1, payDay);
-  return target.getTime();
+  const norm = new Date(d.getFullYear(), d.getMonth() + oyQoshish, 1);
+  const kun = Math.min(payDay, oyningOxirgiKuni(norm.getFullYear(), norm.getMonth()));
+  return new Date(norm.getFullYear(), norm.getMonth(), kun).getTime();
+}
+
+/* Kunning boshiga keltiradi */
+function kunBoshi(ts) {
+  const d = new Date(ts);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/* NECHTA OYLIK TO'LOV BO'LADI — bosh to'lov birinchi oy o'rniga
+   hisoblangani uchun bittaga kam. */
+function oylikSoni(months, boshTolovBor) {
+  return boshTolovBor ? Math.max(0, months - 1) : months;
+}
+
+/* JADVALNI QURADI. `eskiTolovlar` — tahrirlashda to'langan oylar
+   saqlanib qolsin. */
+function jadvalQur(startTs, payDay, months, boshTolovBor, eskiTolovlar) {
+  const eski = eskiTolovlar || [];
+  const n = oylikSoni(months, boshTolovBor);
+  const payments = [];
+  for (let i = 0; i < n; i++) {
+    const dueDate = calcDueDate(startTs, payDay, i + 1);   /* keyingi oydan */
+    const old = eski.find(p => p.month === i + 1);
+    payments.push({
+      month: i + 1,
+      dueDate,
+      status: old ? old.status : 'pending',
+      paidAt: old ? old.paidAt : null
+    });
+  }
+  return payments;
 }
 
 // Berilgan shartnomaga kim tegishligini (huquqni) tekshiradi: bosh admin
@@ -85,19 +171,42 @@ async function listContracts(decoded, body) {
   return { contracts };
 }
 
+/* MAYDON CHEGARALARI (V120).
+   ------------------------------------------------------------------
+   SABAB: "Shartnoma qo'shish" bosilganda ba'zan Netlify'ning
+   "Request payload size exceeds the limit" xatosi chiqardi — ya'ni
+   so'rov hajmi platforma chegarasidan oshib ketgan va funksiya UMUMAN
+   ishga tushmagan. Hajm bitta maydonga juda katta matn tushganda
+   oshadi (masalan izohga rasm yoki uzun matn joylashtirilsa).
+   Brauzer tomonida ham chegara qo'yildi (maxlength + kesish), lekin
+   ASOSIY himoya SHU YERDA: so'rov qayerdan kelishidan qat'i nazar,
+   bazaga faqat shu uzunlikdagi qiymat tushadi. Uzun matn xato
+   qaytarmaydi — shunchaki KESILADI, ya'ni admin ishi to'xtab
+   qolmaydi. */
+const CHEGARA = {
+  customerName: 100, customerPhone: 30, region: 60, number: 30,
+  additionalInfo: 500, passportNumber: 30, birthDate: 20,
+  permanentAddress: 300, startDate: 20
+};
+function matn(body, kalit) {
+  return String(body[kalit] == null ? '' : body[kalit]).slice(0, CHEGARA[kalit] || 200).trim();
+}
+
 async function addContract(body, decoded) {
-  const name = String(body.customerName || '').trim();
-  const phone = String(body.customerPhone || '').trim();
-  const region = String(body.region || '').trim();
-  const number = String(body.number || '').trim();
-  const months = Number(body.totalMonths) || 0;
-  const monthly = Number(body.monthlyPayment) || 0;
-  const payDay = Number(body.paymentDay) || 1;
-  const info = String(body.additionalInfo || '').trim();
-  const passportNumber = String(body.passportNumber || '').trim();
-  const birthDate = String(body.birthDate || '');
-  const permanentAddress = String(body.permanentAddress || '').trim();
-  const startDateVal = body.startDate;
+  const name = matn(body, 'customerName');
+  const phone = matn(body, 'customerPhone');
+  const region = matn(body, 'region');
+  const number = matn(body, 'number');
+  /* Son maydonlar ham aqlli chegarada bo'lsin (jadval cheksiz
+     uzun bo'lib ketmasin — 600 oy = 50 yil, bundan ortig'i xato). */
+  const months = Math.min(Math.max(Number(body.totalMonths) || 0, 0), 600);
+  const monthly = Math.min(Math.max(Number(body.monthlyPayment) || 0, 0), 1e12);
+  const payDay = Math.min(Math.max(Number(body.paymentDay) || 1, 1), 31);
+  const info = matn(body, 'additionalInfo');
+  const passportNumber = matn(body, 'passportNumber');
+  const birthDate = matn(body, 'birthDate');
+  const permanentAddress = matn(body, 'permanentAddress');
+  const startDateVal = matn(body, 'startDate');
   /* Valyuta — so'm yoki dollar. Hisob-kitob o'zgarmaydi, faqat qaysi
      valyutada ekani saqlanadi va hamma joyda shunday ko'rsatiladi. */
   const currency = String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS';
@@ -116,10 +225,24 @@ async function addContract(body, decoded) {
   }
 
   const startTs = startDateVal ? new Date(startDateVal + 'T00:00:00').getTime() : Date.now();
-  const payments = [];
-  for (let i = 0; i < months; i++) {
-    payments.push({ month: i + 1, dueDate: calcDueDate(startTs, payDay, i), status: 'pending', paidAt: null });
+
+  /* BOSH TO'LOV (V143). Admin formasidagi ptichka yoqilgan bo'lsa,
+     summa ham kelishi kerak; summa 0 yoki kelmagan bo'lsa — bosh
+     to'lov YO'Q deb hisoblanadi (ptichka adashib bosilgan bo'lishi
+     mumkin, yarim holat bilan shartnoma yaratmaymiz). */
+  const downPayment = Math.min(Math.max(Number(body.downPayment) || 0, 0), 1e12);
+  const boshTolovBor = !!body.hasDownPayment && downPayment > 0;
+  /* CHEKKA HOLAT HIMOYASI (V146). Bosh to'lov birinchi oy o'rniga
+     hisoblanadi, shuning uchun 1 oylik shartnomada oylik to'lov
+     umuman qolmaydi va jadval bo'sh bo'lib qolardi — "qolgan summa",
+     eslatmalar va PDF shunda noto'g'ri ishlardi. */
+  if (boshTolovBor && months < 2) {
+    const err = new Error("Boshlang'ich to'lov bilan muddat kamida 2 oy bo'lishi kerak");
+    err.statusCode = 400;
+    throw err;
   }
+
+  const payments = jadvalQur(startTs, payDay, months, boshTolovBor, null);
 
   let customerChatId = null;
   try {
@@ -133,7 +256,26 @@ async function addContract(body, decoded) {
 
   await db.collection(COLLECTION).doc(contractId).set({
     contractId, customerName: name, customerPhone: phone, region, number,
+    /* QIDIRUV MAYDONI (V122). Mijoz kabineti shartnomani TELEFON
+       bo'yicha topadi. Firestore faqat ANIQ moslik bo'yicha qidira
+       oladi, telefon esa turli ko'rinishda yozilishi mumkin
+       ("+998 90 123-45-67", "998901234567"...). Shu sabab oxirgi 9
+       raqam alohida, toza holda saqlanadi — xuddi `orders` dagi
+       `phoneNormalized` kabi. Busiz kabinet butun to'plamni o'qishga
+       majbur bo'lardi (qimmat va sekin). */
+    phoneNormalized: phone.replace(/\D/g, '').slice(-9),
+    numberNormalized: number.replace(/\D/g, '').slice(-9),
     totalMonths: months, monthlyPayment: monthly, currency, paymentDay: payDay,
+    /* Bosh to'lov alohida maydonlarda saqlanadi, `payments` ichiga
+       QO'SHILMAYDI. Sababi: butun tizim bo'ylab "to'langan oylar",
+       "qolgan summa", eslatmalar va PDF `payments` ro'yxatini OYLIK
+       to'lovlar deb biladi. Bosh to'lovni o'sha ro'yxatga tiqib
+       qo'ysak, 24 oylik shartnoma 25 oylik bo'lib ko'rinib, barcha
+       hisob-kitob buzilardi. */
+    downPayment: boshTolovBor ? downPayment : 0,
+    downPaymentDueDate: boshTolovBor ? kunBoshi(startTs) : null,
+    downPaymentStatus: boshTolovBor ? 'pending' : null,
+    downPaymentPaidAt: null,
     additionalInfo: info, createdAt: startTs, payments, contractStatus: 'active',
     customerChatId, passportNumber, birthDate, permanentAddress,
     // Kim qo'shgani — HAR DOIM tekshirilgan tokendan olinadi, mijoz
@@ -162,7 +304,7 @@ async function addContract(body, decoded) {
 }
 
 async function updatePayment(body, decoded) {
-  const id = String(body.id || '');
+  const id = String(body.id || '').slice(0, 40);
   const month = Number(body.month);
   if (!id || !month) { const err = new Error('id va oy kerak'); err.statusCode = 400; throw err; }
 
@@ -188,7 +330,7 @@ async function updatePayment(body, decoded) {
 }
 
 async function updateContract(body, decoded) {
-  const id = String(body.id || '');
+  const id = String(body.id || '').slice(0, 40);
   if (!id) { const err = new Error('id kerak'); err.statusCode = 400; throw err; }
 
   const ref = db.collection(COLLECTION).doc(id);
@@ -201,36 +343,46 @@ async function updateContract(body, decoded) {
     throw err;
   }
 
-  const payDay = Number(body.paymentDay) || 1;
-  const newTotalMonths = Number(body.totalMonths) || 1;
-  const newStartTs = body.startDate ? new Date(body.startDate + 'T00:00:00').getTime() : Date.now();
+  /* V120: tahrirlashda ham AYNAN SHU chegaralar (qarang: addContract) */
+  const payDay = Math.min(Math.max(Number(body.paymentDay) || 1, 1), 31);
+  const newTotalMonths = Math.min(Math.max(Number(body.totalMonths) || 1, 1), 600);
+  const sanaMatn = matn(body, 'startDate');
+  const newStartTs = sanaMatn ? new Date(sanaMatn + 'T00:00:00').getTime() : Date.now();
 
-  const oldPayments = existing.payments || [];
-  const payments = [];
-  for (let i = 0; i < newTotalMonths; i++) {
-    const old = oldPayments.find(p => p.month === i + 1);
-    payments.push({
-      month: i + 1,
-      dueDate: calcDueDate(newStartTs, payDay, i),
-      status: old ? old.status : 'pending',
-      paidAt: old ? old.paidAt : null
-    });
-  }
+  /* BOSH TO'LOV — tahrirlashda. `hasDownPayment` yuborilmagan bo'lsa
+     (eski panel yoki boshqa chaqiruv) mavjud holat SAQLANADI, aks
+     holda shartnomani tahrirlash bosh to'lovni jimgina o'chirib
+     yuborardi. */
+  const eskiBoshBor = Number(existing.downPayment) > 0;
+  const boshBerilgan = Object.prototype.hasOwnProperty.call(body, 'hasDownPayment');
+  const yangiBoshSumma = boshBerilgan
+    ? Math.min(Math.max(Number(body.downPayment) || 0, 0), 1e12)
+    : Number(existing.downPayment) || 0;
+  const boshTolovBor = boshBerilgan ? (!!body.hasDownPayment && yangiBoshSumma > 0) : eskiBoshBor;
+
+  const payments = jadvalQur(newStartTs, payDay, newTotalMonths, boshTolovBor, existing.payments || []);
 
   await ref.update({
-    customerName: String(body.customerName || '').trim(),
-    customerPhone: String(body.customerPhone || '').trim(),
-    region: String(body.region || '').trim(),
-    number: String(body.number || '').trim(),
-    monthlyPayment: Number(body.monthlyPayment) || 0,
+    customerName: matn(body, 'customerName'),
+    customerPhone: matn(body, 'customerPhone'),
+    phoneNormalized: matn(body, 'customerPhone').replace(/\D/g, '').slice(-9),
+    region: matn(body, 'region'),
+    number: matn(body, 'number'),
+    numberNormalized: matn(body, 'number').replace(/\D/g, '').slice(-9),
+    monthlyPayment: Math.min(Math.max(Number(body.monthlyPayment) || 0, 0), 1e12),
     currency: String(body.currency || '').toUpperCase() === 'USD' ? 'USD' : 'UZS',
-    additionalInfo: String(body.additionalInfo || '').trim(),
-    passportNumber: String(body.passportNumber || '').trim(),
-    birthDate: String(body.birthDate || ''),
-    permanentAddress: String(body.permanentAddress || '').trim(),
+    additionalInfo: matn(body, 'additionalInfo'),
+    passportNumber: matn(body, 'passportNumber'),
+    birthDate: matn(body, 'birthDate'),
+    permanentAddress: matn(body, 'permanentAddress'),
     createdAt: newStartTs,
     paymentDay: payDay,
     totalMonths: newTotalMonths,
+    downPayment: boshTolovBor ? yangiBoshSumma : 0,
+    downPaymentDueDate: boshTolovBor ? kunBoshi(newStartTs) : null,
+    /* To'langan bosh to'lov holati saqlanadi */
+    downPaymentStatus: boshTolovBor ? (existing.downPaymentStatus || 'pending') : null,
+    downPaymentPaidAt: boshTolovBor ? (existing.downPaymentPaidAt || null) : null,
     payments
   });
 
@@ -238,8 +390,8 @@ async function updateContract(body, decoded) {
 }
 
 async function updateStatus(body, decoded) {
-  const id = String(body.id || '');
-  const statusKey = String(body.status || '');
+  const id = String(body.id || '').slice(0, 40);
+  const statusKey = String(body.status || '').slice(0, 30);
   if (!id || !statusKey) { const err = new Error('id va status kerak'); err.statusCode = 400; throw err; }
 
   const ref = db.collection(COLLECTION).doc(id);
@@ -265,17 +417,34 @@ async function migrateContracts(decoded) {
     throw err;
   }
   const snap = await db.collection(COLLECTION).get();
-  let migrated = 0, skipped = 0;
+  let migrated = 0, skipped = 0, qidiruv = 0;
   for (const docSnap of snap.docs) {
     const data = docSnap.data();
     const properId = data.contractId;
-    if (!properId) { skipped++; continue; }
-    if (docSnap.id === properId) { skipped++; continue; }
-    await db.collection(COLLECTION).doc(properId).set(data);
+
+    /* V122: ESKI shartnomalarga qidiruv maydonlarini qo'shamiz —
+       ularsiz mijoz kabineti shartnomani telefon bo'yicha topa
+       olmaydi. Hujjat ID'si to'g'ri bo'lsa ham shu ish bajariladi. */
+    const kerak = {};
+    const tel = String(data.customerPhone || '').replace(/\D/g, '').slice(-9);
+    const raq = String(data.number || '').replace(/\D/g, '').slice(-9);
+    if (tel && data.phoneNormalized !== tel) kerak.phoneNormalized = tel;
+    if (raq && data.numberNormalized !== raq) kerak.numberNormalized = raq;
+
+    if (!properId || docSnap.id === properId) {
+      if (Object.keys(kerak).length) {
+        await docSnap.ref.update(kerak);
+        qidiruv++;
+      }
+      skipped++;
+      continue;
+    }
+    await db.collection(COLLECTION).doc(properId).set(Object.assign({}, data, kerak));
     await db.collection(COLLECTION).doc(docSnap.id).delete();
     migrated++;
+    if (Object.keys(kerak).length) qidiruv++;
   }
-  return { migrated, skipped };
+  return { migrated, skipped, qidiruv };
 }
 
 exports.handler = async function (event) {

@@ -20,6 +20,7 @@
 // yoki xato bo'lsa: { "ok": false, "error": "..." }
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -112,7 +113,7 @@ exports.handler = async function (event) {
       return { statusCode: 409, headers, body: JSON.stringify({ ok: false, error: 'Bu raqam allaqachon band qilingan' }) };
     }
 
-    const orderTime = new Date().toLocaleString('uz-UZ');
+    const orderTime = sanaVaqtUz(new Date());
     const orderRef = await db.collection('orders').add({
       number: numData.number || '',
       price: typeof numData.price === 'number' ? numData.price : 0,

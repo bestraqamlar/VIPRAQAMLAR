@@ -13,6 +13,7 @@
 const admin = require('firebase-admin');
 const { buildPlansPdfBuffer, buildStatsPdfBuffer, buildCreditPdfBuffer } = require('./lib/personalBotPdf');
 
+const { webhookTekshir } = require('./lib/webhookSirri');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -253,18 +254,16 @@ exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 200, body: 'ok' };
   if (!TOKEN || !OWNER_CHAT_ID) return { statusCode: 200, body: 'ok' };
 
-  // XAVFSIZLIK: bu bot faqat egasi (Asadbek) uchun — moliyaviy ma'lumotlar
-  // bilan ishlaydi. Agar PERSONAL_BOT_WEBHOOK_SECRET sozlangan bo'lsa,
-  // Telegram'ning o'zidan kelayotganini shu orqali ham tasdiqlaymiz.
-  // HALI SOZLANMAGAN bo'lsa — pastdagi OWNER_CHAT_ID tekshiruvi asosiy
-  // himoya bo'lib qoladi (shu bilan bot ishlashda davom etadi). To'liq
-  // qo'shimcha himoya uchun: Netlify'da shu o'zgaruvchini sozlang VA
-  // Telegram'ga setWebhook chaqirganda secret_token sifatida xuddi shu
-  // qiymatni yuboring.
-  const expectedSecret = process.env.PERSONAL_BOT_WEBHOOK_SECRET;
-  if(expectedSecret){
-    const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-    if(gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  /* XAVFSIZLIK (V73): so'rov HAQIQATAN Telegram'dan kelganini
+     tasdiqlaymiz. Maxfiy so'z Netlify muhit o'zgaruvchisida YOKI
+     Firestore'da (admin panel -> Xavfsizlik -> "Botlarni himoyalash")
+     bo'lsa — sarlavhadagi so'z unga mos kelishi SHART. Ikkalasi ham
+     yo'q bo'lsa bot eskicha ishlayveradi (to'xtab qolmasligi uchun),
+     lekin admin panelida "Himoyalanmagan" deb ko'rsatiladi.
+     Qarang: netlify/functions/lib/webhookSirri.js */
+  {
+    const himoya = await webhookTekshir(db, event, 'personal-bot-webhook', 'PERSONAL_BOT_WEBHOOK_SECRET');
+    if(!himoya.ok) return { statusCode: 401, body: 'unauthorized' };
   }
 
   let update;

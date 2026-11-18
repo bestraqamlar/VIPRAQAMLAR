@@ -106,7 +106,14 @@ exports.handler = async function (event) {
   try {
     const { phone } = JSON.parse(event.body || '{}');
     const cleanPhone = String(phone || '').replace(/\D/g, '');
-    if (cleanPhone.length < 9) {
+    /* XAVFSIZLIK (V73): FAQAT O'zbekiston raqami va FAQAT haqiqiy
+       operator kodi. Ilgari uzunlik "9 dan katta" bo'lsa yetardi —
+       ya'ni istalgan xalqaro raqamga pullik SMS yuborib, Eskiz
+       balansini sarflab yuborish mumkin edi. */
+    const n9 = cleanPhone.length === 12 && cleanPhone.startsWith('998')
+      ? cleanPhone.slice(3) : cleanPhone;
+    const KODLAR = ['20','33','50','55','70','77','78','80','87','88','90','91','92','93','94','95','97','98','99'];
+    if (n9.length !== 9 || KODLAR.indexOf(n9.slice(0, 2)) === -1) {
       return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: "Telefon raqam noto'g'ri" }) };
     }
     if (!(await checkIpRateLimit(event))) {

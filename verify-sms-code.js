@@ -16,6 +16,8 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* XAVFSIZLIK (V73): kodni "taxmin qilib" sinashning oldini olish. */
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
 
 exports.handler = async function (event) {
@@ -28,6 +30,10 @@ exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ ok: false, error: 'Faqat POST' }) };
+  }
+
+  if (!(await tezlikOk(db, event, 'sms_verify_rate_limits', 40))) {
+    return { statusCode: 429, headers, body: JSON.stringify({ ok: false, error: "Juda ko'p urinish. Birozdan keyin qayta urinib ko'ring." }) };
   }
 
   try {

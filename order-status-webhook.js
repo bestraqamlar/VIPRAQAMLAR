@@ -11,7 +11,9 @@
 //     "@vip_raqamlar_uz" ishlatiladi.
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
+const { webhookTekshir } = require('./lib/webhookSirri');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -113,7 +115,7 @@ function mainMenuKeyboard(){
    to'g'ridan-to'g'ri bot chatiga (https://t.me/<bot_username>) olib
    boradi — bu har doim, har qanday telefonda ishlaydi. */
 const CHANNEL_POST_BOT_LINK = 'https://t.me/vipraqambot';
-const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vipnumbers_uz';
+const CHANNEL_POST_INSTAGRAM_LINK = 'https://instagram.com/vip.raqam.uz';
 function channelPostButtons(){
   return {
     inline_keyboard: [
@@ -696,7 +698,7 @@ async function confirmAksiyaDuration(chatId, hours){
   }
   const expiresAt = Date.now() + hours * 3600 * 1000;
   await setPendingAksiya({ ...pending, hours, expiresAt });
-  const untilStr = new Date(expiresAt).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', dateStyle: 'medium', timeStyle: 'short' });
+  const untilStr = sanaVaqtUz(expiresAt);   // V121: kun.oy.yil
   await sendTelegram('sendMessage', {
     chat_id: chatId,
     text: `📱 ${pending.number}\n💵 Eski narx: ${formatSum(pending.oldPrice)}\n🔥 Hozirgi narx: ${formatSum(pending.price)}\n⏱ Muddat: ${hours} soat\n🕐 Tugash vaqti: ${untilStr}\n\nTasdiqlaysizmi?`,
@@ -838,18 +840,16 @@ async function handleMenuText(msg){
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  // XAVFSIZLIK: bu ADMIN boti — buyurtmalarni boshqaradi, hammaga xabar
-  // yuboradi. ADMIN_BOT_WEBHOOK_SECRET sozlangan bo'lsa, faqat
-  // Telegram'ning o'zidan (setWebhook'da shu so'z bilan ro'yxatdan
-  // o'tgan) kelgan so'rovlar qabul qilinadi. HALI SOZLANMAGAN bo'lsa —
-  // eskicha (chat_id tekshiruvi bilan) ishlayveradi. To'liq "qat'iy"
-  // qilish uchun: Netlify'da shu o'zgaruvchini sozlang VA Telegram'ga
-  // setWebhook chaqirganda secret_token sifatida xuddi shu qiymatni
-  // yuboring — bittasi yetishmasa bot to'xtab qoladi.
-  const expectedSecret = process.env.ADMIN_BOT_WEBHOOK_SECRET;
-  if(expectedSecret){
-    const gotSecret = (event.headers && (event.headers['x-telegram-bot-api-secret-token'] || event.headers['X-Telegram-Bot-Api-Secret-Token'])) || '';
-    if(gotSecret !== expectedSecret) return { statusCode: 401, body: 'unauthorized' };
+  /* XAVFSIZLIK (V73): so'rov HAQIQATAN Telegram'dan kelganini
+     tasdiqlaymiz. Maxfiy so'z Netlify muhit o'zgaruvchisida YOKI
+     Firestore'da (admin panel -> Xavfsizlik -> "Botlarni himoyalash")
+     bo'lsa — sarlavhadagi so'z unga mos kelishi SHART. Ikkalasi ham
+     yo'q bo'lsa bot eskicha ishlayveradi (to'xtab qolmasligi uchun),
+     lekin admin panelida "Himoyalanmagan" deb ko'rsatiladi.
+     Qarang: netlify/functions/lib/webhookSirri.js */
+  {
+    const himoya = await webhookTekshir(db, event, 'order-status-webhook', 'ADMIN_BOT_WEBHOOK_SECRET');
+    if(!himoya.ok) return { statusCode: 401, body: 'unauthorized' };
   }
 
   let update;

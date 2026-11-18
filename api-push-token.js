@@ -25,6 +25,9 @@ if (!admin.apps.length) {
   });
 }
 const db = admin.firestore();
+/* XAVFSIZLIK (V73): ochiq funksiya — bitta IP uchun soatlik chegara.
+   Qarang: lib/tezlik.js */
+const { tezlikOk } = require('./lib/tezlik');
 db.settings({ preferRest: true });
 
 const H = {
@@ -37,6 +40,9 @@ const H = {
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers: H, body: '{"ok":false}' };
+  if (!(await tezlikOk(db, event, 'push_token_rate_limits', 40))) {
+    return { statusCode: 429, headers: H, body: '{"ok":false,"error":"limit"}' };
+  }
 
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) {

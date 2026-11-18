@@ -34,6 +34,7 @@ const TARIF = require('./lib/tariflar');
 const TOLOV = require('./lib/tolovlar');
 const DUBL = require('./lib/dublikat');
 
+const QULF = require('./lib/kirishQulf');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -129,14 +130,26 @@ async function indeksEskirdi() {
    bo'lardi. Endi ketma-ket 8 ta xatodan keyin hisob 15 daqiqaga
    yopiladi. Har bir urinish serverda scrypt hisoblaydi (~100 ms),
    shu sabab bu protsessorni band qilish hujumining ham oldini oladi. */
-const XATO_CHEGARA = 8;
-const QULF_MS = 15 * 60 * 1000;
+/* KIRISH QULFI (V74): 5 daqiqada 3 marta urinish. Hisob ham LOGIN,
+   ham IP bo'yicha yuritiladi — "boshqa login yozib ko'raman" yoki
+   "boshqa qurilmadan kiraman" degan yo'l bilan aylanib o'tib bo'lmaydi.
+   Mantiq bitta joyda: lib/kirishQulf.js (admin paneli ham o'shandan
+   foydalanadi — qoida ikkalasida bir xil). */
 
-async function doLogin(body) {
+async function doLogin(body, event) {
   const username = clean(body.username, 40).toLowerCase();
   const password = String(body.password || '');
   if (!username || !password) return bad('Login va parolni kiriting');
   if (password.length > 200) return bad("Login yoki parol noto'g'ri", 401);
+
+  /* Qulf TEKSHIRUVI — parol tekshirilishidan ham, bazaga so'rovdan ham
+     OLDIN: qulflangan bo'lsa hech qanday ish bajarilmaydi. */
+  const kalitlar = ['sotuvchi:' + username, 'ip:' + QULF.ipOl(event)];
+  const holat = await QULF.qulfHolati(db, kalitlar);
+  if (holat.qulf) {
+    return bad('Ko\u2018p marta xato kiritildi. ' + QULF.qoldiMatn(holat.qoldiMs) +
+      ' kutib, qayta urinib ko\u2018ring.', 429, { qulf: true, qoldiMs: holat.qoldiMs });
+  }
 
   const q = await db.collection('sellers').where('username', '==', username).limit(1).get();
   // Noto'g'ri login va noto'g'ri parol uchun BIR XIL xabar — kimning
@@ -145,22 +158,26 @@ async function doLogin(body) {
   const doc = q.docs[0];
   const s = Object.assign({ id: doc.id }, doc.data());
 
-  // Qulf: parolni TEKSHIRMASDAN oldin, ya'ni scrypt ham hisoblanmaydi
-  const xatolar = Number(s.failedCount) || 0;
-  const oxirgi = s.failedAt && s.failedAt.toMillis ? s.failedAt.toMillis() : Number(s.failedAt) || 0;
-  if (xatolar >= XATO_CHEGARA && oxirgi && Date.now() - oxirgi < QULF_MS) {
-    const qoldi = Math.ceil((QULF_MS - (Date.now() - oxirgi)) / 60000);
-    return bad('Ko\u2018p marta xato kiritildi. ' + qoldi + ' daqiqadan keyin urinib ko\u2018ring.', 429);
-  }
-
   if (!verifyPassword(password, s.passwordHash)) {
-    // Qulf muddati o'tgan bo'lsa hisobni noldan boshlaymiz
-    const yangi = (xatolar >= XATO_CHEGARA && oxirgi && Date.now() - oxirgi >= QULF_MS) ? 1 : xatolar + 1;
-    await doc.ref.update({ failedAt: NOW(), failedCount: yangi }).catch(() => {});
-    return bad("Login yoki parol noto'g'ri", 401);
+    const natija = await QULF.xatoQayd(db, kalitlar);
+    /* Admin panelda ko'rinishi uchun hisobda ham belgilab qo'yamiz */
+    await doc.ref.update({ failedAt: NOW(), failedCount: (Number(s.failedCount) || 0) + 1 }).catch(() => {});
+    if (natija.endiQulflandi) {
+      /* Himoyani yoqib qo'yish kam — xabardor bo'lish ham kerak:
+         qulf ishlaganda adminga darhol Telegram xabari ketadi. */
+      xabarAdminga("\uD83D\uDEA8 Sotuvchi kabinetiga kirishga urinish\n" +
+        'Login: ' + username + '\nHisob 5 daqiqaga qulflandi (3 marta xato parol).').catch(() => {});
+    }
+    return bad(natija.qulf
+      ? 'Ko\u2018p marta xato kiritildi. ' + QULF.qoldiMatn(natija.qoldiMs) + ' kutib, qayta urinib ko\u2018ring.'
+      : "Login yoki parol noto'g'ri. Qolgan urinish: " + natija.qolganUrinish,
+      natija.qulf ? 429 : 401,
+      { qulf: natija.qulf, qoldiMs: natija.qoldiMs, qolganUrinish: natija.qolganUrinish });
   }
   if (s.blocked) return bad("Hisobingiz vaqtincha to’xtatilgan. Admin bilan bog’laning.", 403);
 
+  /* To'g'ri parol — hisoblagichlar darhol tozalanadi */
+  await QULF.tozala(db, kalitlar);
   await doc.ref.update({ lastLoginAt: NOW(), failedCount: 0 }).catch(() => {});
   return ok({
     token: makeToken(s),
@@ -866,7 +883,7 @@ exports.handler = async function (event) {
   const action = String(body.action || '');
 
   try {
-    if (action === 'login') return await doLogin(body);
+    if (action === 'login') return await doLogin(body, event);
 
     const s = await requireSeller(event, db);
     switch (action) {

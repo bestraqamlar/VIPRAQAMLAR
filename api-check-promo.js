@@ -29,7 +29,12 @@ db.settings({ preferRest: true });
 
 function checkApiKey(event) {
   const expected = process.env.MOBILE_API_KEY;
-  if (!expected) return true;
+  /* XAVFSIZLIK (V73): ilgari kalit sozlanmagan bo'lsa funksiya BUTUNLAY
+     ochiq qolardi ("fail-open") — ya'ni mobil API'ning hamma yo'llari
+     (buyurtma/shartnoma qidirish ham) hammaga ochiq edi. Endi aksincha:
+     kalit yo'q bo'lsa — yopiq. Mobil ilovani ishlatish uchun Netlify'da
+     MOBILE_API_KEY o'zgaruvchisini qo'ying (sayt bunga bog'liq emas). */
+  if (!expected) return false;
   const provided = (event.headers && (event.headers['x-api-key'] || event.headers['X-Api-Key'])) || '';
   return provided === expected;
 }

@@ -9,7 +9,9 @@
 // uzoqroq ishlay oladigan "Background Function" qiladi.
 
 const admin = require('firebase-admin');
+const { sanaUz, sanaVaqtUz } = require('./lib/sana');   // V121: kun.oy.yil
 
+const { jadvalOk } = require('./lib/jadvalQalqon');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -53,7 +55,11 @@ async function notifyAdmin(text) {
   } catch (e) { /* qo'shimcha ro'yxat o'qilmasa ham, asosiy xabar allaqachon ketgan */ }
 }
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  /* XAVFSIZLIK (V73): bu funksiya jadval bo'yicha ishlaydi —
+     tashqaridan chaqirilishi kerak emas. Qarang: lib/jadvalQalqon.js */
+  if (!(await jadvalOk(event, 'admin-tasks-check-background', 240))) return { statusCode: 403, body: 'forbidden' };
+
   try {
     const now = Date.now();
 
@@ -69,7 +75,7 @@ exports.handler = async function () {
 
       const escapedText = String(task.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const dueDate = new Date(task.dueAt);
-      const dueStr = dueDate.toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const dueStr = sanaVaqtUz(dueDate);   // V121: kun.oy.yil
       const label = task.important ? '⭐️ MUHIM VAZIFA' : '⏰ Vazifa';
       const text = `${label} tugashiga 5 soatdan kam qoldi!\n\n<b>${escapedText}</b>\n\n🗓 Muddati: ${dueStr}`;
 
