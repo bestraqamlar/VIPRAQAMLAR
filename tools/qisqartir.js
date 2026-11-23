@@ -33,8 +33,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const JS_FAYL  = ['assets/app.js', 'assets/panel.js'];
-const CSS_FAYL = ['assets/sayt.css', 'assets/panel.css', 'assets/panel-mobil.css'];
+const JS_FAYL  = ['assets/app.js', 'assets/app2.js', 'assets/panel.js'];
+const CSS_FAYL = ['assets/sayt.css', 'assets/panel.css', 'assets/panel-mobil.css', 'assets/sayt-dizayn.css'];
 /* `index.html` ichidagi <style> bloklari ham tozalanadi */
 const HTML_FAYL = ['index.html', 'panel-yangi.html'];
 

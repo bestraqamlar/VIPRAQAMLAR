@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=152">
-<link rel="preload" as="script" href="assets/panel.js?v=152">
+<link rel="preload" as="style" href="assets/panel.css?v=154">
+<link rel="preload" as="script" href="assets/panel.js?v=155">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,16 +52,16 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=152">
+<link rel="stylesheet" href="assets/panel.css?v=154">
 <!-- TELEFON KO'RINISHI (V148) — mijoz sayti shablonida.
      `panel.css` dan KEYIN turishi shart: u faqat 899px dan tor
      ekranda ishlaydi va asosiy uslublar ustiga yoziladi.
      Kompyuterda bu fayl bitta ham qoida bermaydi. -->
-<link rel="stylesheet" href="assets/panel-mobil.css?v=152">
+<link rel="stylesheet" href="assets/panel-mobil.css?v=154">
 <!-- YANGI DIZAYN QATLAMI (V151). panel.css VA panel-mobil.css dan
      KEYIN turishi SHART: u ikkisining ko'rinish qoidalarini qayta
      belgilaydi. Tuzilma va funksiya o'zgarmaydi — faqat ko'rinish. -->
-<link rel="stylesheet" href="assets/panel-dizayn.css?v=152">
+<link rel="stylesheet" href="assets/panel-dizayn.css?v=154">
 
 </head>
 <body>
@@ -226,7 +226,7 @@
         <!-- Panel versiyasi: yangi fayllar saytga yetib kelganini DARHOL
              bilish uchun. Yangilagandan keyin shu raqam o'zgarmasa —
              demak eski nusxa ochilyapti (keshni tozalang). -->
-        <span class="panel-ver" id="panelVer" title="Panel versiyasi">v152</span>
+        <span class="panel-ver" id="panelVer" title="Panel versiyasi">v155</span>
         <button id="logoutBtn" title="Chiqish">Chiqish</button>
       </div>
     </div>
@@ -2141,6 +2141,26 @@
          taxmin bilan emas, o'lchangan son bilan javob beradi. -->
     <div class="wt-soglik" id="wtSoglik"></div>
 
+    <!-- V154: HUMANS TEKSHIRGICHI.
+         Mijoz aytgan nosozlik: "Humans bizda kamroq raqam ko'rsatadi,
+         yangilasa qolganlari chiqadi". Sababi uch xil bo'lishi mumkin
+         (bizning cheklov / so'rov parametri / server sahifalashi) va
+         uni faqat Humans API'sining O'ZIGA so'rov yuborib aniqlash
+         mumkin. Shu tugma aynan shuni qiladi — hech narsani
+         o'zgartirmaydi, faqat o'lchab hisobot beradi. -->
+    <div class="wt-humans" id="wtHumans">
+      <div class="wt-humans-head">
+        <b>🔍 Humans tekshiruvi</b>
+        <span>Nega kamroq raqam ko'rsatayotganini o'lchaydi</span>
+      </div>
+      <div class="wt-humans-row">
+        <input type="text" id="wtHumansMask" maxlength="7" placeholder="Naqsh: 7777777 yoki bo'sh"
+               inputmode="numeric" autocomplete="off" spellcheck="false">
+        <button type="button" id="wtHumansBtn">Tekshirish</button>
+      </div>
+      <pre class="wt-humans-out" id="wtHumansOut" hidden></pre>
+    </div>
+
     <div class="wt-toolbar">
       <button type="button" class="wt-now" id="wtNowBtn">⚡ Hozir tekshir</button>
       <label><input type="checkbox" id="wtSelectAll"> Hammasini belgilash</label>
@@ -2424,6 +2444,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=152"></script>
+<script defer src="assets/panel.js?v=155"></script>
 </body>
 </html>

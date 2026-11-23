@@ -171,12 +171,23 @@
   schedule = "25 */6 * * *"
 
 [functions."number-watch-check-background"]
-  # V144 — KREDIT TEJASH: * * * * * -> */10 * * * *
-  #    Har DAQIQADA ishlardi — oyiga 43 200 chaqiruv, ya'ni butun fon
-  #    yukining yarmi shu bitta funksiyada edi. Ustiga u har safar
-  #    Firestore'dan ikkita CHEKLANMAGAN ro'yxat o'qirdi. Kuzatuvdagi
-  #    raqam bo'shaganini 10 daqiqada bilish mutlaqo yetarli.
-  schedule = "*/10 * * * *"
+  # V153 — HAR DAQIQAGA QAYTARILDI (*/10 -> * * * * *).
+  #
+  #   V144 da kredit tejash uchun 10 daqiqaga chiqarilgan edi va o'shanda
+  #   "10 daqiqada bilish yetarli" deb yozilgandi. AMALDA YETARLI EMAS
+  #   ekan: mijoz aytdi — "raqam ochilib sotilib ketyapti, lekin ochildi
+  #   deb xabar kelgani yo'q". Bo'shagan VIP raqam bir necha daqiqada
+  #   ketadi, demak 10 daqiqalik oyna — o'tkazib yuborilgan savdo.
+  #
+  #   Bu funksiyaning butun mantig'i ham HAR DAQIQA ishlashga mo'ljallab
+  #   yozilgan (qarang: funksiya ichidagi V110 izohi — operatorga har bir
+  #   kuzatuv uchun emas, BITTA keng so'rov yuboriladi, shuning uchun
+  #   tez-tez tekshirish qimmatga tushmaydi).
+  #
+  #   KREDIT: Netlify funksiya CHAQIRUVINI alohida hisoblamaydi, faqat
+  #   ishlagan vaqtini (GB-soat) hisoblaydi. Bu funksiya kuzatuv bo'lmasa
+  #   darhol chiqib ketadi, bor bo'lsa bir necha soniya ishlaydi.
+  schedule = "* * * * *"
 
 # UZEX auksion kuzatuvi — admin AI yordamchiga "shu raqam/shartlar
 # chiqsa aytib ber" deyilganda yaratilgan kuzatuvlarni tekshiradi
