@@ -109,7 +109,7 @@ body::after{ opacity:.35; }
 html.low .apbar, html.low .topbar, html.low #deskhead{ background:var(--card); }
 html[data-theme="dark"].low .apbar,
 html[data-theme="dark"].low .topbar,
-html[data-theme="dark"].low #deskhead{ background:#0E1118; }
+html[data-theme="dark"].low #deskhead{ background:#0B1324; }
 
 /* --- Bosh kartochka ---
    Avval: to'q ko'k gradient + oltin yorug'lik + diagonal to'r. Ko'k
@@ -118,9 +118,9 @@ html[data-theme="dark"].low #deskhead{ background:#0E1118; }
    endi ko'k bilan urishmaydi va haqiqatan qimmat ko'rinadi. */
 .herocard{
   background:
-    radial-gradient(240px 200px at 104% -12%, rgba(233,201,131,.30), rgba(233,201,131,.07) 46%, transparent 70%),
-    radial-gradient(300px 240px at -12% 114%, rgba(61,109,255,.14), transparent 66%),
-    linear-gradient(158deg, #20242E 0%, #171A22 46%, #0C0E13 100%) !important;
+    radial-gradient(250px 210px at 104% -12%, rgba(233,201,131,.22), rgba(233,201,131,.05) 46%, transparent 70%),
+    radial-gradient(320px 260px at -12% 114%, rgba(61,123,255,.26), transparent 66%),
+    linear-gradient(158deg, #1B2B49 0%, #122039 46%, #070E1C 100%) !important;
   box-shadow:
     0 22px 46px -26px rgba(0,0,0,.9),
     inset 0 1px 0 rgba(255,255,255,.10),
@@ -162,13 +162,17 @@ html[data-theme="dark"].low #deskhead{ background:#0E1118; }
      3) SOYA  — pastda yumshoq, keng soya.
    ================================================================== */
 html[data-theme="dark"]{
-  --card:#181C25;
-  --card-2:#1F242F;
-  --card-3:#272D3A;
-  --line:rgba(255,255,255,.10);
-  --line-2:rgba(255,255,255,.15);
-  --line-3:rgba(255,255,255,.07);
-  --nc-edge:rgba(255,255,255,.13);
+  /* RANG TIZIMI (V161) — qayerda qaysi rang:
+       #070C17  ish maydoni (eng to'q ko'k)   — fon
+       #111B2E  kartochka, oyna, menyu        — asosiy yuza
+       #18243B  chip, maydon, jadval sarlavha — ko'tarilgan yuza
+       #20304C  ustiga borilganda             — javob
+       #FFFFFF  raqam, asosiy tugma           — eng muhim narsa
+       #3D7BFF  havola, faol holat, strelka   — urg'u
+       #D9B45F  faqat GOLD toifa yorlig'i     — nodir
+     Qora ishlatilmaydi: u yorug'likni yutadi va "bo'g'ib" qo'yadi.
+     To'q KO'K esa chuqurlik beradi — ichida rang bor. */
+  --nc-edge:rgba(190,215,255,.17);
 }
 :root{
   --line:#DCE0E7;
@@ -198,37 +202,69 @@ html[data-theme="dark"] .daycard{
 }
 
 /* ==================================================================
-   8. TOIFA RANGLARI — GOLD / VIP / PREMIUM
+   8. TOIFA — BIR XIL KARTOCHKA, NOZIK BELGI  (V160)
    ------------------------------------------------------------------
-   Toifa tokenlari (--tier-bar, --vip-line, --vip-glow) saytda
-   allaqachon bor edi, lekin kartochkada deyarli ko'rinmasdi. Endi
-   toifali kartochka: rangli yupqa yuza, rangli chegara, chap
-   chetida rangli chiziq va yumshoq yog'du. Oddiy kartochkalar
-   o'zgarmaydi — shunda toifa HAQIQATAN ajralib turadi.
+   MIJOZ AYTGAN: "kartochka rangi har xil — unaqa emas, bir xil
+   bo'lsin, faqat boshqacharoq bo'lishi kerak, nimadir toifasi borda.
+   Bachkana bo'lmasin, premium bo'lsin."
+
+   NIMA NOTO'G'RI EDI. Toifa butun kartochkani bo'yab yuborardi:
+   oltin kartochka, binafsha kartochka, kumush kartochka. Ro'yxatda
+   o'nta shunday kartochka yonma-yon turganda bu bayram chiroqlariga
+   o'xshab qolardi — qimmat emas, arzon ko'rinadi.
+
+   QIMMAT NARSALAR QANDAY QILADI. Soat ham, mashina ham, kostyum ham
+   bitta rangda bo'ladi; farq esa BITTA nozik detalda — belgida,
+   chokda, qirrada. Shuning uchun endi:
+     * hamma kartochka AYNAN BIR XIL yuzada;
+     * toifa faqat ikki joyda sezilади: kichik metall yorliq va chap
+       chetidagi juda ingichka chiziq;
+     * yaltiroq gradient yo'q — metall rang tekis, faqat yupqa halqa
+       bilan ajratilgan.
    ================================================================== */
+
+/* Toifali kartochka ham oddiysi bilan bir xil yuzada qoladi.
+   (Avvalgi rangli fon, rangli chegara va rangli yog'du bekor qilindi.) */
 html[data-theme="dark"] .numcard.vipc{
-  border-color:var(--vip-line) !important;
-  background:
-    linear-gradient(170deg, var(--vip-head), transparent 58%),
-    var(--card) !important;
+  background:var(--card) !important;
+  border-color:var(--line) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.09),
+    inset 0 1px 0 rgba(255,255,255,.07),
     0 1px 2px rgba(0,0,0,.45),
-    0 12px 30px -14px var(--vip-glow) !important;
+    0 10px 26px -14px rgba(0,0,0,.8) !important;
 }
-:root:not([data-theme="dark"]) .numcard.vipc{
-  border-color:var(--vip-line) !important;
-  background:
-    linear-gradient(170deg, var(--vip-head), transparent 62%),
-    #FFFFFF !important;
-  box-shadow:
-    0 1px 2px rgba(9,12,18,.06),
-    0 10px 26px -12px var(--vip-glow) !important;
+/* Kartochka ustidagi rangli "shapka" ham olib tashlandi */
+.numcard.vipc::before{ display:none !important; }
+
+/* Chap chetdagi toifa chizig'i — ingichka va bosiq.
+   U yagona rangli element, shuning uchun ataylab juda tor. */
+.numcard.vipc::after{
+  display:block !important;
+  width:2px; left:0; top:18px; bottom:18px;
+  border-radius:0 2px 2px 0;
+  background:var(--tier-ink, #9AA4B4);
+  opacity:.55;
 }
-/* Chap chetidagi toifa chizig'i — endi hamma toifada ko'rinadi */
-.numcard.vipc::after{ display:block !important; width:3px; top:16px; bottom:16px; }
-/* Raqamning o'zi toifa rangida emas, OQ qoladi — o'qilishi muhimroq */
-.numcard.vipc .nc-num{ color:var(--ink); }
+
+/* --- Metall yorliq: tekis rang, yupqa halqa, yaltiramaydi --- */
+.numcard .tag.vip,
+.dt-tier, .tag.vip{
+  background:transparent !important;
+  color:var(--tier-ink, #C6CDD9) !important;
+  box-shadow:inset 0 0 0 1px var(--tier-ring, rgba(255,255,255,.22)) !important;
+  font-size:10.5px !important;
+  font-weight:700 !important;
+  letter-spacing:.14em !important;
+  padding:4px 9px !important;
+  text-transform:uppercase;
+}
+/* Yorliq ichidagi toj belgisi — kichik va bosiq */
+.numcard .tag.vip svg{ width:11px; height:11px; opacity:.85; }
+
+/* Har toifa uchun BITTA metall rang (fon emas, faqat rang) */
+.t-gold   { --tier-ink:#D7B873; --tier-ring:rgba(215,184,115,.42); }
+.t-vip    { --tier-ink:#B9A6E8; --tier-ring:rgba(185,166,232,.40); }
+.t-premium{ --tier-ink:#C2CEDA; --tier-ring:rgba(194,206,218,.38); }
 
 /* ==================================================================
    9. JONLI FON  (V159)
@@ -364,4 +400,347 @@ body{ line-height:1.5; }
 html.low .numcard, html.low .screen.on, html.low #catList .numcard{ animation:none !important; }
 @media (prefers-reduced-motion:reduce){
   *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+
+/* --- Bosh kartochkadagi yorliq ham bir xil uslubda --- */
+/* Avval u yaltiroq oltin gradient edi, katalogdagi yorliqlar esa
+   tekis metall. Ikki xil uslub bitta sahifada — tartibsizlik.
+   Endi u ham tekis, faqat biroz yorqinroq (qora fon ustida turadi). */
+.hc-badge{
+  background:transparent !important;
+  color:#FFFFFF !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.42) !important;
+  font-size:10.5px !important; font-weight:700 !important;
+  letter-spacing:.16em !important; padding:5px 11px !important;
+  text-shadow:none !important;
+}
+
+/* --- Bosh kartochkadagi oltin tugma: yaltiroq emas, "ishlangan metall" ---
+   Avval unda oq yorug'lik chizig'i (plastik yaltiroqlik) bor edi.
+   Qimmat metall shunday yaltiramaydi: u tekis, faqat yuqoridan
+   pastga sal och-to'q bo'ladi. Oltin rang saqlandi — u brend
+   belgisi va sahifadagi YAGONA rangli tugma. */
+/* Bosh kartochkaning tugmasi — OQ.
+   To'q ko'k yuzada oq tugma eng kuchli va eng toza urg'u: u hech
+   qanday rang bilan urishmaydi va "bosilsin" deb baqirmaydi, lekin
+   ko'z birinchi bo'lib unga tushadi. Oltin endi faqat GOLD toifa
+   yorlig'ida qoladi — shunda u nodir bo'lib, qimmat ko'rinadi. */
+.hc-cta{
+  background:#FFFFFF !important;
+  color:#0A1120 !important;
+  box-shadow:0 8px 22px -12px rgba(0,0,0,.8) !important;
+}
+.hc-cta b{ color:#0A1120 !important; }
+.hc-cta svg{ stroke:#0A1120 !important; }
+.hc-cta::before, .hc-cta::after{ display:none !important; }
+
+/* --- Naqsh yorlig'i (V162) ---
+   Raqam NEGA qimmatligini aytadi. Toifa yorlig'idan farqlansin
+   uchun — ko'k oilasida, tekis, halqasiz. */
+.tag.naqsh{
+  background:var(--blue-tint) !important;
+  color:var(--blue-text) !important;
+  box-shadow:none !important;
+  font-weight:650;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+/* ==================================================================
+   12. PREMIUM QATLAM  (V162)
+   Muammo: ranglar to'g'ri edi, lekin yuzalar "tekis qog'oz" bo'lib
+   turgan — hamma narsa bir xil yorug'likda. Qimmat ko'rinish rangdan
+   emas, YORUG'LIKDAN keladi: yuzaning yuqori chetiga tushgan nur,
+   pastга ketgan soya, raqamda ozgina metall o'tish.
+   Hammasi STATIK gradient — hech narsa aylanmaydi, FPS tegmaydi.
+   ================================================================== */
+
+/* 12.1 Kartochka yuzasiga nur — yuqori chapdan tushadi */
+/* Ikki qatlamli gradient FAQAT raqam kartochkasida — u asosiy yuza.
+   Boshqa kartochkalarda bitta arzon chiziqli gradient yetarli:
+   o'lchovda ikkitasi butun ekran qayta chizilganda ~3 ms qo'shardi. */
+.numcard{
+  background-image:
+    linear-gradient(160deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,0) 42%),
+    radial-gradient(120% 90% at 100% 0%, rgba(61,123,255,.09) 0%, rgba(61,123,255,0) 58%);
+  background-repeat:no-repeat;
+}
+.card, .sheet-card{
+  background-image:linear-gradient(160deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 44%);
+  background-repeat:no-repeat;
+}
+
+/* 12.2 Yuqori chetdagi yupqa yorug' chiziq — "shisha qirrasi" */
+.numcard{ position:relative; }
+.numcard > .nc-top::before{
+  content:''; position:absolute; left:14px; right:14px; top:0; height:1px;
+  background:linear-gradient(90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,.26) 28%,
+    rgba(255,255,255,.26) 72%,
+    rgba(255,255,255,0) 100%);
+  pointer-events:none;
+}
+
+/* 12.3 Raqamning o'zi — oq emas, oqdan ko'kka metall o'tish.
+   Shunda raqam yuzadan "ko'tarilib" turadi. */
+.nc-num, .dt-num{
+  background:linear-gradient(176deg, #FFFFFF 0%, #FFFFFF 48%, #C4D6FF 100%);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  text-shadow:none;
+}
+/* GOLD toifada raqam oltin o'tishda — eng qimmat signal */
+.t-gold .nc-num, .t-gold .dt-num{
+  background:linear-gradient(176deg, #FFF3D6 0%, #F0D79A 46%, #C9A458 100%);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.t-vip .nc-num, .t-vip .dt-num{
+  background:linear-gradient(176deg, #FFFFFF 0%, #EDE6FF 50%, #BCA9EC 100%);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+/* Eski brauzer: clip ishlamasa — oddiy oq */
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){
+  .nc-num, .dt-num, .t-gold .nc-num, .t-vip .nc-num{
+    -webkit-text-fill-color:currentColor; color:var(--ink);
+  }
+}
+
+/* 12.4 Narx — ko'k urg'u, raqam bilan raqobat qilmaydi */
+.nc-price, .nc-bot b{
+  color:#BFD4FF;
+  letter-spacing:-.01em;
+}
+
+/* 12.5 Teginishdagi javob — ko'k halqa va bir pog'ona ko'tarilish */
+.numcard{
+  transition:transform .42s var(--ez-y, cubic-bezier(.22,1,.36,1)),
+             box-shadow .42s var(--ez-y, cubic-bezier(.22,1,.36,1)),
+             border-color .42s linear;
+}
+@media (hover:hover){
+  .numcard:hover{
+    transform:translateY(-3px);
+    border-color:rgba(61,123,255,.38) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 2px 4px rgba(0,0,0,.45),
+      0 20px 40px -18px rgba(0,0,0,.9),
+      0 0 0 1px rgba(61,123,255,.14) !important;
+  }
+  .t-gold.numcard:hover{ border-color:rgba(215,184,115,.42) !important; }
+}
+.numcard:active{ transform:translateY(0) scale(.988); }
+
+/* 12.6 Toifa chizig'i — endi gradient, tepaga yorqinroq */
+.numcard.vipc::after{
+  background:linear-gradient(180deg,
+    var(--tier-ink, #9AA4B4) 0%,
+    color-mix(in srgb, var(--tier-ink, #9AA4B4) 35%, transparent) 100%) !important;
+  opacity:.8 !important;
+}
+
+/* 12.7 Sekin harakat so'ralganda — faqat rang qoladi */
+html.low .numcard, html.tg .numcard{ transition:none; }
+html.low .numcard, html.tg .numcard,
+html.low .herocard, html.tg .herocard{ background-image:none; }
+@media (prefers-reduced-motion:reduce){
+  .numcard{ transition:none; }
+  .numcard:hover{ transform:none; }
+}
+
+/* ==================================================================
+   13. V163 — PREMIUM QATLAM II
+   Mijoz so'rovlari: oltin karusel, ko'rinadigan GOLD yorlig'i,
+   oltin "Batafsil", raqamga soya + teskari fon, chiziqlar olib
+   tashlansin, video to'liq ekranda ochilsin.
+   ================================================================== */
+
+/* --- 13.1 Kartochka oldidagi uzun chiziq OLIB TASHLANDI --- */
+.numcard.vipc::after,
+.numcard.vipc::before{ display:none !important; content:none !important; }
+
+/* --- 13.2 RAQAM: soya + teskari fon --------------------------------
+   Mijoz: "barcha e'tibor raqamga qaratilsin". Shuning uchun raqam
+   turgan maydon qolgan yuzadan TO'QROQ qilinadi — ya'ni raqam oq,
+   foni esa qora tomonga suriladi. Bu "ichkariga botgan oyna" effekti:
+   raqam undan ko'tarilib turadi. Hammasi statik gradient — tez. */
+.numcard .nc-top{
+  position:relative;
+  border-radius:14px;
+  margin:-2px -4px 6px;
+  padding:10px 12px 8px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.30) 0%, rgba(0,0,0,.16) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    inset 0 -1px 0 rgba(255,255,255,.03);
+}
+.numcard > .nc-top::before{ left:12px; right:12px; top:0; }
+
+/* Raqamning o'ziga soya — qora yuzada oq soya ishlamaydi, shuning
+   uchun soya PASTGA va QORA, raqam esa ustida "ko'tarilib" turadi. */
+.nc-num, .dt-num, .herocard .num{
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.42)) drop-shadow(0 8px 18px rgba(0,0,0,.55));
+}
+
+/* --- 13.3 GOLD / VIP yorlig'i — endi KO'RINADI ---------------------
+   Avval tekis rang + yupqa halqa edi: to'q ko'k yuzada deyarli
+   bilinmasdi. Endi metall gradient fon + ichki nur + tashqi yorug'lik.
+   Bitta element, animatsiyasiz — tezlikka tegmaydi. */
+.numcard .tag.vip, .dt-tier, .tag.vip{
+  background:linear-gradient(145deg,
+      color-mix(in srgb, var(--tier-ink, #C6CDD9) 34%, transparent) 0%,
+      color-mix(in srgb, var(--tier-ink, #C6CDD9) 14%, transparent) 52%,
+      color-mix(in srgb, var(--tier-ink, #C6CDD9) 28%, transparent) 100%) !important;
+  color:color-mix(in srgb, var(--tier-ink, #C6CDD9) 86%, #FFFFFF) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--tier-ink, #C6CDD9) 58%, transparent),
+    inset 0 0 0 1px var(--tier-ring, rgba(255,255,255,.22)),
+    0 4px 12px -6px color-mix(in srgb, var(--tier-ink, #C6CDD9) 70%, transparent) !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  letter-spacing:.15em !important;
+  padding:5px 11px !important;
+  text-shadow:0 1px 0 rgba(0,0,0,.45);
+}
+.t-gold .tag.vip, .t-gold .dt-tier{
+  color:#FFE9B8 !important;
+}
+.numcard .tag.vip svg{ width:12px; height:12px; opacity:1; }
+
+/* --- 13.4 "Batafsil" — oltin, qimmat -------------------------------
+   Oq tugma toza edi, lekin mijoz uni "oddiy" dedi. Oltin metall
+   gradient + pastdagi iliq nur premium signal beradi. */
+.hc-cta{
+  background:linear-gradient(145deg, #F7E3B0 0%, #E3C47B 38%, #C9A355 72%, #E8CE92 100%) !important;
+  color:#2A1E06 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 -1px 0 rgba(120,88,26,.42),
+    0 10px 24px -12px rgba(201,163,85,.75) !important;
+  font-weight:800 !important;
+}
+.hc-cta b{ color:#2A1E06 !important; }
+.hc-cta svg{ stroke:#2A1E06 !important; }
+
+/* --- 13.5 PREMIUM KARUSEL — alohida, oltin setkali ------------------
+   Bu yerda saytdagi ENG QIMMAT raqamlar turadi, shuning uchun u
+   qolgan kartochkalardan butunlay boshqacha ko'rinadi:
+     - to'q, deyarli qora-ko'k yuza (raqam maksimal ajralsin)
+     - ustida juda nozik OLTIN SETKA (repeating-gradient — bitta
+       chizish, hech qanday rasm va animatsiya yo'q, eski telefonda
+       ham tekin)
+     - burchakdan tushgan oltin nur
+     - oltin halqa
+   Hammasi statik — aylantirganda FPS tushmaydi. */
+.herocard{
+  position:relative;
+  overflow:hidden;
+  background-color:#070D1C !important;
+  background-image:
+    /* oltin setka */
+    repeating-linear-gradient(90deg,
+      rgba(212,175,95,.085) 0 1px, rgba(0,0,0,0) 1px 34px),
+    repeating-linear-gradient(0deg,
+      rgba(212,175,95,.085) 0 1px, rgba(0,0,0,0) 1px 34px),
+    /* yuqori o'ngdan tushgan oltin nur */
+    radial-gradient(130% 100% at 100% 0%,
+      rgba(226,192,112,.20) 0%, rgba(226,192,112,.06) 34%, rgba(0,0,0,0) 66%),
+    /* pastki chuqurlik */
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(0,0,0,.30) 100%) !important;
+  border:1px solid rgba(212,175,95,.26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(247,227,176,.22),
+    0 2px 6px rgba(0,0,0,.5),
+    0 26px 54px -26px rgba(0,0,0,.95) !important;
+}
+/* Yuqori chetdagi oltin nur chizig'i */
+.herocard::before{
+  content:''; position:absolute; left:0; right:0; top:0; height:1px;
+  background:linear-gradient(90deg,
+    rgba(247,227,176,0) 0%, rgba(247,227,176,.55) 30%,
+    rgba(247,227,176,.55) 70%, rgba(247,227,176,0) 100%);
+  display:block !important; pointer-events:none; z-index:2;
+}
+/* Karusel raqami — oltin metall o'tishda, kattaroq va soyali */
+.herocard .num{
+  background:linear-gradient(176deg, #FFF6DF 0%, #F2DCA8 44%, #D2AE62 100%);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:-.02em;
+}
+/* PREMIUM yorlig'i karuselda */
+.hc-badge{
+  background:linear-gradient(145deg, rgba(247,227,176,.26), rgba(201,163,85,.14)) !important;
+  color:#F6E6BC !important;
+  box-shadow:inset 0 0 0 1px rgba(226,192,112,.42) !important;
+  letter-spacing:.18em !important;
+  font-weight:800 !important;
+}
+/* Narx — oltin emas, oq: ikki oltin bir-birini yeydi */
+.herocard .pv{ color:#EAF0FF !important; }
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){
+  .herocard .num{ -webkit-text-fill-color:#F2DCA8; color:#F2DCA8; }
+}
+/* Sekin telefon / Telegram — setka qoladi, nur olib tashlanadi */
+html.low .herocard, html.tg .herocard{
+  background-image:
+    repeating-linear-gradient(90deg, rgba(212,175,95,.07) 0 1px, rgba(0,0,0,0) 1px 34px),
+    repeating-linear-gradient(0deg, rgba(212,175,95,.07) 0 1px, rgba(0,0,0,0) 1px 34px) !important;
+}
+
+/* --- 13.6 VIDEO: kartochka va to'liq ekranli ko'ruvchi -------------- */
+.vwrap .vshade{
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 34%,
+    rgba(0,0,0,0) 54%, rgba(0,0,0,.62) 100%);
+}
+.vwrap .vnum{
+  position:absolute; z-index:3; left:9px; bottom:8px;
+  font-size:12.5px; font-weight:800; color:#FFFFFF;
+  text-shadow:0 1px 6px rgba(0,0,0,.9);
+  letter-spacing:-.01em;
+}
+.vplay{ z-index:4 !important; }
+.vcard .vm{ padding:8px 10px 10px; }
+
+/* To'liq ekranli ko'ruvchi */
+.vidov{
+  position:fixed; inset:0; z-index:300;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(4,8,18,.92);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  opacity:0; visibility:hidden;
+  transition:opacity .26s linear, visibility .26s linear;
+  padding:16px;
+}
+.vidov.on{ opacity:1; visibility:visible; }
+.vidov-in{
+  width:100%; max-width:440px;
+  transform:scale(.96) translateY(10px);
+  transition:transform .34s var(--ez-y, cubic-bezier(.22,1,.36,1));
+}
+.vidov.on .vidov-in{ transform:none; }
+.vidov video{
+  width:100%; max-height:76vh; border-radius:18px; display:block;
+  background:#000; box-shadow:0 30px 70px -28px rgba(0,0,0,.95);
+}
+.vidov-m{ margin-top:12px; text-align:center; }
+.vidov-m b{ display:block; font-size:17px; font-weight:800; color:#FFFFFF; }
+.vidov-m i{ display:block; font-style:normal; font-size:13px; font-weight:600;
+            color:rgba(255,255,255,.62); margin-top:4px; }
+.vidov-x{
+  position:absolute; top:calc(14px + env(safe-area-inset-top)); right:14px;
+  width:40px; height:40px; border-radius:50%; border:0; z-index:2;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.12); color:#FFFFFF; cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+}
+.vidov-x:active{ transform:scale(.92); }
+@media (prefers-reduced-motion:reduce){
+  .vidov, .vidov-in{ transition:none; }
 }

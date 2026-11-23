@@ -510,3 +510,152 @@ html[data-ds] .wt-humans-out{
   color:var(--text-2);white-space:pre-wrap;word-break:break-word;
   max-height:340px;overflow:auto;
 }
+
+/* ==================================================================
+   V163 — ADMIN PANEL TELEFONDA
+   ------------------------------------------------------------------
+   Mijoz: "telefonda hunuk, juda oddiy". O'lchov bilan topilgan uchta
+   asosiy sabab:
+     1) Maydonlar va qidiruv qatori TO'Q ko'k bo'lib, OQ yuzada
+        o'tirardi — mavzu ikkiga bo'linib ketgan edi.
+     2) Filtr chiplari ekrandan chiqib kesilardi.
+     3) Pastki menyu va yuqori qator mavzuga ergashmasdi.
+   Bu qatlam hammasini bitta manbadan — mavzu belgilaridan — boshqaradi
+   va zichlikni telefonga moslaydi. Hech qanday animatsiya yo'q.
+   ================================================================== */
+@media (max-width: 899px){
+
+  /* --- Mavzuga bog'liq telefon belgilari --- */
+  html[data-ds]{
+    --maydon-fon:var(--panel-2);
+    --topbar-fon:color-mix(in srgb, var(--bg) 92%, transparent);
+  }
+  html[data-ds][data-theme="dark"]{
+    --maydon-fon:color-mix(in srgb, var(--panel) 72%, #000000);
+  }
+
+  /* --- 1) Yuqori qator: ixcham va shaffof emas --- */
+  html[data-ds] .topbar{
+    background:var(--topbar-fon) !important;
+    -webkit-backdrop-filter:saturate(1.3) blur(12px);
+    backdrop-filter:saturate(1.3) blur(12px);
+  }
+
+  /* --- 2) Sahifa sarlavhasi: izoh ikki qatordan oshmasin --- */
+  html[data-ds] .page-head p{
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  html[data-ds] .page-head{ margin-bottom:12px !important; }
+
+  /* --- 3) Asosiy amal tugmasi: butun kenglikni egallamasin --- */
+  html[data-ds] .ph-btn.is-primary{
+    box-shadow:0 8px 20px -12px color-mix(in srgb, var(--amber) 80%, transparent);
+  }
+
+  /* --- 4) Kartochkalar: zichroq, chetlari yumshoq --- */
+  html[data-ds] .card, html[data-ds] .panel-card, html[data-ds] .qz-box{
+    border-radius:16px !important;
+    padding:13px !important;
+  }
+
+  /* --- 5) Chiplar: hech qachon kesilmasin ---
+     Ichidagi tugmalar qisqarmasligi uchun `flex:none` SHART —
+     aks holda ular siqilib, yozuvi ikki qatorga tushib ketardi. */
+  html[data-ds] .qz-chips > *, html[data-ds] .cr-chips > *,
+  html[data-ds] .chips-row > *, html[data-ds] .vz-filtr > *{
+    flex:0 0 auto !important; white-space:nowrap;
+  }
+  /* O'ng chetda "yana bor" degan nozik soya */
+  html[data-ds] .qz-chips, html[data-ds] .cr-chips, html[data-ds] .chips-row{
+    -webkit-mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%);
+    mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%);
+  }
+
+  /* --- 6) Jadvallar telefonda: qator = kartochka --- */
+  html[data-ds] .pane table{ font-size:13px; }
+  html[data-ds] .pane thead{ display:none; }
+
+  /* --- 7) Pastki menyu: mavzuga ergashadi --- */
+  html[data-ds] #mnav{
+    background:color-mix(in srgb, var(--panel) 94%, transparent) !important;
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border-top:1px solid var(--line) !important;
+    box-shadow:0 -10px 30px -20px rgba(0,0,0,.6) !important;
+  }
+  html[data-ds] #mnav button{ color:var(--muted) !important; }
+  html[data-ds] #mnav button.on, html[data-ds] #mnav button.active{
+    color:var(--amber) !important;
+    background:var(--amber-soft) !important;
+  }
+
+  /* --- 8) Maydonlar: mavzuga mos, 16px (iPhone zoom qilmasin) --- */
+  html[data-ds] .pane input, html[data-ds] .pane select,
+  html[data-ds] .pane textarea, html[data-ds] .vm-body input,
+  html[data-ds] .vm-body select, html[data-ds] .vm-body textarea{
+    background:var(--maydon-fon) !important;
+    color:var(--text) !important;
+  }
+  html[data-ds] .pane input::placeholder,
+  html[data-ds] .pane textarea::placeholder{ color:var(--muted) !important; opacity:1; }
+  html[data-ds] .pane input:focus, html[data-ds] .pane select:focus,
+  html[data-ds] .pane textarea:focus{
+    box-shadow:0 0 0 3px var(--amber-soft) !important;
+    border-color:var(--amber) !important;
+  }
+  html[data-ds] .qz-search, html[data-ds] .cr-search,
+  html[data-ds] .mg-search, html[data-ds] .search-row,
+  html[data-ds] .nb-search{
+    background:var(--maydon-fon) !important;
+    border:1px solid var(--line) !important; border-radius:14px !important;
+  }
+
+  /* --- 9) "Raqam joylash" bo'limi telefonda --- */
+  html[data-ds] #paneQoshish .add-form{
+    display:flex !important; flex-direction:column; gap:10px;
+    background:var(--panel) !important;
+    border:1px solid var(--line); border-radius:16px; padding:14px !important;
+  }
+  html[data-ds] #paneQoshish .add-form > label{ margin:0; font-size:12px; font-weight:700; color:var(--muted); }
+  html[data-ds] #paneQoshish #addNumberBtn{
+    position:sticky; bottom:calc(82px + env(safe-area-inset-bottom));
+    margin-top:6px; min-height:50px; font-size:15px; font-weight:800;
+    z-index:5;
+  }
+  html[data-ds] #paneQoshish .bulk-toggle{
+    margin-top:12px; text-align:center; font-weight:700; color:var(--amber);
+  }
+}
+
+/* --- Raqam joylash formasi: maydon nomlari (V163) ---
+   Ilgari maydonlarda faqat "placeholder" bor edi: yozish boshlanishi
+   bilan nom yo'qolib, admin qaysi katakda turganini bilmasdi. */
+.af-lbl{
+  display:block; margin:10px 0 -2px;
+  font-size:12px; font-weight:750; letter-spacing:.01em;
+  color:var(--muted);
+}
+html[data-ds] .add-form{ display:flex; flex-direction:column; gap:8px; }
+html[data-ds] .add-form > .af-lbl:first-child{ margin-top:0; }
+
+@media (max-width: 899px){
+  /* Qidiruv belgisi yozuv ustiga tushib qolardi — maydonga chapdan
+     joy qoldiramiz (belgi `position:absolute` bilan turadi). */
+  html[data-ds] .qz-search, html[data-ds] .cr-search,
+  html[data-ds] .mg-search, html[data-ds] .search-row,
+  html[data-ds] .nb-search{
+    position:relative; display:flex; align-items:center; gap:0;
+  }
+  html[data-ds] .qz-search > svg, html[data-ds] .cr-search > svg,
+  html[data-ds] .mg-search > svg, html[data-ds] .search-row > svg,
+  html[data-ds] .nb-search > svg{
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    width:17px; height:17px; color:var(--muted); pointer-events:none;
+  }
+  html[data-ds] .qz-search input, html[data-ds] .cr-search input,
+  html[data-ds] .mg-search input, html[data-ds] .search-row input,
+  html[data-ds] .nb-search input{
+    padding-left:40px !important; background:transparent !important;
+    border:0 !important; box-shadow:none !important;
+  }
+}

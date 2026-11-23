@@ -3328,13 +3328,26 @@ async function ulashRasm(item){
     const nom = 'vipraqamlar-' + String(item.number || '').replace(/\D/g, '') + '.png';
     const fayl = new File([r.blob], nom, { type: 'image/png' });
 
+    /* HAVOLA RASM TAGIDA KETADI.
+       Web Share API fayl bilan birga `url` yuborilganda uni ko'pincha
+       E'TIBORSIZ qoldiradi (Telegram ham shunday). Shuning uchun
+       havola MATN ichiga qo'yiladi — shunda u rasmning tagida
+       imzo bo'lib ketadi va bosiladigan bo'ladi. */
+    const raqamli = String(item.number || '').replace(/\D/g, '');
+    const havola = location.origin + '/raqam/' + raqamli;
+    const imzo = shortNumber(item.number) + ' — ' + formatPriceUzs(item.price)
+               + '\n' + havola;
+
     if(navigator.canShare && navigator.canShare({ files: [fayl] }) && navigator.share){
-      await navigator.share({
-        files: [fayl],
-        title: 'VIP RAQAMLAR',
-        text: shortNumber(item.number) + ' — ' + formatPriceUzs(item.price)
-      });
+      await navigator.share({ files: [fayl], title: 'VIP RAQAMLAR', text: imzo });
       return true;
+    }
+    /* Rasm ulashishni qo'llamasa — hech bo'lmasa havolani ulashamiz */
+    if(navigator.share){
+      try{
+        await navigator.share({ title:'VIP RAQAMLAR', text: imzo, url: havola });
+        return true;
+      }catch(e){ if(e && e.name === 'AbortError') return false; }
     }
     /* Zaxira yo'l: yuklab olish */
     const url = URL.createObjectURL(r.blob);

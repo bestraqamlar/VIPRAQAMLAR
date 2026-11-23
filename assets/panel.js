@@ -3425,6 +3425,9 @@ window.CURRENT_ADMIN_NAME = '';
    `stories` esa o'z ruxsatiga ega (MGMT_FEATURE_LABELS ichida). */
 const TAB_PERM_MAP = {
   uzex: 'watch',
+  /* "Raqam joylash" (V163) — "Raqamlar" bilan AYNI ruxsat: kim raqam
+     ko'ra oladigan bo'lsa, o'sha joylay ham oladi. */
+  qoshish: 'numbers',
   bazaraqam: 'numbers',
   kuntavsiyasi: 'aksiya',
   kanalpost: 'numbers',
@@ -3750,20 +3753,41 @@ function openGroupOfTab(tab){
     const bulkT = $('bulkToggle'), bulkB = $('bulkBox');
     if(!form) return;
 
+    /* ==================================================================
+       V163 — RAQAM JOYLASH ALOHIDA BO'LIMGA CHIQARILDI
+       ------------------------------------------------------------------
+       Mijoz so'rovi: raqam qo'shish "Raqamlar" ro'yxati ichidagi yopiq
+       oynada emas, o'zining bo'limida tursin.
+
+       Forma DOM'dan KO'CHIRILADI, qayta yozilmaydi — shuning uchun
+       barcha id'lar, hodisalar va mavjud mantiq o'zgarishsiz ishlaydi.
+       Agar yangi bo'lim topilmasa (eski HTML), avvalgi "yopiladigan
+       oyna" ko'rinishiga qaytadi — ya'ni hech narsa buzilmaydi. */
     const quti = document.createElement('div');
     form.parentNode.insertBefore(quti, form);
     quti.appendChild(form);
     if(bulkT) quti.appendChild(bulkT);
     if(bulkB) quti.appendChild(bulkB);
 
-    const oyna = oynaYasa('raqam', quti, "Raqam qo'shish",
-      "Saqlaganingizdan keyin raqam saytda va ilovada darhol ko'rinadi.", ICO.raqam);
-
-    sahifaBoshi(pane, 'Raqamlar',
-      "Sotuvdagi barcha raqamlar, narxlari va holati. Bu yerdagi o'zgarishlar saytda darhol ko'rinadi.",
-      [{ nom: "Raqam qo'shish", asosiy: true, bos: () => oyna.och() }]);
-
-    saqlangachYop($('addNumberBtn'), $('newNumber'), oyna);
+    const joylash = $('paneQoshish');
+    if(joylash){
+      joylash.appendChild(quti);
+      sahifaBoshi(joylash, 'Raqam joylash',
+        "Bitta raqam yoki ro'yxat bilan ko'p raqamni birdan joylang. Saqlagach raqam saytda darhol ko'rinadi.");
+      sahifaBoshi(pane, 'Raqamlar',
+        "Sotuvdagi barcha raqamlar, narxlari va holati. Bu yerdagi o'zgarishlar saytda darhol ko'rinadi.",
+        [{ nom: "Raqam joylash", asosiy: true, bos: () => {
+            const tb = document.querySelector('.tab[data-tab="qoshish"]');
+            if(tb) tb.click();
+          } }]);
+    }else{
+      const oyna = oynaYasa('raqam', quti, "Raqam qo'shish",
+        "Saqlaganingizdan keyin raqam saytda va ilovada darhol ko'rinadi.", ICO.raqam);
+      sahifaBoshi(pane, 'Raqamlar',
+        "Sotuvdagi barcha raqamlar, narxlari va holati. Bu yerdagi o'zgarishlar saytda darhol ko'rinadi.",
+        [{ nom: "Raqam qo'shish", asosiy: true, bos: () => oyna.och() }]);
+      saqlangachYop($('addNumberBtn'), $('newNumber'), oyna);
+    }
   })();
 
   /* ---------------- AKSIYA ---------------- */

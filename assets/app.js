@@ -163,6 +163,21 @@ const PAGE_SIZE = 15;
    TIL (uz / ru)
    ================================================================== */
 const RU = {
+  /* V162 — naqshlar */
+  'Naqsh': 'Шаблон',
+  'Zinapoya': 'Лесенка',
+  'Bir xil raqam': 'Одинаковые цифры',
+  'Beshta bir xil': 'Пять одинаковых',
+  "To'rtta bir xil": 'Четыре одинаковых',
+  'Uchta bir xil': 'Три одинаковых',
+  'Oyna naqsh': 'Зеркальный',
+  'Juftliklar': 'Парные',
+  'Yumaloq raqam': 'Круглый номер',
+  'Nol bilan tugaydi': 'Заканчивается на ноль',
+  'Takrorlanuvchi': 'Повторяющийся',
+  "Ko'zgu": 'Зеркало',
+  'Ikki xil raqam': 'Две разные цифры',
+
   /* V158 — ulashish */
   'Ulashish': 'Поделиться',
   'Rasm sifatida': 'Картинкой',
@@ -1069,7 +1084,7 @@ function themeNow(){ return 'dark'; }
 function applyTheme(){
   document.documentElement.setAttribute('data-theme', 'dark');
   const mt = document.querySelector('meta[name="theme-color"]');
-  if(mt) mt.setAttribute('content', '#07152B');
+  if(mt) mt.setAttribute('content', '#0A1326');   /* V161: fon rangi bilan bir xil */
 }
 function setTheme(){ applyTheme(); }
 
@@ -1777,6 +1792,90 @@ function tierOf(item){
   const tRaw = String(item && item.tier || '').trim().toLowerCase();
   return TIERS[tRaw] ? tRaw : '';
 }
+/* ==================================================================
+   RAQAM NAQSHINI ANIQLASH  (V162)
+   ------------------------------------------------------------------
+   NEGA KERAK. Mijoz 24 million so'm to'laydigan narsa — raqamning
+   O'ZI emas, uning NAQSHI: 777, 12-21, 100-10-20. Lekin saytda
+   raqam shunchaki matn bo'lib turardi va nega qimmatligini faqat
+   tushunadigan odam ko'rardi. Endi dastur buni o'zi topib aytadi.
+
+   QANDAY ISHLAYDI. Operator kodidan keyingi 7 raqam tahlil qilinadi.
+   Topilgan naqshlar KUCH bo'yicha tartiblanadi va eng kuchlisi
+   kartochkada yorliq bo'lib chiqadi.
+
+   TEZLIK. Faqat satr ustida ishlaydi, bitta raqam uchun ~10 ta
+   taqqoslash. 1000 ta raqam uchun ham sezilmaydi. Natija eslab
+   qolinadi (NAQSH_KESH) — ro'yxat qayta chizilganda qayta
+   hisoblanmaydi.
+   ================================================================== */
+const NAQSH_KESH = Object.create(null);
+
+function naqshAniqla(xomRaqam){
+  const r = String(xomRaqam || '').replace(/\D/g, '');
+  if(r.length < 7) return [];
+  if(NAQSH_KESH[r]) return NAQSH_KESH[r];
+
+  const t = r.slice(-7);                 /* operator kodidan keyingi 7 raqam */
+  const topildi = [];
+
+  /* --- 1. Bir xil raqamlar ketma-ketligi (777, 7777...) --- */
+  let engUzun = 1, joriy = 1, qaysi = t[0];
+  for(let i = 1; i < t.length; i++){
+    if(t[i] === t[i-1]){ joriy++; if(joriy > engUzun){ engUzun = joriy; qaysi = t[i]; } }
+    else joriy = 1;
+  }
+  if(engUzun >= 7)      topildi.push({ kuch:100, kalit:'birxil',  matn:'Bir xil raqam' });
+  else if(engUzun >= 5) topildi.push({ kuch:92,  kalit:'beshlik', matn:'Beshta ' + qaysi });
+  else if(engUzun === 4)topildi.push({ kuch:80,  kalit:'tortlik', matn:"To'rtta " + qaysi });
+  else if(engUzun === 3)topildi.push({ kuch:62,  kalit:'uchlik',  matn:'Uchta ' + qaysi });
+
+  /* --- 2. Oyna (teskari o'qiganda ham bir xil) --- */
+  if(t === t.split('').reverse().join('')) topildi.push({ kuch:88, kalit:'oyna', matn:'Oyna naqsh' });
+
+  /* --- 3. Zinapoya (1234567 yoki 7654321) --- */
+  let osadi = true, kamayadi = true;
+  for(let i = 1; i < t.length; i++){
+    if(+t[i] !== +t[i-1] + 1) osadi = false;
+    if(+t[i] !== +t[i-1] - 1) kamayadi = false;
+  }
+  if(osadi || kamayadi) topildi.push({ kuch:95, kalit:'zina', matn:'Zinapoya' });
+
+  /* --- 4. Juftliklar (11 22 33 ...) --- */
+  const oxirgi6 = t.slice(-6);
+  if(/^(\d)\1(\d)\2(\d)\3$/.test(oxirgi6)) topildi.push({ kuch:84, kalit:'juft', matn:'Juftliklar' });
+
+  /* --- 5. Takror (oxirgi to'rtta: 1212, 7878) --- */
+  const oxirgi4 = t.slice(-4);
+  if(/^(\d\d)\1$/.test(oxirgi4) && oxirgi4[0] !== oxirgi4[1])
+    topildi.push({ kuch:70, kalit:'takror', matn:'Takrorlanuvchi' });
+
+  /* --- 6. Yumaloq (nollar bilan tugaydi) --- */
+  if(/0000$/.test(t))      topildi.push({ kuch:86, kalit:'yumaloq', matn:'Yumaloq raqam' });
+  else if(/000$/.test(t))  topildi.push({ kuch:72, kalit:'yumaloq', matn:'Yumaloq raqam' });
+  else if(/00$/.test(t))   topildi.push({ kuch:52, kalit:'yumaloq', matn:'Nol bilan tugaydi' });
+
+  /* --- 7. Ko'zguli juftlik (oxirgi 4 ta: 1221, 3443) --- */
+  if(/^(\d)(\d)\2\1$/.test(oxirgi4) && oxirgi4[0] !== oxirgi4[1])
+    topildi.push({ kuch:66, kalit:'kozgu', matn:'Ko\'zgu' });
+
+  /* --- 8. Faqat ikki xil raqamdan iborat --- */
+  if(new Set(t.split('')).size === 2) topildi.push({ kuch:58, kalit:'ikkixil', matn:'Ikki xil raqam' });
+
+  topildi.sort((a, b) => b.kuch - a.kuch);
+  /* Bir xil kalit ikki marta tushmasin */
+  const korilgan = Object.create(null);
+  const toza = topildi.filter(x => korilgan[x.kalit] ? false : (korilgan[x.kalit] = true));
+  NAQSH_KESH[r] = toza;
+  return toza;
+}
+
+/* Kartochkaga tushadigan ENG KUCHLI naqsh (yoki bo'sh) */
+function naqshEngKuchli(item){
+  const n = naqshAniqla(item && item.number);
+  return n.length ? n[0] : null;
+}
+
 function numCard(item){
   const fav = isFav(item.id), disc = discountPct(item);
   const res = !!item.reserved;
@@ -1797,6 +1896,8 @@ function numCard(item){
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
           ${vip ? `<span class="tag vip">${ICO_CROWN}${TIERS[tier]}</span>` : ''}
+          ${(()=>{ const nq = naqshEngKuchli(item);
+                   return nq ? `<span class="tag naqsh" data-naqsh="${nq.kalit}">${esc(t(nq.matn))}</span>` : ''; })()}
           ${opChip(item.operator)}
           ${disc && showCash ? `<span class="tag off">−${disc}%</span>` : ''}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
@@ -2975,30 +3076,56 @@ function syncDots(){
   dots.forEach((d,k) => d.classList.toggle('on', k === i));
 }
 
-/* Mijoz fikri kartochkasi bosilganda — video o'ynaydi va shundagina
-   brauzer tugmalari chiqadi (V148). */
-document.addEventListener('click', (e)=>{
-  const k = e.target.closest && e.target.closest('#homeTest .vcard');
-  if(!k) return;
-  const v = k.querySelector('video');
-  if(!v) return;
-  e.preventDefault();
-  if(v.paused){
-    /* Boshqalarini to'xtatamiz — bir vaqtda bitta video o'ynasin */
-    document.querySelectorAll('#homeTest video').forEach(x=>{
-      if(x !== v){ try{ x.pause(); x.controls = false; }catch(err){} x.closest('.vcard') && x.closest('.vcard').classList.remove('oynayapti'); }
-    });
-    v.preload = 'metadata';
-    v.controls = true;
-    k.classList.add('oynayapti');
-    const p = v.play();
-    if(p && p.catch) p.catch(()=>{});
-  }else{
-    try{ v.pause(); }catch(err){}
-    v.controls = false;
-    k.classList.remove('oynayapti');
+/* ==================================================================
+   VIDEO KO'RUVCHI (V163)
+   ------------------------------------------------------------------
+   Kartochka bosilganda to'liq ekranli oyna ochiladi. Video faqat shu
+   yerda o'ynaydi — ya'ni bir vaqtda bitta video, ovozi bilan.
+   ================================================================== */
+function videoOch(manba, raqam, izoh){
+  const ov = document.getElementById('vidOv');
+  const v  = document.getElementById('vidOvV');
+  const m  = document.getElementById('vidOvM');
+  if(!ov || !v || !manba) return;
+  v.src = manba;
+  v.muted = false;
+  v.currentTime = 0;
+  if(m){
+    const qism = [];
+    if(raqam) qism.push(`<b class="sg">${esc(shortNumber(raqam))}</b>`);
+    if(izoh)  qism.push(`<i>${esc(izoh)}</i>`);
+    m.innerHTML = qism.join('');
+    m.style.display = qism.length ? '' : 'none';
   }
+  ov.classList.add('on');
+  document.body.classList.add('noscroll');
+  try{ haptic('light'); }catch(e){}
+  const p = v.play();
+  if(p && p.catch) p.catch(()=>{ /* avtomatik o'ynash taqiqlangan — tugma bor */ });
+}
+function videoYop(){
+  const ov = document.getElementById('vidOv');
+  const v  = document.getElementById('vidOvV');
+  if(!ov) return;
+  ov.classList.remove('on');
+  if(v){ try{ v.pause(); }catch(e){} v.removeAttribute('src'); try{ v.load(); }catch(e){} }
+  if(!document.querySelector('.sheet.on')) document.body.classList.remove('noscroll');
+}
+document.addEventListener('click', (e)=>{
+  if(e.target.closest && e.target.closest('[data-vclose]')){ videoYop(); return; }
+  const ov = document.getElementById('vidOv');
+  if(ov && ov.classList.contains('on') && e.target === ov){ videoYop(); return; }
+  const k = e.target.closest && e.target.closest('.vcard[data-video]');
+  if(!k) return;
+  e.preventDefault();
+  videoOch(k.dataset.video, k.dataset.vnum, k.dataset.vcap);
 });
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    const ov = document.getElementById('vidOv');
+    if(ov && ov.classList.contains('on')){ e.stopPropagation(); videoYop(); }
+  }
+}, true);
 
 /* ---------- Mijozlar video fikrlari ---------- */
 function renderTestimonials(){
@@ -3042,20 +3169,42 @@ function renderTestimonials(){
   const royxat = TESTIMONIALS.filter(v => v && String(v.videoUrl || '').trim()).slice(0, 10);
   if(!royxat.length){ wrap.style.display = 'none'; return; }
 
-  box.innerHTML = royxat.map(v => {
+  /* ==================================================================
+     V163 — "VIDEO UMUMAN OCHILMAYAPTI" TUZATILDI
+     ------------------------------------------------------------------
+     Ikki xato bor edi:
+       1) `preload="none"` tufayli birinchi kadr ham yuklanmasdi —
+          kartochka qop-qora quti bo'lib turardi. Mijoz u yerda
+          QANDAY video borligini umuman ko'rmasdi.
+       2) Video kartochkaning ICHIDA o'ynardi. Brauzer tugmalari
+          kartochka bosilishi bilan urishib, ko'pincha video darhol
+          to'xtab qolardi — "ochilmayapti" degani shu.
+
+     ENDI:
+       - Birinchi TO'RTTA kartochka `preload="metadata"` bilan
+         chiziladi: birinchi kadr darhol ko'rinadi, ya'ni qanday
+         video ekani DOIM bilinadi. Qolganlari ekranga yaqinlashganda
+         yuklanadi (tarmoq tejaladi).
+       - Bosilganda TO'LIQ EKRANLI ko'ruvchi ochiladi: katta, ovozi
+         bilan, oddiy tugmalar bilan. Bu yerda hech narsa urishmaydi.
+     ================================================================== */
+  box.innerHTML = royxat.map((v, i) => {
     const muqova = String(v.posterUrl || v.thumbUrl || v.poster || '').trim();
+    const oldin  = i < 4 ? 'metadata' : 'none';
+    const sarlavha = String(v.caption || '').trim();
     return `
-    <div class="vcard">
+    <div class="vcard" data-video="${esc(v.videoUrl)}" data-vnum="${esc(v.number || '')}" data-vcap="${esc(sarlavha)}">
       <div class="vwrap">
-        <video src="${esc(v.videoUrl)}#t=0.1" preload="none" playsinline muted loop
+        <video src="${esc(v.videoUrl)}#t=0.1" preload="${oldin}" playsinline muted
                ${muqova ? `poster="${esc(muqova)}"` : ''}></video>
+        <span class="vshade" aria-hidden="true"></span>
         <button class="vplay" type="button" aria-label="${esc(t('Ko\'rish'))}">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>
         </button>
+        ${v.number ? `<span class="vnum sg">${esc(shortNumber(v.number))}</span>` : ''}
       </div>
       <div class="vm">
-        ${v.number ? `<b class="sg">${esc(shortNumber(v.number))}</b>` : ''}
-        ${v.caption ? `<i>${esc(v.caption)}</i>` : ''}
+        ${sarlavha ? `<i>${esc(sarlavha)}</i>` : `<i>${esc(t('Mijoz fikri'))}</i>`}
       </div>
     </div>`; }).join('');
 
@@ -3206,6 +3355,8 @@ function catalogItems(){
   }
   /* V150: narx oralig'i */
   if(narxFiltrBor()) list = list.filter(narxMos);
+  /* V162: naqsh turi */
+  if(catNaqshTur) list = list.filter(n => naqshAniqla(n.number).some(x => x.kalit === catNaqshTur));
   list.sort((a,b)=>{
     if(!!a.reserved !== !!b.reserved) return a.reserved ? 1 : -1;
     if(catSort === 'cheap') return (a.price||0)-(b.price||0);
@@ -3236,6 +3387,8 @@ const SORTS = [['default','Tasodifiy'],['cheap','Avval arzoni'],['expensive','Av
    bu haqda bitta qator izoh chiqadi — mijoz nega kamayganini
    bilib turadi. */
 let catNarxMin = 0, catNarxMax = 0;        /* so'mda; 0 = qo'yilmagan */
+/* V162: naqsh turi bo'yicha filtr ('' = hammasi) */
+let catNaqshTur = '';
 const narxFiltrBor = () => catNarxMin > 0 || catNarxMax > 0;
 
 /* Tayyor oraliqlar — faqat ichida raqam BORLARI ko'rsatiladi */
@@ -3330,9 +3483,10 @@ function renderCatalog(){
   const list = catalogItems();
   /* V120: yuklanmagan bo'lsa "Yuklanmoqda…" SO'ZI emas, skelet
      chizig'i turadi — mijoz so'rovi: "hattoki yozuvlarigacha". */
-  if(numbersLoaded) $('#catCount').textContent = `${formatPrice(list.length)} ${t('ta raqam')}`;
-  else skSub($('#catCount'));
-  $('#filterDot').style.display = (catOp || catSort!=='default' || narxFiltrBor()) ? '' : 'none';
+  /* V163 (mijoz so'rovi): bazadagi raqamlar soni KO'RSATILMAYDI.
+     Sabab: son qancha raqam borligini oshkor qiladi va sarlavhani
+     "ombor hisoboti"ga o'xshatadi — premium taassurotni buzadi. */
+  $('#filterDot').style.display = (catOp || catSort!=='default' || narxFiltrBor() || catNaqshTur) ? '' : 'none';
 
   $('#searchInfo').innerHTML = (patternActive() && !liveBusy)
     ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -3704,7 +3858,7 @@ function ikkinchiQism(){
   if(IKKINCHI_QISM) return IKKINCHI_QISM;
   IKKINCHI_QISM = new Promise((bajarildi, xato)=>{
     const s = document.createElement('script');
-    s.src = '/assets/app2.js?v=159';
+    s.src = '/assets/app2.js?v=163';
     s.async = true;
     s.onload = ()=> bajarildi(true);
     s.onerror = ()=>{ IKKINCHI_QISM = null; xato(new Error('app2 yuklanmadi')); };
@@ -4270,12 +4424,14 @@ document.addEventListener('click', (e)=>{
   }
 
   if(e.target.closest('[data-share]') && CURRENT){
-    /* V158: endi avval TANLOV so'raladi — rasmmi yoki havolami.
-       Sabab: odamlar Telegramda ko'pincha rasm tashlaydi (suhbatda
-       darhol ko'rinadi), Instagram "stories" ga esa umuman havola
-       emas, rasm kerak. Havola yo'li yo'qolmadi. */
+    /* V162: TANLOV SO'RALMAYDI.
+       Avval "rasmmi yoki havolami" deb oyna chiqardi — bu ortiqcha
+       bir bosish edi. Endi darhol RASM ketadi, havola esa uning
+       TAGIDA imzo bo'lib boradi (qarang: app2.js -> ulashRasm).
+       Ya'ni mijoz bitta tugma bosadi va do'stiga ham rasm, ham
+       bosiladigan havola boradi. */
     haptic('light');
-    ulashOynasi(CURRENT);
+    ulashRasm(CURRENT);
     return;
   }
 
@@ -4293,6 +4449,15 @@ document.addEventListener('click', (e)=>{
 
   const co = e.target.closest('[data-catop]');
   if(co){ catOp = co.dataset.catop; catShown = PAGE_SIZE; renderCatalog(); window.scrollTo({top:0,behavior:'smooth'}); return; }
+
+  const nt = e.target.closest('[data-naqshtur]');
+  if(nt){
+    catNaqshTur = nt.dataset.naqshtur || '';
+    $$('#genBody [data-naqshtur]').forEach(b => b.classList.toggle('on', b.dataset.naqshtur === catNaqshTur));
+    catShown = PAGE_SIZE; renderCatalog();
+    narxHolatiYangila();
+    return;
+  }
 
   const nx = e.target.closest('[data-narx]');
   if(nx){
@@ -4393,7 +4558,7 @@ document.addEventListener('click', (e)=>{
     $$('#digits input').forEach(b => b.value = '');
     LIVE_RESULTS = []; COMMITTED = null; catOp = ''; catOnlyInstallment = false;
     catSort = 'default'; catShown = PAGE_SIZE;
-    catNaqsh = ''; catNarxMin = 0; catNarxMax = 0;
+    catNaqsh = ''; catNarxMin = 0; catNarxMax = 0; catNaqshTur = '';
     reshuffle(); renderCatalog(); closeSheet('shGen');
     /* Xabar YO'Q — ro'yxatning o'zi yangilanib ko'rinadi. */
     return;
@@ -4414,6 +4579,51 @@ document.addEventListener('click', (e)=>{
     return;
   }
 });
+
+/* ==================================================================
+   NAQSH BO'YICHA FILTR  (V162)
+   ------------------------------------------------------------------
+   Mijoz ko'pincha ANIQ raqamni emas, "shunaqaroq" raqamni qidiradi:
+   "uchta bir xil bo'lsin", "nol bilan tugasin", "oyna bo'lsin".
+   Katakchaga raqam yozish bu holda yordam bermaydi. Endi bitta
+   bosishda topiladi.
+
+   Faqat bazada HAQIQATAN mavjud naqshlar ko'rsatiladi va yonida
+   nechtaligi yoziladi — bo'sh tugmani bosib "0 ta" ni ko'rish
+   mijozga foyda bermaydi. */
+const NAQSH_TURLAR = [
+  ['zina',    'Zinapoya'],
+  ['birxil',  'Bir xil raqam'],
+  ['beshlik', 'Beshta bir xil'],
+  ['tortlik', "To'rtta bir xil"],
+  ['uchlik',  'Uchta bir xil'],
+  ['oyna',    'Oyna naqsh'],
+  ['juft',    'Juftliklar'],
+  ['yumaloq', 'Yumaloq raqam'],
+  ['takror',  'Takrorlanuvchi'],
+  ['kozgu',   "Ko'zgu"],
+  ['ikkixil', 'Ikki xil raqam']
+];
+function naqshBolimiHtml(){
+  const eski = catNaqshTur;
+  const sanoq = (k)=>{ catNaqshTur = k; const n = catalogItems().length; return n; };
+  catNaqshTur = '';
+  const hammasi = catalogItems().length;
+
+  const tugma = [`<button class="chip${!eski ? ' on' : ''}" data-naqshtur="">${t('Hammasi')} <i class="nfn">${hammasi}</i></button>`];
+  NAQSH_TURLAR.forEach(([k, nom])=>{
+    const n = sanoq(k);
+    if(!n) return;
+    tugma.push(`<button class="chip${eski === k ? ' on' : ''}" data-naqshtur="${k}">${esc(t(nom))} <i class="nfn">${n}</i></button>`);
+  });
+  catNaqshTur = eski;
+
+  if(tugma.length <= 1) return '';          /* naqshli raqam yo'q — bo'limni ko'rsatmaymiz */
+  return `<div class="nf nf-naqsh">
+    <div class="nf-top"><b>${t('Naqsh')}</b></div>
+    <div class="nf-chips">${tugma.join('')}</div>
+  </div>`;
+}
 
 /* Narx bo'limi HTML — faqat ICHIDA RAQAM BOR oraliqlar ko'rsatiladi,
    bo'sh tugmani bosib "0 ta raqam" ni ko'rish mijoz uchun foyda emas. */
@@ -4437,7 +4647,7 @@ function narxBolimiHtml(){
   const usd = catalogItems().filter(isUsd).length;
   catNarxMin = eskiMin; catNarxMax = eskiMax;
 
-  return `<div class="nf">
+  return `<div class="nf" id="nfNarx">
     <div class="nf-top"><b>${t("Narx oralig'i")}</b><span class="nf-cnt" id="nfCount">${catalogItems().length} ${t('ta')}</span></div>
     <div class="nf-chips">${tugmalar.join('')}</div>
     <div class="nf-in">
@@ -4493,7 +4703,7 @@ function ulashOynasi(item){
 function openFilter(){
   $('#genTitle').textContent = t('Saralash');
   $('#genFoot').style.display = 'none';
-  $('#genBody').innerHTML = narxBolimiHtml() + `<div class="rows">${SORTS.map(o => `
+  $('#genBody').innerHTML = naqshBolimiHtml() + narxBolimiHtml() + `<div class="rows">${SORTS.map(o => `
     <button class="row" data-sort="${o[0]}"><span class="rt"><b>${esc(t(o[1]))}</b></span>
       ${catSort===o[0] ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"></path></svg>' : ''}
     </button>`).join('')}</div>
@@ -5074,7 +5284,6 @@ function bosh(ish, kechikish){
     $('#homeFeatured').innerHTML = skeletons(3);
     $('#homeHero').innerHTML = skHero(2);
     try{ renderTestimonials(); }catch(e){}
-    try{ skSub($('#catCount')); }catch(e){}
   }
   xabarlarKeshdan();
   syncDigits();

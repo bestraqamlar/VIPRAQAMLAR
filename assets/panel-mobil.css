@@ -48,20 +48,17 @@
 @media (max-width: 899px){
 
   /* ============ 1) RANG MAVZUSI — MIJOZ SAYTIDAN ============ */
-  :root,
-  :root[data-theme="light"],
-  :root[data-theme="dark"]{
-    --bg:#07162B;
-    --panel:#12294C;
-    --panel-2:#1A3763;
-    --line:rgba(255,255,255,.11);
-    --text:#FFFFFF;
-    --text-2:#CBD8EA;
-    --muted:#93A6C2;
-    --amber:#2E5FE0;              /* panelda "asosiy rang" shu nom bilan */
-    --amber-soft:rgba(46,95,224,.22);
-    --green:#3DD68C;
-    --red:#FF8A87;
+  /* ==================================================================
+     V163 TUZATISH. Ilgari bu blok telefonda MAVZUNI MAJBURAN to'q
+     ko'kka o'tkazardi. Lekin `panel-dizayn.css` bundan KEYIN yuklanadi
+     va `html[data-ds]` selektori bilan ranglarni qaytarib qo'yardi —
+     natijada yuza OQ, ichidagi maydonlar esa TO'Q ko'k bo'lib qolgan
+     edi (mijoz "hunuk" degani aynan shu).
+
+     Endi telefon mavzuni MAJBURLAMAYDI: tungi mavzuda ham, kunduzgi
+     mavzuda ham ranglar bitta manbadan (panel-dizayn.css) keladi.
+     Bu yerda faqat telefon uchun qo'shimcha ohanglar aniqlanadi. */
+  :root{
 
     /* Mijoz saytidagi qo'shimcha ohanglar */
     --m-oltin:#E6C877;
@@ -103,7 +100,7 @@
   .topbar{
     position:sticky; top:0; z-index:40;
     margin:0 -14px 12px; padding:calc(10px + env(safe-area-inset-top)) 14px 10px !important;
-    background:rgba(7,22,43,.92) !important;
+    background:var(--topbar-fon) !important;
     border-bottom:1px solid var(--line) !important;
     box-shadow:none !important;
     display:flex; align-items:center; gap:10px;
@@ -222,7 +219,7 @@
   .vm-body input, .vm-body select, .vm-body textarea{
     width:100%; box-sizing:border-box;
     min-height:46px; padding:12px 13px !important;
-    background:#0E1F3C !important;
+    background:var(--maydon-fon) !important;
     border:1px solid var(--line) !important; border-radius:14px !important;
     color:var(--text) !important; font-size:16px !important; /* 16px — iPhone zoom qilmasin */
     font-family:inherit; font-weight:600;
@@ -258,7 +255,7 @@
 
   /* ============ 8) QIDIRUV QATORI ============ */
   .qz-search, .cr-search, .mg-search, .search-row{
-    background:#0E1F3C !important;
+    background:var(--maydon-fon) !important;
     border:1px solid var(--line) !important; border-radius:14px !important;
     box-shadow:none !important;
   }
@@ -473,7 +470,7 @@
     position:relative;
     display:flex; align-items:center; gap:9px;
     height:46px; padding:0 13px; margin-bottom:4px;
-    background:#0E1F3C; border:1px solid var(--line); border-radius:14px;
+    background:var(--maydon-fon); border:1px solid var(--line); border-radius:14px;
   }
   /* Qidiruv belgisi eski uslubda `position:absolute` — shuning uchun
      maydonga chapdan joy qoldiriladi, aks holda belgi yozuv ustiga
