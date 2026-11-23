@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=154">
-<link rel="preload" as="script" href="assets/panel.js?v=155">
+<link rel="preload" as="style" href="assets/panel.css?v=163">
+<link rel="preload" as="script" href="assets/panel.js?v=163">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,16 +52,16 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=154">
+<link rel="stylesheet" href="assets/panel.css?v=163">
 <!-- TELEFON KO'RINISHI (V148) — mijoz sayti shablonida.
      `panel.css` dan KEYIN turishi shart: u faqat 899px dan tor
      ekranda ishlaydi va asosiy uslublar ustiga yoziladi.
      Kompyuterda bu fayl bitta ham qoida bermaydi. -->
-<link rel="stylesheet" href="assets/panel-mobil.css?v=154">
+<link rel="stylesheet" href="assets/panel-mobil.css?v=163">
 <!-- YANGI DIZAYN QATLAMI (V151). panel.css VA panel-mobil.css dan
      KEYIN turishi SHART: u ikkisining ko'rinish qoidalarini qayta
      belgilaydi. Tuzilma va funksiya o'zgarmaydi — faqat ko'rinish. -->
-<link rel="stylesheet" href="assets/panel-dizayn.css?v=154">
+<link rel="stylesheet" href="assets/panel-dizayn.css?v=163">
 
 </head>
 <body>
@@ -132,6 +132,7 @@
           <button class="tab active" data-tab="dashboard"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="tab-label">Boshqaruv paneli</span></button>
           <button class="tab" data-tab="orders"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span class="tab-label">Buyurtmalar</span></button>
           <button class="tab" data-tab="zakaz"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span><span class="tab-label">Zakaz</span></button>
+          <button class="tab" data-tab="qoshish"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><span class="tab-label">Raqam joylash</span></button>
           <button class="tab" data-tab="numbers"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></svg></span><span class="tab-label">Raqamlar</span></button>
           <button class="tab" data-tab="bazaraqam"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><span class="tab-label">Baza raqam</span></button>
           <button class="tab" data-tab="uzex"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span class="tab-label">UZEX auksion</span></button>
@@ -347,9 +348,18 @@
     </div>
   </div>
 
+  <!-- ===== RAQAM JOYLASH — ALOHIDA BO'LIM (V163) =====
+       Mijoz so'rovi: raqam qo'shish "Raqamlar" ro'yxati ichidagi
+       yopiq oynada emas, O'ZINING bo'limida tursin. Forma shu yerga
+       panel.js tomonidan ko'chiriladi (id'lar o'zgarmaydi, ya'ni
+       mavjud mantiq to'liq ishlayveradi). -->
+  <div class="pane" id="paneQoshish"></div>
+
   <div class="pane" id="paneNumbers">
     <div class="add-form">
+      <label class="af-lbl" for="newNumber">Raqam</label>
       <input type="text" id="newNumber" placeholder="90 777-77-77" inputmode="numeric">
+      <label class="af-lbl" for="newOperator">Operator</label>
       <select id="newOperator">
         <option value="Beeline">Beeline</option>
         <option value="Ucell">Ucell</option>
@@ -358,14 +368,17 @@
         <option value="Humans">Humans</option>
         <option value="Perfektum">Perfektum</option>
       </select>
+      <label class="af-lbl" for="newPrice">Narxi</label>
       <div id="newPriceWrap"><input type="number" id="newPrice" placeholder="Narxi (so'm)"></div>
       <!-- VALYUTA: faqat NAQT to'lovga chiqadigan summa uchun. Dollar
            tanlansa — saytda narx "$" bilan ko'rsatiladi va bu raqamga
            bo'lib to'lash umuman taklif qilinmaydi (hisob-kitob so'mda). -->
+      <label class="af-lbl" for="newCurrency">Valyuta</label>
       <select id="newCurrency" title="Valyuta">
         <option value="uzs">so'm (UZS)</option>
         <option value="usd">dollar ($)</option>
       </select>
+      <label class="af-lbl" for="newTag">Belgi</label>
       <select id="newTag">
         <option value="oddiy">Oddiy</option>
         <option value="vip">VIP</option>
@@ -386,6 +399,7 @@
           <input type="number" id="newM24" placeholder="24 oy — oyiga">
         </div>
       </div>
+      <label class="af-lbl" for="newTier">Toifa</label>
       <select id="newTier" title="Toifa">
         <option value="">Toifasiz (oddiy)</option>
         <option value="vip">VIP — binafsha</option>
@@ -2444,6 +2458,6 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=155"></script>
+<script defer src="assets/panel.js?v=163"></script>
 </body>
 </html>

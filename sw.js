@@ -2,7 +2,7 @@
    Maqsad: internet umuman yo'q bo'lsa ham sayt ochilsin va keshdagi
    katalog ko'rinsin. Dinamik ma'lumot (Firestore, funksiyalar) HECH
    QACHON keshlanmaydi — ular doim jonli olinadi. */
-const CACHE = 'vipraqamlar-v42';   /* V156: yangi rang tizimi */
+const CACHE = 'vipraqamlar-v46';   /* V163: oltin karusel, video ko'ruvchi, admin mobil */
 /* Shriftlar ham keshga olinadi — internet uzilganda ham sayt
    o'z ko'rinishida ochiladi. */
 const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png',
@@ -10,8 +10,8 @@ const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png',
                /* V136: saytning asosiy kodi endi alohida faylda — u ham
                   keshga olinadi, aks holda internetsiz sayt ochilib,
                   lekin "jonsiz" bo'lib qolardi. */
-               '/assets/app.js?v=159',
-               '/assets/app2.js?v=159',
+               '/assets/app.js?v=163',
+               '/assets/app2.js?v=163',
                /* V146: uslublar ham alohida faylda — oflayn rejimda
                   sayt o'z ko'rinishida ochilishi uchun keshga olinadi. */
                '/assets/sayt.css?v=156',
