@@ -81,13 +81,83 @@ function parseLine(line){
   };
 }
 
-async function replyToUser(chatId, text){
+async function replyToUser(chatId, text, tugmalar){
   const token = process.env.BOT_ADD_TOKEN;
+  const tana = { chat_id: chatId, text };
+  if (tugmalar) tana.reply_markup = { inline_keyboard: tugmalar };
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text })
+    body: JSON.stringify(tana)
   });
+}
+
+/* ==================================================================
+   /holat — KUZATUV HOLATI SO'RALGANDA KO'RSATILADI  (V153)
+   ------------------------------------------------------------------
+   NEGA KERAK BO'LDI. Avval kuzatuv boti "⚠️ Ucell ishlamayapti" /
+   "✅ Ucell tiklandi" degan xabarlarni O'ZI yuborib turardi. Mijoz
+   so'rovi: "ishladi-ishlamadi deb hadeb xabar kelavermasin, undan
+   ko'ra yangilanib tursin — holatni ko'rmoqchi bo'lganda bosib
+   ko'rsin". Shu sabab o'sha xabarlar olib tashlandi, holat esa
+   Firestore'ga yozilishda davom etadi va MANA SHU yerda ko'rsatiladi.
+
+   Ko'rsatiladi: har bir operator ishlayaptimi, ishlamasa sababi va
+   nima qilish kerakligi, o'rtacha javob tezligi, faol kuzatuvlar soni
+   va oxirgi tekshiruv qachon bo'lgani.
+   ================================================================== */
+function qanchaOldin(ms){
+  if (!ms) return "noma'lum";
+  const f = Math.max(0, Date.now() - Number(ms));
+  const d = Math.round(f / 60000);
+  if (d < 1) return 'hozirgina';
+  if (d < 60) return d + ' daqiqa oldin';
+  const soat = Math.round(d / 60);
+  if (soat < 24) return soat + ' soat oldin';
+  return Math.round(soat / 24) + ' kun oldin';
+}
+
+async function kuzatuvHolati(){
+  const satr = [];
+  let faol = 0, oxirgiTekshiruv = 0;
+  try {
+    const kuz = await db.collection('number_watches').where('active', '==', true).get();
+    faol = kuz.size;
+    kuz.docs.forEach(d => {
+      const t = d.data().lastCheckedAt;
+      const ms = t && typeof t.toMillis === 'function' ? t.toMillis() : 0;
+      if (ms > oxirgiTekshiruv) oxirgiTekshiruv = ms;
+    });
+  } catch (e) { /* o'qib bo'lmasa — quyida shunchaki ko'rsatilmaydi */ }
+
+  try {
+    const sog = await db.collection('watch_health').get();
+    const qatorlar = sog.docs.map(d => {
+      const v = d.data() || {};
+      const nosoz = Number(v.streak || 0) > 0;
+      const tinim = Number(v.backoffUntil || 0) > Date.now();
+      let q = (nosoz ? '🔴 ' : '🟢 ') + d.id;
+      if (!nosoz) {
+        if (v.avgMs) q += '  ·  ' + (Number(v.avgMs) / 1000).toFixed(1) + ' s';
+      } else {
+        q += '\n   ❓ ' + (v.sababMatn || 'sabab aniqlanmadi');
+        if (v.sababQadam) q += '\n   🛠 ' + v.sababQadam;
+        q += '\n   🔁 ketma-ket ' + v.streak + ' marta xato';
+        if (v.lastOkAt) q += '\n   ⏱ oxirgi marta ishlagan: ' + qanchaOldin(v.lastOkAt);
+        if (tinim) q += '\n   ⏸ ' + Math.max(1, Math.round((Number(v.backoffUntil) - Date.now()) / 60000)) + ' daqiqa tinimda';
+      }
+      return q;
+    });
+    /* Avval nosozlari — muhimi tepada tursin */
+    qatorlar.sort((a, b) => (a.startsWith('🔴') ? 0 : 1) - (b.startsWith('🔴') ? 0 : 1));
+    satr.push(...qatorlar);
+  } catch (e) { satr.push("Holatni o'qib bo'lmadi."); }
+
+  const bosh = '📊 KUZATUV HOLATI\n\n'
+    + '👁 Faol kuzatuv: ' + faol + ' ta\n'
+    + '⏱ Oxirgi tekshiruv: ' + qanchaOldin(oxirgiTekshiruv) + '\n'
+    + '🔄 Tekshiruv har daqiqada avtomatik bo\'ladi.\n\n';
+  return bosh + (satr.length ? satr.join('\n\n') : 'Operator holati hali yozilmagan.');
 }
 
 exports.handler = async function (event) {
@@ -109,12 +179,51 @@ exports.handler = async function (event) {
   try{ update = JSON.parse(event.body || '{}'); }catch(e){ return { statusCode: 200, body: 'ok' }; }
 
   try{
+    const allowedChatId = process.env.TELEGRAM_CHAT_ID;
+
+    /* --- Tugma bosilgan bo'lsa (V153: "🔄 Yangilash") --- */
+    if(update.callback_query){
+      const cq = update.callback_query;
+      const token = process.env.BOT_ADD_TOKEN;
+      const chatId = cq.message && cq.message.chat && cq.message.chat.id;
+      /* Telegram "soat"ini darhol to'xtatamiz — aks holda tugma
+         bosilgandan keyin bir necha soniya "kutmoqda" bo'lib turadi. */
+      try{
+        await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ callback_query_id: cq.id, text: 'Yangilandi' })
+        });
+      }catch(e){}
+      if(String(chatId) !== String(allowedChatId)) return { statusCode: 200, body: 'ignored' };
+      if(cq.data === 'holat'){
+        await replyToUser(chatId, await kuzatuvHolati(), [[{ text:'🔄 Yangilash', callback_data:'holat' }]]);
+      }
+      return { statusCode: 200, body: 'ok' };
+    }
+
     const message = update.message;
     if(!message || !message.text) return { statusCode: 200, body: 'ok' };
 
-    const allowedChatId = process.env.TELEGRAM_CHAT_ID;
     if(String(message.chat.id) !== String(allowedChatId)){
       return { statusCode: 200, body: 'ignored' };
+    }
+
+    /* --- /holat: kuzatuv holatini SO'RALGANDA ko'rsatamiz --- */
+    {
+      const buyruq = message.text.trim().toLowerCase().split(/[\s@]/)[0];
+      if(buyruq === '/holat' || buyruq === '/status' || buyruq === '/start'){
+        if(buyruq === '/start'){
+          await replyToUser(message.chat.id,
+            "Bazaga raqam qo'shish uchun shunday yozing:\n" +
+            "998901234567, 1500000\n998901234567, 1500000, vip\n\n" +
+            "Kuzatuv holatini ko'rish uchun — /holat",
+            [[{ text:'📊 Kuzatuv holati', callback_data:'holat' }]]);
+          return { statusCode: 200, body: 'ok' };
+        }
+        await replyToUser(message.chat.id, await kuzatuvHolati(),
+          [[{ text:'🔄 Yangilash', callback_data:'holat' }]]);
+        return { statusCode: 200, body: 'ok' };
+      }
     }
 
     const lines = message.text.split('\n').map(l => l.trim()).filter(l => l !== '');
