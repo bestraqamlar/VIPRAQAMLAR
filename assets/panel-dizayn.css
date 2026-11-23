@@ -478,3 +478,35 @@ html[data-ds] .zk-empty{
   padding:22px 12px !important;text-align:center;
   color:var(--muted-2) !important;font-size:13px;font-weight:500;border-radius:var(--r);
 }
+
+/* ===== HUMANS TEKSHIRGICHI (V154) ===== */
+html[data-ds] .wt-humans{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-1);padding:14px 16px;margin:0 0 14px;
+}
+html[data-ds] .wt-humans-head{display:flex;flex-direction:column;gap:3px;margin-bottom:11px}
+html[data-ds] .wt-humans-head b{font-size:14px;font-weight:680;letter-spacing:-.015em}
+html[data-ds] .wt-humans-head span{font-size:12.5px;color:var(--muted)}
+html[data-ds] .wt-humans-row{display:flex;gap:8px;flex-wrap:wrap}
+html[data-ds] .wt-humans-row input{
+  flex:1;min-width:160px;height:38px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+  padding:0 13px;font-size:14px;font-weight:550;letter-spacing:.06em;
+}
+html[data-ds] .wt-humans-row input:focus{
+  outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);background:var(--panel);
+}
+html[data-ds] .wt-humans-row button{
+  height:38px;padding:0 16px;border-radius:var(--r-sm);
+  background:var(--amber);color:#fff;border:1px solid var(--amber);
+  font-size:13.5px;font-weight:620;flex:none;
+}
+html[data-ds] .wt-humans-row button:hover{filter:brightness(1.08)}
+html[data-ds] .wt-humans-row button:disabled{opacity:.55;pointer-events:none}
+html[data-ds] .wt-humans-out{
+  margin:12px 0 0;padding:12px 13px;border-radius:var(--r-sm);
+  background:var(--panel-2);border:1px solid var(--line-soft);
+  font-family:ui-monospace,'Space Mono',monospace;font-size:11.5px;line-height:1.6;
+  color:var(--text-2);white-space:pre-wrap;word-break:break-word;
+  max-height:340px;overflow:auto;
+}

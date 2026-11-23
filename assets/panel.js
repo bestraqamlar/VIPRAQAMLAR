@@ -5642,24 +5642,12 @@ async function loadSiteSettingsForm(){
        qoidalarida FAQAT adminlar uchun ochiq. Eski joyda qolib ketgan
        bo'lsa — birinchi ochilishda avtomatik ko'chiriladi va ochiq
        joydan O'CHIRILADI. */
-    (async ()=>{
-      let kod = '';
-      try{
-        const mx = await db.collection('admin_meta').doc('pay').get();
-        if(mx.exists && typeof (mx.data() || {}).code === 'string') kod = mx.data().code;
-      }catch(e){}
-      if(!kod && typeof s.paymentConfirmCode === 'string' && s.paymentConfirmCode){
-        kod = s.paymentConfirmCode;                       /* ko'chirish */
-        try{
-          await db.collection('admin_meta').doc('pay').set({ code: kod, movedAt: Date.now() }, { merge: true });
-          await db.collection('site_settings').doc('general').set({ paymentConfirmCode: '' }, { merge: true });
-          if(typeof panelToast === 'function') panelToast("To'lov kodi maxfiy joyga ko'chirildi", 'ok');
-        }catch(e){}
-      }
-      window.PAYMENT_CONFIRM_CODE = kod;
+    /* V155: kodni yuklash BU YERDAN OLIB CHIQILDI — pastdagi izohga
+       qarang (tolovKodiniYukla). Bu yerda faqat maydonga yozamiz. */
+    tolovKodiniYukla().then(kod => {
       const pcEl = document.getElementById('paymentConfirmCode');
       if(pcEl) pcEl.value = kod;
-    })();
+    }).catch(()=>{});
   }catch(e){ console.error('Sayt sozlamalarini yuklashda xato:', e); }
 }
 loadSiteSettingsForm();
@@ -5773,9 +5761,75 @@ document.getElementById('saveInstallmentRatesBtn').addEventListener('click', asy
   document.head.appendChild(stil);
 })();
 
-function askPaymentCode(){
+/* ==================================================================
+   TO'LOV TASDIQLASH KODI — YUKLASH  (V155)
+   ------------------------------------------------------------------
+   NIMA BUZILGAN EDI. Kodni o'qiydigan kod `loadSiteSettingsForm()`
+   ichida, bitta KATTA `try` blokining OXIRIDA turardi. O'sha blok
+   undan oldin o'nlab `document.getElementById(...).value = ...`
+   qatorini bajaradi. Shulardan BITTASI topilmasa (masalan sozlamalar
+   formasi o'zgarsa yoki bo'lim hali chizilmagan bo'lsa) — TypeError
+   chiqib, `catch` ishlaydi va kodni o'qish qatoriga UMUMAN YETIB
+   BORILMAYDI. Natijada `PAYMENT_CONFIRM_CODE` bo'sh qoladi, bo'sh kod
+   esa "kod sozlanmagan" degani — ya'ni to'lov tasdiqlanayotganda PIN
+   SO'RALMAY QO'YA QOLADI. Himoya jimgina o'chib qoladi, hech qanday
+   xabarsiz.
+
+   ENDI: kod o'z funksiyasida, hech qanday DOM ishiga bog'lanmagan
+   holda o'qiladi. Natija eslab qolinadi. Eng muhimi — PIN so'rashdan
+   OLDIN kod yuklanganiga ISHONCH HOSIL QILINADI: o'qib bo'lmasa,
+   "kod yo'q ekan" deb o'tkazib yubormaydi, balki xato ko'rsatadi.
+   Ya'ni himoya endi JIM O'CHMAYDI. */
+let TOLOV_KODI_YUK = null;      /* ketayotgan so'rov (takrorlanmasin) */
+function tolovKodiniYukla(majburiy){
+  if(!majburiy && typeof window.PAYMENT_CONFIRM_CODE === 'string'){
+    return Promise.resolve(window.PAYMENT_CONFIRM_CODE);
+  }
+  if(!majburiy && TOLOV_KODI_YUK) return TOLOV_KODI_YUK;
+  TOLOV_KODI_YUK = (async ()=>{
+    let kod = null;
+    const mx = await db.collection('admin_meta').doc('pay').get();
+    if(mx.exists && typeof (mx.data() || {}).code === 'string') kod = mx.data().code;
+    /* Eski, OCHIQ hujjatda qolib ketgan bo'lsa — maxfiy joyga ko'chiramiz */
+    if(!kod){
+      try{
+        const g = await db.collection('site_settings').doc('general').get();
+        const eskiKod = g.exists ? (g.data() || {}).paymentConfirmCode : '';
+        if(typeof eskiKod === 'string' && eskiKod){
+          kod = eskiKod;
+          await db.collection('admin_meta').doc('pay').set({ code: kod, movedAt: Date.now() }, { merge: true });
+          await db.collection('site_settings').doc('general').set({ paymentConfirmCode: '' }, { merge: true });
+          if(typeof panelToast === 'function') panelToast("To'lov kodi maxfiy joyga ko'chirildi", 'ok');
+        }
+      }catch(e){ /* ko'chirish bo'lmasa ham, yuqoridagi kod ishlatiladi */ }
+    }
+    window.PAYMENT_CONFIRM_CODE = kod || '';
+    return window.PAYMENT_CONFIRM_CODE;
+  })();
+  TOLOV_KODI_YUK.catch(()=>{ TOLOV_KODI_YUK = null; });   /* xato bo'lsa qayta urinsa bo'lsin */
+  return TOLOV_KODI_YUK;
+}
+
+/* Kodni ISHONCHLI olish: o'qib bo'lmasa bir marta qayta urinadi va
+   baribir bo'lmasa XATO tashlaydi (jimgina "kod yo'q" demaydi). */
+async function tolovKodiniOl(){
+  try{ return await tolovKodiniYukla(); }
+  catch(e){
+    await new Promise(r => setTimeout(r, 600));
+    return await tolovKodiniYukla(true);
+  }
+}
+
+async function askPaymentCode(){
+  let code;
+  try{ code = String(await tolovKodiniOl() || '').trim(); }
+  catch(e){
+    if(typeof panelToast === 'function'){
+      panelToast("Tasdiqlash kodini tekshirib bo'lmadi — sahifani yangilang", 'bad');
+    }
+    return false;
+  }
   return new Promise((resolve) => {
-    const code = ((window.PAYMENT_CONFIRM_CODE != null) ? String(window.PAYMENT_CONFIRM_CODE) : '').trim();
     if(!code){ resolve(true); return; }
 
     let modal = document.getElementById('pinConfirmModal');
@@ -5843,8 +5897,17 @@ function askPaymentCode(){
    opts.isUndo = true bo'lsa — "to'lovni bekor qilish" matni va qizil rang.
    Natija: tanlangan oy raqami (Number) yoki bekor qilinsa null.
    ================================================================== */
-function confirmCreditPayment(contract, defaultMonth, opts){
+async function confirmCreditPayment(contract, defaultMonth, opts){
   opts = opts || {};
+  /* V155: PIN so'rashdan oldin kod ANIQ yuklangan bo'lishi kerak —
+     aks holda "kod yo'q" deb o'tkazib yuborilardi (yuqoridagi izoh). */
+  try{ await tolovKodiniOl(); }
+  catch(e){
+    if(typeof panelToast === 'function'){
+      panelToast("Tasdiqlash kodini tekshirib bo'lmadi — sahifani yangilang", 'bad');
+    }
+    return null;
+  }
   return new Promise((resolve) => {
     const payments = contract.payments || [];
     const pending = opts.single
@@ -13137,4 +13200,62 @@ function stChiz(){
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boshla);
   else boshla();
+})();
+
+/* ==================================================================
+   HUMANS TEKSHIRGICHI  (V154)
+   ------------------------------------------------------------------
+   "Humans bizda kamroq raqam ko'rsatadi, yangilasa qolganlari
+   chiqadi" degan nosozlikning SABABINI o'lchaydi. Tugma bosilganda
+   server Humans API'siga bir nechta parametr varianti bilan so'rov
+   yuboradi va qaysi biri ko'proq raqam berganini qaytaradi.
+   Hech narsani o'zgartirmaydi — faqat o'qiydi.
+   ================================================================== */
+(function humansTekshirgich(){
+  const tug = document.getElementById('wtHumansBtn');
+  if(!tug) return;
+  const maydon = document.getElementById('wtHumansMask');
+  const chiqish = document.getElementById('wtHumansOut');
+
+  async function ishlat(){
+    const aslMatn = tug.textContent;
+    tug.disabled = true; tug.textContent = 'Tekshirilmoqda…';
+    chiqish.hidden = false;
+    chiqish.textContent = 'Humans API bilan bog\'lanilmoqda… (10-20 soniya)';
+    try{
+      const idToken = await firebase.auth().currentUser.getIdToken();
+      const res = await fetch('/.netlify/functions/admin-humans-tekshir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+        body: JSON.stringify({ mask: (maydon.value || '').trim() })
+      });
+      const j = await res.json();
+      if(!j.ok){
+        chiqish.textContent = 'Tekshirib bo\'lmadi: ' + (j.error || 'nomalum sabab')
+          + (j.bosqich ? ' (bosqich: ' + j.bosqich + ')' : '');
+        return;
+      }
+      /* Natijani odam o'qiydigan ko'rinishda yozamiz */
+      const q = [];
+      q.push('NAQSH: ' + j.naqsh);
+      q.push('');
+      Object.entries(j.xulosa).forEach(([k, v]) => q.push(k + ': ' + v));
+      q.push('');
+      q.push('PARAMETR VARIANTLARI (nechta raqam qaytdi):');
+      (j.parametrlar || []).forEach(p => {
+        q.push('  ' + String(p.variant).padEnd(26)
+          + (p.soni != null ? p.soni + ' ta' : ('XATO: ' + (p.xato || p.status)))
+          + (p.ms ? '   (' + p.ms + ' ms)' : ''));
+      });
+      chiqish.textContent = q.join('\n');
+    }catch(e){
+      chiqish.textContent = 'Xato: ' + ((e && e.message) || e);
+    }finally{
+      tug.disabled = false; tug.textContent = aslMatn;
+    }
+  }
+
+  tug.addEventListener('click', ishlat);
+  maydon.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); ishlat(); } });
+  maydon.addEventListener('input', ()=>{ maydon.value = maydon.value.replace(/[^0-9_]/g, '').slice(0,7); });
 })();

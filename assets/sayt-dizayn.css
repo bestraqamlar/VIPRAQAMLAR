@@ -1,0 +1,367 @@
+/* ==================================================================
+   MIJOZ SAYTI — RANG VA ZICHLIK QATLAMI  (V156)
+   ------------------------------------------------------------------
+   MIJOZ AYTGAN: "sayt juda oddiy, premium bo'lishi kerak; ranglari
+   negadir bug'ib turibdi".
+
+   NIMA BO'LGAN EDI. Butun sayt BITTA to'yingan ko'k rangda edi:
+     fon      #07162B  (to'q ko'k)
+     kartochka#12294C  (bir oz ochroq ko'k)
+     chegara  oq rangning 11% shaffofi — ya'ni yana ko'k ustida ko'k
+   Uch qatlam ham bir xil rang oilasidan bo'lgani uchun ko'z ularni
+   AJRATA olmaydi: hammasi bitta "ko'k tuman" bo'lib qo'shilib ketadi.
+   Aynan shu "bug'ib turish" hissini beradi. Ustiga fonda rangli
+   yorug'lik dog'lari va diagonal naqsh ham bor edi — ular rasmni
+   yana loyqalashtiradi.
+
+   ENDI. Asos — NEYTRAL (deyarli qora, sovuq tomonga arzimas og'ish).
+   Ko'k faqat URG'U sifatida qoladi: tugma, faol holat, havola. Oltin
+   esa faqat haqiqiy VIP uchun. Shunda:
+     * oq raqam qora fonda to'liq kuch bilan ko'rinadi;
+     * kartochka fondan ANIQ ajraladi (rang bilan emas, qatlam bilan);
+     * ko'k bosilganda sezilarli bo'ladi — chunki atrofda ko'k yo'q.
+
+   Kun mavzusi ham tuzatildi: avvalgi fon #CBD6E9 edi — bu "ochiq"
+   emas, to'yingan ko'kimtir-kulrang. Oq kartochka unda iflos
+   ko'rinardi. Endi fon neytral kulrang.
+
+   TEZLIK. Bu qatlam faqat rang va o'lcham beradi — bitta ham yangi
+   rasm, shrift yoki skript qo'shmaydi. Aksincha, fondagi og'ir
+   yorug'lik dog'lari kuchsizlantirilgani uchun chizish YENGILLASHADI.
+   ================================================================== */
+
+/* ESLATMA: rang TOKENLARI index.html ichidagi kritik uslubda
+   almashtirildi (o'sha yerda `:root` va `html[data-theme="dark"]`
+   bloklari turadi). Nega aynan u yerda: bu fayl kechroq yuklanadi,
+   agar tokenlar shu yerda bo'lsa sahifa ochilishida bir lahza ESKI
+   rang ko'rinib, keyin almashardi — ya'ni "chaqnash" bo'lardi.
+   Bu faylda esa faqat komponent qoidalari qoladi. */
+
+/* ====================== 3. RAQAM KARTOCHKASI ======================
+   Avval har bir kartochkada to'liq o'lchamli "Batafsil →" tugmasi
+   turardi. Kartochkaning O'ZI allaqachon bosiladi (butun yuza
+   havola), ya'ni bu tugma hech qanday yangi imkoniyat bermaydi —
+   faqat 12 ta kartochkada 12 marta takrorlanib, ko'zni charchatadi
+   va kartochkani 40 px balandlashtiradi.
+   Endi: tugma o'rniga narx yonida kichik strelka. Kartochka pastroq,
+   ekranga ko'proq raqam sig'adi, e'tibor esa RAQAMNING o'ziga
+   tushadi — mijoz aynan shuni qidiradi. */
+.numcard{ padding:14px 15px; border-radius:16px; }
+.nc-num{ font-size:26px; font-weight:750; letter-spacing:-.015em; }
+.nc-sep{ margin:11px 0 10px; }
+.nc-bot{ gap:10px; }
+.nc-price .p{ font-size:16px; font-weight:700; letter-spacing:-.01em; }
+.nc-price .old{ font-size:12.5px; }
+
+/* Pastki qator: sayt.css da u USTUN qilib qo'yilgan
+   (.numcard .nc-bot{flex-direction:column}) — shuning uchun narx va
+   tugma ustma-ust turardi va kartochka 40px cho'zilardi. Endi ular
+   bitta qatorda: chapda narx, o'ngda strelka. */
+.numcard .nc-bot{
+  flex-direction:row; align-items:center; justify-content:space-between;
+  padding-top:0; gap:10px; margin-top:auto;
+}
+.numcard .nc-price{ flex:1; min-width:0; }
+
+/* "Batafsil" yozuvi o'rniga — faqat strelka */
+.numcard .nc-cta{
+  height:34px; width:34px; padding:0; border-radius:11px; flex:none;
+  justify-content:center; gap:0; font-size:0;
+  background:var(--blue-tint); color:var(--blue-text);
+  box-shadow:inset 0 0 0 1px var(--blue-cta-line);
+  transition:background .18s, transform .18s, box-shadow .18s;
+}
+.numcard .nc-cta svg{ opacity:1; width:16px; height:16px; }
+.numcard:hover .nc-cta{ background:var(--blue); color:#fff; }
+.numcard:hover .nc-cta svg{ transform:translateX(2px); }
+.numcard .nc-cta.off{ background:var(--card-3); color:var(--faint); box-shadow:none; }
+
+/* Operator yorlig'i — kichikroq va tinchroq */
+.nc-meta{ gap:6px; margin-top:7px; }
+.nc-meta .tag{ font-size:11px; padding:3px 8px; }
+
+/* Ustiga borilganda kartochka sal ko'tariladi — "bosiladi" degan belgi */
+.numcard{ transition:transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s, border-color .18s; }
+.numcard:hover{ transform:translateY(-2px); box-shadow:var(--sh-2); }
+.numcard:active{ transform:translateY(0) scale(.995); }
+
+/* ====================== 4. ZICHLIK ======================
+   Kartochka pastlashgani uchun ustunlar ham ingichkaroq bo'lishi
+   mumkin: bitta ekranda ko'proq raqam ko'rinadi. */
+@media (min-width:900px){
+  #catList{ grid-template-columns:repeat(auto-fill,minmax(clamp(212px,16vw,248px),1fr)); gap:14px; }
+}
+
+/* ====================== 5. FON ======================
+   Rangli yorug'lik dog'lari tokenlar orqali allaqachon
+   kuchsizlantirildi. Qolgan naqsh ham xiralashtiriladi: e'tibor
+   kartochkalarda bo'lishi kerak, fonda emas. */
+body::after{ opacity:.35; }
+
+/* ====================== 6. QATTIQ YOZILGAN KO'K YUZALAR ==============
+   Tokenlar almashtirilgandan keyin ham ikkita yuza ko'k bo'lib qoldi,
+   chunki ularda rang TOKEN orqali emas, to'g'ridan-to'g'ri yozilgan.
+   Birinchisi — tejamkor rejimdagi (html.low) tepa panel; ikkinchisi —
+   bosh sahifadagi katta kartochka. */
+/* DIQQAT: bu qoida MAVZUGA qarab bo'linadi. Eski kodda u ikkala
+   mavzuda ham bitta to'q ko'k rang berardi — kun mavzusida esa
+   panel qorayib, ustidagi to'q matn o'qilmay qolardi. */
+html.low .apbar, html.low .topbar, html.low #deskhead{ background:var(--card); }
+html[data-theme="dark"].low .apbar,
+html[data-theme="dark"].low .topbar,
+html[data-theme="dark"].low #deskhead{ background:#0E1118; }
+
+/* --- Bosh kartochka ---
+   Avval: to'q ko'k gradient + oltin yorug'lik + diagonal to'r. Ko'k
+   bilan oltin bir-biriga qarshi ikki issiq-sovuq rang — ular yonma-yon
+   turganda ikkalasi ham xiralashadi. Endi asos NEYTRAL grafit: oltin
+   endi ko'k bilan urishmaydi va haqiqatan qimmat ko'rinadi. */
+.herocard{
+  background:
+    radial-gradient(240px 200px at 104% -12%, rgba(233,201,131,.30), rgba(233,201,131,.07) 46%, transparent 70%),
+    radial-gradient(300px 240px at -12% 114%, rgba(61,109,255,.14), transparent 66%),
+    linear-gradient(158deg, #20242E 0%, #171A22 46%, #0C0E13 100%) !important;
+  box-shadow:
+    0 22px 46px -26px rgba(0,0,0,.9),
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 -1px 0 rgba(0,0,0,.4) !important;
+}
+/* Kun mavzusida ham xuddi shu grafit kartochka — u brend belgisi,
+   mavzuga qarab o'zgarmaydi (oq kartochkada oltin yo'qoladi). */
+
+/* --- Pastki menyu ---
+   U "shisha" yuza: orqasidagi rangni olib, `saturate(190%)` bilan
+   KUCHAYTIRIB ko'rsatadi. Fon ko'k bo'lgan paytda bu to'g'ri edi,
+   endi esa u qolgan ko'k dog'larni bo'rttirib, menyuni yana ko'k
+   qilib qo'yadi. To'yinganlik tushiriladi va menyuning o'z
+   yorug'liklari neytrallashtiriladi. */
+#nav{
+  backdrop-filter:saturate(118%) blur(18px) !important;
+  -webkit-backdrop-filter:saturate(118%) blur(18px) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.012) 40%, rgba(255,255,255,0) 62%),
+    radial-gradient(120% 140% at 0% 50%, rgba(255,255,255,.04), transparent 32%),
+    radial-gradient(120% 140% at 100% 50%, rgba(255,255,255,.04), transparent 32%),
+    var(--navbg) !important;
+}
+/* Tepa panel ham xuddi shunday — ortiqcha to'yinganlik olib tashlanadi */
+.apbar{ backdrop-filter:saturate(120%) blur(16px); -webkit-backdrop-filter:saturate(120%) blur(16px); }
+
+/* ==================================================================
+   7. KARTOCHKALAR FONDAN AJRALSIN  (V159)
+   ------------------------------------------------------------------
+   MIJOZ AYTGAN: "kartochkalar orqa fon bilan bir xil bo'lib yotibdi".
+   To'g'ri: kartochka #14171F, fon #0A0C11 edi — orasidagi farq atigi
+   4-5% yorug'lik. Ko'z bunchalik kichik farqni, ayniqsa telefonda va
+   quyoshda, umuman sezmaydi.
+
+   Uch narsa birga ishlatiladi (bittasi yetarli emas):
+     1) YUZA  — kartochka sezilarli ochroq;
+     2) QIRRA — yuqori chetida ingichka yorug' chiziq (chiroq kartochka
+        ustiga tushgandek); bu eng kuchli "ko'tarilgan" belgisi;
+     3) SOYA  — pastda yumshoq, keng soya.
+   ================================================================== */
+html[data-theme="dark"]{
+  --card:#181C25;
+  --card-2:#1F242F;
+  --card-3:#272D3A;
+  --line:rgba(255,255,255,.10);
+  --line-2:rgba(255,255,255,.15);
+  --line-3:rgba(255,255,255,.07);
+  --nc-edge:rgba(255,255,255,.13);
+}
+:root{
+  --line:#DCE0E7;
+  --line-2:#CBD1DB;
+}
+
+html[data-theme="dark"] .numcard,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .vcard,
+html[data-theme="dark"] .ptile,
+html[data-theme="dark"] .daycard{
+  background:var(--card) !important;
+  border:1px solid var(--line) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 1px 2px rgba(0,0,0,.45),
+    0 10px 26px -14px rgba(0,0,0,.8) !important;
+}
+:root:not([data-theme="dark"]) .numcard,
+:root:not([data-theme="dark"]) .card,
+:root:not([data-theme="dark"]) .vcard{
+  background:#FFFFFF !important;
+  border:1px solid var(--line) !important;
+  box-shadow:
+    0 1px 2px rgba(9,12,18,.06),
+    0 8px 22px -12px rgba(9,12,18,.18) !important;
+}
+
+/* ==================================================================
+   8. TOIFA RANGLARI — GOLD / VIP / PREMIUM
+   ------------------------------------------------------------------
+   Toifa tokenlari (--tier-bar, --vip-line, --vip-glow) saytda
+   allaqachon bor edi, lekin kartochkada deyarli ko'rinmasdi. Endi
+   toifali kartochka: rangli yupqa yuza, rangli chegara, chap
+   chetida rangli chiziq va yumshoq yog'du. Oddiy kartochkalar
+   o'zgarmaydi — shunda toifa HAQIQATAN ajralib turadi.
+   ================================================================== */
+html[data-theme="dark"] .numcard.vipc{
+  border-color:var(--vip-line) !important;
+  background:
+    linear-gradient(170deg, var(--vip-head), transparent 58%),
+    var(--card) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    0 1px 2px rgba(0,0,0,.45),
+    0 12px 30px -14px var(--vip-glow) !important;
+}
+:root:not([data-theme="dark"]) .numcard.vipc{
+  border-color:var(--vip-line) !important;
+  background:
+    linear-gradient(170deg, var(--vip-head), transparent 62%),
+    #FFFFFF !important;
+  box-shadow:
+    0 1px 2px rgba(9,12,18,.06),
+    0 10px 26px -12px var(--vip-glow) !important;
+}
+/* Chap chetidagi toifa chizig'i — endi hamma toifada ko'rinadi */
+.numcard.vipc::after{ display:block !important; width:3px; top:16px; bottom:16px; }
+/* Raqamning o'zi toifa rangida emas, OQ qoladi — o'qilishi muhimroq */
+.numcard.vipc .nc-num{ color:var(--ink); }
+
+/* ==================================================================
+   9. JONLI FON  (V159)
+   ------------------------------------------------------------------
+   MIJOZ AYTGAN: "orqa fon ham zamonaviy bo'lsin va jonli".
+   TEZLIK SHARTI: "qotmasin".
+
+   Shuning uchun fon shunday qurildi:
+     * atigi IKKITA yumshoq dog';
+     * ular `transform` bilan suriladi — bu videokartada bajariladi,
+       sahifani qayta chizishga MAJBUR QILMAYDI (agar `background-
+       position` yoki `opacity` jonlantirilsa, brauzer har kadrda
+       butun fonni qaytadan chizadi — aynan shundan "qotish" bo'ladi);
+     * qatlam `position:fixed` — ya'ni faqat ekran o'lchamida, uzun
+       sahifada ham katta maydon chizilmaydi;
+     * harakat JUDA sekin (40 va 55 soniya) — ko'z ilg'amaydi, lekin
+       sahifa "tirik" ko'rinadi;
+     * `html.low` (tejamkor rejim) va "harakatni kamaytirish"
+       sozlamasida butunlay o'chadi.
+   ================================================================== */
+.jonli-fon{
+  position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+  contain:strict; overflow:hidden;
+}
+.jonli-fon i{
+  position:absolute; display:block; border-radius:50%;
+  filter:blur(90px); opacity:.5;
+  will-change:transform;
+}
+.jonli-fon i:nth-child(1){
+  width:46vmax; height:46vmax; left:-8%; top:-6%;
+  background:radial-gradient(circle, var(--blob-1), transparent 70%);
+  animation:fonA 40s ease-in-out infinite;
+}
+.jonli-fon i:nth-child(2){
+  width:40vmax; height:40vmax; right:-10%; bottom:-8%;
+  background:radial-gradient(circle, var(--blob-3), transparent 70%);
+  animation:fonB 55s ease-in-out infinite;
+}
+@keyframes fonA{
+  0%,100%{ transform:translate3d(0,0,0) scale(1); }
+  50%    { transform:translate3d(12vmax,8vmax,0) scale(1.12); }
+}
+@keyframes fonB{
+  0%,100%{ transform:translate3d(0,0,0) scale(1.06); }
+  50%    { transform:translate3d(-10vmax,-9vmax,0) scale(1); }
+}
+html.low .jonli-fon, html.tg .jonli-fon{ display:none; }
+@media (prefers-reduced-motion:reduce){ .jonli-fon i{ animation:none; } }
+
+/* ==================================================================
+   10. MATN — QULAY O'QILISHI  (V159)
+   Mijoz: "yozuv va matn qulay o'qilishi kerak".
+   Xira matn bir pog'ona yorug'lashtirildi, qator oralig'i kengaytirildi,
+   kichik yozuvlar kattalashtirildi. Telefonda 12px dan kichik matn
+   qolmasin — quyoshda va yurib ketayotganda o'qib bo'lmaydi.
+   ================================================================== */
+html[data-theme="dark"]{ --muted:#9AA4B4; --muted-2:#9AA4B4; --faint:#7B8495; --text-3:#AAB3C2; }
+:root{ --muted:#5D6573; --muted-2:#5D6573; --faint:#7C8493; --text-3:#4A5260; }
+
+body{ line-height:1.5; }
+.nc-meta .tag{ font-size:11.5px; }
+.nc-price .p{ font-size:16.5px; }
+.nc-price .old{ font-size:13px; }
+.sub, .muted, small{ line-height:1.5; }
+/* Juda kichik yozuvlar kattalashtirildi (quyoshda o'qilsin) */
+.sub{ font-size:12.5px; }
+.tag{ font-size:11.5px; }
+
+/* ==================================================================
+   11. HARAKAT — "jonli, yumshoq, lekin bachkana emas"  (V159)
+   ------------------------------------------------------------------
+   QOIDA. Butun saytda BITTA egri chiziq va UCH xil davomiylik:
+     tez (.14s)   — bosish javobi
+     o'rta (.22s) — holat o'zgarishi
+     sekin (.34s) — oyna ochilishi
+   Faqat `transform` va `opacity` jonlantiriladi — qolgan hamma narsa
+   (en, balandlik, joy) brauzerni qayta hisoblashga majbur qiladi va
+   aynan shundan "qotish" bo'ladi.
+
+   Hammasi `prefers-reduced-motion` da o'chadi va `html.low` da
+   qisqaradi — eski telefonni qiynamaydi.
+   ================================================================== */
+:root{ --ez-y:cubic-bezier(.22,.61,.36,1); --ez-p:cubic-bezier(.34,1.3,.64,1); }
+
+/* --- bosish javobi: hamma bosiladigan narsa --- */
+.numcard, .btn, .chip, .iconbtn, .tag, .nc-fav, .row, .ptile, .daycard, .vcard, [data-go], [data-card]{
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active, .chip:active, .iconbtn:active, .row:active, .ptile:active{
+  transform:scale(.97); transition:transform .1s var(--ez-y);
+}
+.numcard:active{ transform:scale(.985) translateY(0); }
+
+/* --- sevimlilar yuragi: bosilganda "puf" qiladi --- */
+.nc-fav{ transition:transform .2s var(--ez-p), color .18s, background .18s; }
+.nc-fav:active{ transform:scale(.88); }
+.nc-fav.on{ animation:yurak .34s var(--ez-p); }
+@keyframes yurak{
+  0%{ transform:scale(1); } 40%{ transform:scale(1.28); } 100%{ transform:scale(1); }
+}
+
+/* --- ro'yxat: kartochkalar ketma-ket chiqadi --- */
+#catList .numcard, #homeRec .numcard{ animation:kartaKir .34s var(--ez-y) both; }
+#catList .numcard:nth-child(1){ animation-delay:.01s } #catList .numcard:nth-child(2){ animation-delay:.04s }
+#catList .numcard:nth-child(3){ animation-delay:.07s } #catList .numcard:nth-child(4){ animation-delay:.10s }
+#catList .numcard:nth-child(5){ animation-delay:.13s } #catList .numcard:nth-child(6){ animation-delay:.16s }
+#catList .numcard:nth-child(n+7){ animation-delay:.18s }
+@keyframes kartaKir{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+
+/* --- chip tanlanganda --- */
+.chip{ transition:background .18s var(--ez-y), color .18s, border-color .18s, transform .14s var(--ez-y); }
+.chip.on{ animation:chipTan .26s var(--ez-p); }
+@keyframes chipTan{ 0%{transform:scale(.94)} 60%{transform:scale(1.04)} 100%{transform:scale(1)} }
+
+/* --- oyna ochilishi: pastdan yumshoq ko'tariladi --- */
+.sheet .pn{ animation:oynaKir .34s var(--ez-y) both; }
+@keyframes oynaKir{ from{ opacity:0; transform:translateY(22px) } to{ opacity:1; transform:none } }
+.sheet{ transition:opacity .26s var(--ez-y), backdrop-filter .26s; }
+
+/* --- tugmalar: ustiga borilganda biroz ko'tariladi --- */
+.btn{ transition:transform .16s var(--ez-y), filter .18s, background .18s, box-shadow .2s; }
+.btn:hover{ transform:translateY(-1px); }
+
+/* --- pastki menyudagi faol belgi --- */
+#nav a, #nav button{ transition:color .2s var(--ez-y), background .2s var(--ez-y); }
+
+/* --- sahifa almashganda yengil kirish --- */
+.screen.on{ animation:ekranKir .3s var(--ez-y) both; }
+@keyframes ekranKir{ from{ opacity:0; transform:translateY(6px) } to{ opacity:1; transform:none } }
+
+/* --- tejamkor rejim va harakatni kamaytirish --- */
+html.low .numcard, html.low .screen.on, html.low #catList .numcard{ animation:none !important; }
+@media (prefers-reduced-motion:reduce){
+  *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
