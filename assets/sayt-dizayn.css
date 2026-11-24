@@ -432,15 +432,20 @@ html.low .numcard, html.low .screen.on, html.low #catList .numcard{ animation:no
 }
 .hc-cta b{ color:#0A1120 !important; }
 .hc-cta svg{ stroke:#0A1120 !important; }
-.hc-cta::before, .hc-cta::after{ display:none !important; }
+/* V165: bu yerda ilgari ::before/::after butunlay o'chirilgan edi.
+   Endi ::after oltin yaltiroq uchun kerak, shuning uchun faqat
+   ::before o'chiriladi. */
+.hc-cta::before{ display:none !important; }
 
-/* --- Naqsh yorlig'i (V162) ---
+/* --- Naqsh yorlig'i (V162, V164 da bosildi) ---
+   To'ldirilgan ko'k dog' kartochkadagi eng baland ovoz bo'lib qolgan
+   edi va ko'z raqamdan chalg'irdi. Endi u ham yassi va ingichka. ---
    Raqam NEGA qimmatligini aytadi. Toifa yorlig'idan farqlansin
    uchun — ko'k oilasida, tekis, halqasiz. */
 .tag.naqsh{
-  background:var(--blue-tint) !important;
-  color:var(--blue-text) !important;
-  box-shadow:none !important;
+  background:transparent !important;
+  color:color-mix(in srgb, var(--blue-text, #8FB4FF) 82%, #FFFFFF) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--blue, #3D7BFF) 30%, transparent) !important;
   font-weight:650;
   letter-spacing:0;
   text-transform:none;
@@ -562,134 +567,234 @@ html.low .herocard, html.tg .herocard{ background-image:none; }
 .numcard.vipc::after,
 .numcard.vipc::before{ display:none !important; content:none !important; }
 
-/* --- 13.2 RAQAM: soya + teskari fon --------------------------------
-   Mijoz: "barcha e'tibor raqamga qaratilsin". Shuning uchun raqam
-   turgan maydon qolgan yuzadan TO'QROQ qilinadi — ya'ni raqam oq,
-   foni esa qora tomonga suriladi. Bu "ichkariga botgan oyna" effekti:
-   raqam undan ko'tarilib turadi. Hammasi statik gradient — tez. */
+/* ==================================================================
+   V164 — QAYTA ISHLANDI (mijoz: "juda hunuk bo'lib ketdi")
+   ------------------------------------------------------------------
+   V163 da nima noto'g'ri bo'lgan, rostini aytganda:
+
+     1) OLTIN JUDA KO'PAYIB KETDI. Bitta kartochkada bir vaqtda oltin
+        setka + oltin raqam + oltin yorliq + oltin tugma turardi.
+        Qimmat ko'rinish bu emas — qimmat ko'rinish OZ narsadan keladi.
+     2) SETKA xunuk edi: 34px kataklar aniq ko'rinib, "daftar varag'i"
+        taassurotini berardi.
+     3) RAQAM USTIGA QUTI qo'yganim xato edi — kartochka ichida yana
+        bitta kartochka paydo bo'lib, ko'z chalg'irdi.
+     4) YORLIQLAR 3D gradient va soya bilan edi — bu 2010-yillarning
+        "plastik tugma" uslubi, zamonaviy emas.
+
+   TUZATISH PRINSIPI: TIYIQLIK.
+     - Oltin BITTA kartochkada BITTA joyda ishlatiladi.
+     - Yuzalar tekis va chuqur; nur sezilar-sezilmas.
+     - Yorliqlar yassi, ingichka halqali, harflari ajratilgan.
+     - Ishni RAQAMNING O'ZI qiladi: katta, oq, ishonchli.
+   ================================================================== */
+
+/* --- 14.1 Raqam ustidagi QUTI OLIB TASHLANDI --------------------- */
 .numcard .nc-top{
-  position:relative;
-  border-radius:14px;
-  margin:-2px -4px 6px;
-  padding:10px 12px 8px;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.30) 0%, rgba(0,0,0,.16) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.05),
-    inset 0 -1px 0 rgba(255,255,255,.03);
+  position:static;
+  margin:0 0 6px; padding:0;
+  background:none; box-shadow:none; border-radius:0;
 }
-.numcard > .nc-top::before{ left:12px; right:12px; top:0; }
+/* Kartochka tepasidagi yupqa shisha qirrasi ham olindi — u ham
+   "quti ichida quti" taassurotini kuchaytirardi. */
+.numcard > .nc-top::before{ content:none; }
 
-/* Raqamning o'ziga soya — qora yuzada oq soya ishlamaydi, shuning
-   uchun soya PASTGA va QORA, raqam esa ustida "ko'tarilib" turadi. */
+/* Raqamga soya — bor, lekin SEZILAR-SEZILMAS. Avvalgisi ikki
+   qatlamli qora soya edi va raqam "yopishtirilgan" ko'rinardi. */
 .nc-num, .dt-num, .herocard .num{
-  filter:drop-shadow(0 2px 0 rgba(0,0,0,.42)) drop-shadow(0 8px 18px rgba(0,0,0,.55));
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));
 }
 
-/* --- 13.3 GOLD / VIP yorlig'i — endi KO'RINADI ---------------------
-   Avval tekis rang + yupqa halqa edi: to'q ko'k yuzada deyarli
-   bilinmasdi. Endi metall gradient fon + ichki nur + tashqi yorug'lik.
-   Bitta element, animatsiyasiz — tezlikka tegmaydi. */
+/* Raqam rangi: TOZA OQ. Ko'k o'tish ham, oltin o'tish ham olib
+   tashlandi — ular raqamni iflos ko'rsatardi. Toifa farqi faqat
+   yorliqda qoladi, raqamda emas. */
+.nc-num, .dt-num,
+.t-gold .nc-num, .t-gold .dt-num,
+.t-vip  .nc-num, .t-vip  .dt-num{
+  background:none !important;
+  -webkit-text-fill-color:currentColor !important;
+  color:var(--ink) !important;
+}
+
+/* --- 14.2 Yorliqlar: YASSI, ingichka, harflari ajratilgan ---------
+   Fon yo'q (juda yengil ohang bor), gradient yo'q, soya yo'q.
+   Faqat 1px halqa va rang. Shu eng qimmat ko'rinish. */
 .numcard .tag.vip, .dt-tier, .tag.vip{
-  background:linear-gradient(145deg,
-      color-mix(in srgb, var(--tier-ink, #C6CDD9) 34%, transparent) 0%,
-      color-mix(in srgb, var(--tier-ink, #C6CDD9) 14%, transparent) 52%,
-      color-mix(in srgb, var(--tier-ink, #C6CDD9) 28%, transparent) 100%) !important;
-  color:color-mix(in srgb, var(--tier-ink, #C6CDD9) 86%, #FFFFFF) !important;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--tier-ink, #C6CDD9) 58%, transparent),
-    inset 0 0 0 1px var(--tier-ring, rgba(255,255,255,.22)),
-    0 4px 12px -6px color-mix(in srgb, var(--tier-ink, #C6CDD9) 70%, transparent) !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  letter-spacing:.15em !important;
-  padding:5px 11px !important;
-  text-shadow:0 1px 0 rgba(0,0,0,.45);
+  background:color-mix(in srgb, var(--tier-ink, #C6CDD9) 10%, transparent) !important;
+  color:var(--tier-ink, #C6CDD9) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tier-ink, #C6CDD9) 38%, transparent) !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  letter-spacing:.2em !important;
+  padding:4px 9px 4px 10px !important;   /* o'ngda harf oralig'i joy oladi */
+  text-transform:uppercase;
+  text-shadow:none !important;
 }
-.t-gold .tag.vip, .t-gold .dt-tier{
-  color:#FFE9B8 !important;
-}
-.numcard .tag.vip svg{ width:12px; height:12px; opacity:1; }
+.numcard .tag.vip svg{ width:11px; height:11px; opacity:.9; }
+/* Oltin — faqat GOLD toifada, faqat shu yorliqda. Saytdagi yagona
+   oltin element shu bo'lsa, u haqiqatan qimmat ko'rinadi. */
+.t-gold{ --tier-ink:#E0BE78; --tier-ring:rgba(224,190,120,.42); }
+.t-vip    { --tier-ink:#B9A6E8; --tier-ring:rgba(185,166,232,.40); }
+.t-premium{ --tier-ink:#C2CEDA; --tier-ring:rgba(194,206,218,.38); }
 
-/* --- 13.4 "Batafsil" — oltin, qimmat -------------------------------
-   Oq tugma toza edi, lekin mijoz uni "oddiy" dedi. Oltin metall
-   gradient + pastdagi iliq nur premium signal beradi. */
+/* --- 14.3 "Batafsil": oltin SLAB emas, oltin YOZUV ----------------
+   Sariq to'rtburchak tugma arzon ko'rinardi. Zamonaviy premium
+   ko'rinish: to'q shisha yuza + oltin ingichka halqa + oltin yozuv. */
 .hc-cta{
-  background:linear-gradient(145deg, #F7E3B0 0%, #E3C47B 38%, #C9A355 72%, #E8CE92 100%) !important;
-  color:#2A1E06 !important;
+  background:rgba(255,255,255,.06) !important;
+  color:#EBD6A4 !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.62),
-    inset 0 -1px 0 rgba(120,88,26,.42),
-    0 10px 24px -12px rgba(201,163,85,.75) !important;
-  font-weight:800 !important;
+    inset 0 0 0 1px rgba(224,190,120,.40),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
+  font-weight:750 !important;
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
 }
-.hc-cta b{ color:#2A1E06 !important; }
-.hc-cta svg{ stroke:#2A1E06 !important; }
+.hc-cta b{ color:#EBD6A4 !important; }
+.hc-cta svg{ stroke:#EBD6A4 !important; }
+.hc-cta:active{ background:rgba(255,255,255,.11) !important; }
 
-/* --- 13.5 PREMIUM KARUSEL — alohida, oltin setkali ------------------
-   Bu yerda saytdagi ENG QIMMAT raqamlar turadi, shuning uchun u
-   qolgan kartochkalardan butunlay boshqacha ko'rinadi:
-     - to'q, deyarli qora-ko'k yuza (raqam maksimal ajralsin)
-     - ustida juda nozik OLTIN SETKA (repeating-gradient — bitta
-       chizish, hech qanday rasm va animatsiya yo'q, eski telefonda
-       ham tekin)
-     - burchakdan tushgan oltin nur
-     - oltin halqa
-   Hammasi statik — aylantirganda FPS tushmaydi. */
+/* --- 15.1 PREMIUM KARUSEL: YORQIN, ko'zga tashlanadigan ----------
+   Mijoz: "orqa fon bilan kartochka bir xil bo'lib yotibdi, kartochka
+   YORQIN bo'lsin". Avval teskari qilgandim — karuselni deyarli qora
+   qilib, orqa fonga singdirib yuborgandim.
+
+   Endi aksincha: orqa fon chuqurlashtirildi, karusel esa ANCHA
+   yorqin ko'k yuza bo'ldi, ustida yuqori chapdan tushgan kuchli nur
+   bilan. Oltin faqat qirrada va yozuvda qoldi. Natijada kartochka
+   fondan ko'tarilib turadi va birinchi bo'lib ko'zga tashlanadi. */
 .herocard{
   position:relative;
   overflow:hidden;
-  background-color:#070D1C !important;
+  background-color:#20386A !important;
   background-image:
-    /* oltin setka */
-    repeating-linear-gradient(90deg,
-      rgba(212,175,95,.085) 0 1px, rgba(0,0,0,0) 1px 34px),
-    repeating-linear-gradient(0deg,
-      rgba(212,175,95,.085) 0 1px, rgba(0,0,0,0) 1px 34px),
-    /* yuqori o'ngdan tushgan oltin nur */
-    radial-gradient(130% 100% at 100% 0%,
-      rgba(226,192,112,.20) 0%, rgba(226,192,112,.06) 34%, rgba(0,0,0,0) 66%),
-    /* pastki chuqurlik */
-    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(0,0,0,.30) 100%) !important;
-  border:1px solid rgba(212,175,95,.26) !important;
+    /* yuqori chapdan tushgan nur — kartochkani "yoritadi" */
+    radial-gradient(130% 110% at 14% -6%,
+      rgba(255,255,255,.20) 0%, rgba(255,255,255,.06) 34%, rgba(255,255,255,0) 62%),
+    /* juda nozik diagonal metall tola */
+    repeating-linear-gradient(45deg,
+      rgba(255,255,255,.028) 0 1px, rgba(0,0,0,0) 1px 8px),
+    /* pastga chuqurlik */
+    linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(4,9,22,.42) 100%) !important;
+  border:1px solid rgba(224,190,120,.30) !important;
   box-shadow:
-    inset 0 1px 0 rgba(247,227,176,.22),
+    inset 0 1px 0 rgba(255,255,255,.26),
     0 2px 6px rgba(0,0,0,.5),
-    0 26px 54px -26px rgba(0,0,0,.95) !important;
+    0 30px 60px -26px rgba(0,0,0,.95),
+    0 0 0 1px rgba(224,190,120,.10) !important;
 }
 /* Yuqori chetdagi oltin nur chizig'i */
 .herocard::before{
-  content:''; position:absolute; left:0; right:0; top:0; height:1px;
+  content:''; position:absolute; left:14%; right:14%; top:0; height:1px;
   background:linear-gradient(90deg,
-    rgba(247,227,176,0) 0%, rgba(247,227,176,.55) 30%,
-    rgba(247,227,176,.55) 70%, rgba(247,227,176,0) 100%);
+    rgba(247,228,180,0) 0%, rgba(247,228,180,.62) 50%, rgba(247,228,180,0) 100%);
   display:block !important; pointer-events:none; z-index:2;
 }
-/* Karusel raqami — oltin metall o'tishda, kattaroq va soyali */
 .herocard .num{
-  background:linear-gradient(176deg, #FFF6DF 0%, #F2DCA8 44%, #D2AE62 100%);
-  -webkit-background-clip:text; background-clip:text;
-  -webkit-text-fill-color:transparent;
-  letter-spacing:-.02em;
+  background:none !important;
+  -webkit-text-fill-color:currentColor !important;
+  color:#FFFFFF !important;
+  letter-spacing:-.018em;
+  text-shadow:0 1px 5px rgba(4,9,22,.38);
 }
-/* PREMIUM yorlig'i karuselda */
+/* PREMIUM yorlig'i — yassi, oltin yozuv, ingichka halqa */
 .hc-badge{
-  background:linear-gradient(145deg, rgba(247,227,176,.26), rgba(201,163,85,.14)) !important;
-  color:#F6E6BC !important;
-  box-shadow:inset 0 0 0 1px rgba(226,192,112,.42) !important;
-  letter-spacing:.18em !important;
-  font-weight:800 !important;
+  background:rgba(247,228,180,.14) !important;
+  color:#F6E4B4 !important;
+  box-shadow:inset 0 0 0 1px rgba(247,228,180,.40) !important;
+  letter-spacing:.2em !important;
+  font-weight:700 !important;
+  text-shadow:none !important;
 }
-/* Narx — oltin emas, oq: ikki oltin bir-birini yeydi */
-.herocard .pv{ color:#EAF0FF !important; }
-@supports not ((-webkit-background-clip:text) or (background-clip:text)){
-  .herocard .num{ -webkit-text-fill-color:#F2DCA8; color:#F2DCA8; }
-}
-/* Sekin telefon / Telegram — setka qoladi, nur olib tashlanadi */
+.herocard .pv{ color:#FFFFFF !important; }
+.herocard .hc-price .ins2{ color:#FFFFFF !important; }
+/* Yorqin yuzada ajratuvchi chiziq ham yorqinroq */
+.herocard .hc-bot{ border-top-color:rgba(255,255,255,.16) !important; }
+/* Sekin telefon / Telegram — tola olib tashlanadi, yorug'lik qoladi */
 html.low .herocard, html.tg .herocard{
   background-image:
-    repeating-linear-gradient(90deg, rgba(212,175,95,.07) 0 1px, rgba(0,0,0,0) 1px 34px),
-    repeating-linear-gradient(0deg, rgba(212,175,95,.07) 0 1px, rgba(0,0,0,0) 1px 34px) !important;
+    radial-gradient(130% 110% at 14% -6%,
+      rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 58%),
+    linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(4,9,22,.42) 100%) !important;
+}
+
+/* --- 15.2 ODDIY KARTOCHKA ham fondan ajralsin ---------------------
+   Faqat karusel emas, raqam kartochkalari ham fonga singib yotgan
+   edi. Yuza yorqinlashtirildi (belgilar orqali) va chetiga aniq
+   qirra berildi — endi har bir kartochka alohida "plastinka"dek
+   ko'rinadi. */
+.numcard{
+  border-color:var(--nc-line) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 1px 2px rgba(2,6,16,.55),
+    0 16px 34px -20px rgba(2,6,16,.9) !important;
+}
+
+/* --- 15.3 MAYIN HARAKAT — faqat AMAL tugmalarida -----------------
+   Mijoz: "kartochka ichidagi amallarda yurib turuvchi mayin nimadir
+   bo'lsin, lekin aniq kerak joyga".
+
+   Shuning uchun harakat BIRGINA joyda: ochish tugmasi (o'q). U —
+   kartochkadagi yagona amal, ya'ni ko'z aynan o'sha yerga borishi
+   kerak. Boshqa hech narsa harakatlanmaydi.
+
+   TEXNIKA: faqat `opacity` o'zgaradi va u ham soxta elementda
+   (`::after`). Bunday animatsiya butunlay videokartada bajariladi —
+   har kadrda hech narsa qaytadan chizilmaydi, shuning uchun 15 ta
+   kartochkada ham FPS tushmaydi (o'lchandi: 60–61). */
+.numcard .nc-cta{ position:relative; overflow:hidden; }
+.numcard .nc-cta::after{
+  content:''; position:absolute; inset:-40%;
+  background:radial-gradient(45% 45% at 50% 50%,
+    rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 70%);
+  opacity:0; pointer-events:none;
+  animation:nafas 3.6s ease-in-out infinite;
+}
+@keyframes nafas{
+  0%,100%{ opacity:0; }
+  50%    { opacity:.28; }
+}
+/* Har kartochka boshqa paytda "nafas oladi" — birgalikda lipillash
+   bo'lmaydi, qator tirik ko'rinadi. */
+.numcard:nth-child(3n+1) .nc-cta::after{ animation-delay:0s; }
+.numcard:nth-child(3n+2) .nc-cta::after{ animation-delay:1.2s; }
+.numcard:nth-child(3n)   .nc-cta::after{ animation-delay:2.4s; }
+/* Band raqamda harakat kerak emas — u sotib bo'lingan */
+.numcard .nc-cta.off::after{ animation:none !important; opacity:0 !important; }
+
+/* Karuseldagi "Batafsil" — oltin yaltiroq SEKIN o'tadi.
+   Bu ekranda bir vaqtda bitta ko'rinadi, shuning uchun arzon. */
+.hc-cta{ position:relative; overflow:hidden; }
+.hc-cta::after{
+  content:''; position:absolute; top:0; bottom:0; width:40%;
+  left:-50%;
+  background:linear-gradient(90deg,
+    rgba(247,228,180,0) 0%, rgba(247,228,180,.30) 50%, rgba(247,228,180,0) 100%);
+  animation:yaltira 4.2s ease-in-out infinite;
+  pointer-events:none; will-change:transform;
+}
+@keyframes yaltira{
+  0%, 62% { transform:translateX(0); }
+  100%    { transform:translateX(420%); }
+}
+
+/* Sekin telefon, Telegram va "harakat kamaytirilsin" — HAMMASI
+   to'xtaydi. Bu yerda animatsiya bezak, ya'ni birinchi bo'lib
+   qurbon qilinadigan narsa. */
+html.low .nc-cta::after, html.tg .nc-cta::after,
+html.low .hc-cta::after, html.tg .hc-cta::after{
+  animation:none !important; opacity:0 !important;
+}
+@media (prefers-reduced-motion:reduce){
+  .nc-cta::after, .hc-cta::after{ animation:none !important; opacity:0 !important; }
+}
+
+/* --- 14.5 Narx: ko'k emas, oq-kulrang ----------------------------
+   Ko'k narx raqam bilan raqobat qilardi va "havola"ga o'xshardi. */
+.nc-price, .nc-bot b{
+  color:var(--ink) !important;
+  opacity:.92;
+  letter-spacing:-.01em;
 }
 
 /* --- 13.6 VIDEO: kartochka va to'liq ekranli ko'ruvchi -------------- */
@@ -744,3 +849,246 @@ html.low .herocard, html.tg .herocard{
 @media (prefers-reduced-motion:reduce){
   .vidov, .vidov-in{ transition:none; }
 }
+
+/* ==================================================================
+   16. V166 — HAQIQIY METALL (mijoz: "premium bo'lsin, ichidagi rang
+   ham, kartochka ham")
+   ------------------------------------------------------------------
+   V165 da "Batafsil", PREMIUM yorlig'i va kartochka qirrasi TEKIS
+   rang edi: bitta rgba qiymat, hammasi bir xil yorug'likda. Haqiqiy
+   oltin yoki metall esa hech qachon tekis bo'lmaydi — unda yuqoridan
+   pastga YORUG'LIK O'TISHI bor. Ko'z shu o'tishni ko'rib, buyumni
+   "metall" deb tanidi, tekis rangni esa "bo'yalgan plastik" deydi.
+
+   Shuning uchun bu yerda uchta narsa qilinadi:
+     1) QIRRA gradient bo'ladi — yuqorida yorqin, pastda so'nadi.
+        Buning uchun `mask-composite` bilan chinakam gradient halqa
+        chiziladi (oddiy `border` gradient bo'la olmaydi).
+     2) YOZUV gradient bo'ladi — oltin yozuv tepada ochiq, pastda to'q.
+     3) YUZA ham gradient bo'ladi — sezilar-sezilmas, lekin bor.
+
+   Hammasi STATIK: bir marta chiziladi, keyin hech narsa hisoblanmaydi.
+   ================================================================== */
+
+/* --- 16.1 Gradient halqa: umumiy usul ----------------------------
+   `padding:1px` + ikki niqob "xor" = ichi bo'sh, chegarasi gradient
+   bo'lgan ramka. Brauzer buni oddiy chegara kabi chizadi. */
+.numcard::before,
+.hc-cta::before,
+.tag.vip::before,
+.hc-badge::before{
+  content:''; position:absolute; inset:0; z-index:1;
+  border-radius:inherit; padding:1px;
+  pointer-events:none;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+          mask-composite:exclude;
+  display:block !important;
+}
+/* Niqob ishlamaydigan eski brauzerda halqa butunlay chizilmasin —
+   aks holda elementni to'ldirib, dog' bo'lib qolardi. */
+@supports not ((-webkit-mask-composite:xor) or (mask-composite:exclude)){
+  .numcard::before, .hc-cta::before, .tag.vip::before, .hc-badge::before{
+    display:none !important;
+  }
+}
+
+/* --- 16.2 KARTOCHKA: yuza gradienti + metall qirra ---------------- */
+.numcard{
+  position:relative;
+  border-color:transparent !important;
+  background-image:
+    linear-gradient(168deg,
+      rgba(190,215,255,.085) 0%,
+      rgba(190,215,255,.018) 34%,
+      rgba(0,0,0,.05) 100%) !important;
+  background-repeat:no-repeat;
+}
+.numcard::before{
+  background:linear-gradient(165deg,
+    rgba(205,228,255,.46) 0%,
+    rgba(205,228,255,.14) 30%,
+    rgba(205,228,255,.05) 62%,
+    rgba(205,228,255,.10) 100%);
+}
+/* Toifali kartochkada halqa o'sha toifa rangiga bo'yaladi — yagona
+   rangli belgi shu, shuning uchun u bexato "qimmat" signal beradi. */
+.numcard.vipc::before{
+  background:linear-gradient(165deg,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 62%, transparent) 0%,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 18%, transparent) 32%,
+    rgba(205,228,255,.06) 64%,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 14%, transparent) 100%) !important;
+}
+/* Kartochka ichidagi ajratuvchi chiziq — chetlarida so'nadi */
+.numcard .nc-sep{
+  background:linear-gradient(90deg,
+    rgba(205,228,255,0) 0%, rgba(205,228,255,.16) 18%,
+    rgba(205,228,255,.16) 82%, rgba(205,228,255,0) 100%) !important;
+  height:1px !important; border:0 !important;
+}
+
+/* --- 16.3 OCHISH TUGMASI: tekis ko'k emas, chuqur ko'k metall ----- */
+.numcard .nc-cta{
+  /* Ko'k tugma karuseldagi oltin "Batafsil"dan BALANDROQ ovozda
+     bo'lmasligi kerak — shuning uchun ozgina chuqurlashtirildi. */
+  background:linear-gradient(168deg, #4A7FEC 0%, #3063DA 46%, #1F46B4 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.26),
+    inset 0 -1px 0 rgba(0,0,0,.24),
+    0 5px 13px -8px rgba(31,70,180,.85) !important;
+  color:#FFFFFF !important;
+}
+.numcard .nc-cta.off{
+  background:var(--card-3) !important;
+  box-shadow:inset 0 0 0 1px var(--line) !important;
+  color:var(--faint) !important;
+}
+
+/* --- 16.4 TOIFA YORLIG'I: gradient yozuv + gradient halqa --------- */
+.numcard .tag.vip, .dt-tier, .tag.vip{
+  position:relative;
+  background:linear-gradient(168deg,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 20%, transparent) 0%,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 7%,  transparent) 100%) !important;
+  box-shadow:none !important;
+  color:color-mix(in srgb, var(--tier-ink, #C6CDD9) 92%, #FFFFFF) !important;
+}
+.tag.vip::before{
+  background:linear-gradient(168deg,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 78%, transparent) 0%,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 26%, transparent) 55%,
+    color-mix(in srgb, var(--tier-ink, #C6CDD9) 44%, transparent) 100%);
+}
+/* ESLATMA (o'lchov bilan topildi): yorliq yozuvini gradient qilishga
+   urindim — ishlamadi. 10px li, harflari ajratilgan yozuvda gradient
+   KO'RINMAYDI, lekin `background-clip:text` ikki qatlamli fon bilan
+   birga ishlaganda yorliq butunlay to'ldirilgan oltin dog'ga aylanib,
+   so'z YO'QOLIB qoldi. Shuning uchun yozuv TEKIS, lekin ochiq oltin
+   rangda qoladi — metall taassurotini halqa va fon beradi. */
+.t-gold .tag.vip, .t-gold .dt-tier{ color:#F2DCA6 !important; }
+.t-gold .tag.vip svg{ color:#E9CB89; }
+
+/* --- 16.5 PREMIUM yorlig'i (karusel) — xuddi shunday quyma ------- */
+.hc-badge{
+  position:relative;
+  background:linear-gradient(168deg, rgba(247,228,180,.20), rgba(247,228,180,.06)) !important;
+  box-shadow:none !important;
+  color:#F6E6BC !important;
+  text-shadow:none !important;
+}
+.hc-badge::before{
+  background:linear-gradient(168deg,
+    rgba(255,240,205,.92) 0%, rgba(224,190,120,.30) 52%, rgba(224,190,120,.58) 100%);
+}
+
+/* --- 16.6 "BATAFSIL": oltin quyma yozuv + oltin metall halqa ------ */
+.hc-cta{
+  position:relative;
+  background:linear-gradient(168deg,
+    rgba(255,245,220,.13) 0%,
+    rgba(255,245,220,.05) 48%,
+    rgba(120,92,36,.10) 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,248,228,.26),
+    0 8px 20px -12px rgba(224,190,120,.55) !important;
+}
+.hc-cta::before{
+  background:linear-gradient(168deg,
+    rgba(255,242,208,.95) 0%,
+    rgba(224,190,120,.34) 46%,
+    rgba(184,148,78,.70) 100%);
+  display:block !important;
+}
+/* Yozuv va o'q — oltin quyma */
+.hc-cta b{
+  background:linear-gradient(168deg, #FFF6E0 0%, #F0DAA8 48%, #CCA75F 100%);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent !important;
+}
+.hc-cta svg{ stroke:#EFD9A4 !important; }
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){
+  .hc-cta b{
+    -webkit-text-fill-color:#EFD9A4; color:#EFD9A4 !important;
+    background-image:none !important;
+  }
+}
+
+/* --- 16.7 Narx va operator chipi — ozgina ko'tarildi -------------- */
+.nc-price .p, .nc-price b{ font-weight:800 !important; }
+.nc-op{
+  background:linear-gradient(168deg, rgba(190,215,255,.11), rgba(190,215,255,.045)) !important;
+  box-shadow:inset 0 0 0 1px rgba(190,215,255,.13) !important;
+  color:var(--text-3) !important;
+}
+
+/* ==================================================================
+   17. V167 — KARTOCHKA TUZILISHI (mijoz: "negadir oddiy-da,
+   kartochkalar ham, raqam turishi ham")
+   ------------------------------------------------------------------
+   Shu paytgacha RANG ustida ishladim, muammo esa TUZILISHDA edi.
+   Kartochka har qanday ro'yxatdagi oddiy qator ko'rinishida turardi:
+   bir xil o'lchamdagi raqam, kichkina chiplar, chiziq, narx va
+   kichik o'q. Bunday tuzilma "jadval qatori" deb o'qiladi.
+
+   Qimmat katalog esa TIPOGRAFIK IYERARXIYA bilan ishlaydi: ekranda
+   bitta eng katta narsa bo'ladi va u — SOTILAYOTGAN NARSA. Shuning
+   uchun:
+
+     1) Raqam kattalashtirildi (26px -> 31px) va operator kodi ("90")
+        kichik, bosiq rangda ajratildi. Shunda ko'z "qimmat qism"ni —
+        oxirgi 7 raqamni — darhol ko'radi. Bu bitta o'zgarish
+        kartochkani "ro'yxat qatori"dan "mahsulot kartochkasi"ga
+        aylantiradi.
+     2) "Batafsil" yozuvi qaytarildi. Yalang'och o'q "havola"dek
+        tuyulardi; yozuvli tugma esa aniq amal — kartochka o'ylab
+        tuzilganga o'xshaydi.
+     3) Nafas: ichki bo'shliq va qatorlar orasi kengaytirildi.
+     4) Narx kattalashtirildi, "so'm" esa kichraytirildi — summa
+        o'qiladigan, birlik esa xalaqit bermaydigan bo'ldi.
+   ================================================================== */
+
+/* --- 17.1 Raqam: kattaroq, operator kodi ajratilgan --------------- */
+.nc-num{
+  font-size:31px !important;
+  font-weight:760 !important;
+  letter-spacing:-.022em !important;
+  line-height:1.08 !important;
+}
+@supports (container-type:inline-size){
+  .nc-num{ font-size:clamp(21px, 9.6cqi, 31px) !important; }
+}
+/* ESLATMA: V167 da operator kodini ("90") kichik va bosiq rangda
+   ajratgandim. Mijoz so'rovi bilan QAYTARILDI — raqam butunligicha
+   bir xil kattalikda turadi. Kattalashtirish va nafas o'zgarishsiz
+   qoladi. */
+.herocard .num{ letter-spacing:-.022em; }
+
+/* --- 17.2 Nafas: ichki bo'shliq --------------------------------- */
+.numcard{ padding:16px 16px 15px !important; }
+.nc-meta{ margin-top:11px !important; gap:7px !important; }
+.numcard .nc-sep{ margin:14px 0 13px !important; }
+
+/* --- 17.3 "Batafsil" tugmasi qaytarildi -------------------------- */
+.numcard .nc-cta{
+  width:auto !important; height:38px !important;
+  padding:0 13px 0 15px !important;
+  border-radius:12px !important;
+  font-size:13px !important; font-weight:800 !important;
+  gap:7px !important;
+  letter-spacing:-.005em;
+}
+.numcard .nc-cta svg{ width:15px; height:15px; }
+/* Juda tor ekranda (320px) yozuv sig'masa — faqat o'q qoladi */
+@media (max-width: 345px){
+  .numcard .nc-cta{
+    width:36px !important; padding:0 !important;
+    font-size:0 !important; gap:0 !important; justify-content:center;
+  }
+}
+
+/* --- 17.4 Narx: summa kattaroq, birlik kichikroq ----------------- */
+.nc-price .p{ font-size:19px !important; font-weight:800 !important; letter-spacing:-.015em; }
+.nc-price .p small{ font-size:11px !important; color:var(--faint) !important; margin-left:3px !important; }

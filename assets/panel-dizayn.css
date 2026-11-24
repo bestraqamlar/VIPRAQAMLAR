@@ -659,3 +659,107 @@ html[data-ds] .add-form > .af-lbl:first-child{ margin-top:0; }
     border:0 !important; box-shadow:none !important;
   }
 }
+
+/* ==================================================================
+   V164 — ADMIN PANEL TELEFONDA: ZICHLIK
+   ------------------------------------------------------------------
+   O'lchov bilan topilgani: "Boshqaruv paneli" bo'limida to'rtta
+   ko'rsatkich kartochkasi 509px joy egallardi — ya'ni bitta "0" uchun
+   butun ekran. Telefonda ma'lumot BIR KO'RISHDA ko'rinishi kerak,
+   aks holda admin har safar uzoq aylantiradi. Shuning uchun:
+     - ko'rsatkichlar ikki ustunli, past kartochkalarda;
+     - tashrif qatori bir qatorga sig'adi;
+     - "Yangilash" qatori ixcham.
+   ================================================================== */
+@media (max-width: 899px){
+
+  /* --- Ko'rsatkichlar: 2 ustun, past kartochka --- */
+  html[data-ds] .dash-stats-row{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important; margin-bottom:14px !important;
+  }
+  html[data-ds] .dash-stat-card{
+    padding:13px 13px 14px !important;
+    border-radius:16px !important;
+    min-height:0 !important;
+    animation:none !important;        /* telefonda kirish animatsiyasi shart emas */
+  }
+  html[data-ds] .dash-stat-card > *{ margin:0 !important; }
+  html[data-ds] .dash-stat-card{ display:flex; flex-direction:column; gap:5px; }
+  /* Sarlavha — kichik va bosiq, ikki qatordan oshmaydi */
+  html[data-ds] .dash-stat-card .dsc-title,
+  html[data-ds] .dash-stat-card > span:first-of-type{
+    font-size:11.5px !important; font-weight:700 !important;
+    color:var(--muted) !important; line-height:1.3;
+  }
+  /* Son — asosiy narsa, lekin 42px emas */
+  html[data-ds] .dash-stat-card .dsc-value,
+  html[data-ds] .dash-stat-card b,
+  html[data-ds] .dash-stat-card strong{
+    font-size:26px !important; line-height:1.1 !important; font-weight:800 !important;
+  }
+  html[data-ds] .dash-stat-card .dsc-sub,
+  html[data-ds] .dash-stat-card small{
+    font-size:10.5px !important; color:var(--muted) !important; line-height:1.35;
+  }
+  /* Burchakdagi belgi — kichikroq va yuqori o'ngda */
+  html[data-ds] .dash-stat-card .dsc-ico,
+  html[data-ds] .dash-stat-card svg{
+    width:17px !important; height:17px !important;
+  }
+  html[data-ds] .dash-stat-card{ position:relative; }
+
+  /* --- Tashrif qatori: bir qatorga sig'sin --- */
+  html[data-ds] .visitors-box{
+    display:flex !important; align-items:center; gap:8px;
+    flex-wrap:wrap; padding:11px 13px !important;
+    font-size:12.5px !important; line-height:1.35;
+    border-radius:14px !important; margin-bottom:12px !important;
+  }
+  html[data-ds] .visitors-box > *{ margin:0 !important; }
+
+  /* --- "Yangilash" qatori --- */
+  html[data-ds] #paneDashboard .refresh-row,
+  html[data-ds] #paneDashboard .dash-refresh{
+    display:flex; align-items:center; gap:10px; margin-bottom:12px;
+  }
+  html[data-ds] #paneDashboard .refresh-row button,
+  html[data-ds] #paneDashboard .dash-refresh button{
+    min-height:38px !important; padding:0 13px !important; font-size:13px !important;
+  }
+
+  /* --- Pastki kartochkalar to'plami ham zichroq --- */
+  html[data-ds] .dash-grid{ gap:10px !important; }
+  html[data-ds] .dash-grid > *{ border-radius:16px !important; }
+
+  /* --- Yuqori qator: nafas olsin --- */
+  html[data-ds] .topbar .crumb,
+  html[data-ds] .topbar .breadcrumb{
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  html[data-ds] .topbar button{ flex:none; }
+}
+
+@media (max-width: 899px){
+  /* Burchakdagi rangli belgi telefonda OLIB TASHLANADI.
+     U hech qanday ma'lumot bermaydi (sarlavha allaqachon aytib
+     turibdi), lekin 390px ekranda sarlavhaning yarmini yeb,
+     yozuvni ikki qatorga bo'lib yuborardi. Joy ma'lumotga ketsin. */
+  html[data-ds] .dash-stat-card [class*="ico"],
+  html[data-ds] .dash-stat-card > svg{ display:none !important; }
+
+  /* Tashrif qatori: uzun jumlalar telefonda uch qatorga cho'zilardi.
+     Yozuvni o'zgartirmay, ikki qatorni yonma-yon qo'yamiz. */
+  html[data-ds] .visitors-box{
+    flex-direction:column; align-items:flex-start; gap:4px !important;
+    font-size:12px !important;
+  }
+  /* Yozuv kesilmasin — qisqartirish so'z o'rtasida to'xtab qolardi.
+     O'rniga oddiy o'raladi, lekin ikki qatordan oshmaydi. */
+  html[data-ds] .visitors-live{
+    display:flex; align-items:flex-start; gap:7px; line-height:1.4;
+  }
+  html[data-ds] .visitors-dot{ margin-top:4px; }
+  html[data-ds] .visitors-total{ color:var(--muted); line-height:1.4; }
+  html[data-ds] .visitors-dot{ flex:none; }
+}

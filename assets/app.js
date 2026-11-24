@@ -1876,6 +1876,9 @@ function naqshEngKuchli(item){
   return n.length ? n[0] : null;
 }
 
+/* V165: naqsh YORLIG'I kartochkadan olib tashlandi (mijoz so'rovi:
+   "bunaqa so'z kerak emas"). Naqsh bo'yicha SARALASH filtr oynasida
+   qoldi — u foydali va kartochkaga ortiqcha yozuv qo'shmaydi. */
 function numCard(item){
   const fav = isFav(item.id), disc = discountPct(item);
   const res = !!item.reserved;
@@ -1896,8 +1899,6 @@ function numCard(item){
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
           ${vip ? `<span class="tag vip">${ICO_CROWN}${TIERS[tier]}</span>` : ''}
-          ${(()=>{ const nq = naqshEngKuchli(item);
-                   return nq ? `<span class="tag naqsh" data-naqsh="${nq.kalit}">${esc(t(nq.matn))}</span>` : ''; })()}
           ${opChip(item.operator)}
           ${disc && showCash ? `<span class="tag off">−${disc}%</span>` : ''}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
@@ -3858,7 +3859,7 @@ function ikkinchiQism(){
   if(IKKINCHI_QISM) return IKKINCHI_QISM;
   IKKINCHI_QISM = new Promise((bajarildi, xato)=>{
     const s = document.createElement('script');
-    s.src = '/assets/app2.js?v=163';
+    s.src = '/assets/app2.js?v=168';
     s.async = true;
     s.onload = ()=> bajarildi(true);
     s.onerror = ()=>{ IKKINCHI_QISM = null; xato(new Error('app2 yuklanmadi')); };
