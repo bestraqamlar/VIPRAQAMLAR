@@ -2,20 +2,33 @@
    Maqsad: internet umuman yo'q bo'lsa ham sayt ochilsin va keshdagi
    katalog ko'rinsin. Dinamik ma'lumot (Firestore, funksiyalar) HECH
    QACHON keshlanmaydi — ular doim jonli olinadi. */
-const CACHE = 'vipraqamlar-v62';   /* V179: hujjat skaneri */
+const CACHE = 'vipraqamlar-v65';   /* V182: raqam bo'shliq bilan */
 /* Shriftlar ham keshga olinadi — internet uzilganda ham sayt
    o'z ko'rinishida ochiladi. */
+/* ==================================================================
+   XATO VA TUZATISHI (V181) — OFLAYN REJIM BUZUQ EDI
+   ------------------------------------------------------------------
+   Bu ro'yxatdagi manzillar QO'LDA yozilgan edi va uslublar
+   `?v=156` da qotib qolgan ekan, sahifa esa `?v=180` ni so'rardi.
+   Kesh esa manzilni BUTUNLAY, savol belgisi bilan birga solishtiradi:
+   `sayt.css?v=156` va `sayt.css?v=180` — bu ikki BOSHQA yozuv.
+
+   Natijada internetsiz holatda sayt ochilardi, lekin USLUBLARSIZ:
+   kartochkalar, ranglar, joylashuv — hech biri yo'q, qora matn oq
+   fonda. Buni sezish qiyin, chunki internet bor paytda hammasi joyida.
+
+   Endi versiya BITTA joyda turadi va barcha manzillar o'shandan
+   tuziladi, ya'ni ular hech qachon ajralib qolmaydi. */
+const V = '182';
 const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png',
+               /* Shriftlar — ONLAYN EMAS, saytning o'zida.
+                  Ular keshda bo'lgani uchun internetsiz ham sayt
+                  o'z shriftida ochiladi. */
                '/assets/fonts/jakarta.woff2', '/assets/fonts/grotesk.woff2',
-               /* V136: saytning asosiy kodi endi alohida faylda — u ham
-                  keshga olinadi, aks holda internetsiz sayt ochilib,
-                  lekin "jonsiz" bo'lib qolardi. */
-               '/assets/app.js?v=179',
-               '/assets/app2.js?v=179',
-               /* V146: uslublar ham alohida faylda — oflayn rejimda
-                  sayt o'z ko'rinishida ochilishi uchun keshga olinadi. */
-               '/assets/sayt.css?v=156',
-               '/assets/sayt-dizayn.css?v=156'];
+               '/assets/app.js?v=' + V,
+               '/assets/app2.js?v=' + V,
+               '/assets/sayt.css?v=' + V,
+               '/assets/sayt-dizayn.css?v=' + V];
 
 self.addEventListener('install', (e) => {
   /* DIQQAT: `addAll` BO'LINMAS — ro'yxatdagi bitta manzil ham

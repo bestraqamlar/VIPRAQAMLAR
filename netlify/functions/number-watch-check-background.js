@@ -70,8 +70,27 @@ const COLLECTION = 'number_watches';
 // naqshga mos boshqa (yangi) raqam chiqsa, kutmasdan darhol xabar beriladi.
 // Qidiruv esa bu vaqt ichida ham to'xtamasdan, belgilangan intervalda davom etadi.
 const NOTIFY_COOLDOWN_MS = 12 * 60 * 60 * 1000;
-const FINALIZE_CONCURRENCY = 6;    // Firestore yozish/Telegram xabar bosqichi uchun
-const UCELL_CONCURRENCY = 4;       // Ucell va Beeline uchun (har-kuzatuv-alohida yo'l)
+/* V153 — PARALLELLIK OSHIRILDI.
+   Mijoz: "juda sekin ishlayapti, hamma raqamni ko'rib turish
+   tezlashsin". Bir yurishda bajarilmay qolgan kuzatuv keyingi
+   yurishgacha (endi 1 daqiqa) kutib qolardi; kuzatuv ko'p bo'lsa
+   navbat orqaga suriladi. Parallel ishchilar soni oshirilgani
+   bilan operatorga yuboriladigan SO'ROVLAR SONI o'zgarmaydi —
+   ular shunchaki ketma-ket emas, yonma-yon bajariladi. */
+const FINALIZE_CONCURRENCY = 10;   // Firestore yozish/Telegram xabar bosqichi uchun
+const UCELL_CONCURRENCY = 6;       // Ucell va Beeline uchun (har-kuzatuv-alohida yo'l)
+/* Ucell yo'lida har bir kuzatuv o'z so'rovini talab qiladi, shuning
+   uchun u admin tanlagan intervalga bo'ysunadi. Lekin 5-10 daqiqalik
+   interval bo'shagan raqamni o'tkazib yuboradi — shu sabab interval
+   yuqoridan CHEKLANADI: qancha katta tanlangan bo'lsa ham, amalda
+   2 daqiqadan ko'p kutilmaydi. */
+/* "Oxirgi tekshirildi" belgisi shuncha vaqtda bir marta yangilanadi.
+   Panelda bu ko'rsatkich faqat ma'lumot uchun, shuning uchun 10 daqiqa
+   aniqlik mutlaqo yetarli — buning evaziga kunlik yozuvlar 10 barobar
+   kamayadi (qarang: finalizeWatch oxiridagi izoh). */
+const BELGI_YANGILASH_MS = 10 * 60 * 1000;
+
+const UCELL_MAX_INTERVAL_MIN = 2;
 /* TUZATISH (V110): ilgari bu 12 DAQIQA edi, cron esa HAR DAQIQA ishga
    tushadi. Ya'ni bitta yurish tugamasdan ikkinchisi, uchinchisi...
    boshlanardi — operator API'siga bir vaqtda o'nlab bir xil so'rov
@@ -146,6 +165,7 @@ const WILDCARD_BOXES = ['', '', '', '', '', '', ''];
 function formatNumber(raw) {
   const digits = String(raw).replace(/\D/g, '');
   if (digits.length !== 12) return raw;
+  /* V182: xx xxx xx xx — chiziqchasiz, saytdagidek */
   return `+${digits.slice(0,3)} ${digits.slice(3,5)} ${digits.slice(5,8)} ${digits.slice(8,10)} ${digits.slice(10,12)}`;
 }
 
@@ -212,11 +232,18 @@ async function notifyAdmin(text) {
   return yetdi;
 }
 
+/* Operator sozlamalari deyarli hech qachon o'zgarmaydi, lekin bu
+   hujjat HAR DAQIQA o'qilardi — kuniga 1 440 bekorchi o'qish.
+   Endi "issiq" funksiya xotirasida 10 daqiqa saqlanadi (V169). */
+let OPKESH = { at: 0, qiymat: null };
 async function loadOperatorConfig() {
+  if (OPKESH.qiymat && (Date.now() - OPKESH.at) < BELGI_YANGILASH_MS) return OPKESH.qiymat;
   try {
     const doc = await db.collection('operator_config').doc('main').get();
-    return (doc.exists && doc.data()) || {};
-  } catch (e) { return {}; }
+    const q = (doc.exists && doc.data()) || {};
+    OPKESH = { at: Date.now(), qiymat: q };
+    return q;
+  } catch (e) { return OPKESH.qiymat || {}; }
 }
 
 // Bitta operator uchun BITTA, keng so'rov — shu operatordagi hozir
@@ -280,8 +307,17 @@ const OGOH_CHEGARA = 3;
    tugagach bir marta sinab ko'riladi: javob bersa — hammasi odatdagicha
    davom etadi (va "✅ Kuzatuv tiklandi" xabari ketadi), bermasa —
    yana 15 daqiqa tinim. Ishlaydigan operatorlar bundan ta'sirlanmaydi. */
+/* V153 — TINIM QISQARTIRILDI.
+   Mijoz aytgan eng og'ir nosozlik: "raqam ochilib sotilib ketdi, lekin
+   Telegramga xabar kelmadi". Sabablaridan biri aynan shu tinim edi —
+   operator vaqtincha javob bermay qolsa, u 15 daqiqa (manzil/parol
+   xatosida 60 daqiqa) butunlay CHETLAB O'TILARDI. O'sha oynada
+   bo'shagan raqam hech kim ko'rmasdan sotilib ketardi.
+   Endi: o'zi tuzaladigan nosozlik (timeout, 5xx, tarmoq) — atigi
+   3 daqiqa; faqat haqiqatan sozlash kerak bo'lgan xato (404, parol)
+   uzoqroq tinim oladi, chunki u o'zi tuzalmaydi. */
 const TINIM_CHEGARA = 10;
-const TINIM_MS = 15 * 60 * 1000;
+const TINIM_MS = 3 * 60 * 1000;
 
 /* Tinimda bo'lgan operatorlar ro'yxati (bitta yurgizish uchun). */
 async function tinimdagilar(operatorNomlari) {
@@ -317,11 +353,24 @@ async function sogliqYangila(operatorName, xato, ms) {
       tezlik.lastMsAt = Date.now();
     }
     if (!xato) {
-      /* Tiklandi — oldin ogohlantirilgan bo'lsa, "tuzaldi" deb aytamiz */
-      if ((d.streak || 0) >= OGOH_CHEGARA && d.alertedAt) {
-        await notifyAdmin('✅ ' + operatorName + ' tiklandi\n\n'
-          + 'Yana javob beryapti' + (d.sababMatn ? ' (oldingi sabab: ' + String(d.sababMatn).slice(0, 90) + ')' : '') + '.');
-      }
+      /* V153 — "TIKLANDI" XABARI OLIB TASHLANDI.
+         Mijoz so'rovi: "ishladi/ishlamadi deb hadeb xabar kelavermasin".
+         Holat Firestore'ga YOZILAVERADI — uni istagan payt ko'rish
+         mumkin: Telegramda /holat buyrug'i yoki admin panelidagi
+         "Kuzatuv" bo'limi. Ya'ni ma'lumot yo'qolmaydi, faqat o'zi
+         kelib turmaydi. */
+      /* V169 — bu yozuv ham har daqiqada takrorlanardi.
+         Operator SOG'LOM bo'lganda yozadigan yangilik yo'q: holat
+         "yaxshi"ligicha qolaveradi. Shuning uchun yozuv faqat
+           - endigina xatodan tiklangan bo'lsa (streak/sabab tozalanishi
+             kerak), yoki
+           - oxirgi "yaxshi" belgisidan 10 daqiqa o'tgan bo'lsa
+         bajariladi. Operator soniga ko'paytirilganda bu kuniga
+         ~7 000 yozuvni ~700 ga tushiradi. */
+      const tiklandi = !!(d.streak || d.sababTurkum || d.backoffUntil || d.firstErrorAt);
+      const belgiEski = (now - (Number(d.lastOkAt) || 0)) >= BELGI_YANGILASH_MS;
+      if (!tiklandi && !belgiEski) return;
+
       await ref.set(Object.assign({
         streak: 0, alertedAt: null, alertCount: 0, firstErrorAt: null,
         backoffUntil: null, lastOkAt: now,
@@ -352,7 +401,9 @@ async function sogliqYangila(operatorName, xato, ms) {
        o'zi tuzalmaydi). */
     if (streak >= TINIM_CHEGARA) {
       const uzoq = (sabab.turkum === 'manzil' || sabab.turkum === 'parol' || sabab.turkum === 'sozlama');
-      yoz.backoffUntil = now + (uzoq ? 60 * 60 * 1000 : TINIM_MS);
+      /* V153: 60 daqiqa -> 20 daqiqa. Sozlama xatosi ham odam tuzatgandan
+         keyin darhol ishlashi kerak — bir soat kutib turish uzoq. */
+      yoz.backoffUntil = now + (uzoq ? 20 * 60 * 1000 : TINIM_MS);
     }
 
     /* XABAR YUBORISHMI? (V135 — mijoz so'rovi: kuniga bir marta)
@@ -370,24 +421,24 @@ async function sogliqYangila(operatorName, xato, ms) {
     const birinchiKutish = (nechta > 0) || (now - Number(d.firstErrorAt || now) >= oraliq);
     if (!d.firstErrorAt) yoz.firstErrorAt = now;
 
-    if (streak >= OGOH_CHEGARA && vaqtKeldi && birinchiKutish) {
-      const yetdi = await notifyAdmin(
-        '⚠️ ' + operatorName + ' ishlamayapti\n\n' +
-        '❓ SABABI: ' + sabab.sabab + '\n\n' +
-        '🛠 NIMA QILISH: ' + sabab.qadam + '\n\n' +
-        '🔁 ketma-ket ' + streak + ' marta xato' +
-        (yoz.backoffUntil
-          ? '\n⏸ Bekorga so\'rov yubormaslik uchun tinimga chiqarildi ('
-            + Math.round((yoz.backoffUntil - now) / 60000) + ' daqiqa) — keyin o\'zi sinab ko\'radi.'
-          : '') +
-        '\n\n🔕 Bu xabar kuniga BIR MARTA keladi — muammo hal bo\'lmaguncha '
-        + 'bot sizni bezovta qilmaydi. Tuzalsa darhol xabar beradi.' +
-        '\n📄 Texnik xato: ' + String(xato).slice(0, 140)
-      );
-      if (yetdi) { yoz.alertedAt = now; yoz.alertCount = nechta + 1; }
-    }
+    /* V153 — NOSOZLIK XABARI HAM OLIB TASHLANDI (yuqoridagi izohga qarang).
+       `alertedAt`/`alertCount` endi yozilmaydi: ular faqat xabar
+       oralig'ini hisoblash uchun kerak edi. Nosozlikning O'ZI
+       (sabab, qadam, ketma-ket xato soni, oxirgi ishlagan vaqt)
+       avvalgidek yoziladi va /holat buyrug'ida ko'rinadi. */
     await ref.set(Object.assign(yoz, tezlik), { merge: true });
   } catch (e) { /* sog'liq yozuvi ishlamasa ham, asosiy ish davom etadi */ }
+}
+
+/* Firestore'ga yozish KERAKMI? Sof funksiya — hech qanday tashqi
+   bog'liqligi yo'q, shuning uchun alohida sinovdan o'tkaziladi
+   (qarang: v169/yozuv.cjs). Sabablari finalizeWatch oxiridagi
+   katta izohda. */
+function yozishKerakmi(h){
+  if (h.topildi) return true;            /* raqam topildi — darhol */
+  if (h.xatoBorEdi) return true;         /* xatodan tiklandi — tozalash kerak */
+  if (h.xabarlarOzgardi) return true;    /* xabar ro'yxati o'zgardi */
+  return (h.hozir - (h.oxirgiYozuv || 0)) >= BELGI_YANGILASH_MS;
 }
 
 // Kuzatuv hujjatini (topilgan raqamlar ro'yxati asosida) yakunlaydi:
@@ -402,7 +453,8 @@ async function finalizeWatch(doc, items) {
     lastErrorAt: null,
     errorStreak: 0,
     lastCheckedAt: admin.firestore.Timestamp.now(),
-    nextCheckAt: admin.firestore.Timestamp.fromMillis(now + watch.intervalMinutes * 60000),
+    nextCheckAt: admin.firestore.Timestamp.fromMillis(
+      now + Math.min(Number(watch.intervalMinutes) || UCELL_MAX_INTERVAL_MIN, UCELL_MAX_INTERVAL_MIN) * 60000),
     checkCount: (watch.checkCount || 0) + 1
   };
 
@@ -438,6 +490,43 @@ async function finalizeWatch(doc, items) {
   }
 
   update.notifiedNumbers = keptNotified;
+
+  /* ==================================================================
+     V169 — "QUOTA EXCEEDED" TUZATILDI (eng muhim o'zgarish)
+     ------------------------------------------------------------------
+     MUAMMO. Bu funksiya HAR DAQIQA ishlaydi va shu paytgacha HAR BIR
+     faol kuzatuv uchun Firestore'ga BITTA YOZUV qilardi — hatto hech
+     narsa o'zgarmagan bo'lsa ham (faqat "oxirgi tekshirildi" vaqtini
+     yangilash uchun).
+
+     Hisob oddiy va shafqatsiz:
+         20 ta kuzatuv x 1440 daqiqa = kuniga 28 800 yozuv
+     Firestore'ning bepul (Spark) rejasida kunlik chegara — 20 000
+     yozuv. Ya'ni chegara har kuni tushdan oldin tugardi va undan
+     keyin BUTUN panel "Quota exceeded" deb ishlamay qolardi: kredit
+     ro'yxati ham, buyurtmalar ham, hammasi.
+
+     YECHIM. Tekshiruv HAR DAQIQA qolaveradi (operator so'rovlari bepul,
+     ya'ni xabar tezligi o'zgarmaydi), lekin Firestore'ga yozuv faqat
+     HAQIQATAN KERAK BO'LGANDA qilinadi:
+       1) raqam topilgan yoki xabar yuborilgan bo'lsa — darhol yoziladi;
+       2) xato holati o'zgargan bo'lsa — yoziladi;
+       3) aks holda — "oxirgi tekshirildi" belgisi 10 DAQIQADA bir
+          marta yangilanadi (panel ko'rsatkichi uchun shu yetarli).
+
+     Natija: 28 800 -> ~2 900 yozuv (10 barobar kam), xabar tezligi esa
+     bir xil qoladi. */
+  if (!yozishKerakmi({
+        topildi:        items.length > 0,
+        xatoBorEdi:     !!(watch.lastError || watch.errorStreak),
+        xabarlarOzgardi: JSON.stringify(keptNotified) !== JSON.stringify(prevNotified),
+        oxirgiYozuv:    (watch.lastCheckedAt && watch.lastCheckedAt.toMillis)
+                          ? watch.lastCheckedAt.toMillis() : 0,
+        hozir:          now
+      })) {
+    /* Hech narsa o'zgarmadi va belgi hali yangi — yozuv SHART EMAS. */
+    return;
+  }
 
   await ref.update(update);
 }
@@ -538,7 +627,12 @@ exports.handler = async function (event) {
      u allaqachon tayyor bo'lsin. Natijani kutmaymiz va xatosini
      e'tiborsiz qoldiramiz: bu faqat tezlik uchun, kuzatuvning
      o'ziga aloqasi yo'q. */
-  const isitish = humansIsitish().catch(() => false);
+  /* V153: funksiya endi HAR DAQIQA ishlaydi, shuning uchun bu isitish
+     har safar emas — har 10 daqiqada bir marta bajariladi. Humans
+     sessiyasi shuncha vaqt yashaydi, ya'ni foyda bir xil, lekin
+     ortiqcha so'rov va funksiya vaqti sarflanmaydi. */
+  const isitishVaqti = (new Date().getUTCMinutes() % 10) === 0;
+  const isitish = isitishVaqti ? humansIsitish().catch(() => false) : Promise.resolve(false);
 
   try {
     const snap = await db.collection(COLLECTION).where('active', '==', true).get();
@@ -632,3 +726,7 @@ exports.handler = async function (event) {
     return { statusCode: 500, body: err.message };
   }
 };
+
+/* Sinovlar uchun (ishlab turgan funksiyaga ta'sir qilmaydi) */
+module.exports.yozishKerakmi = yozishKerakmi;
+module.exports.BELGI_YANGILASH_MS = BELGI_YANGILASH_MS;

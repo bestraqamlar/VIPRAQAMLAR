@@ -331,6 +331,14 @@ const $  = (s, r) => (r||document).querySelector(s);
 const $$ = (s, r) => Array.from((r||document).querySelectorAll(s));
 const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* ==================================================================
+   RAQAM KO'RINISHI:  xx xxx-xx-xx   (V181)
+   ------------------------------------------------------------------
+   Bir muddat chiziqcha bilan ("90 777-77-77") sinab ko'rildi va
+   mijoz so'rovi bilan BO'SHLIQQA qaytarildi. Sabab: raqam saytning
+   eng katta va eng muhim elementi, chiziqcha esa unga qo'shimcha
+   "shovqin" qo'shib, toza ko'rinishini buzardi. Bo'shliq esa
+   guruhlarni ajratadi, lekin o'zi ko'rinmaydi. */
 function displayNumber(n){
   const d = String(n||'').replace(/\D/g,''), l = d.slice(-9);
   if(l.length !== 9) return String(n||'').replace(/-/g,' ');
@@ -3861,7 +3869,7 @@ function ikkinchiQism(){
   if(IKKINCHI_QISM) return IKKINCHI_QISM;
   IKKINCHI_QISM = new Promise((bajarildi, xato)=>{
     const s = document.createElement('script');
-    s.src = '/assets/app2.js?v=179';
+    s.src = '/assets/app2.js?v=182';
     s.async = true;
     s.onload = ()=> bajarildi(true);
     s.onerror = ()=>{ IKKINCHI_QISM = null; xato(new Error('app2 yuklanmadi')); };

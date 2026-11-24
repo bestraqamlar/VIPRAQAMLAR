@@ -45,6 +45,7 @@ const DEFAULT_INTERVAL_MINUTES = 15;
 function formatNumber(raw) {
   const digits = String(raw || '').replace(/\D/g, '');
   if (digits.length !== 12) return raw;
+  /* V182: xx xxx xx xx — chiziqchasiz, saytdagidek */
   return `+${digits.slice(0,3)} ${digits.slice(3,5)} ${digits.slice(5,8)} ${digits.slice(8,10)} ${digits.slice(10,12)}`;
 }
 

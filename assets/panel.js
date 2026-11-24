@@ -13360,6 +13360,18 @@ function stChiz(){
   let worker = null;      /* Tesseract ishchisi */
   let natija = null;      /* oxirgi o'qish natijasi */
   let bekorQilindi = false;
+  /* TASHXIS (V180). "O'qib bo'lmadi" degan yozuvdan hech narsa
+     tushunib bo'lmaydi: kutubxona yuklanmadimi, rasm ochilmadimi,
+     yoki matn haqiqatan topilmadimi? Endi har qadam yozib boriladi
+     va muvaffaqiyatsizlikda EKRANDA ko'rsatiladi — admin uni menga
+     yuborsa, sabab darhol ma'lum bo'ladi. */
+  let tashxis = null;
+  function tashxisBoshla(){ tashxis = { qadamlar: [], xom: '', boshlandi: Date.now() }; }
+  function tz(nom, qoshimcha){
+    if(!tashxis) return;
+    tashxis.qadamlar.push((Date.now() - tashxis.boshlandi) + 'ms  ' + nom
+      + (qoshimcha ? ': ' + qoshimcha : ''));
+  }
 
   const $$ = (s)=> ov.querySelector(s);
   function qadam(nom){
@@ -13430,10 +13442,12 @@ function stChiz(){
 
     /* MRZ pastki ~36% da. Qolganini kesish tezlikni ham, aniqlikni ham
        oshiradi (yuqoridagi rasm va gerb OCR ni chalg'itardi). */
-    const kesY = faqatPast ? Math.round(ch * 0.62) : 0;
+    const kesY = faqatPast ? Math.round(ch * 0.55) : 0;
     const kesH = ch - kesY;
 
-    const nisbat = Math.min(2.4, Math.max(1, 1500 / cw));
+    /* Hujjat kadrda kichik bo'lsa harflar bir-biriga yopishadi.
+       1500 -> 1900, chegara 2.4 -> 3.2 (V180). */
+    const nisbat = Math.min(3.2, Math.max(1, 1900 / cw));
     const c2 = document.createElement('canvas');
     c2.width = Math.round(cw * nisbat);
     c2.height = Math.round(kesH * nisbat);
@@ -13475,7 +13489,13 @@ function stChiz(){
   async function workerOl(){
     if(worker) return worker;
     await skriptYukla(TESSERACT_URL);
-    worker = await window.Tesseract.createWorker('eng', 1, { legacy: false });
+    /* OEM NEGA 1 EMAS (V180). Avval `createWorker('eng', 1)` edi —
+       ya'ni faqat LSTM. Tesseract'da BELGILAR RO'YXATI
+       (`char_whitelist`) LSTM rejimida E'TIBORGA OLINMAYDI, ya'ni
+       MRZ uchun qo'ygan cheklovimiz umuman ishlamayotgan edi va OCR
+       `<` belgisini `c`, `0` ni `o` deb o'qiyverardi. Standart rejim
+       (ikkalasi birga) ro'yxatni hurmat qiladi. */
+    worker = await window.Tesseract.createWorker('eng');
     return worker;
   }
 
@@ -13497,6 +13517,7 @@ function stChiz(){
   /* ---------- Asosiy o'qish ---------- */
   async function oqi(manba){
     qadam('oqish');
+    if(!tashxis) tashxisBoshla();
     holat("O'qilmoqda…", 'Kutubxona tayyorlanmoqda');
     natija = null;
     const burilishlar = [0, 180, 90, 270];
@@ -13504,26 +13525,40 @@ function stChiz(){
 
     try{
       await workerOl();
+      tz('OCR kutubxonasi tayyor');
     }catch(e){
-      holat("Bo'lmadi", 'Internet yo‘q yoki kutubxona yuklanmadi — qo‘lda kiriting');
+      tz('KUTUBXONA YUKLANMADI', e && e.message);
+      natijaniKorsat('Kutubxona yuklanmadi',
+        'Hujjat o‘qish kutubxonasi internetdan yuklanadi (bir marta, keyin keshlanadi). '
+        + 'Internetni tekshiring yoki ma’lumotni qo‘lda kiriting.');
       return;
     }
 
-    /* 1-bosqich: MRZ (pastki qism, qat'iy belgilar ro'yxati) */
+    /* 1-bosqich: MRZ.
+       IKKI XIL KESISH (V180): avval pastki qism (tez va aniq), keyin
+       BUTUN rasm. Sabab: hujjat kadr ichida kichik bo'lsa yoki
+       qiyshiq tushgan bo'lsa, MRZ "pastki 38%" ichiga tushmasligi
+       mumkin — o'sha paytda butun rasm bo'yicha qidirish qutqaradi. */
+    const kesishlar = [true, false];
+    for(let k = 0; k < kesishlar.length && !(engYaxshi && engYaxshi.ishonchli); k++){
     for(let i = 0; i < burilishlar.length; i++){
       if(bekorQilindi) return;
       const b = burilishlar[i];
       holat("O'qilmoqda…", 'MRZ qidirilmoqda' + (b ? ' (' + b + '°)' : ''));
-      const c = tayyorla(manba, b, true);
+      const c = tayyorla(manba, b, kesishlar[k]);
       if(!c) continue;
       let matn = '';
-      try{ matn = await matnOqi(c, true); }catch(e){}
+      try{ matn = await matnOqi(c, true); }
+      catch(e){ tz('OCR xatosi (' + b + '\u00b0)', e && e.message); }
       c.width = c.height = 1;
+      tz('MRZ urinish ' + b + '\u00b0' + (kesishlar[k] ? ' past' : ' to\'liq'), matn.replace(/\s+/g, ' ').trim().slice(0, 60) || 'matn yo\'q');
+      if(matn && !tashxis.xom) tashxis.xom = matn;
       const r = window.HujjatOqish.mrzOqi(matn);
       if(r){
         if(!engYaxshi || (r.ishonchli && !engYaxshi.ishonchli)) engYaxshi = r;
         if(r.ishonchli) break;            /* nazoratdan o'tdi — qidirish shart emas */
       }
+    }
     }
 
     /* 2-bosqich: MRZ topilmasa — butun hujjatdan oddiy matn */
@@ -13533,8 +13568,11 @@ function stChiz(){
       const c = tayyorla(manba, 0, false);
       if(c){
         let matn = '';
-        try{ matn = await matnOqi(c, false); }catch(e){}
+        try{ matn = await matnOqi(c, false); }
+        catch(e){ tz('to\'liq OCR xatosi', e && e.message); }
         c.width = c.height = 1;
+        tz('to\'liq matn', matn.replace(/\s+/g, ' ').trim().slice(0, 80) || 'matn yo\'q');
+        if(matn) tashxis.xom = matn;
         const r = window.HujjatOqish.oqi(matn);
         if(r && (r.hujjatRaqami || r.tugilganSana || r.toliqIsm)){
           if(!engYaxshi || !engYaxshi.ishonchli) engYaxshi = r;
@@ -13547,14 +13585,26 @@ function stChiz(){
     natijaniKorsat();
   }
 
-  function natijaniKorsat(){
+  function tashxisHtml(){
+    if(!tashxis) return '';
+    const q = tashxis.qadamlar.map(x => x.replace(/[<>&]/g, '')).join('\n');
+    const xom = (tashxis.xom || '').replace(/[<>&]/g, '').slice(0, 300);
+    return '<details class="sk-tashxis"><summary>Nega bo‘lmadi? (texnik)</summary>'
+      + '<pre>' + q + (xom ? '\n\n--- OCR qaytargan matn ---\n' + xom : '') + '</pre>'
+      + '<p class="sk-izoh">Shu oynaning suratini yuborsangiz, sabab aniq bo‘ladi.</p></details>';
+  }
+
+  function natijaniKorsat(sarlavhaMatn, izohMatn){
     qadam('natija');
     const quti = document.getElementById('skNatija');
     const sarl = document.getElementById('skNatijaSarlavha');
     const qabul = document.getElementById('skQabul');
     if(!natija){
-      sarl.textContent = "O'qib bo'lmadi";
-      quti.innerHTML = '<p class="sk-izoh">Hujjat aniq ko‘rinmadi. Yorug‘roq joyda, soyasiz va to‘liq holda qayta urinib ko‘ring — yoki qo‘lda kiriting.</p>';
+      sarl.textContent = sarlavhaMatn || "O'qib bo'lmadi";
+      quti.innerHTML = '<p class="sk-izoh">'
+        + (izohMatn || 'Hujjat aniq ko‘rinmadi. Yorug‘roq joyda, soyasiz, hujjat to‘liq sig‘adigan qilib qayta urinib ko‘ring. '
+           + 'ID kartada MRZ (pastdagi &lt;&lt;&lt; qatorlar) ORQA tomonda bo‘ladi.')
+        + '</p>' + tashxisHtml();
       qabul.style.display = 'none';
       return;
     }
@@ -13569,7 +13619,8 @@ function stChiz(){
       qator("Tug'ilgan sana", natija.tugilganSana) +
       (natija.ishonchli
         ? '<p class="sk-tasdiq">Nazorat raqamlari to‘g‘ri — ma’lumot hujjatdan aniq o‘qildi.</p>'
-        : '<p class="sk-ogoh">Bu hujjatda nazorat raqami yo‘q yoki u mos kelmadi. Formaga joylashdan oldin ko‘z bilan tekshiring.</p>');
+        : '<p class="sk-ogoh">Bu hujjatda nazorat raqami yo‘q yoki u mos kelmadi. Formaga joylashdan oldin ko‘z bilan tekshiring.</p>'
+           + tashxisHtml());
   }
 
   function formagaJoyla(){
@@ -13610,6 +13661,8 @@ function stChiz(){
     if(t.closest('#skOlish')){
       const v = document.getElementById('skVideo');
       if(!v || !v.videoWidth) return;
+      tashxisBoshla();
+      tz('kameradan olindi', v.videoWidth + 'x' + v.videoHeight);
       const c = document.createElement('canvas');
       c.width = v.videoWidth; c.height = v.videoHeight;
       c.getContext('2d').drawImage(v, 0, 0);
@@ -13619,20 +13672,63 @@ function stChiz(){
     }
   });
 
+  /* ---------- Fayldan rasm ochish ----------
+     V180: avval `createImageBitmap` sinaladi — u `<img>` ochа
+     olmaydigan ba'zi formatlarni ham (masalan iPhone'ning HEIC'i,
+     brauzer qo'llab-quvvatlasa) ocha oladi va tezroq ishlaydi.
+     Bo'lmasa, odatdagi `<img>` yo'liga tushiladi. Ikkalasi ham
+     bo'lmasa — SABABI bilan xabar beriladi. */
+  async function fayldanRasm(f){
+    if(window.createImageBitmap){
+      try{
+        const bm = await createImageBitmap(f);
+        if(bm && bm.width) return { rasm: bm, usul: 'createImageBitmap', tozala: ()=>{ try{ bm.close(); }catch(e){} } };
+      }catch(e){ tz('createImageBitmap bo\'lmadi', e && e.message); }
+    }
+    const url = URL.createObjectURL(f);
+    try{
+      const img = await new Promise((bajar, xato)=>{
+        const i = new Image();
+        i.onload = ()=> bajar(i);
+        i.onerror = ()=> xato(new Error('brauzer bu formatni ocholmadi'));
+        i.src = url;
+      });
+      return { rasm: img, usul: '<img>', tozala: ()=>{ URL.revokeObjectURL(url); img.src = ''; } };
+    }catch(e){
+      URL.revokeObjectURL(url);
+      throw e;
+    }
+  }
+
   const fayl = document.getElementById('skFayl');
   if(fayl) fayl.addEventListener('change', async ()=>{
     const f = fayl.files && fayl.files[0];
-    if(!f) return;
-    const url = URL.createObjectURL(f);
-    const img = new Image();
-    img.onload = async ()=>{
-      await oqi(img);
-      URL.revokeObjectURL(url);           /* rasm xotiradan ketadi */
-      img.src = '';
-    };
-    img.onerror = ()=>{ URL.revokeObjectURL(url); alert('Rasmni ochib bo‘lmadi.'); };
-    img.src = url;
     fayl.value = '';                       /* bir xil faylni qayta tanlash mumkin bo'lsin */
+    if(!f) return;
+    tashxisBoshla();
+    tz('fayl tanlandi', (f.type || 'turi noma\'lum') + ', ' + Math.round(f.size / 1024) + ' KB');
+    qadam('oqish');
+    holat("O'qilmoqda…", 'Rasm ochilmoqda');
+    let ochilgan = null;
+    try{
+      ochilgan = await fayldanRasm(f);
+      tz('rasm ochildi', ochilgan.usul + ', '
+        + (ochilgan.rasm.naturalWidth || ochilgan.rasm.width) + 'x'
+        + (ochilgan.rasm.naturalHeight || ochilgan.rasm.height));
+    }catch(e){
+      tz('RASM OCHILMADI', e && e.message);
+      natija = null;
+      natijaniKorsat("Rasm ochilmadi",
+        'Bu fayl turini brauzer o‘qiy olmadi (' + (f.type || 'noma’lum tur') + '). '
+        + 'iPhone’da Sozlamalar → Kamera → Formatlar → «Eng mos» ni tanlang, '
+        + 'yoki rasmni skrinshot qilib yuklang.');
+      return;
+    }
+    try{
+      await oqi(ochilgan.rasm);
+    }finally{
+      ochilgan.tozala();                   /* rasm xotiradan darhol ketadi */
+    }
   });
 
   /* Tashqaridan chaqirish uchun */

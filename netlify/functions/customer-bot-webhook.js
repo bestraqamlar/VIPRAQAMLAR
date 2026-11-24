@@ -491,7 +491,8 @@ async function getInstallmentRates(){
 function displayNumber(numberStr){
   const digits = String(numberStr || '').replace(/\D/g, '');
   const nine = (digits.startsWith('998') ? digits.slice(3) : digits).slice(-9).padStart(9, '0');
-  return `+998 ${nine.slice(0,2)}-${nine.slice(2,5)}-${nine.slice(5,7)}-${nine.slice(7,9)}`;
+  /* V182: xx xxx xx xx — chiziqchasiz */
+  return `+998 ${nine.slice(0,2)} ${nine.slice(2,5)} ${nine.slice(5,7)} ${nine.slice(7,9)}`;
 }
 function localDigits(numberStr){ return (numberStr || '').replace(/\D/g, '').slice(5); }
 /* Mijoz tugma bosmasdan to'g'ridan-to'g'ri raqam yozganmi?
