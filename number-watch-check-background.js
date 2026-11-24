@@ -84,6 +84,12 @@ const UCELL_CONCURRENCY = 6;       // Ucell va Beeline uchun (har-kuzatuv-alohid
    interval bo'shagan raqamni o'tkazib yuboradi — shu sabab interval
    yuqoridan CHEKLANADI: qancha katta tanlangan bo'lsa ham, amalda
    2 daqiqadan ko'p kutilmaydi. */
+/* "Oxirgi tekshirildi" belgisi shuncha vaqtda bir marta yangilanadi.
+   Panelda bu ko'rsatkich faqat ma'lumot uchun, shuning uchun 10 daqiqa
+   aniqlik mutlaqo yetarli — buning evaziga kunlik yozuvlar 10 barobar
+   kamayadi (qarang: finalizeWatch oxiridagi izoh). */
+const BELGI_YANGILASH_MS = 10 * 60 * 1000;
+
 const UCELL_MAX_INTERVAL_MIN = 2;
 /* TUZATISH (V110): ilgari bu 12 DAQIQA edi, cron esa HAR DAQIQA ishga
    tushadi. Ya'ni bitta yurish tugamasdan ikkinchisi, uchinchisi...
@@ -225,11 +231,18 @@ async function notifyAdmin(text) {
   return yetdi;
 }
 
+/* Operator sozlamalari deyarli hech qachon o'zgarmaydi, lekin bu
+   hujjat HAR DAQIQA o'qilardi — kuniga 1 440 bekorchi o'qish.
+   Endi "issiq" funksiya xotirasida 10 daqiqa saqlanadi (V169). */
+let OPKESH = { at: 0, qiymat: null };
 async function loadOperatorConfig() {
+  if (OPKESH.qiymat && (Date.now() - OPKESH.at) < BELGI_YANGILASH_MS) return OPKESH.qiymat;
   try {
     const doc = await db.collection('operator_config').doc('main').get();
-    return (doc.exists && doc.data()) || {};
-  } catch (e) { return {}; }
+    const q = (doc.exists && doc.data()) || {};
+    OPKESH = { at: Date.now(), qiymat: q };
+    return q;
+  } catch (e) { return OPKESH.qiymat || {}; }
 }
 
 // Bitta operator uchun BITTA, keng so'rov — shu operatordagi hozir
@@ -345,6 +358,18 @@ async function sogliqYangila(operatorName, xato, ms) {
          mumkin: Telegramda /holat buyrug'i yoki admin panelidagi
          "Kuzatuv" bo'limi. Ya'ni ma'lumot yo'qolmaydi, faqat o'zi
          kelib turmaydi. */
+      /* V169 — bu yozuv ham har daqiqada takrorlanardi.
+         Operator SOG'LOM bo'lganda yozadigan yangilik yo'q: holat
+         "yaxshi"ligicha qolaveradi. Shuning uchun yozuv faqat
+           - endigina xatodan tiklangan bo'lsa (streak/sabab tozalanishi
+             kerak), yoki
+           - oxirgi "yaxshi" belgisidan 10 daqiqa o'tgan bo'lsa
+         bajariladi. Operator soniga ko'paytirilganda bu kuniga
+         ~7 000 yozuvni ~700 ga tushiradi. */
+      const tiklandi = !!(d.streak || d.sababTurkum || d.backoffUntil || d.firstErrorAt);
+      const belgiEski = (now - (Number(d.lastOkAt) || 0)) >= BELGI_YANGILASH_MS;
+      if (!tiklandi && !belgiEski) return;
+
       await ref.set(Object.assign({
         streak: 0, alertedAt: null, alertCount: 0, firstErrorAt: null,
         backoffUntil: null, lastOkAt: now,
@@ -404,6 +429,17 @@ async function sogliqYangila(operatorName, xato, ms) {
   } catch (e) { /* sog'liq yozuvi ishlamasa ham, asosiy ish davom etadi */ }
 }
 
+/* Firestore'ga yozish KERAKMI? Sof funksiya — hech qanday tashqi
+   bog'liqligi yo'q, shuning uchun alohida sinovdan o'tkaziladi
+   (qarang: v169/yozuv.cjs). Sabablari finalizeWatch oxiridagi
+   katta izohda. */
+function yozishKerakmi(h){
+  if (h.topildi) return true;            /* raqam topildi — darhol */
+  if (h.xatoBorEdi) return true;         /* xatodan tiklandi — tozalash kerak */
+  if (h.xabarlarOzgardi) return true;    /* xabar ro'yxati o'zgardi */
+  return (h.hozir - (h.oxirgiYozuv || 0)) >= BELGI_YANGILASH_MS;
+}
+
 // Kuzatuv hujjatini (topilgan raqamlar ro'yxati asosida) yakunlaydi:
 // kerak bo'lsa Telegram xabar yuboradi va Firestore'ni yangilaydi.
 async function finalizeWatch(doc, items) {
@@ -453,6 +489,43 @@ async function finalizeWatch(doc, items) {
   }
 
   update.notifiedNumbers = keptNotified;
+
+  /* ==================================================================
+     V169 — "QUOTA EXCEEDED" TUZATILDI (eng muhim o'zgarish)
+     ------------------------------------------------------------------
+     MUAMMO. Bu funksiya HAR DAQIQA ishlaydi va shu paytgacha HAR BIR
+     faol kuzatuv uchun Firestore'ga BITTA YOZUV qilardi — hatto hech
+     narsa o'zgarmagan bo'lsa ham (faqat "oxirgi tekshirildi" vaqtini
+     yangilash uchun).
+
+     Hisob oddiy va shafqatsiz:
+         20 ta kuzatuv x 1440 daqiqa = kuniga 28 800 yozuv
+     Firestore'ning bepul (Spark) rejasida kunlik chegara — 20 000
+     yozuv. Ya'ni chegara har kuni tushdan oldin tugardi va undan
+     keyin BUTUN panel "Quota exceeded" deb ishlamay qolardi: kredit
+     ro'yxati ham, buyurtmalar ham, hammasi.
+
+     YECHIM. Tekshiruv HAR DAQIQA qolaveradi (operator so'rovlari bepul,
+     ya'ni xabar tezligi o'zgarmaydi), lekin Firestore'ga yozuv faqat
+     HAQIQATAN KERAK BO'LGANDA qilinadi:
+       1) raqam topilgan yoki xabar yuborilgan bo'lsa — darhol yoziladi;
+       2) xato holati o'zgargan bo'lsa — yoziladi;
+       3) aks holda — "oxirgi tekshirildi" belgisi 10 DAQIQADA bir
+          marta yangilanadi (panel ko'rsatkichi uchun shu yetarli).
+
+     Natija: 28 800 -> ~2 900 yozuv (10 barobar kam), xabar tezligi esa
+     bir xil qoladi. */
+  if (!yozishKerakmi({
+        topildi:        items.length > 0,
+        xatoBorEdi:     !!(watch.lastError || watch.errorStreak),
+        xabarlarOzgardi: JSON.stringify(keptNotified) !== JSON.stringify(prevNotified),
+        oxirgiYozuv:    (watch.lastCheckedAt && watch.lastCheckedAt.toMillis)
+                          ? watch.lastCheckedAt.toMillis() : 0,
+        hozir:          now
+      })) {
+    /* Hech narsa o'zgarmadi va belgi hali yangi — yozuv SHART EMAS. */
+    return;
+  }
 
   await ref.update(update);
 }
@@ -652,3 +725,7 @@ exports.handler = async function (event) {
     return { statusCode: 500, body: err.message };
   }
 };
+
+/* Sinovlar uchun (ishlab turgan funksiyaga ta'sir qilmaydi) */
+module.exports.yozishKerakmi = yozishKerakmi;
+module.exports.BELGI_YANGILASH_MS = BELGI_YANGILASH_MS;
