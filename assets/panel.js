@@ -990,7 +990,7 @@ document.getElementById('zkSaveBtn').addEventListener('click', async ()=>{
     zkResetForm();
     loadPriceCategories();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
 });
@@ -1245,7 +1245,7 @@ async function loadCustomOrders(){
           vibrate(60);
           loadCustomOrders();
         }catch(err){
-          if(msgEl){ msgEl.textContent = 'Xato: ' + err.message; msgEl.className = 'settings-msg zoe-msg bad'; }
+          if(msgEl){ msgEl.textContent = xatoOdamcha(err.message); msgEl.className = 'settings-msg zoe-msg bad'; }
           btn.disabled = false;
         }
       });
@@ -1267,7 +1267,7 @@ async function loadCustomOrders(){
             setTimeout(()=>{ card.remove(); }, 200);
           }
           renderZkStats(orders.filter(o => o.id !== id));
-        }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+        }catch(err){ alert(xatoOdamcha(err.message)); btn.disabled = false; }
       });
     });
   }catch(err){
@@ -1364,7 +1364,7 @@ async function loadVacancyAdminList(){
           await db.collection('vacancies').doc(btn.dataset.id).update({ active: nextActive });
           vibrate(60);
           loadVacancyAdminList();
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
 
@@ -1376,7 +1376,7 @@ async function loadVacancyAdminList(){
           await db.collection('vacancies').doc(btn.dataset.id).delete();
           if(vacEditingId === btn.dataset.id) vacAdminResetForm();
           loadVacancyAdminList();
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
   }catch(err){
@@ -1420,7 +1420,7 @@ document.getElementById('vacAdminSaveBtn').addEventListener('click', async ()=>{
     loadVacancyAdminList();
   }catch(err){
     msg.style.color = 'var(--red)';
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
   }
   btn.disabled = false;
 });
@@ -1647,7 +1647,7 @@ document.getElementById('zkCustAddBtn').addEventListener('click', async ()=>{
     loadManualCustomersCount();
     setTimeout(()=>{ closeAddCustomerModal(); }, 1400);
   }catch(err){
-    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.textContent = xatoOdamcha(err.message);
     msgEl.className = 'settings-msg bad';
   }finally{
     btn.disabled = false;
@@ -1714,7 +1714,7 @@ async function loadManualCustomersList(){
             loadManualCustomersCount();
             const countEl = document.getElementById('zkViewCustomerCount');
             if(countEl) countEl.textContent = Math.max(0, Number(countEl.textContent) - 1);
-          }catch(err){ alert('Xato: ' + err.message); }
+          }catch(err){ alert(xatoOdamcha(err.message)); }
           return;
         }
         const newStatus = action === 'done' ? 'Yakunlandi' : 'Bekor qilindi';
@@ -1734,7 +1734,7 @@ async function loadManualCustomersList(){
           badge.className = 'zk-customer-status-badge ' + newClass;
           badge.textContent = newStatus;
           vibrate(60);
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
   }catch(err){
@@ -1901,7 +1901,7 @@ document.getElementById('pbAddNumberBtn').addEventListener('click', async ()=>{
       setTimeout(()=>{ closeAddNumberModal(); }, 1400);
     }
   }catch(err){
-    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.textContent = xatoOdamcha(err.message);
     msgEl.className = 'settings-msg bad';
   }finally{
     btn.disabled = false;
@@ -1972,7 +1972,7 @@ async function loadPersonalNumbersList(){
             loadPersonalBaseStats();
             const countEl = document.getElementById('pbViewNumberCount');
             if(countEl) countEl.textContent = Math.max(0, Number(countEl.textContent) - 1);
-          }catch(err){ alert('Xato: ' + err.message); }
+          }catch(err){ alert(xatoOdamcha(err.message)); }
           return;
         }
         if(action === 'edit'){
@@ -1997,7 +1997,7 @@ async function loadPersonalNumbersList(){
             btn.innerHTML = nowClosed ? ICONS.unlock + ' Ochish' : ICONS.lock + ' Yopish';
             vibrate(60);
             loadPersonalBaseStats();
-          }catch(err){ alert('Xato: ' + err.message); }
+          }catch(err){ alert(xatoOdamcha(err.message)); }
         }
       });
     });
@@ -2450,7 +2450,7 @@ document.getElementById('vzAddTaskBtn').addEventListener('click', async ()=>{
       document.getElementById('vzCustCardsRow').style.display = '';
     }, 1400);
   }catch(err){
-    msgEl.textContent = 'Xato: ' + err.message;
+    msgEl.textContent = xatoOdamcha(err.message);
     msgEl.className = 'settings-msg bad';
   }finally{
     btn.disabled = false;
@@ -2506,7 +2506,7 @@ async function vzOtganlarniTozala(){
     vibrate(60);
     loadVazifalarList(); loadVazifalarCount(); loadVazifalarStats(); vzGlobalCheck();
   }catch(err){
-    panelToast('Xato: ' + err.message, 'err');
+    panelToast(xatoOdamcha(err.message), 'err');
     if(btn){ btn.disabled = false; btn.textContent = "\uD83D\uDDD1 Muddati o'tganlarni tozalash"; }
   }
 }
@@ -2624,7 +2624,7 @@ async function loadVazifalarList(){
             loadVazifalarCount();
             loadVazifalarStats();
             vzGlobalCheck();
-          }catch(err){ alert('Xato: ' + err.message); }
+          }catch(err){ alert(xatoOdamcha(err.message)); }
           return;
         }
         if(action === 'edit' || action === 'cancel'){
@@ -2654,7 +2654,7 @@ async function loadVazifalarList(){
             vzAlertedIds.delete(id);
             vibrate(60);
             loadVazifalarList(); loadVazifalarCount(); loadVazifalarStats(); vzGlobalCheck();
-          }catch(err){ alert('Xato: ' + err.message); }
+          }catch(err){ alert(xatoOdamcha(err.message)); }
           return;
         }
         // action === 'toggle' — bajarildi / bajarilmagan
@@ -2666,7 +2666,7 @@ async function loadVazifalarList(){
           loadVazifalarStats();
           vzGlobalCheck();
           loadVazifalarList();
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
   }catch(err){
@@ -3824,7 +3824,17 @@ function openGroupOfTab(tab){
 
     sahifaBoshi(pane, 'Kredit',
       "Bo'lib to'lash shartnomalari. Muddati o'tganlar eng tepada turadi.",
-      [{ nom: 'Shartnoma', asosiy: true, bos: () => oyna.och() }]);
+      [{ nom: 'Shartnoma', asosiy: true, bos: () => {
+          oyna.och();
+          /* V179: telefonda forma ochilishi bilan "Yozma yoki Skaner?"
+             so'raladi. Kompyuterda so'ralmaydi — u yerda kamera ham,
+             qo'lda yozish ham baribir qulay, ortiqcha qadam esa
+             faqat xalaqit beradi. */
+          if(window.matchMedia('(max-width: 899px)').matches
+             && typeof window.hujjatSkaneriOch === 'function'){
+            setTimeout(window.hujjatSkaneriOch, 260);
+          }
+        } }]);
 
     saqlangachYop($('addCreditBtn'), $('crName'), oyna);
 
@@ -4376,7 +4386,7 @@ document.getElementById('saveCredentialsBtn').addEventListener('click', async ()
     document.getElementById('curPasswordInput').value = '';
     document.getElementById('newPasswordInput').value = '';
   }catch(err){
-    msg.textContent = err.code === 'auth/wrong-password' ? "Joriy parol noto'g'ri" : ('Xato: ' + err.message);
+    msg.textContent = err.code === 'auth/wrong-password' ? "Joriy parol noto'g'ri" : (xatoOdamcha(err.message));
     msg.className = 'settings-msg bad';
   }
 });
@@ -4438,7 +4448,7 @@ function renderStylePicker(){
         msg.className = 'settings-msg ok';
         vibrate(80);
       }catch(err){
-        msg.textContent = 'Xato: ' + err.message;
+        msg.textContent = xatoOdamcha(err.message);
         msg.className = 'settings-msg bad';
       }
     });
@@ -4471,6 +4481,27 @@ attachUzPhoneAutoFormat(document.getElementById('crNumber'));
 // requireAdmin bilan himoyalangan) orqali ishlaydi — Kirim-Chiqim
 // (admin-finance.js) bilan bir xil andoza. Shu bilan har bir admin FAQAT
 // o'zi qo'shgan shartnomalarni ko'radi, bosh admin esa har doim hammasini.
+/* ==================================================================
+   XATO XABARINI ODAMCHA QILISH (V169)
+   ------------------------------------------------------------------
+   Panelda "Xato: Quota exceeded." degan yozuv chiqardi va admin bundan
+   hech narsa tushunmasdi — sayt buzilgandek ko'rinardi. Aslida bu
+   Firestore'ning KUNLIK BEPUL CHEGARASI tugaganini bildiradi: baza
+   ishlayapti, shunchaki bugungi hisob tugagan va yarim tunda (Tinch
+   okeani vaqti bilan) o'zi tiklanadi. */
+function xatoOdamcha(xabar){
+  const m = String(xabar || '');
+  if(/quota|RESOURCE_EXHAUSTED/i.test(m)){
+    return "Bazaning bugungi bepul chegarasi tugadi. Ma'lumotlar joyida — "
+         + "hisob yarim tunda o'zi tiklanadi va bo'lim yana ishlaydi. "
+         + "Agar bu tez-tez takrorlansa, Firebase'da Blaze rejasiga "
+         + "o'tish kerak.";
+  }
+  if(/permission|PERMISSION_DENIED/i.test(m)) return "Bu bo'limga ruxsatingiz yo'q.";
+  if(/failed to fetch|networkerror/i.test(m)) return "Internet bilan aloqa yo'q — qayta urinib ko'ring.";
+  return m;
+}
+
 async function creCall(action, extra){
   const idToken = await firebase.auth().currentUser.getIdToken();
   const tana = JSON.stringify(Object.assign({ action }, extra || {}));
@@ -4599,7 +4630,7 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     loadCreditContracts();
     refreshCrLivePreview();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
 });
@@ -4772,7 +4803,7 @@ async function loadCreditContracts(){
     currentCreditContracts = data.contracts || [];
     renderCreditList(currentCreditContracts);
   }catch(err){
-    list.innerHTML = 'Xato: ' + err.message;
+    list.innerHTML = xatoOdamcha(err.message);
   }
 }
 
@@ -5174,7 +5205,7 @@ function renderCreditList(contracts){
         loadCreditContracts();
       }catch(err){
         btn.disabled = false;
-        alert('Xato: ' + err.message);
+        alert(xatoOdamcha(err.message));
       }
     });
   });
@@ -5188,7 +5219,7 @@ function renderCreditList(contracts){
         loadCreditContracts();
       }catch(err){
         btn.disabled = false;
-        alert('Xato: ' + err.message);
+        alert(xatoOdamcha(err.message));
       }
     });
   });
@@ -5221,7 +5252,7 @@ function renderCreditList(contracts){
         loadCreditContracts();
       }catch(err){
         btn.disabled = false; btn.textContent = eski;
-        alert('Xato: ' + err.message);
+        alert(xatoOdamcha(err.message));
       }
     });
   });
@@ -5241,7 +5272,7 @@ function renderCreditList(contracts){
         loadCreditContracts();
       }catch(err){
         btn.disabled = false;
-        alert('Xato: ' + err.message);
+        alert(xatoOdamcha(err.message));
       }
     });
   });
@@ -5262,7 +5293,7 @@ function renderCreditList(contracts){
         await creCall('updatePayment', { id: chip.dataset.id, month });
         vibrate(60);
         loadCreditContracts();
-      }catch(err){ alert('Xato: ' + err.message); }
+      }catch(err){ alert(xatoOdamcha(err.message)); }
     });
   });
 
@@ -5317,7 +5348,7 @@ function renderCreditList(contracts){
         });
         vibrate(60);
         loadCreditContracts();
-      }catch(err){ alert('Xato: ' + err.message); }
+      }catch(err){ alert(xatoOdamcha(err.message)); }
     });
   });
 
@@ -5329,7 +5360,7 @@ function renderCreditList(contracts){
         await creCall('updateStatus', { id: btn.dataset.id, status: btn.dataset.status });
         vibrate(80);
         loadCreditContracts();
-      }catch(err){ alert('Xato: ' + err.message); }
+      }catch(err){ alert(xatoOdamcha(err.message)); }
     });
   });
 }
@@ -5357,7 +5388,7 @@ document.getElementById('migrateContractsBtn').addEventListener('click', async (
     vibrate(80);
     loadCreditContracts();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
   btn.disabled = false;
@@ -5387,7 +5418,7 @@ document.getElementById('sendExcelNowBtn').addEventListener('click', async ()=>{
       throw new Error(data.error || 'Server xatosi — Netlify logini tekshiring');
     }
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
   btn.disabled = false;
@@ -5550,7 +5581,7 @@ document.getElementById('finIncomeConfirmBtn').addEventListener('click', async (
     setTimeout(()=>{ document.getElementById('finIncomeForm').style.display = 'none'; msg.textContent = ''; }, 1200);
     loadFinanceSummary();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
   btn.disabled = false;
@@ -5577,7 +5608,7 @@ document.getElementById('finExpenseConfirmBtn').addEventListener('click', async 
     setTimeout(()=>{ document.getElementById('finExpenseForm').style.display = 'none'; msg.textContent = ''; }, 1200);
     loadFinanceSummary();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
   btn.disabled = false;
@@ -5605,7 +5636,7 @@ async function loadPromoCodes(){
         loadPromoCodes();
       });
     });
-  }catch(e){ list.innerHTML = 'Xato: ' + e.message; }
+  }catch(e){ list.innerHTML = xatoOdamcha(e.message); }
 }
 loadPromoCodes();
 
@@ -5628,7 +5659,7 @@ document.getElementById('addPromoBtn').addEventListener('click', async ()=>{
     vibrate(80);
     loadPromoCodes();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
 });
@@ -5695,7 +5726,7 @@ document.getElementById('saveSiteSettingsBtn').addEventListener('click', async (
     msg.className = 'settings-msg ok';
     vibrate(80);
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
 });
@@ -5715,7 +5746,7 @@ document.getElementById('saveInstallmentRatesBtn').addEventListener('click', asy
     msg.className = 'settings-msg ok';
     vibrate(80);
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
 });
@@ -6019,7 +6050,7 @@ document.getElementById('savePaymentCodeBtn').addEventListener('click', async ()
     msg.className = 'settings-msg ok';
     vibrate(80);
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.className = 'settings-msg bad';
   }
 });
@@ -6187,7 +6218,7 @@ document.getElementById('trfSave') && document.getElementById('trfSave').addEven
     renderTariffs();
     msg.textContent = 'Saqlandi. Diler kabinetida darhol ko‘rinadi.';
     setTimeout(()=>{ msg.textContent = ''; }, 4000);
-  }catch(e){ msg.textContent = 'Xato: ' + e.message; }
+  }catch(e){ msg.textContent = xatoOdamcha(e.message); }
 });
 
 document.getElementById('trfReload') && document.getElementById('trfReload').addEventListener('click', loadTariffs);
@@ -6412,7 +6443,7 @@ document.getElementById('selCreate') && document.getElementById('selCreate').add
     document.getElementById('selPass').value = '';
     document.getElementById('selPhone').value = '';
     loadSellers();
-  }catch(e){ msg.textContent = 'Xato: ' + e.message; }
+  }catch(e){ msg.textContent = xatoOdamcha(e.message); }
 });
 
 document.getElementById('selReload') && document.getElementById('selReload').addEventListener('click', ()=>{ loadSellers(); loadTariffs(); loadHamkorArizalar(); });
@@ -6598,7 +6629,7 @@ document.getElementById('stReindex') && document.getElementById('stReindex').add
     /* belgini qo'ygach darhol chaqirib qo'yamiz — indeks shu zahoti qayta quriladi */
     fetch('/.netlify/functions/api-index', { cache:'reload' }).catch(()=>{});
     m.textContent = "Tayyor. Yangi narxlar bir daqiqa ichida saytda ko'rinadi.";
-  }catch(e){ m.textContent = 'Xato: ' + e.message; }
+  }catch(e){ m.textContent = xatoOdamcha(e.message); }
 });
 
 document.getElementById('stReload') && document.getElementById('stReload').addEventListener('click', loadStats);
@@ -7026,7 +7057,7 @@ function aiHandleResponse(data){
           aiHandleResponse(res2);
         }catch(err){
           typing.remove();
-          aiAddBubble('Xato: ' + err.message, 'ai-msg-error');
+          aiAddBubble(xatoOdamcha(err.message), 'ai-msg-error');
         }
       });
     }else{
@@ -7063,7 +7094,7 @@ async function aiSendMessage(){
     aiHandleResponse(data);
   }catch(err){
     typing.remove();
-    aiAddBubble('Xato: ' + err.message, 'ai-msg-error');
+    aiAddBubble(xatoOdamcha(err.message), 'ai-msg-error');
   }finally{
     aiChatInput.disabled = false;
     aiChatSendBtn.disabled = false;
@@ -7149,7 +7180,7 @@ document.getElementById('igSaveBtn').addEventListener('click', async ()=>{
     setTimeout(()=>{ msg.textContent = ''; }, 3000);
   }catch(err){
     msg.style.color = 'var(--red)';
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
   }
   btn.disabled = false;
 });
@@ -7763,7 +7794,7 @@ function wtRenderGroups(watches){
       try{
         await wtCall('toggle', { id: btn.dataset.id, active: btn.dataset.active === '1' });
         loadWatchList();
-      }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+      }catch(err){ alert(xatoOdamcha(err.message)); btn.disabled = false; }
     });
   });
   list.querySelectorAll('.wt-del').forEach(btn=>{
@@ -7775,7 +7806,7 @@ function wtRenderGroups(watches){
         await wtCall('delete', { id: btn.dataset.id });
         wtSelected.delete(btn.dataset.id);
         loadWatchList();
-      }catch(err){ alert('Xato: ' + err.message); btn.disabled = false; }
+      }catch(err){ alert(xatoOdamcha(err.message)); btn.disabled = false; }
     });
   });
 }
@@ -7820,7 +7851,7 @@ document.getElementById('wtBulkDelBtn').addEventListener('click', async ()=>{
     await wtCall('deleteMany', { ids });
     wtSelected.clear();
     loadWatchList();
-  }catch(err){ alert('Xato: ' + err.message); }
+  }catch(err){ alert(xatoOdamcha(err.message)); }
   finally{ btn.disabled = false; }
 });
 
@@ -8169,7 +8200,7 @@ async function loadWatchNotifyIds(){
         try{
           await wtCall('deleteNotifyId', { id: btn.dataset.id });
           loadWatchNotifyIds();
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
   }catch(err){ list.innerHTML = 'Xato: ' + escapeHtml(err.message); }
@@ -8197,7 +8228,7 @@ if(addWatchNotifyIdBtn){
       vibrate(80);
       loadWatchNotifyIds();
     }catch(err){
-      msg.textContent = 'Xato: ' + err.message;
+      msg.textContent = xatoOdamcha(err.message);
       msg.className = 'settings-msg bad';
     }
   });
@@ -8290,7 +8321,7 @@ document.getElementById('mgmtCreateBtn').addEventListener('click', async ()=>{
     mgmtPermsGridEl.querySelectorAll('input[data-perm]').forEach(chk => { chk.checked = false; chk.closest('.mgmt-perm-item').classList.remove('checked'); });
     loadAdminsList();
   }catch(err){
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
     msg.style.color = '#e74c3c';
   }finally{
     btn.disabled = false;
@@ -8401,7 +8432,7 @@ async function loadAdminsList(){
         try{
           await mgmtCall('updatePermissions', { uid, permissions });
           loadAdminsList();
-        }catch(err){ alert('Xato: ' + err.message); e.target.disabled = false; }
+        }catch(err){ alert(xatoOdamcha(err.message)); e.target.disabled = false; }
       });
 
       card.querySelector('.mgmt-pass-btn').addEventListener('click', async ()=>{
@@ -8410,7 +8441,7 @@ async function loadAdminsList(){
         try{
           await mgmtCall('resetPassword', { uid, newPassword });
           alert(`Yangi parol o'rnatildi: ${newPassword}\n\nBuni adminga bering — bu parolni biz saqlamaymiz.`);
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
 
       card.querySelector('.mgmt-toggle-btn').addEventListener('click', async (e)=>{
@@ -8418,7 +8449,7 @@ async function loadAdminsList(){
         try{
           await mgmtCall('toggleActive', { uid, active: !adminData.active });
           loadAdminsList();
-        }catch(err){ alert('Xato: ' + err.message); e.target.disabled = false; }
+        }catch(err){ alert(xatoOdamcha(err.message)); e.target.disabled = false; }
       });
 
       card.querySelector('.mgmt-sessions-btn').addEventListener('click', ()=>{
@@ -8445,7 +8476,7 @@ async function loadAdminsList(){
         try{
           await mgmtCall('delete', { uid });
           loadAdminsList();
-        }catch(err){ alert('Xato: ' + err.message); e.target.disabled = false; }
+        }catch(err){ alert(xatoOdamcha(err.message)); e.target.disabled = false; }
       });
     });
   }catch(err){
@@ -8539,7 +8570,7 @@ document.getElementById('opSaveBtn').addEventListener('click', async ()=>{
     if(err.code === 'permission-denied' || /insufficient permissions/i.test(err.message || '')){
       msg.textContent = "Xato: Bu hisobda ADMIN huquqi (custom claim) yo'q yoki hali kuchga kirmagan. Tizimdan CHIQIB, qayta KIRING (shunda yangi huquq bilan yangi token olinadi). Agar shunda ham shu xato chiqsa — admin-grant-role.js orqali aynan shu hisob (email)ga admin huquqi berilganini tekshiring.";
     }else{
-      msg.textContent = 'Xato: ' + err.message;
+      msg.textContent = xatoOdamcha(err.message);
     }
   }
   btn.disabled = false;
@@ -8678,7 +8709,7 @@ document.getElementById('tgSaveBtn').addEventListener('click', async ()=>{
     setTimeout(()=>{ msg.textContent = ''; }, 3000);
   }catch(err){
     msg.style.color = 'var(--red)';
-    msg.textContent = 'Xato: ' + err.message;
+    msg.textContent = xatoOdamcha(err.message);
   }
   btn.disabled = false;
 });
@@ -8824,7 +8855,7 @@ async function loadVideoTestimonials(){
         try{
           await db.collection('video_testimonials').doc(btn.dataset.id).delete();
           loadVideoTestimonials();
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
 
@@ -8835,7 +8866,7 @@ async function loadVideoTestimonials(){
         try{
           await db.collection('video_testimonials').doc(btn.dataset.id).update({ likes: val });
           vibrate(60);
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
 
@@ -8847,11 +8878,11 @@ async function loadVideoTestimonials(){
         try{
           await db.collection('video_testimonials').doc(btn.dataset.id).update({ likes: val });
           vibrate(60);
-        }catch(err){ alert('Xato: ' + err.message); }
+        }catch(err){ alert(xatoOdamcha(err.message)); }
       });
     });
   }catch(err){
-    list.innerHTML = 'Xato: ' + err.message;
+    list.innerHTML = xatoOdamcha(err.message);
   }
 }
 
@@ -12145,7 +12176,7 @@ async function xavfYukla(){
   if(!box) return;
   box.textContent = 'Yuklanmoqda...';
   try{ xavfChiz((await xavfCall('holat')).botlar); }
-  catch(e){ box.textContent = 'Xato: ' + e.message; }
+  catch(e){ box.textContent = xatoOdamcha(e.message); }
   /* Kirish urinishlari tarixi — "kimdir parolni tanlab ko'rdimi?" */
   const ub = document.getElementById('xavfUrinish');
   if(ub){
@@ -12180,7 +12211,7 @@ document.getElementById('xavfYoqBtn') && document.getElementById('xavfYoqBtn')
       msg.textContent = yaxshi + ' ta bot himoyalandi' +
         (yomon.length ? ' · ' + yomon.map(x => x.nom + ': ' + x.sabab).join('; ') : '');
       if(typeof panelToast === 'function') panelToast('Botlar himoyalandi', 'ok');
-    }catch(e){ msg.textContent = 'Xato: ' + e.message; }
+    }catch(e){ msg.textContent = xatoOdamcha(e.message); }
     finally{ btn.disabled = false; }
   });
 
@@ -13082,7 +13113,7 @@ async function stYukla(){
     vibrate(80);
     loadStories();
   }catch(e){
-    stXabar('Xato: ' + e.message, true);
+    stXabar(xatoOdamcha(e.message), true);
   }finally{
     btn.disabled = false;
     setTimeout(()=>{ wrap.style.display = 'none'; bar.style.width = '0%'; }, 900);
@@ -13282,4 +13313,328 @@ function stChiz(){
   tug.addEventListener('click', ishlat);
   maydon.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); ishlat(); } });
   maydon.addEventListener('input', ()=>{ maydon.value = maydon.value.replace(/[^0-9_]/g, '').slice(0,7); });
+})();
+
+/* ==================================================================
+   HUJJAT SKANERI  (V179)
+   ------------------------------------------------------------------
+   Kredit shartnomasi ochilganda admin tanlaydi: YOZMA yoki SKANER.
+   Skaner kameradan yoki rasmdan hujjatni o'qib, ism, hujjat raqami va
+   tug'ilgan sanani formaga o'zi joylaydi. To'lov summalari qo'lda
+   kiritiladi (mijoz so'rovi).
+
+   MAXFIYLIK — ENG MUHIM QOIDA.
+   Rasm HECH QAYERGA YUBORILMAYDI. U:
+     * serverga ham, Firebase'ga ham, uchinchi tomonga ham ketmaydi;
+     * diskka saqlanmaydi;
+     * o'qish tugashi bilan canvas tozalanadi, `ObjectURL` bekor
+       qilinadi va kamera oqimi to'xtatiladi.
+   Butun o'qish TELEFONNING O'ZIDA bajariladi (Tesseract.js, WebAssembly).
+
+   QIYSHIQ VA TESKARI RASMLAR.
+   Admin rasmni qanday tushgan bo'lsa shunday yuklaydi. Shuning uchun
+   dastur to'rtta burilishni (0, 180, 90, 270) ketma-ket sinab ko'radi
+   va MRZ nazorat raqamlari TO'G'RI chiqqanida to'xtaydi. 0 va 180
+   avval sinaladi, chunki amalda deyarli har doim shulardan biri.
+
+   NEGA MRZ? Chunki unda nazorat raqamlari bor — dastur o'qiganini
+   o'zi tekshira oladi. Tafsilot: assets/hujjat-oqish.js
+   ================================================================== */
+(function(){
+  'use strict';
+  const ov = document.getElementById('skOv');
+  if(!ov) return;
+
+  /* XATO VA TUZATISHI (ekran suratida topildi). Oyna `z-index:10040`
+     bilan turardi, pastki menyu esa 9999 — demak oyna yuqorida
+     bo'lishi kerak edi. Lekin u SAHIFA ICHIDA joylashgan, sahifaning
+     o'zi esa o'z qatlam konteksti bilan turadi: bunday holda
+     ichkaridagi raqam qancha katta bo'lsa ham, u OTASIDAN tashqariga
+     chiqa olmaydi. Shuning uchun oyna `body` ga ko'chiriladi. */
+  if(ov.parentNode !== document.body) document.body.appendChild(ov);
+
+  const TESSERACT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js';
+  const MRZ_BELGILAR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<';
+
+  let oqim = null;        /* kamera oqimi */
+  let worker = null;      /* Tesseract ishchisi */
+  let natija = null;      /* oxirgi o'qish natijasi */
+  let bekorQilindi = false;
+
+  const $$ = (s)=> ov.querySelector(s);
+  function qadam(nom){
+    ov.querySelectorAll('[data-sk-qadam]').forEach(d =>
+      d.classList.toggle('on', d.dataset.skQadam === nom));
+  }
+  function holat(sarlavha, izoh){
+    const a = document.getElementById('skHolat'); if(a) a.textContent = sarlavha;
+    const b = document.getElementById('skQadam'); if(b) b.textContent = izoh || '';
+  }
+
+  /* ---------- Ochish va yopish ---------- */
+  function och(){ bekorQilindi = false; natija = null; qadam('tanlov'); ov.classList.add('on'); document.body.style.overflow='hidden'; }
+  function yop(){
+    bekorQilindi = true;
+    kameraniTohta();
+    ov.classList.remove('on');
+    document.body.style.overflow='';
+  }
+  function kameraniTohta(){
+    if(oqim){ try{ oqim.getTracks().forEach(t => t.stop()); }catch(e){} oqim = null; }
+    const v = document.getElementById('skVideo');
+    if(v){ try{ v.pause(); }catch(e){} v.srcObject = null; }
+  }
+
+  /* ---------- Kamera ---------- */
+  async function kameraOch(){
+    qadam('kamera');
+    const v = document.getElementById('skVideo');
+    try{
+      oqim = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' },
+                 width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      v.srcObject = oqim;
+      await v.play();
+    }catch(e){
+      /* Ruxsat berilmadi yoki kamera yo'q — rasm yuklashga yo'naltiramiz */
+      qadam('manba');
+      alert("Kameraga ruxsat berilmadi yoki kamera topilmadi. \"Rasm yuklash\"dan foydalaning.");
+    }
+  }
+
+  /* ---------- Rasmni o'qishga tayyorlash ----------
+     OCR ning aniqligi rasmga JUDA bog'liq. Shuning uchun:
+       1) MRZ hujjatning PASTKI qismida bo'ladi — faqat o'sha joy
+          kesib olinadi (3 barobar kam piksel = 3 barobar tez);
+       2) kenglik ~1500px ga keltiriladi — kichik rasmda harflar
+          bir-biriga yopishadi, kattasida esa behuda vaqt ketadi;
+       3) kulrang + kontrast — rangli fon OCR ni chalg'itadi. */
+  function tayyorla(manba, burilish, faqatPast){
+    const w0 = manba.naturalWidth || manba.videoWidth || manba.width;
+    const h0 = manba.naturalHeight || manba.videoHeight || manba.height;
+    if(!w0 || !h0) return null;
+
+    const tik = (burilish === 90 || burilish === 270);
+    const cw = tik ? h0 : w0, ch = tik ? w0 : h0;
+
+    const c1 = document.createElement('canvas');
+    c1.width = cw; c1.height = ch;
+    const x1 = c1.getContext('2d');
+    x1.save();
+    x1.translate(cw / 2, ch / 2);
+    x1.rotate(burilish * Math.PI / 180);
+    x1.drawImage(manba, -w0 / 2, -h0 / 2);
+    x1.restore();
+
+    /* MRZ pastki ~36% da. Qolganini kesish tezlikni ham, aniqlikni ham
+       oshiradi (yuqoridagi rasm va gerb OCR ni chalg'itardi). */
+    const kesY = faqatPast ? Math.round(ch * 0.62) : 0;
+    const kesH = ch - kesY;
+
+    const nisbat = Math.min(2.4, Math.max(1, 1500 / cw));
+    const c2 = document.createElement('canvas');
+    c2.width = Math.round(cw * nisbat);
+    c2.height = Math.round(kesH * nisbat);
+    const x2 = c2.getContext('2d');
+    x2.imageSmoothingEnabled = true;
+    x2.imageSmoothingQuality = 'high';
+    x2.drawImage(c1, 0, kesY, cw, kesH, 0, 0, c2.width, c2.height);
+
+    /* Kulrang + kontrast. Oddiy chegara (threshold) emas, chunki
+       soya tushgan rasmda u matnni yeb yuboradi; shuning uchun
+       kontrastni kuchaytirib, kulrangda qoldiramiz. */
+    try{
+      const d = x2.getImageData(0, 0, c2.width, c2.height);
+      const p = d.data;
+      for(let i = 0; i < p.length; i += 4){
+        let g = (p[i] * 0.299 + p[i+1] * 0.587 + p[i+2] * 0.114);
+        g = (g - 128) * 1.65 + 128;          /* kontrast */
+        g = g < 0 ? 0 : (g > 255 ? 255 : g);
+        p[i] = p[i+1] = p[i+2] = g;
+      }
+      x2.putImageData(d, 0, 0);
+    }catch(e){ /* cross-origin bo'lsa o'tkazib yuboramiz */ }
+
+    c1.width = c1.height = 1;                 /* oraliq rasmni darhol bo'shatamiz */
+    return c2;
+  }
+
+  /* ---------- Tesseract ---------- */
+  function skriptYukla(url){
+    return new Promise((bajar, xato)=>{
+      if(window.Tesseract) return bajar();
+      const s = document.createElement('script');
+      s.src = url; s.async = true;
+      s.onload = ()=> bajar();
+      s.onerror = ()=> xato(new Error('OCR kutubxonasi yuklanmadi'));
+      document.head.appendChild(s);
+    });
+  }
+  async function workerOl(){
+    if(worker) return worker;
+    await skriptYukla(TESSERACT_URL);
+    worker = await window.Tesseract.createWorker('eng', 1, { legacy: false });
+    return worker;
+  }
+
+  async function matnOqi(canvas, mrzRejimi){
+    const w = await workerOl();
+    if(mrzRejimi){
+      await w.setParameters({
+        tessedit_char_whitelist: MRZ_BELGILAR,
+        /* 6 = bitta bir xil matn bloki. MRZ aynan shunday. */
+        tessedit_pageseg_mode: '6'
+      });
+    }else{
+      await w.setParameters({ tessedit_char_whitelist: '', tessedit_pageseg_mode: '3' });
+    }
+    const r = await w.recognize(canvas);
+    return (r && r.data && r.data.text) || '';
+  }
+
+  /* ---------- Asosiy o'qish ---------- */
+  async function oqi(manba){
+    qadam('oqish');
+    holat("O'qilmoqda…", 'Kutubxona tayyorlanmoqda');
+    natija = null;
+    const burilishlar = [0, 180, 90, 270];
+    let engYaxshi = null;
+
+    try{
+      await workerOl();
+    }catch(e){
+      holat("Bo'lmadi", 'Internet yo‘q yoki kutubxona yuklanmadi — qo‘lda kiriting');
+      return;
+    }
+
+    /* 1-bosqich: MRZ (pastki qism, qat'iy belgilar ro'yxati) */
+    for(let i = 0; i < burilishlar.length; i++){
+      if(bekorQilindi) return;
+      const b = burilishlar[i];
+      holat("O'qilmoqda…", 'MRZ qidirilmoqda' + (b ? ' (' + b + '°)' : ''));
+      const c = tayyorla(manba, b, true);
+      if(!c) continue;
+      let matn = '';
+      try{ matn = await matnOqi(c, true); }catch(e){}
+      c.width = c.height = 1;
+      const r = window.HujjatOqish.mrzOqi(matn);
+      if(r){
+        if(!engYaxshi || (r.ishonchli && !engYaxshi.ishonchli)) engYaxshi = r;
+        if(r.ishonchli) break;            /* nazoratdan o'tdi — qidirish shart emas */
+      }
+    }
+
+    /* 2-bosqich: MRZ topilmasa — butun hujjatdan oddiy matn */
+    if(!engYaxshi || !engYaxshi.ishonchli){
+      if(bekorQilindi) return;
+      holat("O'qilmoqda…", 'MRZ topilmadi — matn o‘qilmoqda');
+      const c = tayyorla(manba, 0, false);
+      if(c){
+        let matn = '';
+        try{ matn = await matnOqi(c, false); }catch(e){}
+        c.width = c.height = 1;
+        const r = window.HujjatOqish.oqi(matn);
+        if(r && (r.hujjatRaqami || r.tugilganSana || r.toliqIsm)){
+          if(!engYaxshi || !engYaxshi.ishonchli) engYaxshi = r;
+        }
+      }
+    }
+
+    if(bekorQilindi) return;
+    natija = engYaxshi;
+    natijaniKorsat();
+  }
+
+  function natijaniKorsat(){
+    qadam('natija');
+    const quti = document.getElementById('skNatija');
+    const sarl = document.getElementById('skNatijaSarlavha');
+    const qabul = document.getElementById('skQabul');
+    if(!natija){
+      sarl.textContent = "O'qib bo'lmadi";
+      quti.innerHTML = '<p class="sk-izoh">Hujjat aniq ko‘rinmadi. Yorug‘roq joyda, soyasiz va to‘liq holda qayta urinib ko‘ring — yoki qo‘lda kiriting.</p>';
+      qabul.style.display = 'none';
+      return;
+    }
+    qabul.style.display = '';
+    sarl.textContent = natija.ishonchli ? 'Tekshirildi ✓' : 'Topildi (tekshiring)';
+    const qator = (nom, qiymat)=> qiymat
+      ? '<div class="sk-q"><span>' + nom + '</span><b>' + String(qiymat).replace(/[<>&]/g, '') + '</b></div>'
+      : '';
+    quti.innerHTML =
+      qator('Ism familiya', natija.toliqIsm) +
+      qator('Hujjat raqami', natija.hujjatRaqami) +
+      qator("Tug'ilgan sana", natija.tugilganSana) +
+      (natija.ishonchli
+        ? '<p class="sk-tasdiq">Nazorat raqamlari to‘g‘ri — ma’lumot hujjatdan aniq o‘qildi.</p>'
+        : '<p class="sk-ogoh">Bu hujjatda nazorat raqami yo‘q yoki u mos kelmadi. Formaga joylashdan oldin ko‘z bilan tekshiring.</p>');
+  }
+
+  function formagaJoyla(){
+    if(!natija) return;
+    const qoy = (id, qiymat)=>{
+      const el = document.getElementById(id);
+      if(el && qiymat){ el.value = qiymat; el.dispatchEvent(new Event('input', { bubbles:true })); }
+    };
+    qoy('crName', natija.toliqIsm);
+    qoy('crPassport', natija.hujjatRaqami);
+    qoy('crBirthDate', natija.tugilganSana);
+    natija = null;
+    yop();
+    const n = document.getElementById('crName');
+    if(n){ try{ n.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(e){} }
+  }
+
+  /* ---------- Hodisalar ---------- */
+  ov.addEventListener('click', async (e)=>{
+    const t = e.target;
+    if(t.closest('[data-sk-close]') || t === ov){ yop(); return; }
+    const orqaga = t.closest('[data-sk-orqaga]');
+    if(orqaga){ kameraniTohta(); qadam(orqaga.dataset.skOrqaga); return; }
+    if(t.closest('[data-sk-bekor]')){ bekorQilindi = true; qadam('manba'); return; }
+
+    const usul = t.closest('[data-sk-usul]');
+    if(usul){
+      if(usul.dataset.skUsul === 'yozma'){ yop(); return; }
+      qadam('manba'); return;
+    }
+    const manba = t.closest('[data-sk-manba]');
+    if(manba){
+      if(manba.dataset.skManba === 'kamera') kameraOch();
+      else document.getElementById('skFayl').click();
+      return;
+    }
+    if(t.closest('#skQabul')){ formagaJoyla(); return; }
+    if(t.closest('#skOlish')){
+      const v = document.getElementById('skVideo');
+      if(!v || !v.videoWidth) return;
+      const c = document.createElement('canvas');
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      kameraniTohta();
+      await oqi(c);
+      c.width = c.height = 1;              /* suratni darhol o'chiramiz */
+    }
+  });
+
+  const fayl = document.getElementById('skFayl');
+  if(fayl) fayl.addEventListener('change', async ()=>{
+    const f = fayl.files && fayl.files[0];
+    if(!f) return;
+    const url = URL.createObjectURL(f);
+    const img = new Image();
+    img.onload = async ()=>{
+      await oqi(img);
+      URL.revokeObjectURL(url);           /* rasm xotiradan ketadi */
+      img.src = '';
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); alert('Rasmni ochib bo‘lmadi.'); };
+    img.src = url;
+    fayl.value = '';                       /* bir xil faylni qayta tanlash mumkin bo'lsin */
+  });
+
+  /* Tashqaridan chaqirish uchun */
+  window.hujjatSkaneriOch = och;
 })();

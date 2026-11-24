@@ -763,3 +763,111 @@ html[data-ds] .add-form > .af-lbl:first-child{ margin-top:0; }
   html[data-ds] .visitors-total{ color:var(--muted); line-height:1.4; }
   html[data-ds] .visitors-dot{ flex:none; }
 }
+
+/* ==================================================================
+   26. V179 — HUJJAT SKANERI
+   ================================================================== */
+/* Panelda pastki menyu `z-index:9999` bilan turadi — skaner undan
+   ham yuqorida bo'lishi kerak, aks holda menyu oynaning pastki
+   qismini (va "Formaga joylash" tugmasini) to'sib qoladi. */
+.sk-ov{
+  position:fixed; inset:0; z-index:10040;
+  display:flex; align-items:flex-end; justify-content:center;
+  background:rgba(4,8,18,.74);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  opacity:0; visibility:hidden;
+  transition:opacity .26s linear, visibility .26s linear;
+}
+.sk-ov.on{ opacity:1; visibility:visible; }
+.sk-pn{
+  position:relative; width:100%; max-width:460px;
+  max-height:92dvh; overflow-y:auto;
+  background:var(--panel); color:var(--text);
+  border-radius:24px 24px 0 0;
+  padding:22px 18px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -20px 60px -20px rgba(0,0,0,.7);
+  transform:translateY(22px);
+  transition:transform .4s cubic-bezier(.19,1,.22,1);
+}
+.sk-ov.on .sk-pn{ transform:none; }
+@media (min-width: 560px){
+  .sk-ov{ align-items:center; }
+  .sk-pn{ border-radius:24px; }
+}
+.sk-x{
+  position:absolute; top:14px; right:14px; z-index:2;
+  width:34px; height:34px; border:0; border-radius:50%;
+  background:var(--panel-2); color:var(--muted);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.sk-qadam{ display:none; }
+.sk-qadam.on{ display:block; animation:skKir .34s cubic-bezier(.19,1,.22,1) both; }
+@keyframes skKir{ from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:none } }
+.sk-pn h3{ margin:0 0 6px; font-size:18px; font-weight:800; padding-right:40px; }
+.sk-izoh{ margin:0 0 16px; font-size:12.5px; line-height:1.55; color:var(--muted); font-weight:600; }
+.sk-izoh b{ color:var(--text-2); }
+.sk-izoh code{ font-family:ui-monospace,monospace; font-size:11.5px; }
+.sk-markaz{ text-align:center; }
+
+.sk-katta{
+  width:100%; display:flex; align-items:center; gap:13px; text-align:left;
+  padding:15px 14px; margin-bottom:10px; cursor:pointer;
+  background:var(--panel-2); color:var(--text);
+  border:1px solid var(--line); border-radius:16px;
+  transition:transform .14s, border-color .18s, background .18s;
+}
+.sk-katta:active{ transform:scale(.985); }
+.sk-katta.sk-asosiy{ border-color:color-mix(in srgb, var(--amber) 55%, transparent); }
+.sk-ic{
+  width:42px; height:42px; flex:none; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--amber-soft); color:var(--amber);
+}
+.sk-matn{ min-width:0; }
+.sk-matn b{ display:block; font-size:15px; font-weight:750; }
+.sk-matn i{ display:block; font-style:normal; font-size:12px; color:var(--muted); margin-top:2px; line-height:1.4; }
+
+.sk-tugma{
+  width:100%; min-height:50px; margin-top:4px; cursor:pointer;
+  border:0; border-radius:14px; font-size:15px; font-weight:800;
+  background:var(--amber); color:#fff;
+}
+.sk-tugma:active{ transform:scale(.985); }
+.sk-orqaga{
+  width:100%; margin-top:10px; padding:10px; cursor:pointer;
+  background:none; border:0; color:var(--muted); font-size:13px; font-weight:700;
+}
+
+/* Kamera */
+.sk-kamera{
+  position:relative; width:100%; aspect-ratio:4/3; margin-bottom:14px;
+  border-radius:16px; overflow:hidden; background:#000;
+}
+.sk-kamera video{ width:100%; height:100%; object-fit:cover; display:block; }
+.sk-ramka{ position:absolute; inset:9%; pointer-events:none; }
+.sk-ramka span{ position:absolute; width:26px; height:26px; border:2.5px solid rgba(255,255,255,.9); }
+.sk-ramka span:nth-child(1){ left:0; top:0; border-right:0; border-bottom:0; border-radius:8px 0 0 0; }
+.sk-ramka span:nth-child(2){ right:0; top:0; border-left:0; border-bottom:0; border-radius:0 8px 0 0; }
+.sk-ramka span:nth-child(3){ left:0; bottom:0; border-right:0; border-top:0; border-radius:0 0 0 8px; }
+.sk-ramka span:nth-child(4){ right:0; bottom:0; border-left:0; border-top:0; border-radius:0 0 8px 0; }
+
+/* O'qilmoqda */
+.sk-yuklash{
+  width:46px; height:46px; margin:10px auto 16px; border-radius:50%;
+  border:3px solid var(--line); border-top-color:var(--amber);
+  animation:skAyl .9s linear infinite;
+}
+@keyframes skAyl{ to{ transform:rotate(360deg) } }
+@media (prefers-reduced-motion:reduce){ .sk-yuklash{ animation-duration:2.4s } }
+
+/* Natija */
+.sk-natija{ margin:12px 0 16px; }
+.sk-q{
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  padding:11px 13px; margin-bottom:7px;
+  background:var(--panel-2); border:1px solid var(--line); border-radius:12px;
+}
+.sk-q span{ font-size:11.5px; font-weight:700; color:var(--muted); flex:none; }
+.sk-q b{ font-size:14.5px; font-weight:750; text-align:right; word-break:break-word; }
+.sk-tasdiq{ margin:4px 0 0; font-size:12px; font-weight:700; color:var(--green); line-height:1.5; }
+.sk-ogoh{ margin:4px 0 0; font-size:12px; font-weight:700; color:var(--amber); line-height:1.5; }

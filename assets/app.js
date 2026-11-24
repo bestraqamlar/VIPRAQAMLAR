@@ -1774,6 +1774,8 @@ async function yangiRaqamKuzatuvi(){
    ================================================================== */
 const ICO_HEART = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6c0 4.8-7 9.4-7 9.4z"></path></svg>';
 
+/* V174: toj belgisi toifa yorlig'idan OLIB TASHLANDI (mijoz so'rovi).
+   O'zgaruvchi saqlanib qoldi — boshqa joyda kerak bo'lsa tayyor turadi. */
 const ICO_CROWN = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 7.5 7 11l5-6.5L17 11l4-3.5-1.6 10.5H4.6L3 7.5z"></path></svg>';
 const ICO_ARR = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"></path></svg>';
 function opChip(op){
@@ -1898,7 +1900,7 @@ function numCard(item){
       <div style="flex:1;min-width:0">
         <div class="nc-num sg">${esc(shortNumber(item.number))}</div>
         <div class="nc-meta">
-          ${vip ? `<span class="tag vip">${ICO_CROWN}${TIERS[tier]}</span>` : ''}
+          ${vip ? `<span class="tag vip">${TIERS[tier]}</span>` : ''}
           ${opChip(item.operator)}
           ${disc && showCash ? `<span class="tag off">−${disc}%</span>` : ''}
           ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
@@ -2588,7 +2590,7 @@ function dayCard(item){
     <span class="dc-rib">${ICO_STAR}${t('KUN TAVSIYASI')}</span>
     <div class="dc-num sg">${esc(shortNumber(item.number))}</div>
     <div class="dc-meta">
-      ${dTier ? `<span class="tag vip">${ICO_CROWN}${TIERS[dTier]}</span>` : ''}
+      ${dTier ? `<span class="tag vip">${TIERS[dTier]}</span>` : ''}
       ${opChip(item.operator)}
       ${res ? `<span class="tag grey">${t('BAND')}</span>` : ''}
     </div>
@@ -3859,7 +3861,7 @@ function ikkinchiQism(){
   if(IKKINCHI_QISM) return IKKINCHI_QISM;
   IKKINCHI_QISM = new Promise((bajarildi, xato)=>{
     const s = document.createElement('script');
-    s.src = '/assets/app2.js?v=168';
+    s.src = '/assets/app2.js?v=179';
     s.async = true;
     s.onload = ()=> bajarildi(true);
     s.onerror = ()=>{ IKKINCHI_QISM = null; xato(new Error('app2 yuklanmadi')); };
@@ -5389,6 +5391,106 @@ function moveNavPill(){
 }
 window.addEventListener('resize', moveNavPill);
 window.addEventListener('hashchange', ()=> setTimeout(moveNavPill, 0));
+
+/* ==================================================================
+   MENYUNI BARMOQ BILAN SURISH  (V178)
+   ------------------------------------------------------------------
+   Mijoz so'rovi: "ustiga bosib turib sekin yursa, xuddi shishaday
+   yurishi kerak".
+
+   Ya'ni kapsula bosilgan joyda QOTIB turmaydi — barmoq bilan birga
+   siljiydi, barmoq ostidagi bo'lim esa yorishib boradi. Barmoq
+   ko'tarilganda kapsula eng yaqin bo'limga "qo'nadi" va o'sha bo'lim
+   ochiladi.
+
+   TEZLIK QOIDALARI (shuning uchun u sekinlashtirmaydi):
+     * harakat davomida FAQAT `transform` yoziladi — joylashuv
+       qaytadan hisoblanmaydi;
+     * yozuv kadrga BITTA marta tushadi (`kadrYozuvchi`), ya'ni
+       barmoq sekundiga 120 marta xabar bersa ham, ekran 60 marta
+       yangilanadi;
+     * o'lchamlar faqat bosish boshida bir marta o'lchanadi;
+     * kenglik faqat eng yaqin bo'lim O'ZGARGANDA yoziladi.
+
+   Oddiy bosish (surilmasdan) hech narsaga tegmaydi — havola o'zi
+   ishlayveradi, ya'ni eski xulq buzilmagan. */
+(function(){
+  const nav = document.getElementById('nav');
+  const pill = document.getElementById('navPill');
+  if(!nav || !pill) return;
+
+  const BOSHLASH = 7;          /* shuncha px dan keyin "surish" deb hisoblanadi */
+  let links = [], navR = null;
+  let bosildi = false, surilyapti = false, x0 = 0, oxirgi = null, yoz = null;
+
+  function olcha(){
+    navR = nav.getBoundingClientRect();
+    links = Array.prototype.map.call(nav.querySelectorAll('a[data-nav]'), (a)=>{
+      const r = a.getBoundingClientRect();
+      return { a:a, chap:r.left - navR.left, ken:r.width, markaz:r.left - navR.left + r.width/2 };
+    });
+  }
+  function yaqini(x){
+    let eng = links[0], masofa = Infinity;
+    for(const l of links){
+      const d = Math.abs(l.markaz - x);
+      if(d < masofa){ masofa = d; eng = l; }
+    }
+    return eng;
+  }
+
+  nav.addEventListener('pointerdown', (e)=>{
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    olcha();
+    if(!links.length) return;
+    bosildi = true; surilyapti = false; x0 = e.clientX; oxirgi = null;
+  });
+
+  window.addEventListener('pointermove', (e)=>{
+    if(!bosildi) return;
+    if(!surilyapti){
+      if(Math.abs(e.clientX - x0) < BOSHLASH) return;
+      surilyapti = true;
+      pill.style.transition = 'none';     /* barmoqqa 1:1 ergashsin */
+      nav.classList.add('surilmoqda');
+      if(!yoz) yoz = kadrYozuvchi(pill);
+    }
+    const x = Math.max(navR.left, Math.min(navR.right, e.clientX)) - navR.left;
+    const l = yaqini(x);
+    if(l !== oxirgi){
+      oxirgi = l;
+      pill.style.width = l.ken + 'px';    /* faqat bo'lim almashganda */
+      links.forEach(o => o.a.classList.toggle('yaqin', o === l));
+    }
+    yoz.qoy('translateX(' + (x - l.ken / 2) + 'px)');
+  }, { passive:true });
+
+  function qoyvor(e){
+    if(!bosildi) return;
+    bosildi = false;
+    nav.classList.remove('surilmoqda');
+    links.forEach(o => o.a.classList.remove('yaqin'));
+    if(!surilyapti) return;               /* oddiy bosish — havola o'zi ishlaydi */
+    surilyapti = false;
+    if(yoz) yoz.tugat();
+    pill.style.transition = '';           /* qo'nish animatsiyasi qaytadi */
+    const x = Math.max(navR.left, Math.min(navR.right, e.clientX)) - navR.left;
+    const l = yaqini(x);
+    try{ haptic('light'); }catch(err){}
+    if(l && l.a && !l.a.classList.contains('on')) l.a.click();
+    moveNavPill();                        /* aniq joyiga qo'nadi */
+  }
+  window.addEventListener('pointerup', qoyvor);
+  window.addEventListener('pointercancel', ()=>{
+    if(!bosildi) return;
+    bosildi = false; surilyapti = false;
+    nav.classList.remove('surilmoqda');
+    links.forEach(o => o.a.classList.remove('yaqin'));
+    if(yoz) yoz.tugat();
+    pill.style.transition = '';
+    moveNavPill();
+  });
+})();
 
 /* ==================================================================
    CHAP CHEKKADAN SURIB ORQAGA QAYTISH
