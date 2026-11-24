@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=164">
-<link rel="preload" as="script" href="assets/panel.js?v=164">
+<link rel="preload" as="style" href="assets/panel.css?v=179">
+<link rel="preload" as="script" href="assets/panel.js?v=179">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,16 +52,16 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=164">
+<link rel="stylesheet" href="assets/panel.css?v=179">
 <!-- TELEFON KO'RINISHI (V148) — mijoz sayti shablonida.
      `panel.css` dan KEYIN turishi shart: u faqat 899px dan tor
      ekranda ishlaydi va asosiy uslublar ustiga yoziladi.
      Kompyuterda bu fayl bitta ham qoida bermaydi. -->
-<link rel="stylesheet" href="assets/panel-mobil.css?v=164">
+<link rel="stylesheet" href="assets/panel-mobil.css?v=179">
 <!-- YANGI DIZAYN QATLAMI (V151). panel.css VA panel-mobil.css dan
      KEYIN turishi SHART: u ikkisining ko'rinish qoidalarini qayta
      belgilaydi. Tuzilma va funksiya o'zgarmaydi — faqat ko'rinish. -->
-<link rel="stylesheet" href="assets/panel-dizayn.css?v=164">
+<link rel="stylesheet" href="assets/panel-dizayn.css?v=179">
 
 </head>
 <body>
@@ -354,6 +354,78 @@
        panel.js tomonidan ko'chiriladi (id'lar o'zgarmaydi, ya'ni
        mavjud mantiq to'liq ishlayveradi). -->
   <div class="pane" id="paneQoshish"></div>
+
+<!-- ===== HUJJAT SKANERI (V179) =====
+     Kredit shartnomasi ochilganda chiqadi: YOZMA yoki SKANER.
+     Skaner tanlansa — kamera yoki rasm yuklash.
+     MUHIM: rasm HECH QAYERGA YUBORILMAYDI va SAQLANMAYDI. U faqat
+     brauzer xotirasida o'qiladi, ma'lumot formaga ko'chiriladi va
+     darhol o'chiriladi. -->
+<div class="sk-ov" id="skOv" role="dialog" aria-modal="true" aria-label="Hujjat skaneri">
+  <div class="sk-pn">
+    <button type="button" class="sk-x" data-sk-close aria-label="Yopish">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <!-- 1-qadam: usul tanlash -->
+    <div class="sk-qadam on" data-sk-qadam="tanlov">
+      <h3>Ma'lumotni qanday kiritamiz?</h3>
+      <p class="sk-izoh">Skaner hujjatdagi ism, raqam va tug'ilgan sanani o'zi o'qib to'ldiradi. To'lov summalarini baribir qo'lda kiritasiz.</p>
+      <button type="button" class="sk-katta" data-sk-usul="yozma">
+        <span class="sk-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+        <span class="sk-matn"><b>Yozma</b><i>Hamma maydonni o'zim kiritaman</i></span>
+      </button>
+      <button type="button" class="sk-katta sk-asosiy" data-sk-usul="skaner">
+        <span class="sk-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg></span>
+        <span class="sk-matn"><b>Skaner</b><i>Hujjatni suratga olaman yoki rasmni yuklayman</i></span>
+      </button>
+    </div>
+
+    <!-- 2-qadam: manba -->
+    <div class="sk-qadam" data-sk-qadam="manba">
+      <h3>Hujjat qayerdan?</h3>
+      <p class="sk-izoh">Pasport, ID karta yoki guvohnoma. <b>Rasm saqlanmaydi</b> — faqat o'qiladi.</p>
+      <button type="button" class="sk-katta sk-asosiy" data-sk-manba="kamera">
+        <span class="sk-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.2-2h6l1.2 2h1.8A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.6"/></svg></span>
+        <span class="sk-matn"><b>Kamera</b><i>Hujjatni hoziroq suratga olaman</i></span>
+      </button>
+      <button type="button" class="sk-katta" data-sk-manba="rasm">
+        <span class="sk-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="9" r="1.4"/></svg></span>
+        <span class="sk-matn"><b>Rasm yuklash</b><i>Qiyshiq yoki teskari bo'lsa ham o'zi to'g'rilaydi</i></span>
+      </button>
+      <input type="file" id="skFayl" accept="image/*" hidden>
+      <button type="button" class="sk-orqaga" data-sk-orqaga="tanlov">← Orqaga</button>
+    </div>
+
+    <!-- 3-qadam: kamera -->
+    <div class="sk-qadam" data-sk-qadam="kamera">
+      <div class="sk-kamera">
+        <video id="skVideo" playsinline muted></video>
+        <div class="sk-ramka" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      </div>
+      <p class="sk-izoh sk-markaz">Hujjatni ramka ichiga to'liq joylang. <b>MRZ</b> (pastdagi <code>&lt;&lt;&lt;</code> qatorlar) ko'rinib tursin.</p>
+      <button type="button" class="sk-tugma" id="skOlish">Suratga olish</button>
+      <button type="button" class="sk-orqaga" data-sk-orqaga="manba">← Orqaga</button>
+    </div>
+
+    <!-- 4-qadam: o'qilmoqda -->
+    <div class="sk-qadam" data-sk-qadam="oqish">
+      <div class="sk-yuklash"><span></span></div>
+      <h3 id="skHolat">O'qilmoqda…</h3>
+      <p class="sk-izoh sk-markaz" id="skQadam">Rasm tayyorlanmoqda</p>
+      <button type="button" class="sk-orqaga" data-sk-bekor>Bekor qilish</button>
+    </div>
+
+    <!-- 5-qadam: natija -->
+    <div class="sk-qadam" data-sk-qadam="natija">
+      <h3 id="skNatijaSarlavha">Topildi</h3>
+      <div class="sk-natija" id="skNatija"></div>
+      <button type="button" class="sk-tugma" id="skQabul">Formaga joylash</button>
+      <button type="button" class="sk-orqaga" data-sk-orqaga="manba">← Qayta urinish</button>
+    </div>
+  </div>
+</div>
+
 
   <div class="pane" id="paneNumbers">
     <div class="add-form">
@@ -2458,6 +2530,7 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/panel.js?v=164"></script>
+<script defer src="assets/hujjat-oqish.js?v=179"></script>
+<script defer src="assets/panel.js?v=179"></script>
 </body>
 </html>
