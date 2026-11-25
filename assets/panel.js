@@ -2837,6 +2837,8 @@ function startSessionTimer(){
   if(sessionTimer) clearTimeout(sessionTimer);
   sessionTimer = setTimeout(async ()=>{
     await recordLogout(); // hali tizimga kirgan holatda — signOut()dan OLDIN yozilishi shart
+    krdKeshniTozala();     // V184: mijoz ma'lumotlari qurilmada qolmasin
+    krdNavbatniTozala();   // V185: saqlanmagan navbat ham
     firebase.auth().signOut();
     if(ordersUnsubscribe){ ordersUnsubscribe(); ordersUnsubscribe = null; }
     dashboard.style.display = 'none';
@@ -3195,6 +3197,7 @@ function seansQolgan(){
 async function seansniYop(sabab){
   seansTozala();
   try{ if(typeof stopSessionTimer === 'function') stopSessionTimer(); }catch(e){}
+  try{ krdKeshniTozala(); }catch(e){}
   try{ await firebase.auth().signOut(); }catch(e){}
   try{ if(dashboard) dashboard.style.display = 'none'; }catch(e){}
   try{
@@ -4630,9 +4633,152 @@ document.getElementById('addCreditBtn').addEventListener('click', async ()=>{
     loadCreditContracts();
     refreshCrLivePreview();
   }catch(err){
-    msg.textContent = xatoOdamcha(err.message);
+    /* ==================================================================
+       SAQLANMAGAN SHARTNOMA  (V185)
+       ------------------------------------------------------------------
+       Mijoz haqli savol berdi: "baza o'chiq bo'lsa, qo'shgan shartnomam
+       keshga tushadimi?" — YO'Q, va tushmasligi KERAK. Kesh faqat
+       KO'RISH uchun; yozuv esa baribir bazaga boradi. Baza javob
+       bermasa, shartnoma SAQLANMAYDI.
+
+       XAVF SHUNDA: admin forma to'ldiradi, "Qo'shish" bosadi, kichkina
+       qizil yozuvni sezmaydi va mijozga "bo'ldi" deb aytadi. Mijoz esa
+       shartnomasiz ketadi.
+
+       SHUNING UCHUN: yozilmagan shartnoma YO'QOLMAYDI — u qurilmada
+       saqlanadi va bo'limning eng tepasida QIZIL ogohlantirish bo'lib
+       turadi. U yerdan bitta tugma bilan qayta yuboriladi.
+
+       TAKRORLANISHDAN HIMOYA: qayta yuborishdan oldin ro'yxat
+       tekshiriladi. Agar o'sha raqam va telefon bilan shartnoma
+       allaqachon bor bo'lsa (birinchi urinish aslida bazaga yetib
+       borgan, faqat javob yo'qolgan bo'lishi mumkin) — so'raladi.
+
+       Navbatda pasport ham saqlanadi, chunki uni keyin bazaga yozish
+       kerak. Muvaffaqiyatli yuborilgach va tizimdan chiqilganda
+       navbat butunlay o'chiriladi. */
+    const xatoMatn = xatoOdamcha(err.message);
+    msg.textContent = xatoMatn;
     msg.className = 'settings-msg bad';
+    try{
+      krdNavbatgaQoy({
+        at: Date.now(), xato: xatoMatn,
+        korinish: { ism: name, telefon: phone, raqam: number },
+        tana: {
+          customerName: qisq(name, 100), customerPhone: qisq(phone, 30),
+          region: qisq(region, 60), number: qisq(number, 30),
+          totalMonths: months, monthlyPayment: monthly, paymentDay: payDay,
+          hasDownPayment: hasDown, downPayment: downSum,
+          currency: document.getElementById('crCurrency').value === 'usd' ? 'USD' : 'UZS',
+          additionalInfo: qisq(info, 500), startDate: qisq(startDateVal, 20),
+          passportNumber: qisq(passportNumber, 30), birthDate: qisq(birthDate, 20),
+          permanentAddress: qisq(permanentAddress, 300)
+        }
+      });
+      krdNavbatniChiz();
+      vibrate([60, 60, 60]);
+    }catch(e){ /* navbat ishlamasa ham forma to'ldirilgancha qoladi */ }
   }
+});
+
+/* ==================================================================
+   SAQLANMAGAN SHARTNOMALAR NAVBATI  (V185)
+   ================================================================== */
+const KRD_NAVBAT_KALIT = 'vip_kredit_navbati';
+
+function krdNavbatOl(){
+  try{ const x = JSON.parse(localStorage.getItem(KRD_NAVBAT_KALIT) || '[]');
+       return Array.isArray(x) ? x : []; }catch(e){ return []; }
+}
+function krdNavbatSaqla(royxat){
+  try{ localStorage.setItem(KRD_NAVBAT_KALIT, JSON.stringify(royxat || [])); }catch(e){}
+}
+function krdNavbatgaQoy(yozuv){
+  const n = krdNavbatOl();
+  n.push(yozuv);
+  krdNavbatSaqla(n);
+}
+function krdNavbatniTozala(){ try{ localStorage.removeItem(KRD_NAVBAT_KALIT); }catch(e){} }
+
+function krdNavbatniChiz(){
+  const eski = document.getElementById('krdNavbat');
+  if(eski) eski.remove();
+  const navbat = krdNavbatOl();
+  if(!navbat.length) return;
+  const joy = document.getElementById('paneCredit');
+  if(!joy) return;
+
+  const q = document.createElement('div');
+  q.id = 'krdNavbat';
+  q.className = 'krd-navbat';
+  q.innerHTML =
+    '<b>⚠ ' + navbat.length + ' ta shartnoma BAZAGA YOZILMAGAN</b>'
+    + '<span>Quyidagilar saqlanmadi va mijozlarda shartnoma YO‘Q. '
+    + 'Ma‘lumot shu qurilmada turibdi — baza tiklangach qayta yuboring.</span>'
+    + '<ul>' + navbat.map((x, i) =>
+        '<li><b>' + escapeHtml(x.korinish.ism || '—') + '</b>'
+        + '<i>' + escapeHtml(x.korinish.raqam || '') + ' · ' + escapeHtml(x.korinish.telefon || '') + '</i>'
+        + '<em>' + escapeHtml(x.xato || '') + '</em>'
+        + '<button type="button" data-krd-ochir="' + i + '">O‘chirish</button></li>').join('')
+      + '</ul>'
+    + '<button type="button" id="krdNavbatYubor">Hammasini qayta yuborish</button>';
+  joy.insertBefore(q, joy.firstChild);
+
+  q.addEventListener('click', async (e)=>{
+    const o = e.target.closest('[data-krd-ochir]');
+    if(o){
+      if(!confirm('Bu yozuv ro‘yxatdan o‘chirilsin? Shartnoma BARIBIR saqlanmagan bo‘ladi.')) return;
+      const n = krdNavbatOl();
+      n.splice(Number(o.dataset.krdOchir), 1);
+      krdNavbatSaqla(n);
+      krdNavbatniChiz();
+      return;
+    }
+    if(e.target.closest('#krdNavbatYubor')) krdNavbatniYubor();
+  });
+}
+
+async function krdNavbatniYubor(){
+  const tugma = document.getElementById('krdNavbatYubor');
+  if(tugma){ tugma.disabled = true; tugma.textContent = 'Yuborilmoqda…'; }
+  let navbat = krdNavbatOl();
+  const qolgan = [];
+  let yuborildi = 0;
+
+  for(const yozuv of navbat){
+    /* TAKRORLANISHDAN HIMOYA: o'sha raqam va telefon bilan shartnoma
+       allaqachon bormi? Bu birinchi urinish bazaga yetib borib,
+       faqat javobi yo'qolgan holat uchun. */
+    const bor = (currentCreditContracts || []).some(c =>
+      String(c.number || '').replace(/\D/g, '') === String(yozuv.tana.number || '').replace(/\D/g, '')
+      && String(c.customerPhone || '').replace(/\D/g, '') === String(yozuv.tana.customerPhone || '').replace(/\D/g, ''));
+    if(bor){
+      if(!confirm('"' + (yozuv.korinish.ism || '') + '" uchun shu raqam bilan shartnoma ALLAQACHON bor.\n\n'
+          + 'Bu birinchi urinish aslida saqlanganini bildiradi. Yana qo‘shilsinmi? '
+          + '(Ha desangiz ikkita nusxa paydo bo‘ladi)')){
+        continue;   /* navbatdan olib tashlanadi */
+      }
+    }
+    try{
+      await creCall('add', yozuv.tana);
+      yuborildi++;
+    }catch(e){
+      yozuv.xato = xatoOdamcha(e.message);
+      qolgan.push(yozuv);
+    }
+  }
+
+  krdNavbatSaqla(qolgan);
+  krdNavbatniChiz();
+  if(tugma){ tugma.disabled = false; tugma.textContent = 'Hammasini qayta yuborish'; }
+  if(yuborildi) loadCreditContracts();
+  if(yuborildi && !qolgan.length) alert(yuborildi + ' ta shartnoma bazaga yozildi.');
+}
+
+/* Brauzer yopilayotganda ogohlantiramiz — navbat qurilmada qoladi,
+   lekin admin bilib qo'ysin. */
+window.addEventListener('beforeunload', (e)=>{
+  if(krdNavbatOl().length){ e.preventDefault(); e.returnValue = ''; }
 });
 
 /* ==================================================================
@@ -4794,6 +4940,68 @@ function creRenderFilterBanner(){
   }
 }
 
+/* ==================================================================
+   KREDIT RO'YXATI — ZAXIRA NUSXA  (V184)
+   ------------------------------------------------------------------
+   MUAMMO. Firestore'ning bepul kunlik chegarasi tugaganda bu bo'lim
+   butunlay ishlamay qolardi: ekranda bitta qator xato, mijozlar
+   ro'yxati esa yo'q. Admin qarzdorni ko'rolmaydi, telefonini
+   topolmaydi — ish to'xtaydi. Holbuki ma'lumot o'zgargani yo'q, uni
+   shunchaki QAYTA o'qib bo'lmaydi.
+
+   YECHIM. Ro'yxat muvaffaqiyatli yuklanganda brauzerda saqlanadi.
+   Keyingi safar baza javob bermasa — o'sha nusxa ko'rsatiladi va
+   tepada ochiq yozuv turadi: bu keshdan, qachon olingani bilan.
+   Ya'ni admin baribir KO'RA oladi va qo'ng'iroq qila oladi.
+
+   NIMA SAQLANMAYDI — ATAYLAB.
+   Pasport raqami va yashash manzili keshga TUSHMAYDI. Ular ro'yxatni
+   topish uchun kerak emas (qidiruv ism, telefon va raqam bo'yicha
+   ishlaydi), lekin brauzerda yotishi shart bo'lmagan shaxsiy
+   ma'lumot. Shuning uchun kesh faqat ishlash uchun zarur maydonlarni
+   oladi. Tizimdan chiqilganda kesh butunlay o'chiriladi.
+
+   Kesh FAQAT ko'rish uchun: unda turgan ma'lumot ustida to'lov
+   tasdiqlash yoki tahrirlash ishlamaydi, chunki ular baribir bazaga
+   boradi. Bu to'g'ri — eskirgan ma'lumot ustida yozuv qilish xavfli.
+   ================================================================== */
+const KRD_KESH_KALIT = 'vip_kredit_keshi';
+const KRD_KESH_UMRI  = 3 * 24 * 60 * 60 * 1000;   /* 3 kun */
+
+function krdKeshgaYoz(royxat){
+  try{
+    const toza = (royxat || []).map(c => ({
+      id: c.id, number: c.number,
+      customerName: c.customerName, customerPhone: c.customerPhone,
+      months: c.months, monthlyPayment: c.monthlyPayment, currency: c.currency,
+      startDate: c.startDate, payDay: c.payDay, downPayment: c.downPayment,
+      payments: c.payments, status: c.status, region: c.region,
+      createdAt: c.createdAt, ownerUid: c.ownerUid, sellerName: c.sellerName
+      /* passportNumber, permanentAddress, birthDate — ATAYLAB YO'Q */
+    }));
+    localStorage.setItem(KRD_KESH_KALIT, JSON.stringify({ at: Date.now(), royxat: toza }));
+  }catch(e){ /* joy yetmasa yoki taqiqlangan bo'lsa — kesh shunchaki bo'lmaydi */ }
+}
+function krdKeshdanOl(){
+  try{
+    const x = JSON.parse(localStorage.getItem(KRD_KESH_KALIT) || 'null');
+    if(!x || !Array.isArray(x.royxat) || !x.royxat.length) return null;
+    if(Date.now() - (x.at || 0) > KRD_KESH_UMRI) return null;
+    return x;
+  }catch(e){ return null; }
+}
+function krdKeshniTozala(){ try{ localStorage.removeItem(KRD_KESH_KALIT); }catch(e){} }
+
+function krdQachon(ms){
+  const d = Math.max(0, Date.now() - ms);
+  const daq = Math.round(d / 60000);
+  if(daq < 1) return 'hozirgina';
+  if(daq < 60) return daq + ' daqiqa oldin';
+  const soat = Math.round(daq / 60);
+  if(soat < 24) return soat + ' soat oldin';
+  return Math.round(soat / 24) + ' kun oldin';
+}
+
 async function loadCreditContracts(){
   const list = document.getElementById('creditList');
   list.innerHTML = 'Yuklanmoqda...';
@@ -4801,9 +5009,42 @@ async function loadCreditContracts(){
   try{
     const data = await creCall('list', creditFilterUid ? { viewUid: creditFilterUid } : {});
     currentCreditContracts = data.contracts || [];
+    krdKeshgaYoz(currentCreditContracts);
     renderCreditList(currentCreditContracts);
+    krdNavbatniChiz();
   }catch(err){
-    list.innerHTML = xatoOdamcha(err.message);
+    const kesh = krdKeshdanOl();
+    if(!kesh){
+      list.innerHTML = '<div class="krd-ogoh">' + escapeHtml(xatoOdamcha(err.message))
+        + '<br><br>Saqlangan nusxa ham yo‘q — bu bo‘lim hali bir marta ham ochilmagan.</div>';
+      return;
+    }
+    /* Keshdan ko'rsatamiz. `currentCreditContracts` ga YOZMAYMIZ —
+       boshqa joylar (to'lov tasdiqlash, PDF) uni jonli ma'lumot deb
+       biladi, eskirganini esa ular ustida ishlatib bo'lmaydi.
+
+       TARTIB MUHIM (sinovda topildi): avval ro'yxat chiziladi,
+       KEYIN ogohlantirish qo'yiladi — lekin chizish xato bersa
+       (eski keshda yangi maydon yo'q bo'lsa shunday bo'lishi mumkin)
+       ogohlantirish ham yo'qolib ketardi. Endi chizish alohida
+       himoyalangan: u yiqilsa ham, admin NIMA bo'lganini ko'radi. */
+    try{
+      renderCreditList(kesh.royxat);
+    }catch(e2){
+      list.innerHTML = '<div class="krd-ogoh">Saqlangan nusxani chizib bo‘lmadi — '
+        + 'u eski ko‘rinishda saqlangan bo‘lishi mumkin.</div>';
+    }
+    const ogoh = document.createElement('div');
+    ogoh.className = 'krd-kesh-ogoh';
+    ogoh.innerHTML =
+      '<b>Saqlangan nusxa ko‘rsatilmoqda</b>'
+      + '<span>Baza hozir javob bermayapti: ' + escapeHtml(xatoOdamcha(err.message)) + '</span>'
+      + '<span>Ma‘lumot ' + krdQachon(kesh.at) + ' olingan — ' + kesh.royxat.length + ' ta shartnoma. '
+      + 'Ko‘rish va qidirish ishlaydi; to‘lov tasdiqlash va tahrirlash esa baza tiklangandan keyin.</span>'
+      + '<button type="button" id="krdQayta">Qayta urinish</button>';
+    list.insertBefore(ogoh, list.firstChild);
+    const t = document.getElementById('krdQayta');
+    if(t) t.addEventListener('click', ()=> loadCreditContracts());
   }
 }
 
@@ -13733,4 +13974,112 @@ function stChiz(){
 
   /* Tashqaridan chaqirish uchun */
   window.hujjatSkaneriOch = och;
+})();
+
+/* ==================================================================
+   KUZATUVNI YOQISH / O'CHIRISH  (V183)
+   ------------------------------------------------------------------
+   NEGA BU TUGMA KERAK. Kuzatuv kroni har daqiqada ishlaydi va har
+   safar barcha faol kuzatuvlarni o'qiydi. 30 ta kuzatuvda bu kuniga
+   43 000 dan ortiq o'qish — Firestore'ning bepul kunlik chegarasi
+   (50 000) tushdan oldin tugaydi. Shundan keyin BUTUN panel ishlamay
+   qoladi: kredit ham, buyurtmalar ham, hammasi.
+
+   Shuning uchun kuzatuv endi admin qo'lida: kerak bo'lmagan kunlarda
+   o'chirib qo'yiladi va chegara panelning qolgan qismiga qoladi.
+
+   Sozlama `admin_meta/kuzatuv` hujjatida saqlanadi — kron har
+   yurishida avval shuni o'qiydi (qarang:
+   netlify/functions/number-watch-check-background.js).
+   ================================================================== */
+(function(){
+  const quti   = document.getElementById('wtKalit');
+  if(!quti) return;
+  const tugma  = document.getElementById('wtKalitTugma');
+  const holat  = document.getElementById('wtKalitHolat');
+  const izoh   = document.getElementById('wtKalitIzoh');
+  const nuqta  = document.getElementById('wtKalitNuqta');
+  const REF = () => db.collection('admin_meta').doc('kuzatuv');
+
+  let yoqilgan = true, band = false;
+
+  /* Kunlik sarf taxmini. Kron daqiqasiga bitta o'qish qiladi, ustiga
+     har bir faol kuzatuv uchun bittadan. Aniq raqam emas, TARTIB —
+     lekin aynan shu tartib chegaraga sig'ish-sig'masligini hal qiladi. */
+  function sarfMatni(soni){
+    if(!yoqilgan) return 'Kuniga ~1 400 o‘qish (chegaraning ~3% i). Qolgani panelga qoladi.';
+    if(soni == null) return 'Kuzatuv ishlayapti.';
+    const kunlik = 1440 * (soni + 1);
+    const foiz = Math.round(kunlik / 50000 * 100);
+    const ogoh = foiz >= 70 ? '  ⚠️ chegaraga yaqin' : '';
+    return soni + ' ta faol kuzatuv → kuniga ~'
+      + kunlik.toLocaleString('ru-RU').replace(/ /g, ' ')
+      + ' o‘qish (~' + foiz + '%)' + ogoh;
+  }
+
+  function faolSoni(){
+    /* Ro'yxat allaqachon chizilgan bo'lsa, undan sanab olamiz —
+       baza bilan qo'shimcha gaplashish shart emas. */
+    try{
+      const q = document.querySelectorAll('#wtList .wt-item:not(.wt-ochiq), #wtList .wt-row');
+      return q.length || null;
+    }catch(e){ return null; }
+  }
+
+  function chiz(){
+    quti.classList.toggle('on', yoqilgan);
+    tugma.classList.toggle('on', yoqilgan);
+    tugma.setAttribute('aria-pressed', String(yoqilgan));
+    nuqta.className = 'wt-kalit-nuqta ' + (yoqilgan ? 'yashil' : 'kulrang');
+    holat.textContent = yoqilgan ? 'Kuzatuv YOQILGAN' : 'Kuzatuv O‘CHIRILGAN';
+    izoh.textContent = sarfMatni(faolSoni());
+    tugma.disabled = band;
+  }
+
+  async function yukla(){
+    try{
+      const d = await REF().get();
+      /* Hujjat yo'q bo'lsa — YOQILGAN deb hisoblaymiz: tizim ilgari
+         shunday ishlagan, va "sozlama topilmadi" degani "o'chir"
+         degani emas. */
+      yoqilgan = !(d.exists && d.data() && d.data().yoqilgan === false);
+    }catch(e){
+      yoqilgan = true;
+      izoh.textContent = 'Holatni o‘qib bo‘lmadi: ' + xatoOdamcha(e.message);
+    }
+    band = false;
+    chiz();
+  }
+
+  tugma.addEventListener('click', async ()=>{
+    if(band) return;
+    const yangi = !yoqilgan;
+    if(!yangi && !confirm('Kuzatuv o‘chirilsin?\n\nRaqam sotuvga chiqqanda Telegram‘ga xabar KELMAYDI. '
+        + 'Buning evaziga kunlik chegara panelning qolgan bo‘limlariga (kredit, buyurtmalar) qoladi.')) return;
+    band = true; chiz();
+    holat.textContent = 'Saqlanmoqda…';
+    try{
+      await REF().set({
+        yoqilgan: yangi,
+        ozgartirdi: (firebase.auth().currentUser || {}).uid || '',
+        ozgardi: Date.now()
+      }, { merge: true });
+      yoqilgan = yangi;
+      band = false; chiz();
+      /* Natija xabari SARF MA'LUMOTI bilan birga ko'rsatiladi —
+         admin "nima bo'ldi" ni ham, "nima yutdim" ni ham bir
+         qarashda ko'rsin. */
+      izoh.textContent = (yangi
+        ? 'Yoqildi, bir daqiqa ichida boshlanadi.  '
+        : 'O‘chirildi, bir daqiqa ichida to‘xtaydi.  ') + sarfMatni(faolSoni());
+    }catch(e){
+      band = false; chiz();
+      izoh.textContent = 'Saqlanmadi: ' + xatoOdamcha(e.message);
+    }
+  });
+
+  /* Bo'limga kirilganda holat yangilanadi */
+  const tab = document.querySelector('.tab[data-tab="watch"]');
+  if(tab) tab.addEventListener('click', ()=> setTimeout(yukla, 60));
+  yukla();
 })();

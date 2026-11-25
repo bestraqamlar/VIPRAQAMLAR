@@ -623,6 +623,41 @@ exports.handler = async function (event) {
   if (!(await jadvalOk(event, 'number-watch-check-background', 40))) return { statusCode: 403, body: 'forbidden' };
 
   START_TIME = Date.now();
+
+  /* ==================================================================
+     KUZATUVNI YOQISH / O'CHIRISH  (V183)
+     ------------------------------------------------------------------
+     Mijoz so'rovi: kuzatuvni admin O'ZI yoqib-o'chira olsin.
+
+     NEGA KERAK. Bu funksiya har daqiqada ishlaydi va har safar barcha
+     faol kuzatuvlarni o'qiydi. 30 ta kuzatuvda bu kuniga 43 000 dan
+     ortiq o'qish — Firestore'ning bepul kunlik chegarasi (50 000)
+     tushdan oldin tugaydi va undan keyin BUTUN panel ishlamay qoladi:
+     kredit ham, buyurtmalar ham. Ya'ni kuzatuv kerak bo'lmagan
+     kunlarda uni o'chirib turish — butun tizimni tirik saqlaydi.
+
+     NARXI. O'chirilgan holatda bu funksiya BITTA kichik hujjatni
+     o'qiydi va darhol qaytadi: kuniga 1 440 o'qish, ya'ni chegaraning
+     ~3% i. Qolgan 97% panelga qoladi.
+
+     NEGA KESHLAMAYMIZ. Sozlamani xotirada saqlash o'qishni yana
+     kamaytirardi, lekin admin "yoq" bosganda u darhol ishlamasdi —
+     o'nlab daqiqa kutishga to'g'ri kelardi. Bir daqiqalik aniqlik
+     1 440 o'qishga arziydi. */
+  let sozlama = null;
+  try {
+    const d = await db.collection('admin_meta').doc('kuzatuv').get();
+    sozlama = (d.exists && d.data()) || {};
+  } catch (e) {
+    /* Sozlama o'qilmasa — kuzatuv ISHLAYVERADI. Ataylab shunday:
+       sozlama hujjati yo'q bo'lsa ham (hali yaratilmagan bo'lsa)
+       tizim avvalgidek ishlashi kerak. */
+    sozlama = {};
+  }
+  if (sozlama && sozlama.yoqilgan === false) {
+    return { statusCode: 200, body: 'ok: kuzatuv admin tomonidan ochirilgan' };
+  }
+
   /* V134: Humans sessiyasini ISITIB qo'yamiz — mijoz saytda qidirganda
      u allaqachon tayyor bo'lsin. Natijani kutmaymiz va xatosini
      e'tiborsiz qoldiramiz: bu faqat tezlik uchun, kuzatuvning
