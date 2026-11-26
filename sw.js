@@ -19,7 +19,7 @@ const CACHE = 'vipraqamlar-v65';   /* V182: raqam bo'shliq bilan */
 
    Endi versiya BITTA joyda turadi va barcha manzillar o'shandan
    tuziladi, ya'ni ular hech qachon ajralib qolmaydi. */
-const V = '182';
+const V = '206';
 const SHELL = ['/', '/index.html', '/manifest.json', '/assets/logo-circle.png',
                /* Shriftlar — ONLAYN EMAS, saytning o'zida.
                   Ular keshda bo'lgani uchun internetsiz ham sayt

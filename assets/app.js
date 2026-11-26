@@ -3869,7 +3869,7 @@ function ikkinchiQism(){
   if(IKKINCHI_QISM) return IKKINCHI_QISM;
   IKKINCHI_QISM = new Promise((bajarildi, xato)=>{
     const s = document.createElement('script');
-    s.src = '/assets/app2.js?v=182';
+    s.src = '/assets/app2.js?v=206';   /* V202: sw.js dagi V bilan BIR XIL bo'lishi SHART — aks holda oflayn rejimda bu fayl umuman yuklanmaydi */
     s.async = true;
     s.onload = ()=> bajarildi(true);
     s.onerror = ()=>{ IKKINCHI_QISM = null; xato(new Error('app2 yuklanmadi')); };
