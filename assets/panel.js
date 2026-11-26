@@ -5201,8 +5201,14 @@ function qzAnalyze(d){
   if(left === 0 || closed){
     state = 'done';
   }else if(overdue.length){
-    state = 'overdue';
     days = Math.floor((now - overdue[0].dueDate) / QZ_DAY);
+    /* V199: 30 KUNDAN ORTIQ kechikkan to'lov endi alohida holat —
+       "Muammoli qarzdorlar". Bu bank amaliyotidagi rasmiy atama
+       (muammoli qarz) va "qora ro'yxat" degani shu.
+       Shunday shartnoma "Kechikkan" ro'yxatida TURMAYDI — u butunlay
+       boshqa bo'limga o'tadi, chunki unga boshqacha munosabat
+       kerak: eslatma emas, undiruv. */
+    state = (days >= QZ_MUAMMO_KUN) ? 'muammoli' : 'overdue';
   }else if(next && (next.dueDate - now) <= 7 * QZ_DAY){
     state = 'soon';
     days = Math.max(0, Math.ceil((next.dueDate - now) / QZ_DAY));
@@ -5218,9 +5224,15 @@ function qzAnalyze(d){
   };
 }
 
-const QZ_RANK = { overdue: 0, soon: 1, ok: 2, done: 3 };
+/* Necha kundan keyin shartnoma "muammoli" deb hisoblanadi.
+   Bitta joyda turadi — kerak bo'lsa shu raqamni o'zgartirish kifoya. */
+const QZ_MUAMMO_KUN = 30;
+
+/* Ro'yxatda kim yuqorida turadi: eng og'iri birinchi. */
+const QZ_RANK = { muammoli: 0, overdue: 1, soon: 2, ok: 3, done: 4 };
 
 function qzPill(a){
+  if(a.state === 'muammoli') return '<span class="qz-pill p-muammo">\u26D4 Muammoli \u00b7 ' + a.days + ' kun</span>';
   if(a.state === 'overdue') return '<span class="qz-pill p-overdue">⚠ ' + a.days + ' kun kechikdi</span>';
   if(a.state === 'soon')    return '<span class="qz-pill p-soon">⏳ ' + (a.days === 0 ? 'to\'lov bugun' : a.days + ' kundan keyin') + '</span>';
   if(a.state === 'done')    return '<span class="qz-pill p-done">' + (a.cancelled ? '✕ bekor bo\'ldi' : (a.archived ? '✓ yopilgan' : '✓ to\'liq to\'langan')) + '</span>';
@@ -5239,7 +5251,9 @@ function qzRenderStats(contracts){
     if(a.state === 'done') return;
     activeCount++;
     totalDebt += a.debt;
-    if(a.state === 'overdue'){ overdueCount++; overdueSum += a.overdueSum; }
+    /* V199: muammoli ham kechikkan — pul baribir undirilishi kerak,
+       shuning uchun tepadagi summadan tushib qolmasligi SHART. */
+    if(a.state === 'overdue' || a.state === 'muammoli'){ overdueCount++; overdueSum += a.overdueSum; }
     else if(a.state === 'soon'){ soonCount++; soonSum += a.monthly; }
   });
 
@@ -5272,7 +5286,7 @@ function qzRenderFilters(contracts){
   if(!box) return;
   // "Hammasi" — faqat FAOL shartnomalar. Yopilganlari Arxivda turadi va
   // na ro'yxatda, na tepadagi summalarda ko'rinadi.
-  const c = { all: 0, overdue: 0, soon: 0, done: 0 };
+  const c = { all: 0, overdue: 0, muammoli: 0, soon: 0, done: 0 };
   contracts.forEach(d => {
     const st = qzAnalyze(d).state;
     if(c[st] !== undefined) c[st]++;
@@ -5280,10 +5294,11 @@ function qzRenderFilters(contracts){
   });
 
   const defs = [
-    { key: 'all',     label: 'Faol',         n: c.all,     cls: '' },
-    { key: 'overdue', label: 'Kechikkan',    n: c.overdue, cls: ' qz-chip-danger' },
-    { key: 'soon',    label: 'Yaqin 7 kun',  n: c.soon,    cls: ' qz-chip-warn' },
-    { key: 'done',    label: 'Arxiv',        n: c.done,    cls: '' }
+    { key: 'all',      label: 'Faol',         n: c.all,      cls: '' },
+    { key: 'overdue',  label: 'Kechikkan',    n: c.overdue,  cls: ' qz-chip-danger' },
+    { key: 'muammoli', label: 'Muammoli',     n: c.muammoli, cls: ' qz-chip-muammo' },
+    { key: 'soon',     label: 'Yaqin 7 kun',  n: c.soon,     cls: ' qz-chip-warn' },
+    { key: 'done',     label: 'Arxiv',        n: c.done,     cls: '' }
   ];
 
   box.innerHTML = defs.map(f =>
@@ -5329,9 +5344,10 @@ function renderCreditList(contracts){
   if(rows.length === 0){
     list.innerHTML = '<div class="empty-admin">' +
       (all.length === 0 ? 'Hali kredit shartnomasi yo\'q.'
-        : (qzFilter === 'done' ? 'Arxiv hozircha bo\'sh — yopilgan shartnoma yo\'q.'
-        : (qzFilter === 'all' ? 'Faol shartnoma yo\'q. Yopilganlari Arxiv bo\'limida.'
-        : 'Bu shartga mos shartnoma topilmadi.'))) + '</div>';
+        : (qzFilter === 'done' ? 'Arxiv bo\'sh — tugagan yoki bekor qilingan shartnoma yo\'q.'
+        : (qzFilter === 'muammoli' ? 'Muammoli qarzdor yo\'q — hech kimning to\'lovi ' + QZ_MUAMMO_KUN + ' kundan ortiq kechikmagan.'
+        : (qzFilter === 'all' ? 'Faol shartnoma yo\'q. Tugaganlari Arxiv bo\'limida.'
+        : 'Bu shartga mos shartnoma topilmadi.')))) + '</div>';
     return;
   }
 
@@ -5340,7 +5356,7 @@ function renderCreditList(contracts){
   const sorted = rows.slice().sort((x, y) => {
     const ax = qzAnalyze(x), ay = qzAnalyze(y);
     if(QZ_RANK[ax.state] !== QZ_RANK[ay.state]) return QZ_RANK[ax.state] - QZ_RANK[ay.state];
-    if(ax.state === 'overdue') return ay.days - ax.days;
+    if(ax.state === 'overdue' || ax.state === 'muammoli') return ay.days - ax.days;
     if(ax.state === 'soon')    return ax.days - ay.days;
     return ay.debt - ax.debt;
   });
@@ -5361,7 +5377,7 @@ function renderCreditList(contracts){
     const now = Date.now();
 
     const payCta = a.next
-      ? '<button type="button" class="qz-pay-cta' + (a.state === 'overdue' ? ' is-overdue' : '') + '" data-id="' + d.id + '" data-month="' + a.next.month + '">' +
+      ? '<button type="button" class="qz-pay-cta' + ((a.state === 'overdue' || a.state === 'muammoli') ? ' is-overdue' : '') + '" data-id="' + d.id + '" data-month="' + a.next.month + '">' +
           '<span>' + a.next.month + '-oy to\'lovini tasdiqlash' +
             '<span class="qz-cta-sub">Muddati: ' + formatDate(a.next.dueDate) + (a.state === 'overdue' ? ' · ' + a.days + ' kun kechikkan' : '') + '</span>' +
           '</span>' +
@@ -5390,12 +5406,12 @@ function renderCreditList(contracts){
         // 3-ustun: jadval (nechanchi oy va chiziq)
         '<span class="qzc qzc-prog">' +
           '<i class="qzp-txt">' + a.paid + ' / ' + a.total + ' oy</i>' +
-          '<span class="qzp-bar' + (a.state === 'overdue' ? ' is-late' : '') + '">' +
+          '<span class="qzp-bar' + ((a.state === 'overdue' || a.state === 'muammoli') ? ' is-late' : '') + '">' +
             '<span style="width:' + a.pct + '%"></span>' +
           '</span>' +
         '</span>' +
         // 4-ustun: qolgan qarz
-        '<span class="qzc qzc-debt' + (a.state === 'overdue' ? ' is-late' : '') + '">' +
+        '<span class="qzc qzc-debt' + ((a.state === 'overdue' || a.state === 'muammoli') ? ' is-late' : '') + '">' +
           '<b>' + (a.debt > 0 ? qzMoney(a.debt) : '0') + '</b>' +
           '<i>' + qzMoney(a.total * a.monthly) + crVal(d) + ' dan</i>' +
         '</span>' +
@@ -5407,7 +5423,7 @@ function renderCreditList(contracts){
         // 6-ustun: asosiy amal
         '<span class="qzc qzc-act">' +
           (a.next && !a.archived
-            ? '<button type="button" class="qz-row-pay' + (a.state === 'overdue' ? ' is-late' : '') + '" data-id="' + d.id + '" data-month="' + a.next.month + '">To\'lovni tasdiqlash</button>'
+            ? '<button type="button" class="qz-row-pay' + ((a.state === 'overdue' || a.state === 'muammoli') ? ' is-late' : '') + '" data-id="' + d.id + '" data-month="' + a.next.month + '">To\'lovni tasdiqlash</button>'
             : '<span class="qz-row-done">✓</span>') +
         '</span>' +
         '<span class="qz-arrow">▾</span>' +
@@ -5752,6 +5768,44 @@ document.getElementById('sendExcelNowBtn').addEventListener('click', async ()=>{
   btn.disabled = false;
   btn.textContent = oldText;
 });
+
+/* ---- PDF reestrni Telegramga yuborish (V200) ----
+   Excel hisobot bilan bir xil naqsh: tugma bloklanadi, holat yoziladi,
+   javob kelgach aniq raqamlar ko'rsatiladi. */
+(function(){
+  const btn = document.getElementById('sendReestrBtn');
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const msg = document.getElementById('reestrMsg');
+    const eski = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '\u23F3 Tayyorlanmoqda...';
+    msg.textContent = ''; msg.className = 'settings-msg';
+    try{
+      const idToken = await firebase.auth().currentUser.getIdToken();
+      const res = await fetch('/.netlify/functions/send-credit-register', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + idToken }
+      });
+      const data = await res.json().catch(()=>({}));
+      if(res.ok && data.ok){
+        msg.textContent = '\u2713 Reestr Telegram botingizga yuborildi \u2014 '
+          + data.jami + ' ta faol shartnoma ('
+          + data.muammoli + ' muammoli, ' + data.overdue + ' kechikkan, '
+          + data.soon + ' yaqin, ' + data.ok + ' joyida).';
+        msg.className = 'settings-msg ok';
+        if(typeof vibrate === 'function') vibrate(80);
+      }else{
+        throw new Error(data.error || 'Server xatosi \u2014 Netlify logini tekshiring');
+      }
+    }catch(err){
+      msg.textContent = (typeof xatoOdamcha === 'function')
+        ? xatoOdamcha(err.message) : err.message;
+      msg.className = 'settings-msg bad';
+    }
+    btn.disabled = false;
+    btn.textContent = eski;
+  });
+})();
 
 /* ==================================================================
    "KIRIM-CHIQIM" — avvalgi shaxsiy Telegram bot bilan bir xil

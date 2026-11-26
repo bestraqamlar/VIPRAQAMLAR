@@ -2264,3 +2264,73 @@ html[data-ds] .cr-skaner-matn i{
   html[data-ds] .dash-stat-card .dash-stat-num,
   html[data-ds] #paneCredit .qz-stat .qz-stat-value{ white-space:nowrap !important; }
 }
+
+/* ==================================================================
+   37. MUAMMOLI QARZDORLAR (V199)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "qora ro'yxat" bo'limi — to'lovi 30 kundan ortiq
+   kechikkanlar o'sha yerga o'tadi.
+
+   NOM: "Muammoli". Bu bank va moliya amaliyotidagi RASMIY atama
+   (muammoli qarz / muammoli kredit) — hujjatda ham, mijoz bilan
+   suhbatda ham ishlatsa bo'ladi, "qora ro'yxat" esa bo'lmaydi.
+
+   RANG: oddiy qizil emas — qizil allaqachon "kechikkan" uchun band.
+   Muammoli uchun to'q grafit fon + qizil urg'u: jiddiyroq va
+   "kechikkan" dan darhol ajralib turadi.
+   ================================================================== */
+html[data-ds]{
+  --krd-muammo:#8B1A14;
+  --krd-muammo-fon:#2B1412;
+  --krd-muammo-yuza:color-mix(in srgb, #8B1A14 9%, var(--panel));
+}
+html[data-ds][data-theme="dark"]{
+  --krd-muammo:#FF6B5E;
+  --krd-muammo-yuza:color-mix(in srgb, #FF6B5E 11%, var(--panel));
+}
+
+/* Filtr tugmasi */
+html[data-ds] .qz-chip.qz-chip-muammo{
+  border-color:color-mix(in srgb, var(--krd-muammo) 50%, transparent) !important;
+  color:var(--krd-muammo) !important;
+}
+html[data-ds] .qz-chip.qz-chip-muammo.is-active{
+  background:var(--krd-muammo) !important;
+  border-color:var(--krd-muammo) !important;
+  color:#fff !important;
+}
+html[data-ds] .qz-chip.qz-chip-muammo.is-active .qz-chip-count{
+  background:rgba(255,255,255,.22) !important; color:#fff !important;
+}
+
+/* Qatorning chap chekkasidagi holat chizig'i */
+html[data-ds] .qz-item.st-muammoli{
+  border-color:color-mix(in srgb, var(--krd-muammo) 45%, transparent) !important;
+}
+html[data-ds] .qz-item.st-muammoli::before{
+  background:var(--krd-muammo) !important; opacity:1 !important;
+}
+
+/* Holat nishoni */
+html[data-ds] .qz-pill.p-muammo{
+  background:var(--krd-muammo) !important;
+  border-color:var(--krd-muammo) !important;
+  color:#fff !important;
+  letter-spacing:.04em;
+}
+
+/* "Muammoli · 45 kun" nishoni eskisidan kengroq — holat ustuni 128px
+   edi va nishon jadval ustuniga chiqib ketdi (suratda ko'rindi).
+   Ustun 150px ga kengaytirildi, jadval ustuni esa shuncha qisqardi. */
+@media (min-width: 901px){
+  html[data-ds] .qz-thead, html[data-ds] .qz-head{
+    grid-template-columns:minmax(0,2fr) 152px 104px minmax(0,1.25fr) minmax(0,1.1fr) 160px 18px !important;
+  }
+  html[data-ds] .qzc-state{ min-width:0; }
+}
+
+/* PDF reestr kartochkasining ikonkasi (V200) */
+html[data-ds] .cr-tool-ico.cr-tool-ico-dark{
+  background:color-mix(in srgb, var(--text) 10%, transparent) !important;
+  color:var(--text) !important;
+}

@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=198">
-<link rel="preload" as="script" href="assets/panel.js?v=198">
+<link rel="preload" as="style" href="assets/panel.css?v=201">
+<link rel="preload" as="script" href="assets/panel.js?v=201">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,16 +52,16 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=198">
+<link rel="stylesheet" href="assets/panel.css?v=201">
 <!-- TELEFON KO'RINISHI (V148) — mijoz sayti shablonida.
      `panel.css` dan KEYIN turishi shart: u faqat 899px dan tor
      ekranda ishlaydi va asosiy uslublar ustiga yoziladi.
      Kompyuterda bu fayl bitta ham qoida bermaydi. -->
-<link rel="stylesheet" href="assets/panel-mobil.css?v=198">
+<link rel="stylesheet" href="assets/panel-mobil.css?v=201">
 <!-- YANGI DIZAYN QATLAMI (V151). panel.css VA panel-mobil.css dan
      KEYIN turishi SHART: u ikkisining ko'rinish qoidalarini qayta
      belgilaydi. Tuzilma va funksiya o'zgarmaydi — faqat ko'rinish. -->
-<link rel="stylesheet" href="assets/panel-dizayn.css?v=198">
+<link rel="stylesheet" href="assets/panel-dizayn.css?v=201">
 
 </head>
 <body>
@@ -1562,6 +1562,20 @@
         <div class="settings-msg" id="excelNowMsg"></div>
       </div>
 
+      <!-- PDF REESTR (V200). Maqsadi: sayt yoki internet ishlamay qolganda
+           ham butun bo'lib to'lash portfeli qo'lda bo'lsin. Excel hisobot
+           bilan yonma-yon turadi — ikkisi bir-birini to'ldiradi: Excel
+           hisob-kitob uchun, PDF esa o'qish va bosib chiqarish uchun. -->
+      <div class="settings-form cr-tool-card">
+        <div class="cr-tool-head">
+          <div class="cr-tool-ico cr-tool-ico-dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></div>
+          <h3>PDF reestr</h3>
+        </div>
+        <p>Barcha faol shartnomalar bitta rasmiy hujjatda, bank hisobvarag'i kabi katta jadval ko'rinishida. <b>1-qism:</b> har bir mijoz bitta qator — pasport, manzil, oylik to'lov, to'langan/jami oy, qolgan qarz, keyingi to'lov va qo'lda belgilash uchun katak; har bo'lim oxirida yakun. <b>2-qism:</b> har kimning to'liq oylik jadvali, QR kodi va imzo joyi. <b>3-qism:</b> alifbo ko'rsatkichi. Avval qarzdorlar, keyin kuni yaqinlar. Arxiv kirmaydi.</p>
+        <button id="sendReestrBtn">📋 PDF reestrni yuborish</button>
+        <div class="settings-msg" id="reestrMsg"></div>
+      </div>
+
       <div class="settings-form cr-tool-card">
         <div class="cr-tool-head">
           <div class="cr-tool-ico cr-tool-ico-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
@@ -2569,7 +2583,7 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/hujjat-oqish.js?v=198"></script>
-<script defer src="assets/panel.js?v=198"></script>
+<script defer src="assets/hujjat-oqish.js?v=201"></script>
+<script defer src="assets/panel.js?v=201"></script>
 </body>
 </html>

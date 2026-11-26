@@ -601,4 +601,8 @@ function buildContractPdfBuffer(contract){
   });
 }
 
-module.exports = { buildContractPdfBuffer, paymentState, STATE_LABELS, fmtMoney, fmtDate, qrKalit, qrHavola };
+/* V200: reestr (umumiy ro'yxat) PDF'i ham AYNAN shu ranglar, QR
+   chizg'ichi va format funksiyalaridan foydalanadi — ikki hujjat
+   bir xil ko'rinishda bo'lishi uchun. */
+module.exports = { buildContractPdfBuffer, paymentState, STATE_LABELS, fmtMoney, fmtDate,
+                   fmtNum, qrKalit, qrHavola, qrChiz, C, SELLER_NAME, SELLER_SITE };
