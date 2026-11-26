@@ -1022,3 +1022,721 @@ html[data-ds] .add-form > .af-lbl:first-child{ margin-top:0; }
 }
 #krdNavbatYubor:disabled{ opacity:.6; cursor:default; }
 #krdNavbatYubor:active{ transform:scale(.985); }
+
+/* ==================================================================
+   30. V186 — KREDIT RO'YXATI: PROFESSIONAL KO'RINISH
+   ------------------------------------------------------------------
+   Mijoz: "orqa fon bilan old fon bir xil, ajratuvchi narsa yo'q,
+   zamonaviy emas" — va haq.
+
+   TASHXIS. Kunduzgi mavzuda sahifa foni #F6F7F9, qator foni esa
+   #FFFFFF edi: orasida atigi uch pog'ona farq. Ko'z bunday farqni
+   deyarli ko'rmaydi, natijada 40 ta qator bitta katta oq maydonga
+   qo'shilib ketgan. Qatorlar orasida chiziq ham yo'q edi.
+
+   YECHIM — uchta qatlamni ANIQ ajratish:
+     1) SAHIFA foni sovuqroq va to'qroq (#EBEEF4);
+     2) QATOR toza oq, ingichka qirra va yumshoq soya bilan — u
+        fondan "ko'tarilib" turadi;
+     3) ustun sarlavhalari ostida chiziq, qatorlar orasida esa
+        bo'shliq emas, ingichka AJRATUVCHI.
+   Tungi mavzuda hammasi teskari: fon deyarli qora, qator yorug'roq.
+
+   Ikkinchi muammo: har qatorda katta siyohrang tugma takrorlanardi —
+   40 ta baland ovoz. Endi tugma tinchroq, SHOSHILINCH qatorlarda
+   (kechikkan) esa to'q rangda: ko'z avval kerakli joyga tushadi.
+   ================================================================== */
+
+/* --- 30.1 Qatlamlar: fon va yuza ---------------------------------- */
+html[data-ds]:not([data-theme="dark"]) #paneCredit{ --krd-fon:#EBEEF4; --krd-yuza:#FFFFFF; }
+html[data-ds][data-theme="dark"]        #paneCredit{ --krd-fon:#0B111D; --krd-yuza:#161E2E; }
+
+html[data-ds] #paneCredit{ background:var(--krd-fon); }
+/* V187: ro'yxat qobig'i SHAFFOF. Ilgari u bitta katta oq quti edi
+   va qatorlar uning ichida chiziq bilan ajratilardi. Mijoz so'rovi:
+   "har bir odam o'zining alohida kartochkasida bo'lsin". Shuning
+   uchun yuza endi QATORNING O'ZIDA — qobiq esa faqat joylashtiradi. */
+html[data-ds] #paneCredit .qz-list{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  overflow:visible;
+}
+
+/* --- 30.2 Ustun sarlavhalari -------------------------------------- */
+html[data-ds] #paneCredit .qz-thead{
+  background:transparent !important;
+  border:0 !important;
+  padding:4px 18px 10px !important;
+}
+html[data-ds] #paneCredit .qz-thead .qzc{
+  font-size:10.5px !important;
+  font-weight:800 !important;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--muted) !important;
+}
+
+/* --- 30.3 Qatorlar: ajratuvchi chiziq ----------------------------- */
+/* --- Har bir mijoz — O'ZINING kartochkasi (V187) ---
+   Orasida bo'shliq bor, shuning uchun ajratuvchi chiziq kerak emas:
+   ko'z ularni alohida buyum sifatida ko'radi. Ustiga borilganda
+   kartochka bir pog'ona ko'tariladi — bu "bosish mumkin" degan
+   belgi va ro'yxatni tirik qiladi. */
+html[data-ds] #paneCredit .qz-item{
+  background:var(--krd-yuza) !important;
+  border:1px solid var(--line) !important;
+  border-radius:14px !important;
+  margin:0 0 10px !important;
+  overflow:hidden;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 16px -12px rgba(16,24,40,.25) !important;
+  transition:transform .16s cubic-bezier(.2,.9,.25,1),
+             box-shadow .16s linear, border-color .16s linear;
+}
+html[data-ds] #paneCredit .qz-item:last-child{ margin-bottom:0 !important; }
+html[data-ds] #paneCredit .qz-item:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb, var(--amber) 38%, var(--line)) !important;
+  box-shadow:0 2px 4px rgba(16,24,40,.06), 0 14px 28px -16px rgba(16,24,40,.4) !important;
+}
+html[data-ds] #paneCredit .qz-item.is-open{
+  border-color:color-mix(in srgb, var(--amber) 48%, var(--line)) !important;
+  box-shadow:0 2px 4px rgba(16,24,40,.06), 0 16px 32px -16px rgba(16,24,40,.45) !important;
+}
+/* Kechikkan kartochka qirrasi ham ogohlantiradi */
+html[data-ds] #paneCredit .qz-item.st-overdue{
+  border-color:color-mix(in srgb, var(--red) 30%, var(--line)) !important;
+}
+html[data-ds] #paneCredit .qz-head{ padding:15px 17px !important; }
+@media (prefers-reduced-motion:reduce){
+  html[data-ds] #paneCredit .qz-item{ transition:none; }
+  html[data-ds] #paneCredit .qz-item:hover{ transform:none; }
+}
+
+/* Chap chetdagi holat chizig'i — ingichka, ichkarida, yumaloq */
+html[data-ds] #paneCredit .qz-item{ position:relative; }
+html[data-ds] #paneCredit .qz-item::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+  border-radius:0; background:transparent; z-index:1;
+}
+html[data-ds] #paneCredit .qz-item.st-overdue::before{ background:var(--red); }
+html[data-ds] #paneCredit .qz-item.st-soon::before{ background:var(--amber); }
+html[data-ds] #paneCredit .qz-item.st-ok::before{ background:var(--green); opacity:.5; }
+
+/* --- 30.4 Raqam va mijoz ------------------------------------------ */
+html[data-ds] #paneCredit .qzc-num b{
+  font-size:15px; font-weight:750; letter-spacing:.01em;
+  font-variant-numeric:tabular-nums;
+}
+html[data-ds] #paneCredit .qzc-num i{
+  font-size:12px; font-weight:600; color:var(--muted);
+}
+html[data-ds] #paneCredit .qzc-shid{
+  display:inline-block; margin-top:3px; text-decoration:none;
+  font-size:10.5px; font-weight:700; letter-spacing:.02em;
+  color:var(--muted); opacity:.8;
+}
+
+/* --- 30.5 Pullar: bir xil kenglikdagi raqamlar -------------------- */
+html[data-ds] #paneCredit .qzc-debt b,
+html[data-ds] #paneCredit .qzc-month b,
+html[data-ds] #paneCredit .qz-stat-value,
+html[data-ds] #paneCredit .qz-cta-sum{
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+}
+html[data-ds] #paneCredit .qzc-debt b{ font-size:15px; font-weight:800; }
+html[data-ds] #paneCredit .qzc-debt.is-late b{ color:var(--red); }
+html[data-ds] #paneCredit .qzc-debt i,
+html[data-ds] #paneCredit .qzc-month i{ font-size:11.5px; color:var(--muted); }
+html[data-ds] #paneCredit .qzc-month b{ font-size:14px; font-weight:750; }
+
+/* --- 30.6 Jadval chizig'i ----------------------------------------- */
+html[data-ds] #paneCredit .qzp-bar{
+  height:5px !important; border-radius:3px !important;
+  background:color-mix(in srgb, var(--muted) 20%, transparent) !important;
+  overflow:hidden;
+}
+html[data-ds] #paneCredit .qzp-bar > span{
+  background:var(--green) !important; border-radius:3px;
+}
+html[data-ds] #paneCredit .qzp-bar.is-late > span{ background:var(--red) !important; }
+html[data-ds] #paneCredit .qzp-txt{
+  font-size:11.5px; font-weight:700; color:var(--text-2);
+  font-variant-numeric:tabular-nums;
+}
+
+/* --- 30.7 Holat yorlig'i ------------------------------------------ */
+html[data-ds] #paneCredit .qz-pill{
+  font-size:11.5px !important; font-weight:750 !important;
+  padding:4px 10px !important; border-radius:999px !important;
+  letter-spacing:0;
+}
+html[data-ds] #paneCredit .qz-pill.p-overdue{
+  background:color-mix(in srgb, var(--red) 13%, transparent) !important;
+  color:var(--red) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--red) 30%, transparent) !important;
+}
+html[data-ds] #paneCredit .qz-pill.p-soon{
+  background:color-mix(in srgb, var(--amber) 13%, transparent) !important;
+  color:var(--amber) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--amber) 28%, transparent) !important;
+}
+html[data-ds] #paneCredit .qz-pill.p-ok,
+html[data-ds] #paneCredit .qz-pill.p-done{
+  background:color-mix(in srgb, var(--green) 12%, transparent) !important;
+  color:var(--green) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--green) 26%, transparent) !important;
+}
+
+/* --- 30.8 Amal tugmasi: tinch, shoshilinchda to'q ------------------
+   Ilgari har qatorda bir xil katta siyohrang plita turardi. 40 ta
+   bir xil baland ovoz — ko'z qayerga qarashini bilmaydi. Endi
+   odatiy qator uchun tugma YENGIL, kechikkan qator uchun TO'Q. */
+/* ESLATMA: qator tugmasining sinfi `.qz-row-pay` (ochilgan
+   kartochka ichidagisi esa `.qz-pay-cta`) — ikkalasi ham shu yerda. */
+html[data-ds] #paneCredit .qz-row-pay,
+html[data-ds] #paneCredit .qz-pay-cta{
+  background:color-mix(in srgb, var(--amber) 10%, transparent) !important;
+  color:var(--amber) !important;
+  border:1px solid color-mix(in srgb, var(--amber) 34%, transparent) !important;
+  box-shadow:none !important;
+  border-radius:10px !important;
+  font-weight:750 !important;
+  transition:background .16s linear, color .16s linear, border-color .16s linear;
+}
+html[data-ds] #paneCredit .qz-row-pay:hover,
+html[data-ds] #paneCredit .qz-pay-cta:hover{
+  background:var(--amber) !important; color:#fff !important;
+  border-color:var(--amber) !important; filter:none;
+}
+/* KECHIKKAN qator — to'q qizil. Ko'z avval shu yerga tushadi. */
+html[data-ds] #paneCredit .qz-row-pay.is-late,
+html[data-ds] #paneCredit .qz-pay-cta.is-overdue{
+  background:var(--red) !important; color:#fff !important;
+  border-color:var(--red) !important;
+  box-shadow:0 4px 12px -6px color-mix(in srgb, var(--red) 80%, transparent) !important;
+}
+html[data-ds] #paneCredit .qz-row-pay.is-late:hover,
+html[data-ds] #paneCredit .qz-pay-cta.is-overdue:hover{ filter:brightness(1.07); }
+html[data-ds] #paneCredit .qz-cta-sub{ opacity:.78; font-weight:650; }
+html[data-ds] #paneCredit .qz-cta-sum{ font-weight:850; }
+
+/* --- 30.9 Yuqoridagi ko'rsatkich kartochkalari -------------------- */
+html[data-ds] #paneCredit .qz-stat{
+  background:var(--krd-yuza) !important;
+  border:1px solid var(--line) !important;
+  border-radius:14px !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05) !important;
+  padding:15px 16px !important;
+  position:relative; overflow:hidden;
+}
+html[data-ds] #paneCredit .qz-stat::before{
+  content:''; position:absolute; left:0; right:0; top:0; height:2px;
+  background:var(--muted); opacity:.25;
+}
+html[data-ds] #paneCredit .qz-stat.is-danger::before{ background:var(--red); opacity:1; }
+html[data-ds] #paneCredit .qz-stat.is-warn::before{ background:var(--amber); opacity:1; }
+html[data-ds] #paneCredit .qz-stat-label{
+  font-size:11.5px !important; font-weight:700 !important;
+  color:var(--muted) !important; letter-spacing:.01em;
+}
+html[data-ds] #paneCredit .qz-stat-value{
+  font-size:27px !important; font-weight:800 !important; line-height:1.15 !important;
+  letter-spacing:-.02em;
+}
+html[data-ds] #paneCredit .qz-stat.is-danger .qz-stat-value{ color:var(--red) !important; }
+html[data-ds] #paneCredit .qz-stat.is-warn .qz-stat-value{ color:var(--amber) !important; }
+html[data-ds] #paneCredit .qz-stat-sub{
+  font-size:11.5px !important; color:var(--muted) !important; font-weight:600 !important;
+}
+
+/* --- 30.10 Qidiruv va filtr chiplari ------------------------------ */
+html[data-ds] #paneCredit .cr-search,
+html[data-ds] #paneCredit .qz-search{
+  background:var(--krd-yuza) !important;
+  border:1px solid var(--line) !important;
+  border-radius:13px !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.04) !important;
+  min-height:46px;
+}
+html[data-ds] #paneCredit .cr-search:focus-within,
+html[data-ds] #paneCredit .qz-search:focus-within{
+  border-color:var(--amber) !important;
+  box-shadow:0 0 0 3px var(--amber-soft) !important;
+}
+
+/* --- 30.11 Uchta holat — UCH XIL rang ------------------------------
+   ESLATMA: bu kodda `--amber` aslida SARIQ emas, panelning asosiy
+   KO'K rangi (#1546D6). Shu sabab "yaqin 7 kun" holati ham ko'k
+   bo'lib chiqdi va "kechikkan"dan boshqa, lekin "oddiy"dan
+   farqlanmaydigan bo'lib qoldi.
+
+   Holatlar ko'z bilan BIR ZUMDA ajralishi kerak, shuning uchun
+   ogohlantirish uchun alohida sariq belgi kiritiladi: qizil —
+   kechikkan, sariq — kuni yaqin, yashil — joyida. */
+html[data-ds] #paneCredit{ --krd-sariq:#B45309; }
+html[data-ds][data-theme="dark"] #paneCredit{ --krd-sariq:#F0B429; }
+
+html[data-ds] #paneCredit .qz-item.st-soon::before{ background:var(--krd-sariq) !important; }
+html[data-ds] #paneCredit .qz-pill.p-soon{
+  background:color-mix(in srgb, var(--krd-sariq) 13%, transparent) !important;
+  color:var(--krd-sariq) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--krd-sariq) 32%, transparent) !important;
+}
+html[data-ds] #paneCredit .qz-stat.is-warn::before{ background:var(--krd-sariq) !important; }
+html[data-ds] #paneCredit .qz-stat.is-warn .qz-stat-value{ color:var(--krd-sariq) !important; }
+
+/* --- 30.12 Qidiruv maydoni ----------------------------------------
+   U HTML ichida `style="..."` bilan yozilgan, shuning uchun oddiy
+   qoida uni yenga olmaydi — `!important` shart. */
+html[data-ds] #creditSearchInput{
+  min-height:48px !important;
+  padding:12px 15px !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  background:var(--krd-yuza) !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05) !important;
+  font-size:14.5px !important;
+  margin-bottom:12px !important;
+  transition:border-color .16s linear, box-shadow .16s linear;
+}
+html[data-ds] #creditSearchInput::placeholder{ color:var(--muted) !important; opacity:1; }
+html[data-ds] #creditSearchInput:focus{
+  outline:none !important;
+  border-color:var(--amber) !important;
+  box-shadow:0 0 0 3px var(--amber-soft) !important;
+}
+
+/* ==================================================================
+   31. V188 — SVETOFOR: HOLAT RANGI TUGMAGA HAM O'TADI
+   ------------------------------------------------------------------
+   Mijoz so'rovi: qarzi bo'lsa qizil, to'lagan bo'lsa yashil, bir
+   hafta qolgan bo'lsa ko'k.
+
+   Shuning uchun uchta belgi — chap chetdagi chiziq, holat yorlig'i va
+   "To'lovni tasdiqlash" tugmasi — endi BIR XIL rangda bo'ladi.
+   Avval ular uch xil edi (chiziq sariq, yorliq sariq, tugma ko'k) va
+   ko'z har safar qaytadan o'qib chiqishi kerak edi. Bir xil rang
+   bo'lsa, kartochkaning holati BIR QARASHDA ma'lum bo'ladi.
+
+   ESLATMA: bu kodda `--amber` aslida sariq emas, panelning asosiy
+   KO'K rangi — shuning uchun "bir hafta qolgan" uchun aynan o'sha
+   ishlatiladi. V186 da kiritilgan sariq esa endi kerak emas.
+   ================================================================== */
+
+/* --- 31.1 Bir hafta qolgan -> KO'K ------------------------------- */
+html[data-ds] #paneCredit .qz-item.st-soon::before{ background:var(--amber) !important; }
+html[data-ds] #paneCredit .qz-pill.p-soon{
+  background:color-mix(in srgb, var(--amber) 13%, transparent) !important;
+  color:var(--amber) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--amber) 34%, transparent) !important;
+}
+html[data-ds] #paneCredit .qz-item.st-soon .qz-row-pay{
+  background:var(--amber) !important; color:#fff !important;
+  border-color:var(--amber) !important;
+  box-shadow:0 4px 12px -6px color-mix(in srgb, var(--amber) 80%, transparent) !important;
+}
+html[data-ds] #paneCredit .qz-item.st-soon{
+  border-color:color-mix(in srgb, var(--amber) 28%, var(--line)) !important;
+}
+html[data-ds] #paneCredit .qz-stat.is-warn::before{ background:var(--amber) !important; }
+html[data-ds] #paneCredit .qz-stat.is-warn .qz-stat-value{ color:var(--amber) !important; }
+
+/* --- 31.2 Qarzi yo'q / to'lagan -> YASHIL ------------------------ */
+html[data-ds] #paneCredit .qz-item.st-ok::before{
+  background:var(--green) !important; opacity:1;
+}
+html[data-ds] #paneCredit .qz-item.st-done::before{
+  background:var(--green) !important; opacity:.6;
+}
+html[data-ds] #paneCredit .qz-item.st-ok .qz-row-pay{
+  background:var(--green) !important; color:#06281B !important;
+  border-color:var(--green) !important;
+  box-shadow:0 4px 12px -6px color-mix(in srgb, var(--green) 75%, transparent) !important;
+  font-weight:800 !important;
+}
+html[data-ds] #paneCredit .qz-item.st-ok .qz-row-pay:hover{ filter:brightness(1.06); }
+html[data-ds] #paneCredit .qz-item.st-ok{
+  border-color:color-mix(in srgb, var(--green) 26%, var(--line)) !important;
+}
+/* To'liq yakunlangan shartnoma — tugma o'rnida yashil yozuv */
+html[data-ds] #paneCredit .qz-pay-done{
+  color:var(--green) !important; font-weight:750 !important;
+}
+
+/* --- 31.3 Qarzi bor -> QIZIL (allaqachon shunday, mustahkamlaymiz) */
+html[data-ds] #paneCredit .qz-item.st-overdue .qz-row-pay{
+  background:var(--red) !important; color:#fff !important;
+  border-color:var(--red) !important;
+}
+
+/* V186 dagi sariq endi ishlatilmaydi — "bir hafta qolgan" ko'k bo'ldi.
+   O'zgaruvchi qoladi, chunki boshqa joyda kerak bo'lishi mumkin. */
+
+/* --- 31.4 Qizil tugma: yozuv O'QILISHI shart --------------------
+   SINOV TOPGAN KAMCHILIK. Tugmaga `--red` ishlatilgandi, lekin u
+   ikkala mavzuda ham ochiq pushtiroq rang (kunduzgi #F04438,
+   tungi #FF6B6B). Oq yozuv bunday fonda yetarli ajralmaydi —
+   o'lchov bo'yicha kontrast 3:1 dan past, ya'ni yozuv "yuvilib"
+   ketadi. Qolgan joylarda (yorliq, raqam) `--red` o'z holicha
+   to'g'ri: u yerda rang FON emas, YOZUV.
+
+   Shuning uchun tugma uchun alohida, to'qroq qizil olinadi. */
+html[data-ds] #paneCredit{ --krd-tugma-qizil:#C62A20; }
+html[data-ds][data-theme="dark"] #paneCredit{ --krd-tugma-qizil:#D13B33; }
+
+html[data-ds] #paneCredit .qz-item.st-overdue .qz-row-pay,
+html[data-ds] #paneCredit .qz-row-pay.is-late,
+html[data-ds] #paneCredit .qz-pay-cta.is-overdue{
+  background:var(--krd-tugma-qizil) !important;
+  border-color:var(--krd-tugma-qizil) !important;
+  color:#FFFFFF !important;
+  box-shadow:0 4px 12px -6px color-mix(in srgb, var(--krd-tugma-qizil) 80%, transparent) !important;
+}
+
+/* --- 31.5 Yashil tugma ham xuddi shunday ------------------------
+   Kunduzgi mavzuda `--green` ochiq (#33E28C ga yaqin) — unda to'q
+   yozuv ham, oq yozuv ham yetarli ajralmadi. Tugma uchun to'qroq
+   yashil olinadi va yozuv oq bo'ladi. */
+html[data-ds] #paneCredit{ --krd-tugma-yashil:#0E7A4F; }
+html[data-ds][data-theme="dark"] #paneCredit{ --krd-tugma-yashil:#13945F; }
+
+html[data-ds] #paneCredit .qz-item.st-ok .qz-row-pay{
+  background:var(--krd-tugma-yashil) !important;
+  border-color:var(--krd-tugma-yashil) !important;
+  color:#FFFFFF !important;
+  box-shadow:0 4px 12px -6px color-mix(in srgb, var(--krd-tugma-yashil) 75%, transparent) !important;
+}
+
+/* ==================================================================
+   32. V189 — AMALLAR BUTUN PANELDA AJRALIB TURSIN
+   ------------------------------------------------------------------
+   Mijoz: "hamma joyda tugmalar yoki amallar ajralib tursin, ozgina
+   bo'lsa ham".
+
+   MUAMMO. Panelda o'nlab turdagi tugma bor (`.btn`, `.ph-btn`,
+   `.zk-del-btn`, `.cs-btn`, `.akt-add-btn`...), har biri alohida
+   yozilgan va ko'pchiligida ustiga borilganda HECH NARSA o'zgarmaydi.
+   Natijada admin qaysi yozuv bosiladigan, qaysi biri shunchaki matn
+   ekanini bilmaydi — buni faqat bosib ko'rib bilib oladi.
+
+   YECHIM — bitta umumiy qoida, uch bosqichli javob:
+     1) ustiga borilganda  — bir pog'ona ko'tariladi va soyasi chuqurlashadi
+     2) bosilganda         — pastga bosiladi (ko'z "bosdim" deb ishonadi)
+     3) klaviaturada       — aniq halqa (Tab bilan yurganda ko'rinadi)
+
+   Bu RANGNI o'zgartirmaydi — ya'ni mavjud dizayn buzilmaydi, faqat
+   har bir amal "men bosiladiganman" deb turadi.
+
+   Ikkinchi qism: XAVFLI amallar (o'chirish) qizil, TASDIQLASH yashil
+   bo'lib ajraladi. Bu V188 dagi svetofor mantig'ining davomi: rang
+   ma'noni tashiydi.
+   ================================================================== */
+
+/* --- 32.1 Umumiy javob: hamma tugmaga ----------------------------- */
+html[data-ds] .btn,
+html[data-ds] .ph-btn,
+html[data-ds] .cs-btn,
+html[data-ds] .akt-add-btn,
+html[data-ds] .zk-cust-action-btn,
+html[data-ds] .zk-op-btn,
+html[data-ds] .zk-edit-btn,
+html[data-ds] .zk-save-btn,
+html[data-ds] .zk-del-btn,
+html[data-ds] .uzsana-btn,
+html[data-ds] .primary-btn,
+html[data-ds] .add-btn,
+html[data-ds] .edit-btn,
+html[data-ds] .done-btn,
+html[data-ds] .delete-btn,
+html[data-ds] .cancel-btn,
+html[data-ds] .toggle-btn,
+html[data-ds] .sk-katta,
+html[data-ds] .sk-tugma{
+  cursor:pointer;
+  transition:transform .14s cubic-bezier(.2,.9,.25,1),
+             box-shadow .16s linear, filter .16s linear,
+             border-color .16s linear, background .16s linear;
+}
+html[data-ds] .btn:hover:not(:disabled),
+html[data-ds] .ph-btn:hover:not(:disabled),
+html[data-ds] .cs-btn:hover:not(:disabled),
+html[data-ds] .akt-add-btn:hover:not(:disabled),
+html[data-ds] .zk-cust-action-btn:hover:not(:disabled),
+html[data-ds] .zk-op-btn:hover:not(:disabled),
+html[data-ds] .zk-edit-btn:hover:not(:disabled),
+html[data-ds] .zk-save-btn:hover:not(:disabled),
+html[data-ds] .uzsana-btn:hover:not(:disabled),
+html[data-ds] .primary-btn:hover:not(:disabled),
+html[data-ds] .add-btn:hover:not(:disabled),
+html[data-ds] .edit-btn:hover:not(:disabled),
+html[data-ds] .done-btn:hover:not(:disabled),
+html[data-ds] .toggle-btn:hover:not(:disabled){
+  transform:translateY(-1px);
+  filter:brightness(1.05);
+  box-shadow:0 6px 16px -8px rgba(16,24,40,.45);
+}
+html[data-ds] .btn:active:not(:disabled),
+html[data-ds] .ph-btn:active:not(:disabled),
+html[data-ds] .cs-btn:active:not(:disabled),
+html[data-ds] .akt-add-btn:active:not(:disabled),
+html[data-ds] .zk-cust-action-btn:active:not(:disabled),
+html[data-ds] .zk-op-btn:active:not(:disabled),
+html[data-ds] .zk-edit-btn:active:not(:disabled),
+html[data-ds] .zk-save-btn:active:not(:disabled),
+html[data-ds] .zk-del-btn:active:not(:disabled),
+html[data-ds] .uzsana-btn:active:not(:disabled),
+html[data-ds] .primary-btn:active:not(:disabled),
+html[data-ds] .add-btn:active:not(:disabled),
+html[data-ds] .edit-btn:active:not(:disabled),
+html[data-ds] .done-btn:active:not(:disabled),
+html[data-ds] .delete-btn:active:not(:disabled),
+html[data-ds] .cancel-btn:active:not(:disabled),
+html[data-ds] .toggle-btn:active:not(:disabled){
+  transform:translateY(0) scale(.975);
+  filter:none;
+}
+/* O'chirilgan tugma — hech qanday javob bermaydi, shuni ko'rsatadi */
+html[data-ds] button:disabled{ cursor:not-allowed; opacity:.55; }
+
+/* --- 32.2 Klaviatura: Tab bilan yurganda qayerdaligi ko'rinsin ---- */
+html[data-ds] button:focus-visible,
+html[data-ds] a:focus-visible,
+html[data-ds] input:focus-visible,
+html[data-ds] select:focus-visible,
+html[data-ds] textarea:focus-visible,
+html[data-ds] [tabindex]:focus-visible{
+  outline:2px solid var(--amber) !important;
+  outline-offset:2px !important;
+  border-radius:8px;
+}
+
+/* --- 32.3 XAVFLI amal — qizil ------------------------------------
+   O'chirish tugmasi qolganlar bilan bir xil ko'rinmasligi kerak:
+   uni tasodifan bosish qaytarib bo'lmaydigan natija beradi. */
+html[data-ds] .zk-del-btn,
+html[data-ds] .delete-btn,
+html[data-ds] [data-del],
+html[data-ds] .btn.danger{
+  color:var(--red) !important;
+  border:1px solid color-mix(in srgb, var(--red) 32%, transparent) !important;
+  background:color-mix(in srgb, var(--red) 8%, transparent) !important;
+}
+html[data-ds] .zk-del-btn:hover,
+html[data-ds] .delete-btn:hover,
+html[data-ds] [data-del]:hover,
+html[data-ds] .btn.danger:hover{
+  background:#C62A20 !important; color:#fff !important;
+  border-color:#C62A20 !important;
+  filter:none;
+}
+
+/* --- 32.4 TASDIQLASH — yashil ------------------------------------ */
+html[data-ds] .done-btn,
+html[data-ds] .btn.ok,
+html[data-ds] .zk-save-btn{
+  background:#0E7A4F !important; color:#fff !important;
+  border-color:#0E7A4F !important;
+}
+html[data-ds][data-theme="dark"] .done-btn,
+html[data-ds][data-theme="dark"] .btn.ok,
+html[data-ds][data-theme="dark"] .zk-save-btn{
+  background:#13945F !important; border-color:#13945F !important;
+}
+
+/* --- 32.5 Bekor qilish — tinch, qirrali --------------------------- */
+html[data-ds] .cancel-btn{
+  background:transparent !important;
+  color:var(--muted) !important;
+  border:1px solid var(--line) !important;
+}
+html[data-ds] .cancel-btn:hover{
+  background:var(--panel-2) !important; color:var(--text) !important;
+}
+
+/* --- 32.6 Bosiladigan QATORLAR ham javob bersin ------------------- */
+html[data-ds] tr[data-id]:hover,
+html[data-ds] .zk-row:hover,
+html[data-ds] .mg-row:hover,
+html[data-ds] .cs-row:hover{
+  background:color-mix(in srgb, var(--amber) 5%, var(--panel)) !important;
+  cursor:pointer;
+}
+
+/* --- 32.7 Harakat kamaytirilsa — faqat rang qoladi ---------------- */
+@media (prefers-reduced-motion:reduce){
+  html[data-ds] .btn, html[data-ds] .ph-btn, html[data-ds] .cs-btn,
+  html[data-ds] .akt-add-btn, html[data-ds] .zk-cust-action-btn,
+  html[data-ds] .zk-op-btn, html[data-ds] .sk-katta, html[data-ds] .sk-tugma{
+    transition:background .16s linear, color .16s linear;
+  }
+  html[data-ds] .btn:hover, html[data-ds] .ph-btn:hover{ transform:none; }
+}
+
+/* ==================================================================
+   33. V190 — BUTUN PANEL: BIR XIL ZAMONAVIY TIZIM
+   ------------------------------------------------------------------
+   Kredit bo'limida ishlagan narsa (V186-V188) faqat o'sha yerda
+   qolgan edi. Qolgan 25 ta bo'lim esa eski ko'rinishda: yuza bilan
+   fon deyarli bir xil, kartochkalarda qirra yo'q, maydonlar har xil
+   balandlikda, jadvallar yassi.
+
+   Shuning uchun o'sha tizim endi BUTUN panelga qo'llanadi:
+     * fon sovuqroq va to'qroq — yuzalar undan ko'tarilib turadi;
+     * har bir kartochka: qirra + yumaloq burchak + yumshoq soya;
+     * maydonlar bir xil balandlik va bir xil fokus halqasi;
+     * jadval sarlavhalari bosh harfda, qatorlar ustiga borilganda
+       yorishadi;
+     * sahifa sarlavhalari aniq ierarxiyada.
+
+   Hech qanday RANG o'zgarmaydi — faqat qatlamlar, qirralar va
+   bo'shliq. Shuning uchun mavjud bo'limlar buzilmaydi.
+   ================================================================== */
+
+/* --- 33.1 Fon va yuza: hamma joyda ajralsin ---------------------- */
+html[data-ds]:not([data-theme="dark"]){ --pnl-fon:#EBEEF4; --pnl-yuza:#FFFFFF; }
+html[data-ds][data-theme="dark"]       { --pnl-fon:#0B111D; --pnl-yuza:#161E2E; }
+
+html[data-ds] .main-content{ background:var(--pnl-fon) !important; }
+
+/* --- 33.2 Kartochkalar --------------------------------------------
+   Panelda kartochka uchun o'nlab sinf bor — hammasi bir xil
+   ko'rinishga keltiriladi. */
+html[data-ds] .card,
+html[data-ds] .panel-card,
+html[data-ds] .settings-form,
+html[data-ds] .add-form,
+html[data-ds] .wt-form,
+html[data-ds] .akt-form-wrap,
+html[data-ds] .zk-inline-panel,
+html[data-ds] .cr-tools-grid > *,
+html[data-ds] .dash-grid > *,
+html[data-ds] .dash-stat-card,
+html[data-ds] .qz-stat,
+html[data-ds] .mg-card,
+html[data-ds] .cs-card{
+  background:var(--pnl-yuza) !important;
+  border:1px solid var(--line) !important;
+  border-radius:16px !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 24px -18px rgba(16,24,40,.25) !important;
+}
+
+/* --- 33.3 Maydonlar: bir xil balandlik va fokus ------------------- */
+html[data-ds] .pane input[type="text"],
+html[data-ds] .pane input[type="tel"],
+html[data-ds] .pane input[type="number"],
+html[data-ds] .pane input[type="search"],
+html[data-ds] .pane input[type="email"],
+html[data-ds] .pane input[type="password"],
+html[data-ds] .pane input[type="date"],
+html[data-ds] .pane select,
+html[data-ds] .pane textarea{
+  min-height:44px;
+  border:1px solid var(--line) !important;
+  border-radius:11px !important;
+  background:var(--panel-2) !important;
+  color:var(--text) !important;
+  transition:border-color .16s linear, box-shadow .16s linear;
+}
+html[data-ds] .pane textarea{ min-height:88px; }
+html[data-ds] .pane input:focus,
+html[data-ds] .pane select:focus,
+html[data-ds] .pane textarea:focus{
+  outline:none !important;
+  border-color:var(--amber) !important;
+  box-shadow:0 0 0 3px var(--amber-soft) !important;
+}
+html[data-ds] .pane input::placeholder,
+html[data-ds] .pane textarea::placeholder{ color:var(--muted) !important; opacity:1; }
+
+/* --- 33.4 Jadvallar ----------------------------------------------- */
+html[data-ds] .pane table{
+  border-collapse:separate; border-spacing:0;
+  background:var(--pnl-yuza);
+  border:1px solid var(--line);
+  border-radius:14px; overflow:hidden;
+}
+html[data-ds] .pane thead th{
+  background:color-mix(in srgb, var(--pnl-fon) 55%, var(--pnl-yuza)) !important;
+  border-bottom:1px solid var(--line) !important;
+  font-size:10.5px !important; font-weight:800 !important;
+  letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted) !important;
+  padding:11px 13px !important;
+}
+html[data-ds] .pane tbody td{
+  border-bottom:1px solid var(--line-3, var(--line)) !important;
+  padding:12px 13px !important;
+}
+html[data-ds] .pane tbody tr:last-child td{ border-bottom:0 !important; }
+html[data-ds] .pane tbody tr{ transition:background .14s linear; }
+html[data-ds] .pane tbody tr:hover{
+  background:color-mix(in srgb, var(--amber) 5%, var(--pnl-yuza)) !important;
+}
+/* Pul va sana ustunlari tik tursin */
+html[data-ds] .pane td{ font-variant-numeric:tabular-nums; }
+
+/* --- 33.5 Sahifa sarlavhasi --------------------------------------- */
+html[data-ds] .page-head h1{ letter-spacing:-.02em; }
+html[data-ds] .page-head{
+  padding-bottom:4px;
+  margin-bottom:16px !important;
+}
+
+/* --- 33.6 Bo'lim ichidagi sarlavhalar ----------------------------- */
+html[data-ds] .pane h2,
+html[data-ds] .pane h3,
+html[data-ds] .settings-title,
+html[data-ds] .wt-form-title,
+html[data-ds] .akt-form-title{
+  letter-spacing:-.015em;
+}
+
+/* --- 33.7 Bo'sh holat --------------------------------------------- */
+html[data-ds] .empty,
+html[data-ds] .empty-box,
+html[data-ds] .no-data{
+  background:var(--pnl-yuza) !important;
+  border:1px dashed var(--line) !important;
+  border-radius:14px !important;
+  color:var(--muted) !important;
+}
+
+/* --- 33.8 Kredit formasidagi skaner tugmasi (V191) ---------------
+   Formaning eng tepasida, ataylab ko'zga tashlanadi: u qo'lda
+   yozishdan ancha tez yo'l, lekin admin uning borligini bilmasa
+   foydasi yo'q. Shu bilan birga "asosiy" tugma emas — shuning uchun
+   rangi to'ldirilgan emas, faqat ohangli. */
+html[data-ds] .cr-skaner{
+  display:flex; align-items:center; gap:13px; width:100%;
+  text-align:left; cursor:pointer;
+  padding:13px 15px; margin:0 0 16px;
+  background:color-mix(in srgb, var(--amber) 7%, var(--pnl-yuza, var(--panel))) !important;
+  border:1px solid color-mix(in srgb, var(--amber) 34%, transparent) !important;
+  border-radius:14px !important;
+  transition:background .16s linear, border-color .16s linear,
+             transform .14s cubic-bezier(.2,.9,.25,1), box-shadow .16s linear;
+}
+html[data-ds] .cr-skaner:hover{
+  background:color-mix(in srgb, var(--amber) 12%, var(--pnl-yuza, var(--panel))) !important;
+  border-color:var(--amber) !important;
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px -9px color-mix(in srgb, var(--amber) 70%, transparent);
+}
+html[data-ds] .cr-skaner:active{ transform:translateY(0) scale(.99); }
+html[data-ds] .cr-skaner-ic{
+  flex:none; width:42px; height:42px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--amber); color:#fff;
+}
+html[data-ds] .cr-skaner-ic svg{ width:21px; height:21px; }
+html[data-ds] .cr-skaner-matn{ min-width:0; }
+html[data-ds] .cr-skaner-matn b{
+  display:block; font-size:14.5px; font-weight:750; color:var(--text);
+  letter-spacing:-.01em;
+}
+html[data-ds] .cr-skaner-matn i{
+  display:block; font-style:normal; font-size:12px; font-weight:600;
+  color:var(--muted); margin-top:2px; line-height:1.45;
+}

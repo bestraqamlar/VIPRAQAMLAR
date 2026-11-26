@@ -13594,6 +13594,21 @@ function stChiz(){
      chiqa olmaydi. Shuning uchun oyna `body` ga ko'chiriladi. */
   if(ov.parentNode !== document.body) document.body.appendChild(ov);
 
+  /* MRZ TAHLIL KUTUBXONASI JOYIDAMI? (V190)
+     `assets/hujjat-oqish.js` alohida fayl. Agar u serverga
+     yuklanmagan bo'lsa (masalan faqat qisman yangilangan bo'lsa),
+     skaner "xato" berib to'xtardi va sababi ko'rinmasdi. Endi buni
+     OCHIQ aytamiz — admin nimani yuklash kerakligini biladi. */
+  function tahlilBormi(){
+    if(window.HujjatOqish && typeof window.HujjatOqish.oqi === 'function') return true;
+    natija = null;
+    natijaniKorsat('Skaner fayli yetishmayapti',
+      'Hujjatni o\u2018qiydigan fayl (assets/hujjat-oqish.js) serverda topilmadi. '
+      + 'Oxirgi yangilanishda u yuklanmagan bo\u2018lishi mumkin — shu faylni ham '
+      + 'yuklab, saytni qayta joylang. Shu paytgacha ma\u2019lumotni qo\u2018lda kiriting.');
+    return false;
+  }
+
   const TESSERACT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js';
   const MRZ_BELGILAR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<';
 
@@ -13759,6 +13774,7 @@ function stChiz(){
   async function oqi(manba){
     qadam('oqish');
     if(!tashxis) tashxisBoshla();
+    if(!tahlilBormi()) return;
     holat("O'qilmoqda…", 'Kutubxona tayyorlanmoqda');
     natija = null;
     const burilishlar = [0, 180, 90, 270];
@@ -13969,6 +13985,23 @@ function stChiz(){
       await oqi(ochilgan.rasm);
     }finally{
       ochilgan.tozala();                   /* rasm xotiradan darhol ketadi */
+    }
+  });
+
+  /* Kredit formasidagi "Hujjatni skanerlash" tugmasi (V191).
+     Hodisa DELEGATSIYA bilan ulanadi: forma DOM'da ko'chirilishi
+     mumkin (qarang: oynaYasa), to'g'ridan-to'g'ri ulangan hodisa esa
+     ko'chirishdan keyin yo'qolib qolishi mumkin edi. */
+  document.addEventListener('click', (e)=>{
+    if(e.target.closest && e.target.closest('#crSkanerBtn')){
+      e.preventDefault();
+      och();
+      /* Kompyuterda "Yozma yoki Skaner?" so'rash ortiqcha — admin
+         tugmani bosib, niyatini allaqachon bildirdi. To'g'ridan-to'g'ri
+         manba tanlashga o'tamiz. */
+      if(!window.matchMedia('(max-width: 899px)').matches){
+        setTimeout(()=> qadam('manba'), 30);
+      }
     }
   });
 

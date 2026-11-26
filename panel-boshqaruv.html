@@ -11,8 +11,8 @@
      boshlasin (fayl <body> oxirida turadi, preload bo'lmasa brauzer
      uni faqat o'sha yerga yetganda ko'radi). Firebase serveriga
      ulanish ham oldindan ochiladi — birinchi so'rov tezroq ketadi. -->
-<link rel="preload" as="style" href="assets/panel.css?v=185">
-<link rel="preload" as="script" href="assets/panel.js?v=185">
+<link rel="preload" as="style" href="assets/panel.css?v=191">
+<link rel="preload" as="script" href="assets/panel.js?v=191">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <!-- KIRISH EKRANINING ZAXIRA USLUBI (shu faylning ICHIDA).
@@ -52,16 +52,16 @@
   .login-pastki{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:#8A8F99;font-size:11px}
   .login-pastki svg,.login-pastki i{display:none}
 </style>
-<link rel="stylesheet" href="assets/panel.css?v=185">
+<link rel="stylesheet" href="assets/panel.css?v=191">
 <!-- TELEFON KO'RINISHI (V148) — mijoz sayti shablonida.
      `panel.css` dan KEYIN turishi shart: u faqat 899px dan tor
      ekranda ishlaydi va asosiy uslublar ustiga yoziladi.
      Kompyuterda bu fayl bitta ham qoida bermaydi. -->
-<link rel="stylesheet" href="assets/panel-mobil.css?v=185">
+<link rel="stylesheet" href="assets/panel-mobil.css?v=191">
 <!-- YANGI DIZAYN QATLAMI (V151). panel.css VA panel-mobil.css dan
      KEYIN turishi SHART: u ikkisining ko'rinish qoidalarini qayta
      belgilaydi. Tuzilma va funksiya o'zgarmaydi — faqat ko'rinish. -->
-<link rel="stylesheet" href="assets/panel-dizayn.css?v=185">
+<link rel="stylesheet" href="assets/panel-dizayn.css?v=191">
 
 </head>
 <body>
@@ -1435,6 +1435,27 @@
     <div class="mgmt-hint" id="creditFilterBanner" style="display:none;"></div>
     <div class="settings-form cr-form-2col" style="margin-bottom:16px;">
       <h3>Yangi kredit shartnomasi</h3>
+
+      <!-- ===== HUJJAT SKANERI (V191) =====
+           XATO VA TUZATISHI. Skaner V179 da faqat TELEFONDA chiqadigan
+           qilib qo'yilgandi: "kompyuterda qo'lda yozish baribir qulay"
+           degan o'ylov bilan. Lekin admin asosan kompyuterda ishlaydi —
+           natijada skaner UMUMAN ko'rinmagan va u yo'qdek tuyulgan.
+
+           Endi tugma formaning ichida, har qanday qurilmada turadi.
+           Telefonda esa forma ochilishi bilan so'raladigan tanlov ham
+           saqlanib qoladi — u yerda bu eng tez yo'l. -->
+      <button type="button" class="cr-skaner" id="crSkanerBtn">
+        <span class="cr-skaner-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/>
+          </svg>
+        </span>
+        <span class="cr-skaner-matn">
+          <b>Hujjatni skanerlash</b>
+          <i>Pasport yoki ID kartani suratga oling — ism, raqam va tug'ilgan sana o'zi to'ladi</i>
+        </span>
+      </button>
       <div class="cr-form-split">
       <div class="cr-form-main">
       <div class="cr-form-grid">
@@ -2548,7 +2569,7 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check-compat.js"></script>
-<script defer src="assets/hujjat-oqish.js?v=185"></script>
-<script defer src="assets/panel.js?v=185"></script>
+<script defer src="assets/hujjat-oqish.js?v=191"></script>
+<script defer src="assets/panel.js?v=191"></script>
 </body>
 </html>

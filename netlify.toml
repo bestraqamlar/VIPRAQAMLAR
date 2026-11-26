@@ -353,18 +353,6 @@
 # holatda boshqa sahifaning <iframe> ichida ochilmasligi ("clickjacking"
 # hujumi) uchun ikki karra ta'minlanadi.
 [[headers]]
-  for = "/panel-boshqaruv.html"
-  [headers.values]
-    X-Robots-Tag = "noindex, nofollow, noarchive"
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-
-# (Android .apk sarlavhalari hozircha olib tashlandi — ilova
-# sahifasi qaytarilganda shu blok ham qaytariladi.)
-
-# Sotuvchi kabineti — qidiruv tizimlari indekslamasin va boshqa
-# sahifaning <iframe> ichida ochilmasin (clickjacking).
-[[headers]]
   for = "/sotuvchi.html"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow, noarchive"
@@ -432,3 +420,49 @@
     # web.telegram.org ga ruxsat (admin panel va sotuvchi kabineti esa
     # yuqorida X-Frame-Options: DENY bilan butunlay yopilgan).
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://api-maps.yandex.ru https://mc.yandex.ru https://yastatic.net https://telegram.org https://*.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://*.googleapis.com https://*.firebaseio.com https://*.firebaseinstallations.googleapis.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseappcheck.googleapis.com https://api-maps.yandex.ru https://*.maps.yandex.net https://mc.yandex.ru https://yandex.uz; frame-src 'self' https://www.google.com https://www.recaptcha.net https://*.yandex.ru https://*.yandex.uz; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org; upgrade-insecure-requests"
+
+
+# ==================================================================
+# TARTIB MUHIM (V190). Admin panel sarlavhalari ATAYLAB faylning
+# ENG OXIRIDA — ya'ni yuqoridagi umumiy "/*" blokidan KEYIN turadi.
+# Netlify bir xil nomli sarlavha ikki joyda uchrasa, keyingi va
+# aniqroq qoidani qo'llaydi. Agar bu blok yuqorida qolsa, umumiy CSP
+# uni bosib ketadi va hujjat skaneri yana ishlamay qoladi.
+# ==================================================================
+[[headers]]
+  for = "/panel-boshqaruv.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+
+    # ================= HUJJAT SKANERI (V190) =================
+    # NEGA BU YERDA. Skaner "xato" berardi va sababi mijoz tomonida
+    # EMAS edi — aynan shu faylda ikkita qoida uni bloklab turgan:
+    #
+    #   1) Pastdagi umumiy CSP `script-src` ro'yxatida
+    #      cdnjs.cloudflare.com YO'Q edi. Brauzer OCR kutubxonasini
+    #      yuklashdan BOSH TORTARDI — shuning uchun "kutubxona
+    #      yuklanmadi" degan xato chiqardi.
+    #   2) Umumiy `Permissions-Policy` da `camera=()` — ya'ni kamera
+    #      BUTUNLAY taqiqlangan. Skanerning "Kamera" tugmasi hech
+    #      qachon ishlay olmasdi.
+    #
+    # Ikkalasi ham to'g'ri qoidalar edi — faqat ular BUTUN saytga
+    # qo'yilgan. Endi istisno FAQAT SHU SAHIFAGA beriladi: mijoz
+    # sayti avvalgidek qattiq himoyada qoladi (kamerasiz, cdnjs'siz).
+    #
+    # Nega aynan shu uchta manba:
+    #   cdnjs.cloudflare.com      — tesseract.min.js (kutubxonaning o'zi)
+    #   cdn.jsdelivr.net          — tesseract-core.wasm (hisoblash yadrosi)
+    #   tessdata.projectnaptha.com— eng.traineddata (harflar modeli)
+    # `blob:` esa kutubxona o'z ishchisini (worker) shu ko'rinishda
+    # yaratadi — usiz o'qish ishga tushmaydi.
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: data: https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://*.googleapis.com https://*.firebaseio.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseappcheck.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; frame-src 'self' https://www.google.com https://www.recaptcha.net; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+# (Android .apk sarlavhalari hozircha olib tashlandi — ilova
+# sahifasi qaytarilganda shu blok ham qaytariladi.)
+
+# Sotuvchi kabineti — qidiruv tizimlari indekslamasin va boshqa
+# sahifaning <iframe> ichida ochilmasin (clickjacking).
