@@ -1740,3 +1740,527 @@ html[data-ds] .cr-skaner-matn i{
   display:block; font-style:normal; font-size:12px; font-weight:600;
   color:var(--muted); margin-top:2px; line-height:1.45;
 }
+
+/* ==================================================================
+   34. TELEFON — KREDIT BO'LIMI ZICHLASHTIRILDI (V195)
+   ------------------------------------------------------------------
+   MUAMMO (telefonda o'lchandi, 390px):
+     * Birinchi shartnomagacha 430px — ekranning YARMIDAN ko'pi —
+       faqat ko'rsatkich katakchalari bilan band edi;
+     * kartochka ichida o'ng tomon bo'sh qolib, ma'lumot o'rtada
+       siqilib turardi;
+     * kartochka balandligi 300px dan oshib, "To'lovni tasdiqlash"
+       tugmasi ekrandan chiqib ketardi;
+     * chetki bo'sh joy 14px — torroq ekranda ko'p.
+
+   YECHIM: bir xil ma'lumot, lekin zich va ikki ustunli joylashuv.
+   Hech narsa o'chirilmadi — faqat joyi va o'lchami o'zgardi.
+   Bu qoidalar FAQAT 560px dan tor ekranda ishlaydi.
+   ================================================================== */
+@media (max-width: 560px){
+
+  /* --- 34.1 Chetki bo'sh joy: 34px -> 18px ---
+     O'LCHANDI: `.content` ning 14px chetki joyi ustiga `.content-inner`
+     ning 20px ichki joyi qo'shilib, 390px ekranda mazmunga atigi
+     322px qolardi. "O'rtada siqilib qolgan" degani aynan shu. */
+  html[data-ds] .content-inner{ padding-left:10px !important; padding-right:10px !important; }
+  html[data-ds] .content{ padding-left:8px !important; padding-right:8px !important; }
+
+  /* --- 34.2 Sarlavha bloki qisqardi --- */
+  html[data-ds] #paneCredit .pane-head, html[data-ds] #paneCredit .ph-text{
+    margin-bottom:8px !important;
+  }
+  html[data-ds] #paneCredit .ph-text p, html[data-ds] #paneCredit .pane-sub{
+    font-size:11.5px !important; line-height:1.4 !important; margin-top:2px !important;
+  }
+  html[data-ds] #paneCredit .ph-btn{
+    min-height:46px !important; height:46px !important;
+    padding:0 16px !important; font-size:14px !important;
+  }
+
+  /* --- 34.3 Ko'rsatkich katakchalari: 430px -> ~140px ---
+     Raqam va izoh endi BIR qatorda yonma-yon turadi.
+     V198: ustun soni QAT'IY 2 emas — ekran eniga qarab o'zi
+     moslashadi. Ilgari 441px li oynada ham 2 ta ustun qolib,
+     katakcha cho'zilib ketardi va ichida katta bo'sh joy
+     ko'rinardi (mijoz aynan shuni aytdi). */
+  html[data-ds] #paneCredit .qz-stats{
+    grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important;
+    gap:8px !important; margin-bottom:10px !important;
+  }
+  /* Katakcha ikki qatorga siqildi: tepada nom, pastda raqam va izoh
+     YONMA-YON. Ilgari uchalasi uch qator bo'lib, bitta katakcha
+     119px balandlik olardi. */
+  html[data-ds] #paneCredit .qz-stat{
+    padding:9px 11px !important; border-radius:13px !important;
+    display:grid !important;
+    grid-template-areas:"nom" "qiymat" "izoh" !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:2px !important; min-height:0 !important;
+  }
+  html[data-ds] #paneCredit .qz-stat-label{
+    grid-area:nom !important;
+    font-size:10px !important; letter-spacing:.03em !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  html[data-ds] #paneCredit .qz-stat-value{
+    grid-area:qiymat !important;
+    font-size:20px !important; line-height:1 !important;
+    white-space:nowrap; overflow:hidden; text-overflow:clip;
+  }
+  html[data-ds] #paneCredit .qz-stat-sub{
+    grid-area:izoh !important;
+    font-size:10px !important; line-height:1.25 !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  /* --- 34.4 Qidiruv va chiplar --- */
+  html[data-ds] #paneCredit .qz-search input{ height:44px !important; }
+  html[data-ds] #paneCredit .qz-chips{
+    padding-right:14px !important; margin-bottom:10px !important;
+  }
+  html[data-ds] #paneCredit .qz-chips::after{ content:''; flex:0 0 2px; }
+
+  /* --- 34.5 SHARTNOMA KARTOCHKASI — ikki ustun ---
+     O'ngdagi bo'sh joy endi pul ma'lumoti bilan to'ladi:
+         raqam/ism      |  umumiy qarz
+         holat nishoni  |  shu oylik to'lov
+         jadval chizig'i (butun kenglik)
+         tugma          (butun kenglik)                              */
+  html[data-ds] #paneCredit .qz-head{
+    grid-template-areas:
+      "num   debt"
+      "state month"
+      "prog  prog"
+      "act   act" !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:6px 10px !important;
+    padding:12px 13px !important;
+    align-items:start !important;
+  }
+  html[data-ds] #paneCredit .qzc-num{ min-width:0 !important; }
+  html[data-ds] #paneCredit .qzc-num b{
+    font-size:15.5px !important; line-height:1.15 !important;
+    white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important;
+    letter-spacing:-.01em !important;
+  }
+  html[data-ds] #paneCredit .qzc-num i{
+    font-size:11px !important; margin-top:2px !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  html[data-ds] #paneCredit .qzc-shid{
+    display:block; font-size:10px !important; margin-top:1px !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  html[data-ds] #paneCredit .qzc-debt{ align-self:start !important; }
+  html[data-ds] #paneCredit .qzc-debt b{ font-size:16px !important; line-height:1.1 !important; }
+  html[data-ds] #paneCredit .qzc-debt i,
+  html[data-ds] #paneCredit .qzc-month i{ font-size:10px !important; margin-top:1px !important; }
+  html[data-ds] #paneCredit .qzc-month b{ font-size:13.5px !important; font-weight:750 !important; }
+  html[data-ds] #paneCredit .qzc-state{ align-self:center !important; }
+  html[data-ds] #paneCredit .qz-pill{
+    height:22px !important; padding:0 8px !important; font-size:9.5px !important;
+  }
+
+  /* Jadval chizig'i — ingichka, yozuvi yonida */
+  html[data-ds] #paneCredit .qzc-prog{
+    display:flex !important; align-items:center; gap:8px; margin-top:1px !important;
+  }
+  html[data-ds] #paneCredit .qzp-txt{
+    flex:0 0 auto; font-size:10px !important; font-style:normal;
+    color:var(--muted) !important; font-weight:700;
+  }
+  html[data-ds] #paneCredit .qzp-bar{ flex:1 1 auto; height:4px !important; }
+
+  /* Tugma — butun kenglikda, barmoqqa qulay */
+  html[data-ds] #paneCredit .qzc-act{ margin-top:3px !important; }
+  html[data-ds] #paneCredit .qz-row-pay{
+    width:100% !important; min-height:44px !important;
+    font-size:13.5px !important; border-radius:12px !important;
+  }
+  html[data-ds] #paneCredit .qz-item{ margin-bottom:9px !important; }
+}
+
+/* ==================================================================
+   35. TELEFON — BUTUN PANEL UCHUN ZAMONAVIY QATLAM (V196)
+   ------------------------------------------------------------------
+   MIJOZ SO'ROVI: "barchasini zamonaviylashtir, hozir juda oddiy".
+
+   NIMA "ODDIY" QILIB KO'RSATAYOTGANI (telefonda o'lchandi):
+     1. Hamma narsa BIR XIL tekis oq quti — chuqurlik yo'q, ko'z
+        qayerga qarashni bilmaydi;
+     2. Ichki bo'sh joy juda katta: bitta ko'rsatkich katakchasi
+        150px, ichida esa atigi uchta qator yozuv;
+     3. Sarlavha, yozuv va raqamlar o'lchami bir-biriga yaqin —
+        ierarxiya sezilmaydi;
+     4. Bosilganda hech narsa javob bermaydi (jonsiz);
+     5. Har bo'limda tugma, maydon va chip boshqacha ko'rinadi.
+
+   BU QATLAM NIMA QILADI: bitta o'lchov tizimi (4px qadam), bitta
+   yuza, bitta soya, bitta burchak radiusi, bitta bosilish javobi.
+   Tuzilma va funksiya umuman o'zgarmaydi — faqat ko'rinish.
+   FAQAT 560px dan tor ekranda ishlaydi.
+   ================================================================== */
+@media (max-width: 560px){
+  html[data-ds]{
+    --mb-r-katta:18px;     /* kartochka */
+    --mb-r-orta:13px;      /* tugma, maydon */
+    --mb-r-kichik:9px;     /* nishon */
+    --mb-soya:0 1px 2px rgba(16,24,40,.05), 0 6px 16px -10px rgba(16,24,40,.22);
+    --mb-soya-bal:0 2px 4px rgba(16,24,40,.06), 0 14px 28px -16px rgba(16,24,40,.30);
+    --mb-qirra:inset 0 1px 0 rgba(255,255,255,.65);
+  }
+  html[data-ds][data-theme="dark"]{
+    --mb-soya:0 1px 2px rgba(0,0,0,.45), 0 8px 20px -12px rgba(0,0,0,.65);
+    --mb-soya-bal:0 2px 6px rgba(0,0,0,.5), 0 18px 34px -18px rgba(0,0,0,.75);
+    --mb-qirra:inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  /* --- 35.1 Sahifa foni: tekis kulrang emas, yumshoq o'tish --- */
+  html[data-ds] body, html[data-ds] .content{
+    background:
+      radial-gradient(130% 55% at 50% 0%,
+        color-mix(in srgb, var(--amber) 7%, transparent), transparent 62%),
+      var(--pnl-fon, var(--bg)) !important;
+  }
+
+  /* --- 35.2 Sahifa sarlavhasi: aniq ierarxiya --- */
+  html[data-ds] .page-head{
+    display:flex !important; flex-direction:column !important;
+    align-items:flex-start !important; text-align:left !important;
+    gap:10px !important; margin:0 0 12px !important;
+  }
+  html[data-ds] .page-head .ph-txt{ width:100%; text-align:left !important; }
+  html[data-ds] .page-head h1, html[data-ds] .ph-txt h1,
+  html[data-ds] .ph-txt > b, html[data-ds] .page-title{
+    font-size:23px !important; font-weight:820 !important;
+    letter-spacing:-.025em !important; line-height:1.12 !important;
+    color:var(--text) !important;
+  }
+  html[data-ds] .ph-txt p, html[data-ds] .page-head p{
+    font-size:11.5px !important; line-height:1.45 !important;
+    color:var(--muted) !important; margin-top:3px !important;
+  }
+  html[data-ds] .ph-acts{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* --- 35.3 Bitta yuza: hamma kartochka bir xil --- */
+  html[data-ds] .card, html[data-ds] .dash-card, html[data-ds] .op-block,
+  html[data-ds] .wt-box, html[data-ds] .uzx-box, html[data-ds] .zk-inline-panel,
+  html[data-ds] .settings-form, html[data-ds] .panel-card, html[data-ds] .qz-box,
+  html[data-ds] .zk-cust-card, html[data-ds] .mgmt-perm-item, html[data-ds] .op-fin-panel{
+    background:var(--pnl-yuza, var(--panel)) !important;
+    border:1px solid color-mix(in srgb, var(--line) 78%, transparent) !important;
+    border-radius:var(--mb-r-katta) !important;
+    box-shadow:var(--mb-soya), var(--mb-qirra) !important;
+    padding:13px !important;
+  }
+  /* Ichkaridagi kartochka ikki marta "qavat" bo'lib ketmasin */
+  html[data-ds] .card .card, html[data-ds] .dash-card .card,
+  html[data-ds] .settings-form .card{
+    box-shadow:none !important; border-radius:var(--mb-r-orta) !important;
+  }
+
+  /* --- 35.4 KO'RSATKICH KATAKCHALARI — hamma bo'limda bir xil ---
+     Uchta qator: nom (kichik), raqam (yirik), izoh (kichik).
+     Balandlik 150px dan ~80px ga tushdi. */
+  html[data-ds] .dash-stat-card, html[data-ds] .pb-stat-card,
+  html[data-ds] .zk-stat-card, html[data-ds] .fin-stat, html[data-ds] .cr-stat{
+    padding:10px 12px !important; border-radius:15px !important;
+    box-shadow:var(--mb-soya), var(--mb-qirra) !important;
+    border:1px solid color-mix(in srgb, var(--line) 70%, transparent) !important;
+    min-height:0 !important; gap:3px !important;
+  }
+  html[data-ds] .dash-stat-top{ margin-bottom:1px !important; }
+  html[data-ds] .dash-stat-label, html[data-ds] .pb-stat-label{
+    font-size:10.5px !important; font-weight:700 !important;
+    letter-spacing:.02em !important; color:var(--muted) !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  html[data-ds] .dash-stat-num, html[data-ds] .pb-stat-card b,
+  html[data-ds] .zk-stat-card b, html[data-ds] .fin-stat b{
+    font-size:24px !important; font-weight:820 !important;
+    line-height:1.05 !important; letter-spacing:-.03em !important;
+    font-variant-numeric:tabular-nums;
+  }
+  html[data-ds] .dash-stat-sub{
+    font-size:10px !important; line-height:1.3 !important;
+    color:var(--muted) !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Ikonka — rangli kvadratchada (tekis belgidan ko'ra tirik) */
+  html[data-ds] .dash-stat-ico, html[data-ds] .pb-stat-ico{
+    width:26px !important; height:26px !important; flex:none;
+    border-radius:8px !important;
+    display:flex !important; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--amber) 12%, transparent) !important;
+    color:var(--amber) !important;
+  }
+  html[data-ds] .dash-stat-ico svg, html[data-ds] .pb-stat-ico svg{
+    width:14px !important; height:14px !important;
+  }
+
+  /* --- 35.4b Rangli chekka chiziq ---
+     Tekis oq kvadratlar qatori "oddiy" ko'rinishining asosiy sababi
+     edi. Endi har katakchaning chap chekkasida ingichka rangli
+     chiziq turadi: ko'z darhol qaysi ko'rsatkich muhimligini
+     ajratadi, lekin rang ko'p bo'lib ketmaydi. */
+  html[data-ds] .dash-stat-card, html[data-ds] #paneCredit .qz-stat{
+    position:relative !important; overflow:hidden !important;
+    padding-left:15px !important;
+  }
+  html[data-ds] .dash-stat-card::after, html[data-ds] #paneCredit .qz-stat::after{
+    content:''; position:absolute; left:0; top:9px; bottom:9px; width:3px;
+    border-radius:0 3px 3px 0; background:var(--amber); opacity:.85;
+  }
+  html[data-ds] .dsc-green::after{ background:var(--green) !important; }
+  html[data-ds] .dsc-red::after,
+  html[data-ds] #paneCredit .qz-stat.is-danger::after{ background:var(--red) !important; }
+  html[data-ds] .dsc-violet::after{ background:var(--amber) !important; }
+  html[data-ds] #paneCredit .qz-stat.is-warn::after{ background:var(--amber) !important; }
+  /* Son ham holatga qarab ranglanadi — faqat ogohlantiruvchilari */
+  html[data-ds] .dsc-red .dash-stat-num{ color:var(--red) !important; }
+  html[data-ds] .dsc-green .dash-stat-num{ color:var(--green) !important; }
+
+  /* --- 35.4c Kartochka sarlavhasi bir qatorda --- */
+  html[data-ds] .dash-card-head b{
+    font-size:13.5px !important; line-height:1.25 !important;
+  }
+  html[data-ds] .dash-card-head-left{ min-width:0; gap:9px !important; }
+  html[data-ds] .dash-card-head-left > div:first-child,
+  html[data-ds] .dash-card-head .dash-card-ico{
+    width:28px !important; height:28px !important; flex:none; border-radius:9px !important;
+  }
+  html[data-ds] .dash-card-head-left svg{ width:15px !important; height:15px !important; }
+
+  /* --- 35.5 Bo'lim sarlavhasi — "eyebrow" uslubi --- */
+  html[data-ds] .dash-card-head, html[data-ds] .op-head,
+  html[data-ds] .zk-inline-head, html[data-ds] .qz-section-title{
+    padding-bottom:9px !important; margin-bottom:10px !important;
+    border-bottom:1px solid color-mix(in srgb, var(--line) 65%, transparent) !important;
+  }
+  html[data-ds] .dash-card-head b, html[data-ds] .op-head b,
+  html[data-ds] .op-name, html[data-ds] .zk-inline-head b{
+    font-size:14px !important; font-weight:780 !important;
+    letter-spacing:-.012em !important;
+  }
+
+  /* --- 35.6 Tugmalar: bitta o'lcham, bosilganda javob --- */
+  html[data-ds] .btn, html[data-ds] .ph-btn, html[data-ds] .ig-save-btn,
+  html[data-ds] .zk-op-btn, html[data-ds] .wt-op-btn, html[data-ds] .op-add,
+  html[data-ds] .akt-switch-btn, html[data-ds] .op-del{
+    min-height:42px !important; border-radius:var(--mb-r-orta) !important;
+    font-size:13.5px !important; font-weight:700 !important;
+    letter-spacing:-.005em !important;
+    transition:transform .13s cubic-bezier(.2,.9,.25,1),
+               box-shadow .15s linear, background .15s linear !important;
+  }
+  html[data-ds] .btn:active, html[data-ds] .ph-btn:active,
+  html[data-ds] .ig-save-btn:active, html[data-ds] .zk-op-btn:active,
+  html[data-ds] .wt-op-btn:active, html[data-ds] .op-add:active{
+    transform:scale(.975) !important;
+  }
+  html[data-ds] .ph-btn.is-primary, html[data-ds] .btn.is-primary,
+  html[data-ds] .btn-primary{
+    box-shadow:0 8px 18px -10px color-mix(in srgb, var(--amber) 85%, transparent) !important;
+  }
+
+  /* Kichik "ochish/yopish" tugmalari ham barmoqqa yetsin —
+     o'lchovda 20px chiqdi, ya'ni tegish qiyin edi. */
+  html[data-ds] .op-fin-toggle, html[data-ds] .op-toggle,
+  html[data-ds] .op-test, html[data-ds] .akt-switch-btn{
+    min-height:34px !important; padding:0 12px !important;
+    border-radius:999px !important; font-size:12px !important;
+  }
+
+  /* --- 35.7 Maydonlar --- */
+  html[data-ds] .inp, html[data-ds] .tlv-inp, html[data-ds] input[type="text"],
+  html[data-ds] input[type="number"], html[data-ds] input[type="tel"],
+  html[data-ds] input[type="date"], html[data-ds] input[type="search"],
+  html[data-ds] select, html[data-ds] textarea{
+    min-height:44px !important; border-radius:var(--mb-r-orta) !important;
+    font-size:15px !important;         /* 16px dan kichikda iPhone yaqinlashtiradi -> 15 emas, 16 */
+    background:var(--pnl-yuza, var(--panel)) !important;
+    border:1px solid color-mix(in srgb, var(--line) 85%, transparent) !important;
+    transition:border-color .14s linear, box-shadow .14s linear !important;
+  }
+  html[data-ds] textarea{ min-height:84px !important; padding-top:10px !important; }
+  html[data-ds] .inp:focus, html[data-ds] input:focus, html[data-ds] select:focus,
+  html[data-ds] textarea:focus{
+    border-color:var(--amber) !important;
+    box-shadow:0 0 0 3.5px color-mix(in srgb, var(--amber) 16%, transparent) !important;
+    outline:none !important;
+  }
+  html[data-ds] .lbl, html[data-ds] .af-lbl, html[data-ds] .ig-field label{
+    font-size:10.5px !important; font-weight:750 !important;
+    letter-spacing:.03em !important; text-transform:uppercase;
+    color:var(--muted) !important; margin-bottom:5px !important;
+  }
+  html[data-ds] .ig-field-hint, html[data-ds] .ai-hint, html[data-ds] .op-note{
+    font-size:10.5px !important; line-height:1.45 !important; color:var(--muted) !important;
+  }
+
+  /* --- 35.8 Ro'yxat qatorlari --- */
+  html[data-ds] .wt-row, html[data-ds] .op-fin-panel-row,
+  html[data-ds] .dash-recent-list > *, html[data-ds] .mgmt-perm-item{
+    min-height:46px !important; border-radius:var(--mb-r-orta) !important;
+    transition:background .14s linear, transform .13s cubic-bezier(.2,.9,.25,1) !important;
+  }
+  html[data-ds] .wt-row:active, html[data-ds] .dash-recent-list > *:active{
+    transform:scale(.99) !important;
+  }
+
+  /* --- 35.9 Chiplar: segment tugmasi ko'rinishi --- */
+  html[data-ds] .nb-op-chip, html[data-ds] .of-tab, html[data-ds] .wt-interval-btn{
+    min-height:36px !important; border-radius:999px !important;
+    font-size:12.5px !important; font-weight:700 !important;
+    transition:transform .13s cubic-bezier(.2,.9,.25,1), background .15s linear !important;
+  }
+  html[data-ds] .nb-op-chip:active, html[data-ds] .of-tab:active{ transform:scale(.96) !important; }
+
+  /* --- 35.10 Bo'sh holat: shunchaki yozuv emas --- */
+  html[data-ds] .empty, html[data-ds] .wt-empty, html[data-ds] .qz-empty,
+  html[data-ds] .empty-admin, html[data-ds] .cr-live-empty{
+    padding:24px 16px !important; text-align:center !important;
+    border-radius:var(--mb-r-katta) !important;
+    border:1px dashed color-mix(in srgb, var(--line) 90%, transparent) !important;
+    background:color-mix(in srgb, var(--pnl-yuza, var(--panel)) 60%, transparent) !important;
+    font-size:12.5px !important; color:var(--muted) !important;
+  }
+
+  /* --- 35.11 Jadval chiziqlari --- */
+  html[data-ds] .dash-trend-bar-track, html[data-ds] .cr-progress-wrap,
+  html[data-ds] .qzp-bar{ border-radius:999px !important; overflow:hidden; }
+  html[data-ds] .dash-trend-num{ font-size:11px !important; font-weight:750 !important; }
+  html[data-ds] .dash-trend-label{ font-size:10px !important; color:var(--muted) !important; }
+
+  /* --- 35.11b Tashrif qatori: ikkita toza satr ---
+     Ilgari `flex-wrap` sabab yozuv o'rtadan sinib, "0 ta tashrif
+     buyuruvchi" keyingi qatorga tushib ketardi — tartibsiz
+     ko'rinishning sabablaridan biri shu edi. */
+  html[data-ds] .visitors-box{
+    flex-direction:column !important; align-items:stretch !important;
+    flex-wrap:nowrap !important; gap:7px !important;
+    padding:12px 13px !important;
+    border-radius:var(--mb-r-katta) !important;
+    box-shadow:var(--mb-soya), var(--mb-qirra) !important;
+  }
+  html[data-ds] .visitors-live, html[data-ds] .visitors-total{
+    display:flex !important; align-items:center; gap:7px;
+    font-size:12.5px !important; line-height:1.3 !important;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  html[data-ds] .visitors-total{
+    font-size:11.5px !important; color:var(--muted) !important;
+    padding-top:7px; border-top:1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  }
+  html[data-ds] .visitors-box b{
+    font-size:14px !important; font-weight:820 !important;
+    color:var(--text) !important; font-variant-numeric:tabular-nums;
+  }
+  html[data-ds] .visitors-dot{
+    width:8px !important; height:8px !important; flex:none; border-radius:50%;
+    background:var(--green, #12A150) !important;
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--green, #12A150) 20%, transparent);
+  }
+
+  /* --- 35.11c Matn zichligi: izoh yozuvlari kichikroq ---
+     15px lik uzun izohlar ekranni egallab, asosiy narsani pastga
+     surib yuborardi. */
+  html[data-ds] .settings-form p, html[data-ds] .card p,
+  html[data-ds] .op-block p, html[data-ds] .wt-box p,
+  html[data-ds] .uzx-box p{
+    font-size:12.5px !important; line-height:1.52 !important;
+  }
+  html[data-ds] .settings-form h3, html[data-ds] .card h3,
+  html[data-ds] .op-block h3{
+    font-size:15px !important; font-weight:790 !important;
+    letter-spacing:-.015em !important; margin-bottom:6px !important;
+  }
+
+  /* --- 35.12 Xabar qatorlari --- */
+  html[data-ds] .settings-msg, html[data-ds] .ig-save-msg{
+    border-radius:var(--mb-r-orta) !important; font-size:12px !important;
+    padding:10px 12px !important;
+  }
+}
+
+
+/* ==================================================================
+   36. KENGLIKKA O'ZI MOSLASHISH (V198)
+   ------------------------------------------------------------------
+   MUAMMO (mijoz suratida): oyna biroz kengroq bo'lganda ikkita
+   katakcha cho'zilib ketardi va ichida katta bo'sh joy qolardi —
+   yozuv chapda, o'ng yarmi esa quruq.
+
+   NEGA "auto-fit" o'zi yetarli emas: katakcha TO'RTTA. Joy uchtaga
+   yetganda qator 3+1 bo'lib, bittasi yolg'iz qolади — bu yanada
+   tartibsiz ko'rinadi. Shuning uchun ustun soni 2 yoki 4 bo'ladi.
+
+   BO'SH JOY esa KATAKCHANING O'ZI ichida hal qilinadi: `@container`
+   yordamida katakcha O'Z ENINI o'lchaydi — tor bo'lsa uch qator,
+   keng bo'lsa raqam chapda, izoh o'ngda. Ya'ni joy bor bo'lsa, u
+   ishlatiladi; yo'q bo'lsa, hech narsa qisilmaydi.
+   ================================================================== */
+@media (max-width: 900px){
+  html[data-ds] .dash-stats-row, html[data-ds] .qz-stats,
+  html[data-ds] .pb-stats, html[data-ds] .zk-stats,
+  html[data-ds] .fin-stats, html[data-ds] .cr-stats{
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+    gap:9px !important;
+  }
+  /* Hammasi bitta qatorga sig'adigan bo'lsa — bitta qator */
+  /* Boshqaruv panelidagi katakcha ham o'sha uch maydonga bo'linadi */
+  html[data-ds] .dash-stat-card{ display:grid !important; }
+  html[data-ds] .dash-stat-card .dash-stat-top{ grid-area:nom !important; }
+  html[data-ds] .dash-stat-card .dash-stat-num{ grid-area:qiymat !important; }
+  html[data-ds] .dash-stat-card .dash-stat-sub{ grid-area:izoh !important; }
+  /* Pastki kartochkalar ham: joy bo'lsa yonma-yon tursin */
+  html[data-ds] .dash-grid{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)) !important;
+    gap:10px !important;
+  }
+}
+@media (min-width: 640px) and (max-width: 900px){
+  html[data-ds] .dash-stats-row, html[data-ds] .qz-stats,
+  html[data-ds] .pb-stats, html[data-ds] .zk-stats,
+  html[data-ds] .fin-stats, html[data-ds] .cr-stats{
+    grid-template-columns:repeat(4, minmax(0,1fr)) !important;
+  }
+}
+
+/* KATAKCHA ENIGA QARAB TARTIBINI O'ZGARTIRADI.
+   ------------------------------------------------------------------
+   AVVAL `@container` ishlatilgan edi va ISHLAMADI: element O'Z
+   konteyneriga savol bera olmaydi — `@container` eng yaqin YUQORIDAGI
+   konteynerni o'lchaydi. Natijada uchta yozuv bir katakda ustma-ust
+   tushib qoldi (suratda ko'rindi).
+
+   Ustun soni oldindan ma'lum bo'lgani uchun oddiy `@media` yetarli:
+     * 420px dan tor  -> katakcha ~160px: uch qator;
+     * 420-639px      -> katakcha ~190-250px: raqam chapda, izoh
+                         o'ngda, ya'ni bo'sh joy to'ladi;
+     * 640px dan keng -> to'rt ustun, katakcha yana ~150px: uch qator.
+   ------------------------------------------------------------------ */
+@media (max-width: 900px){
+  html[data-ds] .dash-stat-card, html[data-ds] #paneCredit .qz-stat{
+    grid-template-areas:"nom" "qiymat" "izoh" !important;
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+}
+@media (min-width: 420px) and (max-width: 639px){
+  html[data-ds] .dash-stat-card, html[data-ds] #paneCredit .qz-stat{
+    grid-template-areas:"nom nom" "qiymat izoh" !important;
+    grid-template-columns:minmax(0,auto) minmax(0,1fr) !important;
+    align-items:baseline !important;
+    column-gap:9px !important;
+  }
+  html[data-ds] .dash-stat-card .dash-stat-sub,
+  html[data-ds] #paneCredit .qz-stat .qz-stat-sub{
+    text-align:right !important;
+    white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important;
+  }
+  html[data-ds] .dash-stat-card .dash-stat-num,
+  html[data-ds] #paneCredit .qz-stat .qz-stat-value{ white-space:nowrap !important; }
+}

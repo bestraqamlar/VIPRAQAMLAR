@@ -204,6 +204,10 @@
   /* ---------------- Karta ---------------- */
   .login-screen{
     position:relative;z-index:1;
+    /* margin:auto — ZAXIRA markazlash (V192). Agar biror sabab bilan
+       ota element flex bo'lmay qolsa (masalan JS inline `display:block`
+       qo'ysa), karta baribir markazda turadi, chap yuqoriga ketmaydi. */
+    margin:auto;
     max-width:372px;width:100%;text-align:center;
     background:rgba(10,10,12,0.78);
     backdrop-filter:blur(18px) saturate(130%);-webkit-backdrop-filter:blur(18px) saturate(130%);

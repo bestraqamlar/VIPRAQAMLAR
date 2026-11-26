@@ -2842,7 +2842,7 @@ function startSessionTimer(){
     firebase.auth().signOut();
     if(ordersUnsubscribe){ ordersUnsubscribe(); ordersUnsubscribe = null; }
     dashboard.style.display = 'none';
-    loginScreen.style.display = 'block';
+    loginScreen.style.display = 'flex';
     usernameInput.value = '';
     passwordInput.value = '';
     loginError.textContent = "Seans muddati tugadi (10 daqiqa). Xavfsizlik uchun qaytadan kiring.";
@@ -3202,7 +3202,7 @@ async function seansniYop(sabab){
   try{ if(dashboard) dashboard.style.display = 'none'; }catch(e){}
   try{
     if(loginScreen){
-      loginScreen.style.display = 'block';
+      loginScreen.style.display = 'flex';
       if(loginError && sabab){
         loginError.textContent = sabab;
         loginError.style.display = 'block';
@@ -3241,7 +3241,7 @@ setInterval(()=>{
     if(hal) return;
     hal = true;
     if(authGate) authGate.style.display = 'none';
-    if(loginScreen) loginScreen.style.display = 'block';
+    if(loginScreen) loginScreen.style.display = 'flex';
   }, 3000);
 
   const uzil = firebase.auth().onAuthStateChanged(async (user)=>{
@@ -3261,7 +3261,7 @@ setInterval(()=>{
       }catch(err){
         console.error('Seansni tiklashda xato:', err);
         if(authGate) authGate.style.display = 'none';
-        if(loginScreen) loginScreen.style.display = 'block';
+        if(loginScreen) loginScreen.style.display = 'flex';
         if(loginError){
           loginError.textContent = "Seansni tiklab bo'lmadi. Qaytadan kiring.";
           loginError.style.display = 'block';
@@ -3269,7 +3269,7 @@ setInterval(()=>{
       }
     }else{
       if(authGate) authGate.style.display = 'none';
-      if(loginScreen) loginScreen.style.display = 'block';
+      if(loginScreen) loginScreen.style.display = 'flex';
     }
   });
 })();
@@ -3544,23 +3544,110 @@ function applyAccessControl(whoami){
   }
 }
 
+/* ==================================================================
+   ADMIN HUQUQINI TEKSHIRISH (V197 da qayta yozildi)
+   ------------------------------------------------------------------
+   ESKI XATTI-HARAKAT VA NIMA UCHUN YOMON EDI:
+     * Ekranning TEPASIGA qizil, yopib bo'lmaydigan tasma chiqardi va
+       u sahifa sarlavhasini to'sib turardi;
+     * matnida foydalanuvchiga hech narsa anglatmaydigan ichki fayl
+       nomi bor edi ("admin-grant-role.js");
+     * ENG MUHIMI: so'rov biror sababga ko'ra bajarilmasa ham (tarmoq
+       uzilishi, server xatosi, token tekshiruvi o'tmasligi) javobda
+       `admin:false` qaytadi — natijada HUQUQI BOR adminga ham
+       "sizda huquq yo'q" deb ko'rsatilardi.
+     * Eng ko'p uchraydigan haqiqiy sabab esa — ESKI TOKEN: huquq
+       berilgan, lekin brauzerdagi token hali eskisi. Buni token
+       yangilash bilan o'zi tuzatsa bo'ladi.
+
+   YANGI TARTIB:
+     1. avval odatdagi token bilan so'raymiz;
+     2. "huquq yo'q" desa — tokenni MAJBURAN yangilab, bir marta
+        qayta so'raymiz (ko'p holatda muammo shu yerda tugaydi);
+     3. shundan keyin ham huquq yo'q bo'lsa — mazmun ichida, yopsa
+        bo'ladigan va tushunarli tilda yozilgan ogohlantirish;
+     4. so'rovning o'zi bajarilmasa — bu huquq masalasi EMAS, shuning
+        uchun boshqa (yumshoq) xabar chiqadi.
+   ================================================================== */
+function adminOgohlantirish(turi){
+  if(document.getElementById('adminOgohQuti')) return;
+  const huquq = (turi === 'huquq');
+  const q = document.createElement('div');
+  q.id = 'adminOgohQuti';
+  q.setAttribute('role', 'status');
+  q.style.cssText =
+    'display:flex;align-items:flex-start;gap:11px;margin:0 0 14px;padding:13px 14px;' +
+    'border-radius:14px;font-size:13px;line-height:1.5;' +
+    (huquq
+      ? 'background:color-mix(in srgb, #C62A20 10%, var(--panel, #fff));' +
+        'border:1px solid color-mix(in srgb, #C62A20 42%, transparent);color:var(--text, #111);'
+      : 'background:color-mix(in srgb, #B8860B 10%, var(--panel, #fff));' +
+        'border:1px solid color-mix(in srgb, #B8860B 40%, transparent);color:var(--text, #111);');
+
+  const matn = document.createElement('div');
+  matn.style.cssText = 'flex:1;min-width:0;';
+  matn.innerHTML = huquq
+    ? '<b>Bu hisobda admin huquqi ko\u2018rinmayapti.</b><br>' +
+      'Shu sababli buyurtma, raqam va boshqa ma\u2019lumotlar yuklanmasligi mumkin. ' +
+      'Avval tizimdan chiqib, qayta kiring \u2014 ko\u2018p hollarda shu kifoya. ' +
+      'Yordam bermasa, bosh adminga ayting.'
+    : '<b>Huquqni tekshirib bo\u2018lmadi.</b><br>' +
+      'Internet yoki server bilan vaqtincha bog\u2018lanib bo\u2018lmadi. ' +
+      'Ma\u2019lumotlar ko\u2018rinmasa, sahifani yangilang.';
+
+  const yop = document.createElement('button');
+  yop.type = 'button';
+  yop.textContent = '\u2715';
+  yop.setAttribute('aria-label', 'Yopish');
+  yop.style.cssText =
+    'flex:none;width:28px;height:28px;border-radius:9px;border:0;cursor:pointer;' +
+    'background:transparent;color:inherit;opacity:.65;font-size:14px;line-height:1;';
+  yop.addEventListener('click', ()=> q.remove());
+
+  q.appendChild(matn); q.appendChild(yop);
+  const joy = document.querySelector('.content-inner') || document.body;
+  joy.insertBefore(q, joy.firstChild);
+}
+
 async function checkAdminClaimStatus(){
-  try{
-    const idToken = await firebase.auth().currentUser.getIdToken();
+  let ruxsat = null;
+  const sora = async (yangila)=>{
+    const idToken = await firebase.auth().currentUser.getIdToken(!!yangila);
     const res = await fetch('/.netlify/functions/admin-whoami', {
       headers: { 'Authorization': 'Bearer ' + idToken }
     });
-    const data = await res.json();
+    return await res.json();
+  };
+  try{
+    let data = await sora(false);
+    /* Huquq ko'rinmasa — token eskirgan bo'lishi mumkin. Majburan
+       yangilab, BIR MARTA qayta so'raymiz. */
+    if(data && data.ok && !data.admin){
+      try{ data = await sora(true); }catch(e){}
+    }
+    if(!data || !data.ok){
+      /* So'rovning o'zi bajarilmadi — bu huquq masalasi emas. */
+      console.warn('admin-whoami javob bermadi:', data && data.error);
+      adminOgohlantirish('tarmoq');
+      return;
+    }
     if(!data.admin){
-      const banner = document.createElement('div');
-      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;padding:14px 16px;text-align:center;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3);';
-      banner.textContent = "⚠️ Diqqat: bu hisobda hali ADMIN huquqi (custom claim) yo'q — buyurtmalar, raqamlar va boshqa ma'lumotlar YUKLANMAYDI. admin-grant-role.js orqali huquq bering, so'ng qayta tizimga kiring.";
-      document.body.appendChild(banner);
+      adminOgohlantirish('huquq');
       return;
     }
     window.CURRENT_ADMIN_NAME = (firebase.auth().currentUser && firebase.auth().currentUser.displayName) || data.email || '';
-    applyAccessControl(data);
-  }catch(e){ console.error('Admin huquqi tekshirilmadi:', e); }
+    ruxsat = data;
+  }catch(e){
+    console.error('Admin huquqi tekshirilmadi:', e);
+    adminOgohlantirish('tarmoq');
+    return;
+  }
+  /* MUHIM: ruxsatlarni qo'llash ALOHIDA tekshiruvda.
+     Ilgari u ham yuqoridagi `try` ichida edi — ya'ni shu yerdagi
+     istalgan kichik xato "tarmoq bilan bog'lanib bo'lmadi" degan
+     noto'g'ri xabarni chiqarardi. */
+  try{ applyAccessControl(ruxsat); }
+  catch(e){ console.error('Ruxsatlarni qo\u2018llashda xato:', e); }
 }
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   seansTozala();                            /* V152 */
@@ -3570,7 +3657,7 @@ document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   if(visitorTrackingTimer){ clearInterval(visitorTrackingTimer); visitorTrackingTimer = null; }
   await firebase.auth().signOut();
   dashboard.style.display = 'none';
-  loginScreen.style.display = 'block';
+  loginScreen.style.display = 'flex';
   usernameInput.value = '';
   passwordInput.value = '';
 });
@@ -11192,9 +11279,18 @@ function renderAdminOrders(orders){
      ekranining pastida menyu turardi. Endi `#dashboard` ko'rinmaguncha
      (login va ruxsat tekshiruvi tugamaguncha) menyu umuman
      yaratilmaydi; chiqilganda esa olib tashlanadi. */
+  /* V197: ILGARI faqat `#dashboard` ko'rinishi tekshirilardi. Lekin
+     seans tugab qayta kirish so'ralganda panel YASHIRILMAY, kirish
+     oynasi USTIGA chiqadi — o'sha paytda ikkalasi ham "ko'rinadigan"
+     bo'lib qoladi va pastki menyu login oynasi bilan birga turardi
+     (mijoz suratida aynan shu). Endi menyu uchun ikkala shart ham
+     bajarilishi kerak: panel ochiq VA kirish oynasi yopiq. */
   function kirganmi(){
     const d = document.getElementById('dashboard');
-    return !!d && getComputedStyle(d).display !== 'none';
+    if(!d || getComputedStyle(d).display === 'none') return false;
+    const k = document.getElementById('loginBg');
+    if(k && getComputedStyle(k).display !== 'none') return false;
+    return true;
   }
   function ochir(){
     if(nav){ nav.remove(); nav = null; }
@@ -11207,13 +11303,19 @@ function renderAdminOrders(orders){
     const d = document.getElementById('dashboard');
     if(!d) return;
     let oxirgi = kirganmi();
+    const tekshir = ()=>{
+      const hozir = kirganmi();
+      if(hozir === oxirgi) return;
+      oxirgi = hozir;
+      if(hozir) boshla(); else ochir();
+    };
     try{
-      new MutationObserver(()=>{
-        const hozir = kirganmi();
-        if(hozir === oxirgi) return;
-        oxirgi = hozir;
-        if(hozir) boshla(); else ochir();
-      }).observe(d, { attributes:true, attributeFilter:['style','class'] });
+      const kuz = new MutationObserver(tekshir);
+      kuz.observe(d, { attributes:true, attributeFilter:['style','class'] });
+      /* V197: kirish oynasi ham kuzatiladi — u ochilganda menyu
+         darhol yo'qolishi kerak. */
+      const k = document.getElementById('loginBg');
+      if(k) kuz.observe(k, { attributes:true, attributeFilter:['style','class'] });
     }catch(e){}
   }
 
@@ -13634,9 +13736,16 @@ function stChiz(){
     ov.querySelectorAll('[data-sk-qadam]').forEach(d =>
       d.classList.toggle('on', d.dataset.skQadam === nom));
   }
+  let oxirgiIzoh = '';
   function holat(sarlavha, izoh){
+    oxirgiIzoh = izoh || '';
     const a = document.getElementById('skHolat'); if(a) a.textContent = sarlavha;
-    const b = document.getElementById('skQadam'); if(b) b.textContent = izoh || '';
+    const b = document.getElementById('skQadam'); if(b) b.textContent = oxirgiIzoh;
+  }
+  /* OCR ishlayotganda foizni o'sha izoh satrida ko'rsatamiz. */
+  function foizKorsat(f){
+    const b = document.getElementById('skQadam');
+    if(b && oxirgiIzoh) b.textContent = oxirgiIzoh + ' — ' + f + '%';
   }
 
   /* ---------- Ochish va yopish ---------- */
@@ -13703,7 +13812,11 @@ function stChiz(){
 
     /* Hujjat kadrda kichik bo'lsa harflar bir-biriga yopishadi.
        1500 -> 1900, chegara 2.4 -> 3.2 (V180). */
-    const nisbat = Math.min(3.2, Math.max(1, 1900 / cw));
+    /* V193: pastki chegara 1 edi — ya'ni 4000px li telefon surati
+       KICHRAYTIRILMAY, 4000px holicha OCR ga ketardi va bitta
+       urinish daqiqalab cho'zilardi. Endi katta rasm ham 1900px ga
+       keltiriladi: aniqlik yetarli, tezlik esa 4-6 barobar yuqori. */
+    const nisbat = Math.min(3.2, Math.max(0.2, 1900 / cw));
     const c2 = document.createElement('canvas');
     c2.width = Math.round(cw * nisbat);
     c2.height = Math.round(kesH * nisbat);
@@ -13751,7 +13864,16 @@ function stChiz(){
        MRZ uchun qo'ygan cheklovimiz umuman ishlamayotgan edi va OCR
        `<` belgisini `c`, `0` ni `o` deb o'qiyverardi. Standart rejim
        (ikkalasi birga) ro'yxatni hurmat qiladi. */
-    worker = await window.Tesseract.createWorker('eng');
+    /* V193: `logger` qo'shildi — endi aylanuvchi doira o'rniga
+       haqiqiy foiz ko'rinadi. "Qotib qoldimi?" degan savol
+       shundan chiqardi. */
+    worker = await window.Tesseract.createWorker('eng', undefined, {
+      logger: function(m){
+        if(!m || m.status !== 'recognizing text') return;
+        const f = Math.round((m.progress || 0) * 100);
+        if(f > 0 && f < 100) foizKorsat(f);
+      }
+    });
     return worker;
   }
 
@@ -13770,14 +13892,167 @@ function stChiz(){
     return (r && r.data && r.data.text) || '';
   }
 
-  /* ---------- Asosiy o'qish ---------- */
+  /* ---------- Tasmani yuqori aniqlikda kesib olish (V193) ----------
+     `mrzBandi` kichik rasmda tasmani topgach, O'SHA joyni asl
+     rasmdan katta o'lchamda qayta kesamiz: MRZ harflari ~50px
+     balandlikda bo'lganda OCR eng aniq ishlaydi. */
+  const OCHIQ_KENG = 2600;          /* oraliq kanvas uchun chegara */
+
+  function kulrangOl(manba, engKat){
+    const w0 = manba.naturalWidth || manba.videoWidth || manba.width;
+    const h0 = manba.naturalHeight || manba.videoHeight || manba.height;
+    if(!w0 || !h0) return null;
+    const n = Math.min(1, engKat / Math.max(w0, h0));
+    const w = Math.max(1, Math.round(w0 * n)), h = Math.max(1, Math.round(h0 * n));
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(manba, 0, 0, w, h);
+    let d;
+    try{ d = x.getImageData(0, 0, w, h); }
+    catch(err){ c.width = c.height = 1; return null; }
+    const pk = d.data, kul = new Uint8Array(w * h);
+    for(let i = 0, j = 0; j < kul.length; i += 4, j++){
+      kul[j] = (pk[i] * 0.299 + pk[i+1] * 0.587 + pk[i+2] * 0.114) | 0;
+    }
+    c.width = c.height = 1;
+    return { kul: kul, w: w, h: h };
+  }
+
+  /* Bradley usuli: MAHALLIY chegara. Oddiy bitta chegara soya tushgan
+     rasmda matnning yarmini yeb yuboradi; mahalliy chegara har bir
+     pikselni ATROFI bilan solishtiradi, shuning uchun notekis
+     yoritilgan telefon suratida ham ishlaydi. */
+  function mahalliyOqart(x2, w, h){
+    let d;
+    try{ d = x2.getImageData(0, 0, w, h); }catch(e){ return; }
+    const pk = d.data, n = w * h;
+    const kul = new Float64Array(n);
+    for(let i = 0, j = 0; j < n; i += 4, j++) kul[j] = pk[i] * 0.299 + pk[i+1] * 0.587 + pk[i+2] * 0.114;
+    /* integral tasvir */
+    const S = new Float64Array(n);
+    for(let y = 0; y < h; y++){
+      let qator = 0;
+      for(let x = 0; x < w; x++){
+        qator += kul[y * w + x];
+        S[y * w + x] = (y ? S[(y-1) * w + x] : 0) + qator;
+      }
+    }
+    const r = Math.max(8, Math.round(h / 6));          /* deraza yarmi */
+    const t = 0.88;                                     /* o'rtachaning 88% */
+    for(let y = 0; y < h; y++){
+      const y0 = Math.max(0, y - r), y1 = Math.min(h - 1, y + r);
+      for(let x = 0; x < w; x++){
+        const x0 = Math.max(0, x - r), x1 = Math.min(w - 1, x + r);
+        const soni = (x1 - x0 + 1) * (y1 - y0 + 1);
+        const A = (y0 ? S[(y0-1) * w + (x1)] : 0);
+        const B = (x0 ? S[(y1) * w + (x0-1)] : 0);
+        const C = (y0 && x0) ? S[(y0-1) * w + (x0-1)] : 0;
+        const yigindi = S[y1 * w + x1] - A - B + C;
+        const ortacha = yigindi / soni;
+        const i = (y * w + x) * 4;
+        const q = kul[y * w + x] < ortacha * t ? 0 : 255;
+        pk[i] = pk[i+1] = pk[i+2] = q; pk[i+3] = 255;
+      }
+    }
+    x2.putImageData(d, 0, 0);
+  }
+
+  /* Qiyshiqlikni to'g'rilash: butun rasmni kerakli burchakka burib,
+     yangi kanvas qaytaradi. Keyingi barcha bosqichlar SHU kanvasdan
+     ishlaydi. Fon oq qilinadi — burchaklarda qora uchburchak qolsa
+     OCR uni matn deb o'ylashi mumkin. */
+  function tekisla(manba, burchak){
+    const w0 = manba.naturalWidth || manba.videoWidth || manba.width;
+    const h0 = manba.naturalHeight || manba.videoHeight || manba.height;
+    if(!w0 || !h0) return null;
+    const s = Math.min(1, OCHIQ_KENG / Math.max(w0, h0));
+    const sw = Math.round(w0 * s), sh = Math.round(h0 * s);
+    const r = Math.abs(burchak * Math.PI / 180);
+    const cw = Math.ceil(sw * Math.cos(r) + sh * Math.sin(r));
+    const ch = Math.ceil(sw * Math.sin(r) + sh * Math.cos(r));
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, cw, ch);
+    x.translate(cw / 2, ch / 2);
+    x.rotate(burchak * Math.PI / 180);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(manba, -sw / 2, -sh / 2, sw, sh);
+    return c;
+  }
+
+  function tasmaKanvas(manba, band, oqart){
+    const w0 = manba.naturalWidth || manba.videoWidth || manba.width;
+    const h0 = manba.naturalHeight || manba.videoHeight || manba.height;
+    if(!w0 || !h0) return null;
+    const s = Math.min(1, OCHIQ_KENG / Math.max(w0, h0));
+    const sw = Math.round(w0 * s), sh = Math.round(h0 * s);
+    const tik = (band.burilish === 90 || band.burilish === 270);
+    const cw = tik ? sh : sw, ch = tik ? sw : sh;
+
+    const c1 = document.createElement('canvas');
+    c1.width = cw; c1.height = ch;
+    const x1 = c1.getContext('2d');
+    x1.save();
+    x1.translate(cw / 2, ch / 2);
+    x1.rotate(band.burilish * Math.PI / 180);
+    x1.drawImage(manba, -sw / 2, -sh / 2, sw, sh);
+    x1.restore();
+
+    /* kichik rasmdagi tasma -> shu kanvas koordinatasiga */
+    const n = ch / band.h;
+    const y0 = Math.max(0, Math.floor(band.y0 * n));
+    const y1 = Math.min(ch, Math.ceil((band.y1 + 1) * n));
+    const kesH = Math.max(8, y1 - y0);
+
+    /* Har bir MRZ qatori ~52px balandlikda bo'lsin */
+    const qator = band.qatorlar || 2;
+    const nisbat = Math.min(4, Math.max(1, (qator * 52 * 1.6) / kesH));
+    const c2 = document.createElement('canvas');
+    c2.width = Math.round(cw * nisbat);
+    c2.height = Math.round(kesH * nisbat);
+    const x2 = c2.getContext('2d', { willReadFrequently: true });
+    x2.imageSmoothingEnabled = true;
+    x2.imageSmoothingQuality = 'high';
+    x2.drawImage(c1, 0, y0, cw, kesH, 0, 0, c2.width, c2.height);
+    c1.width = c1.height = 1;
+
+    if(oqart) mahalliyOqart(x2, c2.width, c2.height);
+    else{
+      try{
+        const d = x2.getImageData(0, 0, c2.width, c2.height), pk = d.data;
+        for(let i = 0; i < pk.length; i += 4){
+          let g = pk[i] * 0.299 + pk[i+1] * 0.587 + pk[i+2] * 0.114;
+          g = (g - 128) * 1.7 + 128;
+          pk[i] = pk[i+1] = pk[i+2] = g < 0 ? 0 : (g > 255 ? 255 : g);
+        }
+        x2.putImageData(d, 0, 0);
+      }catch(e){}
+    }
+    return c2;
+  }
+
+  /* ---------- Asosiy o'qish (V193 — bitta aniq urinish) ----------
+     ESKI YO'L: 8 ta to'liq OCR urinishi (4 burchak x 2 kesim) va
+     oxirida yana bitta to'liq matn urinishi. Telefonda 3-5 daqiqa,
+     ko'pincha natijasiz — foydalanuvchi "qotib qoldi" deb yopardi.
+
+     YANGI YO'L:
+       1) rasm kichik kulrangga keltiriladi (~5 ms);
+       2) MRZ tasmasi PIKSELLAR bo'yicha topiladi — OCR'siz;
+       3) o'sha tasma yuqori aniqlikda kesilib, mahalliy oqartish
+          bilan tozalanadi va BIR MARTA OCR qilinadi;
+       4) bo'lmasa — o'sha tasma oqartirilmagan holda yana bir marta;
+       5) baribir bo'lmasa — hujjatning old tomoni deb hisoblanib,
+          oddiy matn o'qiladi (ID kartaning oldida MRZ yo'q).
+     Jami eng ko'pi 3 ta OCR, odatda 1 ta. */
   async function oqi(manba){
     qadam('oqish');
     if(!tashxis) tashxisBoshla();
     if(!tahlilBormi()) return;
     holat("O'qilmoqda…", 'Kutubxona tayyorlanmoqda');
     natija = null;
-    const burilishlar = [0, 180, 90, 270];
     let engYaxshi = null;
 
     try{
@@ -13790,49 +14065,86 @@ function stChiz(){
         + 'Internetni tekshiring yoki ma’lumotni qo‘lda kiriting.');
       return;
     }
+    if(bekorQilindi) return;
 
-    /* 1-bosqich: MRZ.
-       IKKI XIL KESISH (V180): avval pastki qism (tez va aniq), keyin
-       BUTUN rasm. Sabab: hujjat kadr ichida kichik bo'lsa yoki
-       qiyshiq tushgan bo'lsa, MRZ "pastki 38%" ichiga tushmasligi
-       mumkin — o'sha paytda butun rasm bo'yicha qidirish qutqaradi. */
-    const kesishlar = [true, false];
-    for(let k = 0; k < kesishlar.length && !(engYaxshi && engYaxshi.ishonchli); k++){
-    for(let i = 0; i < burilishlar.length; i++){
-      if(bekorQilindi) return;
-      const b = burilishlar[i];
-      holat("O'qilmoqda…", 'MRZ qidirilmoqda' + (b ? ' (' + b + '°)' : ''));
-      const c = tayyorla(manba, b, kesishlar[k]);
-      if(!c) continue;
-      let matn = '';
-      try{ matn = await matnOqi(c, true); }
-      catch(e){ tz('OCR xatosi (' + b + '\u00b0)', e && e.message); }
-      c.width = c.height = 1;
-      tz('MRZ urinish ' + b + '\u00b0' + (kesishlar[k] ? ' past' : ' to\'liq'), matn.replace(/\s+/g, ' ').trim().slice(0, 60) || 'matn yo\'q');
-      if(matn && !tashxis.xom) tashxis.xom = matn;
-      const r = window.HujjatOqish.mrzOqi(matn);
-      if(r){
-        if(!engYaxshi || (r.ishonchli && !engYaxshi.ishonchli)) engYaxshi = r;
-        if(r.ishonchli) break;            /* nazoratdan o'tdi — qidirish shart emas */
+    /* 1-bosqich: tasmani topish — OCR'siz, tez */
+    holat("O'qilmoqda…", 'Hujjat joylashuvi aniqlanmoqda');
+    let band = null;
+    let kichik = kulrangOl(manba, 760);
+
+    /* 1a) QIYSHIQLIKNI TO'G'RILASH. Qo'lda olingan surat hech qachon
+       tep-tekis emas; 3 daraja qiyshiqlik ham MRZ tasmasini yoyib
+       yuboradi va u topilmay qoladi (sinovda aniqlangan). */
+    if(kichik){
+      let tb = 0;
+      try{ tb = window.HujjatOqish.tuzatishBurchagi(kichik.kul, kichik.w, kichik.h); }
+      catch(e){ tz('qiyshiqlik o\u2018lchanmadi', e && e.message); }
+      if(Math.abs(tb) >= 0.5){
+        const tekis = tekisla(manba, tb);
+        if(tekis){
+          manba = tekis;
+          kichik = kulrangOl(manba, 760);
+          tz('qiyshiqlik to\u2018g\u2018rilandi', tb.toFixed(1) + '\u00b0');
+        }
+      }else tz('qiyshiqlik', 'sezilmadi');
+    }
+
+    if(kichik){
+      try{ band = window.HujjatOqish.mrzBandi(kichik.kul, kichik.w, kichik.h); }
+      catch(e){ tz('tasma qidirishda xato', e && e.message); }
+    }
+    tz('tasma', band
+      ? (band.qatorlar + ' qator, ' + band.burilish + '°, ball ' + band.ball.toFixed(2))
+      : 'topilmadi');
+
+    /* 2-bosqich: tasmani o'qish */
+    if(band){
+      const urinishlar = [true, false];       /* oqartirilgan, keyin oddiy */
+      for(let i = 0; i < urinishlar.length; i++){
+        if(bekorQilindi) return;
+        holat("O'qilmoqda…", band.burilish
+          ? 'Hujjat ' + band.burilish + '° burilgan — o‘qilmoqda'
+          : 'Hujjat raqamlari o‘qilmoqda');
+        const c = tasmaKanvas(manba, band, urinishlar[i]);
+        if(!c) break;
+        let matn = '';
+        try{ matn = await matnOqi(c, true); }
+        catch(e){ tz('OCR xatosi', e && e.message); }
+        c.width = c.height = 1;
+        tz('tasma o‘qildi' + (urinishlar[i] ? ' (oqartirilgan)' : ''),
+           matn.replace(/\s+/g, ' ').trim().slice(0, 70) || 'matn yo‘q');
+        if(matn && !tashxis.xom) tashxis.xom = matn;
+        const r = window.HujjatOqish.mrzOqi(matn);
+        if(r){
+          if(!engYaxshi || (r.ishonchli && !engYaxshi.ishonchli)) engYaxshi = r;
+          if(r.ishonchli) break;
+        }
       }
     }
-    }
 
-    /* 2-bosqich: MRZ topilmasa — butun hujjatdan oddiy matn */
+    /* 3-bosqich: MRZ chiqmadi — hujjatning OLD tomoni bo'lishi mumkin
+       (ID kartaning oldida MRZ yo'q). Bitta to'liq matn urinishi. */
     if(!engYaxshi || !engYaxshi.ishonchli){
       if(bekorQilindi) return;
-      holat("O'qilmoqda…", 'MRZ topilmadi — matn o‘qilmoqda');
-      const c = tayyorla(manba, 0, false);
+      holat("O'qilmoqda…", 'Hujjat matni o‘qilmoqda');
+      const c = tayyorla(manba, band ? band.burilish : 0, false);
       if(c){
         let matn = '';
         try{ matn = await matnOqi(c, false); }
-        catch(e){ tz('to\'liq OCR xatosi', e && e.message); }
+        catch(e){ tz('to‘liq OCR xatosi', e && e.message); }
         c.width = c.height = 1;
-        tz('to\'liq matn', matn.replace(/\s+/g, ' ').trim().slice(0, 80) || 'matn yo\'q');
+        tz('to‘liq matn', matn.replace(/\s+/g, ' ').trim().slice(0, 90) || 'matn yo‘q');
         if(matn) tashxis.xom = matn;
         const r = window.HujjatOqish.oqi(matn);
         if(r && (r.hujjatRaqami || r.tugilganSana || r.toliqIsm)){
-          if(!engYaxshi || !engYaxshi.ishonchli) engYaxshi = r;
+          if(!engYaxshi) engYaxshi = r;
+          else if(!engYaxshi.ishonchli){
+            /* ikkalasini birlashtiramiz — biri ismni, biri raqamni
+               topgan bo'lishi mumkin */
+            if(!engYaxshi.toliqIsm && r.toliqIsm) engYaxshi.toliqIsm = r.toliqIsm;
+            if(!engYaxshi.hujjatRaqami && r.hujjatRaqami) engYaxshi.hujjatRaqami = r.hujjatRaqami;
+            if(!engYaxshi.tugilganSana && r.tugilganSana) engYaxshi.tugilganSana = r.tugilganSana;
+          }
         }
       }
     }
@@ -13876,7 +14188,10 @@ function stChiz(){
       qator("Tug'ilgan sana", natija.tugilganSana) +
       (natija.ishonchli
         ? '<p class="sk-tasdiq">Nazorat raqamlari to‘g‘ri — ma’lumot hujjatdan aniq o‘qildi.</p>'
-        : '<p class="sk-ogoh">Bu hujjatda nazorat raqami yo‘q yoki u mos kelmadi. Formaga joylashdan oldin ko‘z bilan tekshiring.</p>'
+        : '<p class="sk-ogoh">Bu tomonda tekshirish raqami yo‘q — ma’lumot oddiy matndan o‘qildi. '
+           + 'Formaga joylashdan oldin ko‘z bilan solishtiring.</p>'
+          + '<p class="sk-izoh"><b>Maslahat:</b> ID kartaning <b>orqa tomonini</b> suratga oling — '
+           + 'u yerdagi <code>&lt;&lt;&lt;</code> qatorlar o‘zi tekshiriladi va xato bo‘lmaydi.</p>'
            + tashxisHtml());
   }
 
